@@ -19,9 +19,9 @@ import {Separator} from "@/components/ui/separator";
 // scaled down to match, which is also what the inline SVGs in the menu use.
 const ICON_STROKE_WIDTH = 1.5;
 
-function ToolbarButton({id, icon: Icon, children, variant = "ghost"}) {
+function ToolbarButton({id, icon: Icon, children, variant = "ghost", className}) {
     return (
-        <Button id={id} size="default" variant={variant}>
+        <Button id={id} size="default" variant={variant} className={className}>
             <Icon data-icon="inline-start" strokeWidth={ICON_STROKE_WIDTH} />
             {children}
         </Button>
@@ -44,23 +44,25 @@ function AppToolbar() {
                     <ToolbarButton id="menu-button" icon={MenuIcon}>Menu</ToolbarButton>
                     <ToolbarButton id="export-button" icon={Share2Icon}>Export</ToolbarButton>
                 </ButtonGroup>
-                <ButtonGroup aria-label="Clear circuit actions">
-                    <ToolbarButton id="clear-circuit-button" icon={EraserIcon} variant="outline">
-                        Clear Circuit
-                    </ToolbarButton>
-                    <ToolbarButton id="clear-all-button" icon={Trash2Icon} variant="destructive">
-                        Clear All
-                    </ToolbarButton>
-                </ButtonGroup>
+                <ToolbarButton id="clear-circuit-button" icon={EraserIcon} variant="outline">
+                    Clear Circuit
+                </ToolbarButton>
                 <ButtonGroup aria-label="History actions">
                     <ToolbarButton id="undo-button" icon={RotateCcwIcon}>Undo</ToolbarButton>
                     <ToolbarButton id="redo-button" icon={RotateCwIcon}>Redo</ToolbarButton>
                 </ButtonGroup>
-                <ButtonGroup aria-label="Gate creation actions">
-                    <ToolbarButton id="gate-forge-button" icon={WandSparklesIcon} variant="outline">
-                        Make Gate
-                    </ToolbarButton>
-                </ButtonGroup>
+                <ToolbarButton id="gate-forge-button" icon={WandSparklesIcon} variant="outline">
+                    Make Gate
+                </ToolbarButton>
+                {/* Last, and pushed clear of the others: it discards custom gates as well as the
+                    circuit, and sitting flush against Clear Circuit made the two easy to confuse. */}
+                <ToolbarButton
+                    id="clear-all-button"
+                    icon={Trash2Icon}
+                    variant="destructive"
+                    className="app-toolbar-danger">
+                    Clear All
+                </ToolbarButton>
             </div>
             <span className="app-version">v2.3</span>
         </header>

@@ -201,16 +201,24 @@ test('renders the circuit controls with shadcn buttons', async browser => {
             'none');
         assert.equal(toolbar.label, 'Circuit controls');
         assert.equal(toolbar.brand, 'Shadow-Quant');
+        // Clear All comes last, away from Clear Circuit, and is no longer joined to it in a group.
         assert.deepEqual(toolbar.buttonIds, [
             'menu-button',
             'export-button',
             'clear-circuit-button',
-            'clear-all-button',
             'undo-button',
             'redo-button',
-            'gate-forge-button'
+            'gate-forge-button',
+            'clear-all-button'
         ]);
-        assert.equal(toolbar.buttonGroupCount, 4);
+        assert.equal(toolbar.buttonGroupCount, 2);
+
+        const clearGap = await page.evaluate(() => {
+            const a = document.getElementById('clear-circuit-button').getBoundingClientRect();
+            const b = document.getElementById('clear-all-button').getBoundingClientRect();
+            return Math.round(b.left - a.right);
+        });
+        assert.ok(clearGap > 100, `Clear All must sit well clear of Clear Circuit, gap was ${clearGap}px.`);
 
         // The template's unlayered `font: inherit` must not outrank Tailwind's utilities layer,
         // or the shadcn buttons silently lose their text-sm/font-medium type.

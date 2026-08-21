@@ -185,6 +185,13 @@
                 gap: var(--space-2);
             }
 
+            /* Keeps the destructive action clear of the others. Spacing rather than a separator,
+               because .app-toolbar-separator is hidden below 920px, which is exactly where the
+               toolbar wraps and crowding is worst. */
+            .app-toolbar-danger {
+                margin-left: auto;
+            }
+
             .app-version {
                 margin-left: auto;
                 font-size: var(--text-small);
