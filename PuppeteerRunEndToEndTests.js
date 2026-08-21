@@ -229,6 +229,30 @@ test('renders the circuit controls with shadcn buttons', async browser => {
                 return `${s.fontSize}/${s.fontWeight}/${el.getBoundingClientRect().height}`;
             }));
         assert.deepEqual([...new Set(typography)], ['14px/500/32']);
+
+        // WAI-ARIA's toolbar pattern: one tab stop, arrow keys move between the controls.
+        const roving = await page.evaluate(() => {
+            const items = () => [...document.querySelectorAll('#app-toolbar-root [data-slot="button"]')];
+            const enabled = items().filter(b => !b.disabled);
+            const press = key => document.activeElement.dispatchEvent(
+                new KeyboardEvent('keydown', {key, bubbles: true, cancelable: true}));
+            const stopsOnLoad = items().filter(b => b.tabIndex === 0).length;
+            enabled[0].focus();
+            const order = [document.activeElement.id];
+            press('ArrowRight');
+            order.push(document.activeElement.id);
+            press('End');
+            order.push(document.activeElement.id);
+            press('Home');
+            order.push(document.activeElement.id);
+            return {stopsOnLoad, order, lastEnabledId: enabled[enabled.length - 1].id,
+                    firstEnabledId: enabled[0].id};
+        });
+        assert.equal(roving.stopsOnLoad, 1, 'The toolbar must be a single tab stop.');
+        assert.equal(roving.order[1], roving.order[1], 'ArrowRight must move focus.');
+        assert.notEqual(roving.order[0], roving.order[1], 'ArrowRight must move off the first control.');
+        assert.equal(roving.order[2], roving.lastEnabledId, 'End must reach the last enabled control.');
+        assert.equal(roving.order[3], roving.firstEnabledId, 'Home must return to the first control.');
     });
 });
 

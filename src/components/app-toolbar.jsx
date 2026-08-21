@@ -11,6 +11,8 @@ import {
     WandSparklesIcon
 } from "lucide-react";
 
+import {useEffect, useRef} from "react";
+
 import {Button} from "@/components/ui/button";
 import {ButtonGroup} from "@/components/ui/button-group";
 import {Separator} from "@/components/ui/separator";
@@ -28,9 +30,86 @@ function ToolbarButton({id, icon: Icon, children, variant = "ghost", className})
     );
 }
 
+/**
+ * A toolbar is one tab stop, with the arrow keys moving between its controls (WAI-ARIA's toolbar
+ * pattern). Focus state lives in the DOM rather than in React because these buttons are also
+ * enabled and disabled imperatively by the non-React ui modules.
+ */
+function useRovingTabIndex(toolbarRef) {
+    useEffect(() => {
+        const toolbar = toolbarRef.current;
+        if (toolbar === null) {
+            return undefined;
+        }
+
+        const items = () => [...toolbar.querySelectorAll('[data-slot="button"]')];
+        const enabled = () => items().filter(b => !b.disabled);
+        const setStop = stop => {
+            for (const b of items()) {
+                b.tabIndex = b === stop ? 0 : -1;
+            }
+        };
+
+        // Collapse to exactly one tab stop, on an enabled control. Buttons default to tabIndex 0,
+        // so without this the whole toolbar is a tab stop per button until the first keypress.
+        const ensureStop = () => {
+            const usable = enabled();
+            if (usable.length === 0) {
+                return;
+            }
+            const stops = items().filter(b => b.tabIndex === 0);
+            if (stops.length !== 1 || stops[0].disabled) {
+                setStop(usable[0]);
+            }
+        };
+
+        const onKeyDown = event => {
+            const usable = enabled();
+            const from = usable.indexOf(document.activeElement);
+            if (from === -1 || usable.length === 0) {
+                return;
+            }
+            let to;
+            switch (event.key) {
+                case 'ArrowRight': to = Math.min(from + 1, usable.length - 1); break;
+                case 'ArrowLeft': to = Math.max(from - 1, 0); break;
+                case 'Home': to = 0; break;
+                case 'End': to = usable.length - 1; break;
+                default: return;
+            }
+            event.preventDefault();
+            setStop(usable[to]);
+            usable[to].focus();
+        };
+
+        const onFocusIn = event => {
+            const target = event.target;
+            if (items().includes(target) && !target.disabled) {
+                setStop(target);
+            }
+        };
+
+        ensureStop();
+        toolbar.addEventListener('keydown', onKeyDown);
+        toolbar.addEventListener('focusin', onFocusIn);
+        // The ui modules toggle `disabled` as the circuit changes; the tab stop follows.
+        const observer = new MutationObserver(ensureStop);
+        observer.observe(toolbar, {attributes: true, attributeFilter: ['disabled'], subtree: true});
+
+        return () => {
+            toolbar.removeEventListener('keydown', onKeyDown);
+            toolbar.removeEventListener('focusin', onFocusIn);
+            observer.disconnect();
+        };
+    }, [toolbarRef]);
+}
+
 function AppToolbar() {
+    const toolbarRef = useRef(null);
+    useRovingTabIndex(toolbarRef);
+
     return (
-        <header className="app-toolbar" role="toolbar" aria-label="Circuit controls">
+        <header className="app-toolbar" role="toolbar" aria-label="Circuit controls" ref={toolbarRef}>
             <div className="app-brand" aria-label="Shadow-Quant quantum circuit simulator">
                 <span className="app-brand-mark" aria-hidden="true"><AtomIcon strokeWidth={ICON_STROKE_WIDTH} /></span>
                 <span className="app-brand-copy">
