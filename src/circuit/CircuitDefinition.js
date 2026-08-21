@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 
-import {CircuitShaders} from "./CircuitShaders.js"
+import {
+    applyAfterOperationsInCol,
+    applyBeforeOperationsInCol,
+    applyInitialStateOperations,
+    applyMainOperationsInCol,
+} from "./CircuitExecution.js"
 import {AppInfo} from "../config/AppInfo.js"
 import {Controls} from "./Controls.js"
 import {CustomGateSet} from "./CustomGateSet.js"
@@ -22,7 +27,6 @@ import {DetailedError} from "../base/DetailedError.js"
 import {equate_Maps} from "../base/Equate.js";
 import {Gate} from "./Gate.js"
 import {GateColumn} from "./GateColumn.js"
-import {GateShaders} from "./GateShaders.js"
 import {Gates, INITIAL_STATES_TO_GATES} from "../gates/AllGates.js"
 import {Point} from "../math/Point.js"
 import {seq, Seq} from "../base/Seq.js"
@@ -925,15 +929,7 @@ class CircuitDefinition {
      * @return {void}
      */
     applyInitialStateOperations(ctx) {
-        for (let wire = 0; wire < this.numWires; wire++) {
-            let state = this.customInitialValues.get(wire);
-            if (!INITIAL_STATES_TO_GATES.has(state)) {
-                throw new DetailedError('Unrecognized initial state.', {state});
-            }
-            for (let gate of INITIAL_STATES_TO_GATES.get(state)) {
-                GateShaders.applyMatrixOperation(ctx.withRow(ctx.row + wire), gate.knownMatrixAt(ctx.time))
-            }
-        }
+        applyInitialStateOperations(this, ctx);
     }
 
     /**
@@ -942,27 +938,7 @@ class CircuitDefinition {
      * @return {void}
      */
     applyMainOperationsInCol(colIndex, ctx) {
-        if (colIndex < 0 || colIndex >= this.columns.length) {
-            return;
-        }
-
-        this._applyOpsInCol(colIndex, ctx, gate => {
-            if (gate.definitelyHasNoEffect() || gate === Gates.Special.SwapHalf) {
-                return undefined;
-            }
-
-            if (gate.customOperation !== undefined) {
-                return gate.customOperation;
-            }
-
-            return ctx => GateShaders.applyMatrixOperation(ctx, gate.knownMatrixAt(ctx.time));
-        });
-
-        let swapRows = this.colGetEnabledSwapGate(colIndex);
-        if (swapRows !== undefined) {
-            let [i, j] = swapRows;
-            ctx.applyOperation(CircuitShaders.swap(ctx.withRow(i + ctx.row), j + ctx.row));
-        }
+        applyMainOperationsInCol(this, colIndex, ctx);
     }
 
     /**
@@ -971,7 +947,7 @@ class CircuitDefinition {
      * @return {void}
      */
     applyBeforeOperationsInCol(colIndex, ctx) {
-        this._applyOpsInCol(colIndex, ctx, g => g.customBeforeOperation);
+        applyBeforeOperationsInCol(this, colIndex, ctx);
     }
 
     /**
@@ -980,32 +956,7 @@ class CircuitDefinition {
      * @return {void}
      */
     applyAfterOperationsInCol(colIndex, ctx) {
-        this._applyOpsInCol(colIndex, ctx, g => g.customAfterOperation);
-    }
-
-    /**
-     * @param {!int} colIndex
-     * @param {!CircuitEvalContext} ctx
-     * @param {!function(!Gate) : !function(!CircuitEvalContext)} opGetter
-     * @private
-     */
-    _applyOpsInCol(colIndex, ctx, opGetter) {
-        if (colIndex < 0 || colIndex >= this.columns.length) {
-            return;
-        }
-        let col = this.columns[colIndex];
-
-        for (let row = 0; row < this.numWires; row++) {
-            let gate = col.gates[row];
-            if (gate === undefined || this.gateAtLocIsDisabledReason(colIndex, row) !== undefined) {
-                continue;
-            }
-
-            let op = opGetter(gate);
-            if (op !== undefined) {
-                op(ctx.withRow(ctx.row + row));
-            }
-        }
+        applyAfterOperationsInCol(this, colIndex, ctx);
     }
 
     /**
