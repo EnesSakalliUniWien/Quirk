@@ -26,7 +26,7 @@ function initTitleSync(revision) {
         try {
             let circuitDef = fromJsonText_CircuitDefinition(jsonText);
             if (!circuitDef.isEmpty()) {
-                return `Quirk: ${circuitDef.readableHash()}`;
+                return `Shadow-Quant: ${circuitDef.readableHash()}`;
             }
         } catch (_) {
         }
