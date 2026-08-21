@@ -67,7 +67,11 @@ class DisplayedInspector {
 
         this.displayedToolboxTop = this.displayedToolboxTop.withTop(0);
         this.displayedToolboxBottom = this.displayedToolboxBottom.withTop(
-            this.drawArea.bottom() - this.displayedToolboxBottom.desiredHeight());
+            this.displayedToolboxTop.desiredHeight());
+
+        let toolboxesBottom = this.displayedToolboxBottom.top + this.displayedToolboxBottom.desiredHeight();
+        this.displayedCircuit = this.displayedCircuit.withTop(toolboxesBottom + Config.TOOLBOX_CIRCUIT_MARGIN);
+        this.displayedCircuit.updateDisplayShift(drawArea.w);
     }
 
     /**
@@ -305,6 +309,7 @@ class DisplayedInspector {
         let minimumDesired =
             this.displayedToolboxBottom.desiredHeight() +
             this.displayedToolboxTop.desiredHeight() +
+            Config.TOOLBOX_CIRCUIT_MARGIN +
             this.displayedCircuit.desiredHeight();
         return Math.max(Config.MINIMUM_CANVAS_HEIGHT, minimumDesired);
     }
@@ -317,9 +322,12 @@ class DisplayedInspector {
     }
 
     _drawHint(painter) {
+        painter.ctx.save();
+        painter.ctx.translate(0, this.displayedCircuit.top - this.displayedToolboxTop.desiredHeight());
         this._drawHint_dragGatesOntoCircuit(painter);
         this._drawHint_watchOutputsChange(painter);
         this._drawHint_useControls(painter);
+        painter.ctx.restore();
     }
 
     /**
@@ -334,14 +342,16 @@ class DisplayedInspector {
 
         painter.ctx.save();
         painter.ctx.globalAlpha *= Math.min(1, visibilityFactor);
-        painter.ctx.translate(this.displayedCircuit.opRect(this.displayedCircuit.clampedCircuitColCount()).x - 280, 15);
+        // Anchored to the first output display column so the arrow follows the right-aligned displays.
+        painter.ctx.translate(
+            this.displayedCircuit.opRect(this.displayedCircuit.clampedCircuitColCount() + 1).x - 330, 15);
 
         painter.ctx.save();
         painter.ctx.translate(268, 250);
         painter.ctx.rotate(Math.PI * 0.02);
-        painter.ctx.fillStyle = 'red';
+        painter.ctx.fillStyle = Config.ERROR_COLOR;
         painter.ctx.textAlign = 'right';
-        painter.ctx.font = '16px sans-serif';
+        painter.ctx.font = `16px ${Config.DEFAULT_FONT_FAMILY}`;
         painter.ctx.fillText("outputs change", 0, 0);
         painter.ctx.restore();
 
@@ -351,13 +361,13 @@ class DisplayedInspector {
             300, 245,
             315, 235,
             325, 225);
-        painter.ctx.strokeStyle = 'red';
+        painter.ctx.strokeStyle = Config.ERROR_COLOR;
         painter.ctx.lineWidth = 3;
         painter.ctx.stroke();
 
         painter.trace(tracer => {
             tracer.arrowHead(330, 219, 10, Math.PI*-0.265, 1.3);
-        }).thenFill('red');
+        }).thenFill(Config.ERROR_COLOR);
 
         painter.ctx.restore();
     }
@@ -368,7 +378,7 @@ class DisplayedInspector {
         }
         return this.hand.pos === undefined || !this.hand.isBusy() ? 1.0 :
             this.hand.heldGate !== undefined && this.hand.heldGate.isControl() ? 1.0 :
-            (150-this.hand.pos.y)/50;
+            (this.displayedCircuit.top + 2 - this.hand.pos.y)/50;
     }
 
 
@@ -388,8 +398,8 @@ class DisplayedInspector {
         painter.ctx.save();
         painter.ctx.translate(130, 195);
         painter.ctx.rotate(Math.PI * 0.05);
-        painter.ctx.fillStyle = 'red';
-        painter.ctx.font = '16px sans-serif';
+        painter.ctx.fillStyle = Config.ERROR_COLOR;
+        painter.ctx.font = `16px ${Config.DEFAULT_FONT_FAMILY}`;
         painter.ctx.fillText("drag gates onto circuit", 0, 0);
         painter.ctx.restore();
 
@@ -399,13 +409,13 @@ class DisplayedInspector {
             260, 170,
             235, 175,
             217, 187);
-        painter.ctx.strokeStyle = 'red';
+        painter.ctx.strokeStyle = Config.ERROR_COLOR;
         painter.ctx.lineWidth = 3;
         painter.ctx.stroke();
 
         painter.trace(tracer => {
             tracer.arrowHead(210, 190, 10, Math.PI*0.84, 1.3);
-        }).thenFill('red');
+        }).thenFill(Config.ERROR_COLOR);
 
         painter.ctx.restore();
     }
@@ -428,8 +438,8 @@ class DisplayedInspector {
         painter.ctx.save();
         painter.ctx.translate(70, fy-3);
         painter.ctx.rotate(Math.PI * -0.01);
-        painter.ctx.fillStyle = 'red';
-        painter.ctx.font = '16px sans-serif';
+        painter.ctx.fillStyle = Config.ERROR_COLOR;
+        painter.ctx.font = `16px ${Config.DEFAULT_FONT_FAMILY}`;
         painter.ctx.fillText("use controls", 0, 0);
         painter.ctx.restore();
 
@@ -447,12 +457,12 @@ class DisplayedInspector {
                 105, 170,
                 55, fy);
         }
-        painter.ctx.strokeStyle = 'red';
+        painter.ctx.strokeStyle = Config.ERROR_COLOR;
         painter.ctx.lineWidth = 3;
         painter.ctx.stroke();
         painter.ctx.beginPath();
         painter.ctx.arc(55, fy, 5, 0, 2 * Math.PI);
-        painter.ctx.fillStyle = 'red';
+        painter.ctx.fillStyle = Config.ERROR_COLOR;
         painter.ctx.fill();
 
         painter.ctx.restore();

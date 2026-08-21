@@ -36,9 +36,13 @@ import {paintBlochSphereDisplay} from "../gates/BlochSphereDisplay.js"
 /** @type {!number} */
 let CIRCUIT_OP_HORIZONTAL_SPACING = 10;
 /** @type {!number} */
-let CIRCUIT_OP_LEFT_SPACING = 35;
+// Matches Config.TOOLBOX_MARGIN_X so gate columns align with the toolbox groups.
+let CIRCUIT_OP_LEFT_SPACING = 32;
 
 const SUPERPOSITION_GRID_LABEL_SPAN = 50;
+
+/** Stands in for the half of a basis state's bits that the other axis of the amplitude grid supplies. */
+const SUPERPOSITION_GRID_LABEL_ELLIPSIS = '⋯';
 
 const EXTRA_COLS_FOR_SINGLE_QUBIT_DISPLAYS = 2;
 
@@ -82,6 +86,31 @@ class DisplayedCircuit {
          * @private
          */
         this._extraWireStartIndex = extraWireStartIndex;
+        /**
+         * How far right the output displays are pushed so they end at the right edge of the available area.
+         * Recomputed from the available width on every layout pass; not part of the circuit's identity.
+         * @type {!number}
+         * @private
+         */
+        this._displayShift = 0;
+    }
+
+    /**
+     * Right-aligns the output displays to the available width, without ever pulling them left of the circuit.
+     * @param {!number} availableWidth
+     */
+    updateDisplayShift(availableWidth) {
+        this._displayShift = 0;
+        this._displayShift = Math.max(0, availableWidth - this.desiredWidth());
+    }
+
+    /**
+     * @param {!int} operationIndex
+     * @returns {!boolean} Whether the column holds output displays instead of circuit operations.
+     * @private
+     */
+    _isOutputDisplayColumn(operationIndex) {
+        return operationIndex > this.clampedCircuitColCount();
     }
 
     /**
@@ -95,6 +124,19 @@ class DisplayedCircuit {
             undefined,
             undefined,
             undefined);
+    }
+
+    /**
+     * @param {!number} top
+     * @returns {!DisplayedCircuit}
+     */
+    withTop(top) {
+        return new DisplayedCircuit(
+            top,
+            this.circuitDefinition,
+            this._compressedColumnIndex,
+            this._highlightedSlot,
+            this._extraWireStartIndex);
     }
 
     /**
@@ -126,7 +168,7 @@ class DisplayedCircuit {
         if (forTooltip) {
             return this.circuitDefinition.numWires * Config.WIRE_SPACING;
         }
-        return this._groundedWireCount() * Config.WIRE_SPACING + 55;
+        return this._groundedWireCount() * Config.WIRE_SPACING + 105;
     }
 
     /**
@@ -283,6 +325,9 @@ class DisplayedCircuit {
         }
 
         let dx = opSeparation * operationIndex - tweak + CIRCUIT_OP_LEFT_SPACING;
+        if (this._isOutputDisplayColumn(operationIndex)) {
+            dx += this._displayShift;
+        }
         return new Rect(dx, this.top, opWidth, this.desiredHeight());
     }
 
@@ -383,7 +428,9 @@ class DisplayedCircuit {
                 if (this._highlightedSlot === undefined && hand.pos !== undefined && rect.containsPoint(hand.pos)) {
                     painter.fillRect(rect, Config.HIGHLIGHTED_GATE_FILL_COLOR);
                 }
-                painter.print(`|${v}⟩`, 20, y, 'right', 'middle', 'black', '14px sans-serif', 20, Config.WIRE_SPACING);
+                painter.print(
+                    `|${v}⟩`, 26, y, 'right', 'middle', Config.INK_COLOR,
+                    `14px ${Config.DEFAULT_FONT_FAMILY}`, 22, Config.WIRE_SPACING);
             }
         }
 
@@ -396,12 +443,14 @@ class DisplayedCircuit {
             painter.trace(trace => {
                 let wireRect = this.wireRect(row);
                 let y = Math.round(wireRect.center().y - 0.5) + 0.5;
-                let lastX = showLabels ? 25 : 5;
+                let lastX = showLabels ? 28 : 5;
+                // Wires terminate at the superposition display instead of running to the canvas's right edge.
+                let wireEndX = showLabels ? this._rectForSuperpositionDisplay().x - 4 : Infinity;
                 //noinspection ForLoopThatDoesntUseLoopVariableJS
                 for (let col = 0;
-                        showLabels ? lastX < painter.canvas.width : col <= this.circuitDefinition.columns.length;
+                        showLabels ? lastX < wireEndX : col <= this.circuitDefinition.columns.length;
                         col++) {
-                    let x = this.opRect(col).center().x;
+                    let x = Math.min(this.opRect(col).center().x, wireEndX);
                     if (this.circuitDefinition.locIsMeasured(new Point(col, row))) {
                         // Measured wire.
                         trace.line(lastX, y-1, x, y-1);
@@ -412,7 +461,7 @@ class DisplayedCircuit {
                     }
                     lastX = x;
                 }
-            }).thenStroke('black');
+            }).thenStroke(Config.INK_COLOR);
         }
         painter.ctx.restore();
         if (this._extraWireStartIndex !== undefined && this.circuitDefinition.numWires === Config.MAX_WIRE_COUNT) {
@@ -422,8 +471,8 @@ class DisplayedCircuit {
                 this.wireRect(Config.MAX_WIRE_COUNT).y,
                 'left',
                 'top',
-                'red',
-                '16px bold monospace',
+                Config.ERROR_COLOR,
+                `bold 16px ${Config.MONO_FONT_FAMILY}`,
                 400,
                 Config.WIRE_SPACING);
         }
@@ -495,14 +544,14 @@ class DisplayedCircuit {
             painter.ctx.globalAlpha *= 0.3;
         }
         painter.ctx.globalAlpha *= 0.5;
-        painter.fillRect(gateRect.paddedBy(5), 'yellow');
+        painter.fillRect(gateRect.paddedBy(5), Config.HIGHLIGHT_FILL_COLOR);
         painter.ctx.globalAlpha *= 2;
-        painter.strokeLine(gateRect.topLeft(), gateRect.bottomRight(), 'orange', 3);
-        let r = painter.printParagraph(isDisabledReason, gateRect.paddedBy(5), new Point(0.5, 0.5), 'red');
+        painter.strokeLine(gateRect.topLeft(), gateRect.bottomRight(), Config.HIGHLIGHT_STROKE_COLOR, 3);
+        let r = painter.printParagraph(isDisabledReason, gateRect.paddedBy(5), new Point(0.5, 0.5), Config.ERROR_COLOR);
         painter.ctx.globalAlpha *= 0.5;
-        painter.fillRect(r.paddedBy(2), 'yellow');
+        painter.fillRect(r.paddedBy(2), Config.HIGHLIGHT_FILL_COLOR);
         painter.ctx.globalAlpha *= 2;
-        painter.printParagraph(isDisabledReason, gateRect.paddedBy(5), new Point(0.5, 0.5), 'red');
+        painter.printParagraph(isDisabledReason, gateRect.paddedBy(5), new Point(0.5, 0.5), Config.ERROR_COLOR);
         painter.ctx.restore()
     }
 
@@ -593,8 +642,8 @@ class DisplayedCircuit {
             pt.y - 28,
             'center',
             'bottom',
-            'red',
-            '14px sans-serif',
+            Config.ERROR_COLOR,
+            `14px ${Config.DEFAULT_FONT_FAMILY}`,
             800,
             50);
         painter.print(
@@ -603,8 +652,8 @@ class DisplayedCircuit {
             pt.y - 13,
             'center',
             'bottom',
-            'red',
-            '14px sans-serif',
+            Config.ERROR_COLOR,
+            `14px ${Config.DEFAULT_FONT_FAMILY}`,
             800,
             50);
     }
@@ -615,7 +664,7 @@ class DisplayedCircuit {
             this._highlightedSlot.row === undefined) {
             let rect = this.gateRect(0, col, 1, this._groundedWireCount()).paddedBy(3);
             painter.fillRect(rect, 'rgba(255, 196, 112, 0.7)');
-            painter.strokeRect(rect, 'black');
+            painter.strokeRect(rect, Config.INK_COLOR);
         }
     }
 
@@ -632,7 +681,7 @@ class DisplayedCircuit {
             let w = this.gateRect(row, this.clampedCircuitColCount() + 1).x;
             let rect = this.wireRect(row).takeLeft(w);
             painter.fillRect(rect, 'rgba(255, 196, 112, 0.7)');
-            painter.strokeRect(rect, 'black');
+            painter.strokeRect(rect, Config.INK_COLOR);
         }
     }
 
@@ -1301,12 +1350,14 @@ class DisplayedCircuit {
         }
 
         let bottom = this.wireRect(numWire-1).bottom();
-        let x = this.opRect(chanceCol - 1).x;
+        let capX = this.opRect(chanceCol).x - 35;
+        // Keep the caption clear of the superposition grid's rotated column labels.
+        let capW = Math.min(160, this._rectForSuperpositionDisplay().x - capX - 10);
         painter.printParagraph(
             "Local wire states\n(Chance/Bloch)",
-            new Rect(x, bottom+4, 190, 40),
+            new Rect(capX, bottom + 8, capW, 40),
             new Point(0.5, 0),
-            'gray');
+            Config.MUTED_TEXT_COLOR);
 
         this._drawOutputSuperpositionDisplay(painter, stats, hand);
     }
@@ -1338,7 +1389,7 @@ class DisplayedCircuit {
             amplitudeGrid,
             gridRect,
             numWire < Config.SIMPLE_SUPERPOSITION_DRAWING_WIRE_THRESHOLD ? Config.SUPERPOSITION_MID_COLOR : undefined,
-            'black',
+            Config.INK_COLOR,
             numWire < Config.SIMPLE_SUPERPOSITION_DRAWING_WIRE_THRESHOLD ? Config.SUPERPOSITION_FORE_COLOR : undefined,
             Config.SUPERPOSITION_BACK_COLOR);
         let forceSign = v => (v >= 0 ? '+' : '') + v.toFixed(2);
@@ -1413,10 +1464,18 @@ class DisplayedCircuit {
             gridRect.bottom() + 3,
             'left',
             'top',
-            'gray',
-            '12px sans-serif',
+            Config.MUTED_TEXT_COLOR,
+            `12px ${Config.DEFAULT_FONT_FAMILY}`,
             100,
             20);
+
+        // Says what each cell's glyphs encode, which is otherwise only discoverable by hovering.
+        painter.printParagraph(
+            "area = chance\nline = phase",
+            new Rect(gridRect.right() + 3, gridRect.bottom() + 18, 100, 26),
+            new Point(0, 0),
+            Config.MUTED_TEXT_COLOR,
+            10);
 
         // Deferred measurement warning.
         if (this.circuitDefinition.colIsMeasuredMask(Infinity) !== 0) {
@@ -1424,11 +1483,11 @@ class DisplayedCircuit {
                 "(assuming measurement deferred)",
                 new Rect(
                     gridRect.right() + 3,
-                    gridRect.bottom() + 20,
+                    gridRect.bottom() + 48,
                     100,
                     75),
                 new Point(0.5, 0),
-                'red');
+                Config.ERROR_COLOR);
         }
 
         // Discard rate warning.
@@ -1448,11 +1507,11 @@ class DisplayedCircuit {
             painter.print(
                 desc,
                 this._rectForSuperpositionDisplay().x - 5,
-                gridRect.bottom() + SUPERPOSITION_GRID_LABEL_SPAN,
+                gridRect.bottom() + SUPERPOSITION_GRID_LABEL_SPAN + 20,
                 'right',
                 'bottom',
-                'red',
-                '14px sans-serif',
+                Config.ERROR_COLOR,
+                `14px ${Config.DEFAULT_FONT_FAMILY}`,
                 800,
                 50);
         }
@@ -1600,7 +1659,7 @@ function _drawLabelsReasonablyFast(painter, dy, n, labeller, boundingWidth) {
     ctx.save();
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    painter.ctx.font = '12px monospace';
+    painter.ctx.font = `12px ${Config.MONO_FONT_FAMILY}`;
     let w = Math.max(
         painter.ctx.measureText(labeller(0)).width,
         painter.ctx.measureText(labeller(n-1)).width);
@@ -1612,7 +1671,7 @@ function _drawLabelsReasonablyFast(painter, dy, n, labeller, boundingWidth) {
     let pad = 1/scale;
     ctx.scale(scale, scale);
     ctx.translate(0, dy*0.5/scale - h*0.5);
-    ctx.fillStyle = 'lightgray';
+    ctx.fillStyle = Config.SURFACE_COLOR;
     if (h < step*0.95) {
         for (let i = 0; i < n; i++) {
             ctx.fillRect(0, step*i, w + 2*pad, h);
@@ -1620,7 +1679,7 @@ function _drawLabelsReasonablyFast(painter, dy, n, labeller, boundingWidth) {
     } else {
         ctx.fillRect(0, 0, w + 2*pad, step*n);
     }
-    ctx.fillStyle = 'black';
+    ctx.fillStyle = Config.INK_COLOR;
     for (let i = 0; i < n; i++) {
         ctx.fillText(labeller(i), pad, h*0.5 + step*i);
     }
@@ -1636,13 +1695,12 @@ let _cachedRowLabelDrawer = new CachablePainting(
         let [colWires, rowWires] = [Math.floor(numWire/2), Math.ceil(numWire/2)];
         let rowCount = 1 << rowWires;
         //noinspection JSCheckFunctionSignatures
-        let suffix = colWires < 4 ? "_".repeat(colWires) : "_..";
-        //noinspection JSCheckFunctionSignatures
         _drawLabelsReasonablyFast(
             painter,
-            painter.canvas.height / rowCount,
+            painter.paintableArea().h / rowCount,
             rowCount,
-            i => Util.bin(i, rowWires) + suffix,
+            // One ellipsis stands in for the bits the column supplies, keeping the label short enough to stay legible.
+            i => Util.bin(i, rowWires) + SUPERPOSITION_GRID_LABEL_ELLIPSIS,
             SUPERPOSITION_GRID_LABEL_SPAN);
     });
 
@@ -1660,18 +1718,17 @@ let _cachedColLabelDrawer = new CachablePainting(
     (painter, numWire) => {
         let [colWires, rowWires] = [Math.floor(numWire/2), Math.ceil(numWire/2)];
         let colCount = 1 << colWires;
-        let dw = painter.canvas.width / colCount;
+        let dw = painter.paintableArea().w / colCount;
 
         painter.ctx.translate(colCount*dw, 0);
         painter.ctx.rotate(Math.PI/2);
-        //noinspection JSCheckFunctionSignatures
-        let prefix = rowWires < 4 ? "_".repeat(rowWires) : ".._";
         //noinspection JSCheckFunctionSignatures
         _drawLabelsReasonablyFast(
             painter,
             dw,
             colCount,
-            i => prefix + Util.bin(colCount-1-i, colWires),
+            // One ellipsis stands in for the bits the row supplies, keeping the label short enough to stay legible.
+            i => SUPERPOSITION_GRID_LABEL_ELLIPSIS + Util.bin(colCount-1-i, colWires),
             SUPERPOSITION_GRID_LABEL_SPAN);
     });
 

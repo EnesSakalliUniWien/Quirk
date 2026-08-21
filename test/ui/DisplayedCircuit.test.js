@@ -138,6 +138,9 @@ suite.test("constructor_vs_isEqualTo", () => {
     assertThat(c2).isNotEqualTo(new DisplayedCircuit(67, d2, 2, {col: 1, row: 1, resizeStyle: true}, 1));
     assertThat(c2).isNotEqualTo(new DisplayedCircuit(67, d2, 1, {col: 2, row: 1, resizeStyle: true}, 1));
     assertThat(c2).isNotEqualTo(new DisplayedCircuit(67, d2, 1, {col: 2, row: 1, resizeStyle: true}, 2));
+
+    assertThat(c2.withTop(89)).isEqualTo(
+        new DisplayedCircuit(89, d2, 1, {col: 1, row: 1, resizeStyle: true}, 1));
 });
 
 suite.test("bootstrap_diagram", () => {
