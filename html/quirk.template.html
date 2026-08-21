@@ -1,42 +1,651 @@
 <!DOCTYPE html>
-<html>
+<html class="dark">
     <head lang="en">
         <meta charset="UTF-8">
+        <meta name="color-scheme" content="dark">
         <meta name="keywords" content="quantum,circuit,simulator,quirk">
         <meta name="description" content="Quirk is an open-source drag-and-drop quantum circuit simulator for exploring and understanding small quantum circuits.">
         <title>Quirk: Quantum Circuit Simulator</title>
         <link rel="shortcut icon" href="data:image/png;base64,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">
+        <style>
+            :root {
+                --font-ui: "Geist Variable", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+                --font-mono: ui-monospace, "SFMono-Regular", Consolas, monospace;
+                --text-small: 0.8125rem;
+                --text-body: 0.9375rem;
+                --text-heading: 1.125rem;
+                --text-title: 1.75rem;
+                --space-1: 4px;
+                --space-2: 8px;
+                --space-3: 12px;
+                --space-4: 16px;
+                --space-6: 24px;
+                --space-8: 32px;
+            }
+
+            html {
+                background: var(--background);
+                color-scheme: dark;
+                font-family: var(--font-ui);
+                font-size: 16px;
+                line-height: 1.5;
+            }
+
+            body {
+                min-width: 320px;
+                margin: 0;
+                color: var(--foreground);
+                background: var(--background);
+            }
+
+            #inspectorDiv {
+                min-height: 100vh;
+                background: var(--background);
+            }
+
+            #canvasDiv {
+                background: var(--background);
+                box-shadow: inset 0 1px 0 var(--border);
+            }
+
+            #drawCanvas {
+                display: block;
+            }
+
+            a {
+                color: inherit;
+            }
+
+            button,
+            input,
+            textarea {
+                box-sizing: border-box;
+            }
+
+            /* This block is unlayered, so `font: inherit` would outrank Tailwind's utilities
+               layer. shadcn buttons carry their own type via text-sm/font-medium, so they are
+               excluded here the same way they are from the button styling below. */
+            button:not([data-slot="button"]),
+            input,
+            textarea {
+                font: inherit;
+            }
+
+            button:not([data-slot="button"]) {
+                min-height: 32px;
+                padding: 5px var(--space-3);
+                color: var(--secondary-foreground);
+                background: var(--secondary);
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                font-size: 0.875rem;
+                font-weight: 550;
+                line-height: 1.25;
+                cursor: pointer;
+                transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+            }
+
+            button:not([data-slot="button"]):hover:not(:disabled) {
+                color: var(--foreground);
+                background: var(--accent);
+                border-color: color-mix(in oklch, var(--primary), var(--border) 45%);
+            }
+
+            button:not([data-slot="button"]):disabled {
+                cursor: not-allowed;
+                opacity: 0.48;
+            }
+
+            input[type="text"],
+            textarea {
+                min-height: 32px;
+                padding: 6px 9px;
+                color: var(--foreground);
+                background: color-mix(in oklch, var(--background), white 2%);
+                border: 1px solid var(--input);
+                border-radius: 8px;
+                outline: none;
+            }
+
+            input[type="text"]::placeholder,
+            textarea::placeholder {
+                color: var(--muted-foreground);
+            }
+
+            input[type="checkbox"] {
+                accent-color: var(--primary);
+            }
+
+            :focus-visible {
+                outline: 3px solid color-mix(in oklch, var(--ring), transparent 48%);
+                outline-offset: 2px;
+            }
+
+            input[type="text"]:focus,
+            textarea:focus {
+                border-color: var(--ring);
+                box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring), transparent 72%);
+            }
+
+            .app-toolbar {
+                display: flex;
+                min-height: 52px;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: var(--space-2) var(--space-3);
+                padding: var(--space-2) var(--space-3);
+            }
+
+            .app-brand {
+                display: flex;
+                align-items: center;
+                gap: var(--space-2);
+                white-space: nowrap;
+            }
+
+            .app-brand-mark {
+                display: inline-flex;
+                width: 32px;
+                height: 32px;
+                align-items: center;
+                justify-content: center;
+                border-radius: 10px;
+            }
+
+            .app-brand-mark svg {
+                width: 17px;
+                height: 17px;
+            }
+
+            .app-brand-copy {
+                display: grid;
+                line-height: 1.1;
+            }
+
+            .app-brand-copy strong {
+                font-size: 0.9375rem;
+                letter-spacing: -0.01em;
+            }
+
+            .app-brand-copy small {
+                margin-top: 3px;
+                color: var(--muted-foreground);
+                font-size: 0.6875rem;
+                font-weight: 450;
+            }
+
+            .app-toolbar-separator {
+                height: 28px;
+            }
+
+            .app-toolbar-actions {
+                display: flex;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: var(--space-2);
+            }
+
+            .app-version {
+                margin-left: auto;
+                font-size: var(--text-small);
+                font-variant-numeric: tabular-nums;
+            }
+
+            .dialog-overlay {
+                position: fixed;
+                inset: 0;
+                z-index: 10;
+                background: color-mix(in oklch, var(--background), transparent 16%);
+                backdrop-filter: blur(7px);
+            }
+
+            .dialog-layout {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                z-index: 11;
+                display: flex;
+                width: fit-content;
+                max-width: calc(100vw - 48px);
+                max-height: calc(100vh - 48px);
+                align-items: stretch;
+                gap: var(--space-3);
+                overflow: auto;
+                transform: translate(-50%, -50%);
+            }
+
+            .dialog-panel,
+            .example-panel {
+                box-sizing: border-box;
+                color: var(--card-foreground);
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-radius: 12px;
+                box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+            }
+
+            .dialog-panel {
+                padding: var(--space-6);
+            }
+
+            .dialog-header {
+                display: grid;
+                gap: var(--space-1);
+            }
+
+            .dialog-eyebrow {
+                margin: 0;
+                color: color-mix(in oklch, var(--primary), white 20%);
+                font-size: 0.6875rem;
+                font-weight: 650;
+                letter-spacing: 0.1em;
+                text-transform: uppercase;
+            }
+
+            .dialog-title {
+                margin: 0;
+                font-size: var(--text-title);
+                font-weight: 650;
+                letter-spacing: -0.025em;
+                line-height: 1.15;
+            }
+
+            .dialog-description {
+                margin: 0;
+                color: var(--muted-foreground);
+                font-size: var(--text-body);
+            }
+
+            .welcome-panel {
+                display: flex;
+                width: 500px;
+                flex-direction: column;
+                justify-content: center;
+                text-align: center;
+            }
+
+            .welcome-title {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: var(--space-2);
+                margin: 0;
+                font-size: var(--text-title);
+                font-weight: 650;
+                letter-spacing: -0.025em;
+                line-height: 1.2;
+            }
+
+            .welcome-title svg {
+                width: 32px;
+                height: 32px;
+                color: color-mix(in oklch, var(--primary), white 22%);
+                filter: drop-shadow(0 0 9px color-mix(in oklch, var(--ring), transparent 40%));
+            }
+
+            .welcome-tagline {
+                margin-top: var(--space-1);
+                color: var(--muted-foreground);
+                font-size: var(--text-body);
+            }
+
+            .welcome-primary {
+                margin: var(--space-6) 0;
+            }
+
+            .welcome-primary-action {
+                width: 100%;
+                min-height: 44px;
+                color: var(--primary-foreground) !important;
+                background: var(--primary) !important;
+                border-color: transparent !important;
+                font-size: 0.9375rem !important;
+            }
+
+            .welcome-primary-action:hover:not(:disabled) {
+                background: color-mix(in oklch, var(--primary), white 8%) !important;
+            }
+
+            .resource-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: var(--space-2);
+            }
+
+            .resource-card {
+                display: flex;
+                min-height: 104px;
+                align-items: center;
+                justify-content: center;
+                padding: var(--space-3);
+                color: var(--muted-foreground);
+                background: color-mix(in oklch, var(--muted), transparent 38%);
+                border: 1px solid var(--border);
+                border-radius: 10px;
+                font-size: 0.875rem;
+                font-weight: 550;
+                text-align: center;
+                text-decoration: none;
+                transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease, transform 140ms ease;
+            }
+
+            .resource-card:hover {
+                color: var(--foreground);
+                background: var(--accent);
+                border-color: color-mix(in oklch, var(--ring), var(--border) 45%);
+                transform: translateY(-1px);
+            }
+
+            .resource-card-content {
+                display: grid;
+                justify-items: center;
+                gap: var(--space-2);
+            }
+
+            .resource-card svg {
+                width: 38px;
+                height: 38px;
+            }
+
+            .example-panel {
+                min-width: 260px;
+                padding: var(--space-4);
+            }
+
+            .example-heading {
+                display: block;
+                margin: 0 0 var(--space-3);
+                font-size: var(--text-heading);
+                font-weight: 650;
+            }
+
+            .example-links {
+                display: grid;
+                gap: 2px;
+            }
+
+            .example-links a {
+                padding: 7px var(--space-2);
+                color: var(--muted-foreground);
+                border-radius: 7px;
+                font-size: 0.875rem;
+                text-decoration: none;
+                transition: background-color 140ms ease, color 140ms ease;
+            }
+
+            .example-links a:hover {
+                color: var(--foreground);
+                background: var(--accent);
+            }
+
+            .dialog-stack {
+                display: grid;
+                width: min(780px, calc(100vw - 48px));
+                gap: var(--space-3);
+            }
+
+            .dialog-stack > .dialog-header {
+                margin-bottom: var(--space-2);
+            }
+
+            .dialog-section {
+                display: grid;
+                gap: var(--space-3);
+                padding: var(--space-4);
+                background: color-mix(in oklch, var(--muted), transparent 48%);
+                border: 1px solid var(--border);
+                border-radius: 10px;
+            }
+
+            .dialog-section-heading {
+                color: var(--muted-foreground);
+                font-size: 0.875rem;
+            }
+
+            .dialog-section-title {
+                color: var(--foreground);
+                font-size: 0.9375rem;
+                font-weight: 650;
+            }
+
+            .dialog-section-body {
+                display: grid;
+                gap: var(--space-2);
+            }
+
+            .dialog-action-row,
+            .checkbox-row {
+                display: flex;
+                align-items: center;
+                gap: var(--space-2);
+            }
+
+            .checkbox-row {
+                color: var(--muted-foreground);
+                font-size: 0.875rem;
+            }
+
+            .copy-result {
+                color: color-mix(in oklch, var(--ring), white 14%);
+                font-size: var(--text-small);
+                font-weight: 600;
+            }
+
+            .output-box {
+                box-sizing: border-box;
+                width: 100%;
+                max-height: 110px;
+                overflow: auto;
+                margin: 0;
+                padding: var(--space-3);
+                color: var(--muted-foreground);
+                background: color-mix(in oklch, var(--background), white 2%);
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                font-family: var(--font-mono);
+                font-size: var(--text-small);
+                line-height: 1.45;
+                overflow-wrap: anywhere;
+            }
+
+            .output-box a {
+                color: color-mix(in oklch, var(--ring), white 12%);
+            }
+
+            .forge-dialog {
+                width: min(1040px, calc(100vw - 48px));
+            }
+
+            .forge-dialog > .dialog-header {
+                margin-bottom: var(--space-6);
+            }
+
+            .forge-grid {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+                align-items: stretch;
+                gap: var(--space-3);
+            }
+
+            .forge-method {
+                display: flex;
+                min-width: 0;
+                flex-direction: column;
+                gap: var(--space-3);
+                padding: var(--space-4);
+                background: color-mix(in oklch, var(--muted), transparent 48%);
+                border: 1px solid var(--border);
+                border-radius: 10px;
+            }
+
+            .forge-method h2 {
+                margin: 0;
+                font-size: var(--text-heading);
+                font-weight: 650;
+                letter-spacing: -0.015em;
+            }
+
+            .forge-fields {
+                display: grid;
+                gap: var(--space-2);
+            }
+
+            .forge-field {
+                display: grid;
+                gap: var(--space-1);
+                color: var(--muted-foreground);
+                font-size: var(--text-small);
+            }
+
+            .forge-field input,
+            .forge-field textarea {
+                width: 100%;
+            }
+
+            .forge-field textarea {
+                min-height: 116px;
+                resize: vertical;
+            }
+
+            .forge-preview {
+                display: block;
+                width: 100%;
+                height: auto;
+                margin-top: auto;
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-radius: 8px;
+            }
+
+            .forge-choice-divider {
+                display: flex;
+                align-items: center;
+                color: var(--muted-foreground);
+                font-size: 0.6875rem;
+                font-weight: 700;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+            }
+
+            .forge-stats {
+                min-height: 41px;
+                color: var(--muted-foreground);
+                font-size: var(--text-small);
+            }
+
+            .forge-method > button {
+                width: 100%;
+                margin-top: auto;
+            }
+
+            #gate-forge-matrix-fix:not(:checked) + .matrix-fix-label {
+                color: var(--destructive);
+                font-weight: 650;
+            }
+
+            .error-panel {
+                padding: var(--space-6);
+                color: var(--destructive);
+                background: var(--card);
+                border: 1px solid color-mix(in oklch, var(--destructive), transparent 50%);
+                border-radius: 12px;
+                font-family: var(--font-mono);
+                font-size: var(--text-title);
+            }
+
+            .error-panel-details {
+                font-size: var(--text-body);
+            }
+
+            .error-panel-note {
+                font-size: var(--text-heading);
+            }
+
+            .error-panel-screenshot {
+                max-width: 600px;
+                max-height: 250px;
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                *,
+                *::before,
+                *::after {
+                    scroll-behavior: auto !important;
+                    transition-duration: 0.01ms !important;
+                }
+            }
+
+            @media (max-width: 920px) {
+                .app-brand-copy small,
+                .app-toolbar-separator,
+                .app-version {
+                    display: none;
+                }
+
+                .forge-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .forge-choice-divider {
+                    justify-content: center;
+                }
+            }
+
+            @media (max-width: 760px) {
+                .app-toolbar {
+                    align-items: flex-start;
+                }
+
+                .app-toolbar-actions {
+                    flex: 1 1 100%;
+                }
+
+                .dialog-layout {
+                    top: var(--space-3);
+                    right: var(--space-3);
+                    bottom: var(--space-3);
+                    left: var(--space-3);
+                    width: auto;
+                    max-width: none;
+                    max-height: none;
+                    flex-direction: column;
+                    transform: none;
+                }
+
+                .dialog-panel,
+                .welcome-panel,
+                .example-panel,
+                .dialog-stack,
+                .forge-dialog {
+                    width: 100%;
+                    box-sizing: border-box;
+                }
+
+                .dialog-panel,
+                .welcome-panel,
+                .example-panel {
+                    padding: var(--space-4);
+                }
+
+                .resource-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .resource-card {
+                    min-height: 72px;
+                }
+            }
+        </style>
 
         <!-- Whatever is between these start/end analytic tags is stripped by the 'downloading offline copy' code. -->
         <!-- Start Analytics -->
         <!-- End Analytics -->
     </head>
-    <body style="margin: 0">
+    <body>
         <!-- Primary content -->
         <div id="inspectorDiv" style="display: none">
             <!-- Buttons -->
-            <div style="margin: 5px;">
-                <button id="menu-button" style="min-width: 50px; min-height: 30px;">Menu</button>
-                &nbsp;
-                &nbsp;
-                <button id="export-button" style="min-width: 50px; min-height: 30px;">Export</button>
-                &nbsp;
-                &nbsp;
-                <button id="clear-circuit-button" style="min-width: 50px; min-height: 30px;">Clear Circuit</button>
-                <button id="clear-all-button" style="min-width: 50px; min-height: 30px;">Clear ALL</button>
-                &nbsp;
-                &nbsp;
-                <button id="undo-button" style="min-width: 50px; min-height: 30px;">Undo</button>
-                <button id="redo-button" style="min-width: 50px; min-height: 30px;">Redo</button>
-                &nbsp;
-                &nbsp;
-                <button id="gate-forge-button" style="min-width: 50px; min-height: 30px;">Make Gate</button>
-                &nbsp;
-                &nbsp;
-                &nbsp;
-                &nbsp;
-                <span style="color:#BBB">Version 2.3</span>
-            </div>
+            <div id="app-toolbar-root"></div>
 
             <!-- Circuit drawing area -->
             <div id="canvasDiv" style="width: 100%; touch-action: manipulation; tab-index: 0; position: relative;">
@@ -113,9 +722,7 @@ document.DEFAULT_CIRCUIT = undefined;
 //DEFAULT_CIRCUIT_END
 
 // UN-MINIFIED SOURCE IS AVAILABLE FROM github.com/Strilanc/Quirk
-
-<!-- INCLUDE SOURCE PART -->
-
         </script>
+<!-- INCLUDE SOURCE PART -->
     </body>
 </html>

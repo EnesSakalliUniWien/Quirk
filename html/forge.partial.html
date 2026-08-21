@@ -1,94 +1,86 @@
 <div id="gate-forge-div" style="display:none">
-    <div id="gate-forge-overlay" style="position:fixed; left: 0; top: 0; height: 100vh; width: 100vw; background: rgba(0, 0, 0, 0.7);">
+    <div id="gate-forge-overlay" class="dialog-overlay">
     </div>
-    <div style="position: absolute; top: 20px; left: 50px; padding: 20px; background-color: white; border: 1px solid black;">
-        <style scoped>
-            th {
-                font-size: 20px;
-            }
-        </style>
-        <table cellspacing="0">
-            <colgroup>
-                <col style="background-color:#EEE;"/>
-                <col/>
-                <col style="background-color:#EEE;"/>
-                <col/>
-                <col style="background-color:#EEE;"/>
-            </colgroup>
-            <tr>
-                <th>From Rotation</th>
-                <th></th>
-                <th>From Matrix</th>
-                <th></th>
-                <th>From Circuit</th>
-            </tr>
-            <tr>
-                <td>
-                    <input tabindex="100" id='gate-forge-rotation-axis' type="text" size="8" placeholder="X+Z"> axis<br/>
-                    <input tabindex="101" id='gate-forge-rotation-angle' type="text" size="8" placeholder="45" style="margin:0.5em 0 0 0;">° angle<br/>
-                    <input tabindex="102" id='gate-forge-rotation-phase' type="text" size="8" placeholder="0" style="margin:0.5em 0 0 0;">° global phase
-                </td>
-                <td></td>
-                <td>
-                    <style scoped>
-                        input[id="gate-forge-matrix-fix"]:not(:checked) + label {
-                            font-weight: bold;
-                            background-color: pink;
-                        }
-                    </style>
+    <div class="dialog-layout">
+        <div class="dialog-panel forge-dialog" role="dialog" aria-modal="true" aria-labelledby="forge-title">
+            <header class="dialog-header">
+                <p class="dialog-eyebrow">Custom operation</p>
+                <h1 id="forge-title" class="dialog-title">Make a gate</h1>
+                <p class="dialog-description">Define a gate from a rotation, a matrix, or part of the current circuit.</p>
+            </header>
+            <div class="forge-grid">
+                <section class="forge-method">
+                    <h2>From Rotation</h2>
+                    <div class="forge-fields">
+                        <label class="forge-field" for="gate-forge-rotation-axis">
+                            <span>Axis</span>
+                            <input tabindex="100" id="gate-forge-rotation-axis" type="text" placeholder="X+Z">
+                        </label>
+                        <label class="forge-field" for="gate-forge-rotation-angle">
+                            <span>Angle (degrees)</span>
+                            <input tabindex="101" id="gate-forge-rotation-angle" type="text" placeholder="45">
+                        </label>
+                        <label class="forge-field" for="gate-forge-rotation-phase">
+                            <span>Global phase (degrees)</span>
+                            <input tabindex="102" id="gate-forge-rotation-phase" type="text" placeholder="0">
+                        </label>
+                    </div>
+                    <canvas id="gate-forge-rotation-canvas" class="forge-preview"></canvas>
+                    <label class="forge-field" for="gate-forge-rotation-name">
+                        <span>Circuit symbol</span>
+                        <input tabindex="110" id="gate-forge-rotation-name" type="text" placeholder="[the matrix]">
+                    </label>
+                    <button tabindex="120" id="gate-forge-rotation-button">Create Rotation Gate</button>
+                </section>
 
-                    <textarea tabindex="200" id="gate-forge-matrix" cols="25" rows="5" placeholder="1, i,  i, 1"></textarea><br/>
+                <div class="forge-choice-divider" aria-hidden="true">or</div>
 
-                    <input tabindex="201" id="gate-forge-matrix-fix" type="checkbox" checked>
-                    <label for="gate-forge-matrix-fix">ensure unitary (by SVD)</label>
-                </td>
-                <td></td>
-                <td>
-                    From part of current circuit:<br/>
-                    <input tabindex="300" id="gate-forge-circuit-cols" type="text" size="4" placeholder="1:∞" style="margin:0.5em 0 0 0;"> column range<br/>
-                    <input tabindex="301" id="gate-forge-circuit-rows" type="text" size="4" placeholder="1:∞" style="margin:0.5em 0 0.5em 0;"> wire range<br/>
-                    Inputs: <span id="gate-forge-circuit-inputs">(none)</span>, Weight: <span id="gate-forge-circuit-weight">0</span>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <canvas id="gate-forge-rotation-canvas" style="border:1px black solid;width:195px;height:100px;margin:10px 0 0 0;"></canvas>
-                </td>
-                <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>OR</strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
-                <td>
-                    <canvas id="gate-forge-matrix-canvas" style="border:1px black solid;width:195px;height:100px;margin:10px 0 0 0;"></canvas>
-                </td>
-                <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>OR</strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
-                <td>
-                    <canvas id="gate-forge-circuit-canvas" style="border:1px black solid;width:195px;height:100px;margin:10px 0 0 0;"></canvas>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <br/><input tabindex="110" id='gate-forge-rotation-name' type="text" placeholder="[the matrix]" style="width:7em;">  circuit symbol<br/><br/>
-                </td>
-                <td></td>
-                <td>
-                    <br/><input tabindex="210" id='gate-forge-matrix-name' type="text" placeholder="[the matrix]" style="width:7em;"> circuit symbol<br/><br/>
-                </td>
-                <td></td>
-                <td>
-                    <br/><input tabindex="310" id='gate-forge-circuit-name' type="text" placeholder="[the circuit]" style="width:7em;"> circuit symbol<br/><br/>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <button tabindex="120" id="gate-forge-rotation-button" style="width:100%;height:30px;">Create Rotation Gate</button>
-                </td>
-                <td></td>
-                <td>
-                    <button tabindex="220" id="gate-forge-matrix-button" style="width:100%;height:30px;">Create Matrix Gate</button>
-                </td>
-                <td></td>
-                <td>
-                    <button tabindex="320" id="gate-forge-circuit-button" style="width:100%;height:30px;">Create Circuit Gate</button>
-                </td>
-            </tr>
-        </table>
+                <section class="forge-method">
+                    <h2>From Matrix</h2>
+                    <div class="forge-fields">
+                        <label class="forge-field" for="gate-forge-matrix">
+                            <span>Matrix values</span>
+                            <textarea tabindex="200" id="gate-forge-matrix" placeholder="1, i,  i, 1"></textarea>
+                        </label>
+                        <label class="checkbox-row" for="gate-forge-matrix-fix">
+                            <input tabindex="201" id="gate-forge-matrix-fix" type="checkbox" checked>
+                            <span class="matrix-fix-label">Ensure unitary (by SVD)</span>
+                        </label>
+                    </div>
+                    <canvas id="gate-forge-matrix-canvas" class="forge-preview"></canvas>
+                    <label class="forge-field" for="gate-forge-matrix-name">
+                        <span>Circuit symbol</span>
+                        <input tabindex="210" id="gate-forge-matrix-name" type="text" placeholder="[the matrix]">
+                    </label>
+                    <button tabindex="220" id="gate-forge-matrix-button">Create Matrix Gate</button>
+                </section>
+
+                <div class="forge-choice-divider" aria-hidden="true">or</div>
+
+                <section class="forge-method">
+                    <h2>From Circuit</h2>
+                    <div class="forge-fields">
+                        <label class="forge-field" for="gate-forge-circuit-cols">
+                            <span>Column range</span>
+                            <input tabindex="300" id="gate-forge-circuit-cols" type="text" placeholder="1:∞">
+                        </label>
+                        <label class="forge-field" for="gate-forge-circuit-rows">
+                            <span>Wire range</span>
+                            <input tabindex="301" id="gate-forge-circuit-rows" type="text" placeholder="1:∞">
+                        </label>
+                    </div>
+                    <div class="forge-stats">
+                        Inputs: <span id="gate-forge-circuit-inputs">(none)</span><br>
+                        Weight: <span id="gate-forge-circuit-weight">0</span>
+                    </div>
+                    <canvas id="gate-forge-circuit-canvas" class="forge-preview"></canvas>
+                    <label class="forge-field" for="gate-forge-circuit-name">
+                        <span>Circuit symbol</span>
+                        <input tabindex="310" id="gate-forge-circuit-name" type="text" placeholder="[the circuit]">
+                    </label>
+                    <button tabindex="320" id="gate-forge-circuit-button">Create Circuit Gate</button>
+                </section>
+            </div>
+        </div>
     </div>
 </div>

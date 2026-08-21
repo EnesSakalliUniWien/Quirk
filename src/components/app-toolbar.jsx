@@ -1,0 +1,83 @@
+import {flushSync} from "react-dom";
+import {createRoot} from "react-dom/client";
+import {
+    AtomIcon,
+    EraserIcon,
+    MenuIcon,
+    RotateCcwIcon,
+    RotateCwIcon,
+    Share2Icon,
+    Trash2Icon,
+    WandSparklesIcon
+} from "lucide-react";
+
+import {Button} from "@/components/ui/button";
+import {ButtonGroup} from "@/components/ui/button-group";
+import {Separator} from "@/components/ui/separator";
+
+function ToolbarButton({id, icon: Icon, children, variant = "ghost"}) {
+    return (
+        <Button id={id} size="default" variant={variant}>
+            <Icon data-icon="inline-start" />
+            {children}
+        </Button>
+    );
+}
+
+function AppToolbar() {
+    return (
+        <header className="app-toolbar" role="toolbar" aria-label="Circuit controls">
+            <div className="app-brand" aria-label="Quirk quantum circuit simulator">
+                <span className="app-brand-mark" aria-hidden="true"><AtomIcon /></span>
+                <span className="app-brand-copy">
+                    <strong>Quirk</strong>
+                    <small>Quantum circuit simulator</small>
+                </span>
+            </div>
+            <Separator orientation="vertical" className="app-toolbar-separator" />
+            <div className="app-toolbar-actions">
+                <ButtonGroup aria-label="Application actions">
+                    <ToolbarButton id="menu-button" icon={MenuIcon}>Menu</ToolbarButton>
+                    <ToolbarButton id="export-button" icon={Share2Icon}>Export</ToolbarButton>
+                </ButtonGroup>
+                <ButtonGroup aria-label="Clear circuit actions">
+                    <ToolbarButton id="clear-circuit-button" icon={EraserIcon} variant="outline">
+                        Clear Circuit
+                    </ToolbarButton>
+                    <ToolbarButton id="clear-all-button" icon={Trash2Icon} variant="destructive">
+                        Clear All
+                    </ToolbarButton>
+                </ButtonGroup>
+                <ButtonGroup aria-label="History actions">
+                    <ToolbarButton id="undo-button" icon={RotateCcwIcon}>Undo</ToolbarButton>
+                    <ToolbarButton id="redo-button" icon={RotateCwIcon}>Redo</ToolbarButton>
+                </ButtonGroup>
+                <ButtonGroup aria-label="Gate creation actions">
+                    <ToolbarButton id="gate-forge-button" icon={WandSparklesIcon} variant="default">
+                        Make Gate
+                    </ToolbarButton>
+                </ButtonGroup>
+            </div>
+            <span className="app-version">v2.3</span>
+        </header>
+    );
+}
+
+let appToolbarRoot;
+
+function mountAppToolbar() {
+    const container = document.getElementById("app-toolbar-root");
+    if (container === null) {
+        throw new Error("Couldn't find 'app-toolbar-root'");
+    }
+    if (appToolbarRoot !== undefined) {
+        throw new Error("The app toolbar has already been mounted.");
+    }
+
+    flushSync(() => {
+        appToolbarRoot = createRoot(container);
+        appToolbarRoot.render(<AppToolbar />);
+    });
+}
+
+export {AppToolbar, mountAppToolbar};
