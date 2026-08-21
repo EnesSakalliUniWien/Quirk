@@ -15,10 +15,14 @@ import {Button} from "@/components/ui/button";
 import {ButtonGroup} from "@/components/ui/button-group";
 import {Separator} from "@/components/ui/separator";
 
+// Lucide draws at a 24px grid with a stroke of 2. These render at 16px, so the stroke is
+// scaled down to match, which is also what the inline SVGs in the menu use.
+const ICON_STROKE_WIDTH = 1.5;
+
 function ToolbarButton({id, icon: Icon, children, variant = "ghost"}) {
     return (
         <Button id={id} size="default" variant={variant}>
-            <Icon data-icon="inline-start" />
+            <Icon data-icon="inline-start" strokeWidth={ICON_STROKE_WIDTH} />
             {children}
         </Button>
     );
@@ -28,7 +32,7 @@ function AppToolbar() {
     return (
         <header className="app-toolbar" role="toolbar" aria-label="Circuit controls">
             <div className="app-brand" aria-label="Shadow-Quant quantum circuit simulator">
-                <span className="app-brand-mark" aria-hidden="true"><AtomIcon /></span>
+                <span className="app-brand-mark" aria-hidden="true"><AtomIcon strokeWidth={ICON_STROKE_WIDTH} /></span>
                 <span className="app-brand-copy">
                     <strong>Shadow-Quant</strong>
                     <small>Quantum circuit simulator</small>
@@ -53,7 +57,7 @@ function AppToolbar() {
                     <ToolbarButton id="redo-button" icon={RotateCwIcon}>Redo</ToolbarButton>
                 </ButtonGroup>
                 <ButtonGroup aria-label="Gate creation actions">
-                    <ToolbarButton id="gate-forge-button" icon={WandSparklesIcon} variant="default">
+                    <ToolbarButton id="gate-forge-button" icon={WandSparklesIcon} variant="outline">
                         Make Gate
                     </ToolbarButton>
                 </ButtonGroup>
