@@ -36,14 +36,14 @@ import {seq} from "../base/Seq.js"
 import {textEditObservable} from "../browser/EventUtil.js"
 import {Util} from "../base/Util.js"
 
-const forgeIsVisible = new ObservableValue(false);
-const obsForgeIsShowing = forgeIsVisible.observable().whenDifferent();
-
 /**
  * @param {!Revision} revision
- * @param {!Observable.<!boolean>} obsIsAnyOverlayShowing
+ * @param {!OverlayState} overlayState
  */
-function initForge(revision, obsIsAnyOverlayShowing) {
+function initForge(revision, overlayState) {
+    const obsActiveOverlay = overlayState.active();
+    const obsForgeIsShowing = obsActiveOverlay.map(active => active === "forge").whenDifferent();
+    const obsIsAnyOverlayShowing = obsActiveOverlay.map(active => active !== undefined).whenDifferent();
     const obsOnShown = obsForgeIsShowing.filter(e => e === true);
     /** @type {!String} */
     let latestInspectorText;
@@ -54,13 +54,12 @@ function initForge(revision, obsIsAnyOverlayShowing) {
         const forgeButton = /** @type {!HTMLButtonElement} */ document.getElementById('gate-forge-button');
         const forgeOverlay = /** @type {!HTMLDivElement} */ document.getElementById('gate-forge-overlay');
         const forgeDiv = /** @type {HTMLDivElement} */ document.getElementById('gate-forge-div');
-        forgeButton.addEventListener('click', () => forgeIsVisible.set(true));
-        forgeOverlay.addEventListener('click', () => forgeIsVisible.set(false));
+        forgeButton.addEventListener('click', () => overlayState.open("forge"));
+        forgeOverlay.addEventListener('click', () => overlayState.close());
         obsIsAnyOverlayShowing.subscribe(e => { forgeButton.disabled = e; });
         document.addEventListener('keydown', e => {
-            const ESC_KEY = 27;
-            if (e.keyCode === ESC_KEY) {
-                forgeIsVisible.set(false)
+            if (e.key === 'Escape') {
+                overlayState.close()
             }
         });
         obsForgeIsShowing.subscribe(showing => {
@@ -85,15 +84,15 @@ function initForge(revision, obsIsAnyOverlayShowing) {
                 op,
                 rect1,
                 Config.OPERATION_FORE_COLOR,
-                'black',
+                Config.INK_COLOR,
                 undefined,
                 Config.OPERATION_BACK_COLOR,
                 undefined,
                 'transparent');
             if (!op.isUnitary(0.009)) {
-                painter.printParagraph('NOT UNITARY', rect2, new Point(0.5, 0.5), 'red', 24);
+                painter.printParagraph('NOT UNITARY', rect2, new Point(0.5, 0.5), Config.ERROR_COLOR, 24);
             } else  if (op.width() !== 2) {
-                painter.printParagraph('(Not a 1-qubit rotation)', rect2, new Point(0.5, 0.5), '#666', 20);
+                painter.printParagraph('(Not a 1-qubit rotation)', rect2, new Point(0.5, 0.5), Config.MUTED_TEXT_COLOR, 20);
             } else {
                 MathPainter.paintBlochSphereRotation(
                     painter,
@@ -103,7 +102,7 @@ function initForge(revision, obsIsAnyOverlayShowing) {
                     Config.OPERATION_FORE_COLOR);
             }
             let cx = (rect1.right() + rect2.x)/2;
-            painter.strokeLine(new Point(cx, 0), new Point(cx, canvas.height), 'black', 2);
+            painter.strokeLine(new Point(cx, 0), new Point(cx, canvas.height), Config.INK_COLOR, 2);
             if (!op.hasNaN()) {
                 button.disabled = false;
             }
@@ -112,7 +111,7 @@ function initForge(revision, obsIsAnyOverlayShowing) {
                 ex+"",
                 new Rect(0, 0, canvas.width, canvas.height),
                 new Point(0.5, 0.5),
-                'red',
+                Config.ERROR_COLOR,
                 24);
         }
     }
@@ -124,7 +123,7 @@ function initForge(revision, obsIsAnyOverlayShowing) {
     function createCustomGateAndClose(gate, circuitDef=undefined) {
         let c = circuitDef || fromJsonText_CircuitDefinition(latestInspectorText);
         revision.commit(JSON.stringify(Serializer.toJson(c.withCustomGate(gate)), null, 0));
-        forgeIsVisible.set(false);
+        overlayState.close();
     }
 
     (() => {
@@ -276,7 +275,7 @@ function initForge(revision, obsIsAnyOverlayShowing) {
                     ex+"",
                     new Rect(0, 0, circuitCanvas.width, circuitCanvas.height),
                     new Point(0.5, 0.5),
-                    'red',
+                    Config.ERROR_COLOR,
                     24);
             }
         };
@@ -485,4 +484,4 @@ function parseUserGateFromCircuitRange(circuit, colRangeText, wireRangeText, nam
         gate;
 }
 
-export {initForge, obsForgeIsShowing, parseUserRotation, parseUserMatrix, parseUserGateFromCircuitRange}
+export {initForge, parseUserRotation, parseUserMatrix, parseUserGateFromCircuitRange}

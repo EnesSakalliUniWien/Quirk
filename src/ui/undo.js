@@ -15,44 +15,38 @@
  */
 
 /**
- * @param {!Revision} revision
- * @param {!Observable.<boolean>} obsIsAnyOverlayShowing
+ * @param {!CircuitActions} circuitActions
  */
-function initUndoRedo(revision, obsIsAnyOverlayShowing) {
-    const overlay_divs = [
-        document.getElementById('gate-forge-div'),
-        document.getElementById('export-div')
-    ];
-
+function initUndoRedo(circuitActions) {
     const undoButton = /** @type {!HTMLButtonElement} */ document.getElementById('undo-button');
     const redoButton = /** @type {!HTMLButtonElement} */ document.getElementById('redo-button');
-    revision.latestActiveCommit().zipLatest(obsIsAnyOverlayShowing, (_, b) => b).subscribe(anyShowing => {
-        undoButton.disabled = revision.isAtBeginningOfHistory() || anyShowing;
-        redoButton.disabled = revision.isAtEndOfHistory() || anyShowing;
+
+    let latestAvailability = {canUndo: false, canRedo: false};
+    circuitActions.availability().subscribe(availability => {
+        latestAvailability = availability;
+        undoButton.disabled = !availability.canUndo;
+        redoButton.disabled = !availability.canRedo;
     });
 
-    undoButton.addEventListener('click', () => revision.undo());
-    redoButton.addEventListener('click', () => revision.redo());
+    undoButton.addEventListener('click', () => circuitActions.undo());
+    redoButton.addEventListener('click', () => circuitActions.redo());
 
     document.addEventListener("keydown", e => {
-        // Don't capture keystrokes while menus are showing.
-        for (let div of overlay_divs) {
-            if (div.style.display !== 'NONE' && div.style.display !== 'none') {
-                return;
-            }
+        // Control on Windows and Linux, command on macOS.
+        if (!(e.ctrlKey || e.metaKey) || e.altKey) {
+            return;
         }
 
-        const Y_KEY = 89;
-        const Z_KEY = 90;
-        let isUndo = e.keyCode === Z_KEY && e.ctrlKey && !e.shiftKey && !e.altKey && !e.metaKey;
-        let isRedo1 = e.keyCode === Z_KEY && e.ctrlKey && e.shiftKey && !e.altKey && !e.metaKey;
-        let isRedo2 = e.keyCode === Y_KEY && e.ctrlKey && !e.shiftKey && !e.altKey && !e.metaKey;
-        if (isUndo) {
-            revision.undo();
+        let key = e.key.toLowerCase();
+        let isUndo = key === 'z' && !e.shiftKey;
+        let isRedo = (key === 'z' && e.shiftKey) || (key === 'y' && !e.shiftKey);
+
+        // Availability already accounts for open overlays, so the shortcuts and the buttons stay in sync.
+        if (isUndo && latestAvailability.canUndo) {
+            circuitActions.undo();
             e.preventDefault();
-        }
-        if (isRedo1 || isRedo2) {
-            revision.redo();
+        } else if (isRedo && latestAvailability.canRedo) {
+            circuitActions.redo();
             e.preventDefault();
         }
     });

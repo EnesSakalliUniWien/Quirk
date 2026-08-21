@@ -15,33 +15,32 @@
  */
 
 import {Config} from "../Config.js"
-import {ObservableValue} from "../base/Obs.js"
 import {Serializer} from "../circuit/Serializer.js"
 import {selectAndCopyToClipboard} from "../browser/Clipboard.js"
 import {fromJsonText_CircuitDefinition} from "../circuit/Serializer.js"
 import {saveFile} from "../browser/SaveFile.js"
 
-const exportsIsVisible = new ObservableValue(false);
-const obsExportsIsShowing = exportsIsVisible.observable().whenDifferent();
-
 /**
  * @param {!Revision} revision
  * @param {!ObservableValue.<!CircuitStats>} mostRecentStats
- * @param {!Observable.<!boolean>} obsIsAnyOverlayShowing
+ * @param {!OverlayState} overlayState
  */
-function initExports(revision, mostRecentStats, obsIsAnyOverlayShowing) {
+function initExports(revision, mostRecentStats, overlayState) {
+    const obsActiveOverlay = overlayState.active();
+    const obsExportsIsShowing = obsActiveOverlay.map(active => active === "export").whenDifferent();
+    const obsIsAnyOverlayShowing = obsActiveOverlay.map(active => active !== undefined).whenDifferent();
+
     // Show/hide exports overlay.
     (() => {
         const exportButton = /** @type {!HTMLButtonElement} */ document.getElementById('export-button');
         const exportOverlay = /** @type {!HTMLDivElement} */ document.getElementById('export-overlay');
         const exportDiv = /** @type {HTMLDivElement} */ document.getElementById('export-div');
-        exportButton.addEventListener('click', () => exportsIsVisible.set(true));
+        exportButton.addEventListener('click', () => overlayState.open("export"));
         obsIsAnyOverlayShowing.subscribe(e => { exportButton.disabled = e; });
-        exportOverlay.addEventListener('click', () => exportsIsVisible.set(false));
+        exportOverlay.addEventListener('click', () => overlayState.close());
         document.addEventListener('keydown', e => {
-            const ESC_KEY = 27;
-            if (e.keyCode === ESC_KEY) {
-                exportsIsVisible.set(false)
+            if (e.key === 'Escape') {
+                overlayState.close()
             }
         });
         obsExportsIsShowing.subscribe(showing => {
@@ -187,4 +186,4 @@ function initExports(revision, mostRecentStats, obsIsAnyOverlayShowing) {
     })();
 }
 
-export {initExports, obsExportsIsShowing}
+export {initExports}

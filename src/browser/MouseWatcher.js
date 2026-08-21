@@ -23,13 +23,35 @@ const MOUSE_ID = "mouse!";
  * @param {!TouchEvent|!MouseEvent} ev
  * @returns {!boolean}
  */
-let isLeftClicking = ev => (window.TouchEvent !== undefined && ev instanceof TouchEvent) || ev.which === 1;
+let isTouchEvent = ev => window.TouchEvent !== undefined && ev instanceof TouchEvent;
+
+/**
+ * Whether the left button is the one that just changed state.
+ *
+ * Only meaningful for 'mousedown' and 'mouseup'. MouseEvent.button identifies the button that changed, and is reported
+ * as 0 (the left button) on events where no button changed at all.
+ *
+ * @param {!TouchEvent|!MouseEvent} ev
+ * @returns {!boolean}
+ */
+let isLeftClicking = ev => isTouchEvent(ev) || ev.button === 0;
+
+/**
+ * Whether the left button is currently held down.
+ *
+ * Used for 'mousemove', 'mouseenter', and 'mouseleave', where no button changed and MouseEvent.buttons is the only
+ * field saying what is still pressed.
+ *
+ * @param {!TouchEvent|!MouseEvent} ev
+ * @returns {!boolean}
+ */
+let isLeftButtonHeld = ev => isTouchEvent(ev) || (ev.buttons & 1) !== 0;
 
 /**
  * @param {!MouseEvent} ev
  * @returns {!boolean}
  */
-let isMiddleClicking = ev => ev.which === 2;
+let isMiddleClicking = ev => ev.button === 1;
 
 /**
  * @param {!MouseEvent|!Touch} ev
@@ -155,7 +177,7 @@ class DragWatcher {
             return;
         }
 
-        if (!isLeftClicking(ev)) {
+        if (!isLeftButtonHeld(ev)) {
             // Dropped on another window with browser out of focus.
             this._lastPos = undefined;
             this._lastEv = undefined;
@@ -213,7 +235,7 @@ class DragWatcher {
      * @param {!MouseEvent|!TouchEvent} ev
      */
     onLeave(pt, id, ev) {
-        if (!isLeftClicking(ev) || this._grabPointerId !== id) {
+        if (!isLeftButtonHeld(ev) || this._grabPointerId !== id) {
             return;
         }
 
@@ -231,7 +253,7 @@ class DragWatcher {
      * @param {!MouseEvent|!TouchEvent} ev
      */
     onEnter(pt, id, ev) {
-        if (isLeftClicking(ev) || this._grabPointerId !== id) {
+        if (isLeftButtonHeld(ev) || this._grabPointerId !== id) {
             return;
         }
 
@@ -270,4 +292,4 @@ class DragWatcher {
     }
 }
 
-export {watchDrags, isLeftClicking, isMiddleClicking, eventPosRelativeTo};
+export {watchDrags, isLeftClicking, isLeftButtonHeld, isMiddleClicking, eventPosRelativeTo};

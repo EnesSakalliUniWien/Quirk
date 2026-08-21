@@ -14,12 +14,6 @@
  * limitations under the License.
  */
 
-import {ObservableValue} from "../base/Obs.js"
-
-const menuIsVisible = new ObservableValue(true);
-const obsMenuIsShowing = menuIsVisible.observable().whenDifferent();
-let closeMenu = () => menuIsVisible.set(false);
-
 const groverLink = {
     "cols":[
         ["X","X","X","X","X"],
@@ -273,23 +267,26 @@ const distillLink = {
 
 /**
  * @param {!Revision} revision
- * @param {!Observable.<!boolean>} obsIsAnyOverlayShowing
+ * @param {!OverlayState} overlayState
  */
-function initMenu(revision, obsIsAnyOverlayShowing) {
+function initMenu(revision, overlayState) {
+    const obsActiveOverlay = overlayState.active();
+    const obsMenuIsShowing = obsActiveOverlay.map(active => active === "menu").whenDifferent();
+    const obsIsAnyOverlayShowing = obsActiveOverlay.map(active => active !== undefined).whenDifferent();
+
     // Show/hide menu overlay.
     (() => {
         const menuButton = /** @type {!HTMLButtonElement} */ document.getElementById('menu-button');
         const closeMenuButton = /** @type {!HTMLButtonElement} */ document.getElementById('close-menu-button');
         const menuOverlay = /** @type {!HTMLDivElement} */ document.getElementById('menu-overlay');
         const menutDiv = /** @type {HTMLDivElement} */ document.getElementById('menu-div');
-        menuButton.addEventListener('click', () => menuIsVisible.set(true));
+        menuButton.addEventListener('click', () => overlayState.open("menu"));
         obsIsAnyOverlayShowing.subscribe(e => { menuButton.disabled = e; });
-        menuOverlay.addEventListener('click', () => menuIsVisible.set(false));
-        closeMenuButton.addEventListener('click', () => menuIsVisible.set(false));
+        menuOverlay.addEventListener('click', () => overlayState.close());
+        closeMenuButton.addEventListener('click', () => overlayState.close());
         document.addEventListener('keydown', e => {
-            const ESC_KEY = 27;
-            if (e.keyCode === ESC_KEY) {
-                menuIsVisible.set(false)
+            if (e.key === 'Escape') {
+                overlayState.close()
             }
         });
         obsMenuIsShowing.subscribe(showing => {
@@ -324,16 +321,16 @@ function initMenu(revision, obsIsAnyOverlayShowing) {
         let text = JSON.stringify(t);
         a.href = "#circuit=" + text;
         a.onclick = ev => {
-            // Urgh, this is terrible but it will have to do.
-            if (ev.shiftKey || ev.ctrlKey || ev.altKey || ev.which !== 1) {
+            // Let the browser handle modified and non-left clicks, so opening the link in a new tab still works.
+            if (ev.shiftKey || ev.ctrlKey || ev.altKey || ev.metaKey || ev.button !== 0) {
                 return undefined;
             }
 
             revision.commit(text);
-            menuIsVisible.set(false);
+            overlayState.close();
             return false;
         };
     }
 }
 
-export {initMenu, obsMenuIsShowing, closeMenu}
+export {initMenu}
