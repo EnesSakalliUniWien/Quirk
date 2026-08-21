@@ -1,6 +1,6 @@
 # <a href="http://algassert.com/quirk">Quirk <img src="doc/favicon.ico" alt="Icon" title="Icon" /></a>
 
-[![Build Status](https://travis-ci.org/Strilanc/Quirk.svg?branch=master)](https://travis-ci.org/Strilanc/Quirk)
+[![ci](https://github.com/EnesSakalliUniWien/Quirk/actions/workflows/ci.yml/badge.svg)](https://github.com/EnesSakalliUniWien/Quirk/actions/workflows/ci.yml)
 
 Quirk is a toy quantum circuit simulator, intended to help people in learning about quantum computing.
 
@@ -49,7 +49,7 @@ If you want to modify Quirk, this is how you get the code and turn your changes 
 
 2. Clone the repository.
 
-    `git clone https://github.com/Strilanc/Quirk.git`
+    `git clone https://github.com/EnesSakalliUniWien/Quirk.git`
 
 3. Install the dev dependencies.
 
