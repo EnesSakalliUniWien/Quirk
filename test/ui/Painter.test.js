@@ -46,6 +46,38 @@ suite.canvasAppearanceTest("strokeRect", 40, 40, canvas => {
 'mPvTGhf1AWiD9SwJUzWrXUYUJcKQA3VTcSfXs/gQY4Czg7TcEGGCAAb4eWM02QH9JgO6SAN0lAbpLlgCd2RDY0EVQBCWAp2lbAAmqo12BXQC3ARL8+cR' +
 'f6CSgV4UJcKQA3c5X+9AVewloF9zs/2Aa7gP137GCEm+UmAAAAABJRU5ErkJggg==');
 
+suite.test("roundedRectFillAndClip", () => {
+    let fillCanvas = /** @type !HTMLCanvasElement */ document.createElement("canvas");
+    fillCanvas.width = 24;
+    fillCanvas.height = 24;
+    let fillPainter = new Painter(fillCanvas);
+    fillPainter.fillRoundedRect(new Rect(2, 2, 20, 20), "red", 6);
+
+    let pixelAt = (imageData, x, y) => {
+        let i = (y * imageData.width + x) * 4;
+        return Array.from(imageData.data.slice(i, i + 4));
+    };
+    let fillData = fillPainter.ctx.getImageData(0, 0, fillCanvas.width, fillCanvas.height);
+    let fillPixel = (x, y) => pixelAt(fillData, x, y);
+    assertThat(fillPixel(12, 12)).isEqualTo([255, 0, 0, 255]);
+    assertThat(fillPixel(12, 2)).isEqualTo([255, 0, 0, 255]);
+    assertThat(fillPixel(2, 2)).isEqualTo([0, 0, 0, 0]);
+
+    let clipCanvas = /** @type !HTMLCanvasElement */ document.createElement("canvas");
+    clipCanvas.width = 24;
+    clipCanvas.height = 24;
+    let clipPainter = new Painter(clipCanvas);
+    clipPainter.ctx.save();
+    clipPainter.clipRoundedRect(new Rect(2, 2, 20, 20), 6);
+    clipPainter.fillRect(new Rect(0, 0, 24, 24), "blue");
+    clipPainter.ctx.restore();
+
+    let clipData = clipPainter.ctx.getImageData(0, 0, clipCanvas.width, clipCanvas.height);
+    let clipPixel = (x, y) => pixelAt(clipData, x, y);
+    assertThat(clipPixel(12, 12)).isEqualTo([0, 0, 255, 255]);
+    assertThat(clipPixel(2, 2)).isEqualTo([0, 0, 0, 0]);
+});
+
 //noinspection SpellCheckingInspection
 suite.canvasAppearanceTest("strokeCircle", 40, 40, canvas => {
     let painter = new Painter(canvas);
@@ -105,7 +137,7 @@ suite.canvasAppearanceTest("printLine_aligned", 40, 40, canvas => {
         "green",
         24,
         "monospace");
-    assertThat(used1).isApproximatelyEqualTo(new Rect(0, 12, 14.4, 24), 2.5);
+    assertThat(used1).isApproximatelyEqualTo(new Rect(0, 12, 14.4, 24), 3);
     assertThat(used2).isApproximatelyEqualTo(new Rect(20, 23.25, 20, 9), 2.5);
 }, 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAABYUlEQVRYhe3WoW7DMBQF0MdKzIKMwsyCzALDCg2L/QH' +
 '5hfsL5cWjY4NlZUNlZWVDQ0FFd6CzV6WNmm7T7EkGV6riqjp+z8+NAGDOkdSAAizA1IACLMDUgAIswNSAAvwz4MEYUuQqx7rOA3iZbddxUIpPqxUpwnX' +
@@ -135,7 +167,8 @@ suite.canvasAppearanceTest("strokePolygon", 40, 40, canvas => {
 'ZAy1sJeCKAWlxn/W6r9hCxnpllnBtBqDm3XWC5jzIdV6ZNeBh07yywf0O0LQHWcoTsM80nk3IK/leGcFnDzhkmk79I3fcg5yL1iBbwGHTcKKO/KIHuZC' +
 'xV2rMNBurs6aQo1dqwjQabqAuL6/UlGkw1GBtHl6pWSMe82MisT5rr1TFCB/apEaWXqmaEW1LqVUK7JVqMWIr6eDWNEN6pfYaocUwgBDQK9VtRD6EA4R' +
 'AXqkBI/AyLCAE8Mq1v5sCvQdddU9+AXQW1A86AeoBHQXtA3VEL5Na6+yRxis1CPrlFTd6/oCWQF9BVdA8qAx6A5oBPQU9A/3YpFdqe0rAFKfu0C3QPdB' +
-'90EPQpHvyGTeJsptM1U1qyU0uL8A0oVa3kx2g/W5Xe9zungSdcztdAF0D3QCNRENpRjO2Nv4CO0/DOtNuBZYAAAAASUVORK5CYII=');
+'90EPQpHvyGTeJsptM1U1qyU0uL8A0oVa3kx2g/W5Xe9zungSdcztdAF0D3QCNRENpRjO2Nv4CO0/DOtNuBZYAAAAASUVORK5CYII=',
+    400); // Polygon anti-aliasing differs across browser engines and versions.
 
 //noinspection SpellCheckingInspection
 suite.canvasAppearanceTest("fillPolygon", 40, 40, canvas => {

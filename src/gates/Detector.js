@@ -196,7 +196,7 @@ function drawWedge(args, axis) {
     args.painter.trace(trace => {
         trace.ctx.arc(x, y, r, τ*3/4, τ/4);
         trace.ctx.lineTo(x, y - r - 1);
-    }).thenStroke('black', 2).thenFill(Config.TIME_DEPENDENT_HIGHLIGHT_COLOR);
+    }).thenStroke(Config.INK_COLOR, 2).thenFill(Config.TIME_DEPENDENT_HIGHLIGHT_COLOR);
     args.painter.printLine(axis, args.rect, 0.5, undefined, undefined, undefined, 0.5);
 }
 
@@ -214,7 +214,7 @@ function drawClick(args, axis) {
     args.painter.ctx.save();
     args.painter.ctx.translate(args.rect.center().x, args.rect.center().y);
     args.painter.ctx.rotate(axis === undefined ? Math.PI/3 : Math.PI/4);
-    args.painter.ctx.strokeStyle = 'white';
+    args.painter.ctx.strokeStyle = Config.BACKGROUND_COLOR_CIRCUIT;
     args.painter.ctx.lineWidth = 3;
     args.painter.print(
         '*click*',
@@ -222,8 +222,8 @@ function drawClick(args, axis) {
         axis === undefined ? 0 : -5,
         'center',
         'middle',
-        'black',
-        'bold 16px sans-serif',
+        Config.INK_COLOR,
+        `bold 16px ${Config.DEFAULT_FONT_FAMILY}`,
         r*2.8,
         r*2.8,
         undefined,
@@ -236,8 +236,8 @@ function drawClick(args, axis) {
             10,
             'center',
             'middle',
-            'black',
-            'bold 16px sans-serif',
+            Config.INK_COLOR,
+            `bold 16px ${Config.DEFAULT_FONT_FAMILY}`,
             r * 2.8,
             r * 2.8,
             undefined,
@@ -268,7 +268,7 @@ function drawControlBulb(args, axis) {
             args.painter.strokeLine(p.offsetBy(-r, -r), p.offsetBy(+r, +r));
             break;
         case 'Z':
-            args.painter.fillCircle(p, 5, "black");
+            args.painter.fillCircle(p, 5, Config.INK_COLOR);
             break;
         default:
             throw new DetailedError('Unrecognized axis.', {axis});
@@ -288,7 +288,7 @@ function drawDetectClearReset(args, axis) {
     let clearWireRect = fullRect.rightHalf();
     clearWireRect.y += clearWireRect.h / 2 - 2;
     clearWireRect.h = 5;
-    args.painter.fillRect(clearWireRect, 'white');
+    args.painter.fillRect(clearWireRect, Config.BACKGROUND_COLOR_CIRCUIT);
     drawHighlight(args);
 
     // Draw text elements.

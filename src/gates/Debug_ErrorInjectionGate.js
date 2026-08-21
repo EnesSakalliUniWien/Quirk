@@ -23,7 +23,7 @@ let ErrorInjectionGate = new GateBuilder().
     setSymbol("ERR!").
     setTitle("Error Injection Gate").
     setBlurb("Throws an exception during circuit stat computations, for testing error paths.").
-    setDrawer(GatePainting.MAKE_HIGHLIGHTED_DRAWER('red', 'red')).
+    setDrawer(GatePainting.MAKE_HIGHLIGHTED_DRAWER('#F87171', '#F87171')).
     setActualEffectToUpdateFunc(ctx => {
         throw new DetailedError("Applied an Error Injection Gate", {qubit: ctx.row});
     }).

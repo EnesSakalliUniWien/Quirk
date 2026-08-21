@@ -26,7 +26,7 @@ const NeGate = new GateBuilder().
     setDrawer(args => {
         GatePainting.paintLocationIndependentFrame(args);
         let {x, y} = args.rect.center();
-        args.painter.strokeLine(new Point(x - 6, y), new Point(x + 6, y), 'black', 2);
+        args.painter.strokeLine(new Point(x - 6, y), new Point(x + 6, y), '#E4E4E7', 2);
     }).
     setKnownEffectToMatrix(Matrix.square(-1, 0, 0, -1)).
     gate;

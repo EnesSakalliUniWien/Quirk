@@ -49,15 +49,18 @@ class CachablePainting {
      * @param {!*=} key
      */
     paint(x, y, painter, key=undefined) {
-        if (!this._cachedCanvases.has(key)) {
+        let pixelRatio = painter.pixelRatio;
+        let cacheKey = `${key}@${pixelRatio}`;
+        if (!this._cachedCanvases.has(cacheKey)) {
             let canvas = /** @type {!HTMLCanvasElement} */ document.createElement('canvas');
             let {width, height} = this.sizeFunc(key);
-            canvas.width = width;
-            canvas.height = height;
-            this._drawingFunc(new Painter(canvas, fixedRng.restarted()), key);
-            this._cachedCanvases.set(key, canvas);
+            canvas.width = Math.round(width * pixelRatio);
+            canvas.height = Math.round(height * pixelRatio);
+            this._drawingFunc(new Painter(canvas, fixedRng.restarted(), pixelRatio), key);
+            this._cachedCanvases.set(cacheKey, canvas);
         }
-        painter.ctx.drawImage(this._cachedCanvases.get(key), x, y);
+        let cached = this._cachedCanvases.get(cacheKey);
+        painter.ctx.drawImage(cached, x, y, cached.width / pixelRatio, cached.height / pixelRatio);
     }
 }
 

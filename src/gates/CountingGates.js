@@ -69,14 +69,14 @@ let STAIRCASE_DRAWER = (timeOffset, steps, flip=false) => args => {
 
     args.painter.ctx.save();
     args.painter.ctx.globalAlpha *= 0.3;
-    args.painter.fillPolygon(curve, 'yellow');
+    args.painter.fillPolygon(curve, Config.HIGHLIGHT_FILL_COLOR);
     for (let i = 1; i < curve.length - 2; i++) {
-        args.painter.strokeLine(curve[i], curve[i+1], 'black');
+        args.painter.strokeLine(curve[i], curve[i+1], Config.INK_COLOR);
     }
     if (steps === 2 && t < 0.5) {
-        args.painter.fillRect(args.rect, 'white');
-        args.painter.fillRect(args.rect, 'white');
-        args.painter.fillRect(args.rect, 'white');
+        args.painter.fillRect(args.rect, Config.GATE_FILL_COLOR);
+        args.painter.fillRect(args.rect, Config.GATE_FILL_COLOR);
+        args.painter.fillRect(args.rect, Config.GATE_FILL_COLOR);
     }
     args.painter.ctx.restore();
 };

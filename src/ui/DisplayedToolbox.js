@@ -113,14 +113,14 @@ class DisplayedToolbox {
             dx * Config.TOOLBOX_GATE_SPAN +
             groupIndex * Config.TOOLBOX_GROUP_SPAN;
         let y = this.top +
-            (this.labelsOnTop ? Config.TOOLBOX_MARGIN_Y : 3) +
+            (this.labelsOnTop ? Config.TOOLBOX_MARGIN_Y : Config.TOOLBOX_GATE_PADDING_Y) +
             dy * Config.TOOLBOX_GATE_SPAN;
 
         return new Rect(
             Math.round(x - 0.5) + 0.5,
             Math.round(y - 0.5) + 0.5,
-            Config.GATE_RADIUS * 2,
-            Config.GATE_RADIUS * 2);
+            Config.TOOLBOX_GATE_SIZE,
+            Config.TOOLBOX_GATE_SIZE);
     }
 
     /**
@@ -203,7 +203,7 @@ class DisplayedToolbox {
      * @param {!Hand} hand
      */
     paint(painter, stats, hand) {
-        painter.fillRect(this.curArea(painter.canvas.width), Config.BACKGROUND_COLOR_TOOLBOX);
+        painter.fillRect(this.curArea(painter.paintableArea().w), Config.BACKGROUND_COLOR_TOOLBOX);
         this._standardApperance.paint(0, this.top, painter);
         this._paintDeviations(painter, stats, hand);
     }
@@ -223,7 +223,12 @@ class DisplayedToolbox {
         painter.ctx.save();
         painter.ctx.translate(x, y);
         painter.ctx.rotate(-Math.PI/2);
-        painter.printLine(this.name, new Rect(-r.h / 2, -r.w / 2, r.h, r.w), 0.5, 'black', 24);
+        painter.printLine(
+            this.name,
+            new Rect(-r.h / 2, -r.w / 2, r.h, r.w),
+            0.5,
+            Config.TOOLBOX_LABEL_COLOR,
+            Config.TOOLBOX_NAME_FONT_SIZE);
         painter.ctx.restore();
     }
 
@@ -269,8 +274,8 @@ class DisplayedToolbox {
             r.y + r.h/2,
             'center',
             'middle',
-            'black',
-            '16px sans-serif',
+            Config.TOOLBOX_LABEL_COLOR,
+            `${Config.TOOLBOX_LABEL_FONT_SIZE}px ${Config.DEFAULT_FONT_FAMILY}`,
             r.w,
             r.h);
 
@@ -295,8 +300,7 @@ class DisplayedToolbox {
      */
     static _paintGate(painter, hand, gate, rect, isHighlighted, stats) {
         let drawer = gate.customDrawer || GatePainting.DEFAULT_DRAWER;
-        painter.startIgnoringIncomingTouchBlockers();
-        drawer(new GateDrawParams(
+        let args = new GateDrawParams(
             painter,
             hand,
             true, // inToolbox
@@ -308,7 +312,14 @@ class DisplayedToolbox {
             stats,
             undefined, // positionInCircuit
             [], // focusPoints
-            undefined)); // customStatsForCircuitPos
+            undefined); // customStatsForCircuitPos
+
+        painter.startIgnoringIncomingTouchBlockers();
+        painter.ctx.save();
+        painter.clipRoundedRect(rect, Config.TOOLBOX_GATE_CORNER_RADIUS);
+        drawer(args);
+        painter.ctx.restore();
+        GatePainting.paintToolboxChrome(args);
         painter.stopIgnoringIncomingTouchBlockers();
     }
 
@@ -356,7 +367,7 @@ class DisplayedToolbox {
      * @returns {!number}
      */
     desiredHeight() {
-        return (1 + this.groupHeight) * (Config.GATE_RADIUS * 2 + 2) - Config.GATE_RADIUS;
+        return (1 + this.groupHeight) * Config.TOOLBOX_GATE_SPAN - Config.TOOLBOX_GATE_SIZE / 2;
     }
 
     /**

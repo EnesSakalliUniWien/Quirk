@@ -69,8 +69,8 @@ function _paintSampleDisplay_result(args) {
             startY+d*(i+0.5),
             'center',
             'middle',
-            'black',
-            '16px sans-serif',
+            Config.INK_COLOR,
+            `16px ${Config.DEFAULT_FONT_FAMILY}`,
             w,
             d);
     }
@@ -96,12 +96,12 @@ function paintSampleDisplay(args) {
     let probabilities = args.customStats;
     let noData = probabilities === undefined || probabilities.hasNaN();
     if (noData) {
-        args.painter.printParagraph("NaN", args.rect, new Point(0.5, 0.5), 'red');
+        args.painter.printParagraph("NaN", args.rect, new Point(0.5, 0.5), Config.ERROR_COLOR);
     } else {
         _paintSampleDisplay_result(args);
     }
 
-    args.painter.strokeRect(args.rect, 'lightgray');
+    args.painter.strokeRect(args.rect, Config.GRID_LINE_COLOR);
 }
 
 let SampleDisplayFamily = Gate.buildFamily(1, 16, (span, builder) => builder.

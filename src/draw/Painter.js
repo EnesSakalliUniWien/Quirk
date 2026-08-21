@@ -25,12 +25,17 @@ class Painter {
     /**
      * @param {!HTMLCanvasElement} canvas
      * @param {!RestartableRng=} rng
+     * @param {!number=} pixelRatio The ratio of canvas backing pixels to logical drawing units. Painting code always
+     *     works in logical units; a ratio above 1 renders sharper output on high-density displays.
      */
-    constructor(canvas, rng = new RestartableRng()) {
+    constructor(canvas, rng = new RestartableRng(), pixelRatio = 1) {
         /** @type {!HTMLCanvasElement} */
         this.canvas = canvas;
         /** @type {!CanvasRenderingContext2D} */
         this.ctx = canvas.getContext("2d");
+        /** @type {!number} */
+        this.pixelRatio = pixelRatio;
+        this.ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
         /**
          * @type {!Array.<!function()>}
          * @private
@@ -104,7 +109,7 @@ class Painter {
      * @returns {!Rect}
      */
     paintableArea() {
-        return new Rect(0, 0, this.canvas.width, this.canvas.height);
+        return new Rect(0, 0, this.canvas.width / this.pixelRatio, this.canvas.height / this.pixelRatio);
     }
 
     /**
@@ -138,7 +143,7 @@ class Painter {
      * @param {!string=} color The stroke color.
      * @param {!number=} thickness The stroke thickness.
      */
-    strokeRect(rect, color = "black", thickness = 1) {
+    strokeRect(rect, color = Config.DEFAULT_STROKE_COLOR, thickness = 1) {
         this.ctx.strokeStyle = color;
         this.ctx.lineWidth = thickness;
         this.ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
@@ -152,6 +157,65 @@ class Painter {
     fillRect(rect, color = Config.DEFAULT_FILL_COLOR) {
         this.ctx.fillStyle = color;
         this.ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+    }
+
+    /**
+     * Starts a rounded rectangle path.
+     * @param {!Rect} rect
+     * @param {!number} radius
+     * @private
+     */
+    _startRoundedRectPath(rect, radius) {
+        let r = Math.max(0, Math.min(radius, rect.w / 2, rect.h / 2));
+        let x2 = rect.right();
+        let y2 = rect.bottom();
+        this.ctx.beginPath();
+        this.ctx.moveTo(rect.x + r, rect.y);
+        this.ctx.lineTo(x2 - r, rect.y);
+        this.ctx.arcTo(x2, rect.y, x2, rect.y + r, r);
+        this.ctx.lineTo(x2, y2 - r);
+        this.ctx.arcTo(x2, y2, x2 - r, y2, r);
+        this.ctx.lineTo(rect.x + r, y2);
+        this.ctx.arcTo(rect.x, y2, rect.x, y2 - r, r);
+        this.ctx.lineTo(rect.x, rect.y + r);
+        this.ctx.arcTo(rect.x, rect.y, rect.x + r, rect.y, r);
+        this.ctx.closePath();
+    }
+
+    /**
+     * Draws the inside of a rounded rectangle.
+     * @param {!Rect} rect
+     * @param {!string=} color
+     * @param {!number=} radius
+     */
+    fillRoundedRect(rect, color = Config.DEFAULT_FILL_COLOR, radius = 0) {
+        this._startRoundedRectPath(rect, radius);
+        this.ctx.fillStyle = color;
+        this.ctx.fill();
+    }
+
+    /**
+     * Draws the outside of a rounded rectangle.
+     * @param {!Rect} rect
+     * @param {!string=} color
+     * @param {!number=} thickness
+     * @param {!number=} radius
+     */
+    strokeRoundedRect(rect, color = Config.DEFAULT_STROKE_COLOR, thickness = 1, radius = 0) {
+        this._startRoundedRectPath(rect, radius);
+        this.ctx.strokeStyle = color;
+        this.ctx.lineWidth = thickness;
+        this.ctx.stroke();
+    }
+
+    /**
+     * Restricts subsequent drawing to a rounded rectangle.
+     * @param {!Rect} rect
+     * @param {!number=} radius
+     */
+    clipRoundedRect(rect, radius = 0) {
+        this._startRoundedRectPath(rect, radius);
+        this.ctx.clip();
     }
 
     /**

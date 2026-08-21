@@ -255,7 +255,7 @@ const AMPLITUDE_DRAWER_FROM_CUSTOM_STATS = GatePainting.makeDisplayDrawer(args =
         matrix,
         drawRect,
         Config.SUPERPOSITION_MID_COLOR,
-        'black',
+        Config.INK_COLOR,
         Config.SUPERPOSITION_FORE_COLOR,
         Config.SUPERPOSITION_BACK_COLOR,
         `rgba(0, 0, 0, ${indicatorAlpha})`);
@@ -290,7 +290,7 @@ const AMPLITUDE_DRAWER_FROM_CUSTOM_STATS = GatePainting.makeDisplayDrawer(args =
                 'right',
                 'bottom',
                 `rgba(255,0,0,${indicatorAlpha})`,
-                '12px monospace',
+                `12px ${Config.MONO_FONT_FAMILY}`,
                 cw*0.5,
                 rh*0.5);
         }
@@ -322,7 +322,7 @@ function paintErrorIfPresent(args, indicatorAlpha) {
             'center',
             'hanging',
             `rgba(255,0,0,${1-indicatorAlpha})`,
-            '12px sans-serif',
+            `12px ${Config.DEFAULT_FONT_FAMILY}`,
             args.rect.w,
             args.rect.h,
             undefined);

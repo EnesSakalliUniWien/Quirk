@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {Config} from "../Config.js"
 import {Gate, GateBuilder} from "../circuit/Gate.js"
 import {GatePainting} from "../draw/GatePainting.js"
 import {reverseShaderForSize} from "./ReverseBitsGate.js"
@@ -26,11 +27,11 @@ let InputGates = {};
  * @param {!boolean} reverse
  */
 function drawInputGate(args, key, reverse) {
-    GatePainting.paintBackground(args, '#DDD', '#DDD');
+    GatePainting.paintBackground(args, '#2C2C30', '#2C2C30');
     if (args.isInToolbox) {
         GatePainting.paintOutline(args);
     } else {
-        args.painter.strokeRect(args.rect, '#888');
+        args.painter.strokeRect(args.rect, Config.MID_LINE_COLOR);
     }
     GatePainting.paintResizeTab(args);
 
@@ -41,8 +42,8 @@ function drawInputGate(args, key, reverse) {
         y-2,
         'center',
         'bottom',
-        'black',
-        '16px sans-serif',
+        Config.INK_COLOR,
+        `16px ${Config.DEFAULT_FONT_FAMILY}`,
         args.rect.w - 2,
         args.rect.h / 2);
     args.painter.print(
@@ -51,8 +52,8 @@ function drawInputGate(args, key, reverse) {
         y+2,
         'center',
         'top',
-        'black',
-        '16px sans-serif',
+        Config.INK_COLOR,
+        `16px ${Config.DEFAULT_FONT_FAMILY}`,
         args.rect.w - 2,
         args.rect.h / 2);
 }
@@ -91,7 +92,7 @@ let makeSetInputGate = key => new GateBuilder().
         sticky: true
     }]).
     setDrawer(args => {
-        GatePainting.paintLocationIndependentFrame(args, '#EEE', '#EEE');
+        GatePainting.paintLocationIndependentFrame(args, '#232327', '#232327');
         if (args.isInToolbox) {
             GatePainting.paintGateSymbol(args, `${key}=#\ndefault`);
         } else {
