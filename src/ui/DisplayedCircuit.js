@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {paintCircuit} from "./CircuitPainting.js"
 import {CachablePainting} from "../draw/CachablePainting.js"
 import {CircuitDefinition} from "../circuit/CircuitDefinition.js"
 import {CircuitStats} from "../circuit/CircuitStats.js"
@@ -42,10 +43,8 @@ let CIRCUIT_OP_HORIZONTAL_SPACING = 10;
 // Matches Layout.TOOLBOX_MARGIN_X so gate columns align with the toolbox groups.
 let CIRCUIT_OP_LEFT_SPACING = 32;
 
-const SUPERPOSITION_GRID_LABEL_SPAN = 50;
 
 /** Stands in for the half of a basis state's bits that the other axis of the amplitude grid supplies. */
-const SUPERPOSITION_GRID_LABEL_ELLIPSIS = '⋯';
 
 const EXTRA_COLS_FOR_SINGLE_QUBIT_DISPLAYS = 2;
 
@@ -369,6 +368,15 @@ class DisplayedCircuit {
     }
 
     /**
+     * @param {!Painter} painter
+     * @param {!Hand} hand
+     * @param {!CircuitStats} stats
+     */
+    paint(painter, hand, stats) {
+        paintCircuit(this, painter, hand, stats);
+    }
+
+    /**
      * @param {!DisplayedCircuit|*} other
      * @returns {!boolean}
      */
@@ -384,102 +392,7 @@ class DisplayedCircuit {
             equate(this._highlightedSlot, other._highlightedSlot);
     }
 
-    /**
-     * @param {!Painter} painter
-     * @param {!Hand} hand
-     * @param {!CircuitStats} stats
-     * @param {!boolean=false} forTooltip
-     * @param {!boolean} showWires
-     */
-    paint(painter, hand, stats, forTooltip=false, showWires=true) {
-        if (showWires) {
-            this._drawWires(painter, !forTooltip, hand);
-        }
 
-        for (let col = 0; col < this.circuitDefinition.columns.length; col++) {
-            this._drawColumn(painter, this.circuitDefinition.columns[col], col, hand, stats);
-        }
-
-        if (!forTooltip) {
-            this._drawOutputDisplays(painter, stats, hand);
-            this._drawHintLabels(painter, stats);
-        }
-
-        this._drawRowDragHighlight(painter);
-    }
-
-    /**
-     * @param {!Painter} painter
-     * @param {!boolean} showLabels
-     * @param {!Hand} hand
-     * @private
-     */
-    _drawWires(painter, showLabels, hand) {
-        let drawnWireCount = Math.min(this.circuitDefinition.numWires, (this._extraWireStartIndex || Infinity) + 1);
-
-        // Initial value labels
-        if (showLabels) {
-            for (let row = 0; row < drawnWireCount; row++) {
-                let wireRect = this.wireRect(row);
-                let y = wireRect.center().y;
-                let v = this.circuitDefinition.customInitialValues.get(row);
-                if (v === undefined) {
-                    v = '0';
-                }
-                let rect = this._wireInitialStateClickableRect(row);
-                painter.noteTouchBlocker({rect, cursor: 'pointer'});
-                if (this._highlightedSlot === undefined && hand.pos !== undefined && rect.containsPoint(hand.pos)) {
-                    painter.fillRect(rect, Palette.HIGHLIGHTED_GATE_FILL_COLOR);
-                }
-                painter.print(
-                    `|${v}⟩`, 26, y, 'right', 'middle', Palette.INK_COLOR,
-                    `14px ${Typography.DEFAULT_FONT_FAMILY}`, 22, Layout.WIRE_SPACING);
-            }
-        }
-
-        // Wires (doubled-up for measured sections).
-        painter.ctx.save();
-        for (let row = 0; row < drawnWireCount; row++) {
-            if (row === this._extraWireStartIndex) {
-                painter.ctx.globalAlpha *= 0.5;
-            }
-            painter.trace(trace => {
-                let wireRect = this.wireRect(row);
-                let y = Math.round(wireRect.center().y - 0.5) + 0.5;
-                let lastX = showLabels ? 28 : 5;
-                // Wires terminate at the superposition display instead of running to the canvas's right edge.
-                let wireEndX = showLabels ? this._rectForSuperpositionDisplay().x - 4 : Infinity;
-                //noinspection ForLoopThatDoesntUseLoopVariableJS
-                for (let col = 0;
-                        showLabels ? lastX < wireEndX : col <= this.circuitDefinition.columns.length;
-                        col++) {
-                    let x = Math.min(this.opRect(col).center().x, wireEndX);
-                    if (this.circuitDefinition.locIsMeasured(new Point(col, row))) {
-                        // Measured wire.
-                        trace.line(lastX, y-1, x, y-1);
-                        trace.line(lastX, y+1, x, y+1);
-                    } else {
-                        // Unmeasured wire.
-                        trace.line(lastX, y, x, y);
-                    }
-                    lastX = x;
-                }
-            }).thenStroke(Palette.INK_COLOR);
-        }
-        painter.ctx.restore();
-        if (this._extraWireStartIndex !== undefined && this.circuitDefinition.numWires === Simulation.MAX_WIRE_COUNT) {
-            painter.print(
-                `(Max wires. Qubit limit is ${Simulation.MAX_WIRE_COUNT}.)`,
-                5,
-                this.wireRect(Simulation.MAX_WIRE_COUNT).y,
-                'left',
-                'top',
-                Palette.ERROR_COLOR,
-                `bold 16px ${Typography.MONO_FONT_FAMILY}`,
-                400,
-                Layout.WIRE_SPACING);
-        }
-    }
 
     /**
      * @param {!int} col
@@ -528,195 +441,11 @@ class DisplayedCircuit {
         return {isHighlighted, isResizeShowing, isResizeHighlighted};
     }
 
-    /**
-     * @param {!Painter} painter
-     * @param {!int} col
-     * @param {!int} row
-     * @param {!Rect} gateRect
-     * @param {!boolean} isHighlighted
-     * @private
-     */
-    _drawGate_disabledReason(painter, col, row, gateRect, isHighlighted) {
-        let isDisabledReason = this.circuitDefinition.gateAtLocIsDisabledReason(col, row);
-        if (isDisabledReason === undefined) {
-            return;
-        }
 
-        painter.ctx.save();
-        if (isHighlighted) {
-            painter.ctx.globalAlpha *= 0.3;
-        }
-        painter.ctx.globalAlpha *= 0.5;
-        painter.fillRect(gateRect.paddedBy(5), Palette.HIGHLIGHT_FILL_COLOR);
-        painter.ctx.globalAlpha *= 2;
-        painter.strokeLine(gateRect.topLeft(), gateRect.bottomRight(), Palette.HIGHLIGHT_STROKE_COLOR, 3);
-        let r = painter.printParagraph(isDisabledReason, gateRect.paddedBy(5), new Point(0.5, 0.5), Palette.ERROR_COLOR);
-        painter.ctx.globalAlpha *= 0.5;
-        painter.fillRect(r.paddedBy(2), Palette.HIGHLIGHT_FILL_COLOR);
-        painter.ctx.globalAlpha *= 2;
-        painter.printParagraph(isDisabledReason, gateRect.paddedBy(5), new Point(0.5, 0.5), Palette.ERROR_COLOR);
-        painter.ctx.restore()
-    }
 
-    /**
-     * @param {!Painter} painter
-     * @param {!GateColumn} gateColumn
-     * @param {!int} col
-     * @param {!Hand} hand
-     * @param {!CircuitStats} stats
-     * @private
-     */
-    _drawColumn(painter, gateColumn, col, hand, stats) {
-        this._drawColumnControlWires(painter, col);
-        this._drawColumnDragHighlight(painter, col);
 
-        for (let row = 0; row < this.circuitDefinition.numWires; row++) {
-            if (gateColumn.gates[row] === undefined) {
-                continue;
-            }
-            let gate = gateColumn.gates[row];
-            let gateRect = this.gateRect(row, col, gate.width, gate.height);
 
-            let {isHighlighted, isResizeShowing, isResizeHighlighted} =
-                this._highlightStatusAt(col, row, hand.hoverPoints());
 
-            let drawer = gate.customDrawer || GatePainting.DEFAULT_DRAWER;
-            painter.noteTouchBlocker({rect: gateRect, cursor: 'pointer'});
-            if (gate.canChangeInSize()) {
-                painter.noteTouchBlocker({rect: GatePainting.rectForResizeTab(gateRect), cursor: 'ns-resize'});
-            }
-            drawer(new GateDrawParams(
-                painter,
-                hand,
-                false,
-                isHighlighted && !isResizeHighlighted,
-                isResizeShowing,
-                isResizeHighlighted,
-                gateRect,
-                gate,
-                stats,
-                {row, col},
-                this._highlightedSlot === undefined ? hand.hoverPoints() : [],
-                stats.customStatsForSlot(col, row)));
-
-            this._drawGate_disabledReason(painter, col, row, gateRect, isHighlighted);
-        }
-
-        this._drawColumnSurvivalRate(painter, gateColumn, col, stats);
-    }
-
-    /**
-     * @param {!Painter} painter
-     * @param {!GateColumn} gateColumn
-     * @param {!int} col
-     * @param {!CircuitStats} stats
-     * @private
-     */
-    _drawColumnSurvivalRate(painter, gateColumn, col, stats) {
-        if (gateColumn.indexOfNonUnitaryGate() === undefined) {
-            return;
-        }
-
-        let preRate = stats.survivalRate(col - 1);
-        let postRate = stats.survivalRate(col);
-
-        let marginalRate = (postRate - preRate) / preRate;
-        if (isNaN(marginalRate) || Math.abs(marginalRate) <= 0.005) {
-            return;
-        }
-
-        let descAmount;
-        let descCategory;
-        if (marginalRate < 0) {
-            let rate = Math.round(-marginalRate * 100);
-            let rateDesc = marginalRate === -1 ? "100" : rate < 100 ? rate : ">99";
-            descAmount = `${rateDesc}%`;
-            descCategory = 'omits';
-        } else {
-            let factor = Math.round(marginalRate * 100 + 100);
-            descAmount = `${factor}%`;
-            descCategory = 'gains';
-        }
-
-        let pt = this.opRect(col).bottomCenter();
-        painter.print(
-            descCategory,
-            pt.x,
-            pt.y - 28,
-            'center',
-            'bottom',
-            Palette.ERROR_COLOR,
-            `14px ${Typography.DEFAULT_FONT_FAMILY}`,
-            800,
-            50);
-        painter.print(
-            descAmount,
-            pt.x,
-            pt.y - 13,
-            'center',
-            'bottom',
-            Palette.ERROR_COLOR,
-            `14px ${Typography.DEFAULT_FONT_FAMILY}`,
-            800,
-            50);
-    }
-
-    _drawColumnDragHighlight(painter, col) {
-        if (this._highlightedSlot !== undefined &&
-            this._highlightedSlot.col === col &&
-            this._highlightedSlot.row === undefined) {
-            let rect = this.gateRect(0, col, 1, this._groundedWireCount()).paddedBy(3);
-            painter.fillRect(rect, 'rgba(255, 196, 112, 0.7)');
-            painter.strokeRect(rect, Palette.INK_COLOR);
-        }
-    }
-
-    /**
-     * @param {!Painter} painter
-     * @private
-     */
-    _drawRowDragHighlight(painter) {
-        if (this._highlightedSlot !== undefined &&
-                this._highlightedSlot.col === undefined &&
-                this._highlightedSlot.row !== undefined) {
-
-            let row = this._highlightedSlot.row;
-            let w = this.gateRect(row, this.clampedCircuitColCount() + 1).x;
-            let rect = this.wireRect(row).takeLeft(w);
-            painter.fillRect(rect, 'rgba(255, 196, 112, 0.7)');
-            painter.strokeRect(rect, Palette.INK_COLOR);
-        }
-    }
-
-    /**
-     * @param {!Painter} painter
-     * @param {!int} columnIndex
-     * @private
-     */
-    _drawColumnControlWires(painter, columnIndex) {
-        let x = Math.round(this.opRect(columnIndex).center().x - 0.5) + 0.5;
-
-        // Dashed line indicates effects from non-unitary gates may affect, or appear to affect, other wires.
-        if (this.circuitDefinition.columns[columnIndex].hasGatesWithGlobalEffects()) {
-            painter.ctx.save();
-            painter.ctx.setLineDash([1, 4]);
-            painter.strokeLine(
-                new Point(x, this.gateRect(0, 0).y),
-                new Point(x, this.opRect(0).bottom() - 40));
-            painter.ctx.restore();
-        }
-
-        for (let {first, last, measured} of this.circuitDefinition.controlLinesRanges(columnIndex)) {
-            let y1 =  this.wireRect(first).center().y;
-            let y2 = this.wireRect(last).center().y;
-            if (measured) {
-                painter.strokeLine(new Point(x+1, y1), new Point(x+1, y2));
-                painter.strokeLine(new Point(x-1, y1), new Point(x-1, y2));
-            } else {
-                painter.strokeLine(new Point(x, y1), new Point(x, y2));
-            }
-        }
-    }
 
     /**
      * @param {!Hand} hand
@@ -1330,40 +1059,6 @@ class DisplayedCircuit {
             this.circuitDefinition.minimumRequiredWireCount());
     }
 
-    /**
-     * Draws a peek gate on each wire at the right-hand side of the circuit.
-     *
-     * @param {!Painter} painter
-     * @param {!CircuitStats} stats
-     * @param {!Hand} hand
-     * @private
-     */
-    _drawOutputDisplays(painter, stats, hand) {
-        let chanceCol = this.clampedCircuitColCount() + 1;
-        let blochCol = chanceCol + 1;
-        let numWire = this.importantWireCount();
-
-        for (let i = 0; i < numWire; i++) {
-            let p = stats.controlledWireProbabilityJustAfter(i, Infinity);
-            MathPainter.paintProbabilityBox(painter, p, this.gateRect(i, chanceCol), hand.hoverPoints());
-            let m = stats.qubitDensityMatrix(Infinity, i);
-            if (m !== undefined) {
-                paintBlochSphereDisplay(painter, m, this.gateRect(i, blochCol), hand.hoverPoints());
-            }
-        }
-
-        let bottom = this.wireRect(numWire-1).bottom();
-        let capX = this.opRect(chanceCol).x - 35;
-        // Keep the caption clear of the superposition grid's rotated column labels.
-        let capW = Math.min(160, this._rectForSuperpositionDisplay().x - capX - 10);
-        painter.printParagraph(
-            "Local wire states\n(Chance/Bloch)",
-            new Rect(capX, bottom + 8, capW, 40),
-            new Point(0.5, 0),
-            Palette.MUTED_TEXT_COLOR);
-
-        this._drawOutputSuperpositionDisplay(painter, stats, hand);
-    }
 
     /**
      * @returns {!number} The number of columns used for drawing the circuit, before the output display.
@@ -1374,46 +1069,7 @@ class DisplayedCircuit {
             Simulation.MIN_COL_COUNT + (this._compressedColumnIndex !== undefined ? 1 : 0));
     }
 
-    /**
-     * Draws a peek gate on each wire at the right-hand side of the circuit.
-     *
-     * @param {!Painter} painter
-     * @param {!CircuitStats} stats
-     * @param {!Hand} hand
-     * @private
-     */
-    _drawOutputSuperpositionDisplay(painter, stats, hand) {
-        let amplitudeGrid = this._outputStateAsMatrix(stats);
-        let gridRect = this._rectForSuperpositionDisplay();
 
-        let numWire = this.importantWireCount();
-        MathPainter.paintMatrix(
-            painter,
-            amplitudeGrid,
-            gridRect,
-            numWire < Simulation.SIMPLE_SUPERPOSITION_DRAWING_WIRE_THRESHOLD ? Palette.SUPERPOSITION_MID_COLOR : undefined,
-            Palette.INK_COLOR,
-            numWire < Simulation.SIMPLE_SUPERPOSITION_DRAWING_WIRE_THRESHOLD ? Palette.SUPERPOSITION_FORE_COLOR : undefined,
-            Palette.SUPERPOSITION_BACK_COLOR);
-        let forceSign = v => (v >= 0 ? '+' : '') + v.toFixed(2);
-        MathPainter.paintMatrixTooltip(painter, amplitudeGrid, gridRect, hand.hoverPoints(),
-            (c, r) => `Amplitude of |${Util.bin(r*amplitudeGrid.width() + c, numWire)}⟩ (decimal ${r*amplitudeGrid.width() + c})`,
-            (c, r, v) => 'val:' + v.toString(new Format(false, 0, 5, ", ")),
-            (c, r, v) => `mag²:${(v.norm2()*100).toFixed(4)}%, phase:${forceSign(v.phase() * 180 / Math.PI)}°`);
-
-        this._drawOutputSuperpositionDisplay_labels(painter);
-    }
-
-    /**
-     * @param {!Painter} painter
-     * @private
-     */
-    _drawOutputSuperpositionDisplay_labels(painter) {
-        let gridRect = this._rectForSuperpositionDisplay();
-        let numWire = this.importantWireCount();
-        _cachedRowLabelDrawer.paint(gridRect.right(), gridRect.y, painter, numWire);
-        _cachedColLabelDrawer.paint(gridRect.x, gridRect.bottom(), painter, numWire);
-    }
 
     /**
      * @param {!CircuitStats} stats
@@ -1450,75 +1106,6 @@ class DisplayedCircuit {
         return gridRect.withW(gridRect.h * (colCount/rowCount));
     }
 
-    /**
-     * Draws a peek gate on each wire at the right-hand side of the circuit.
-     *
-     * @param {!Painter} painter
-     * @param {!CircuitStats} stats
-     * @private
-     */
-    _drawHintLabels(painter, stats) {
-        let gridRect = this._rectForSuperpositionDisplay();
-
-        // Amplitude hint.
-        painter.print(
-            'Final amplitudes',
-            gridRect.right() + 3,
-            gridRect.bottom() + 3,
-            'left',
-            'top',
-            Palette.MUTED_TEXT_COLOR,
-            `12px ${Typography.DEFAULT_FONT_FAMILY}`,
-            100,
-            20);
-
-        // Says what each cell's glyphs encode, which is otherwise only discoverable by hovering.
-        painter.printParagraph(
-            "area = chance\nline = phase",
-            new Rect(gridRect.right() + 3, gridRect.bottom() + 18, 100, 26),
-            new Point(0, 0),
-            Palette.MUTED_TEXT_COLOR,
-            10);
-
-        // Deferred measurement warning.
-        if (this.circuitDefinition.colIsMeasuredMask(Infinity) !== 0) {
-            painter.printParagraph(
-                "(assuming measurement deferred)",
-                new Rect(
-                    gridRect.right() + 3,
-                    gridRect.bottom() + 48,
-                    100,
-                    75),
-                new Point(0.5, 0),
-                Palette.ERROR_COLOR);
-        }
-
-        // Discard rate warning.
-        let survivalRate = stats.survivalRate(Infinity);
-        if (Math.abs(survivalRate - 1) > 0.01) {
-            let desc;
-            if (survivalRate < 1) {
-                let rate = Math.round(survivalRate * 100);
-                let rateDesc = survivalRate === 0 ? "0" :
-                    rate > 0 ? rate :
-                    "<1";
-                desc = `kept: ${rateDesc}%`;
-            } else {
-                let factor = Math.round(survivalRate * 100);
-                desc = `over-unity: ${factor}%`;
-            }
-            painter.print(
-                desc,
-                this._rectForSuperpositionDisplay().x - 5,
-                gridRect.bottom() + SUPERPOSITION_GRID_LABEL_SPAN + 20,
-                'right',
-                'bottom',
-                Palette.ERROR_COLOR,
-                `14px ${Typography.DEFAULT_FONT_FAMILY}`,
-                800,
-                50);
-        }
-    }
 
     /**
      * Parses a text diagram of a circuit, with positions marked by numbers, into a displayed circuit and a list of the
@@ -1649,90 +1236,7 @@ let GATE_CIRCUIT_DRAWER = args => {
     GatePainting.paintOutline(args);
 };
 
-/**
- * @param {!Painter} painter
- * @param {!number} dy
- * @param {!int} n
- * @param {!function(!int) : !String} labeller
- * @param {!number} boundingWidth
- * @private
- */
-function _drawLabelsReasonablyFast(painter, dy, n, labeller, boundingWidth) {
-    let ctx = painter.ctx;
-    ctx.save();
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    painter.ctx.font = `12px ${Typography.MONO_FONT_FAMILY}`;
-    let w = Math.max(
-        painter.ctx.measureText(labeller(0)).width,
-        painter.ctx.measureText(labeller(n-1)).width);
-    let h = ctx.measureText("0").width * 2.5;
-    let scale = Math.min(Math.min((boundingWidth-2) / w, dy / h), 1);
 
-    // Row labels.
-    let step = dy/scale;
-    let pad = 1/scale;
-    ctx.scale(scale, scale);
-    ctx.translate(0, dy*0.5/scale - h*0.5);
-    ctx.fillStyle = Palette.SURFACE_COLOR;
-    if (h < step*0.95) {
-        for (let i = 0; i < n; i++) {
-            ctx.fillRect(0, step*i, w + 2*pad, h);
-        }
-    } else {
-        ctx.fillRect(0, 0, w + 2*pad, step*n);
-    }
-    ctx.fillStyle = Palette.INK_COLOR;
-    for (let i = 0; i < n; i++) {
-        ctx.fillText(labeller(i), pad, h*0.5 + step*i);
-    }
-    ctx.restore();
-}
 
-let _cachedRowLabelDrawer = new CachablePainting(
-    numWire => ({
-        width: SUPERPOSITION_GRID_LABEL_SPAN,
-        height: (numWire - 1) * Layout.WIRE_SPACING + Layout.GATE_RADIUS * 2
-    }),
-    (painter, numWire) => {
-        let [colWires, rowWires] = [Math.floor(numWire/2), Math.ceil(numWire/2)];
-        let rowCount = 1 << rowWires;
-        //noinspection JSCheckFunctionSignatures
-        _drawLabelsReasonablyFast(
-            painter,
-            painter.paintableArea().h / rowCount,
-            rowCount,
-            // One ellipsis stands in for the bits the column supplies, keeping the label short enough to stay legible.
-            i => Util.bin(i, rowWires) + SUPERPOSITION_GRID_LABEL_ELLIPSIS,
-            SUPERPOSITION_GRID_LABEL_SPAN);
-    });
-
-let _cachedColLabelDrawer = new CachablePainting(
-    numWire => {
-        let [colWires, rowWires] = [Math.floor(numWire/2), Math.ceil(numWire/2)];
-        let [colCount, rowCount] = [1 << colWires, 1 << rowWires];
-        let total_height = (numWire - 1) * Layout.WIRE_SPACING + Layout.GATE_RADIUS * 2;
-        let cellDiameter = total_height / rowCount;
-        return {
-            width: colCount * cellDiameter,
-            height: SUPERPOSITION_GRID_LABEL_SPAN
-        }
-    },
-    (painter, numWire) => {
-        let [colWires, rowWires] = [Math.floor(numWire/2), Math.ceil(numWire/2)];
-        let colCount = 1 << colWires;
-        let dw = painter.paintableArea().w / colCount;
-
-        painter.ctx.translate(colCount*dw, 0);
-        painter.ctx.rotate(Math.PI/2);
-        //noinspection JSCheckFunctionSignatures
-        _drawLabelsReasonablyFast(
-            painter,
-            dw,
-            colCount,
-            // One ellipsis stands in for the bits the row supplies, keeping the label short enough to stay legible.
-            i => SUPERPOSITION_GRID_LABEL_ELLIPSIS + Util.bin(colCount-1-i, colWires),
-            SUPERPOSITION_GRID_LABEL_SPAN);
-    });
 
 export {DisplayedCircuit, drawCircuitTooltip, GATE_CIRCUIT_DRAWER}
