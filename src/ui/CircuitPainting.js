@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {wireInitialStateClickableRect} from "./CircuitHitTesting.js"
 import {CachablePainting} from "../draw/CachablePainting.js"
 import {CircuitStats} from "../circuit/CircuitStats.js"
 import {Layout} from "../config/Layout.js"
@@ -170,7 +171,7 @@ function drawWires(circuit, painter, showLabels, hand) {
             if (v === undefined) {
                 v = '0';
             }
-            let rect = circuit._wireInitialStateClickableRect(row);
+            let rect = wireInitialStateClickableRect(circuit, row);
             painter.noteTouchBlocker({rect, cursor: 'pointer'});
             if (circuit._highlightedSlot === undefined && hand.pos !== undefined && rect.containsPoint(hand.pos)) {
                 painter.fillRect(rect, Palette.HIGHLIGHTED_GATE_FILL_COLOR);

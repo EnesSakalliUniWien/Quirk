@@ -14,6 +14,20 @@
  * limitations under the License.
  */
 
+import {CIRCUIT_OP_HORIZONTAL_SPACING, CIRCUIT_OP_LEFT_SPACING} from "./CircuitLayoutConstants.js"
+import {
+    findGateOverlappingPos,
+    findGateWithButtonContaining,
+    findModificationIndex,
+    findModificationIndex_helperColRow,
+    findOpHalfColumnAt,
+    findWireWithInitialStateAreaContaining,
+    indexOfDisplayedColumnAt,
+    indexOfDisplayedRowAt,
+    toColumnSpaceCoordinate,
+    wireIndexAt,
+    wireInitialStateClickableRect,
+} from "./CircuitHitTesting.js"
 import {paintCircuit} from "./CircuitPainting.js"
 import {CachablePainting} from "../draw/CachablePainting.js"
 import {CircuitDefinition} from "../circuit/CircuitDefinition.js"
@@ -37,11 +51,6 @@ import {Util} from "../base/Util.js"
 import {seq, Seq} from "../base/Seq.js"
 import {paintBlochSphereDisplay} from "../gates/BlochSphereDisplay.js"
 
-/** @type {!number} */
-let CIRCUIT_OP_HORIZONTAL_SPACING = 10;
-/** @type {!number} */
-// Matches Layout.TOOLBOX_MARGIN_X so gate columns align with the toolbox groups.
-let CIRCUIT_OP_LEFT_SPACING = 32;
 
 
 /** Stands in for the half of a basis state's bits that the other axis of the amplitude grid supplies. */
@@ -195,121 +204,12 @@ class DisplayedCircuit {
         return new Rect(0, this.top + Layout.WIRE_SPACING * wireIndex, Infinity, Layout.WIRE_SPACING);
     }
 
-    /**
-     * @param {!number} y
-     * @returns {!int}
-     */
-    wireIndexAt(y) {
-        return Math.floor((y - this.top) / Layout.WIRE_SPACING);
-    }
 
-    //noinspection JSMethodCanBeStatic
-    /**
-     * @param {!number} x
-     * @returns {!number} The continuous column-space coordinate corresponding to the given display-space coordinate.
-     * @private
-     */
-    toColumnSpaceCoordinate(x) {
-        let spacing = (CIRCUIT_OP_HORIZONTAL_SPACING + Layout.GATE_RADIUS * 2);
-        let left = CIRCUIT_OP_LEFT_SPACING - CIRCUIT_OP_HORIZONTAL_SPACING / 2;
-        return (x - left) / spacing - 0.5;
-    }
 
-    /**
-     * @param {!number} y
-     * @returns {undefined|!int}
-     */
-    indexOfDisplayedRowAt(y) {
-        let i = Math.floor((y - this.top) / Layout.WIRE_SPACING);
-        if (i < 0 || i >= this.circuitDefinition.numWires) {
-            return undefined;
-        }
-        return i;
-    }
 
-    /**
-     * @param {!number} x
-     * @returns {undefined|!int}
-     */
-    indexOfDisplayedColumnAt(x) {
-        let col = this.toColumnSpaceCoordinate(x);
-        let i;
-        if (this._compressedColumnIndex === undefined || col < this._compressedColumnIndex - 0.75) {
-            i = Math.round(col);
-        } else if (col < this._compressedColumnIndex - 0.25) {
-            i = this._compressedColumnIndex;
-        } else {
-            i = Math.round(col) - 1;
-        }
 
-        if (i < 0 || i >= this.circuitDefinition.columns.length) {
-            return undefined;
-        }
 
-        return i;
-    }
 
-    /**
-     * @param {!Point} p
-     * @returns {undefined|!number}
-     */
-    findOpHalfColumnAt(p) {
-        if (p.x < 0 || p.y < this.top || p.y > this.top + this.desiredHeight()) {
-            return undefined;
-        }
-
-        return Math.max(-0.5, Math.round(this.toColumnSpaceCoordinate(p.x) * 2) / 2);
-    }
-
-    /**
-     * @param {!Hand} hand
-     * @returns {undefined|!{col: !int, row: !int, halfColIndex: !number}}
-     * @private
-     */
-    _findModificationIndex_helperColRow(hand) {
-        if (hand.pos === undefined || hand.heldGate === undefined) {
-            return undefined;
-        }
-        let pos = hand.pos.minus(hand.holdOffset).plus(new Point(Layout.GATE_RADIUS, Layout.GATE_RADIUS));
-        let halfColIndex = this.findOpHalfColumnAt(pos);
-        let row = this.indexOfDisplayedRowAt(pos.y);
-        if (halfColIndex === undefined || row === undefined) {
-            return undefined;
-        }
-        let col = Math.ceil(halfColIndex);
-        return {col, row, halfColIndex};
-    }
-
-    /**
-     * @param {!Hand} hand
-     * @returns {?{ col : !number, row : !number, isInsert : !boolean }}
-     */
-    findModificationIndex(hand) {
-        let loc = this._findModificationIndex_helperColRow(hand);
-        if (loc === undefined) {
-            return undefined;
-        }
-        let {col, row, halfColIndex} = loc;
-
-        let isInsert = Math.abs(halfColIndex % 1) === 0.5;
-        if (col >= this.circuitDefinition.columns.length) {
-            return {col: col, row: row, isInsert: isInsert};
-        }
-
-        if (!isInsert) {
-            let mustInsert = this.circuitDefinition.isSlotRectCoveredByGateInSameColumn(
-                col, row, hand.heldGate.height);
-            if (mustInsert) {
-                let isAfter = hand.pos.x > this.opRect(col).center().x;
-                isInsert = true;
-                if (isAfter) {
-                    col += 1;
-                }
-            }
-        }
-
-        return {col: col, row: row, isInsert: isInsert};
-    }
 
     /**
      * @param {!int} operationIndex
@@ -365,6 +265,30 @@ class DisplayedCircuit {
             _withCompressedColumnIndex(undefined).
             _withExtraWireStartIndex(undefined).
             _withHighlightedSlot(undefined);
+    }
+
+    /**
+     * @param {!number} y
+     * @returns {undefined|!int}
+     */
+    indexOfDisplayedRowAt(y) {
+        return indexOfDisplayedRowAt(this, y);
+    }
+
+    /**
+     * @param {!Point} pos
+     * @returns {undefined|!Point}
+     */
+    findGateWithButtonContaining(pos) {
+        return findGateWithButtonContaining(this, pos);
+    }
+
+    /**
+     * @param {!Point} pt
+     * @returns {undefined|!int}
+     */
+    findWireWithInitialStateAreaContaining(pt) {
+        return findWireWithInitialStateAreaContaining(this, pt);
     }
 
     /**
@@ -425,11 +349,11 @@ class DisplayedCircuit {
         let resizeTabRect = GatePainting.rectForResizeTab(gateRect);
 
         let isOverGate = pos => {
-            let overGate = this.findGateOverlappingPos(pos);
+            let overGate = findGateOverlappingPos(this, pos);
             return overGate !== undefined && overGate.col === col && overGate.row === row;
         };
         let isNotCoveredAt = pos => {
-            let g = this.findGateOverlappingPos(pos);
+            let g = findGateOverlappingPos(this, pos);
             return g === undefined || (g.col === col && g.row === row);
         };
         let isOverGateResizeTab = pos => isNotCoveredAt(pos) && resizeTabRect.containsPoint(pos);
@@ -467,7 +391,7 @@ class DisplayedCircuit {
         if (hand.pos === undefined) {
             return this;
         }
-        let handWire = this.wireIndexAt(hand.pos.y);
+        let handWire = wireIndexAt(this, hand.pos.y);
         if (handWire < 0 || handWire >= this.circuitDefinition.numWires) {
             // Dragged the row out of the circuit.
             return this;
@@ -505,14 +429,14 @@ class DisplayedCircuit {
         if (hand.pos === undefined) {
             return this;
         }
-        let handWire = this.wireIndexAt(hand.pos.y);
+        let handWire = wireIndexAt(this, hand.pos.y);
         if (handWire < 0 || handWire >= Simulation.MAX_WIRE_COUNT || hand.pos.x <= 1) {
             // Dragged the gate column out of the circuit.
             return this;
         }
 
 
-        let halfCol = this.findOpHalfColumnAt(new Point(hand.pos.x, this.top));
+        let halfCol = findOpHalfColumnAt(this, new Point(hand.pos.x, this.top));
         let mustInsert = halfCol % 1 === 0 &&
             this.circuitDefinition.columns[halfCol] !== undefined &&
             !this.circuitDefinition.columns[halfCol].isEmpty();
@@ -567,7 +491,7 @@ class DisplayedCircuit {
      * @private
      */
     _previewDropMovedGate(hand) {
-        let modificationPoint = this.findModificationIndex(hand);
+        let modificationPoint = findModificationIndex(this, hand);
         if (modificationPoint === undefined) {
             return this;
         }
@@ -623,7 +547,7 @@ class DisplayedCircuit {
             return this;
         }
         let row = Math.min(
-            this.wireIndexAt(hand.pos.y - hand.holdOffset.y),
+            wireIndexAt(this, hand.pos.y - hand.holdOffset.y),
             Simulation.MAX_WIRE_COUNT - 1);
         let newGate = seq(gate.gateFamily).minBy(g => Math.abs(g.height - (row - hand.resizingGateSlot.y + 1)));
         let newWireCount = Math.min(Simulation.MAX_WIRE_COUNT,
@@ -735,92 +659,9 @@ class DisplayedCircuit {
             _withExtraWireStartIndex(extraWireCount === 0 ? undefined : this.circuitDefinition.numWires);
     }
 
-    /**
-     * @param {!Point} pos
-     * @returns {undefined|!{col: !int, row: !int, offset: !Point}}
-     */
-    findGateOverlappingPos(pos) {
-        let col = this.indexOfDisplayedColumnAt(pos.x);
-        let row = this.indexOfDisplayedRowAt(pos.y);
-        if (col === undefined || row === undefined) {
-            return undefined;
-        }
 
-        let target = this.circuitDefinition.findGateCoveringSlot(col, row);
-        if (target === undefined) {
-            return undefined;
-        }
 
-        let gateRect = this.gateRect(target.row, target.col, target.gate.width, target.gate.height);
-        if (!gateRect.containsPoint(pos)) {
-            return undefined;
-        }
 
-        return {col: target.col, row: target.row, offset: pos.minus(gateRect.topLeft())};
-    }
-
-    /**
-     * @param {!Point} pos
-     * @returns {undefined|!{col: !int, row: !int, gate: !Gate}}
-     */
-    findGateWithButtonContaining(pos) {
-        let foundPt = this.findGateOverlappingPos(pos);
-        if (foundPt === undefined) {
-            return undefined;
-        }
-
-        let gate = this.circuitDefinition.gateInSlot(foundPt.col, foundPt.row);
-        if (gate.onClickGateFunc === undefined) {
-            return undefined;
-        }
-
-        let buttonRect = GatePainting.gateButtonRect(this.gateRect(foundPt.row, foundPt.col, gate.width, gate.height));
-        if (!buttonRect.containsPoint(pos)) {
-            return undefined;
-        }
-
-        return {col: foundPt.col, row: foundPt.row, gate};
-    }
-
-    /**
-     * @param {!int} wire
-     * @returns {!Rect}
-     * @private
-     */
-    _wireInitialStateClickableRect(wire) {
-        let r = this.wireRect(wire);
-        r.x = 0;
-        r.y += 5;
-        r.w = 30;
-        r.h -= 10;
-        return r;
-    }
-
-    /**
-     * @param {!Point} pt
-     * @returns {undefined|!int}
-     */
-    findWireWithInitialStateAreaContaining(pt) {
-        // Is it in the right vertical band; the one at the start of the circuit?
-        if (pt.x < 0 || pt.x > 30) {
-            return undefined;
-        }
-
-        // Which wire is it? Is it one that's actually in the circuit?
-        let wire = this.wireIndexAt(pt.y);
-        if (wire < 0 || wire >= this.circuitDefinition.numWires) {
-            return undefined;
-        }
-
-        // Is it inside the intended click area, instead of just off to the side?
-        let r = this._wireInitialStateClickableRect(wire);
-        if (!r.containsPoint(pt)) {
-            return undefined;
-        }
-
-        // Good to go.
-        return wire;
-    }
 
     /**
      * @param {!Hand} hand
@@ -831,12 +672,12 @@ class DisplayedCircuit {
             return undefined;
         }
 
-        let clickedInitialStateWire = this.findWireWithInitialStateAreaContaining(hand.pos);
+        let clickedInitialStateWire = findWireWithInitialStateAreaContaining(this, hand.pos);
         if (clickedInitialStateWire !== undefined) {
             return this.withCircuit(this.circuitDefinition.withSwitchedInitialStateOn(clickedInitialStateWire))
         }
 
-        let found = this.findGateWithButtonContaining(hand.pos);
+        let found = findGateWithButtonContaining(this, hand.pos);
         if (found === undefined) {
             return undefined;
         }
@@ -891,13 +732,13 @@ class DisplayedCircuit {
         }
 
         // Which wire is it? Is it one that's actually in the circuit?
-        let wire = this.wireIndexAt(hand.pos.y);
+        let wire = wireIndexAt(this, hand.pos.y);
         if (wire < 0 || wire >= this.circuitDefinition.numWires) {
             return undefined;
         }
 
         // Is it inside the intended click area, instead of just off to the side?
-        let r = this._wireInitialStateClickableRect(wire);
+        let r = wireInitialStateClickableRect(this, wire);
         if (!r.containsPoint(hand.pos)) {
             return undefined;
         }
@@ -950,7 +791,7 @@ class DisplayedCircuit {
             return undefined;
         }
 
-        let foundPt = this.findGateOverlappingPos(hand.pos);
+        let foundPt = findGateOverlappingPos(this, hand.pos);
         if (foundPt === undefined) {
             return undefined;
         }
@@ -1021,7 +862,7 @@ class DisplayedCircuit {
             return undefined;
         }
 
-        let col = Math.round(this.toColumnSpaceCoordinate(hand.pos.x));
+        let col = Math.round(toColumnSpaceCoordinate(this, hand.pos.x));
         if (col < 0 || col >= this.circuitDefinition.columns.length || this.circuitDefinition.columns[col].isEmpty()) {
             return undefined;
         }
@@ -1031,7 +872,7 @@ class DisplayedCircuit {
             newCols.splice(col, 1, GateColumn.empty(this.circuitDefinition.numWires));
         }
 
-        let holdOffset = new Point(0, this.wireIndexAt(hand.pos.y) * Layout.WIRE_SPACING + Layout.WIRE_SPACING/2);
+        let holdOffset = new Point(0, wireIndexAt(this, hand.pos.y) * Layout.WIRE_SPACING + Layout.WIRE_SPACING/2);
         let grabbedGates = this.circuitDefinition.columns[col];
         if (alt) {
             grabbedGates = new GateColumn(grabbedGates.gates.map(e => e === undefined ? e : e.alternate));

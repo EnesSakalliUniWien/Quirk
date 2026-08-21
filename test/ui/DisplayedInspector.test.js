@@ -47,10 +47,11 @@ suite.test("endsOutputDisplaysAtTheRightEdgeOfASpaciousArea", () => {
     let wide = DisplayedInspector.empty(new Rect(0, 0, 1600, 800));
     let narrow = DisplayedInspector.empty(new Rect(0, 0, 900, 800));
 
-    // The circuit fills the available width instead of leaving dead space to its right.
-    // Half-pixel slack comes from gateRect snapping display columns to the pixel grid.
-    assertThat(wide.displayedCircuit.desiredWidth()).isApproximatelyEqualTo(1600, 0.5);
-    assertThat(narrow.displayedCircuit.desiredWidth()).isApproximatelyEqualTo(900, 0.5);
+    // The circuit fills the available width instead of leaving dead space to its right. gateRect
+    // snaps display columns to the pixel grid, so allow a pixel; the helper compares with a
+    // strict <, which an epsilon of exactly the snap size would sit on the boundary of.
+    assertThat(wide.displayedCircuit.desiredWidth()).isApproximatelyEqualTo(1600, 1);
+    assertThat(narrow.displayedCircuit.desiredWidth()).isApproximatelyEqualTo(900, 1);
 
     // Circuit columns stay put; only the output displays move right.
     assertThat(wide.displayedCircuit.opRect(0).x).isEqualTo(narrow.displayedCircuit.opRect(0).x);
