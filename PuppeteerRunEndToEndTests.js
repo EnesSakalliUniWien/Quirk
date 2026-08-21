@@ -200,7 +200,7 @@ test('renders the circuit controls with shadcn buttons', async browser => {
             await page.$eval('#drawCanvas', element => getComputedStyle(element).filter),
             'none');
         assert.equal(toolbar.label, 'Circuit controls');
-        assert.equal(toolbar.brand, 'Quirk');
+        assert.equal(toolbar.brand, 'Shadow-Quant');
         assert.deepEqual(toolbar.buttonIds, [
             'menu-button',
             'export-button',

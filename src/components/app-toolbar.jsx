@@ -27,10 +27,10 @@ function ToolbarButton({id, icon: Icon, children, variant = "ghost"}) {
 function AppToolbar() {
     return (
         <header className="app-toolbar" role="toolbar" aria-label="Circuit controls">
-            <div className="app-brand" aria-label="Quirk quantum circuit simulator">
+            <div className="app-brand" aria-label="Shadow-Quant quantum circuit simulator">
                 <span className="app-brand-mark" aria-hidden="true"><AtomIcon /></span>
                 <span className="app-brand-copy">
-                    <strong>Quirk</strong>
+                    <strong>Shadow-Quant</strong>
                     <small>Quantum circuit simulator</small>
                 </span>
             </div>
