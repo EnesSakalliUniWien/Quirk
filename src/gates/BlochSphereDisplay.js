@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Config} from "../Config.js"
+import {Palette} from "../config/Palette.js"
 import {GateBuilder} from "../circuit/Gate.js"
 import {GatePainting} from "../draw/GatePainting.js"
 import {MathPainter} from "../draw/MathPainter.js"
@@ -47,7 +47,7 @@ function _paintBlochSphereDisplay_tooltips(
     let d = Math.sqrt(x*x + y*y + z*z);
     let ϕ = Math.atan2(y, -x);
     let θ = Math.max(0, Math.PI/2 - Math.atan2(-z, Math.sqrt(y*y + x*x)));
-    painter.strokeCircle(c, u, Config.HIGHLIGHT_STROKE_COLOR, 2);
+    painter.strokeCircle(c, u, Palette.HIGHLIGHT_STROKE_COLOR, 2);
     MathPainter.paintDeferredValueTooltip(
         painter,
         c.x+u*Math.sqrt(0.5),
@@ -81,20 +81,20 @@ function _paintBlochSphereDisplay_indicator(
     let r = u * 0.23 / (1 + x / 6);
 
     // Draw state indicators (in not-quite-correct 3d).
-    painter.strokeLine(c, p, Config.INK_COLOR, 1.5);
+    painter.strokeLine(c, p, Palette.INK_COLOR, 1.5);
     painter.fillCircle(p, r, fillColor);
 
     painter.ctx.save();
     painter.ctx.globalAlpha *= Math.min(1, Math.max(0, 1-x*x-y*y-z*z));
-    painter.fillCircle(p, r, Config.HIGHLIGHT_FILL_COLOR);
+    painter.fillCircle(p, r, Palette.HIGHLIGHT_FILL_COLOR);
     painter.ctx.restore();
 
-    painter.strokeCircle(p, r, Config.INK_COLOR);
+    painter.strokeCircle(p, r, Palette.INK_COLOR);
 
     // Show depth by lerping the line from overlaying to being overlayd by the ball.
     painter.ctx.save();
     painter.ctx.globalAlpha *= Math.min(1, Math.max(0, 0.5+x*5));
-    painter.strokeLine(c, p, Config.INK_COLOR, 2);
+    painter.strokeLine(c, p, Palette.INK_COLOR, 2);
     painter.ctx.restore();
 }
 
@@ -111,8 +111,8 @@ function paintBlochSphereDisplay(
         qubitDensityMatrix,
         drawArea,
         focusPoints = [],
-        backgroundColor = Config.DISPLAY_GATE_BACK_COLOR,
-        fillColor = Config.DISPLAY_GATE_FORE_COLOR) {
+        backgroundColor = Palette.DISPLAY_GATE_BACK_COLOR,
+        fillColor = Palette.DISPLAY_GATE_FORE_COLOR) {
     let c = drawArea.center();
     let u = Math.min(drawArea.w, drawArea.h) / 2;
     let {dx, dy, dz} = MathPainter.coordinateSystem(u);
@@ -123,7 +123,7 @@ function paintBlochSphereDisplay(
         trace.circle(c.x, c.y, u);
         trace.ellipse(c.x, c.y, dy.x, dx.y);
         trace.ellipse(c.x, c.y, dx.x, dz.y);
-    }).thenStroke(Config.FAINT_LINE_COLOR);
+    }).thenStroke(Palette.FAINT_LINE_COLOR);
 
     // The in-plane axes are brighter than the outline, so the orientation reads at a glance.
     painter.trace(trace => {
@@ -132,14 +132,14 @@ function paintBlochSphereDisplay(
         }
         // The half of the depth axis pointing at the viewer.
         trace.line(c.x, c.y, c.x - dx.x, c.y - dx.y);
-    }).thenStroke(Config.MID_LINE_COLOR);
+    }).thenStroke(Palette.MID_LINE_COLOR);
 
     // The half of the depth axis pointing away stays dim, which is the only depth cue the sphere has.
-    painter.strokeLine(c, c.plus(dx), Config.FAINT_LINE_COLOR);
+    painter.strokeLine(c, c.plus(dx), Palette.FAINT_LINE_COLOR);
 
     let [x, y, z] = [NaN, NaN, NaN];
     if (qubitDensityMatrix.hasNaN()) {
-        painter.printParagraph("NaN", drawArea, new Point(0.5, 0.5), Config.ERROR_COLOR);
+        painter.printParagraph("NaN", drawArea, new Point(0.5, 0.5), Palette.ERROR_COLOR);
     } else {
         [x, y, z] = qubitDensityMatrix.qubitDensityMatrixToBlochVector();
         _paintBlochSphereDisplay_indicator(painter, x, y, z, drawArea, fillColor);

@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-import {Config} from "../Config.js"
+import {Layout} from "../config/Layout.js"
+import {Palette} from "../config/Palette.js"
+import {Typography} from "../config/Typography.js"
 import {Point} from "../math/Point.js"
 import {Rect} from "../math/Rect.js"
 import {RestartableRng} from "../base/RestartableRng.js"
@@ -115,7 +117,7 @@ class Painter {
     /**
      * @param {!string=} color
      */
-    clear(color = Config.DEFAULT_FILL_COLOR) {
+    clear(color = Palette.DEFAULT_FILL_COLOR) {
         this.ctx.fillStyle = color;
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     }
@@ -128,7 +130,7 @@ class Painter {
      * @param {=string} color The color of the drawn line.
      * @param {=number} thickness The thickness of the drawn line.
      */
-    strokeLine(p1, p2, color = Config.DEFAULT_STROKE_COLOR, thickness = 1) {
+    strokeLine(p1, p2, color = Palette.DEFAULT_STROKE_COLOR, thickness = 1) {
         this.ctx.beginPath();
         this.ctx.moveTo(p1.x, p1.y);
         this.ctx.lineTo(p2.x, p2.y);
@@ -143,7 +145,7 @@ class Painter {
      * @param {!string=} color The stroke color.
      * @param {!number=} thickness The stroke thickness.
      */
-    strokeRect(rect, color = Config.DEFAULT_STROKE_COLOR, thickness = 1) {
+    strokeRect(rect, color = Palette.DEFAULT_STROKE_COLOR, thickness = 1) {
         this.ctx.strokeStyle = color;
         this.ctx.lineWidth = thickness;
         this.ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
@@ -154,7 +156,7 @@ class Painter {
      * @param {!Rect} rect The rectangular area to fill.
      * @param {!string=} color The fill color.
      */
-    fillRect(rect, color = Config.DEFAULT_FILL_COLOR) {
+    fillRect(rect, color = Palette.DEFAULT_FILL_COLOR) {
         this.ctx.fillStyle = color;
         this.ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
     }
@@ -188,7 +190,7 @@ class Painter {
      * @param {!string=} color
      * @param {!number=} radius
      */
-    fillRoundedRect(rect, color = Config.DEFAULT_FILL_COLOR, radius = 0) {
+    fillRoundedRect(rect, color = Palette.DEFAULT_FILL_COLOR, radius = 0) {
         this._startRoundedRectPath(rect, radius);
         this.ctx.fillStyle = color;
         this.ctx.fill();
@@ -201,7 +203,7 @@ class Painter {
      * @param {!number=} thickness
      * @param {!number=} radius
      */
-    strokeRoundedRect(rect, color = Config.DEFAULT_STROKE_COLOR, thickness = 1, radius = 0) {
+    strokeRoundedRect(rect, color = Palette.DEFAULT_STROKE_COLOR, thickness = 1, radius = 0) {
         this._startRoundedRectPath(rect, radius);
         this.ctx.strokeStyle = color;
         this.ctx.lineWidth = thickness;
@@ -225,7 +227,7 @@ class Painter {
      * @param {!string=} color The stroke color.
      * @param {!number=} thickness The stroke thickness.
      */
-    strokeCircle(center, radius, color = Config.DEFAULT_STROKE_COLOR, thickness = Config.DEFAULT_STROKE_THICKNESS) {
+    strokeCircle(center, radius, color = Palette.DEFAULT_STROKE_COLOR, thickness = Layout.DEFAULT_STROKE_THICKNESS) {
         this.ctx.beginPath();
         this.ctx.strokeStyle = color;
         this.ctx.lineWidth = thickness;
@@ -249,7 +251,7 @@ class Painter {
      * @param {!number} radius The distance from the center of the circle to its side.
      * @param {!string=} color The fill color. Defaults to white.
      */
-    fillCircle(center, radius, color = Config.DEFAULT_FILL_COLOR) {
+    fillCircle(center, radius, color = Palette.DEFAULT_FILL_COLOR) {
         this.ctx.beginPath();
         this.ctx.arc(center.x, center.y, Math.max(radius - 0.5, 0), 0, 2 * Math.PI);
         this.ctx.fillStyle = color;
@@ -320,9 +322,9 @@ class Painter {
     printParagraph(text,
                    area,
                    proportionalCenterOfAlignment = new Point(0, 0),
-                   fontColor = Config.DEFAULT_TEXT_COLOR,
-                   maxFontSize = Config.DEFAULT_FONT_SIZE,
-                   fontFamily = Config.DEFAULT_FONT_FAMILY) {
+                   fontColor = Palette.DEFAULT_TEXT_COLOR,
+                   maxFontSize = Typography.DEFAULT_FONT_SIZE,
+                   fontFamily = Typography.DEFAULT_FONT_FAMILY) {
 
         let fontSize;
         let ascendingHeightOf = metric => {
@@ -385,9 +387,9 @@ class Painter {
     printLine(text,
               area,
               proportionalCenterOfHorizontalAlignment = 0,
-              fontColor = Config.DEFAULT_TEXT_COLOR,
-              maxFontSize = Config.DEFAULT_FONT_SIZE,
-              fontFamily = Config.DEFAULT_FONT_FAMILY,
+              fontColor = Palette.DEFAULT_TEXT_COLOR,
+              maxFontSize = Typography.DEFAULT_FONT_SIZE,
+              fontFamily = Typography.DEFAULT_FONT_FAMILY,
               proportionalCenterOfVerticalAlignment = undefined) {
 
         let fontSize;
@@ -432,8 +434,8 @@ class Painter {
      * @param {!number=} strokeThickness The stroke thickness.
      */
     strokePolygon(vertices,
-                  strokeColor = Config.DEFAULT_STROKE_COLOR,
-                  strokeThickness = Config.DEFAULT_STROKE_THICKNESS) {
+                  strokeColor = Palette.DEFAULT_STROKE_COLOR,
+                  strokeThickness = Layout.DEFAULT_STROKE_THICKNESS) {
         if (vertices.length === 0) {
             return;
         }
@@ -457,8 +459,8 @@ class Painter {
      * @param {!number=} strokeThickness The stroke thickness.
      */
     strokePath(vertices,
-                  strokeColor = Config.DEFAULT_STROKE_COLOR,
-                  strokeThickness = Config.DEFAULT_STROKE_THICKNESS) {
+                  strokeColor = Palette.DEFAULT_STROKE_COLOR,
+                  strokeThickness = Layout.DEFAULT_STROKE_THICKNESS) {
         if (vertices.length === 0) {
             return;
         }

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-import {Config} from "../Config.js"
+import {Palette} from "../config/Palette.js"
+import {Typography} from "../config/Typography.js"
 import {CircuitShaders} from "../circuit/CircuitShaders.js"
 import {Gate} from "../circuit/Gate.js"
 import {GatePainting} from "../draw/GatePainting.js"
@@ -254,10 +255,10 @@ const AMPLITUDE_DRAWER_FROM_CUSTOM_STATS = GatePainting.makeDisplayDrawer(args =
         args.painter,
         matrix,
         drawRect,
-        Config.SUPERPOSITION_MID_COLOR,
-        Config.INK_COLOR,
-        Config.SUPERPOSITION_FORE_COLOR,
-        Config.SUPERPOSITION_BACK_COLOR,
+        Palette.SUPERPOSITION_MID_COLOR,
+        Palette.INK_COLOR,
+        Palette.SUPERPOSITION_FORE_COLOR,
+        Palette.SUPERPOSITION_BACK_COLOR,
         `rgba(0, 0, 0, ${indicatorAlpha})`);
 
     let forceSign = v => (v >= 0 ? '+' : '') + v.toFixed(2);
@@ -290,7 +291,7 @@ const AMPLITUDE_DRAWER_FROM_CUSTOM_STATS = GatePainting.makeDisplayDrawer(args =
                 'right',
                 'bottom',
                 `rgba(255,0,0,${indicatorAlpha})`,
-                `12px ${Config.MONO_FONT_FAMILY}`,
+                `12px ${Typography.MONO_FONT_FAMILY}`,
                 cw*0.5,
                 rh*0.5);
         }
@@ -322,7 +323,7 @@ function paintErrorIfPresent(args, indicatorAlpha) {
             'center',
             'hanging',
             `rgba(255,0,0,${1-indicatorAlpha})`,
-            `12px ${Config.DEFAULT_FONT_FAMILY}`,
+            `12px ${Typography.DEFAULT_FONT_FAMILY}`,
             args.rect.w,
             args.rect.h,
             undefined);

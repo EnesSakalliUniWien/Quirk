@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Config} from "../Config.js"
+import {Simulation} from "../config/Simulation.js"
 import {Gate} from "../circuit/Gate.js"
 import {ketArgs, ketShaderPermute, ketInputGateShaderCode} from "../circuit/KetShaderUtil.js"
 
@@ -26,7 +26,7 @@ const XOR_SHADER = ketShaderPermute(
         float srcMask = mod(read_input_A(), span);
         float bitPos = 1.0;
         float result = 0.0;
-        for (int i = 0; i < ${Config.MAX_WIRE_COUNT}; i++) {
+        for (int i = 0; i < ${Simulation.MAX_WIRE_COUNT}; i++) {
             float srcBit = mod(floor(srcMask/bitPos), 2.0);
             float dstBit = mod(floor(out_id/bitPos), 2.0);
             result += (dstBit + srcBit - dstBit * srcBit * 2.0) * bitPos;

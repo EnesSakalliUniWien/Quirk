@@ -18,7 +18,7 @@ import {Axis} from "../math/Axis.js"
 import {CircuitDefinition} from "../circuit/CircuitDefinition.js"
 import {setGateBuilderEffectToCircuit} from "../circuit/CircuitComputeUtil.js"
 import {Complex} from "../math/Complex.js"
-import {Config} from "../Config.js"
+import {Palette} from "../config/Palette.js"
 import {DetailedError} from "../base/DetailedError.js"
 import {drawCircuitTooltip} from "../ui/DisplayedCircuit.js"
 import {Format} from "../base/Format.js"
@@ -83,26 +83,26 @@ function initForge(revision, overlayState) {
                 painter,
                 op,
                 rect1,
-                Config.OPERATION_FORE_COLOR,
-                Config.INK_COLOR,
+                Palette.OPERATION_FORE_COLOR,
+                Palette.INK_COLOR,
                 undefined,
-                Config.OPERATION_BACK_COLOR,
+                Palette.OPERATION_BACK_COLOR,
                 undefined,
                 'transparent');
             if (!op.isUnitary(0.009)) {
-                painter.printParagraph('NOT UNITARY', rect2, new Point(0.5, 0.5), Config.ERROR_COLOR, 24);
+                painter.printParagraph('NOT UNITARY', rect2, new Point(0.5, 0.5), Palette.ERROR_COLOR, 24);
             } else  if (op.width() !== 2) {
-                painter.printParagraph('(Not a 1-qubit rotation)', rect2, new Point(0.5, 0.5), Config.MUTED_TEXT_COLOR, 20);
+                painter.printParagraph('(Not a 1-qubit rotation)', rect2, new Point(0.5, 0.5), Palette.MUTED_TEXT_COLOR, 20);
             } else {
                 MathPainter.paintBlochSphereRotation(
                     painter,
                     op,
                     rect2,
-                    Config.OPERATION_BACK_COLOR,
-                    Config.OPERATION_FORE_COLOR);
+                    Palette.OPERATION_BACK_COLOR,
+                    Palette.OPERATION_FORE_COLOR);
             }
             let cx = (rect1.right() + rect2.x)/2;
-            painter.strokeLine(new Point(cx, 0), new Point(cx, canvas.height), Config.INK_COLOR, 2);
+            painter.strokeLine(new Point(cx, 0), new Point(cx, canvas.height), Palette.INK_COLOR, 2);
             if (!op.hasNaN()) {
                 button.disabled = false;
             }
@@ -111,7 +111,7 @@ function initForge(revision, overlayState) {
                 ex+"",
                 new Rect(0, 0, canvas.width, canvas.height),
                 new Point(0.5, 0.5),
-                Config.ERROR_COLOR,
+                Palette.ERROR_COLOR,
                 24);
         }
     }
@@ -275,7 +275,7 @@ function initForge(revision, overlayState) {
                     ex+"",
                     new Rect(0, 0, circuitCanvas.width, circuitCanvas.height),
                     new Point(0.5, 0.5),
-                    Config.ERROR_COLOR,
+                    Palette.ERROR_COLOR,
                     24);
             }
         };

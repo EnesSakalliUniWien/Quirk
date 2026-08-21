@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Config} from "../Config.js"
+import {Palette} from "../config/Palette.js"
 import {Gate, GateBuilder} from "../circuit/Gate.js"
 import {GatePainting} from "../draw/GatePainting.js"
 import {Matrix} from "../math/Matrix.js"
@@ -42,7 +42,7 @@ const staircaseCurve = steps => {
 };
 
 let STAIRCASE_DRAWER = (timeOffset, steps, flip=false) => args => {
-    GatePainting.MAKE_HIGHLIGHTED_DRAWER(Config.TIME_DEPENDENT_HIGHLIGHT_COLOR)(args);
+    GatePainting.MAKE_HIGHLIGHTED_DRAWER(Palette.TIME_DEPENDENT_HIGHLIGHT_COLOR)(args);
 
     if (args.isInToolbox && !args.isHighlighted) {
         return;
@@ -69,14 +69,14 @@ let STAIRCASE_DRAWER = (timeOffset, steps, flip=false) => args => {
 
     args.painter.ctx.save();
     args.painter.ctx.globalAlpha *= 0.3;
-    args.painter.fillPolygon(curve, Config.HIGHLIGHT_FILL_COLOR);
+    args.painter.fillPolygon(curve, Palette.HIGHLIGHT_FILL_COLOR);
     for (let i = 1; i < curve.length - 2; i++) {
-        args.painter.strokeLine(curve[i], curve[i+1], Config.INK_COLOR);
+        args.painter.strokeLine(curve[i], curve[i+1], Palette.INK_COLOR);
     }
     if (steps === 2 && t < 0.5) {
-        args.painter.fillRect(args.rect, Config.GATE_FILL_COLOR);
-        args.painter.fillRect(args.rect, Config.GATE_FILL_COLOR);
-        args.painter.fillRect(args.rect, Config.GATE_FILL_COLOR);
+        args.painter.fillRect(args.rect, Palette.GATE_FILL_COLOR);
+        args.painter.fillRect(args.rect, Palette.GATE_FILL_COLOR);
+        args.painter.fillRect(args.rect, Palette.GATE_FILL_COLOR);
     }
     args.painter.ctx.restore();
 };

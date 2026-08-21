@@ -23,7 +23,8 @@ import {currentShaderCoder, Inputs} from "../webgl/ShaderCoders.js";
 import {CircuitShaders} from "../circuit/CircuitShaders.js"
 import {Controls} from "../circuit/Controls.js";
 import {WglArg} from "../webgl/WglArg.js";
-import {Config} from "../Config.js"
+import {Palette} from "../config/Palette.js"
+import {Typography} from "../config/Typography.js"
 import {GatePainting} from "../draw/GatePainting.js"
 import {makePseudoShaderWithInputsAndOutputAndCode, Outputs} from "../webgl/ShaderCoders.js";
 import {Matrix} from "../math/Matrix.js";
@@ -176,7 +177,7 @@ function drawHighlight(args) {
     if (args.isHighlighted || args.isInToolbox) {
         args.painter.fillRect(
             args.rect,
-            args.isHighlighted ? Config.HIGHLIGHTED_GATE_FILL_COLOR : Config.GATE_FILL_COLOR);
+            args.isHighlighted ? Palette.HIGHLIGHTED_GATE_FILL_COLOR : Palette.GATE_FILL_COLOR);
         GatePainting.paintOutline(args);
     }
 }
@@ -196,7 +197,7 @@ function drawWedge(args, axis) {
     args.painter.trace(trace => {
         trace.ctx.arc(x, y, r, τ*3/4, τ/4);
         trace.ctx.lineTo(x, y - r - 1);
-    }).thenStroke(Config.INK_COLOR, 2).thenFill(Config.TIME_DEPENDENT_HIGHLIGHT_COLOR);
+    }).thenStroke(Palette.INK_COLOR, 2).thenFill(Palette.TIME_DEPENDENT_HIGHLIGHT_COLOR);
     args.painter.printLine(axis, args.rect, 0.5, undefined, undefined, undefined, 0.5);
 }
 
@@ -214,7 +215,7 @@ function drawClick(args, axis) {
     args.painter.ctx.save();
     args.painter.ctx.translate(args.rect.center().x, args.rect.center().y);
     args.painter.ctx.rotate(axis === undefined ? Math.PI/3 : Math.PI/4);
-    args.painter.ctx.strokeStyle = Config.BACKGROUND_COLOR_CIRCUIT;
+    args.painter.ctx.strokeStyle = Palette.BACKGROUND_COLOR_CIRCUIT;
     args.painter.ctx.lineWidth = 3;
     args.painter.print(
         '*click*',
@@ -222,8 +223,8 @@ function drawClick(args, axis) {
         axis === undefined ? 0 : -5,
         'center',
         'middle',
-        Config.INK_COLOR,
-        `bold 16px ${Config.DEFAULT_FONT_FAMILY}`,
+        Palette.INK_COLOR,
+        `bold 16px ${Typography.DEFAULT_FONT_FAMILY}`,
         r*2.8,
         r*2.8,
         undefined,
@@ -236,8 +237,8 @@ function drawClick(args, axis) {
             10,
             'center',
             'middle',
-            Config.INK_COLOR,
-            `bold 16px ${Config.DEFAULT_FONT_FAMILY}`,
+            Palette.INK_COLOR,
+            `bold 16px ${Typography.DEFAULT_FONT_FAMILY}`,
             r * 2.8,
             r * 2.8,
             undefined,
@@ -268,7 +269,7 @@ function drawControlBulb(args, axis) {
             args.painter.strokeLine(p.offsetBy(-r, -r), p.offsetBy(+r, +r));
             break;
         case 'Z':
-            args.painter.fillCircle(p, 5, Config.INK_COLOR);
+            args.painter.fillCircle(p, 5, Palette.INK_COLOR);
             break;
         default:
             throw new DetailedError('Unrecognized axis.', {axis});
@@ -288,7 +289,7 @@ function drawDetectClearReset(args, axis) {
     let clearWireRect = fullRect.rightHalf();
     clearWireRect.y += clearWireRect.h / 2 - 2;
     clearWireRect.h = 5;
-    args.painter.fillRect(clearWireRect, Config.BACKGROUND_COLOR_CIRCUIT);
+    args.painter.fillRect(clearWireRect, Palette.BACKGROUND_COLOR_CIRCUIT);
     drawHighlight(args);
 
     // Draw text elements.

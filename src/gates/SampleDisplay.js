@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-import {Config} from "../Config.js"
+import {Layout} from "../config/Layout.js"
+import {Palette} from "../config/Palette.js"
+import {Typography} from "../config/Typography.js"
 import {Gate} from "../circuit/Gate.js"
 import {GatePainting} from "../draw/GatePainting.js"
 import {MathPainter} from "../draw/MathPainter.js"
@@ -52,7 +54,7 @@ function sampleFromDistribution(args) {
  */
 function _paintSampleDisplay_result(args) {
     let {painter, rect: {x, y, w, h}} = args;
-    let d = Config.WIRE_SPACING;
+    let d = Layout.WIRE_SPACING;
     let startY = y + h/2 - d*args.gate.height/2;
 
     let {i: sample, p} = sampleFromDistribution(args);
@@ -61,7 +63,7 @@ function _paintSampleDisplay_result(args) {
         if (bit) {
             painter.fillRect(
                 new Rect(x, startY+d*i+5, w, d-10),
-                Config.OPERATION_FORE_COLOR);
+                Palette.OPERATION_FORE_COLOR);
         }
         painter.print(
             bit ? 'on' : 'off',
@@ -69,8 +71,8 @@ function _paintSampleDisplay_result(args) {
             startY+d*(i+0.5),
             'center',
             'middle',
-            Config.INK_COLOR,
-            `16px ${Config.DEFAULT_FONT_FAMILY}`,
+            Palette.INK_COLOR,
+            `16px ${Typography.DEFAULT_FONT_FAMILY}`,
             w,
             d);
     }
@@ -85,23 +87,23 @@ function _paintSampleDisplay_result(args) {
                 `Sampled |${Util.bin(sample, args.gate.height)}⟩`,
                 `decimal: |${sample}⟩`,
                 "chance: " + (p * 100).toFixed(4) + "%",
-                Config.OPERATION_BACK_COLOR);
+                Palette.OPERATION_BACK_COLOR);
         }
     }
 }
 
 function paintSampleDisplay(args) {
-    args.painter.fillRect(args.rect, Config.OPERATION_BACK_COLOR);
+    args.painter.fillRect(args.rect, Palette.OPERATION_BACK_COLOR);
 
     let probabilities = args.customStats;
     let noData = probabilities === undefined || probabilities.hasNaN();
     if (noData) {
-        args.painter.printParagraph("NaN", args.rect, new Point(0.5, 0.5), Config.ERROR_COLOR);
+        args.painter.printParagraph("NaN", args.rect, new Point(0.5, 0.5), Palette.ERROR_COLOR);
     } else {
         _paintSampleDisplay_result(args);
     }
 
-    args.painter.strokeRect(args.rect, Config.GRID_LINE_COLOR);
+    args.painter.strokeRect(args.rect, Palette.GRID_LINE_COLOR);
 }
 
 let SampleDisplayFamily = Gate.buildFamily(1, 16, (span, builder) => builder.

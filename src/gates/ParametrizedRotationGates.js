@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {Palette} from "../config/Palette.js"
 import {GateBuilder} from "../circuit/Gate.js"
 import {GatePainting} from "../draw/GatePainting.js"
 import {Complex, PARSE_COMPLEX_TOKEN_MAP_RAD} from "../math/Complex.js"
@@ -23,7 +24,6 @@ import {WglArg} from "../webgl/WglArg.js"
 import {Util} from "../base/Util.js";
 import {parseFormula} from "../math/FormulaParser.js";
 import {XExp, YExp, ZExp} from "./ExponentiatingGates.js";
-import {Config} from "../Config.js";
 
 let ParametrizedRotationGates = {};
 
@@ -37,7 +37,7 @@ function configurableRotationDrawer(pattern, xyz, tScale) {
     let xScale = [1, 0.5, -1][xyz];
     let yScale = [1, 1, -0.5][xyz];
     return args => {
-        GatePainting.paintBackground(args, Config.TIME_DEPENDENT_HIGHLIGHT_COLOR);
+        GatePainting.paintBackground(args, Palette.TIME_DEPENDENT_HIGHLIGHT_COLOR);
         GatePainting.paintOutline(args);
         let text = pattern;
         if (!args.isInToolbox) {

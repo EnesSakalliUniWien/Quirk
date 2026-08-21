@@ -16,7 +16,9 @@
 
 import {CircuitDefinition} from "../circuit/CircuitDefinition.js"
 import {CircuitStats} from "../circuit/CircuitStats.js"
-import {Config} from "../Config.js"
+import {Layout} from "../config/Layout.js"
+import {Palette} from "../config/Palette.js"
+import {Typography} from "../config/Typography.js"
 import {DisplayedCircuit} from "../ui/DisplayedCircuit.js"
 import {DisplayedToolbox} from "../ui/DisplayedToolbox.js"
 import {GateDrawParams} from "../draw/GateDrawParams.js"
@@ -70,7 +72,7 @@ class DisplayedInspector {
             this.displayedToolboxTop.desiredHeight());
 
         let toolboxesBottom = this.displayedToolboxBottom.top + this.displayedToolboxBottom.desiredHeight();
-        this.displayedCircuit = this.displayedCircuit.withTop(toolboxesBottom + Config.TOOLBOX_CIRCUIT_MARGIN);
+        this.displayedCircuit = this.displayedCircuit.withTop(toolboxesBottom + Layout.TOOLBOX_CIRCUIT_MARGIN);
         this.displayedCircuit.updateDisplayShift(drawArea.w);
     }
 
@@ -99,7 +101,7 @@ class DisplayedInspector {
      * @param {!CircuitStats} stats
      */
     paint(painter, stats) {
-        painter.fillRect(this.drawArea, Config.BACKGROUND_COLOR);
+        painter.fillRect(this.drawArea, Palette.BACKGROUND_COLOR);
 
         this.displayedToolboxTop.paint(painter, stats, this.hand);
         this.displayedToolboxBottom.paint(painter, stats, this.hand);
@@ -123,8 +125,8 @@ class DisplayedInspector {
         let rect = new Rect(
             Math.round(pos.x - 0.5) + 0.5,
             Math.round(pos.y - 0.5) + 0.5,
-            Config.GATE_RADIUS*2 + Config.WIRE_SPACING*(gate.width-1),
-            Config.GATE_RADIUS*2 + Config.WIRE_SPACING*(gate.height-1));
+            Layout.GATE_RADIUS*2 + Layout.WIRE_SPACING*(gate.width-1),
+            Layout.GATE_RADIUS*2 + Layout.WIRE_SPACING*(gate.height-1));
         let drawer = gate.customDrawer || GatePainting.DEFAULT_DRAWER;
         drawer(new GateDrawParams(
             painter,
@@ -309,9 +311,9 @@ class DisplayedInspector {
         let minimumDesired =
             this.displayedToolboxBottom.desiredHeight() +
             this.displayedToolboxTop.desiredHeight() +
-            Config.TOOLBOX_CIRCUIT_MARGIN +
+            Layout.TOOLBOX_CIRCUIT_MARGIN +
             this.displayedCircuit.desiredHeight();
-        return Math.max(Config.MINIMUM_CANVAS_HEIGHT, minimumDesired);
+        return Math.max(Layout.MINIMUM_CANVAS_HEIGHT, minimumDesired);
     }
 
     /**
@@ -349,9 +351,9 @@ class DisplayedInspector {
         painter.ctx.save();
         painter.ctx.translate(268, 250);
         painter.ctx.rotate(Math.PI * 0.02);
-        painter.ctx.fillStyle = Config.ERROR_COLOR;
+        painter.ctx.fillStyle = Palette.ERROR_COLOR;
         painter.ctx.textAlign = 'right';
-        painter.ctx.font = `16px ${Config.DEFAULT_FONT_FAMILY}`;
+        painter.ctx.font = `16px ${Typography.DEFAULT_FONT_FAMILY}`;
         painter.ctx.fillText("outputs change", 0, 0);
         painter.ctx.restore();
 
@@ -361,13 +363,13 @@ class DisplayedInspector {
             300, 245,
             315, 235,
             325, 225);
-        painter.ctx.strokeStyle = Config.ERROR_COLOR;
+        painter.ctx.strokeStyle = Palette.ERROR_COLOR;
         painter.ctx.lineWidth = 3;
         painter.ctx.stroke();
 
         painter.trace(tracer => {
             tracer.arrowHead(330, 219, 10, Math.PI*-0.265, 1.3);
-        }).thenFill(Config.ERROR_COLOR);
+        }).thenFill(Palette.ERROR_COLOR);
 
         painter.ctx.restore();
     }
@@ -398,8 +400,8 @@ class DisplayedInspector {
         painter.ctx.save();
         painter.ctx.translate(130, 195);
         painter.ctx.rotate(Math.PI * 0.05);
-        painter.ctx.fillStyle = Config.ERROR_COLOR;
-        painter.ctx.font = `16px ${Config.DEFAULT_FONT_FAMILY}`;
+        painter.ctx.fillStyle = Palette.ERROR_COLOR;
+        painter.ctx.font = `16px ${Typography.DEFAULT_FONT_FAMILY}`;
         painter.ctx.fillText("drag gates onto circuit", 0, 0);
         painter.ctx.restore();
 
@@ -409,13 +411,13 @@ class DisplayedInspector {
             260, 170,
             235, 175,
             217, 187);
-        painter.ctx.strokeStyle = Config.ERROR_COLOR;
+        painter.ctx.strokeStyle = Palette.ERROR_COLOR;
         painter.ctx.lineWidth = 3;
         painter.ctx.stroke();
 
         painter.trace(tracer => {
             tracer.arrowHead(210, 190, 10, Math.PI*0.84, 1.3);
-        }).thenFill(Config.ERROR_COLOR);
+        }).thenFill(Palette.ERROR_COLOR);
 
         painter.ctx.restore();
     }
@@ -438,8 +440,8 @@ class DisplayedInspector {
         painter.ctx.save();
         painter.ctx.translate(70, fy-3);
         painter.ctx.rotate(Math.PI * -0.01);
-        painter.ctx.fillStyle = Config.ERROR_COLOR;
-        painter.ctx.font = `16px ${Config.DEFAULT_FONT_FAMILY}`;
+        painter.ctx.fillStyle = Palette.ERROR_COLOR;
+        painter.ctx.font = `16px ${Typography.DEFAULT_FONT_FAMILY}`;
         painter.ctx.fillText("use controls", 0, 0);
         painter.ctx.restore();
 
@@ -457,12 +459,12 @@ class DisplayedInspector {
                 105, 170,
                 55, fy);
         }
-        painter.ctx.strokeStyle = Config.ERROR_COLOR;
+        painter.ctx.strokeStyle = Palette.ERROR_COLOR;
         painter.ctx.lineWidth = 3;
         painter.ctx.stroke();
         painter.ctx.beginPath();
         painter.ctx.arc(55, fy, 5, 0, 2 * Math.PI);
-        painter.ctx.fillStyle = Config.ERROR_COLOR;
+        painter.ctx.fillStyle = Palette.ERROR_COLOR;
         painter.ctx.fill();
 
         painter.ctx.restore();

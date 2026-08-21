@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Config} from "../Config.js"
+import {Diagnostics} from "../config/Diagnostics.js"
 
 /**
  * Checks if the given code, returned by gl.getError, is an error or not.
@@ -24,7 +24,7 @@ import {Config} from "../Config.js"
  * @param {!boolean} isOnHotPath
  */
 function checkGetErrorResult(gl, previousOperationDescription, isOnHotPath = false) {
-    if (isOnHotPath && !Config.CHECK_WEB_GL_ERRORS_EVEN_ON_HOT_PATHS) {
+    if (isOnHotPath && !Diagnostics.CHECK_WEB_GL_ERRORS_EVEN_ON_HOT_PATHS) {
         return;
     }
 
@@ -60,7 +60,7 @@ function checkGetErrorResult(gl, previousOperationDescription, isOnHotPath = fal
  * @param {!boolean} isOnHotPath
  */
 function checkFrameBufferStatusResult(gl, isOnHotPath = false) {
-    if (isOnHotPath && !Config.CHECK_WEB_GL_ERRORS_EVEN_ON_HOT_PATHS) {
+    if (isOnHotPath && !Diagnostics.CHECK_WEB_GL_ERRORS_EVEN_ON_HOT_PATHS) {
         return;
     }
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Config} from "../Config.js"
+import {Diagnostics} from "../config/Diagnostics.js"
 import {DetailedError} from "../base/DetailedError.js"
 import {WglArg} from "./WglArg.js"
 import {initializedWglContext}  from "./WglContext.js"
@@ -157,7 +157,7 @@ class WglCompiledShader {
         let warnings = (gl.getProgramInfoLog(program) || '').trim();
         if (warnings !== '' &&
                 warnings !== '\0' && // [happened in Ubuntu with NVIDIA GK107GL]
-                Config.SUPPRESSED_GLSL_WARNING_PATTERNS.every(e => !e.test(warnings))) {
+                Diagnostics.SUPPRESSED_GLSL_WARNING_PATTERNS.every(e => !e.test(warnings))) {
             console.warn('Shader compile caused warnings', 'gl.getProgramInfoLog()', warnings);
         }
 
@@ -224,7 +224,7 @@ class WglCompiledShader {
         let info = gl.getShaderInfoLog(shader);
         if (info !== '') {
             let ignored = false;
-            for (let term of Config.IGNORED_WEBGL_INFO_TERMS) {
+            for (let term of Diagnostics.IGNORED_WEBGL_INFO_TERMS) {
                 if (info.indexOf(term)) {
                     ignored = true;
                 }

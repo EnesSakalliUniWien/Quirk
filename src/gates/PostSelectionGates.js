@@ -15,7 +15,8 @@
  */
 
 import {Complex} from "../math/Complex.js"
-import {Config} from "../Config.js"
+import {Palette} from "../config/Palette.js"
+import {Typography} from "../config/Typography.js"
 import {GateBuilder} from "../circuit/Gate.js"
 import {GatePainting} from "../draw/GatePainting.js"
 import {Matrix} from "../math/Matrix.js"
@@ -26,16 +27,16 @@ let POST_SELECT_DRAWER = args => {
     if (args.isInToolbox  || args.isHighlighted) {
         GatePainting.DEFAULT_DRAWER(args);
     } else {
-        args.painter.fillRect(args.rect, Config.GATE_FILL_COLOR);
+        args.painter.fillRect(args.rect, Palette.GATE_FILL_COLOR);
         GatePainting.paintGateSymbol(args);
     }
 
     if (!args.isInToolbox) {
         let {x, y, w, h} = args.rect;
         args.painter.print(
-            "post-", x + w / 2, y, 'center', 'hanging', Config.ERROR_COLOR, `10px ${Config.DEFAULT_FONT_FAMILY}`, w, h / 2);
+            "post-", x + w / 2, y, 'center', 'hanging', Palette.ERROR_COLOR, `10px ${Typography.DEFAULT_FONT_FAMILY}`, w, h / 2);
         args.painter.print(
-            "select", x + w / 2, y + h, 'center', 'bottom', Config.ERROR_COLOR, `10px ${Config.DEFAULT_FONT_FAMILY}`, w, h / 2);
+            "select", x + w / 2, y + h, 'center', 'bottom', Palette.ERROR_COLOR, `10px ${Typography.DEFAULT_FONT_FAMILY}`, w, h / 2);
     }
 };
 

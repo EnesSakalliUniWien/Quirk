@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Config} from "../Config.js"
+import {AppInfo} from "../config/AppInfo.js"
 import {fromJsonText_CircuitDefinition} from "../circuit/Serializer.js"
 
 /**
@@ -30,7 +30,7 @@ function initTitleSync(revision) {
             }
         } catch (_) {
         }
-        return Config.EMPTY_CIRCUIT_TITLE;
+        return AppInfo.EMPTY_CIRCUIT_TITLE;
     };
 
     revision.latestActiveCommit().subscribe(jsonText => {

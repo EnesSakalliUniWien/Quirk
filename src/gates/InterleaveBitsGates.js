@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-import {Config} from "../Config.js"
+import {Layout} from "../config/Layout.js"
+import {Simulation} from "../config/Simulation.js"
 import {Gate} from "../circuit/Gate.js"
 import {ketArgs, ketShaderPermute} from "../circuit/KetShaderUtil.js"
 import {GatePainting} from "../draw/GatePainting.js"
@@ -75,14 +76,14 @@ function shaderFromBitPermutation(span, bitPermutation) {
 /**
  * @type {!Map.<!int, !{withArgs: !function(args: ...!WglArg|!WglTexture) : !WglConfiguredShader}>}
  */
-let _interleaveShadersForSize = Seq.range(Config.MAX_WIRE_COUNT + 1).
+let _interleaveShadersForSize = Seq.range(Simulation.MAX_WIRE_COUNT + 1).
     skip(2).
     toMap(k => k, k => shaderFromBitPermutation(k, interleaveBit));
 
 /**
  * @type {!Map.<!int, !{withArgs: !function(args: ...!WglArg|!WglTexture) : !WglConfiguredShader}>}
  */
-let _deinterleaveShadersForSize = Seq.range(Config.MAX_WIRE_COUNT + 1).
+let _deinterleaveShadersForSize = Seq.range(Simulation.MAX_WIRE_COUNT + 1).
     skip(2).
     toMap(k => k, k => shaderFromBitPermutation(k, deinterleaveBit));
 
@@ -98,8 +99,8 @@ let interleavePainter = reverse => args => {
 
     let x1 = args.rect.x + 6;
     let x2 = args.rect.right() - 6;
-    let y = args.rect.center().y - Config.GATE_RADIUS + 6;
-    let dh = ((Config.GATE_RADIUS - 6)*2 - 14) / 5;
+    let y = args.rect.center().y - Layout.GATE_RADIUS + 6;
+    let dh = ((Layout.GATE_RADIUS - 6)*2 - 14) / 5;
 
     for (let i = 0; i < 6; i++) {
         let j = interleaveBit(i, 6);

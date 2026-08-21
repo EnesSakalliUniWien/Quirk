@@ -16,7 +16,7 @@
 
 import {CircuitDefinition} from "./CircuitDefinition.js"
 import {Complex} from "../math/Complex.js"
-import {Config} from "../Config.js"
+import {Simulation} from "../config/Simulation.js"
 import {CustomGateSet} from "./CustomGateSet.js"
 import {describe} from "../base/Describe.js"
 import {DetailedError} from "../base/DetailedError.js"
@@ -460,8 +460,8 @@ function fromJson_CircuitDefinition(json, context=undefined) {
         numWires = Math.max(numWires, col.minimumRequiredWireCount());
     }
     numWires = Math.max(
-        Config.MIN_WIRE_COUNT,
-        Math.min(numWires, Config.MAX_WIRE_COUNT),
+        Simulation.MIN_WIRE_COUNT,
+        Math.min(numWires, Simulation.MAX_WIRE_COUNT),
         ...[...initialValues.keys()].map(e => e + 1));
 
     gateCols = gateCols.map(col => new GateColumn([

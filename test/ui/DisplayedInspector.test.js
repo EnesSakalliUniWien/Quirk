@@ -15,7 +15,7 @@
  */
 
 import {Suite, assertThat} from "../TestUtil.js"
-import {Config} from "../../src/Config.js"
+import {Layout} from "../../src/config/Layout.js"
 import {DisplayedInspector} from "../../src/ui/DisplayedInspector.js"
 import {Rect} from "../../src/math/Rect.js"
 
@@ -32,7 +32,7 @@ suite.test("laysOutCircuitDirectlyUnderStackedToolboxes", () => {
     assertThat(inspector.displayedCircuit.top).isEqualTo(
         inspector.displayedToolboxBottom.top +
         inspector.displayedToolboxBottom.desiredHeight() +
-        Config.TOOLBOX_CIRCUIT_MARGIN);
+        Layout.TOOLBOX_CIRCUIT_MARGIN);
 });
 
 suite.test("keepsCircuitBelowToolboxesWhenAreaIsShort", () => {
@@ -40,7 +40,7 @@ suite.test("keepsCircuitBelowToolboxesWhenAreaIsShort", () => {
     let toolboxesBottom =
         inspector.displayedToolboxBottom.top + inspector.displayedToolboxBottom.desiredHeight();
 
-    assertThat(inspector.displayedCircuit.top).isEqualTo(toolboxesBottom + Config.TOOLBOX_CIRCUIT_MARGIN);
+    assertThat(inspector.displayedCircuit.top).isEqualTo(toolboxesBottom + Layout.TOOLBOX_CIRCUIT_MARGIN);
 });
 
 suite.test("endsOutputDisplaysAtTheRightEdgeOfASpaciousArea", () => {

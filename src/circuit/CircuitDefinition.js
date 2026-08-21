@@ -15,7 +15,7 @@
  */
 
 import {CircuitShaders} from "./CircuitShaders.js"
-import {Config} from "../Config.js"
+import {AppInfo} from "../config/AppInfo.js"
 import {Controls} from "./Controls.js"
 import {CustomGateSet} from "./CustomGateSet.js"
 import {DetailedError} from "../base/DetailedError.js"
@@ -390,7 +390,7 @@ class CircuitDefinition {
             .map(e => e.symbol)
             .toArray();
         if (allGates.length === 0) {
-            return Config.EMPTY_CIRCUIT_TITLE;
+            return AppInfo.EMPTY_CIRCUIT_TITLE;
         }
         let allGatesString = `${this.numWires} wires, ${allGates.length} ops, ${allGates.join("").split("^").join("")}`;
         if (allGatesString.length <= 40) {

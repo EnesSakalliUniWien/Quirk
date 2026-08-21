@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-import {Config} from "../Config.js"
+import {Palette} from "../config/Palette.js"
+import {Typography} from "../config/Typography.js"
 import {Gate, GateBuilder} from "../circuit/Gate.js"
 import {GatePainting} from "../draw/GatePainting.js"
 import {reverseShaderForSize} from "./ReverseBitsGate.js"
@@ -31,7 +32,7 @@ function drawInputGate(args, key, reverse) {
     if (args.isInToolbox) {
         GatePainting.paintOutline(args);
     } else {
-        args.painter.strokeRect(args.rect, Config.MID_LINE_COLOR);
+        args.painter.strokeRect(args.rect, Palette.MID_LINE_COLOR);
     }
     GatePainting.paintResizeTab(args);
 
@@ -42,8 +43,8 @@ function drawInputGate(args, key, reverse) {
         y-2,
         'center',
         'bottom',
-        Config.INK_COLOR,
-        `16px ${Config.DEFAULT_FONT_FAMILY}`,
+        Palette.INK_COLOR,
+        `16px ${Typography.DEFAULT_FONT_FAMILY}`,
         args.rect.w - 2,
         args.rect.h / 2);
     args.painter.print(
@@ -52,8 +53,8 @@ function drawInputGate(args, key, reverse) {
         y+2,
         'center',
         'top',
-        Config.INK_COLOR,
-        `16px ${Config.DEFAULT_FONT_FAMILY}`,
+        Palette.INK_COLOR,
+        `16px ${Typography.DEFAULT_FONT_FAMILY}`,
         args.rect.w - 2,
         args.rect.h / 2);
 }

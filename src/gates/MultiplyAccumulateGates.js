@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Config} from "../Config.js";
+import {Simulation} from "../config/Simulation.js"
 import {Gate} from "../circuit/Gate.js"
 import {GatePainting} from "../draw/GatePainting.js"
 import {ketArgs, ketShaderPermute, ketInputGateShaderCode} from "../circuit/KetShaderUtil.js"
@@ -45,7 +45,7 @@ const BIG_MUL_MOD_SHADER_CODE = `
     float big_mul_mod(float b, float f, float modulus) {
         float t = 0.0;
         float r;
-        for (int k = 0; k < ${Math.ceil(Config.MAX_WIRE_COUNT/MUL_STEP)}; k++) {
+        for (int k = 0; k < ${Math.ceil(Simulation.MAX_WIRE_COUNT/MUL_STEP)}; k++) {
             r = floor(mod(f + 0.5, ${1<<MUL_STEP}.0));
             f -= r;
             t = floor(mod(t + b*r + 0.5, modulus));

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Config} from "../Config.js"
+import {Palette} from "../config/Palette.js"
 import {GateBuilder} from "../circuit/Gate.js"
 import {GatePainting} from "../draw/GatePainting.js"
 import {Rect} from "../math/Rect.js"
@@ -28,9 +28,9 @@ let SpacerGate = new GateBuilder().
     setDrawer(args => {
         // Drawn as an ellipsis.
         if (args.isInToolbox || args.isHighlighted) {
-            let backColor = Config.GATE_FILL_COLOR;
+            let backColor = Palette.GATE_FILL_COLOR;
             if (args.isHighlighted) {
-                backColor = Config.HIGHLIGHTED_GATE_FILL_COLOR;
+                backColor = Palette.HIGHLIGHTED_GATE_FILL_COLOR;
             }
             args.painter.fillRect(args.rect, backColor);
             GatePainting.paintOutline(args);
@@ -38,11 +38,11 @@ let SpacerGate = new GateBuilder().
             // Whitespace for the ellipsis.
             let {x, y} = args.rect.center();
             let r = new Rect(x - 14, y - 2, 28, 4);
-            args.painter.fillRect(r, Config.BACKGROUND_COLOR_CIRCUIT);
+            args.painter.fillRect(r, Palette.BACKGROUND_COLOR_CIRCUIT);
         }
-        args.painter.fillCircle(args.rect.center().offsetBy(7, 0), 2, Config.INK_COLOR);
-        args.painter.fillCircle(args.rect.center(), 2, Config.INK_COLOR);
-        args.painter.fillCircle(args.rect.center().offsetBy(-7, 0), 2, Config.INK_COLOR);
+        args.painter.fillCircle(args.rect.center().offsetBy(7, 0), 2, Palette.INK_COLOR);
+        args.painter.fillCircle(args.rect.center(), 2, Palette.INK_COLOR);
+        args.painter.fillCircle(args.rect.center().offsetBy(-7, 0), 2, Palette.INK_COLOR);
     }).
     gate;
 

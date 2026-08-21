@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Config} from "../Config.js"
+import {AppInfo} from "../config/AppInfo.js"
 import {Serializer} from "../circuit/Serializer.js"
 import {selectAndCopyToClipboard} from "../browser/Clipboard.js"
 import {fromJsonText_CircuitDefinition} from "../circuit/Serializer.js"
@@ -85,7 +85,7 @@ function initExports(revision, mostRecentStats, overlayState) {
         const copyResultElement = /** @type {HTMLElement} */ document.getElementById('export-link-copy-result');
         setupButtonElementCopyToClipboard(copyButton, linkElement, copyResultElement);
         revision.latestActiveCommit().subscribe(jsonText => {
-            let escapedUrlHash = "#" + Config.URL_CIRCUIT_PARAM_KEY + "=" + encodeURIComponent(jsonText);
+            let escapedUrlHash = "#" + AppInfo.URL_CIRCUIT_PARAM_KEY + "=" + encodeURIComponent(jsonText);
             linkElement.href = escapedUrlHash;
             linkElement.innerText = document.location.href.split("#")[0] + escapedUrlHash;
         });

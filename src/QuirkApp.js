@@ -16,7 +16,8 @@
 
 import {CircuitStats} from "./circuit/CircuitStats.js"
 import {CooldownThrottle} from "./base/CooldownThrottle.js"
-import {Config} from "./Config.js"
+import {Layout} from "./config/Layout.js"
+import {Simulation} from "./config/Simulation.js"
 import {DisplayedInspector} from "./ui/DisplayedInspector.js"
 import {Painter} from "./draw/Painter.js"
 import {Rect} from "./math/Rect.js"
@@ -72,7 +73,7 @@ function startQuirk() {
         cycleRng = () => {
             target.cur = new RestartableRng();
             //noinspection DynamicallyGeneratedCodeJS
-            setTimeout(cycleRng, Config.SEMI_STABLE_RANDOM_VALUE_LIFETIME_MILLIS*0.99);
+            setTimeout(cycleRng, Simulation.SEMI_STABLE_RANDOM_VALUE_LIFETIME_MILLIS*0.99);
         };
         cycleRng();
         return target;
@@ -103,7 +104,7 @@ function startQuirk() {
         // The canvas hugs its content; the page background continues below it.
         return {
             w: Math.max(canvasDiv.clientWidth, curInspector.desiredWidth()),
-            h: Math.max(Config.MINIMUM_CANVAS_HEIGHT, curInspector.desiredHeight())
+            h: Math.max(Layout.MINIMUM_CANVAS_HEIGHT, curInspector.desiredHeight())
         };
     };
 
@@ -166,7 +167,7 @@ function startQuirk() {
         }
     };
 
-    redrawThrottle = new CooldownThrottle(redrawNow, Config.REDRAW_COOLDOWN_MILLIS, 0.1, true);
+    redrawThrottle = new CooldownThrottle(redrawNow, Layout.REDRAW_COOLDOWN_MILLIS, 0.1, true);
     window.addEventListener('resize', () => redrawThrottle.trigger(), false);
     if (document.fonts !== undefined) {
         // Canvas text starts out on a fallback font; repaint once the webfont is ready.

@@ -15,7 +15,7 @@
  */
 
 import {CircuitDefinition} from "../circuit/CircuitDefinition.js"
-import {Config} from "../Config.js"
+import {Simulation} from "../config/Simulation.js"
 import {CircuitStats} from "../circuit/CircuitStats.js"
 
 const getCircuitCycleTime = (() => {
@@ -32,7 +32,7 @@ const getCircuitCycleTime = (() => {
 
     return () => {
         let nextRealTime = performance.now();
-        let elapsed = (nextRealTime - _prevRealTime) / Config.CYCLE_DURATION_MS;
+        let elapsed = (nextRealTime - _prevRealTime) / Simulation.CYCLE_DURATION_MS;
         _circuitCycleTime += elapsed;
         _circuitCycleTime %= 1;
         _prevRealTime = nextRealTime;

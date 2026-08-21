@@ -15,7 +15,8 @@
  */
 
 import {Complex} from "../math/Complex.js"
-import {Config} from "../Config.js"
+import {Palette} from "../config/Palette.js"
+import {Typography} from "../config/Typography.js"
 import {Gate} from "../circuit/Gate.js"
 import {GatePainting} from "../draw/GatePainting.js"
 import {GateShaders} from "../circuit/GateShaders.js"
@@ -125,12 +126,12 @@ function _paintMultiProbabilityDisplay_grid(args) {
     let {painter, rect: {x, y, w, h}} = args;
     let n = 1 << args.gate.height;
     let d = h / n;
-    painter.fillRect(args.rect, Config.DISPLAY_GATE_BACK_COLOR);
+    painter.fillRect(args.rect, Palette.DISPLAY_GATE_BACK_COLOR);
 
     if (d < 1) {
         args.painter.ctx.save();
         args.painter.ctx.globalAlpha *= 0.2;
-        painter.fillRect(args.rect, Config.GRID_LINE_COLOR);
+        painter.fillRect(args.rect, Palette.GRID_LINE_COLOR);
         args.painter.ctx.restore();
         return;
     }
@@ -139,8 +140,8 @@ function _paintMultiProbabilityDisplay_grid(args) {
         for (let i = 1; i < n; i++) {
             tracer.line(x, y + d * i, x + w, y + d * i);
         }
-    }).thenStroke(Config.GRID_LINE_COLOR, r <= 0 ? 1 : 1 / r);
-    painter.strokeRect(args.rect, Config.GRID_LINE_COLOR);
+    }).thenStroke(Palette.GRID_LINE_COLOR, r <= 0 ? 1 : 1 / r);
+    painter.strokeRect(args.rect, Palette.GRID_LINE_COLOR);
 }
 
 function _paintMultiProbabilityDisplay_probabilityBars(args) {
@@ -162,10 +163,10 @@ function _paintMultiProbabilityDisplay_probabilityBars(args) {
     painter.ctx.lineTo(x, y + h);
     painter.ctx.lineTo(x, y);
 
-    painter.ctx.strokeStyle = Config.MID_LINE_COLOR;
+    painter.ctx.strokeStyle = Palette.MID_LINE_COLOR;
     painter.ctx.lineWidth = 1;
     painter.ctx.stroke();
-    painter.ctx.fillStyle = Config.DISPLAY_GATE_FORE_COLOR;
+    painter.ctx.fillStyle = Palette.DISPLAY_GATE_FORE_COLOR;
     painter.ctx.fill();
     painter.ctx.restore();
 }
@@ -190,7 +191,7 @@ function _paintMultiProbabilityDisplay_logarithmHints(args) {
     painter.ctx.lineTo(x, y + h);
 
     painter.ctx.lineWidth = 1;
-    painter.ctx.strokeStyle = Config.FAINT_LINE_COLOR;
+    painter.ctx.strokeStyle = Palette.FAINT_LINE_COLOR;
     painter.ctx.stroke();
     painter.ctx.restore();
 }
@@ -204,7 +205,7 @@ function _paintMultiProbabilityDisplay_tooltips(args) {
         let k = Math.floor((pt.y - y) / d);
         if (args.rect.containsPoint(pt) && k >= 0 && k < n) {
             let p = probabilities === undefined ? NaN : probabilities.rawBuffer()[k * 2];
-            painter.strokeRect(new Rect(x, y + k * d, w, d), Config.HIGHLIGHT_STROKE_COLOR, 2);
+            painter.strokeRect(new Rect(x, y + k * d, w, d), Palette.HIGHLIGHT_STROKE_COLOR, 2);
             MathPainter.paintDeferredValueTooltip(
                 painter,
                 x + w,
@@ -228,8 +229,8 @@ function _paintMultiProbabilityDisplay_probabilityTexts(args) {
             y + d * (i + 0.5),
             'right',
             'middle',
-            Config.INK_COLOR,
-            `8pt ${Config.MONO_FONT_FAMILY}`,
+            Palette.INK_COLOR,
+            `8pt ${Typography.MONO_FONT_FAMILY}`,
             w - 4,
             d);
     }
@@ -241,7 +242,7 @@ function paintMultiProbabilityDisplay(args) {
     let probabilities = args.customStats;
     let noData = probabilities === undefined || probabilities.hasNaN();
     if (noData) {
-        args.painter.printParagraph("NaN", args.rect, new Point(0.5, 0.5), Config.ERROR_COLOR);
+        args.painter.printParagraph("NaN", args.rect, new Point(0.5, 0.5), Palette.ERROR_COLOR);
     } else {
         let textFits = args.rect.h / probabilities.height() > 8;
         if (!textFits) {

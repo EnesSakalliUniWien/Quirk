@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Config} from "../Config.js"
+import {Simulation} from "../config/Simulation.js"
 import {Gate} from "../circuit/Gate.js"
 import {ketArgs, ketShaderPermute} from "../circuit/KetShaderUtil.js"
 import {Seq} from "../base/Seq.js"
@@ -32,7 +32,7 @@ let _generateReverseShaderForSize = span => span < 2 ? undefined : ketShaderPerm
     `,
     span);
 
-let reverseShaders = Seq.range(Config.MAX_WIRE_COUNT + 1).map(_generateReverseShaderForSize).toArray();
+let reverseShaders = Seq.range(Simulation.MAX_WIRE_COUNT + 1).map(_generateReverseShaderForSize).toArray();
 
 /**
  * @param {!int} span

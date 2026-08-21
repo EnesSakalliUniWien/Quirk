@@ -22,8 +22,8 @@ import {changeShaderCoder, canTestFloatShaders} from "../src/webgl/ShaderCoders.
 import {SHADER_CODER_BYTES} from "../src/webgl/ShaderCoders_intoBytes.js"
 import {SHADER_CODER_FLOATS} from "../src/webgl/ShaderCoders_intoFloats.js"
 import {DetailedError} from "../src/base/DetailedError.js"
-import {Config} from "../src/Config.js"
-Config.CHECK_WEB_GL_ERRORS_EVEN_ON_HOT_PATHS = true;
+import {Diagnostics} from "../src/config/Diagnostics.js"
+Diagnostics.CHECK_WEB_GL_ERRORS_EVEN_ON_HOT_PATHS = true;
 
 /** @type {!int} */
 let assertionSubjectIndexForNextTest = 1;
@@ -328,7 +328,7 @@ function isWebGLSupportPresent() {
                 let term = "extension `GL_ARB_gpu_shader5' unsupported";
                 __onlyPartialWebGLSupportPresent = ctx.getShaderInfoLog(shader).indexOf(term) !== -1;
                 if (__onlyPartialWebGLSupportPresent) {
-                    Config.IGNORED_WEBGL_INFO_TERMS.push(term);
+                    Diagnostics.IGNORED_WEBGL_INFO_TERMS.push(term);
                     console.log('Only partial WebGL support is present. Some tests may fail and be ignored.')
                 }
             }

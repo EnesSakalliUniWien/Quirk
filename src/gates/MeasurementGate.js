@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Config} from "../Config.js"
+import {Palette} from "../config/Palette.js"
 import {GateBuilder} from "../circuit/Gate.js"
 import {GatePainting} from "../draw/GatePainting.js"
 
@@ -22,9 +22,9 @@ import {GatePainting} from "../draw/GatePainting.js"
  * @param {!GateDrawParams} args
  */
 function drawMeasurementGate(args) {
-    let backColor = Config.GATE_FILL_COLOR;
+    let backColor = Palette.GATE_FILL_COLOR;
     if (args.isHighlighted) {
-        backColor = Config.HIGHLIGHTED_GATE_FILL_COLOR;
+        backColor = Palette.HIGHLIGHTED_GATE_FILL_COLOR;
     }
     args.painter.fillRect(args.rect, backColor);
     GatePainting.paintOutline(args);
@@ -41,9 +41,9 @@ function drawMeasurementGate(args) {
     args.painter.trace(trace => {
         trace.ctx.arc(x, y, r, τ/2, τ);
         trace.line(x, y, p, q);
-    }).thenStroke(Config.INK_COLOR);
+    }).thenStroke(Palette.INK_COLOR);
     // Draw the indicator head.
-    args.painter.trace(trace => trace.arrowHead(p, q, r*0.3, a, τ/4)).thenFill(Config.INK_COLOR);
+    args.painter.trace(trace => trace.arrowHead(p, q, r*0.3, a, τ/4)).thenFill(Palette.INK_COLOR);
 }
 
 let MeasurementGate = new GateBuilder().

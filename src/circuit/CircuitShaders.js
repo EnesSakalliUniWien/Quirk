@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Config} from "../Config.js"
+import {Simulation} from "../config/Simulation.js"
 import {Controls} from "./Controls.js"
 import {ketArgs, ketShaderPermute} from "./KetShaderUtil.js"
 import {Shaders} from "../webgl/Shaders.js"
@@ -95,7 +95,7 @@ const CONTROL_MASK_SHADER = makePseudoShaderWithInputsAndOutputAndCode([], Outpu
     bool outputFor(float k) {
         float pass = 1.0;
         float bit = 1.0;
-        for (int i = 0; i < ${Config.MAX_WIRE_COUNT}; i++) {
+        for (int i = 0; i < ${Simulation.MAX_WIRE_COUNT}; i++) {
             float v = mod(floor(k/bit), 2.0);
             float u = mod(floor(used/bit), 2.0);
             float d = mod(floor(desired/bit), 2.0);
@@ -136,7 +136,7 @@ const CONTROL_SELECT_SHADER = makePseudoShaderWithInputsAndOutputAndCode(
         float maskPos = 1.0;
         float coordPos = 1.0;
         float result = 0.0;
-        for (int i = 0; i < ${Config.MAX_WIRE_COUNT}; i++) {
+        for (int i = 0; i < ${Simulation.MAX_WIRE_COUNT}; i++) {
             float v = mod(floor(k/coordPos), 2.0);
             float u = mod(floor(used/maskPos), 2.0);
             float d = mod(floor(desired/maskPos), 2.0);
@@ -197,7 +197,7 @@ const QUBIT_DENSITIES_SHADER = makePseudoShaderWithInputsAndOutputAndCode(
         float result = 0.0;
         float posUsed = 1.0;
         float posVal = 1.0;
-        for (int i = 0; i < ${Config.MAX_WIRE_COUNT}; i++) {
+        for (int i = 0; i < ${Simulation.MAX_WIRE_COUNT}; i++) {
             float u = mod(floor(used/posUsed), 2.0);
             float v = mod(floor(val/posVal), 2.0);
             result += u * v * posUsed;

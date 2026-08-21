@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Config} from "../Config.js"
+import {Layout} from "../config/Layout.js"
 import {Gate} from "../circuit/Gate.js"
 import {GatePainting} from "../draw/GatePainting.js"
 import {ketArgs, ketShaderPermute} from "../circuit/KetShaderUtil.js"
@@ -58,8 +58,8 @@ let cyclePainter = reverse => args => {
 
     let x1 = args.rect.x + 6;
     let x2 = args.rect.right() - 6;
-    let y = args.rect.center().y - Config.GATE_RADIUS + 6;
-    let dh = (Config.GATE_RADIUS - 6)*2 / 2;
+    let y = args.rect.center().y - Layout.GATE_RADIUS + 6;
+    let dh = (Layout.GATE_RADIUS - 6)*2 / 2;
 
     for (let i = 0; i < 3; i++) {
         let j = (i + (reverse ? 2 : 1)) % 3;

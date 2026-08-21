@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Config} from "../Config.js"
+import {Simulation} from "../config/Simulation.js"
 import {Gate} from "../circuit/Gate.js"
 import {ketArgs, ketShaderPermute, ketInputGateShaderCode} from "../circuit/KetShaderUtil.js"
 import {Util} from "../base/Util.js"
@@ -30,7 +30,7 @@ const POP_COUNT_SHADER = ketShaderPermute(
     `
         float d = read_input_A();
         float popcnt = 0.0;
-        for (int i = 0; i < ${Config.MAX_WIRE_COUNT}; i++) {
+        for (int i = 0; i < ${Simulation.MAX_WIRE_COUNT}; i++) {
             popcnt += mod(d, 2.0);
             d = floor(d / 2.0);
         }

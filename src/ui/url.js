@@ -16,7 +16,7 @@
 
 import {notifyAboutRecoveryFromUnexpectedError} from "../fallback.js"
 import {CircuitDefinition} from "../circuit/CircuitDefinition.js"
-import {Config} from "../Config.js"
+import {AppInfo} from "../config/AppInfo.js"
 import {HistoryPusher} from "../browser/HistoryPusher.js"
 import {fromJsonText_CircuitDefinition, Serializer} from "../circuit/Serializer.js"
 
@@ -24,7 +24,7 @@ function urlWithCircuitHash(jsonText) {
     if (jsonText.indexOf('%') !== -1 || jsonText.indexOf('&') !== -1) {
         jsonText = encodeURIComponent(jsonText);
     }
-    return "#" + Config.URL_CIRCUIT_PARAM_KEY + "=" + jsonText;
+    return "#" + AppInfo.URL_CIRCUIT_PARAM_KEY + "=" + jsonText;
 }
 
 /**
@@ -54,12 +54,12 @@ function initUrlCircuitSync(revision) {
         try {
             historyPusher.currentStateIsMemorableButUnknown();
             let params = getHashParameters();
-            if (!params.has(Config.URL_CIRCUIT_PARAM_KEY)) {
+            if (!params.has(AppInfo.URL_CIRCUIT_PARAM_KEY)) {
                 let def = document.DEFAULT_CIRCUIT || JSON.stringify(Serializer.toJson(CircuitDefinition.EMPTY));
-                params.set(Config.URL_CIRCUIT_PARAM_KEY, def);
+                params.set(AppInfo.URL_CIRCUIT_PARAM_KEY, def);
             }
 
-            let jsonText = params.get(Config.URL_CIRCUIT_PARAM_KEY);
+            let jsonText = params.get(AppInfo.URL_CIRCUIT_PARAM_KEY);
             historyPusher.currentStateIsMemorableAndEqualTo(jsonText);
             let circuitDef = fromJsonText_CircuitDefinition(jsonText);
             let cleanedJson = JSON.stringify(Serializer.toJson(circuitDef));

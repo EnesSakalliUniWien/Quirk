@@ -19,7 +19,8 @@ import {GatePainting} from "../draw/GatePainting.js"
 import {GateShaders} from "../circuit/GateShaders.js"
 import {HalfTurnGates} from "./HalfTurnGates.js"
 import {QuarterTurnGates} from "./QuarterTurnGates.js"
-import {Config} from "../Config.js"
+import {Palette} from "../config/Palette.js"
+import {Simulation} from "../config/Simulation.js"
 import {ketArgs, ketShaderPermute} from "../circuit/KetShaderUtil.js";
 import {WglArg} from "../webgl/WglArg.js";
 import {Util} from "../base/Util.js";
@@ -38,7 +39,7 @@ Controls.Control = new GateBuilder().
             GatePainting.paintBackground(args);
             GatePainting.paintOutline(args);
         }
-        args.painter.fillCircle(args.rect.center(), 5, Config.INK_COLOR);
+        args.painter.fillCircle(args.rect.center(), 5, Palette.INK_COLOR);
     }).
     gate;
 
@@ -180,7 +181,7 @@ const PARITY_SHADER = ketShaderPermute(
     `
         float bitPos = 1.0;
         float result = 0.5;
-        for (int i = 0; i < ${Config.MAX_WIRE_COUNT}; i++) {
+        for (int i = 0; i < ${Simulation.MAX_WIRE_COUNT}; i++) {
             float maskBit = mod(floor(parityMask/bitPos), 2.0);
             float posBit = mod(floor(full_out_id/bitPos), 2.0);
             float flip = maskBit * posBit;
@@ -226,7 +227,7 @@ function parityDrawer(name) {
         args.painter.strokeRect(center);
         args.painter.fillRect(center.paddedBy(-4).skipBottom(-6).skipTop(-6));
         args.painter.printLine(name, center, 0.5, undefined, undefined, undefined, 0);
-        args.painter.printLine('par', center, 0.5, Config.ERROR_COLOR, 10, undefined, 1);
+        args.painter.printLine('par', center, 0.5, Palette.ERROR_COLOR, 10, undefined, 1);
     }
 }
 
