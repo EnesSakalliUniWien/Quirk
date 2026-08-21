@@ -32,8 +32,13 @@ function ToolbarButton({id, icon: Icon, children, variant = "ghost", className})
 
 /**
  * A toolbar is one tab stop, with the arrow keys moving between its controls (WAI-ARIA's toolbar
- * pattern). Focus state lives in the DOM rather than in React because these buttons are also
- * enabled and disabled imperatively by the non-React ui modules.
+ * pattern).
+ *
+ * Base UI ships a Toolbar whose composite implements this, and it works. It is not used here for
+ * two reasons. Its ToolbarRoot never passes `enableHomeAndEndKeys`, so Home and End do nothing.
+ * And it derives the set of skippable items from its own React-side item map, which cannot see the
+ * `disabled` that the non-React ui modules set straight on these elements, so arrowing onto a
+ * disabled control silently strands focus. Reading `disabled` from the DOM avoids both.
  */
 function useRovingTabIndex(toolbarRef) {
     useEffect(() => {

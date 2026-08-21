@@ -15,7 +15,6 @@
  */
 
 // It's important that the polyfills and error fallback get loaded first!
-import {} from "./browser/Polyfills.js"
 import {hookErrorHandler} from "./fallback.js"
 import {doDetectIssues} from "./issues.js"
 import {startQuirk} from "./QuirkApp.js"

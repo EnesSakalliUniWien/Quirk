@@ -249,7 +249,6 @@ test('renders the circuit controls with shadcn buttons', async browser => {
                     firstEnabledId: enabled[0].id};
         });
         assert.equal(roving.stopsOnLoad, 1, 'The toolbar must be a single tab stop.');
-        assert.equal(roving.order[1], roving.order[1], 'ArrowRight must move focus.');
         assert.notEqual(roving.order[0], roving.order[1], 'ArrowRight must move off the first control.');
         assert.equal(roving.order[2], roving.lastEnabledId, 'End must reach the last enabled control.');
         assert.equal(roving.order[3], roving.firstEnabledId, 'Home must return to the first control.');

@@ -31,7 +31,7 @@ class WglContext {
             context = undefined;
         }
         if (context === undefined) {
-            context = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+            context = canvas.getContext('webgl');
         }
 
         /**
@@ -49,11 +49,11 @@ class WglContext {
         if ((/** @type {null|!WebGLRenderingContext} */ this.gl) === null) {
             throw new Error('Error creating WebGL context.');
         }
-        if (this.gl.getExtension('OES_texture_float') === undefined) {
+        if (this.gl.getExtension('OES_texture_float') === null) {
             // We'll just fall back to using byte coding of intermediate values.
             console.warn("OES_texture_float webgl extension not present.");
         }
-        if (this.gl.getExtension('WEBGL_color_buffer_float') === undefined) {
+        if (this.gl.getExtension('WEBGL_color_buffer_float') === null) {
             // We'll just fall back to using byte coding of intermediate values.
             console.warn("WEBGL_color_buffer_float webgl extension not present.");
         }
