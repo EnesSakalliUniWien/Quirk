@@ -49,13 +49,13 @@ let promiseRunPerfTest = ({name, method}) => {
             }
         }).then(() => {
             result.time = performance.now() - t0;
-            __karma__.result(result);
+            __testRunner__.result(result);
         });
 };
 
-__karma__.start = () => {
+__testRunner__.start = () => {
     let known = getKnownPerfTests();
-    __karma__.info({ total: known.length });
+    __testRunner__.info({ total: known.length });
 
     let chain = Promise.resolve();
     for (let test of known) {
@@ -66,5 +66,5 @@ __karma__.start = () => {
                     25)));
     }
 
-    chain.then(() => __karma__.complete());
+    chain.then(() => __testRunner__.complete());
 };

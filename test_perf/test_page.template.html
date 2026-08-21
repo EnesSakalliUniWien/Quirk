@@ -11,7 +11,7 @@
             var __total_done = 0;
             var __total_tests = 0;
             var __any_failures = false;
-            __karma__ = {
+            var __testRunner__ = {
                 start: undefined,
                 result: function(arg) {
                     __total_done++;
@@ -43,12 +43,12 @@
                     document.body.appendChild(doneDiv);
                 }
             };
-
+        </script>
 <!-- INCLUDE SOURCE PART -->
-
+        <script>
             document.getElementById('output').innerText = "Starting...";
             setTimeout(function() {
-                __karma__.start();
+                __testRunner__.start();
             }, 0);
         </script>
     </body>

@@ -43,15 +43,9 @@ Quirk assumes you already know background facts like "each wire represents a qub
 
 # Building
 
-If you want to modify Quirk, this is how you get the code and turn your changes into working html/javascript.
+If you want to modify Quirk, this is how you get the code and turn your changes into working HTML and JavaScript.
 
-1. Have [git](https://git-scm.com/) and [Node.js](https://nodejs.org/en/download/) installed.
-
-    `sudo add-apt-repository universe`
-    
-    `sudo apt-get update`
-    
-    `sudo apt-get install --yes git npm nodejs-legacy`
+1. Install [git](https://git-scm.com/) and Node.js 22.12 or newer.
 
 2. Clone the repository.
 
@@ -61,21 +55,27 @@ If you want to modify Quirk, this is how you get the code and turn your changes 
 
     `cd Quirk`
     
-    `npm install`
+    `npm ci`
 
-4. (*Optional*) Make your changes. Run the tests.
+4. Start the Vite development server while making changes.
 
-    `npm run test-firefox`
+    `npm run dev`
 
-5. Build the output.
+5. Run the browser tests.
+
+    `npm test`
+
+    `npm run test:e2e`
+
+6. Build the standalone output.
 
     `npm run build`
 
-6. Confirm the output works by opening `out/quirk.html` with a web browser.
+7. Confirm the output works by opening `out/quirk.html` with a web browser.
 
     `firefox out/quirk.html`
 
-7. Copy `out/quirk.html` to wherever you want.
+8. Copy `out/quirk.html` to wherever you want.
 
 # Disclaimer
 

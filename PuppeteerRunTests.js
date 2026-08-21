@@ -15,29 +15,46 @@
  */
 
 const puppeteer = require('puppeteer');
+const path = require('node:path');
+const {pathToFileURL} = require('node:url');
 
 (async () => {
+    let browser;
     try {
-        const browser = await puppeteer.launch();
+        const pageFile = process.argv[2] || 'test.html';
+        if (pageFile !== 'test.html' && pageFile !== 'test_perf.html') {
+            throw new Error(`Unsupported test page: ${pageFile}`);
+        }
+
+        browser = await puppeteer.launch();
         const page = await browser.newPage();
         let caughtPageError = false;
         page.on('console', message => console.log(message.text()));
-        page.on('pageerror', ({message}) => {
+        page.on('pageerror', error => {
             caughtPageError = true;
-            console.error("Page error bubbled into PuppeteerRunTests.js: " + message);
+            console.error("Page error bubbled into PuppeteerRunTests.js: " + error.message);
         });
 
-        const outDirUrl = 'file:///' + __dirname.split('\\').join('/') + '/out/';
-        await page.goto(outDirUrl + 'test.html#blocking');
+        const testUrl = pathToFileURL(path.join(__dirname, 'out', pageFile));
+        testUrl.hash = 'blocking';
+        await page.goto(testUrl.href);
         await page.waitForSelector('#done', {timeout: 5 * 60 * 1000});
-        let anyFailures = await page.evaluate('__any_failures');
+        const result = await page.evaluate(() => ({
+            anyFailures: __any_failures,
+            completed: __total_done,
+            total: __total_tests
+        }));
+        console.log(`Completed ${result.completed}/${result.total} tests.`);
 
-        await browser.close();
-        if (anyFailures || caughtPageError) {
-            process.exit(1);
+        if (result.anyFailures || caughtPageError || result.total === 0 || result.completed !== result.total) {
+            process.exitCode = 1;
         }
     } catch (ex) {
         console.error("Error bubbled up into PuppeteerRunTests.js: " + ex);
-        process.exit(1);
+        process.exitCode = 1;
+    } finally {
+        if (browser !== undefined) {
+            await browser.close();
+        }
     }
 })();

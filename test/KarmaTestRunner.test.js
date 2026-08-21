@@ -47,7 +47,7 @@ let promiseRunTest = (suite, name, method) => {
         if (result.time > 5000) {
             console.warn(`${suite.name}.${name} took ${Math.ceil(result.time)}ms to run.`)
         }
-        __karma__.result(result);
+        __testRunner__.result(result);
         return result;
     };
 
@@ -89,7 +89,7 @@ let promiseRunTest = (suite, name, method) => {
     });
 };
 
-__karma__.start = () => {
+__testRunner__.start = () => {
     let total = 0;
     for (let suite of Suite.suites) {
         total += suite.tests.length + suite.later_tests.length;
@@ -97,7 +97,7 @@ __karma__.start = () => {
             console.warn(`Empty test suite: ${suite.name}`);
         }
     }
-    __karma__.info({ total: total });
+    __testRunner__.info({ total: total });
 
     let chain = Promise.resolve();
     for (let suite of Suite.suites) {
@@ -116,5 +116,5 @@ __karma__.start = () => {
         }, 0)));
     }
 
-    return chain.then(() => __karma__.complete());
+    return chain.then(() => __testRunner__.complete());
 };
