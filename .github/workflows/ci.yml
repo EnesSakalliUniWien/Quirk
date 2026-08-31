@@ -1,7 +1,5 @@
 name: ci
-# Temporarily disabled: runs only when triggered by hand from the Actions tab.
-# To reactivate, restore:  on: [push, pull_request]
-on: workflow_dispatch
+on: [push, pull_request]
 permissions:
   contents: read
 jobs:
