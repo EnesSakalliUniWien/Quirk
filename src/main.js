@@ -19,9 +19,13 @@ import {hookErrorHandler} from "./fallback.js"
 import {doDetectIssues} from "./issues.js"
 import {startQuirk} from "./QuirkApp.js"
 import {mountAppToolbar} from "./components/app-toolbar.jsx"
+import {mountTransportBar} from "./components/transport-bar.jsx"
+import {mountGateToolbox} from "./components/gate-toolbox.jsx"
 import "./styles/globals.css"
 
 hookErrorHandler();
 doDetectIssues();
 mountAppToolbar();
+mountTransportBar();
+mountGateToolbox();
 startQuirk();

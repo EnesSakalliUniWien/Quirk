@@ -24,7 +24,6 @@ import {drawCircuitTooltip} from "../ui/DisplayedCircuit.js"
 import {Format} from "../base/Format.js"
 import {Gate, GateBuilder} from "../circuit/Gate.js"
 import {GateColumn} from "../circuit/GateColumn.js"
-import {getCircuitCycleTime} from "../ui/sim.js"
 import {MathPainter} from "../draw/MathPainter.js"
 import {Matrix} from "../math/Matrix.js"
 import {Observable, ObservableValue} from "../base/Obs.js"
@@ -37,10 +36,16 @@ import {textEditObservable} from "../browser/EventUtil.js"
 import {Util} from "../base/Util.js"
 
 /**
+ * Interface note: also requires #gate-forge-button (src/components/app-toolbar.jsx) and the forge
+ * panel's #gate-forge-* inputs, canvases, and buttons, shipped in html/forge.partial.html and
+ * mounted by src/components/forge-dialog.jsx before this runs.
+ *
  * @param {!Revision} revision
  * @param {!OverlayState} overlayState
+ * @param {!function(): !number} getCycleTime Where the app's animation cycle is, from 0 to 1;
+ *     the gate previews animate against the same clock as the circuit.
  */
-function initForge(revision, overlayState) {
+function initForge(revision, overlayState, getCycleTime) {
     const obsActiveOverlay = overlayState.active();
     const obsForgeIsShowing = obsActiveOverlay.map(active => active === "forge").whenDifferent();
     const obsIsAnyOverlayShowing = obsActiveOverlay.map(active => active !== undefined).whenDifferent();
@@ -49,25 +54,12 @@ function initForge(revision, overlayState) {
     let latestInspectorText;
     revision.latestActiveCommit().subscribe(e => { latestInspectorText = e; });
 
-    // Show/hide forge overlay.
+    // Open the forge overlay. Visibility, Escape, backdrop clicks, and focus belong to the
+    // Base UI Dialog that wraps it (src/components/app-dialogs.jsx).
     (() => {
         const forgeButton = /** @type {!HTMLButtonElement} */ document.getElementById('gate-forge-button');
-        const forgeOverlay = /** @type {!HTMLDivElement} */ document.getElementById('gate-forge-overlay');
-        const forgeDiv = /** @type {HTMLDivElement} */ document.getElementById('gate-forge-div');
         forgeButton.addEventListener('click', () => overlayState.open("forge"));
-        forgeOverlay.addEventListener('click', () => overlayState.close());
         obsIsAnyOverlayShowing.subscribe(e => { forgeButton.disabled = e; });
-        document.addEventListener('keydown', e => {
-            if (e.key === 'Escape') {
-                overlayState.close()
-            }
-        });
-        obsForgeIsShowing.subscribe(showing => {
-            forgeDiv.style.display = showing ? 'block' : 'none';
-            if (showing) {
-                document.getElementById('gate-forge-rotation-axis').focus();
-            }
-        });
     })();
 
     function computeAndPaintOp(canvas, opGetter, button) {
@@ -126,88 +118,100 @@ function initForge(revision, overlayState) {
         overlayState.close();
     }
 
-    (() => {
-        const rotationCanvas = /** @type {!HTMLCanvasElement} */ document.getElementById('gate-forge-rotation-canvas');
-        const rotationButton = /** @type {!HTMLInputElement} */ document.getElementById('gate-forge-rotation-button');
-        const txtAxis = /** @type {!HTMLInputElement} */ document.getElementById('gate-forge-rotation-axis');
-        const txtAngle = /** @type {!HTMLInputElement} */ document.getElementById('gate-forge-rotation-angle');
-        const txtPhase = /** @type {!HTMLInputElement} */ document.getElementById('gate-forge-rotation-phase');
-        const txtName = /** @type {!HTMLInputElement} */ document.getElementById('gate-forge-rotation-name');
-        obsOnShown.subscribe(() => { txtName.value = ""; });
-
-        function parseRotationFromInputs() {
-            return parseUserRotation(
-                valueElsePlaceholder(txtAngle),
-                valueElsePlaceholder(txtPhase),
-                valueElsePlaceholder(txtAxis));
-        }
-
-        let redraw = () => computeAndPaintOp(rotationCanvas, parseRotationFromInputs, rotationButton);
-        Observable.of(obsOnShown, ...[txtPhase, txtAxis, txtAngle].map(textEditObservable)).
+    /**
+     * Redraws whenever the dialog opens or any of the watched inputs changes, rate-limited so
+     * typing doesn't recompute on every keystroke.
+     *
+     * @param {!Array.<!Observable>} inputObservables
+     * @param {!function(): void} redraw
+     */
+    function redrawOnShownOrEdited(inputObservables, redraw) {
+        Observable.of(obsOnShown, ...inputObservables).
             flatten().
             throttleLatest(100).
             subscribe(redraw);
+    }
 
-        rotationButton.addEventListener('click', () => {
+    /**
+     * One matrix-based forge method: parse the inputs into an operation, preview it beside its
+     * Bloch rotation, and on confirmation wrap it in a gate and commit it. The rotation and
+     * matrix sections are both this skeleton; only their inputs, parsing, and gate dressing
+     * differ.
+     *
+     * @param {!{
+     *     canvasId: !string,
+     *     buttonId: !string,
+     *     nameBoxId: !string,
+     *     inputObservables: !Array.<!Observable>,
+     *     parseOp: !function(): !Matrix,
+     *     buildGate: !function(!Matrix, !string): !Gate
+     * }} method
+     */
+    function initMatrixMethod({canvasId, buttonId, nameBoxId, inputObservables, parseOp, buildGate}) {
+        const canvas = /** @type {!HTMLCanvasElement} */ document.getElementById(canvasId);
+        const button = /** @type {!HTMLInputElement} */ document.getElementById(buttonId);
+        const nameBox = /** @type {!HTMLInputElement} */ document.getElementById(nameBoxId);
+        obsOnShown.subscribe(() => { nameBox.value = ""; });
+
+        redrawOnShownOrEdited(inputObservables, () => computeAndPaintOp(canvas, parseOp, button));
+
+        button.addEventListener('click', () => {
             let mat;
             try {
-                mat = parseRotationFromInputs();
+                mat = parseOp();
             } catch (ex) {
                 console.warn(ex);
                 return; // Button is about to be disabled, so no handling required.
             }
+            createCustomGateAndClose(buildGate(mat, nameBox.value));
+        });
+    }
 
-            let gate = new GateBuilder().
-                setSerializedId('~' + Math.floor(Math.random()*(1 << 20)).toString(32)).
-                setSymbol(txtName.value).
+    (() => {
+        const txtAxis = /** @type {!HTMLInputElement} */ document.getElementById('gate-forge-rotation-axis');
+        const txtAngle = /** @type {!HTMLInputElement} */ document.getElementById('gate-forge-rotation-angle');
+        const txtPhase = /** @type {!HTMLInputElement} */ document.getElementById('gate-forge-rotation-phase');
+
+        initMatrixMethod({
+            canvasId: 'gate-forge-rotation-canvas',
+            buttonId: 'gate-forge-rotation-button',
+            nameBoxId: 'gate-forge-rotation-name',
+            inputObservables: [txtPhase, txtAxis, txtAngle].map(textEditObservable),
+            parseOp: () => parseUserRotation(
+                valueElsePlaceholder(txtAngle),
+                valueElsePlaceholder(txtPhase),
+                valueElsePlaceholder(txtAxis)),
+            buildGate: (mat, name) => new GateBuilder().
+                setSerializedId(randomCustomGateId()).
+                setSymbol(name).
                 setTitle('Custom Rotation Gate').
                 setKnownEffectToMatrix(mat).
-                gate;
-            createCustomGateAndClose(gate);
+                gate
         });
     })();
 
     (() => {
-        const matrixCanvas = /** @type {!HTMLCanvasElement} */ document.getElementById('gate-forge-matrix-canvas');
         const txtMatrix = /** @type {!HTMLInputElement} */ document.getElementById('gate-forge-matrix');
         const chkFix = /** @type {!HTMLInputElement} */ document.getElementById('gate-forge-matrix-fix');
-        const matrixButton = /** @type {!HTMLInputElement} */ document.getElementById('gate-forge-matrix-button');
-        const txtName = /** @type {!HTMLInputElement} */ document.getElementById('gate-forge-matrix-name');
-        obsOnShown.subscribe(() => { txtName.value = ""; });
 
-        function parseMatrixFromInputs() {
-            let text = valueElsePlaceholder(txtMatrix);
-            let ensureUnitary = chkFix.checked;
-            return parseUserMatrix(text, ensureUnitary);
-        }
-
-        let redraw = () => computeAndPaintOp(matrixCanvas, parseMatrixFromInputs, matrixButton);
-
-        Observable.of(obsOnShown, textEditObservable(txtMatrix), Observable.elementEvent(chkFix, 'change')).
-            flatten().
-            throttleLatest(100).
-            subscribe(redraw);
-
-        matrixButton.addEventListener('click', () => {
-            let mat;
-            try {
-                mat = parseMatrixFromInputs();
-            } catch (ex) {
-                console.warn(ex);
-                return; // Button is about to be disabled, so no handling required.
+        initMatrixMethod({
+            canvasId: 'gate-forge-matrix-canvas',
+            buttonId: 'gate-forge-matrix-button',
+            nameBoxId: 'gate-forge-matrix-name',
+            inputObservables: [textEditObservable(txtMatrix), Observable.elementEvent(chkFix, 'change')],
+            parseOp: () => parseUserMatrix(valueElsePlaceholder(txtMatrix), chkFix.checked),
+            buildGate: (mat, rawName) => {
+                let name = rawName.trim();
+                let h = Math.round(Math.log2(mat.height()));
+                return new GateBuilder().
+                    setSerializedId(randomCustomGateId()).
+                    setSymbol(name).
+                    setTitle('Custom Matrix Gate').
+                    setHeight(h).
+                    setWidth(name === '' ? h : 1).
+                    setKnownEffectToMatrix(mat).
+                    gate;
             }
-
-            let name = txtName.value.trim();
-            let h = Math.round(Math.log2(mat.height()));
-            let gate = new GateBuilder().
-                setSerializedId('~' + Math.floor(Math.random()*(1 << 20)).toString(32)).
-                setSymbol(name).
-                setTitle('Custom Matrix Gate').
-                setHeight(h).
-                setWidth(name === '' ? h : 1).
-                setKnownEffectToMatrix(mat).
-                gate;
-            createCustomGateAndClose(gate);
         });
     })();
 
@@ -238,7 +242,7 @@ function initForge(revision, overlayState) {
             gate.knownCircuitNested,
             new Rect(0, 0, circuitCanvas.width, circuitCanvas.height),
             true,
-            getCircuitCycleTime());
+            getCycleTime());
 
         latestGate.observable().
             zipLatest(obsForgeIsShowing, (g, s) => s ? g : undefined).
@@ -280,10 +284,7 @@ function initForge(revision, overlayState) {
             }
         };
 
-        Observable.of(obsOnShown, textEditObservable(txtCols), textEditObservable(txtRows)).
-            flatten().
-            throttleLatest(100).
-            subscribe(redraw);
+        redrawOnShownOrEdited([txtCols, txtRows].map(textEditObservable), redraw);
 
         circuitButton.addEventListener('click', () => {
             try {
@@ -295,6 +296,13 @@ function initForge(revision, overlayState) {
             }
         });
     })();
+}
+
+/**
+ * @returns {!string} A serialized id unlikely to collide with any other custom gate's.
+ */
+function randomCustomGateId() {
+    return '~' + Math.floor(Math.random()*(1 << 20)).toString(32);
 }
 
 /**

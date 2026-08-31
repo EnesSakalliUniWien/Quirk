@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {Palette} from "../config/Palette.js"
 import {DetailedError} from "../base/DetailedError.js"
 import {GateBuilder} from "../circuit/Gate.js"
 import {GatePainting} from "../draw/GatePainting.js"
@@ -23,7 +24,7 @@ let ErrorInjectionGate = new GateBuilder().
     setSymbol("ERR!").
     setTitle("Error Injection Gate").
     setBlurb("Throws an exception during circuit stat computations, for testing error paths.").
-    setDrawer(GatePainting.MAKE_HIGHLIGHTED_DRAWER('#F87171', '#F87171')).
+    setDrawer(GatePainting.MAKE_HIGHLIGHTED_DRAWER(Palette.ERROR_COLOR, Palette.ERROR_COLOR)).
     setActualEffectToUpdateFunc(ctx => {
         throw new DetailedError("Applied an Error Injection Gate", {qubit: ctx.row});
     }).

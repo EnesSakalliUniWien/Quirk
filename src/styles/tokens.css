@@ -1,0 +1,109 @@
+@custom-variant dark (&:is(.dark *));
+
+/* The app's own scale, declared through Tailwind's theme so it is one system rather than a
+   parallel set of variables. Every value is also available as a utility class. */
+@theme {
+    --font-mono: ui-monospace, "SFMono-Regular", Consolas, monospace;
+    --text-small: 0.8125rem;
+    --text-body: 0.9375rem;
+    --text-heading: 1.125rem;
+    --text-title: 1.75rem;
+}
+
+/* Every colour the canvas paints with. src/config/Palette.js reads these at startup, so the
+   canvas and the DOM cannot drift apart. */
+:root {
+    --canvas-gate-fill: #18181B;
+    --canvas-gate-fill-highlighted: #92400E;
+    --canvas-time-dependent-highlight: #3A3A12;
+    --canvas-display-toolbox-fill: #16A34A;
+    --canvas-display-back: #0F1F14;
+    --canvas-display-fore: #22C55E;
+    --canvas-operation-back: #2E2A12;
+    --canvas-operation-fore: #EAB308;
+    --canvas-superposition-back: #0E1B1E;
+    --canvas-superposition-mid: #0E7490;
+    --canvas-superposition-fore: #22D3EE;
+    --canvas-ink: #E4E4E7;
+    --canvas-surface: #18181B;
+    --canvas-error: #F87171;
+    --canvas-grid-line: #3F3F46;
+    --canvas-mid-line: #71717A;
+    --canvas-muted-text: #A1A1AA;
+    --canvas-faint-line: #52525B;
+    --canvas-highlight-stroke: #F59E0B;
+    --canvas-highlight-fill: #EAB308;
+    --canvas-playhead-band: rgba(245, 158, 11, 0.27);
+    --canvas-background: #0A0A0A;
+    --canvas-toolbox-gate-fill: #27272A;
+    --canvas-toolbox-gate-hover-fill: #3F3F46;
+    --canvas-default-text: #FAFAFA;
+    --canvas-quiet-gate-fill: #232327;
+    --canvas-bright-line: #D4D4D8;
+    --canvas-display-dim: #15803D;
+    --canvas-tooltip-title: #60A5FA;
+    --canvas-tooltip-back: #101812;
+    --canvas-drop-target-fill: rgba(255, 196, 112, 0.7);
+}
+
+/* The gate chips' category rules, in the canvas's colour language: red collapses or inspects the
+   state, green reads it out, amber rotates it, cyan computes over it, and violet depends on time
+   or a parameter. */
+:root {
+    --chip-rule-measure: var(--canvas-error);
+    --chip-rule-display: var(--canvas-display-fore);
+    --chip-rule-turn: var(--canvas-operation-fore);
+    --chip-rule-time: #A78BFA;
+    --chip-rule-compute: var(--canvas-superposition-fore);
+    --chip-rule-neutral: var(--canvas-faint-line);
+}
+
+@theme inline {
+    --font-sans: 'Geist Variable', sans-serif;
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --radius-lg: var(--radius);
+}
+
+/* The app always renders dark - html.dark is hardcoded in the template - so the stock shadcn
+   light values never show. Only the shared radius lives outside the dark block. */
+:root {
+    --radius: 0.625rem;
+}
+
+.dark {
+    --background: oklch(0.145 0 0);
+    --foreground: oklch(0.985 0 0);
+    --card: oklch(0.205 0 0);
+    --card-foreground: oklch(0.985 0 0);
+    --popover: oklch(0.205 0 0);
+    --popover-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.922 0 0);
+    --primary-foreground: oklch(0.205 0 0);
+    --secondary: oklch(0.269 0 0);
+    --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.269 0 0);
+    --muted-foreground: oklch(0.708 0 0);
+    --accent: oklch(0.269 0 0);
+    --accent-foreground: oklch(0.985 0 0);
+    --destructive: oklch(0.704 0.191 22.216);
+    --border: oklch(1 0 0 / 10%);
+    --input: oklch(1 0 0 / 35%);
+    --ring: oklch(0.556 0 0);
+}

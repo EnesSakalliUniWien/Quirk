@@ -14,52 +14,60 @@
  * limitations under the License.
  */
 
+import {readStyleToken} from "./StyleTokens.js"
+
 /**
- * Every colour the canvas paints with. Kept consistent with the CSS variables in
- * html/quirk.template.html.
+ * Every colour the canvas paints with, read from the --canvas-* custom properties in
+ * src/styles/globals.css. The stylesheet is the only place a colour is written down, so the canvas
+ * and the DOM cannot drift apart.
  */
 class Palette {}
 
 // Gate background colors.
-Palette.GATE_FILL_COLOR = '#18181B';
-Palette.HIGHLIGHTED_GATE_FILL_COLOR = '#92400E';
-Palette.TIME_DEPENDENT_HIGHLIGHT_COLOR = '#3A3A12';
+Palette.GATE_FILL_COLOR = readStyleToken('--canvas-gate-fill', '#18181B');
+Palette.HIGHLIGHTED_GATE_FILL_COLOR = readStyleToken('--canvas-gate-fill-highlighted', '#92400E');
+Palette.TIME_DEPENDENT_HIGHLIGHT_COLOR = readStyleToken('--canvas-time-dependent-highlight', '#3A3A12');
 // Mixed-state displays are green.
-Palette.DISPLAY_GATE_IN_TOOLBOX_FILL_COLOR = '#16A34A';
-Palette.DISPLAY_GATE_BACK_COLOR = '#0F1F14';
-Palette.DISPLAY_GATE_FORE_COLOR = '#22C55E';
+Palette.DISPLAY_GATE_IN_TOOLBOX_FILL_COLOR = readStyleToken('--canvas-display-toolbox-fill', '#16A34A');
+Palette.DISPLAY_GATE_BACK_COLOR = readStyleToken('--canvas-display-back', '#0F1F14');
+Palette.DISPLAY_GATE_FORE_COLOR = readStyleToken('--canvas-display-fore', '#22C55E');
 // Changes are yellow.
-Palette.OPERATION_BACK_COLOR = '#2E2A12';
-Palette.OPERATION_FORE_COLOR = '#EAB308';
+Palette.OPERATION_BACK_COLOR = readStyleToken('--canvas-operation-back', '#2E2A12');
+Palette.OPERATION_FORE_COLOR = readStyleToken('--canvas-operation-fore', '#EAB308');
 // Pure-state displays are cyan.
-Palette.SUPERPOSITION_BACK_COLOR = '#0E1B1E';
-Palette.SUPERPOSITION_MID_COLOR = '#0E7490';
-Palette.SUPERPOSITION_FORE_COLOR = '#22D3EE';
+Palette.SUPERPOSITION_BACK_COLOR = readStyleToken('--canvas-superposition-back', '#0E1B1E');
+Palette.SUPERPOSITION_MID_COLOR = readStyleToken('--canvas-superposition-mid', '#0E7490');
+Palette.SUPERPOSITION_FORE_COLOR = readStyleToken('--canvas-superposition-fore', '#22D3EE');
 // Shared canvas ink/surface tones.
-Palette.INK_COLOR = '#E4E4E7';              // Primary strokes and text.
-Palette.SURFACE_COLOR = '#18181B';          // Panel and widget fills.
-Palette.ERROR_COLOR = '#F87171';            // Error text and marks.
-Palette.GRID_LINE_COLOR = '#3F3F46';        // Faint grid lines.
-Palette.MID_LINE_COLOR = '#71717A';         // Secondary strokes.
-Palette.MUTED_TEXT_COLOR = '#A1A1AA';       // Secondary text.
-Palette.FAINT_LINE_COLOR = '#52525B';       // Subtle strokes.
-Palette.HIGHLIGHT_STROKE_COLOR = '#F59E0B'; // Focus/highlight strokes.
-Palette.HIGHLIGHT_FILL_COLOR = '#EAB308';   // Attention fills.
-Palette.BACKGROUND_COLOR = '#0A0A0A';
-Palette.BACKGROUND_COLOR_CIRCUIT = '#0A0A0A';
-// Toolbox layout.
-// Spacing follows Carbon's spacing scale: 2, 4, 8, 12, 16, 24, 32, 40, 48.
-Palette.BACKGROUND_COLOR_TOOLBOX = '#18181B';
-Palette.TOOLBOX_GATE_FILL_COLOR = '#27272A';
-// Carbon treats a component boundary as non-text contrast: at least 3:1 against both
-// the fill it encloses and the surface behind it (WCAG 1.4.11).
-Palette.TOOLBOX_GATE_BORDER_COLOR = '#71717A';
-Palette.TOOLBOX_GATE_HOVER_BORDER_COLOR = '#A1A1AA';
-Palette.TOOLBOX_GATE_HOVER_FILL_COLOR = '#3F3F46';
-Palette.TOOLBOX_LABEL_COLOR = '#A1A1AA';
+Palette.INK_COLOR = readStyleToken('--canvas-ink', '#E4E4E7');
+Palette.SURFACE_COLOR = readStyleToken('--canvas-surface', '#18181B');
+Palette.ERROR_COLOR = readStyleToken('--canvas-error', '#F87171');
+Palette.GRID_LINE_COLOR = readStyleToken('--canvas-grid-line', '#3F3F46');
+Palette.MID_LINE_COLOR = readStyleToken('--canvas-mid-line', '#71717A');
+Palette.MUTED_TEXT_COLOR = readStyleToken('--canvas-muted-text', '#A1A1AA');
+Palette.FAINT_LINE_COLOR = readStyleToken('--canvas-faint-line', '#52525B');
+Palette.HIGHLIGHT_STROKE_COLOR = readStyleToken('--canvas-highlight-stroke', '#F59E0B');
+Palette.HIGHLIGHT_FILL_COLOR = readStyleToken('--canvas-highlight-fill', '#EAB308');
+// The band behind the column the playhead is about to execute, at low alpha so the gates and wires
+// under it stay legible.
+Palette.PLAYHEAD_BAND_COLOR = readStyleToken('--canvas-playhead-band', 'rgba(245, 158, 11, 0.27)');
+Palette.BACKGROUND_COLOR = readStyleToken('--canvas-background', '#0A0A0A');
+Palette.BACKGROUND_COLOR_CIRCUIT = Palette.BACKGROUND_COLOR;
+// The neutral fill some drawers use when a gate is painted outside a circuit position.
+Palette.TOOLBOX_GATE_FILL_COLOR = readStyleToken('--canvas-toolbox-gate-fill', '#27272A');
+Palette.TOOLBOX_GATE_HOVER_FILL_COLOR = readStyleToken('--canvas-toolbox-gate-hover-fill', '#3F3F46');
 // Draw constants.
-Palette.DEFAULT_FILL_COLOR = '#18181B';
-Palette.DEFAULT_STROKE_COLOR = '#E4E4E7';
-Palette.DEFAULT_TEXT_COLOR = '#FAFAFA';
+Palette.DEFAULT_FILL_COLOR = Palette.GATE_FILL_COLOR;
+Palette.DEFAULT_STROKE_COLOR = Palette.INK_COLOR;
+Palette.DEFAULT_TEXT_COLOR = readStyleToken('--canvas-default-text', '#FAFAFA');
+// Gates that name or route values rather than transform them share one quiet fill.
+Palette.QUIET_GATE_FILL_COLOR = readStyleToken('--canvas-quiet-gate-fill', '#232327');
+Palette.BRIGHT_LINE_COLOR = readStyleToken('--canvas-bright-line', '#D4D4D8');
+Palette.DISPLAY_DIM_COLOR = readStyleToken('--canvas-display-dim', '#15803D');
+// The gate name at the top of a tooltip.
+Palette.TOOLTIP_TITLE_COLOR = readStyleToken('--canvas-tooltip-title', '#60A5FA');
+Palette.TOOLTIP_BACK_COLOR = readStyleToken('--canvas-tooltip-back', '#101812');
+// The column or row a held gate would land on.
+Palette.DROP_TARGET_FILL_COLOR = readStyleToken('--canvas-drop-target-fill', 'rgba(255, 196, 112, 0.7)');
 
 export {Palette}

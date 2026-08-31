@@ -167,6 +167,8 @@ function drawDetector(args, axis) {
     drawHighlight(args);
     drawWedge(args, axis);
     drawClick(args, axis);
+    // Measures the wire: the red edge of the toolbox's class marking.
+    GatePainting.paintToolboxCategoryRule(args, Palette.ERROR_COLOR);
 }
 
 /**
@@ -305,6 +307,8 @@ function drawDetectClearReset(args, axis) {
     drawClick(args, undefined);
 
     args.rect = fullRect;
+    // Measures and clears the wire: the red edge of the toolbox's class marking.
+    GatePainting.paintToolboxCategoryRule(args, Palette.ERROR_COLOR);
 }
 
 /**

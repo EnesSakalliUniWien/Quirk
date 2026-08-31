@@ -15,7 +15,7 @@
  */
 
 /**
- * Sizes and spacings of the drawn circuit and toolbox. Spacing follows Carbon's scale.
+ * Sizes and spacings of the drawn circuit and its gate tiles.
  */
 class Layout {}
 
@@ -23,22 +23,10 @@ class Layout {}
 * @type {!number} */
 Layout.GATE_RADIUS = 20;
 Layout.WIRE_SPACING = 50;
-// Carbon $spacing-xl, and the shared control height.
-Layout.TOOLBOX_GATE_SIZE = 32;
-Layout.TOOLBOX_GATE_SPACING = 4;    // Carbon $spacing-2xs.
-Layout.TOOLBOX_GROUP_SPACING = 16;  // Carbon $spacing-md.
-Layout.TOOLBOX_GATE_SPAN = Layout.TOOLBOX_GATE_SIZE + Layout.TOOLBOX_GATE_SPACING;
-Layout.TOOLBOX_GROUP_SPAN = Layout.TOOLBOX_GATE_SPAN * 2 + Layout.TOOLBOX_GROUP_SPACING;
-Layout.TOOLBOX_MARGIN_X = 32;       // Carbon $spacing-xl.
-Layout.TOOLBOX_MARGIN_Y = 16;       // Carbon $spacing-md.
-// Padding above the gates when the group labels sit below them instead. Carbon $spacing-2xs.
-Layout.TOOLBOX_GATE_PADDING_Y = 4;
-// Vertical gap between the bottom toolbox and the circuit. Carbon $spacing-lg.
-Layout.TOOLBOX_CIRCUIT_MARGIN = 24;
-// Matches the shadcn button base, which is rounded-lg (--radius-lg = 0.625rem).
-Layout.TOOLBOX_GATE_CORNER_RADIUS = 10;
-// One control height across the app: the toolbox tile and the shadcn Button are both 32px.
-Layout.CONTROL_HEIGHT = 32;
+// The leading rule that marks a gate which reads the state out or discards it.
+Layout.TOOLBOX_GATE_RULE_WIDTH = 3;
+// Vertical gap above the circuit, now that the toolbox is a sidebar rather than a band on top.
+Layout.CIRCUIT_TOP_MARGIN = 24;
 /**
  * Some tooltips end up looking terrible without available vertical space.
  * (e.g. the error box might not fit, or the gate tips might get squashed)

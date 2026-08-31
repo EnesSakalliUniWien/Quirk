@@ -31,16 +31,18 @@ VariousZGates.Z3i = Gate.fromKnownMatrix(
     "Adjoint third root of Z.",
     undefined,
     VariousZGates.Z3);
+// Named after the symbol drawn on the circuit, with the power convention in parentheses, so a
+// toolbox row never shows two different names for one gate.
 VariousZGates.Z4 = Gate.fromKnownMatrix(
     "T",
     Matrix.fromPauliRotation(0, 0, 1 / 8),
-    "Z^¼ Gate",
+    "T Gate (Z^¼)",
     "Principle fourth root of Z.",
     "Z^¼");
 VariousZGates.Z4i = Gate.fromKnownMatrix(
     "T^-1",
     Matrix.fromPauliRotation(0, 0, -1 / 8),
-    "Z^-¼ Gate",
+    "T^-1 Gate (Z^-¼)",
     "Adjoint fourth root of Z.",
     "Z^-¼",
     VariousZGates.Z4);

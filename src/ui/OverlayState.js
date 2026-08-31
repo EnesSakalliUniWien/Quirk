@@ -33,6 +33,13 @@ class OverlayState {
     }
 
     /**
+     * @returns {undefined|!string} The overlay that is showing right now.
+     */
+    current() {
+        return this._activeOverlay.get();
+    }
+
+    /**
      * @param {!string} name
      * @returns {void}
      */

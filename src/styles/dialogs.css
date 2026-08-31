@@ -1,0 +1,331 @@
+/* The overlay dialogs: the shared frame, the welcome and example panels, the export stack, and
+   the error panel. Imported after forge.css so this file's narrow-viewport overrides win by
+   source order over .forge-dialog's own width. */
+@layer components {
+    .dialog-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 10;
+        background: color-mix(in oklch, var(--background), transparent 16%);
+        backdrop-filter: blur(7px);
+    }
+
+    .dialog-layout {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        z-index: 11;
+        display: flex;
+        width: fit-content;
+        max-width: calc(100vw - 48px);
+        max-height: calc(100vh - 48px);
+        align-items: stretch;
+        gap: calc(var(--spacing) * 3);
+        overflow: auto;
+        transform: translate(-50%, -50%);
+    }
+
+    /* A dialog's parked panels, moved between the stash and the popup as one unit. The wrapper is
+       not a box, so inside the popup the panels are laid out by .dialog-layout directly. */
+    .dialog-content {
+        display: contents;
+    }
+
+    .dialog-panel,
+    .example-panel {
+        box-sizing: border-box;
+        color: var(--card-foreground);
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+    }
+
+    .dialog-panel {
+        padding: calc(var(--spacing) * 6);
+    }
+
+    .dialog-header {
+        display: grid;
+        gap: calc(var(--spacing) * 1);
+    }
+
+    .dialog-eyebrow {
+        margin: 0;
+        color: color-mix(in oklch, var(--primary), white 20%);
+        font-size: 0.6875rem;
+        font-weight: 650;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+
+    .dialog-title {
+        margin: 0;
+        font-size: var(--text-title);
+        font-weight: 650;
+        letter-spacing: -0.025em;
+        line-height: 1.15;
+    }
+
+    .dialog-description {
+        margin: 0;
+        color: var(--muted-foreground);
+        font-size: var(--text-body);
+    }
+
+    .welcome-panel {
+        display: flex;
+        width: 500px;
+        flex-direction: column;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .welcome-title {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: calc(var(--spacing) * 2);
+        margin: 0;
+        font-size: var(--text-title);
+        font-weight: 650;
+        letter-spacing: -0.025em;
+        line-height: 1.2;
+    }
+
+    .welcome-title svg {
+        width: 32px;
+        height: 32px;
+        color: color-mix(in oklch, var(--primary), white 22%);
+        filter: drop-shadow(0 0 9px color-mix(in oklch, var(--ring), transparent 40%));
+    }
+
+    .welcome-tagline {
+        margin-top: calc(var(--spacing) * 1);
+        color: var(--muted-foreground);
+        font-size: var(--text-body);
+    }
+
+    .welcome-primary {
+        margin: calc(var(--spacing) * 6) 0;
+    }
+
+    .welcome-primary-action {
+        width: 100%;
+        min-height: 44px;
+        color: var(--primary-foreground);
+        background: var(--primary);
+        border-color: transparent;
+        font-size: 0.9375rem;
+    }
+
+    .welcome-primary-action:hover:not(:disabled) {
+        background: color-mix(in oklch, var(--primary), white 8%);
+    }
+
+    .resource-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: calc(var(--spacing) * 2);
+    }
+
+    .resource-card {
+        display: flex;
+        min-height: 104px;
+        align-items: center;
+        justify-content: center;
+        padding: calc(var(--spacing) * 3);
+        color: var(--muted-foreground);
+        background: color-mix(in oklch, var(--muted), transparent 38%);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        font-size: 0.875rem;
+        font-weight: 550;
+        text-align: center;
+        text-decoration: none;
+        transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease, transform 140ms ease;
+    }
+
+    .resource-card:hover {
+        color: var(--foreground);
+        background: var(--accent);
+        border-color: color-mix(in oklch, var(--ring), var(--border) 45%);
+        transform: translateY(-1px);
+    }
+
+    .resource-card-content {
+        display: grid;
+        justify-items: center;
+        gap: calc(var(--spacing) * 2);
+    }
+
+    .resource-card svg {
+        width: 38px;
+        height: 38px;
+    }
+
+    .example-panel {
+        min-width: 260px;
+        padding: calc(var(--spacing) * 4);
+    }
+
+    .example-heading {
+        display: block;
+        margin: 0 0 calc(var(--spacing) * 3);
+        font-size: var(--text-heading);
+        font-weight: 650;
+    }
+
+    .example-links {
+        display: grid;
+        gap: 2px;
+    }
+
+    .example-links a {
+        padding: 7px calc(var(--spacing) * 2);
+        color: var(--muted-foreground);
+        border-radius: 7px;
+        font-size: 0.875rem;
+        text-decoration: none;
+        transition: background-color 140ms ease, color 140ms ease;
+    }
+
+    .example-links a:hover {
+        color: var(--foreground);
+        background: var(--accent);
+    }
+
+    .dialog-stack {
+        display: grid;
+        width: min(780px, calc(100vw - 48px));
+        gap: calc(var(--spacing) * 3);
+    }
+
+    .dialog-stack > .dialog-header {
+        margin-bottom: calc(var(--spacing) * 2);
+    }
+
+    .dialog-section {
+        display: grid;
+        gap: calc(var(--spacing) * 3);
+        padding: calc(var(--spacing) * 4);
+        background: color-mix(in oklch, var(--muted), transparent 48%);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+    }
+
+    .dialog-section-heading {
+        color: var(--muted-foreground);
+        font-size: 0.875rem;
+    }
+
+    .dialog-section-title {
+        color: var(--foreground);
+        font-size: 0.9375rem;
+        font-weight: 650;
+    }
+
+    .dialog-section-body {
+        display: grid;
+        gap: calc(var(--spacing) * 2);
+    }
+
+    .dialog-action-row,
+    .checkbox-row {
+        display: flex;
+        align-items: center;
+        gap: calc(var(--spacing) * 2);
+    }
+
+    .checkbox-row {
+        color: var(--muted-foreground);
+        font-size: 0.875rem;
+    }
+
+    .copy-result {
+        color: color-mix(in oklch, var(--ring), white 14%);
+        font-size: var(--text-small);
+        font-weight: 600;
+    }
+
+    .output-box {
+        box-sizing: border-box;
+        width: 100%;
+        max-height: 110px;
+        overflow: auto;
+        margin: 0;
+        padding: calc(var(--spacing) * 3);
+        color: var(--muted-foreground);
+        background: color-mix(in oklch, var(--background), white 2%);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        font-family: var(--font-mono);
+        font-size: var(--text-small);
+        line-height: 1.45;
+        overflow-wrap: anywhere;
+    }
+
+    .output-box a {
+        color: color-mix(in oklch, var(--ring), white 12%);
+    }
+
+    .error-panel {
+        padding: calc(var(--spacing) * 6);
+        color: var(--destructive);
+        background: var(--card);
+        border: 1px solid color-mix(in oklch, var(--destructive), transparent 50%);
+        border-radius: 12px;
+        font-family: var(--font-mono);
+        font-size: var(--text-title);
+    }
+
+    .error-panel-details {
+        font-size: var(--text-body);
+    }
+
+    .error-panel-note {
+        font-size: var(--text-heading);
+    }
+
+    .error-panel-screenshot {
+        max-width: 600px;
+        max-height: 250px;
+    }
+
+    @media (max-width: 760px) {
+        .dialog-layout {
+            top: calc(var(--spacing) * 3);
+            right: calc(var(--spacing) * 3);
+            bottom: calc(var(--spacing) * 3);
+            left: calc(var(--spacing) * 3);
+            width: auto;
+            max-width: none;
+            max-height: none;
+            flex-direction: column;
+            transform: none;
+        }
+
+        .dialog-panel,
+        .welcome-panel,
+        .example-panel,
+        .dialog-stack,
+        .forge-dialog {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .dialog-panel,
+        .welcome-panel,
+        .example-panel {
+            padding: calc(var(--spacing) * 4);
+        }
+
+        .resource-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .resource-card {
+            min-height: 72px;
+        }
+    }
+}

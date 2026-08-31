@@ -14,21 +14,24 @@
  * limitations under the License.
  */
 
+import {readStyleToken} from "./StyleTokens.js"
+
 /**
- * Fonts the canvas draws text with. Kept consistent with the HTML shell.
+ * Fonts the canvas draws text with, read from the theme in src/styles/globals.css so the canvas
+ * and the DOM use one set of stacks.
  */
 class Typography {}
 
 Typography.DEFAULT_FONT_SIZE = 12;
-// Keep these font stacks in sync with --font-ui and --font-mono in html/quirk.template.html.
-Typography.DEFAULT_FONT_FAMILY = '"Geist Variable", system-ui, sans-serif';
-Typography.MONO_FONT_FAMILY = 'ui-monospace, "SFMono-Regular", Consolas, monospace';
-// Carbon's productive type scale, for dense UI.
-Typography.TOOLBOX_LABEL_FONT_SIZE = 12;  // Carbon label-01.
-Typography.TOOLBOX_NAME_FONT_SIZE = 16;   // Carbon heading-compact-02.
-// Gate symbols are the tile's content, not a label: Carbon body-compact-02 at the
-// same medium weight the shadcn Button uses, so both control surfaces read alike.
+Typography.DEFAULT_FONT_FAMILY = readStyleToken('--font-sans', "'Geist Variable', sans-serif");
+Typography.MONO_FONT_FAMILY = readStyleToken(
+    '--font-mono', 'ui-monospace, "SFMono-Regular", Consolas, monospace');
+// Gate symbols are the tile's content, not a label, at the same medium weight the shadcn Button
+// uses, so both control surfaces read alike.
 Typography.GATE_SYMBOL_FONT_SIZE = 16;
 Typography.GATE_SYMBOL_FONT_WEIGHT = 500;
+// The smallest a gate symbol is allowed to get. Past this a symbol stops being readable, so long
+// ones wrap to two lines rather than shrinking further.
+Typography.GATE_SYMBOL_MIN_FONT_SIZE = 11;
 
 export {Typography}

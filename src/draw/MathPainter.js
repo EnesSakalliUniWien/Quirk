@@ -522,10 +522,10 @@ class MathPainter {
             ].map(d => arrowHeadRoot.plus(d));
             let interleaved = [].concat.apply([], arrowHeadPts.map(e => [e.x, e.y]));
 
-            painter.strokePath(arcPts, '#D4D4D8');
+            painter.strokePath(arcPts, Palette.BRIGHT_LINE_COLOR);
             painter.trace(tracer => tracer.polygon(interleaved)).
                 thenFill(fillColor).
-                thenStroke('#D4D4D8');
+                thenStroke(Palette.BRIGHT_LINE_COLOR);
         }
     }
 
@@ -584,11 +584,11 @@ class MathPainter {
         if (!hasNaN) {
             traceDiagonalWith(MathPainter._traceProbabilitySquare).
                 thenFill(fillColor).
-                thenStroke('#15803D', 0.5);
+                thenStroke(Palette.DISPLAY_DIM_COLOR, 0.5);
 
             traceCouplingsWith(MathPainter._traceAmplitudeProbabilityCircle).
                 thenFill(fillColor).
-                thenStroke('#15803D', 0.5);
+                thenStroke(Palette.DISPLAY_DIM_COLOR, 0.5);
 
             traceCouplingsWith(MathPainter._traceAmplitudeLogarithmCircle).
                 thenStroke(Palette.FAINT_LINE_COLOR, 0.5);

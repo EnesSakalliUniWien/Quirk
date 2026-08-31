@@ -37,7 +37,8 @@ function configurableRotationDrawer(pattern, xyz, tScale) {
     let xScale = [1, 0.5, -1][xyz];
     let yScale = [1, 1, -0.5][xyz];
     return args => {
-        GatePainting.paintBackground(args, Palette.TIME_DEPENDENT_HIGHLIGHT_COLOR);
+        GatePainting.paintBackground(
+            args, Palette.TOOLBOX_GATE_FILL_COLOR, Palette.TIME_DEPENDENT_HIGHLIGHT_COLOR);
         GatePainting.paintOutline(args);
         let text = pattern;
         if (!args.isInToolbox) {

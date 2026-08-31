@@ -1,0 +1,171 @@
+/* Element defaults and the resets scoped to the React roots. */
+@layer base {
+  #app-toolbar-root,
+  #app-toolbar-root *,
+  #app-toolbar-root::before,
+  #app-toolbar-root::after,
+  #app-toolbar-root *::before,
+  #app-toolbar-root *::after,
+  #transport-bar-root,
+  #transport-bar-root *,
+  #transport-bar-root::before,
+  #transport-bar-root::after,
+  #transport-bar-root *::before,
+  #transport-bar-root *::after,
+  #gate-toolbox-root,
+  #gate-toolbox-root *,
+  #gate-toolbox-root::before,
+  #gate-toolbox-root::after,
+  #gate-toolbox-root *::before,
+  #gate-toolbox-root *::after {
+    box-sizing: border-box;
+    border-width: 0;
+    border-style: solid;
+    border-color: currentColor;
+    }
+
+  #app-toolbar-root {
+    color: var(--foreground);
+    background: color-mix(in oklch, var(--card), var(--background) 28%);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 1px 0 var(--border);
+    font-family: var(--font-sans);
+    }
+
+  #app-toolbar-root button,
+  #transport-bar-root button,
+  #gate-toolbox-root button {
+    margin: 0;
+    font: inherit;
+    color: inherit;
+    text-transform: none;
+    appearance: button;
+    background: transparent;
+    }
+
+  #app-toolbar-root button:not(:disabled),
+  #app-toolbar-root [role="button"]:not(:disabled),
+  #transport-bar-root button:not(:disabled),
+  #gate-toolbox-root button:not(:disabled) {
+    cursor: pointer;
+    }
+
+  #transport-bar-root,
+  #gate-toolbox-root {
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    }
+
+  #app-toolbar-root .app-version {
+    color: var(--muted-foreground);
+    }
+
+  #app-toolbar-root .app-brand-mark {
+    background: color-mix(in oklch, var(--primary), transparent 80%);
+    border: 1px solid color-mix(in oklch, var(--primary), transparent 48%);
+    box-shadow: inset 0 0 14px color-mix(in oklch, var(--primary), transparent 76%);
+    color: color-mix(in oklch, var(--primary), white 22%);
+    }
+
+    html {
+        background: var(--background);
+        color-scheme: dark;
+        font-family: var(--font-sans);
+        font-size: 16px;
+        line-height: 1.5;
+    }
+
+    body {
+        min-width: 320px;
+        margin: 0;
+        color: var(--foreground);
+        background: var(--background);
+    }
+
+    #inspectorDiv {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        background: var(--background);
+    }
+
+    /* The circuit scrolls inside its own cell, so a wide or tall circuit never drags the whole
+       page along with it. */
+    #canvasDiv {
+        min-width: 0;
+        overflow: auto;
+        background: var(--background);
+        box-shadow: inset 0 1px 0 var(--border);
+    }
+
+    #drawCanvas {
+        display: block;
+    }
+
+    a {
+        color: inherit;
+    }
+
+    button,
+    input,
+    textarea {
+        box-sizing: border-box;
+        font: inherit;
+    }
+
+    button {
+        min-height: 32px;
+        padding: 5px calc(var(--spacing) * 3);
+        color: var(--secondary-foreground);
+        background: var(--secondary);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 550;
+        line-height: 1.25;
+        cursor: pointer;
+        transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+    }
+
+    button:hover:not(:disabled) {
+        color: var(--foreground);
+        background: var(--accent);
+        border-color: color-mix(in oklch, var(--primary), var(--border) 45%);
+    }
+
+    button:disabled {
+        cursor: not-allowed;
+        opacity: 0.48;
+    }
+
+    input[type="text"],
+    textarea {
+        min-height: 32px;
+        padding: 6px 9px;
+        color: var(--foreground);
+        background: color-mix(in oklch, var(--background), white 2%);
+        border: 1px solid var(--input);
+        border-radius: 8px;
+        outline: none;
+    }
+
+    input[type="text"]::placeholder,
+    textarea::placeholder {
+        color: var(--muted-foreground);
+    }
+
+    input[type="checkbox"] {
+        accent-color: var(--primary);
+    }
+
+    :focus-visible {
+        outline: 3px solid color-mix(in oklch, var(--ring), transparent 48%);
+        outline-offset: 2px;
+    }
+
+    input[type="text"]:focus,
+    textarea:focus {
+        border-color: var(--ring);
+        box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring), transparent 72%);
+    }
+}

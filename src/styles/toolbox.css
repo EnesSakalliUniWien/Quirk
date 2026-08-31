@@ -1,0 +1,210 @@
+/* The gate toolbox sidebar: search, gate groups, tiles, and the painted tooltip. */
+@layer components {
+    /* The React root is a wrapper, not a box: the sidebar itself is what the flex row lays out. */
+    #gate-toolbox-root {
+        display: contents;
+    }
+
+    .gate-toolbox {
+        /* A drag that begins here is a gate grab, never a text selection. */
+        user-select: none;
+        position: sticky;
+        top: 0;
+        display: flex;
+        width: 268px;
+        max-height: 100vh;
+        flex: 0 0 268px;
+        flex-direction: column;
+        gap: calc(var(--spacing) * 3);
+        padding: calc(var(--spacing) * 3);
+        background: color-mix(in oklch, var(--card), var(--background) 55%);
+        border-right: 1px solid var(--border);
+    }
+
+    .gate-toolbox-search {
+        position: relative;
+        flex: 0 0 auto;
+    }
+
+    .gate-toolbox-search-icon {
+        position: absolute;
+        top: 50%;
+        left: 9px;
+        width: 15px;
+        height: 15px;
+        color: var(--muted-foreground);
+        transform: translateY(-50%);
+        pointer-events: none;
+    }
+
+    .gate-toolbox-search-input {
+        width: 100%;
+        min-height: 32px;
+        padding: 6px 9px 6px 30px;
+        color: var(--foreground);
+        background: color-mix(in oklch, var(--background), white 2%);
+        border: 1px solid var(--input);
+        border-radius: 8px;
+        font-size: var(--text-small);
+        outline: none;
+    }
+
+    .gate-toolbox-search-input::placeholder {
+        color: var(--muted-foreground);
+    }
+
+    .gate-toolbox-search-input:focus {
+        border-color: var(--ring);
+        box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring), transparent 72%);
+    }
+
+    .gate-toolbox-groups {
+        display: grid;
+        gap: calc(var(--spacing) * 4);
+        overflow-y: auto;
+        padding-right: calc(var(--spacing) * 1);
+    }
+
+    .gate-group-label {
+        margin: 0 0 calc(var(--spacing) * 2);
+        color: var(--muted-foreground);
+        font-size: 0.6875rem;
+        font-weight: 650;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    /* Named rows, the way a DAW browser lists devices: the name identifies, the glyph shows what
+       the gate looks like on the circuit. */
+    .gate-group-tiles {
+        display: grid;
+        gap: 2px;
+    }
+
+    .gate-tile {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        gap: calc(var(--spacing) * 2);
+        padding: 2px calc(var(--spacing) * 1);
+        background: transparent;
+        border: 0;
+        border-radius: 8px;
+        cursor: grab;
+        text-align: left;
+    }
+
+    /* The chip: the gate's circuit symbol as designed text, not a shrunken circuit painting.
+       Fill contrast instead of a border keeps 100+ rows from reading as an outlined grid. */
+    .gate-chip {
+        position: relative;
+        display: inline-flex;
+        width: 48px;
+        height: 26px;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        padding: 0 5px 0 9px;
+        background: color-mix(in oklch, var(--secondary), white 6%);
+        border-radius: 6px;
+        font-weight: 500;
+    }
+
+    /* The category rule down the leading edge says what family the gate belongs to. */
+    .gate-chip::before {
+        content: "";
+        position: absolute;
+        top: 4px;
+        bottom: 4px;
+        left: 0;
+        width: 3px;
+        border-radius: 0 2px 2px 0;
+        background: var(--chip-rule-neutral);
+    }
+
+    .gate-chip[data-category="measure"]::before { background: var(--chip-rule-measure); }
+    .gate-chip[data-category="display"]::before { background: var(--chip-rule-display); }
+    .gate-chip[data-category="turn"]::before { background: var(--chip-rule-turn); }
+    .gate-chip[data-category="time"]::before { background: var(--chip-rule-time); }
+    .gate-chip[data-category="compute"]::before { background: var(--chip-rule-compute); }
+
+    .gate-chip-symbol {
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .gate-chip sup {
+        font-size: 0.66em;
+        line-height: 1;
+    }
+
+    /* Sized by how much symbol has to fit; the name beside the chip always carries the rest. */
+    .gate-chip[data-fit="large"] { font-size: 14px; }
+    .gate-chip[data-fit="medium"] { font-size: 11px; }
+    .gate-chip[data-fit="small"] { font-size: 9.5px; }
+
+    .gate-tile-name {
+        overflow: hidden;
+        /* A flex item refuses to shrink below its content without this, which turned the
+           intended ellipsis into silent clipping. */
+        min-width: 0;
+        color: var(--foreground);
+        font-size: var(--text-small);
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .gate-tile:hover {
+        background: var(--accent);
+        box-shadow: 0 0 0 2px color-mix(in oklch, var(--ring), transparent 45%);
+    }
+
+    .gate-tile:focus-visible {
+        background: var(--accent);
+        outline: 3px solid color-mix(in oklch, var(--ring), transparent 48%);
+        outline-offset: 2px;
+    }
+
+    .gate-tile:active {
+        cursor: grabbing;
+    }
+
+    .gate-toolbox-empty {
+        margin: 0;
+        color: var(--muted-foreground);
+        font-size: var(--text-small);
+    }
+
+    .gate-tooltip {
+        position: fixed;
+        z-index: 20;
+        padding: 0;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+        line-height: 0;
+        pointer-events: none;
+    }
+
+    .gate-tooltip canvas {
+        display: block;
+        border-radius: 9px;
+    }
+
+    /* Responsive reflow: below 920px the sidebar becomes a band above the circuit. Placed after
+       the sidebar's own rules so it wins by source order within this layer. */
+    @media (max-width: 920px) {
+        .gate-toolbox {
+            position: static;
+            width: 100%;
+            max-height: 320px;
+            flex: 1 1 100%;
+            border-right: 0;
+            border-bottom: 1px solid var(--border);
+        }
+    }
+}

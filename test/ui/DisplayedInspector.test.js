@@ -21,26 +21,27 @@ import {Rect} from "../../src/math/Rect.js"
 
 let suite = new Suite("DisplayedInspector");
 
-suite.test("laysOutCircuitDirectlyUnderStackedToolboxes", () => {
+suite.test("startsTheCircuitAtTheTopOfTheCanvas", () => {
+    // The gate toolbox is a DOM sidebar now, so nothing on the canvas sits above the circuit.
     let inspector = DisplayedInspector.empty(new Rect(0, 0, 1000, 800));
 
-    assertThat(inspector.displayedToolboxTop.top).isEqualTo(0);
-    assertThat(inspector.displayedToolboxBottom.top).
-        isEqualTo(inspector.displayedToolboxTop.desiredHeight());
-    assertThat(inspector.displayedToolboxTop.desiredHeight()).isEqualTo(128);
-    assertThat(inspector.displayedToolboxBottom.desiredHeight()).isEqualTo(164);
-    assertThat(inspector.displayedCircuit.top).isEqualTo(
-        inspector.displayedToolboxBottom.top +
-        inspector.displayedToolboxBottom.desiredHeight() +
-        Layout.TOOLBOX_CIRCUIT_MARGIN);
+    assertThat(inspector.displayedCircuit.top).isEqualTo(Layout.CIRCUIT_TOP_MARGIN);
+    assertThat(inspector.displayedToolboxTop).isEqualTo(undefined);
+    assertThat(inspector.displayedToolboxBottom).isEqualTo(undefined);
 });
 
-suite.test("keepsCircuitBelowToolboxesWhenAreaIsShort", () => {
+suite.test("keepsTheCircuitAtTheSameTopWhenTheAreaIsShort", () => {
     let inspector = DisplayedInspector.empty(new Rect(0, 0, 1000, 100));
-    let toolboxesBottom =
-        inspector.displayedToolboxBottom.top + inspector.displayedToolboxBottom.desiredHeight();
 
-    assertThat(inspector.displayedCircuit.top).isEqualTo(toolboxesBottom + Layout.TOOLBOX_CIRCUIT_MARGIN);
+    assertThat(inspector.displayedCircuit.top).isEqualTo(Layout.CIRCUIT_TOP_MARGIN);
+});
+
+suite.test("hugsTheCircuitVertically", () => {
+    let inspector = DisplayedInspector.empty(new Rect(0, 0, 1000, 800));
+
+    assertThat(inspector.desiredHeight()).isEqualTo(Math.max(
+        Layout.MINIMUM_CANVAS_HEIGHT,
+        Layout.CIRCUIT_TOP_MARGIN + inspector.displayedCircuit.desiredHeight()));
 });
 
 suite.test("endsOutputDisplaysAtTheRightEdgeOfASpaciousArea", () => {

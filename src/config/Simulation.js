@@ -31,5 +31,7 @@ Simulation.SIMPLE_SUPERPOSITION_DRAWING_WIRE_THRESHOLD = 14;
 Simulation.CYCLE_DURATION_MS = 8000; // How long it takes for evolving gates to cycle, in milliseconds.
 Simulation.TIME_CACHE_GRANULARITY = 196; // The number of buckets the cycle is divided into.
 Simulation.SEMI_STABLE_RANDOM_VALUE_LIFETIME_MILLIS = 300;
+// How long the playhead rests on a column while playing, in milliseconds.
+Simulation.PLAYHEAD_STEP_DURATION_MS = 600;
 
 export {Simulation}

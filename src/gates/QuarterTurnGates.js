@@ -19,10 +19,12 @@ import {Matrix} from "../math/Matrix.js"
 
 let QuarterTurnGates = {};
 
+// Titles lead with the symbol drawn on the circuit, with any other common convention in
+// parentheses, so a toolbox row never shows two different names for one gate.
 /** @type {!Gate} */
 QuarterTurnGates.SqrtXForward = new GateBuilder().
     setSerializedIdAndSymbol('X^½').
-    setTitle("√X Gate").
+    setTitle("X^½ Gate (√X)").
     setBlurb("Principle square root of Not.").
     setKnownEffectToMatrix(Matrix.fromPauliRotation(0.25, 0, 0)).
     gate;
@@ -39,7 +41,7 @@ QuarterTurnGates.SqrtXBackward = new GateBuilder().
 /** @type {!Gate} */
 QuarterTurnGates.SqrtYForward = new GateBuilder().
     setSerializedIdAndSymbol('Y^½').
-    setTitle("√Y Gate").
+    setTitle("Y^½ Gate (√Y)").
     setBlurb("Principle square root of Y.").
     setKnownEffectToMatrix(Matrix.fromPauliRotation(0, 0.25, 0)).
     gate;
@@ -57,8 +59,8 @@ QuarterTurnGates.SqrtYBackward = new GateBuilder().
 QuarterTurnGates.SqrtZForward = new GateBuilder().
     setSerializedId('Z^½').
     setSymbol('S').
-    setTitle("√Z Gate").
-    setBlurb("Principle square root of Z.\nAlso known as the 'S' gate.").
+    setTitle("S Gate (√Z)").
+    setBlurb("Principle square root of Z.").
     setKnownEffectToMatrix(Matrix.fromPauliRotation(0, 0, 0.25)).
     gate;
 
@@ -67,7 +69,7 @@ QuarterTurnGates.SqrtZBackward = new GateBuilder().
     setAlternate(QuarterTurnGates.SqrtZForward).
     setSerializedId('Z^-½').
     setSymbol('S^-1').
-    setTitle("Z^-½ Gate").
+    setTitle("S^-1 Gate (Z^-½)").
     setBlurb("Adjoint square root of Z.").
     setKnownEffectToMatrix(Matrix.fromPauliRotation(0, 0, 0.75)).
     gate;

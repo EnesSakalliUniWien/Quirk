@@ -68,11 +68,12 @@ function indexOfDisplayedRowAt(circuit, y) {
  */
 function indexOfDisplayedColumnAt(circuit, x) {
     let col = toColumnSpaceCoordinate(circuit, x);
+    let compressedColumnIndex = circuit.geometry().compressedColumnIndex;
     let i;
-    if (circuit._compressedColumnIndex === undefined || col < circuit._compressedColumnIndex - 0.75) {
+    if (compressedColumnIndex === undefined || col < compressedColumnIndex - 0.75) {
         i = Math.round(col);
-    } else if (col < circuit._compressedColumnIndex - 0.25) {
-        i = circuit._compressedColumnIndex;
+    } else if (col < compressedColumnIndex - 0.25) {
+        i = compressedColumnIndex;
     } else {
         i = Math.round(col) - 1;
     }

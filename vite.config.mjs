@@ -18,7 +18,8 @@ const pages = {
             "<!-- INCLUDE MENU PART -->": "html/menu.partial.html",
             "<!-- INCLUDE ERROR PART -->": "html/error.partial.html",
             "<!-- INCLUDE FORGE PART -->": "html/forge.partial.html",
-            "<!-- INCLUDE EXPORT PART -->": "html/export.partial.html"
+            "<!-- INCLUDE EXPORT PART -->": "html/export.partial.html",
+            "<!-- INCLUDE STATE PART -->": "html/state.partial.html"
         }
     },
     test: {

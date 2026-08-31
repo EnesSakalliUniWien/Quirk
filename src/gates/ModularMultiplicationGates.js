@@ -245,6 +245,7 @@ ModularMultiplicationGates.TimesBToTheAModRFamily = Gate.buildFamily(1, 16, (spa
     setSerializedId("*BToAmodR" + span).
     setSymbol("×B^A\nmod R").
     setTitle("Modular Power Multiplication Gate").
+    setListName("Modular Power Multiply").
     setBlurb("Multiplies the target by input B raised to the input A mod input R.\n" +
             "Only affects values less than R.\n" +
             "No effect if the multiplication would be irreversible.").

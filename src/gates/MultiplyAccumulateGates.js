@@ -108,6 +108,7 @@ MultiplyAccumulateGates.MultiplyAddInputsFamily = Gate.buildFamily(1, 16, (span,
     setSerializedId("+=AB" + span).
     setSymbol("+AB").
     setTitle("Multiply-Add Gate [Inputs A, B]").
+    setListName("Multiply-Add [A, B]").
     setBlurb("Adds the product of inputs A and B into the qubits covered by this gate.").
     setRequiredContextKeys('Input Range A', 'Input Range B').
     setActualEffectToShaderProvider(ctx => MULTIPLY_ACCUMULATE_SHADER.withArgs(
@@ -120,6 +121,7 @@ MultiplyAccumulateGates.MultiplySubtractInputsFamily = Gate.buildFamily(1, 16, (
     setSerializedId("-=AB" + span).
     setSymbol("−AB").
     setTitle("Multiply-Subtract Gate [Inputs A, B]").
+    setListName("Multiply-Subtract [A, B]").
     setBlurb("Subtracts the product of inputs A and B out of the qubits covered by this gate.").
     setRequiredContextKeys('Input Range A', 'Input Range B').
     setActualEffectToShaderProvider(ctx => MULTIPLY_ACCUMULATE_SHADER.withArgs(

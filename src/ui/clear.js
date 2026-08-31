@@ -15,6 +15,9 @@
  */
 
 /**
+ * Interface note: also requires #clear-circuit-button and #clear-all-button, rendered by
+ * src/components/app-toolbar.jsx before this runs.
+ *
  * @param {!CircuitActions} circuitActions
  */
 function initClear(circuitActions) {

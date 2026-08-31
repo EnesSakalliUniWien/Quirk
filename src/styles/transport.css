@@ -1,0 +1,39 @@
+/* The playhead transport strip: step buttons, scrub slider, and position readout. */
+@layer components {
+    .transport-bar {
+        display: flex;
+        min-height: 44px;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+        padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+        background: color-mix(in oklch, var(--card), var(--background) 55%);
+        border-bottom: 1px solid var(--border);
+    }
+
+    .transport-scrub {
+        flex: 1 1 160px;
+        min-width: 120px;
+        max-width: 420px;
+        height: 4px;
+        margin: 0;
+        padding: 0;
+        accent-color: var(--primary);
+        background: var(--muted);
+        border-radius: 999px;
+        cursor: pointer;
+    }
+
+    .transport-scrub:disabled {
+        cursor: not-allowed;
+        opacity: 0.48;
+    }
+
+    .transport-position {
+        color: var(--muted-foreground);
+        font-family: var(--font-mono);
+        font-size: var(--text-small);
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+    }
+}

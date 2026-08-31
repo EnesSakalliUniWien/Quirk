@@ -21,7 +21,7 @@
 /** @type {!number} */
 const CIRCUIT_OP_HORIZONTAL_SPACING = 10;
 
-/** @type {!number} Matches Layout.TOOLBOX_MARGIN_X so gate columns align with the toolbox groups. */
+/** @type {!number} The gutter left of the first column, where the initial-state kets sit. */
 const CIRCUIT_OP_LEFT_SPACING = 32;
 
 export {CIRCUIT_OP_HORIZONTAL_SPACING, CIRCUIT_OP_LEFT_SPACING}

@@ -40,6 +40,11 @@ const SUPERPOSITION_GRID_LABEL_ELLIPSIS = '⋯';
 /**
  * Renders a DisplayedCircuit. These are read-only over the circuit: they paint, they never
  * return a modified one, which is why they live apart from the class that does.
+ *
+ * This file is the private half of DisplayedCircuit's implementation, split out for size, and the
+ * seam between the two is internal: these functions read the circuit's private fields, so nothing
+ * here is usable on its own. The module's one interface is DisplayedCircuit.paint, and the one
+ * export here is the function backing it.
  */
 
 /**
@@ -135,8 +140,13 @@ let _cachedColLabelDrawer = new CachablePainting(
  * @param {!CircuitStats} stats
  * @param {!boolean=false} forTooltip
  * @param {!boolean} showWires
+ * @param {undefined|!int} playheadStep The number of columns that have executed at the playhead.
  */
-function paintCircuit(circuit, painter, hand, stats, forTooltip=false, showWires=true) {
+function paintCircuit(circuit, painter, hand, stats, forTooltip=false, showWires=true, playheadStep=undefined) {
+    if (!forTooltip) {
+        drawPlayheadBand(circuit, painter, playheadStep);
+    }
+
     if (showWires) {
         drawWires(circuit, painter, !forTooltip, hand);
     }
@@ -154,13 +164,33 @@ function paintCircuit(circuit, painter, hand, stats, forTooltip=false, showWires
 }
 
 /**
+ * Marks the column the playhead is about to execute, behind the wires and gates so they stay
+ * readable through it.
+ *
+ * @param {!DisplayedCircuit} circuit
+ * @param {!Painter} painter
+ * @param {undefined|!int} playheadStep
+ */
+function drawPlayheadBand(circuit, painter, playheadStep) {
+    // Once every column has run there is no next column to mark.
+    if (playheadStep === undefined ||
+            playheadStep < 0 ||
+            playheadStep >= circuit.circuitDefinition.columns.length) {
+        return;
+    }
+
+    let rect = circuit.gateRect(0, playheadStep, 1, circuit.geometry().groundedWireCount()).paddedBy(3);
+    painter.fillRect(rect, Palette.PLAYHEAD_BAND_COLOR);
+}
+
+/**
  * @param {!DisplayedCircuit} circuit
  * @param {!Painter} painter
  * @param {!boolean} showLabels
  * @param {!Hand} hand
  */
 function drawWires(circuit, painter, showLabels, hand) {
-    let drawnWireCount = Math.min(circuit.circuitDefinition.numWires, (circuit._extraWireStartIndex || Infinity) + 1);
+    let drawnWireCount = Math.min(circuit.circuitDefinition.numWires, (circuit.geometry().extraWireStartIndex || Infinity) + 1);
 
     // Initial value labels
     if (showLabels) {
@@ -185,7 +215,7 @@ function drawWires(circuit, painter, showLabels, hand) {
     // Wires (doubled-up for measured sections).
     painter.ctx.save();
     for (let row = 0; row < drawnWireCount; row++) {
-        if (row === circuit._extraWireStartIndex) {
+        if (row === circuit.geometry().extraWireStartIndex) {
             painter.ctx.globalAlpha *= 0.5;
         }
         painter.trace(trace => {
@@ -193,7 +223,7 @@ function drawWires(circuit, painter, showLabels, hand) {
             let y = Math.round(wireRect.center().y - 0.5) + 0.5;
             let lastX = showLabels ? 28 : 5;
             // Wires terminate at the superposition display instead of running to the canvas's right edge.
-            let wireEndX = showLabels ? circuit._rectForSuperpositionDisplay().x - 4 : Infinity;
+            let wireEndX = showLabels ? circuit.geometry().rectForSuperpositionDisplay().x - 4 : Infinity;
             //noinspection ForLoopThatDoesntUseLoopVariableJS
             for (let col = 0;
                     showLabels ? lastX < wireEndX : col <= circuit.circuitDefinition.columns.length;
@@ -212,7 +242,7 @@ function drawWires(circuit, painter, showLabels, hand) {
         }).thenStroke(Palette.INK_COLOR);
     }
     painter.ctx.restore();
-    if (circuit._extraWireStartIndex !== undefined && circuit.circuitDefinition.numWires === Simulation.MAX_WIRE_COUNT) {
+    if (circuit.geometry().extraWireStartIndex !== undefined && circuit.circuitDefinition.numWires === Simulation.MAX_WIRE_COUNT) {
         painter.print(
             `(Max wires. Qubit limit is ${Simulation.MAX_WIRE_COUNT}.)`,
             5,
@@ -283,19 +313,12 @@ function drawColumn(circuit, painter, gateColumn, col, hand, stats) {
         if (gate.canChangeInSize()) {
             painter.noteTouchBlocker({rect: GatePainting.rectForResizeTab(gateRect), cursor: 'ns-resize'});
         }
-        drawer(new GateDrawParams(
-            painter,
-            hand,
-            false,
-            isHighlighted && !isResizeHighlighted,
+        drawer(GateDrawParams.inCircuit(painter, hand, gateRect, gate, stats, {row, col}, {
+            isHighlighted: isHighlighted && !isResizeHighlighted,
             isResizeShowing,
             isResizeHighlighted,
-            gateRect,
-            gate,
-            stats,
-            {row, col},
-            circuit._highlightedSlot === undefined ? hand.hoverPoints() : [],
-            stats.customStatsForSlot(col, row)));
+            focusPoints: circuit._highlightedSlot === undefined ? hand.hoverPoints() : [],
+            customStats: stats.customStatsForSlot(col, row)}));
 
         drawGate_disabledReason(circuit, painter, col, row, gateRect, isHighlighted);
     }
@@ -363,8 +386,8 @@ function drawColumnDragHighlight(circuit, painter, col) {
     if (circuit._highlightedSlot !== undefined &&
         circuit._highlightedSlot.col === col &&
         circuit._highlightedSlot.row === undefined) {
-        let rect = circuit.gateRect(0, col, 1, circuit._groundedWireCount()).paddedBy(3);
-        painter.fillRect(rect, 'rgba(255, 196, 112, 0.7)');
+        let rect = circuit.gateRect(0, col, 1, circuit.geometry().groundedWireCount()).paddedBy(3);
+        painter.fillRect(rect, Palette.DROP_TARGET_FILL_COLOR);
         painter.strokeRect(rect, Palette.INK_COLOR);
     }
 }
@@ -381,7 +404,7 @@ function drawRowDragHighlight(circuit, painter) {
         let row = circuit._highlightedSlot.row;
         let w = circuit.gateRect(row, circuit.clampedCircuitColCount() + 1).x;
         let rect = circuit.wireRect(row).takeLeft(w);
-        painter.fillRect(rect, 'rgba(255, 196, 112, 0.7)');
+        painter.fillRect(rect, Palette.DROP_TARGET_FILL_COLOR);
         painter.strokeRect(rect, Palette.INK_COLOR);
     }
 }
@@ -441,7 +464,7 @@ function drawOutputDisplays(circuit, painter, stats, hand) {
     let bottom = circuit.wireRect(numWire-1).bottom();
     let capX = circuit.opRect(chanceCol).x - 35;
     // Keep the caption clear of the superposition grid's rotated column labels.
-    let capW = Math.min(160, circuit._rectForSuperpositionDisplay().x - capX - 10);
+    let capW = Math.min(160, circuit.geometry().rectForSuperpositionDisplay().x - capX - 10);
     painter.printParagraph(
         "Local wire states\n(Chance/Bloch)",
         new Rect(capX, bottom + 8, capW, 40),
@@ -461,7 +484,7 @@ function drawOutputDisplays(circuit, painter, stats, hand) {
  */
 function drawOutputSuperpositionDisplay(circuit, painter, stats, hand) {
     let amplitudeGrid = circuit._outputStateAsMatrix(stats);
-    let gridRect = circuit._rectForSuperpositionDisplay();
+    let gridRect = circuit.geometry().rectForSuperpositionDisplay();
 
     let numWire = circuit.importantWireCount();
     MathPainter.paintMatrix(
@@ -486,7 +509,7 @@ function drawOutputSuperpositionDisplay(circuit, painter, stats, hand) {
  * @param {!Painter} painter
  */
 function drawOutputSuperpositionDisplay_labels(circuit, painter) {
-    let gridRect = circuit._rectForSuperpositionDisplay();
+    let gridRect = circuit.geometry().rectForSuperpositionDisplay();
     let numWire = circuit.importantWireCount();
     _cachedRowLabelDrawer.paint(gridRect.right(), gridRect.y, painter, numWire);
     _cachedColLabelDrawer.paint(gridRect.x, gridRect.bottom(), painter, numWire);
@@ -500,7 +523,7 @@ function drawOutputSuperpositionDisplay_labels(circuit, painter) {
  * @param {!CircuitStats} stats
  */
 function drawHintLabels(circuit, painter, stats) {
-    let gridRect = circuit._rectForSuperpositionDisplay();
+    let gridRect = circuit.geometry().rectForSuperpositionDisplay();
 
     // Amplitude hint.
     painter.print(
@@ -551,7 +574,7 @@ function drawHintLabels(circuit, painter, stats) {
         }
         painter.print(
             desc,
-            circuit._rectForSuperpositionDisplay().x - 5,
+            circuit.geometry().rectForSuperpositionDisplay().x - 5,
             gridRect.bottom() + SUPERPOSITION_GRID_LABEL_SPAN + 20,
             'right',
             'bottom',
@@ -562,4 +585,4 @@ function drawHintLabels(circuit, painter, stats) {
     }
 }
 
-export {paintCircuit, drawWires, drawGate_disabledReason, drawColumn, drawColumnSurvivalRate, drawColumnDragHighlight, drawRowDragHighlight, drawColumnControlWires, drawOutputDisplays, drawOutputSuperpositionDisplay, drawOutputSuperpositionDisplay_labels, drawHintLabels}
+export {paintCircuit}

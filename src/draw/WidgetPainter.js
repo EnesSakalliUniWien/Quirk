@@ -208,7 +208,7 @@ class WidgetPainter {
             maxX = Math.max(maxX, rect.right() + actualPad);
         };
 
-        pushRect(painter.printLine(gate.name, new Rect(pad, maxY, w, 18), 0, "#60A5FA", 24));
+        pushRect(painter.printLine(gate.name, new Rect(pad, maxY, w, 18), 0, Palette.TOOLTIP_TITLE_COLOR, 24));
         if (gate.blurb !== '') {
             pushRect(painter.printParagraph(gate.blurb, new Rect(pad, maxY, w, 50), new Point(0, 0), Palette.INK_COLOR, 14));
         }
@@ -247,7 +247,7 @@ class WidgetPainter {
 
         let {maxX, maxY} = WidgetPainter.paintGateTooltipHelper(painter, w, gate, time);
         let r = new Rect(0, 0, maxX, maxY);
-        painter.fillRect(r, '#101812');
+        painter.fillRect(r, Palette.TOOLTIP_BACK_COLOR);
         painter.strokeRect(r, Palette.INK_COLOR);
         WidgetPainter.paintGateTooltipHelper(painter, w, gate, time);
 

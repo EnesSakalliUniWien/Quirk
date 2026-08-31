@@ -93,6 +93,7 @@ FourierTransformGates.InverseFourierTransformFamily = Gate.buildFamily(1, 16, (s
     setSymbol("QFT^†").
     setAlternateFromFamily(FourierTransformGates.FourierTransformFamily).
     setTitle("Inverse Fourier Transform Gate").
+    setListName("Inverse Fourier Transform").
     setBlurb("Transforms from/to phase frequency space.").
     setActualEffectToUpdateFunc(ctx => applyBackwardGradientShaders(ctx, span)).
     promiseEffectIsUnitary().

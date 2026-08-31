@@ -28,7 +28,65 @@ import {Util} from "../base/Util.js"
  */
 class GatePainting {}
 
-const GATE_SYMBOL_FONT = `${Typography.GATE_SYMBOL_FONT_WEIGHT} ${Typography.GATE_SYMBOL_FONT_SIZE}px ${Typography.DEFAULT_FONT_FAMILY}`;
+/**
+ * @param {!number} size
+ * @returns {!string}
+ */
+function gateSymbolFont(size) {
+    return `${Typography.GATE_SYMBOL_FONT_WEIGHT} ${size}px ${Typography.DEFAULT_FONT_FAMILY}`;
+}
+
+const GATE_SYMBOL_FONT = gateSymbolFont(Typography.GATE_SYMBOL_FONT_SIZE);
+
+/**
+ * The sizes a gate symbol is allowed to take. Painter.print shrinks text to whatever fits, with no
+ * floor, which let a long symbol like Rz(f(t)) render at a few pixels beside a Z at sixteen. The
+ * symbol steps down this ramp instead, and wraps once it reaches the bottom.
+ * @type {!Array.<!number>}
+ */
+const GATE_SYMBOL_FONT_SIZES = [Typography.GATE_SYMBOL_FONT_SIZE, 13, Typography.GATE_SYMBOL_MIN_FONT_SIZE];
+
+/**
+ * Splits a symbol across two lines at the break nearest its middle, so neither line is a stub.
+ * @param {!string} text
+ * @returns {!Array.<!string>}
+ */
+function splitGateSymbol(text) {
+    // A name and its argument, which is the seam in Rx(f(t)) and its kin.
+    let best = text.indexOf('(');
+    if (best < 1) {
+        // Otherwise the break nearest the middle, so neither line is a stub.
+        let middle = text.length / 2;
+        best = -1;
+        for (let i = 1; i < text.length; i++) {
+            let isBreak = text[i - 1] === '/' || text[i - 1] === ' ';
+            if (isBreak && (best === -1 || Math.abs(i - middle) < Math.abs(best - middle))) {
+                best = i;
+            }
+        }
+    }
+    return best === -1 ? [text] : [text.slice(0, best).trim(), text.slice(best).trim()];
+}
+
+/**
+ * The largest step of the ramp the text fits on, and the lines to draw it as.
+ * @param {!Painter} painter
+ * @param {!string} text
+ * @param {!number} maxWidth
+ * @returns {!{font: !string, lines: !Array.<!string>}}
+ */
+function fitGateSymbol(painter, text, maxWidth) {
+    for (let size of GATE_SYMBOL_FONT_SIZES) {
+        painter.ctx.font = gateSymbolFont(size);
+        if (painter.ctx.measureText(text).width <= maxWidth) {
+            return {font: gateSymbolFont(size), lines: [text]};
+        }
+    }
+    return {
+        font: gateSymbolFont(Typography.GATE_SYMBOL_MIN_FONT_SIZE),
+        lines: splitGateSymbol(text)
+    };
+}
 
 GatePainting.paintOutline = args => {
     if (args.isInToolbox) {
@@ -38,27 +96,23 @@ GatePainting.paintOutline = args => {
 };
 
 /**
- * Paints the semantic border and hover ring around a canvas-based toolbox button.
+ * Marks what a gate does to the state, which is the one thing its symbol cannot say: green for a
+ * gate that reads the state out, red for one that collapses or discards it. Everything that merely
+ * acts on the state stays unmarked. A rule down the leading edge rather than a fill: a handful of
+ * solid tiles among a hundred dominate the grid out of all proportion to how often they are
+ * reached for, and a saturated fill drags the symbol's contrast down with it.
+ *
  * @param {!GateDrawParams} args
+ * @param {!string=} color
  */
-GatePainting.paintToolboxChrome = args => {
-    let color = args.isHighlighted ?
-        Palette.TOOLBOX_GATE_HOVER_BORDER_COLOR :
-        Palette.TOOLBOX_GATE_BORDER_COLOR;
-    let thickness = args.isHighlighted ? 2.5 : 1;
-    let borderRect = args.rect.paddedBy(-thickness / 2);
-
-    args.painter.ctx.save();
-    if (args.isHighlighted) {
-        args.painter.ctx.shadowColor = Palette.TOOLBOX_GATE_HOVER_BORDER_COLOR;
-        args.painter.ctx.shadowBlur = 5;
+GatePainting.paintToolboxCategoryRule = (args, color = Palette.DISPLAY_GATE_FORE_COLOR) => {
+    if (!args.isInToolbox) {
+        return;
     }
-    args.painter.strokeRoundedRect(
-        borderRect,
-        color,
-        thickness,
-        Layout.TOOLBOX_GATE_CORNER_RADIUS - thickness / 2);
-    args.painter.ctx.restore();
+    let rect = args.rect;
+    args.painter.fillRect(
+        new Rect(rect.x, rect.y + 4, Layout.TOOLBOX_GATE_RULE_WIDTH, rect.h - 8),
+        color);
 };
 
 GatePainting.paintBackground =
@@ -127,7 +181,7 @@ GatePainting.paintResizeTab = args => {
     let trimRect = rect.skipLeft(2).skipRight(2);
     let {x: cx, y: cy} = trimRect.center();
     let backColor = args.isResizeHighlighted ? Palette.HIGHLIGHTED_GATE_FILL_COLOR : Palette.GATE_FILL_COLOR;
-    let foreColor = args.isResizeHighlighted ? '#F4F4F5' : Palette.MID_LINE_COLOR;
+    let foreColor = args.isResizeHighlighted ? Palette.DEFAULT_TEXT_COLOR : Palette.MID_LINE_COLOR;
     args.painter.ctx.save();
     args.painter.ctx.globalAlpha *= args.isResizeHighlighted ? 1 : 0.7;
     args.painter.fillRect(trimRect, backColor);
@@ -177,16 +231,20 @@ GatePainting.paintGateSymbol = (args, symbolOverride=undefined, allowExponent=tr
     let splitIndex = allowExponent ? symbol.indexOf('^') : -1;
     let parts = splitIndex === -1 ? [symbol] : [symbol.substr(0, splitIndex), symbol.substr(splitIndex + 1)];
     if (parts.length !== 2 || parts[0] === "" || parts[1] === "") {
-        painter.print(
-            symbol,
-            rect.x + rect.w/2,
-            rect.y + rect.h/2 + offsetY,
-            'center',
-            'middle',
-            Palette.INK_COLOR,
-            GATE_SYMBOL_FONT,
-            rect.w,
-            rect.h);
+        let {font, lines: symbolLines} = fitGateSymbol(painter, symbol, rect.w);
+        let lineHeight = rect.h / symbolLines.length;
+        for (let i = 0; i < symbolLines.length; i++) {
+            painter.print(
+                symbolLines[i],
+                rect.x + rect.w/2,
+                rect.y + rect.h/2 + offsetY + (i - (symbolLines.length - 1)/2) * lineHeight,
+                'center',
+                'middle',
+                Palette.INK_COLOR,
+                font,
+                rect.w,
+                lineHeight);
+        }
         return;
     }
 
@@ -194,6 +252,10 @@ GatePainting.paintGateSymbol = (args, symbolOverride=undefined, allowExponent=tr
     let lines = baseText.split('\n');
     baseText = lines[0];
 
+    // The same ramp as the plain branch, so a symbol with an exponent and one without come out at
+    // the same size rather than as two typographic systems side by side.
+    let {font: symbolFont} = fitGateSymbol(painter, baseText + expText, rect.w);
+    painter.ctx.font = symbolFont;
     let baseWidth = painter.ctx.measureText(baseText).width;
     let expWidth = painter.ctx.measureText(expText).width;
     let scaleDown = Math.min(rect.w, baseWidth + expWidth) / (baseWidth + expWidth);
@@ -205,7 +267,7 @@ GatePainting.paintGateSymbol = (args, symbolOverride=undefined, allowExponent=tr
         'right',
         'hanging',
         Palette.INK_COLOR,
-        GATE_SYMBOL_FONT,
+        symbolFont,
         divider,
         rect.h);
     painter.print(
@@ -215,7 +277,7 @@ GatePainting.paintGateSymbol = (args, symbolOverride=undefined, allowExponent=tr
         'left',
         'alphabetic',
         Palette.INK_COLOR,
-        GATE_SYMBOL_FONT,
+        symbolFont,
         rect.w - divider,
         rect.h);
 };
@@ -343,7 +405,10 @@ GatePainting.SECTIONED_DRAWER_MAKER = (labels, dividers) => args => {
     GatePainting.paintResizeTab(args);
 };
 
-const DISPLAY_GATE_DEFAULT_DRAWER = GatePainting.MAKE_HIGHLIGHTED_DRAWER(Palette.DISPLAY_GATE_IN_TOOLBOX_FILL_COLOR);
+const DISPLAY_GATE_DEFAULT_DRAWER = args => {
+    GatePainting.MAKE_HIGHLIGHTED_DRAWER()(args);
+    GatePainting.paintToolboxCategoryRule(args);
+};
 
 GatePainting.makeDisplayDrawer = statePainter => args => {
     if (args.positionInCircuit === undefined) {
@@ -403,7 +468,10 @@ GatePainting.MATRIX_DRAWER = args => {
  * @returns {!function(!GateDrawParams) : *}
  */
 GatePainting.makeCycleDrawer = (xScale=1, yScale=1, tScale=1, zeroAngle=0) => args => {
-    GatePainting.MAKE_HIGHLIGHTED_DRAWER(Palette.TIME_DEPENDENT_HIGHLIGHT_COLOR)(args);
+    // On the circuit the olive fill marks a column that is still moving; in the toolbox the tile
+    // animates in front of you, so the fill only made the group look like a different app.
+    GatePainting.MAKE_HIGHLIGHTED_DRAWER(
+        Palette.TOOLBOX_GATE_FILL_COLOR, Palette.TIME_DEPENDENT_HIGHLIGHT_COLOR)(args);
 
     if (args.isInToolbox && !args.isHighlighted) {
         return;
@@ -535,7 +603,7 @@ GatePainting.PERMUTATION_DRAWER = args => {
     if (args.isHighlighted ||
             args.isResizeHighlighted ||
             args.stats.circuitDefinition.colHasControls(args.positionInCircuit.col)) {
-        GatePainting.paintBackground(args, '#202024', '#202024');
+        GatePainting.paintBackground(args, Palette.QUIET_GATE_FILL_COLOR, Palette.QUIET_GATE_FILL_COLOR);
         GatePainting.paintOutline(args);
         GatePainting.paintResizeTab(args);
     } else {

@@ -26,6 +26,8 @@ let PostSelectionGates = {};
 let POST_SELECT_DRAWER = args => {
     if (args.isInToolbox  || args.isHighlighted) {
         GatePainting.DEFAULT_DRAWER(args);
+        // Discards part of the state: the red edge of the toolbox's class marking.
+        GatePainting.paintToolboxCategoryRule(args, Palette.ERROR_COLOR);
     } else {
         args.painter.fillRect(args.rect, Palette.GATE_FILL_COLOR);
         GatePainting.paintGateSymbol(args);

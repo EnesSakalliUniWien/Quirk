@@ -20,31 +20,29 @@ import {Layout} from "../config/Layout.js"
 import {Palette} from "../config/Palette.js"
 import {Typography} from "../config/Typography.js"
 import {DisplayedCircuit} from "../ui/DisplayedCircuit.js"
-import {DisplayedToolbox} from "../ui/DisplayedToolbox.js"
 import {GateDrawParams} from "../draw/GateDrawParams.js"
 import {GatePainting} from "../draw/GatePainting.js"
-import {Gates} from "../gates/AllGates.js"
 import {Hand} from "../ui/Hand.js"
 import {Painter} from "../draw/Painter.js"
 import {Rect} from "../math/Rect.js"
 import {Serializer} from "../circuit/Serializer.js"
 
+/**
+ * How far above the circuit the hint doodles anchor their frame. Their arrows were drawn to reach
+ * the circuit's top edge from here.
+ * @type {!number}
+ */
+const HINT_FRAME_OFFSET = 125;
+
 class DisplayedInspector {
     /**
      * @param {!Rect} drawArea
      * @param {!DisplayedCircuit} circuitWidget
-     * @param {!DisplayedToolbox} displayedToolboxTop
-     * @param {!DisplayedToolbox} displayedToolboxBottom
      * @param {!Hand} hand
      */
-    constructor(drawArea, circuitWidget, displayedToolboxTop, displayedToolboxBottom, hand) {
+    constructor(drawArea, circuitWidget, hand) {
         /** @type {!DisplayedCircuit} */
         this.displayedCircuit = circuitWidget;
-        /** @type {!DisplayedToolbox} */
-        this.displayedToolboxTop = displayedToolboxTop;
-        /** @type {!DisplayedToolbox} */
-        this.displayedToolboxBottom = displayedToolboxBottom.
-            withCustomGatesInserted(circuitWidget.circuitDefinition.customGateSet);
         /** @type {!Hand} */
         this.hand = hand;
         /** @type {!Rect} */
@@ -54,11 +52,7 @@ class DisplayedInspector {
     }
 
     desiredWidth() {
-        return Math.max(
-            this.displayedToolboxTop.desiredWidth(),
-            Math.max(
-                this.displayedCircuit.desiredWidth(),
-                this.displayedToolboxBottom.desiredWidth()));
+        return this.displayedCircuit.desiredWidth();
     }
 
     /**
@@ -67,12 +61,7 @@ class DisplayedInspector {
     updateArea(drawArea) {
         this.drawArea = drawArea;
 
-        this.displayedToolboxTop = this.displayedToolboxTop.withTop(0);
-        this.displayedToolboxBottom = this.displayedToolboxBottom.withTop(
-            this.displayedToolboxTop.desiredHeight());
-
-        let toolboxesBottom = this.displayedToolboxBottom.top + this.displayedToolboxBottom.desiredHeight();
-        this.displayedCircuit = this.displayedCircuit.withTop(toolboxesBottom + Layout.TOOLBOX_CIRCUIT_MARGIN);
+        this.displayedCircuit = this.displayedCircuit.withTop(Layout.CIRCUIT_TOP_MARGIN);
         this.displayedCircuit.updateDisplayShift(drawArea.w);
     }
 
@@ -81,31 +70,21 @@ class DisplayedInspector {
      * @returns {!DisplayedInspector}
      */
     static empty(drawArea) {
-        let topToolbox = new DisplayedToolbox('Toolbox', 0, Gates.TopToolboxGroups, true);
-        let displayedCircuit = DisplayedCircuit.empty(topToolbox.desiredHeight());
-        let bottomToolbox = new DisplayedToolbox(
-            'Toolbox₂',
-            displayedCircuit.top + displayedCircuit.desiredHeight(),
-            Gates.BottomToolboxGroups,
-            false);
         return new DisplayedInspector(
             drawArea,
-            displayedCircuit,
-            topToolbox,
-            bottomToolbox,
+            DisplayedCircuit.empty(Layout.CIRCUIT_TOP_MARGIN),
             Hand.EMPTY);
     }
 
     /**
      * @param {!Painter} painter
      * @param {!CircuitStats} stats
+     * @param {undefined|!int} playheadStep The number of columns that have executed at the playhead.
      */
-    paint(painter, stats) {
+    paint(painter, stats, playheadStep=undefined) {
         painter.fillRect(this.drawArea, Palette.BACKGROUND_COLOR);
 
-        this.displayedToolboxTop.paint(painter, stats, this.hand);
-        this.displayedToolboxBottom.paint(painter, stats, this.hand);
-        this.displayedCircuit.paint(painter, this.hand, stats);
+        this.displayedCircuit.paint(painter, this.hand, stats, false, true, playheadStep);
         this._paintHand(painter, stats);
         this._drawHint(painter);
     }
@@ -128,19 +107,7 @@ class DisplayedInspector {
             Layout.GATE_RADIUS*2 + Layout.WIRE_SPACING*(gate.width-1),
             Layout.GATE_RADIUS*2 + Layout.WIRE_SPACING*(gate.height-1));
         let drawer = gate.customDrawer || GatePainting.DEFAULT_DRAWER;
-        drawer(new GateDrawParams(
-            painter,
-            this.hand,
-            false,
-            true,
-            true,
-            false,
-            rect,
-            gate,
-            stats,
-            undefined,
-            [],
-            undefined));
+        drawer(GateDrawParams.held(painter, this.hand, rect, gate, stats));
     }
 
     /**
@@ -180,18 +147,11 @@ class DisplayedInspector {
         let hand = this.hand;
         let circuit = this.displayedCircuit;
 
-        hand = this.displayedToolboxTop.tryGrab(hand);
-        hand = this.displayedToolboxBottom.tryGrab(hand);
         let obj = circuit.tryGrab(hand, duplicate, wholeCol, ignoreResizeTabs, alt);
         hand = obj.newHand;
         circuit = obj.newCircuit;
 
-        return new DisplayedInspector(
-            this.drawArea,
-            circuit,
-            this.displayedToolboxTop,
-            this.displayedToolboxBottom,
-            hand);
+        return new DisplayedInspector(this.drawArea, circuit, hand);
     }
 
     /**
@@ -206,8 +166,6 @@ class DisplayedInspector {
         return other instanceof DisplayedInspector &&
             this.drawArea.isEqualTo(other.drawArea) &&
             this.displayedCircuit.isEqualTo(other.displayedCircuit) &&
-            this.displayedToolboxTop.isEqualTo(other.displayedToolboxTop) &&
-            this.displayedToolboxBottom.isEqualTo(other.displayedToolboxBottom) &&
             this.hand.isEqualTo(other.hand);
     }
 
@@ -219,12 +177,7 @@ class DisplayedInspector {
         if (displayedCircuit === this.displayedCircuit) {
             return this;
         }
-        return new DisplayedInspector(
-            this.drawArea,
-            displayedCircuit,
-            this.displayedToolboxTop,
-            this.displayedToolboxBottom,
-            this.hand);
+        return new DisplayedInspector(this.drawArea, displayedCircuit, this.hand);
     }
 
     /**
@@ -271,11 +224,7 @@ class DisplayedInspector {
      * @returns {Infinity|!number}
      */
     stableDuration() {
-        return Math.min(
-            this.displayedToolboxTop.stableDuration(this.hand),
-            this.displayedToolboxBottom.stableDuration(this.hand),
-            this.hand.stableDuration(),
-            this.displayedCircuit.stableDuration());
+        return Math.min(this.hand.stableDuration(), this.displayedCircuit.stableDuration());
     }
 
     /**
@@ -283,12 +232,7 @@ class DisplayedInspector {
      * @returns {!DisplayedInspector}
      */
     withHand(hand) {
-        return new DisplayedInspector(
-            this.drawArea,
-            this.displayedCircuit,
-            this.displayedToolboxTop,
-            this.displayedToolboxBottom,
-            hand);
+        return new DisplayedInspector(this.drawArea, this.displayedCircuit, hand);
     }
 
     /**
@@ -298,9 +242,7 @@ class DisplayedInspector {
     withCircuitDefinition(newCircuitDefinition) {
         return new DisplayedInspector(
             this.drawArea,
-            DisplayedCircuit.empty(this.displayedToolboxTop.desiredHeight()).withCircuit(newCircuitDefinition),
-            this.displayedToolboxTop,
-            this.displayedToolboxBottom,
+            DisplayedCircuit.empty(Layout.CIRCUIT_TOP_MARGIN).withCircuit(newCircuitDefinition),
             this.hand.withDrop());
     }
 
@@ -308,12 +250,9 @@ class DisplayedInspector {
      * @returns {!number}
      */
     desiredHeight() {
-        let minimumDesired =
-            this.displayedToolboxBottom.desiredHeight() +
-            this.displayedToolboxTop.desiredHeight() +
-            Layout.TOOLBOX_CIRCUIT_MARGIN +
-            this.displayedCircuit.desiredHeight();
-        return Math.max(Layout.MINIMUM_CANVAS_HEIGHT, minimumDesired);
+        return Math.max(
+            Layout.MINIMUM_CANVAS_HEIGHT,
+            Layout.CIRCUIT_TOP_MARGIN + this.displayedCircuit.desiredHeight());
     }
 
     /**
@@ -324,9 +263,11 @@ class DisplayedInspector {
     }
 
     _drawHint(painter) {
+        // The hints are hand-placed doodles. They were laid out against a frame whose origin sat
+        // HINT_FRAME_OFFSET above the circuit, so the frame moves with the circuit and they keep
+        // pointing where they always did.
         painter.ctx.save();
-        painter.ctx.translate(0, this.displayedCircuit.top - this.displayedToolboxTop.desiredHeight());
-        this._drawHint_dragGatesOntoCircuit(painter);
+        painter.ctx.translate(0, this.displayedCircuit.top - HINT_FRAME_OFFSET);
         this._drawHint_watchOutputsChange(painter);
         this._drawHint_useControls(painter);
         painter.ctx.restore();
@@ -384,43 +325,6 @@ class DisplayedInspector {
     }
 
 
-    /**
-     * @param {!Painter} painter
-     * @private
-     */
-    _drawHint_dragGatesOntoCircuit(painter) {
-        let visibilityFactor = this._hintVisibility();
-        if (visibilityFactor <= 0) {
-            return;
-        }
-
-        painter.ctx.save();
-        painter.ctx.globalAlpha *= Math.min(1, visibilityFactor);
-
-        painter.ctx.save();
-        painter.ctx.translate(130, 195);
-        painter.ctx.rotate(Math.PI * 0.05);
-        painter.ctx.fillStyle = Palette.ERROR_COLOR;
-        painter.ctx.font = `16px ${Typography.DEFAULT_FONT_FAMILY}`;
-        painter.ctx.fillText("drag gates onto circuit", 0, 0);
-        painter.ctx.restore();
-
-        painter.ctx.beginPath();
-        painter.ctx.moveTo(268, 132);
-        painter.ctx.bezierCurveTo(
-            260, 170,
-            235, 175,
-            217, 187);
-        painter.ctx.strokeStyle = Palette.ERROR_COLOR;
-        painter.ctx.lineWidth = 3;
-        painter.ctx.stroke();
-
-        painter.trace(tracer => {
-            tracer.arrowHead(210, 190, 10, Math.PI*0.84, 1.3);
-        }).thenFill(Palette.ERROR_COLOR);
-
-        painter.ctx.restore();
-    }
 
     /**
      * @param {!Painter} painter

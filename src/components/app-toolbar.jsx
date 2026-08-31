@@ -2,12 +2,12 @@ import {flushSync} from "react-dom";
 import {createRoot} from "react-dom/client";
 import {
     AtomIcon,
+    BookOpenIcon,
+    DownloadIcon,
     EraserIcon,
-    MenuIcon,
-    RotateCcwIcon,
-    RotateCwIcon,
-    Share2Icon,
+    Redo2Icon,
     Trash2Icon,
+    Undo2Icon,
     WandSparklesIcon
 } from "lucide-react";
 
@@ -125,15 +125,15 @@ function AppToolbar() {
             <Separator orientation="vertical" className="app-toolbar-separator" />
             <div className="app-toolbar-actions">
                 <ButtonGroup aria-label="Application actions">
-                    <ToolbarButton id="menu-button" icon={MenuIcon}>Menu</ToolbarButton>
-                    <ToolbarButton id="export-button" icon={Share2Icon}>Export</ToolbarButton>
+                    <ToolbarButton id="menu-button" icon={BookOpenIcon}>Menu</ToolbarButton>
+                    <ToolbarButton id="export-button" icon={DownloadIcon}>Export</ToolbarButton>
                 </ButtonGroup>
                 <ToolbarButton id="clear-circuit-button" icon={EraserIcon} variant="outline">
                     Clear Circuit
                 </ToolbarButton>
                 <ButtonGroup aria-label="History actions">
-                    <ToolbarButton id="undo-button" icon={RotateCcwIcon}>Undo</ToolbarButton>
-                    <ToolbarButton id="redo-button" icon={RotateCwIcon}>Redo</ToolbarButton>
+                    <ToolbarButton id="undo-button" icon={Undo2Icon}>Undo</ToolbarButton>
+                    <ToolbarButton id="redo-button" icon={Redo2Icon}>Redo</ToolbarButton>
                 </ButtonGroup>
                 <ToolbarButton id="gate-forge-button" icon={WandSparklesIcon} variant="outline">
                     Make Gate

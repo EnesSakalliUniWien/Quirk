@@ -38,6 +38,8 @@ import {
 import {paintCircuit} from "./CircuitPainting.js"
 import {CachablePainting} from "../draw/CachablePainting.js"
 import {CircuitDefinition} from "../circuit/CircuitDefinition.js"
+import {CircuitGeometry} from "./CircuitGeometry.js"
+import {setCustomGateCircuitDrawer} from "../draw/CustomGateCircuitDrawer.js"
 import {CircuitStats} from "../circuit/CircuitStats.js"
 import {Layout} from "../config/Layout.js"
 import {Palette} from "../config/Palette.js"
@@ -59,10 +61,6 @@ import {seq, Seq} from "../base/Seq.js"
 import {paintBlochSphereDisplay} from "../gates/BlochSphereDisplay.js"
 
 
-
-/** Stands in for the half of a basis state's bits that the other axis of the amplitude grid supplies. */
-
-const EXTRA_COLS_FOR_SINGLE_QUBIT_DISPLAYS = 2;
 
 class DisplayedCircuit {
     /**
@@ -111,6 +109,30 @@ class DisplayedCircuit {
          * @private
          */
         this._displayShift = 0;
+        /**
+         * The geometry derived from the fields above, built on first use. Painting and hit testing
+         * ask for it in every loop iteration, so it is not rebuilt per call.
+         * @type {undefined|!CircuitGeometry}
+         * @private
+         */
+        this._cachedGeometry = undefined;
+    }
+
+    /**
+     * Where everything on this circuit is drawn, derived from the current facts. Painting and hit
+     * testing take their answers from here instead of reading the widget's fields.
+     * @returns {!CircuitGeometry}
+     */
+    geometry() {
+        if (this._cachedGeometry === undefined) {
+            this._cachedGeometry = new CircuitGeometry(
+                this.top,
+                this.circuitDefinition,
+                this._compressedColumnIndex,
+                this._extraWireStartIndex,
+                this._displayShift);
+        }
+        return this._cachedGeometry;
     }
 
     /**
@@ -118,17 +140,12 @@ class DisplayedCircuit {
      * @param {!number} availableWidth
      */
     updateDisplayShift(availableWidth) {
+        // The zeroed shift must be visible to desiredWidth's geometry, and the final shift to
+        // everyone after, so the cache drops on both sides of the mutation.
         this._displayShift = 0;
+        this._cachedGeometry = undefined;
         this._displayShift = Math.max(0, availableWidth - this.desiredWidth());
-    }
-
-    /**
-     * @param {!int} operationIndex
-     * @returns {!boolean} Whether the column holds output displays instead of circuit operations.
-     * @private
-     */
-    _isOutputDisplayColumn(operationIndex) {
-        return operationIndex > this.clampedCircuitColCount();
+        this._cachedGeometry = undefined;
     }
 
     /**
@@ -165,28 +182,11 @@ class DisplayedCircuit {
     }
 
     /**
-     * The number of wires that were in the circuit before picking up a gate, or the number that will be in the circuit
-     * after dropping a gate; whichever is larger.
-     * @returns {!int}
-     * @private
-     */
-    _groundedWireCount() {
-        let pseudoCount =
-            this._extraWireStartIndex !== undefined && this._extraWireStartIndex !== Simulation.MAX_WIRE_COUNT ? 1 : 0;
-
-        let n = Math.max(Simulation.MIN_WIRE_COUNT, this.circuitDefinition.numWires) - pseudoCount;
-        return Math.max(n, this.circuitDefinition.minimumRequiredWireCount());
-    }
-
-    /**
      * @param {!boolean=true} forTooltip
      * @returns {!number}
      */
     desiredHeight(forTooltip=false) {
-        if (forTooltip) {
-            return this.circuitDefinition.numWires * Layout.WIRE_SPACING;
-        }
-        return this._groundedWireCount() * Layout.WIRE_SPACING + 105;
+        return this.geometry().desiredHeight(forTooltip);
     }
 
     /**
@@ -194,10 +194,7 @@ class DisplayedCircuit {
      * @returns {!number}
      */
     desiredWidth(forTooltip=false) {
-        if (forTooltip) {
-            return this.opRect(this.circuitDefinition.columns.length - 1).right() + CIRCUIT_OP_LEFT_SPACING;
-        }
-        return this._rectForSuperpositionDisplay().right() + 101;
+        return this.geometry().desiredWidth(forTooltip);
     }
 
     /**
@@ -205,10 +202,7 @@ class DisplayedCircuit {
      * @returns {!Rect}
      */
     wireRect(wireIndex) {
-        if (wireIndex < 0) {
-            throw new DetailedError("Bad wireIndex", {wireIndex});
-        }
-        return new Rect(0, this.top + Layout.WIRE_SPACING * wireIndex, Infinity, Layout.WIRE_SPACING);
+        return this.geometry().wireRect(wireIndex);
     }
 
 
@@ -223,21 +217,7 @@ class DisplayedCircuit {
      * @returns {Rect!}
      */
     opRect(operationIndex) {
-        let opWidth = Layout.GATE_RADIUS * 2;
-        let opSeparation = opWidth + CIRCUIT_OP_HORIZONTAL_SPACING;
-        let tweak = 0;
-        if (this._compressedColumnIndex !== undefined && operationIndex === this._compressedColumnIndex) {
-            tweak = opSeparation / 2;
-        }
-        if (this._compressedColumnIndex !== undefined && operationIndex > this._compressedColumnIndex) {
-            tweak = opSeparation;
-        }
-
-        let dx = opSeparation * operationIndex - tweak + CIRCUIT_OP_LEFT_SPACING;
-        if (this._isOutputDisplayColumn(operationIndex)) {
-            dx += this._displayShift;
-        }
-        return new Rect(dx, this.top, opWidth, this.desiredHeight());
+        return this.geometry().opRect(operationIndex);
     }
 
     /**
@@ -245,17 +225,10 @@ class DisplayedCircuit {
      * @param {!int} operationIndex
      * @param {!int=} width
      * @param {!int=} height
+     * @returns {!Rect}
      */
     gateRect(wireIndex, operationIndex, width=1, height=1) {
-        let op = this.opRect(operationIndex);
-        let wire = this.wireRect(wireIndex);
-        let r = new Rect(
-            op.center().x - Layout.GATE_RADIUS,
-            wire.center().y - Layout.GATE_RADIUS,
-            2*Layout.GATE_RADIUS + (width-1)*Layout.WIRE_SPACING,
-            2*Layout.GATE_RADIUS + (height-1)*Layout.WIRE_SPACING);
-
-        return new Rect(Math.round(r.x - 0.5) + 0.5, Math.round(r.y - 0.5) + 0.5, Math.round(r.w), Math.round(r.h));
+        return this.geometry().gateRect(wireIndex, operationIndex, width, height);
     }
 
     /**
@@ -302,9 +275,12 @@ class DisplayedCircuit {
      * @param {!Painter} painter
      * @param {!Hand} hand
      * @param {!CircuitStats} stats
+     * @param {!boolean=false} forTooltip
+     * @param {!boolean=true} showWires
+     * @param {undefined|!int} playheadStep The number of columns that have executed at the playhead.
      */
-    paint(painter, hand, stats) {
-        paintCircuit(this, painter, hand, stats);
+    paint(painter, hand, stats, forTooltip=false, showWires=true, playheadStep=undefined) {
+        paintCircuit(this, painter, hand, stats, forTooltip, showWires, playheadStep);
     }
 
     /**
@@ -498,20 +474,14 @@ class DisplayedCircuit {
      * @returns {!int}
      */
     importantWireCount() {
-        return Math.max(
-            this.circuitDefinition.numWires - (this._extraWireStartIndex === Simulation.MAX_WIRE_COUNT ? 0 : 1),
-            Simulation.MIN_WIRE_COUNT,
-            this.circuitDefinition.minimumRequiredWireCount());
+        return this.geometry().importantWireCount();
     }
-
 
     /**
      * @returns {!number} The number of columns used for drawing the circuit, before the output display.
      */
     clampedCircuitColCount() {
-        return Math.max(
-            this.circuitDefinition.columns.length,
-            Simulation.MIN_COL_COUNT + (this._compressedColumnIndex !== undefined ? 1 : 0));
+        return this.geometry().clampedCircuitColCount();
     }
 
 
@@ -536,20 +506,7 @@ class DisplayedCircuit {
         return new Matrix(colCount, rowCount, buf);
     }
 
-    /**
-     * @returns {!Rect}
-     * @private
-     */
-    _rectForSuperpositionDisplay() {
-        let col = this.clampedCircuitColCount() + EXTRA_COLS_FOR_SINGLE_QUBIT_DISPLAYS + 1;
-        let numWire = this.importantWireCount();
-        let [colWires, rowWires] = [Math.floor(numWire/2), Math.ceil(numWire/2)];
-        let [colCount, rowCount] = [1 << colWires, 1 << rowWires];
-        let topRect = this.gateRect(0, col);
-        let bottomRect = this.gateRect(numWire-1, col);
-        let gridRect = new Rect(topRect.x, topRect.y, 0, bottomRect.bottom() - topRect.y);
-        return gridRect.withW(gridRect.h * (colCount/rowCount));
-    }
+
 
 
     /**
@@ -683,5 +640,9 @@ let GATE_CIRCUIT_DRAWER = args => {
 
 
 
+
+// Deposited rather than imported by the serializer, because this module (via CircuitStats)
+// imports the serializer right back.
+setCustomGateCircuitDrawer(GATE_CIRCUIT_DRAWER);
 
 export {DisplayedCircuit, drawCircuitTooltip, GATE_CIRCUIT_DRAWER}

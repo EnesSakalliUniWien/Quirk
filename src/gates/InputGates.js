@@ -28,7 +28,7 @@ let InputGates = {};
  * @param {!boolean} reverse
  */
 function drawInputGate(args, key, reverse) {
-    GatePainting.paintBackground(args, '#2C2C30', '#2C2C30');
+    GatePainting.paintBackground(args, Palette.QUIET_GATE_FILL_COLOR, Palette.QUIET_GATE_FILL_COLOR);
     if (args.isInToolbox) {
         GatePainting.paintOutline(args);
     } else {
@@ -93,7 +93,7 @@ let makeSetInputGate = key => new GateBuilder().
         sticky: true
     }]).
     setDrawer(args => {
-        GatePainting.paintLocationIndependentFrame(args, '#232327', '#232327');
+        GatePainting.paintLocationIndependentFrame(args, Palette.QUIET_GATE_FILL_COLOR, Palette.QUIET_GATE_FILL_COLOR);
         if (args.isInToolbox) {
             GatePainting.paintGateSymbol(args, `${key}=#\ndefault`);
         } else {

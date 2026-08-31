@@ -1,0 +1,26 @@
+        <!-- Amplitudes at the playhead -->
+        <section id="state-panel" class="state-panel" aria-labelledby="state-panel-heading">
+            <header class="state-panel-header">
+                <h2 id="state-panel-heading" class="state-panel-heading">State at the playhead</h2>
+                <span id="state-summary" class="state-summary"></span>
+                <span class="state-legend">
+                    <span>phase</span>
+                    <span class="state-legend-strip" aria-hidden="true"></span>
+                    <span>&#8722;&#960; &#8230; +&#960;</span>
+                </span>
+            </header>
+            <div class="state-table-scroll">
+                <table id="state-table" class="state-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">state</th>
+                            <th scope="col">probability</th>
+                            <th scope="col">amplitude</th>
+                            <th scope="col">phase (deg)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="state-table-body"></tbody>
+                </table>
+            </div>
+            <p id="state-truncation-note" class="state-note"></p>
+        </section>

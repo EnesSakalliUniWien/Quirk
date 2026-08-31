@@ -30,6 +30,12 @@ class Gate {
         this.serializedId = '';
         /** @type {!string} The title text of gate tooltips. */
         this.name = '';
+        /**
+         * A shorter name for places that list gates in a fixed width, like the toolbox rows.
+         * Empty means the full name fits and is used as-is.
+         * @type {!string}
+         */
+        this.listName = '';
         /** @type {!string} Detail text of gate tooltips. */
         this.blurb = '';
         /** @type {!int} The number of columns the gate spans on a circuit. Controls go on the first column. */
@@ -279,6 +285,7 @@ class Gate {
         let g = new Gate();
         g.symbol = this.symbol;
         g.name = this.name;
+        g.listName = this.listName;
         g.blurb = this.blurb;
         g.alternate = this.alternate;
         g.serializedId = this.serializedId;
@@ -553,6 +560,16 @@ class GateBuilder {
      */
     setTitle(title) {
         this.gate.name = title;
+        return this;
+    }
+
+    /**
+     * Sets a shorter name for fixed-width lists, when the full title would truncate there.
+     * @param {!string} listName
+     * @returns {!GateBuilder}
+     */
+    setListName(listName) {
+        this.gate.listName = listName;
         return this;
     }
 

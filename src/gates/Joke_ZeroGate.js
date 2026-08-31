@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {Palette} from "../config/Palette.js"
 import {GateBuilder} from "../circuit/Gate.js"
 import {GatePainting} from "../draw/GatePainting.js"
 import {Matrix} from "../math/Matrix.js"
@@ -23,7 +24,7 @@ const ZeroGate = new GateBuilder().
     setSerializedIdAndSymbol("0").
     setTitle("Nothing Gate").
     setBlurb("Destroys the universe.").
-    setDrawer(GatePainting.makeLocationIndependentGateDrawer('#A1A1AA')).
+    setDrawer(GatePainting.makeLocationIndependentGateDrawer(Palette.MUTED_TEXT_COLOR)).
     setKnownEffectToMatrix(Matrix.square(0, 0, 0, 0)).
     gate;
 

@@ -177,7 +177,7 @@ function previewDropMovedGate(circuit, hand) {
         withTransformedItem(i, c => c.withGatesAdded(row, new GateColumn([addedGate]))).
         toArray();
     let newWireCount = Math.max(
-        circuit._extraWireStartIndex || 0,
+        circuit.geometry().extraWireStartIndex || 0,
         Math.max(
             circuit.circuitDefinition.numWires,
             addedGate.height + row));
@@ -419,7 +419,7 @@ function tryGrabGate(circuit, hand, duplicate, alt) {
             circuit.circuitDefinition.withColumns(newCols),
             undefined,
             undefined,
-            circuit._extraWireStartIndex),
+            circuit.geometry().extraWireStartIndex),
         newHand: hand.withHeldGate(gate, offset)
     };
 }

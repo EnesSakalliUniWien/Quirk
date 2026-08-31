@@ -15,19 +15,12 @@
  */
 
 import {CircuitStats} from "./circuit/CircuitStats.js"
-import {CooldownThrottle} from "./base/CooldownThrottle.js"
 import {Layout} from "./config/Layout.js"
-import {Simulation} from "./config/Simulation.js"
 import {DisplayedInspector} from "./ui/DisplayedInspector.js"
-import {Painter} from "./draw/Painter.js"
 import {Rect} from "./math/Rect.js"
-import {RestartableRng} from "./base/RestartableRng.js"
 import {Revision} from "./base/Revision.js"
-import {initSerializer, fromJsonText_CircuitDefinition} from "./circuit/Serializer.js"
-import {TouchScrollBlocker} from "./browser/TouchScrollBlocker.js"
+import {fromJsonText_CircuitDefinition} from "./circuit/Serializer.js"
 import {Util} from "./base/Util.js"
-import {initializedWglContext} from "./webgl/WglContext.js"
-import {watchDrags, isMiddleClicking, eventPosRelativeTo} from "./browser/MouseWatcher.js"
 import {ObservableValue} from "./base/Obs.js"
 import {initExports} from "./ui/exports.js"
 import {initForge} from "./ui/forge.js"
@@ -35,25 +28,27 @@ import {initMenu} from "./ui/menu.js"
 import {initUndoRedo} from "./ui/undo.js"
 import {initClear} from "./ui/clear.js"
 import {CircuitActions} from "./ui/CircuitActions.js"
+import {Playhead} from "./ui/Playhead.js"
+import {initTransport} from "./ui/transport.js"
+import {initStateTable} from "./ui/stateTable.js"
+import {initToolbox} from "./ui/toolbox.js"
+import {initToolboxDrag, initToolboxKeyboardPlace} from "./ui/toolboxDrag.js"
+import {initRedrawLoop} from "./ui/redrawLoop.js"
+import {initCanvasPointer} from "./ui/canvasPointer.js"
+import {scheduleBoot} from "./ui/boot.js"
+import {mountAppDialogs} from "./components/app-dialogs.jsx"
 import {OverlayState} from "./ui/OverlayState.js"
 import {initUrlCircuitSync} from "./ui/url.js"
 import {initTitleSync} from "./ui/title.js"
-import {simulate} from "./ui/sim.js"
-import {GatePainting} from "./draw/GatePainting.js"
-import {GATE_CIRCUIT_DRAWER} from "./ui/DisplayedCircuit.js"
-import {GateColumn} from "./circuit/GateColumn.js";
-import {Point} from "./math/Point.js";
+import {Simulator} from "./ui/sim.js"
 
 /**
  * Starts Quirk after its document elements are available. Must be called exactly once.
  * @returns {void}
  */
 function startQuirk() {
-    initSerializer(
-        GatePainting.LABEL_DRAWER,
-        GatePainting.MATRIX_DRAWER,
-        GATE_CIRCUIT_DRAWER,
-        GatePainting.LOCATION_INDEPENDENT_GATE_DRAWER);
+    // The one simulator: the animation cycle's phase and the stats caches are app-wide state.
+    const simulator = new Simulator();
 
     const canvasDiv = document.getElementById("canvasDiv");
 
@@ -64,29 +59,24 @@ function startQuirk() {
     if (!canvas) {
         throw new Error("Couldn't find 'drawCanvas'");
     }
+    // A placeholder size for the pre-boot inspector; the first redraw sizes the canvas to fit.
     canvas.width = canvasDiv.clientWidth;
-    canvas.height = window.innerHeight*0.9;
-    let haveLoaded = false;
-    const semiStableRng = (() => {
-        const target = {cur: new RestartableRng()};
-        let cycleRng;
-        cycleRng = () => {
-            target.cur = new RestartableRng();
-            //noinspection DynamicallyGeneratedCodeJS
-            setTimeout(cycleRng, Simulation.SEMI_STABLE_RANDOM_VALUE_LIFETIME_MILLIS*0.99);
-        };
-        cycleRng();
-        return target;
-    })();
-
-    //noinspection JSValidateTypes
-    /** @type {!HTMLDivElement} */
-    const inspectorDiv = document.getElementById("inspectorDiv");
-
     /** @type {ObservableValue.<!DisplayedInspector>} */
     const displayed = new ObservableValue(
         DisplayedInspector.empty(new Rect(0, 0, canvas.clientWidth, canvas.clientHeight)));
     const mostRecentStats = new ObservableValue(CircuitStats.EMPTY);
+    /** The same stats, but for the circuit only as far as the playhead has run it, alongside the
+     *  number of wires the circuit shows.
+     *  @type {ObservableValue.<!{stats: !CircuitStats, wireCount: !int}>} */
+    const playheadStats = new ObservableValue({stats: CircuitStats.EMPTY, wireCount: 0});
+    const overlayState = new OverlayState();
+    // Mounted before anything that looks the dialogs' elements up by id.
+    mountAppDialogs(overlayState);
+    const playhead = new Playhead(
+        displayed.observable().
+            map(e => e.displayedCircuit.circuitDefinition.columns.length).
+            whenDifferent(),
+        overlayState);
     /** @type {!Revision} */
     let revision = Revision.startingAt(displayed.get().snapshot());
 
@@ -130,211 +120,43 @@ function startQuirk() {
             }
         });
 
-    /** @type {!CooldownThrottle} */
-    let redrawThrottle;
-    const scrollBlocker = new TouchScrollBlocker(canvasDiv);
-    const redrawNow = () => {
-        if (!haveLoaded) {
-            // Don't draw while loading. It's a huge source of false-positive circuit-load-failed errors during development.
-            return;
-        }
+    const redrawLoop = initRedrawLoop(
+        canvas,
+        canvasDiv,
+        displayed,
+        simulator,
+        playhead,
+        mostRecentStats,
+        playheadStats,
+        desiredCanvasSizeFor,
+        syncArea);
 
-        let shown = syncArea(displayed.get()).previewDrop();
-        if (displayed.get().hand.isHoldingSomething() && !shown.hand.isHoldingSomething()) {
-            shown = shown.withHand(shown.hand.withHeldGateColumn(new GateColumn([]), new Point(0, 0)))
-        }
-        let stats = simulate(shown.displayedCircuit.circuitDefinition);
-        mostRecentStats.set(stats);
+    initCanvasPointer(canvas, canvasDiv, revision, displayed, syncArea);
 
-        let size = desiredCanvasSizeFor(shown);
-        let pixelRatio = window.devicePixelRatio || 1;
-        canvas.width = Math.round(size.w * pixelRatio);
-        canvas.height = Math.round(size.h * pixelRatio);
-        canvas.style.width = size.w + 'px';
-        canvas.style.height = size.h + 'px';
-        let painter = new Painter(canvas, semiStableRng.cur.restarted(), pixelRatio);
-        shown.updateArea(painter.paintableArea());
-        shown.paint(painter, stats);
-        painter.paintDeferred();
-
-        displayed.get().hand.paintCursor(painter);
-        scrollBlocker.setBlockers(painter.touchBlockers, painter.desiredCursorStyle);
-        canvas.style.cursor = painter.desiredCursorStyle || 'auto';
-
-        let dt = displayed.get().stableDuration();
-        if (dt < Infinity) {
-            window.requestAnimationFrame(() => redrawThrottle.trigger());
-        }
-    };
-
-    redrawThrottle = new CooldownThrottle(redrawNow, Layout.REDRAW_COOLDOWN_MILLIS, 0.1, true);
-    window.addEventListener('resize', () => redrawThrottle.trigger(), false);
-    if (document.fonts !== undefined) {
-        // Canvas text starts out on a fallback font; repaint once the webfont is ready.
-        document.fonts.ready.then(() => redrawThrottle.trigger());
-    }
-    displayed.observable().subscribe(() => redrawThrottle.trigger());
-
-    /** @type {undefined|!string} */
-    let clickDownGateButtonKey = undefined;
-    canvasDiv.addEventListener('click', ev => {
-        let pt = eventPosRelativeTo(ev, canvasDiv);
-        let curInspector = displayed.get();
-        if (curInspector.tryGetHandOverButtonKey() !== clickDownGateButtonKey) {
-            return;
-        }
-        let clicked = syncArea(curInspector.withHand(curInspector.hand.withPos(pt))).tryClick();
-        if (clicked !== undefined) {
-            revision.commit(clicked.afterTidyingUp().snapshot());
-        }
-    });
-
-    watchDrags(canvasDiv,
-        /**
-         * Grab
-         * @param {!Point} pt
-         * @param {!MouseEvent|!TouchEvent} ev
-         */
-        (pt, ev) => {
-            let oldInspector = displayed.get();
-            let newHand = oldInspector.hand.withPos(pt);
-            let newInspector = syncArea(oldInspector.withHand(newHand));
-            clickDownGateButtonKey = (
-                ev.ctrlKey || ev.metaKey || ev.shiftKey || ev.altKey ? undefined : newInspector.tryGetHandOverButtonKey());
-            if (clickDownGateButtonKey !== undefined) {
-                displayed.set(newInspector);
-                return;
-            }
-
-            newInspector = newInspector.afterGrabbing(ev.shiftKey, ev.ctrlKey || ev.metaKey);
-            if (displayed.get().isEqualTo(newInspector) || !newInspector.hand.isBusy()) {
-                return;
-            }
-
-            // Add extra wire temporarily.
-            revision.startedWorkingOnCommit();
-            displayed.set(
-                syncArea(oldInspector.withHand(newHand).withJustEnoughWires(newInspector.hand, 1)).
-                    afterGrabbing(ev.shiftKey, ev.ctrlKey || ev.metaKey, false, ev.altKey));
-
-            ev.preventDefault();
-        },
-        /**
-         * Cancel
-         * @param {!MouseEvent|!TouchEvent} ev
-         */
-        ev => {
-            revision.cancelCommitBeingWorkedOn();
-            ev.preventDefault();
-        },
-        /**
-         * Drag
-         * @param {undefined|!Point} pt
-         * @param {!MouseEvent|!TouchEvent} ev
-         */
-        (pt, ev) => {
-            if (!displayed.get().hand.isBusy()) {
-                return;
-            }
-
-            let newHand = displayed.get().hand.withPos(pt);
-            let newInspector = displayed.get().withHand(newHand);
-            displayed.set(newInspector);
-            ev.preventDefault();
-        },
-        /**
-         * Drop
-         * @param {undefined|!Point} pt
-         * @param {!MouseEvent|!TouchEvent} ev
-         */
-        (pt, ev) => {
-            if (!displayed.get().hand.isBusy()) {
-                return;
-            }
-
-            let newHand = displayed.get().hand.withPos(pt);
-            let newInspector = syncArea(displayed.get()).withHand(newHand).afterDropping().afterTidyingUp();
-            let clearHand = newInspector.hand.withPos(undefined);
-            let clearInspector = newInspector.withJustEnoughWires(clearHand, 0);
-            revision.commit(clearInspector.snapshot());
-            ev.preventDefault();
-        });
-
-    // Middle-click to delete a gate.
-    canvasDiv.addEventListener('mousedown', ev => {
-        if (!isMiddleClicking(ev)) {
-            return;
-        }
-        let cur = syncArea(displayed.get());
-        let initOver = cur.tryGetHandOverButtonKey();
-        let newHand = cur.hand.withPos(eventPosRelativeTo(ev, canvas));
-        let newInspector;
-        if (initOver !== undefined && initOver.startsWith('wire-init-')) {
-            let newCircuit = cur.displayedCircuit.circuitDefinition.withSwitchedInitialStateOn(
-                parseInt(initOver.substr(10)), 0);
-            newInspector = cur.withCircuitDefinition(newCircuit).withHand(newHand).afterTidyingUp();
-        } else {
-            newInspector = cur.
-                withHand(newHand).
-                afterGrabbing(false, false, true, false). // Grab the gate.
-                withHand(newHand). // Lose the gate.
-                afterTidyingUp().
-                withJustEnoughWires(newHand, 0);
-        }
-        if (!displayed.get().isEqualTo(newInspector)) {
-            revision.commit(newInspector.snapshot());
-            ev.preventDefault();
-        }
-    });
-
-    // When mouse moves without dragging, track it (for showing hints and things).
-    canvasDiv.addEventListener('mousemove', ev => {
-        if (!displayed.get().hand.isBusy()) {
-            let newHand = displayed.get().hand.withPos(eventPosRelativeTo(ev, canvas));
-            let newInspector = displayed.get().withHand(newHand);
-            displayed.set(newInspector);
-        }
-    });
-    canvasDiv.addEventListener('mouseleave', () => {
-        if (!displayed.get().hand.isBusy()) {
-            let newHand = displayed.get().hand.withPos(undefined);
-            let newInspector = displayed.get().withHand(newHand);
-            displayed.set(newInspector);
-        }
-    });
-
-    let overlayState = new OverlayState();
     let circuitActions = new CircuitActions(revision, overlayState);
     initUrlCircuitSync(revision);
     initExports(revision, mostRecentStats, overlayState);
-    initForge(revision, overlayState);
+    initForge(revision, overlayState, () => simulator.cycleTime());
     initUndoRedo(circuitActions);
     initClear(circuitActions);
+    initTransport(playhead);
+    initStateTable(playheadStats);
+    initToolbox(
+        // Compared by content, not identity: every commit deserializes a fresh CustomGateSet, and
+        // rebuilding the toolbox for each one would repaint every tile and drop keyboard focus.
+        displayed.observable().
+            map(e => e.displayedCircuit.circuitDefinition.customGateSet).
+            whenDifferent(Util.CUSTOM_IS_EQUAL_TO_EQUALITY),
+        mostRecentStats,
+        initToolboxDrag(canvas, revision, displayed, syncArea),
+        initToolboxKeyboardPlace(revision, displayed, syncArea));
     initMenu(revision, overlayState);
     initTitleSync(revision);
     overlayState.active().subscribe(active => {
         canvasDiv.tabIndex = active === undefined ? 0 : -1;
     });
 
-    // If the webgl initialization is going to fail, don't fail during the module loading phase.
-    haveLoaded = true;
-    setTimeout(() => {
-        inspectorDiv.style.display = 'block';
-        redrawNow();
-        document.getElementById("loading-div").style.display = 'none';
-        document.getElementById("close-menu-button").style.display = 'block';
-        if (!displayed.get().displayedCircuit.circuitDefinition.isEmpty()) {
-            overlayState.close();
-        }
-
-        try {
-            initializedWglContext().onContextRestored = () => redrawThrottle.trigger();
-        } catch (ex) {
-            // If that failed, the user is already getting warnings about WebGL not being supported.
-            // Just silently log it.
-            console.error(ex);
-        }
-    }, 0);
+    scheduleBoot(displayed, overlayState, redrawLoop);
 }
 
 export {startQuirk}

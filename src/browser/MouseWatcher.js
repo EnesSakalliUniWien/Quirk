@@ -69,10 +69,13 @@ function eventPosRelativeTo(ev, element) {
  * @param {!function(!MouseEvent|!TouchEvent) : void} cancelHandler
  * @param {!function(undefined|!Point, !MouseEvent|!TouchEvent) : void} dragHandler
  * @param {!function(undefined|!Point, !MouseEvent|!TouchEvent) : void} dropHandler
+ * @param {!HTMLElement=} measureElement Positions are reported relative to this element instead of
+ *     the listening element. Needed when the listening element is a scroll container, whose own
+ *     corner stays put while its content moves.
  * @returns {!function() : void} Call this to dispose the watcher (removing any global callbacks it added).
  */
-function watchDrags(element, grabHandler, cancelHandler, dragHandler, dropHandler) {
-    return new DragWatcher(element, grabHandler, cancelHandler, dragHandler, dropHandler)
+function watchDrags(element, grabHandler, cancelHandler, dragHandler, dropHandler, measureElement=element) {
+    return new DragWatcher(element, grabHandler, cancelHandler, dragHandler, dropHandler, measureElement)
         .addListenersUntilResultInvoked();
 }
 
@@ -94,10 +97,13 @@ class DragWatcher {
      * @param {!function(!MouseEvent|!TouchEvent) : void} cancelHandler
      * @param {!function(undefined|!Point, !MouseEvent|!TouchEvent) : void} dragHandler
      * @param {!function(undefined|!Point, !MouseEvent|!TouchEvent) : void} dropHandler
+     * @param {!HTMLElement=} measureElement
      */
-    constructor(element, grabHandler, cancelHandler, dragHandler, dropHandler) {
+    constructor(element, grabHandler, cancelHandler, dragHandler, dropHandler, measureElement=element) {
         /** @type {!HTMLElement} */
         this._element = element;
+        /** @type {!HTMLElement} */
+        this._measureElement = measureElement;
         /** @type {!function(!Point, !MouseEvent|!TouchEvent) : void} */
         this._grabHandler = grabHandler;
         /** @type {!function(!MouseEvent|!TouchEvent) : void} */
@@ -269,7 +275,7 @@ class DragWatcher {
      * @returns {!Point}
      */
     relativeEventPos(ev) {
-        return eventPosRelativeTo(ev, this._element);
+        return eventPosRelativeTo(ev, this._measureElement);
     }
 
     /**

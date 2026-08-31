@@ -21,34 +21,24 @@ import {fromJsonText_CircuitDefinition} from "../circuit/Serializer.js"
 import {saveFile} from "../browser/SaveFile.js"
 
 /**
+ * Interface note: also requires #export-button (src/components/app-toolbar.jsx) and the export
+ * panel's #export-* and #download-offline-copy-button elements, shipped in
+ * html/export.partial.html and mounted by src/components/export-dialog.jsx before this runs.
+ *
  * @param {!Revision} revision
  * @param {!ObservableValue.<!CircuitStats>} mostRecentStats
  * @param {!OverlayState} overlayState
  */
 function initExports(revision, mostRecentStats, overlayState) {
     const obsActiveOverlay = overlayState.active();
-    const obsExportsIsShowing = obsActiveOverlay.map(active => active === "export").whenDifferent();
     const obsIsAnyOverlayShowing = obsActiveOverlay.map(active => active !== undefined).whenDifferent();
 
-    // Show/hide exports overlay.
+    // Open the exports overlay. Visibility, Escape, backdrop clicks, and focus belong to the
+    // Base UI Dialog that wraps it (src/components/app-dialogs.jsx).
     (() => {
         const exportButton = /** @type {!HTMLButtonElement} */ document.getElementById('export-button');
-        const exportOverlay = /** @type {!HTMLDivElement} */ document.getElementById('export-overlay');
-        const exportDiv = /** @type {HTMLDivElement} */ document.getElementById('export-div');
         exportButton.addEventListener('click', () => overlayState.open("export"));
         obsIsAnyOverlayShowing.subscribe(e => { exportButton.disabled = e; });
-        exportOverlay.addEventListener('click', () => overlayState.close());
-        document.addEventListener('keydown', e => {
-            if (e.key === 'Escape') {
-                overlayState.close()
-            }
-        });
-        obsExportsIsShowing.subscribe(showing => {
-            exportDiv.style.display = showing ? 'block' : 'none';
-            if (showing) {
-                document.getElementById('export-link-copy-button').focus();
-            }
-        });
     })();
 
     /**

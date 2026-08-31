@@ -1,0 +1,103 @@
+/* The gate forge dialog: the three creation methods and their live previews. */
+@layer components {
+    .forge-dialog {
+        width: min(1040px, calc(100vw - 48px));
+    }
+
+    .forge-dialog > .dialog-header {
+        margin-bottom: calc(var(--spacing) * 6);
+    }
+
+    .forge-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+        align-items: stretch;
+        gap: calc(var(--spacing) * 3);
+    }
+
+    .forge-method {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        gap: calc(var(--spacing) * 3);
+        padding: calc(var(--spacing) * 4);
+        background: color-mix(in oklch, var(--muted), transparent 48%);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+    }
+
+    .forge-method h2 {
+        margin: 0;
+        font-size: var(--text-heading);
+        font-weight: 650;
+        letter-spacing: -0.015em;
+    }
+
+    .forge-fields {
+        display: grid;
+        gap: calc(var(--spacing) * 2);
+    }
+
+    .forge-field {
+        display: grid;
+        gap: calc(var(--spacing) * 1);
+        color: var(--muted-foreground);
+        font-size: var(--text-small);
+    }
+
+    .forge-field input,
+    .forge-field textarea {
+        width: 100%;
+    }
+
+    .forge-field textarea {
+        min-height: 116px;
+        resize: vertical;
+    }
+
+    .forge-preview {
+        display: block;
+        width: 100%;
+        height: auto;
+        margin-top: auto;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+    }
+
+    .forge-choice-divider {
+        display: flex;
+        align-items: center;
+        color: var(--muted-foreground);
+        font-size: 0.6875rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .forge-stats {
+        min-height: 41px;
+        color: var(--muted-foreground);
+        font-size: var(--text-small);
+    }
+
+    .forge-method > button {
+        width: 100%;
+        margin-top: auto;
+    }
+
+    #gate-forge-matrix-fix:not(:checked) + .matrix-fix-label {
+        color: var(--destructive);
+        font-weight: 650;
+    }
+
+    @media (max-width: 920px) {
+        .forge-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .forge-choice-divider {
+            justify-content: center;
+        }
+    }
+}

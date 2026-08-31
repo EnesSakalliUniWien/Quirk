@@ -1,0 +1,73 @@
+/* The app's overall arrangement: the work-area row, the fixed-height shell, the narrow-viewport
+   reflow, motion preferences, and the no-script warning. Imported last so its media overrides win
+   by source order over the feature files' own rules within the components layer. */
+@layer components {
+    .app-body {
+        display: flex;
+        flex: 1 1 auto;
+        align-items: flex-start;
+        min-height: 0;
+    }
+
+    /* The app shell: with the sidebar beside the circuit the page is a fixed-height column -
+       toolbar, transport, work area, state panel - and only the work area's own cells scroll.
+       The toolbar and transport controls therefore never leave the screen, and the state panel
+       is always in reach while stepping the playhead. */
+    @media (min-width: 921px) {
+        #inspectorDiv {
+            height: 100vh;
+            height: 100dvh;
+        }
+
+        #app-toolbar-root,
+        #transport-bar-root,
+        .state-panel {
+            flex: 0 0 auto;
+        }
+
+        .app-body {
+            align-items: stretch;
+        }
+
+        .gate-toolbox {
+            max-height: none;
+        }
+
+        /* Short windows keep circuit room by giving the table less of the column. */
+        .state-table-scroll {
+            max-height: min(320px, 32vh);
+        }
+    }
+
+    @media (max-width: 920px) {
+        .app-body {
+            flex-wrap: wrap;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            scroll-behavior: auto;
+            transition-duration: 0.01ms;
+        }
+    }
+
+    /* The only thing that shows when JavaScript is blocked. Kept out of the markup so every rule
+       in the app lives in the stylesheets. */
+    @keyframes delay-showing-before-hide-script-can-run-but-then-jump-in {
+        from { opacity: 0; }
+        95% { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .noscript-warning {
+        position: absolute;
+        top: 25%;
+        left: 50%;
+        color: red;
+        font-size: 24px;
+        transform: translate(-50%, -50%);
+    }
+}

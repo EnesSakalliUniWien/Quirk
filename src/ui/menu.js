@@ -14,311 +14,33 @@
  * limitations under the License.
  */
 
-const groverLink = {
-    "cols":[
-        ["X","X","X","X","X"],
-        ["H","H","H","H","H"],
-        ["Chance5"],
-        ["~vn6c"],
-        ["⊖","⊖","⊖","⊖","X"],
-        ["Chance5"],
-        ["~vn6c"],
-        ["⊖","⊖","⊖","⊖","X"],
-        ["Chance5"],
-        ["~vn6c"],
-        ["⊖","⊖","⊖","⊖","X"],
-        ["Chance5"],
-        ["~vn6c"],
-        ["⊖","⊖","⊖","⊖","X"],
-        ["Chance5"]
-    ],
-    "gates":[{"id":"~vn6c","name":"Oracle","circuit":{"cols":[["Z","•","◦","•","•"]]}}]
-};
-const teleportLink = {
-    "cols":[
-        [1,"H"],
-        [1,"•",1,1,"X"],
-        ["…","…",1,1,"…"],
-        ["…","…",1,1,"…"],
-        ["~87lj"],
-        ["Bloch"],
-        ["•","X"],
-        ["H"],
-        ["Measure","Measure"],
-        [1,"•",1,1,"X"],
-        ["•",1,1,1,"Z"],
-        [1,1,1,1,"Bloch"],
-        [1,1,1,1,"~f7c0"]
-    ],
-    "gates":[
-        {"id":"~87lj","name":"message","circuit":{"cols":[["e^-iYt"],["X^t"]]}},
-        {"id":"~f7c0","name":"received","matrix":"{{1,0},{0,1}}"}
-    ]
-};
-const eraserLink = {
-    "cols": [
-        [1,"H"],
-        [1,"•",1,1,"X"],
-        [1,"~slits","QFT7"],
-        [1,1,"Measure","Measure","Measure","Measure","Measure","Measure","Measure"],
-        ["…","…","Chance7"],
-        ["…","…"],
-        ["…","…"],
-        ["…","…"],
-        ["H"],
-        ["Measure"],
-        ["~choice"],
-        ["•","X^½"],
-        [1,"Measure"],
-        [1,"~result",1,1,1,"~flat"],
-        ["◦","◦","Chance7"],
-        ["◦","•","Chance7"],
-        [1,1,1,1,1,"~waves"],
-        ["•","◦","Chance7"],
-        ["•","•","Chance7"]
-    ],
-    "gates": [
-        {"id":"~choice","name":"choice","matrix":"{{1,0},{0,1}}"},
-        {"id":"~result","name":"result","matrix":"{{1,0},{0,1}}"},
-        {"id":"~flat","name":"flat","matrix":"{{1,0},{0,1}}"},
-        {"id":"~waves","name":"waves","matrix":"{{1,0},{0,1}}"},
-        {"id":"~slits","name":"slits","matrix":"{{1,0},{0,1}}"}
-    ]
-};
-const chshTestLink = {
-    "cols": [
-        ["H"],
-        ["◦",1,1,1,"X"],
-        ["X^-¼"],
-        ["…","…","…","…","…"],
-        ["~da85","~5s2n",1,"~5s2n","~ahov"],
-        [1,"H",1,"H"],
-        [1,"Measure",1,"Measure"],
-        ["X^½","•"],
-        [1,1,1,"•","X^½"],
-        ["Measure",1,1,1,"Measure"],
-        ["…","…","…","…","…"],
-        [1,"•","X","•"],
-        ["•",1,"X"],
-        [1,1,"X",1,"•"],
-        [1,1,"Chance"],
-        [1,1,"~q6e"]
-    ],
-    "gates": [
-        {"id":"~da85","name":"Alice","matrix":"{{1,0},{0,1}}"},
-        {"id":"~ahov","name":"Bob","matrix":"{{1,0},{0,1}}"},
-        {"id":"~5s2n","name":"Referee","matrix":"{{1,0},{0,1}}"},
-        {"id":"~q6e","name":"Win?","matrix":"{{1,0},{0,1}}"}
-    ]
-};
-const additionLink = {"cols":[
-    ["Counting5",1,1,1,1,1,1,1,"X"],
-    ["Chance5",1,1,1,1,"Chance5"],
-    ["X","X","X","X","•","X","X","X","X","X"],
-    [1,1,1,1,"•","X"],
-    ["Swap",1,1,1,"Swap","•"],
-    [1,1,1,1,"•",1,"X"],
-    [1,"Swap",1,1,"Swap",1,"•"],
-    [1,1,1,1,"•",1,1,"X"],
-    [1,1,"Swap",1,"Swap",1,1,"•"],
-    [1,1,1,1,"•",1,1,1,"X"],
-    [1,1,1,"Swap","Swap",1,1,1,"•"],
-    [1,1,1,1,"•",1,1,1,1,"X"],
-    [1,1,1,"Swap","Swap",1,1,1,"•"],
-    [1,1,1,"•",1,1,1,1,"X"],
-    [1,1,"Swap",1,"Swap",1,1,"•"],
-    [1,1,"•",1,1,1,1,"X"],
-    [1,"Swap",1,1,"Swap",1,"•"],
-    [1,"•",1,1,1,1,"X"],
-    ["Swap",1,1,1,"Swap","•"],
-    ["•",1,1,1,1,"X"],
-    ["X","X","X","X","•","X","X","X","X","X"],
-    ["Chance5",1,1,1,1,"Chance5"]
-]};
-const qftLink = {"cols":[
-    ["Counting8"],
-    ["Chance8"],
-    ["…","…","…","…","…","…","…","…"],
-    ["Swap",1,1,1,1,1,1,"Swap"],
-    [1,"Swap",1,1,1,1,"Swap"],
-    [1,1,"Swap",1,1,"Swap"],
-    [1,1,1,"Swap","Swap"],
-    ["H"],
-    ["Z^½","•"],
-    [1,"H"],
-    ["Z^¼","Z^½","•"],
-    [1,1,"H"],
-    ["Z^⅛","Z^¼","Z^½","•"],
-    [1,1,1,"H"],
-    ["Z^⅟₁₆","Z^⅛","Z^¼","Z^½","•"],
-    [1,1,1,1,"H"],
-    ["Z^⅟₃₂","Z^⅟₁₆","Z^⅛","Z^¼","Z^½","•"],
-    [1,1,1,1,1,"H"],
-    ["Z^⅟₆₄","Z^⅟₃₂","Z^⅟₁₆","Z^⅛","Z^¼","Z^½","•"],
-    [1,1,1,1,1,1,"H"],
-    ["Z^⅟₁₂₈","Z^⅟₆₄","Z^⅟₃₂","Z^⅟₁₆","Z^⅛","Z^¼","Z^½","•"],
-    [1,1,1,1,1,1,1,"H"]
-]};
-const superdenseCodingLink = {
-    "cols":[
-        [1,1,"H"],
-        [1,1,"•",1,1,1,"X"],
-        ["…","…","…","…","…","…","…"],
-        ["Counting2"],
-        ["Measure","Measure"],
-        ["~msg"],
-        ["Chance","Chance"],
-        ["~enc"],
-        [1,"•","X"],
-        ["•",1,"Z"],
-        [1,1,1,"~send"],
-        [1,1,"Swap",1,1,"Swap"],
-        [1,1,1,1,1,"~dec"],
-        [1,1,1,1,1,"•","X"],
-        [1,1,1,1,1,"H"],
-        [1,1,1,1,1,"Measure","Measure"],
-        [1,1,1,1,1,"~msg"],
-        [1,1,1,1,1,"Chance","Chance"],
-    ],
-    "gates":[
-        {"id":"~msg","name":"message","matrix":"{{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}"},
-        {"id":"~enc","name":"encode","matrix":"{{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}"},
-        {"id":"~send","name":"send","matrix":"{{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}"},
-        {"id":"~dec","name":"decode","matrix":"{{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}"},
-    ]
-};
-const symmetryBreakingLink = {
-    "cols":[
-        ["~tpqg",1,"~r2ku"],
-        ["…","…","…","…"],
-        ["H"],
-        [1,1,"H"],
-        ["•","X"],
-        [1,1,"•","X"],
-        [1,"Swap",1,"Swap"],
-        ["•","X"],
-        [1,1,"•","X"],
-        ["X^½","◦"],
-        [1,1,"X^½","◦"],
-        [1,"X^½"],
-        [1,1,1,"X^½"],
-        ["Measure","Measure","Measure","Measure"],
-        [1,"~57au"],
-        ["•",1,"Chance"],
-        [1,"•",1,"Chance"],
-        ["◦",1,"Chance"],
-        [1,"◦",1,"Chance"]
-    ],
-    "gates": [
-        {"id":"~tpqg","name":"Alice^1","matrix":"{{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}"},
-        {"id":"~r2ku","name":"Alice^2","matrix":"{{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}"},
-        {"id":"~57au","name":"disagree","matrix":"{{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}"}
-    ]
-};
-const shorLink = {
-    "cols":[
-        [1,1,1,1,1,1,1,1,1,1,"~input",1,1,1,"~guess"],
-        [1,1,1,1,1,1,1,1,1,1,{"id":"setR","arg":55},1,1,1,{"id":"setB","arg":26}],
-        [],
-        ["H","H","H","H","H","H","H","H","H","H","X"],
-        ["inputA10",1,1,1,1,1,1,1,1,1,"*BToAmodR6"],
-        ["QFT†10"],
-        [1,1,1,1,"~out"],
-        ["Chance10"],
-    ],
-    "gates":[
-        {"id":"~guess","name":"guess:","matrix":"{{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}"},
-        {"id":"~input","name":"input:","matrix":"{{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}"},
-        {"id":"~out","name":"out:","matrix":"{{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}"}
-    ]
-};
-const distillLink = {
-    "cols":[
-        ["H","H","H","H","H"],
-        [1,"Z","Z","Z",1,"⊖"],
-        [1,"Z","Z",1,"Z",1,"⊖"],
-        [1,"Z",1,"Z","Z",1,1,"⊖"],
-        [1,1,"Z","Z","Z",1,1,1,"⊖"],
-        ["Z","Z","Z","Z","Z",1,1,1,1,"⊖"],
-        ["Z",1,1,"Z","Z",1,1,1,1,1,"⊖"],
-        ["Z",1,"Z",1,"Z",1,1,1,1,1,1,"⊖"],
-        ["Z","Z",1,1,"Z",1,1,1,1,1,1,1,"⊖"],
-        ["Z",1,"Z","Z",1,1,1,1,1,1,1,1,1,"⊖"],
-        ["Z","Z",1,"Z",1,1,1,1,1,1,1,1,1,1,"⊖"],
-        ["Z","Z","Z",1,1,1,1,1,1,1,1,1,1,1,1,"⊖"],
-        [1,"Z^¼","Z^¼","Z^¼","Z^¼","Z^¼","Z^¼","Z^¼","Z^¼","Z^¼","Z^¼","Z^¼","Z^¼","Z^¼","Z^¼","Z^¼"],
-        [1,"H","H","H","H","H","H","H","H","H","H","H","H","H","H","H"],
-        [1,"Measure","Measure","Measure","Measure","Measure","Measure","Measure","Measure","Measure","Measure","Measure","Measure","Measure","Measure","Measure"],
-        [1,"X","X","X",1,"•"],
-        [1,"X","X",1,"X",1,"•"],
-        [1,"X",1,"X","X",1,1,"•"],
-        [1,1,"X","X","X",1,1,1,"•"],
-        ["Z","X","X","X","X",1,1,1,1,"•"],
-        ["Z",1,1,"X","X",1,1,1,1,1,"•"],
-        ["Z",1,"X",1,"X",1,1,1,1,1,1,"•"],
-        ["Z","X",1,1,"X",1,1,1,1,1,1,1,"•"],
-        ["Z",1,"X","X",1,1,1,1,1,1,1,1,1,"•"],
-        ["Z","X",1,"X",1,1,1,1,1,1,1,1,1,1,"•"],
-        ["Z","X","X",1,1,1,1,1,1,1,1,1,1,1,1,"•"],
-        ["X","Chance4"],
-        ["Amps1","|0⟩⟨0|","|0⟩⟨0|","|0⟩⟨0|","|0⟩⟨0|"]
-    ]
-};
+import {EXAMPLE_CIRCUITS} from "./exampleCircuits.js"
 
 /**
+ * Interface note: also requires #menu-button (src/components/app-toolbar.jsx) and the welcome
+ * panel's #close-menu-button and #example-* anchors, shipped in html/menu.partial.html and
+ * mounted by src/components/menu-dialog.jsx before this runs.
+ *
  * @param {!Revision} revision
  * @param {!OverlayState} overlayState
  */
 function initMenu(revision, overlayState) {
     const obsActiveOverlay = overlayState.active();
-    const obsMenuIsShowing = obsActiveOverlay.map(active => active === "menu").whenDifferent();
     const obsIsAnyOverlayShowing = obsActiveOverlay.map(active => active !== undefined).whenDifferent();
 
-    // Show/hide menu overlay.
+    // Open and close the menu overlay. Visibility, Escape, backdrop clicks, and focus belong to
+    // the Base UI Dialog that wraps it (src/components/app-dialogs.jsx).
     (() => {
         const menuButton = /** @type {!HTMLButtonElement} */ document.getElementById('menu-button');
         const closeMenuButton = /** @type {!HTMLButtonElement} */ document.getElementById('close-menu-button');
-        const menuOverlay = /** @type {!HTMLDivElement} */ document.getElementById('menu-overlay');
-        const menutDiv = /** @type {HTMLDivElement} */ document.getElementById('menu-div');
         menuButton.addEventListener('click', () => overlayState.open("menu"));
         obsIsAnyOverlayShowing.subscribe(e => { menuButton.disabled = e; });
-        menuOverlay.addEventListener('click', () => overlayState.close());
         closeMenuButton.addEventListener('click', () => overlayState.close());
-        document.addEventListener('keydown', e => {
-            if (e.key === 'Escape') {
-                overlayState.close()
-            }
-        });
-        obsMenuIsShowing.subscribe(showing => {
-            menutDiv.style.display = showing ? 'block' : 'none';
-            if (showing) {
-                document.getElementById('export-link-copy-button').focus();
-            }
-        });
     })();
 
-    const groverAnchor = /** @type {!HTMLAnchorElement} */ document.getElementById('example-anchor-grover');
-    const teleportAnchor = /** @type {!HTMLAnchorElement} */ document.getElementById('example-anchor-teleport');
-    const eraserAnchor = /** @type {!HTMLAnchorElement} */ document.getElementById('example-anchor-delayed-eraser');
-    const additionAnchor = /** @type {!HTMLAnchorElement} */ document.getElementById('example-addition');
-    const superdenseCodeAnchor = /** @type {!HTMLAnchorElement} */ document.getElementById('example-superdense-coding');
-    const symmetryBreakAnchor = /** @type {!HTMLAnchorElement} */ document.getElementById('example-symmetry-break');
-    const chshTestAnchor = /** @type {!HTMLAnchorElement} */ document.getElementById('example-chsh-test');
-    const qftAnchor = /** @type {!HTMLAnchorElement} */ document.getElementById('example-qft');
-    const shorAnchor = /** @type {!HTMLAnchorElement} */ document.getElementById('example-anchor-shor');
-    const distillAnchor = /** @type {!HTMLAnchorElement} */ document.getElementById('example-anchor-distill');
-
-    for (let [a, t] of [[groverAnchor, groverLink],
-                        [shorAnchor, shorLink],
-                        [teleportAnchor, teleportLink],
-                        [eraserAnchor, eraserLink],
-                        [additionAnchor, additionLink],
-                        [superdenseCodeAnchor, superdenseCodingLink],
-                        [symmetryBreakAnchor, symmetryBreakingLink],
-                        [chshTestAnchor, chshTestLink],
-                        [qftAnchor, qftLink],
-                        [distillAnchor, distillLink]]) {
-        let text = JSON.stringify(t);
+    for (let {anchorId, circuit} of EXAMPLE_CIRCUITS) {
+        let a = /** @type {!HTMLAnchorElement} */ document.getElementById(anchorId);
+        let text = JSON.stringify(circuit);
         a.href = "#circuit=" + text;
         a.onclick = ev => {
             // Let the browser handle modified and non-left clicks, so opening the link in a new tab still works.

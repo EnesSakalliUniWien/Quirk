@@ -30,27 +30,8 @@ import {notifyAboutRecoveryFromUnexpectedError} from "../fallback.js"
 import {MysteryGateSymbol, MysteryGateMakerWithMatrix} from "../gates/Joke_MysteryGate.js"
 import {seq} from "../base/Seq.js"
 import {setGateBuilderEffectToCircuit} from "./CircuitComputeUtil.js"
-
-/** @type {!function(!GateDrawParams)} */
-let matrixDrawer = undefined;
-/** @type {!function(!GateDrawParams)} */
-let circuitDrawer = undefined;
-/** @type {!function(!GateDrawParams)} */
-let labelDrawer = undefined;
-/** @type {!function(!GateDrawParams)} */
-let locationIndependentDrawer = undefined;
-/**
- * @param {!function(!GateDrawParams)} gateLabelDrawer
- * @param {!function(!GateDrawParams)} gateMatrixDrawer
- * @param {!function(!GateDrawParams)} gateCircuitDrawer
- * @param {!function(!GateDrawParams)} locationIndependentGateDrawer
- */
-function initSerializer(gateLabelDrawer, gateMatrixDrawer, gateCircuitDrawer, locationIndependentGateDrawer) {
-    labelDrawer = gateLabelDrawer;
-    matrixDrawer = gateMatrixDrawer;
-    circuitDrawer = gateCircuitDrawer;
-    locationIndependentDrawer = locationIndependentGateDrawer;
-}
+import {GatePainting} from "../draw/GatePainting.js"
+import {drawCustomGateCircuit} from "../draw/CustomGateCircuitDrawer.js"
 
 /**
  * Serializes supported values to/from json elements.
@@ -244,9 +225,9 @@ let fromJson_Gate_Matrix = props => {
         setTitle(props.name).
         setHeight(height).
         setWidth(width).
-        setDrawer(props.symbol === "" ? matrixDrawer
-            : matrix.isIdentity() ? labelDrawer
-            : matrix.isScaler() ? locationIndependentDrawer
+        setDrawer(props.symbol === "" ? GatePainting.MATRIX_DRAWER
+            : matrix.isIdentity() ? GatePainting.LABEL_DRAWER
+            : matrix.isScaler() ? GatePainting.LOCATION_INDEPENDENT_GATE_DRAWER
             : undefined).
         setKnownEffectToMatrix(matrix);
     if (matrix.isIdentity()) {
@@ -266,7 +247,7 @@ let fromJson_Gate_Circuit = (props, context) => {
         setSerializedId(props.id).
         setSymbol(props.symbol).
         setTitle(props.name).
-        setDrawer(circuitDrawer).
+        setDrawer(drawCustomGateCircuit).
         gate;
 };
 
@@ -483,4 +464,4 @@ const BINDINGS = [
     [CircuitDefinition, toJson_CircuitDefinition, fromJson_CircuitDefinition]
 ];
 
-export {Serializer, initSerializer, fromJsonText_CircuitDefinition}
+export {Serializer, fromJsonText_CircuitDefinition}

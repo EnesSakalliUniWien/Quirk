@@ -44,6 +44,9 @@ function drawMeasurementGate(args) {
     }).thenStroke(Palette.INK_COLOR);
     // Draw the indicator head.
     args.painter.trace(trace => trace.arrowHead(p, q, r*0.3, a, τ/4)).thenFill(Palette.INK_COLOR);
+
+    // Collapses the state: the red edge of the toolbox's class marking.
+    GatePainting.paintToolboxCategoryRule(args, Palette.ERROR_COLOR);
 }
 
 let MeasurementGate = new GateBuilder().

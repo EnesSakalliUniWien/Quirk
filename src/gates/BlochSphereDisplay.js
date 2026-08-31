@@ -19,6 +19,8 @@ import {GateBuilder} from "../circuit/Gate.js"
 import {GatePainting} from "../draw/GatePainting.js"
 import {MathPainter} from "../draw/MathPainter.js"
 import {Point} from "../math/Point.js"
+import {Rect} from "../math/Rect.js"
+import {Typography} from "../config/Typography.js"
 
 /**
  * @param {!Painter} painter
@@ -98,6 +100,40 @@ function _paintBlochSphereDisplay_indicator(
     painter.ctx.restore();
 }
 
+// A qubit entangled with the rest of the circuit has a Bloch vector shorter than 1. The arrow
+// already shows that by its length; fading the shell along with it makes the mixedness readable at
+// gate size, where the arrow is only a few pixels long.
+const PURE_STATE_THRESHOLD = 0.999;
+const MINIMUM_SHELL_OPACITY = 0.25;
+
+/**
+ * @param {!Painter} painter
+ * @param {!Rect} drawArea
+ * @param {!number} r The length of the reduced Bloch vector.
+ */
+function _paintBlochSphereDisplay_purity(painter, drawArea, r) {
+    let x = drawArea.center().x;
+    let y = drawArea.bottom() - 2;
+    painter.print(
+        `|r| ${r.toFixed(3)}`,
+        x,
+        y,
+        'center',
+        'bottom',
+        r > PURE_STATE_THRESHOLD ? Palette.DISPLAY_GATE_FORE_COLOR : Palette.OPERATION_FORE_COLOR,
+        `10px ${Typography.MONO_FONT_FAMILY}`,
+        drawArea.w,
+        12,
+        // The readout sits over the sphere, where the indicator may also be. A backing keeps the
+        // digits legible without hiding what is under them.
+        (w, h) => {
+            painter.ctx.save();
+            painter.ctx.globalAlpha *= 0.7;
+            painter.fillRect(new Rect(x - w/2 - 1, y - h, w + 2, h), Palette.BACKGROUND_COLOR);
+            painter.ctx.restore();
+        });
+}
+
 /**
  * @param {!Painter} painter
  * @param {!Matrix} qubitDensityMatrix
@@ -117,8 +153,17 @@ function paintBlochSphereDisplay(
     let u = Math.min(drawArea.w, drawArea.h) / 2;
     let {dx, dy, dz} = MathPainter.coordinateSystem(u);
 
+    let hasNaN = qubitDensityMatrix.hasNaN();
+    let [x, y, z] = hasNaN ? [NaN, NaN, NaN] : qubitDensityMatrix.qubitDensityMatrixToBlochVector();
+    let r = hasNaN ? NaN : Math.min(1, Math.sqrt(x*x + y*y + z*z));
+
     // Draw sphere and axis lines (in not-quite-proper 3d).
     painter.fillCircle(c, u, backgroundColor);
+
+    painter.ctx.save();
+    if (!hasNaN) {
+        painter.ctx.globalAlpha *= MINIMUM_SHELL_OPACITY + (1 - MINIMUM_SHELL_OPACITY)*r;
+    }
     painter.trace(trace => {
         trace.circle(c.x, c.y, u);
         trace.ellipse(c.x, c.y, dy.x, dx.y);
@@ -136,13 +181,13 @@ function paintBlochSphereDisplay(
 
     // The half of the depth axis pointing away stays dim, which is the only depth cue the sphere has.
     painter.strokeLine(c, c.plus(dx), Palette.FAINT_LINE_COLOR);
+    painter.ctx.restore();
 
-    let [x, y, z] = [NaN, NaN, NaN];
-    if (qubitDensityMatrix.hasNaN()) {
+    if (hasNaN) {
         painter.printParagraph("NaN", drawArea, new Point(0.5, 0.5), Palette.ERROR_COLOR);
     } else {
-        [x, y, z] = qubitDensityMatrix.qubitDensityMatrixToBlochVector();
         _paintBlochSphereDisplay_indicator(painter, x, y, z, drawArea, fillColor);
+        _paintBlochSphereDisplay_purity(painter, drawArea, r);
     }
 
     _paintBlochSphereDisplay_tooltips(painter, drawArea, x, y, z, focusPoints);

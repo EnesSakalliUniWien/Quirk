@@ -1,0 +1,91 @@
+/* The app toolbar: brand, action buttons, and version tag. */
+@layer components {
+    .app-toolbar {
+        display: flex;
+        min-height: 52px;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+        padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+    }
+
+    .app-brand {
+        display: flex;
+        align-items: center;
+        gap: calc(var(--spacing) * 2);
+        white-space: nowrap;
+    }
+
+    .app-brand-mark {
+        display: inline-flex;
+        width: 32px;
+        height: 32px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+    }
+
+    .app-brand-mark svg {
+        width: 17px;
+        height: 17px;
+    }
+
+    .app-brand-copy {
+        display: grid;
+        line-height: 1.1;
+    }
+
+    .app-brand-copy strong {
+        font-size: 0.9375rem;
+        letter-spacing: -0.01em;
+    }
+
+    .app-brand-copy small {
+        margin-top: 3px;
+        color: var(--muted-foreground);
+        font-size: 0.6875rem;
+        font-weight: 450;
+    }
+
+    .app-toolbar-separator {
+        height: 28px;
+    }
+
+    .app-toolbar-actions {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: calc(var(--spacing) * 2);
+    }
+
+    /* Keeps the destructive action clear of the others. Spacing rather than a separator,
+       because .app-toolbar-separator is hidden below 920px, which is exactly where the
+       toolbar wraps and crowding is worst. */
+    .app-toolbar-danger {
+        margin-left: auto;
+    }
+
+    .app-version {
+        margin-left: auto;
+        font-size: var(--text-small);
+        font-variant-numeric: tabular-nums;
+    }
+
+    @media (max-width: 920px) {
+        .app-brand-copy small,
+        .app-toolbar-separator,
+        .app-version {
+            display: none;
+        }
+    }
+
+    @media (max-width: 760px) {
+        .app-toolbar {
+            align-items: flex-start;
+        }
+
+        .app-toolbar-actions {
+            flex: 1 1 100%;
+        }
+    }
+}
