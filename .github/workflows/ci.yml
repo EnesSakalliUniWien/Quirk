@@ -12,6 +12,8 @@ jobs:
         node-version: 22.12.0
         cache: npm
     - run: npm ci
+    # Ubuntu 24.04 runners restrict unprivileged user namespaces, which Chrome's sandbox needs.
+    - run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
     - run: npm test
     - run: npm run test:e2e
   screenshot-circuit:
@@ -23,6 +25,8 @@ jobs:
         node-version: 22.12.0
         cache: npm
     - run: npm ci
+    # Ubuntu 24.04 runners restrict unprivileged user namespaces, which Chrome's sandbox needs.
+    - run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
     - run: npm run build
     - run: node PuppeteerScreenshotCircuit.js
     - uses: actions/upload-artifact@v4
