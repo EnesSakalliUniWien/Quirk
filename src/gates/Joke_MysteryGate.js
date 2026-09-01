@@ -25,7 +25,7 @@ let MysteryGateMakerWithMatrix = matrix => new GateBuilder().
     setSerializedIdAndSymbol(MysteryGateSymbol).
     setTitle("Mystery Gate").
     setBlurb("Different every time.\n(Use shift+drag to copy circuit gates.)").
-    setDrawer(GatePainting.MATRIX_SYMBOL_DRAWER_EXCEPT_IN_TOOLBOX).
+    setDrawer(GatePainting.MATRIX_DRAWER).
     setKnownEffectToMatrix(matrix).
     gate;
 

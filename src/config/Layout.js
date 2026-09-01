@@ -23,8 +23,6 @@ class Layout {}
 * @type {!number} */
 Layout.GATE_RADIUS = 20;
 Layout.WIRE_SPACING = 50;
-// The leading rule that marks a gate which reads the state out or discards it.
-Layout.TOOLBOX_GATE_RULE_WIDTH = 3;
 // Vertical gap above the circuit, now that the toolbox is a sidebar rather than a band on top.
 Layout.CIRCUIT_TOP_MARGIN = 24;
 /**

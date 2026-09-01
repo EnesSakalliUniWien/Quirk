@@ -33,7 +33,7 @@ let SwapGateHalf = new GateBuilder().
         0, 1, 0, 0,
         0, 0, 0, 1)).
     setDrawer(args => {
-        if (args.isInToolbox || args.isHighlighted) {
+        if (args.isHighlighted) {
             GatePainting.DEFAULT_DRAWER(args);
             return;
         }

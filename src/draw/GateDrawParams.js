@@ -25,7 +25,6 @@ class GateDrawParams {
      * Prefer the named factories; the positional constructor is their implementation.
      * @param {!Painter} painter
      * @param {!Hand} hand
-     * @param {!boolean} isInToolbox
      * @param {!boolean} isHighlighted
      * @param {!boolean} isResizeShowing
      * @param {!boolean} isResizeHighlighted
@@ -38,7 +37,6 @@ class GateDrawParams {
      */
     constructor(painter,
                 hand,
-                isInToolbox,
                 isHighlighted,
                 isResizeShowing,
                 isResizeHighlighted,
@@ -52,8 +50,6 @@ class GateDrawParams {
         this.painter = painter;
         /** @type {!Hand} */
         this.hand = hand;
-        /** @type {!boolean} */
-        this.isInToolbox = isInToolbox;
         /** @type {!boolean} */
         this.isHighlighted = isHighlighted;
         /** @type {!boolean} */
@@ -96,7 +92,6 @@ class GateDrawParams {
         return new GateDrawParams(
             painter,
             hand,
-            false,
             opts.isHighlighted || false,
             opts.isResizeShowing || false,
             opts.isResizeHighlighted || false,
@@ -122,7 +117,6 @@ class GateDrawParams {
         return new GateDrawParams(
             painter,
             hand,
-            false,
             true,
             true,
             false,

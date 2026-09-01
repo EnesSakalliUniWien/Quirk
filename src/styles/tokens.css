@@ -16,7 +16,6 @@
     --canvas-gate-fill: #18181B;
     --canvas-gate-fill-highlighted: #92400E;
     --canvas-time-dependent-highlight: #3A3A12;
-    --canvas-display-toolbox-fill: #16A34A;
     --canvas-display-back: #0F1F14;
     --canvas-display-fore: #22C55E;
     --canvas-operation-back: #2E2A12;
@@ -35,8 +34,6 @@
     --canvas-highlight-fill: #EAB308;
     --canvas-playhead-band: rgba(245, 158, 11, 0.27);
     --canvas-background: #0A0A0A;
-    --canvas-toolbox-gate-fill: #27272A;
-    --canvas-toolbox-gate-hover-fill: #3F3F46;
     --canvas-default-text: #FAFAFA;
     --canvas-quiet-gate-fill: #232327;
     --canvas-bright-line: #D4D4D8;

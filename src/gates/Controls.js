@@ -35,7 +35,7 @@ Controls.Control = new GateBuilder().
     markAsControlExpecting(true).
     promiseEffectIsUnitary().
     setDrawer(args => {
-        if (args.isInToolbox || args.isHighlighted) {
+        if (args.isHighlighted) {
             GatePainting.paintBackground(args);
             GatePainting.paintOutline(args);
         }
@@ -52,7 +52,7 @@ Controls.AntiControl = new GateBuilder().
     markAsControlExpecting(false).
     promiseEffectIsUnitary().
     setDrawer(args => {
-        if (args.isInToolbox || args.isHighlighted) {
+        if (args.isHighlighted) {
             GatePainting.paintBackground(args);
             GatePainting.paintOutline(args);
         }
@@ -76,7 +76,7 @@ Controls.XAntiControl = new GateBuilder().
     promiseEffectIsStable().
     promiseEffectIsUnitary().
     setDrawer(args => {
-        if (args.isInToolbox || args.isHighlighted) {
+        if (args.isHighlighted) {
             GatePainting.paintBackground(args);
             GatePainting.paintOutline(args);
         }
@@ -102,7 +102,7 @@ Controls.XControl = new GateBuilder().
     promiseEffectIsStable().
     promiseEffectIsUnitary().
     setDrawer(args => {
-        if (args.isInToolbox || args.isHighlighted) {
+        if (args.isHighlighted) {
             GatePainting.paintBackground(args);
             GatePainting.paintOutline(args);
         }
@@ -128,7 +128,7 @@ Controls.YAntiControl = new GateBuilder().
     promiseEffectIsStable().
     promiseEffectIsUnitary().
     setDrawer(args => {
-        if (args.isInToolbox || args.isHighlighted) {
+        if (args.isHighlighted) {
             GatePainting.paintBackground(args);
             GatePainting.paintOutline(args);
         }
@@ -137,7 +137,7 @@ Controls.YAntiControl = new GateBuilder().
         args.painter.strokeCircle(p, 5);
         let r = 5*Math.sqrt(0.5)*1.1;
         args.painter.strokeLine(p.offsetBy(+r, -r), p.offsetBy(-r, +r));
-        if (args.isInToolbox || args.isHighlighted) {
+        if (args.isHighlighted) {
             GatePainting.paintOutline(args);
         }
     }).
@@ -158,7 +158,7 @@ Controls.YControl = new GateBuilder().
     promiseEffectIsStable().
     promiseEffectIsUnitary().
     setDrawer(ctx => {
-        if (ctx.isInToolbox || ctx.isHighlighted) {
+        if (ctx.isHighlighted) {
             GatePainting.paintBackground(ctx);
             GatePainting.paintOutline(ctx);
         }
@@ -168,7 +168,7 @@ Controls.YControl = new GateBuilder().
         let r = 5*Math.sqrt(0.5);
         ctx.painter.strokeLine(p.offsetBy(+r, +r), p.offsetBy(-r, -r));
         ctx.painter.strokeLine(p.offsetBy(+r, -r), p.offsetBy(-r, +r));
-        if (ctx.isInToolbox || ctx.isHighlighted) {
+        if (ctx.isHighlighted) {
             GatePainting.paintOutline(ctx);
         }
     }).
@@ -218,7 +218,7 @@ function parityGatherScatter(ctx, order) {
  */
 function parityDrawer(name) {
     return args => {
-        if (args.isInToolbox || args.isHighlighted) {
+        if (args.isHighlighted) {
             GatePainting.paintBackground(args);
             GatePainting.paintOutline(args);
         }

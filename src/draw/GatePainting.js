@@ -89,41 +89,14 @@ function fitGateSymbol(painter, text, maxWidth) {
 }
 
 GatePainting.paintOutline = args => {
-    if (args.isInToolbox) {
-        return;
-    }
     args.painter.strokeRect(args.rect, Palette.INK_COLOR);
 };
 
-/**
- * Marks what a gate does to the state, which is the one thing its symbol cannot say: green for a
- * gate that reads the state out, red for one that collapses or discards it. Everything that merely
- * acts on the state stays unmarked. A rule down the leading edge rather than a fill: a handful of
- * solid tiles among a hundred dominate the grid out of all proportion to how often they are
- * reached for, and a saturated fill drags the symbol's contrast down with it.
- *
- * @param {!GateDrawParams} args
- * @param {!string=} color
- */
-GatePainting.paintToolboxCategoryRule = (args, color = Palette.DISPLAY_GATE_FORE_COLOR) => {
-    if (!args.isInToolbox) {
-        return;
-    }
-    let rect = args.rect;
-    args.painter.fillRect(
-        new Rect(rect.x, rect.y + 4, Layout.TOOLBOX_GATE_RULE_WIDTH, rect.h - 8),
-        color);
-};
-
 GatePainting.paintBackground =
-    (args, toolboxFillColor = Palette.TOOLBOX_GATE_FILL_COLOR, normalFillColor = Palette.GATE_FILL_COLOR) => {
-        let backColor = args.isInToolbox ? toolboxFillColor : normalFillColor;
-        if (args.isHighlighted) {
-            backColor = args.isInToolbox ?
-                Palette.TOOLBOX_GATE_HOVER_FILL_COLOR :
-                Palette.HIGHLIGHTED_GATE_FILL_COLOR;
-        }
-        args.painter.fillRect(args.rect, backColor);
+    (args, fillColor = Palette.GATE_FILL_COLOR) => {
+        args.painter.fillRect(
+            args.rect,
+            args.isHighlighted ? Palette.HIGHLIGHTED_GATE_FILL_COLOR : fillColor);
     };
 
 /**
@@ -142,13 +115,12 @@ GatePainting.LABEL_DRAWER = args => {
 };
 
 /**
- * @param {!string=} toolboxFillColor
- * @param {!string=} normalFillColor
+ * @param {!string=} fillColor
  * @constructor
  */
 GatePainting.MAKE_HIGHLIGHTED_DRAWER =
-    (toolboxFillColor = Palette.TOOLBOX_GATE_FILL_COLOR, normalFillColor = Palette.GATE_FILL_COLOR) => args => {
-        GatePainting.paintBackground(args, toolboxFillColor, normalFillColor);
+    (fillColor = Palette.GATE_FILL_COLOR) => args => {
+        GatePainting.paintBackground(args, fillColor);
         GatePainting.paintOutline(args);
         GatePainting.paintResizeTab(args);
         GatePainting.paintGateSymbol(args);
@@ -334,17 +306,8 @@ GatePainting.traceLocationIndependentOutline = (args, tracer) => {
 /**
  * @param {!GateDrawParams} args
  * @param {!string} normalFillColor
- * @param {!string} toolboxFillColor
  */
-GatePainting.paintLocationIndependentFrame = (args,
-                                              normalFillColor = Palette.GATE_FILL_COLOR,
-                                              toolboxFillColor = Palette.TOOLBOX_GATE_FILL_COLOR) => {
-    if (args.isInToolbox) {
-        GatePainting.paintBackground(args, toolboxFillColor, normalFillColor);
-        GatePainting.paintOutline(args);
-        return;
-    }
-
+GatePainting.paintLocationIndependentFrame = (args, normalFillColor = Palette.GATE_FILL_COLOR) => {
     let backColor = args.isHighlighted ? Palette.HIGHLIGHTED_GATE_FILL_COLOR : normalFillColor;
     args.painter.trace(tracer => GatePainting.traceLocationIndependentOutline(args, tracer)).
     thenFill(backColor).
@@ -371,11 +334,6 @@ GatePainting.LOCATION_INDEPENDENT_GATE_DRAWER = GatePainting.makeLocationIndepen
  * @returns {!function(!GateDrawParams)}
  */
 GatePainting.SECTIONED_DRAWER_MAKER = (labels, dividers) => args => {
-    if (args.isInToolbox) {
-        GatePainting.DEFAULT_DRAWER(args);
-        return;
-    }
-
     let backColor = args.isHighlighted ? Palette.HIGHLIGHTED_GATE_FILL_COLOR : Palette.GATE_FILL_COLOR;
     const font = GATE_SYMBOL_FONT;
     args.painter.fillRect(args.rect, backColor);
@@ -405,10 +363,7 @@ GatePainting.SECTIONED_DRAWER_MAKER = (labels, dividers) => args => {
     GatePainting.paintResizeTab(args);
 };
 
-const DISPLAY_GATE_DEFAULT_DRAWER = args => {
-    GatePainting.MAKE_HIGHLIGHTED_DRAWER()(args);
-    GatePainting.paintToolboxCategoryRule(args);
-};
+const DISPLAY_GATE_DEFAULT_DRAWER = GatePainting.MAKE_HIGHLIGHTED_DRAWER();
 
 GatePainting.makeDisplayDrawer = statePainter => args => {
     if (args.positionInCircuit === undefined) {
@@ -468,14 +423,8 @@ GatePainting.MATRIX_DRAWER = args => {
  * @returns {!function(!GateDrawParams) : *}
  */
 GatePainting.makeCycleDrawer = (xScale=1, yScale=1, tScale=1, zeroAngle=0) => args => {
-    // On the circuit the olive fill marks a column that is still moving; in the toolbox the tile
-    // animates in front of you, so the fill only made the group look like a different app.
-    GatePainting.MAKE_HIGHLIGHTED_DRAWER(
-        Palette.TOOLBOX_GATE_FILL_COLOR, Palette.TIME_DEPENDENT_HIGHLIGHT_COLOR)(args);
-
-    if (args.isInToolbox && !args.isHighlighted) {
-        return;
-    }
+    // The olive fill marks a column that is still moving.
+    GatePainting.MAKE_HIGHLIGHTED_DRAWER(Palette.TIME_DEPENDENT_HIGHLIGHT_COLOR)(args);
     GatePainting.paintCycleState(args, args.stats.time * 2 * Math.PI * tScale, xScale, yScale, zeroAngle);
 };
 
@@ -512,16 +461,6 @@ GatePainting.paintCycleState = (args, angle, xScale=1, yScale=1, zeroAngle=0) =>
     args.painter.ctx.restore();
 };
 
-/**
- * @param {!GateDrawParams} args
- */
-GatePainting.MATRIX_SYMBOL_DRAWER_EXCEPT_IN_TOOLBOX = args => {
-    if (args.isInToolbox) {
-        GatePainting.DEFAULT_DRAWER(args);
-        return;
-    }
-    GatePainting.MATRIX_DRAWER(args);
-};
 
 /**
  * @param {!GateDrawParams} args
@@ -547,7 +486,7 @@ GatePainting.gateButtonRect = wholeRect => {
  * @param {!GateDrawParams} args
  */
 GatePainting.paintGateButton = args => {
-    if (!args.isHighlighted || args.isInToolbox || args.hand.isHoldingSomething()) {
+    if (!args.isHighlighted || args.hand.isHoldingSomething()) {
         return;
     }
 
@@ -603,7 +542,7 @@ GatePainting.PERMUTATION_DRAWER = args => {
     if (args.isHighlighted ||
             args.isResizeHighlighted ||
             args.stats.circuitDefinition.colHasControls(args.positionInCircuit.col)) {
-        GatePainting.paintBackground(args, Palette.QUIET_GATE_FILL_COLOR, Palette.QUIET_GATE_FILL_COLOR);
+        GatePainting.paintBackground(args, Palette.QUIET_GATE_FILL_COLOR);
         GatePainting.paintOutline(args);
         GatePainting.paintResizeTab(args);
     } else {

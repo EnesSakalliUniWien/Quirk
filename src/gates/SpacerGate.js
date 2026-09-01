@@ -27,12 +27,8 @@ let SpacerGate = new GateBuilder().
     promiseHasNoNetEffectOnStateVector().
     setDrawer(args => {
         // Drawn as an ellipsis.
-        if (args.isInToolbox || args.isHighlighted) {
-            let backColor = Palette.GATE_FILL_COLOR;
-            if (args.isHighlighted) {
-                backColor = Palette.HIGHLIGHTED_GATE_FILL_COLOR;
-            }
-            args.painter.fillRect(args.rect, backColor);
+        if (args.isHighlighted) {
+            args.painter.fillRect(args.rect, Palette.HIGHLIGHTED_GATE_FILL_COLOR);
             GatePainting.paintOutline(args);
         } else {
             // Whitespace for the ellipsis.

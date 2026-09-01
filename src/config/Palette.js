@@ -28,7 +28,6 @@ Palette.GATE_FILL_COLOR = readStyleToken('--canvas-gate-fill', '#18181B');
 Palette.HIGHLIGHTED_GATE_FILL_COLOR = readStyleToken('--canvas-gate-fill-highlighted', '#92400E');
 Palette.TIME_DEPENDENT_HIGHLIGHT_COLOR = readStyleToken('--canvas-time-dependent-highlight', '#3A3A12');
 // Mixed-state displays are green.
-Palette.DISPLAY_GATE_IN_TOOLBOX_FILL_COLOR = readStyleToken('--canvas-display-toolbox-fill', '#16A34A');
 Palette.DISPLAY_GATE_BACK_COLOR = readStyleToken('--canvas-display-back', '#0F1F14');
 Palette.DISPLAY_GATE_FORE_COLOR = readStyleToken('--canvas-display-fore', '#22C55E');
 // Changes are yellow.
@@ -53,9 +52,6 @@ Palette.HIGHLIGHT_FILL_COLOR = readStyleToken('--canvas-highlight-fill', '#EAB30
 Palette.PLAYHEAD_BAND_COLOR = readStyleToken('--canvas-playhead-band', 'rgba(245, 158, 11, 0.27)');
 Palette.BACKGROUND_COLOR = readStyleToken('--canvas-background', '#0A0A0A');
 Palette.BACKGROUND_COLOR_CIRCUIT = Palette.BACKGROUND_COLOR;
-// The neutral fill some drawers use when a gate is painted outside a circuit position.
-Palette.TOOLBOX_GATE_FILL_COLOR = readStyleToken('--canvas-toolbox-gate-fill', '#27272A');
-Palette.TOOLBOX_GATE_HOVER_FILL_COLOR = readStyleToken('--canvas-toolbox-gate-hover-fill', '#3F3F46');
 // Draw constants.
 Palette.DEFAULT_FILL_COLOR = Palette.GATE_FILL_COLOR;
 Palette.DEFAULT_STROKE_COLOR = Palette.INK_COLOR;
