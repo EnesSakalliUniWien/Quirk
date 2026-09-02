@@ -1,0 +1,19 @@
+/* The painted gate tooltip: a floating canvas drawn by the circuit's own painter. */
+@layer components {
+    .gate-tooltip {
+        position: fixed;
+        z-index: 20;
+        padding: 0;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+        line-height: 0;
+        pointer-events: none;
+    }
+
+    .gate-tooltip canvas {
+        display: block;
+        border-radius: 9px;
+    }
+}

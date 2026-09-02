@@ -1,0 +1,62 @@
+/* Below 920px the palette becomes an off-canvas drawer: the trigger floats over the circuit
+   and the sidebar slides in from the left, instead of a band squeezing the circuit down. */
+@layer components {
+    /* Mirrors the zoom cluster's corner on the other side of the circuit. */
+    .gate-toolbox-drawer-trigger {
+        position: absolute;
+        bottom: calc(var(--spacing) * 3);
+        left: calc(var(--spacing) * 3);
+        z-index: 5;
+        display: inline-flex;
+        align-items: center;
+        gap: calc(var(--spacing) * 1);
+        padding: 6px calc(var(--spacing) * 2);
+        color: var(--sidebar-foreground);
+        background: var(--sidebar);
+        border: 1px solid var(--sidebar-border);
+        border-radius: 9px;
+        box-shadow: 0 8px 24px rgb(0 0 0 / 35%);
+        font: inherit;
+        font-size: var(--text-small);
+        cursor: pointer;
+    }
+
+    .gate-toolbox-drawer-trigger:hover {
+        background: color-mix(in oklch, var(--sidebar), white 4%);
+    }
+
+    .gate-toolbox-drawer-trigger:focus-visible {
+        outline: 3px solid color-mix(in oklch, var(--sidebar-ring), transparent 48%);
+        outline-offset: 2px;
+    }
+
+    .gate-toolbox-drawer-trigger svg {
+        width: 15px;
+        height: 15px;
+    }
+
+    .gate-toolbox-drawer-viewport {
+        position: fixed;
+        inset: 0;
+        z-index: 11;
+        pointer-events: none;
+    }
+
+    .gate-toolbox-drawer-popup {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        display: flex;
+        pointer-events: auto;
+        box-shadow: 12px 0 40px rgb(0 0 0 / 45%);
+    }
+
+    /* Inside the drawer the sidebar fills the popup instead of holding its rail width. */
+    .gate-toolbox-drawer-popup .gate-toolbox {
+        position: static;
+        width: min(var(--sidebar-width), 85vw);
+        max-height: none;
+        flex: 1 1 auto;
+    }
+}
