@@ -70,4 +70,67 @@
         font-size: 24px;
         transform: translate(-50%, -50%);
     }
+
+    /* The error surface: a dismissible banner floated over the circuit's top edge. Non-modal on
+       purpose - every report is a recovery or an environment problem, so it must not steal focus
+       or evict an open dialog. src/ui/errorReporter.js builds and drives it. */
+    #error-banner-root {
+        position: absolute;
+        top: calc(var(--spacing) * 3);
+        left: 50%;
+        z-index: 6;
+        transform: translateX(-50%);
+        max-width: min(640px, calc(100% - var(--spacing) * 8));
+        pointer-events: none;
+    }
+
+    /* display:flex would outrank the UA's [hidden] rule. */
+    .error-banner[hidden] {
+        display: none;
+    }
+
+    .error-banner {
+        display: flex;
+        align-items: center;
+        gap: calc(var(--spacing) * 2);
+        padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+        background: var(--card);
+        border: 1px solid color-mix(in oklch, var(--destructive), transparent 50%);
+        border-radius: 10px;
+        box-shadow: 0 8px 24px rgb(0 0 0 / 40%);
+        font-size: var(--text-body);
+        pointer-events: auto;
+    }
+
+    .error-banner-message {
+        color: var(--destructive);
+    }
+
+    .error-banner-count {
+        color: var(--muted-foreground);
+        font-family: var(--font-mono);
+    }
+
+    .error-banner-button {
+        flex-shrink: 0;
+        padding: 3px calc(var(--spacing) * 2);
+        border: 1px solid var(--border);
+        border-radius: 7px;
+        background: transparent;
+        color: var(--foreground);
+        font: inherit;
+        font-size: 0.75rem;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .error-banner-button:hover {
+        background: var(--accent);
+    }
+
+    .error-banner-dismiss {
+        border: none;
+        font-size: 1rem;
+        line-height: 1;
+    }
 }

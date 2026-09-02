@@ -24,7 +24,7 @@ import {Matrix, complexVectorToReadableJson} from "../math/Matrix.js"
 import {Shaders} from "../webgl/Shaders.js"
 import {Serializer} from "./Serializer.js"
 import {Util} from "../base/Util.js"
-import {notifyAboutRecoveryFromUnexpectedError} from "../fallback.js"
+import {reportRecoveredError} from "../ui/errorReporter.js"
 import {advanceStateWithCircuit} from "./CircuitComputeUtil.js"
 import {currentShaderCoder} from "../webgl/ShaderCoders.js"
 import {WglTextureTrader} from "../webgl/WglTextureTrader.js"
@@ -230,7 +230,7 @@ class CircuitStats {
         try {
             return CircuitStats._fromCircuitAtTime_noFallback(circuitDefinition, time);
         } catch (ex) {
-            notifyAboutRecoveryFromUnexpectedError(
+            reportRecoveredError(
                 `Defaulted to NaN results. Computing circuit values failed.`,
                 {circuitDefinition: Serializer.toJson(circuitDefinition)},
                 ex);

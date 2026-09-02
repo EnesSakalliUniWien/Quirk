@@ -26,7 +26,7 @@ import {GateColumn} from "./GateColumn.js"
 import {Gates, INITIAL_STATES_TO_GATES} from "../gates/AllGates.js"
 import {Matrix} from "../math/Matrix.js"
 import {Util} from "../base/Util.js"
-import {notifyAboutRecoveryFromUnexpectedError} from "../fallback.js"
+import {reportRecoveredError} from "../ui/errorReporter.js"
 import {MysteryGateSymbol, MysteryGateMakerWithMatrix} from "../gates/misc/Joke_MysteryGate.js"
 import {seq} from "../base/Seq.js"
 import {setGateBuilderEffectToCircuit} from "./CircuitComputeUtil.js"
@@ -283,7 +283,7 @@ let fromJson_Gate = (json, context=new CustomGateSet()) => {
         return match;
 
     } catch (ex) {
-        notifyAboutRecoveryFromUnexpectedError(
+        reportRecoveredError(
             "Defaulted to a do-nothing 'parse error' gate. Failed to understand the json defining a gate.",
             {gate_json: json},
             ex);

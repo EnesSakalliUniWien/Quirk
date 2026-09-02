@@ -402,29 +402,6 @@
         color: color-mix(in oklch, var(--ring), white 12%);
     }
 
-    .error-panel {
-        padding: calc(var(--spacing) * 6);
-        color: var(--destructive);
-        background: var(--card);
-        border: 1px solid color-mix(in oklch, var(--destructive), transparent 50%);
-        border-radius: 12px;
-        font-family: var(--font-mono);
-        font-size: var(--text-title);
-    }
-
-    .error-panel-details {
-        font-size: var(--text-body);
-    }
-
-    .error-panel-note {
-        font-size: var(--text-heading);
-    }
-
-    .error-panel-screenshot {
-        max-width: 600px;
-        max-height: 250px;
-    }
-
     @media (max-width: 760px) {
         .dialog-layout {
             top: calc(var(--spacing) * 3);

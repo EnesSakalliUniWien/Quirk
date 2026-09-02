@@ -44,6 +44,7 @@ import {circuitZoom, initZoomControls, attachCircuitScrollSource} from "./ui/zoo
 import {initMinimap} from "./ui/minimap.js"
 import {initGateParamDialog} from "./ui/gateParamDialog.js"
 import {initBlochSphereDialog} from "./ui/blochSphereDialog.js"
+import {noteCircuitEdited} from "./ui/errorReporter.js"
 
 /**
  * Starts Quirk after its document elements are available. Must be called exactly once.
@@ -112,17 +113,11 @@ function startQuirk() {
         return ins;
     };
 
-    // Gradually fade out old errors as user manipulates circuit.
+    // A stale recovery message disappears once the user moves on; a live problem re-raises it.
     displayed.observable().
         map(e => e.displayedCircuit.circuitDefinition).
         whenDifferent(Util.CUSTOM_IS_EQUAL_TO_EQUALITY).
-        subscribe(() => {
-            let errDivStyle = document.getElementById('error-div').style;
-            errDivStyle.opacity *= 0.9;
-            if (errDivStyle.opacity < 0.06) {
-                errDivStyle.display = 'None'
-            }
-        });
+        subscribe(() => noteCircuitEdited());
 
     const redrawLoop = initRedrawLoop(
         canvas,

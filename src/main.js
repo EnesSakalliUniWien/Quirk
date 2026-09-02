@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
-// It's important that the polyfills and error fallback get loaded first!
-import {hookErrorHandler} from "./fallback.js"
-import {doDetectIssues} from "./issues.js"
+// The error reporter installs first, so a failure anywhere in startup still reaches the banner.
+import {installErrorReporter, reportBlockingIssue} from "./ui/errorReporter.js"
+import {detectWebGlNotSupported} from "./issues.js"
 import {startQuirk} from "./QuirkApp.js"
 import {mountAppToolbar} from "./components/app-toolbar.jsx"
 import {mountTransportBar} from "./components/transport-bar.jsx"
 import {mountGateToolbox} from "./components/gate-toolbox.jsx"
 import "./styles/globals.css"
 
-hookErrorHandler();
-doDetectIssues();
+installErrorReporter();
+if (detectWebGlNotSupported()) {
+    reportBlockingIssue("Can't simulate circuits. Your browser doesn't support WebGL, or has it disabled.");
+}
 mountAppToolbar();
 mountTransportBar();
 mountGateToolbox();

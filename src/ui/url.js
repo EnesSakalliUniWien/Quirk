@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {notifyAboutRecoveryFromUnexpectedError} from "../fallback.js"
+import {reportRecoveredError} from "./errorReporter.js"
 import {CircuitDefinition} from "../circuit/CircuitDefinition.js"
 import {AppInfo} from "../config/AppInfo.js"
 import {HistoryPusher} from "../browser/HistoryPusher.js"
@@ -71,7 +71,7 @@ function initUrlCircuitSync(revision) {
                 historyPusher.stateChange(jsonText, urlHash);
             }
         } catch (ex) {
-            notifyAboutRecoveryFromUnexpectedError(
+            reportRecoveredError(
                 "Defaulted to an empty circuit. Failed to understand circuit from URL.",
                 {document_location_hash: document.location.hash},
                 ex);

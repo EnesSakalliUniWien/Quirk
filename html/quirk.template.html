@@ -34,6 +34,8 @@
                         <div id="canvas-scroll-spacer" aria-hidden="true"></div>
                     </div>
                     <div id="circuit-overlay"></div>
+                    <!-- The error banner floats over the circuit; src/ui/errorReporter.js fills it. -->
+                    <div id="error-banner-root"></div>
                 </div>
             </div>
 
@@ -42,8 +44,6 @@
 
         </div>
 
-
-        <!-- INCLUDE ERROR PART -->
 
         <!-- Dialog panels. Parked here while closed; src/components/app-dialogs.jsx moves each
              into its Base UI popup when it opens, so the ids and listeners survive. -->
