@@ -137,8 +137,8 @@ async function canvasLayout(page) {
             return [data[0], data[1], data[2], data[3]];
         };
         const countRegion = (x, y, width, height) => {
-            // The canvas paints a real dark theme; the circuit background is #0A0A0A.
-            const background = [10, 10, 10];
+            // The canvas paints a real dark theme; the circuit background is #14161D.
+            const background = [20, 22, 29];
             const data = context.getImageData(x, y, width, height).data;
             let painted = 0;
             let greenish = 0;
@@ -188,7 +188,7 @@ function assertCircuitLayout(layout) {
     assert.ok(
         layout.canvas.left >= layout.toolbox.right - 1,
         'The circuit canvas must sit beside the gate toolbox, not below it.');
-    assert.deepEqual(layout.circuitTopPixel, [10, 10, 10, 255]);
+    assert.deepEqual(layout.circuitTopPixel, [20, 22, 29, 255]);
     assert.ok(
         layout.blochGateRegion.painted > 1000,
         'The Bloch sphere must be painted in its circuit gate slot.');

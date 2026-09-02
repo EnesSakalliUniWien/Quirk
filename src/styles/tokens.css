@@ -13,7 +13,10 @@
 /* Every colour the canvas paints with. src/config/Palette.js reads these at startup, so the
    canvas and the DOM cannot drift apart. */
 :root {
-    --canvas-gate-fill: #18181B;
+    /* The neutrals share a barely-there indigo cast (oklch hue ~265) instead of pure gray: the
+       canvas is the darkest "deep field" layer so the readout colours glow against it, and the
+       chrome and panels step up from there. Chromatic colours are the identity and stay put. */
+    --canvas-gate-fill: #191C24;
     --canvas-gate-fill-highlighted: #92400E;
     --canvas-time-dependent-highlight: #3A3A12;
     --canvas-display-back: #0F1F14;
@@ -23,20 +26,21 @@
     --canvas-superposition-back: #0E1B1E;
     --canvas-superposition-mid: #0E7490;
     --canvas-superposition-fore: #22D3EE;
-    --canvas-ink: #E4E4E7;
-    --canvas-surface: #18181B;
-    --canvas-error: #F87171;
-    --canvas-grid-line: #3F3F46;
-    --canvas-mid-line: #71717A;
-    --canvas-muted-text: #A1A1AA;
-    --canvas-faint-line: #52525B;
+    --canvas-ink: #E3E5EC;
+    --canvas-surface: #191C24;
+    /* Cold magenta rather than warm red: still reads as "stop", but on the palette's cold side. */
+    --canvas-error: #E879F9;
+    --canvas-grid-line: #3D4250;
+    --canvas-mid-line: #6F7689;
+    --canvas-muted-text: #9AA1B5;
+    --canvas-faint-line: #515769;
     --canvas-highlight-stroke: #F59E0B;
     --canvas-highlight-fill: #EAB308;
     --canvas-playhead-band: rgba(245, 158, 11, 0.27);
-    --canvas-background: #0A0A0A;
+    --canvas-background: #14161D;
     --canvas-default-text: #FAFAFA;
-    --canvas-quiet-gate-fill: #232327;
-    --canvas-bright-line: #D4D4D8;
+    --canvas-quiet-gate-fill: #232630;
+    --canvas-bright-line: #D3D6E0;
     --canvas-display-dim: #15803D;
     --canvas-tooltip-title: #60A5FA;
     --canvas-tooltip-back: #101812;
@@ -85,22 +89,24 @@
 }
 
 .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 35%);
-    --ring: oklch(0.556 0 0);
+    /* App chrome sits one elevation step above the canvas's deep field, panels a step above
+       that; all on the same cold indigo cast as the canvas neutrals. */
+    --background: #1A1D25;
+    --foreground: oklch(0.985 0.005 265);
+    --card: #232630;
+    --card-foreground: oklch(0.985 0.005 265);
+    --popover: #232630;
+    --popover-foreground: oklch(0.985 0.005 265);
+    --primary: oklch(0.922 0.01 265);
+    --primary-foreground: #232630;
+    --secondary: #2B2F3B;
+    --secondary-foreground: oklch(0.985 0.005 265);
+    --muted: #2B2F3B;
+    --muted-foreground: #9AA1B5;
+    --accent: #2B2F3B;
+    --accent-foreground: oklch(0.985 0.005 265);
+    --destructive: oklch(0.72 0.19 330);
+    --border: oklch(0.85 0.02 265 / 14%);
+    --input: oklch(0.85 0.02 265 / 30%);
+    --ring: oklch(0.6 0.02 265);
 }
