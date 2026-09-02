@@ -18,7 +18,6 @@ import {CircuitDefinition} from "../circuit/CircuitDefinition.js"
 import {CircuitStats} from "../circuit/CircuitStats.js"
 import {Layout} from "../config/Layout.js"
 import {Palette} from "../config/Palette.js"
-import {Typography} from "../config/Typography.js"
 import {DisplayedCircuit} from "../ui/DisplayedCircuit.js"
 import {GateDrawParams} from "../draw/GateDrawParams.js"
 import {GatePainting} from "../draw/GatePainting.js"
@@ -26,13 +25,6 @@ import {Hand} from "../ui/Hand.js"
 import {Painter} from "../draw/Painter.js"
 import {Rect} from "../math/Rect.js"
 import {Serializer} from "../circuit/Serializer.js"
-
-/**
- * How far above the circuit the hint doodles anchor their frame. Their arrows were drawn to reach
- * the circuit's top edge from here.
- * @type {!number}
- */
-const HINT_FRAME_OFFSET = 125;
 
 class DisplayedInspector {
     /**
@@ -86,7 +78,6 @@ class DisplayedInspector {
 
         this.displayedCircuit.paint(painter, this.hand, stats, false, true, playheadStep);
         this._paintHand(painter, stats);
-        this._drawHint(painter);
     }
 
     /**
@@ -260,118 +251,6 @@ class DisplayedInspector {
      */
     snapshot() {
         return JSON.stringify(Serializer.toJson(this.displayedCircuit.circuitDefinition), null, 0);
-    }
-
-    _drawHint(painter) {
-        // The hints are hand-placed doodles. They were laid out against a frame whose origin sat
-        // HINT_FRAME_OFFSET above the circuit, so the frame moves with the circuit and they keep
-        // pointing where they always did.
-        painter.ctx.save();
-        painter.ctx.translate(0, this.displayedCircuit.top - HINT_FRAME_OFFSET);
-        this._drawHint_watchOutputsChange(painter);
-        this._drawHint_useControls(painter);
-        painter.ctx.restore();
-    }
-
-    /**
-     * @param {!Painter} painter
-     * @private
-     */
-    _drawHint_watchOutputsChange(painter) {
-        let visibilityFactor = this._hintVisibility();
-        if (visibilityFactor <= 0) {
-            return;
-        }
-
-        painter.ctx.save();
-        painter.ctx.globalAlpha *= Math.min(1, visibilityFactor);
-        // Anchored to the first output display column so the arrow follows the right-aligned displays.
-        painter.ctx.translate(
-            this.displayedCircuit.opRect(this.displayedCircuit.clampedCircuitColCount() + 1).x - 330, 15);
-
-        painter.ctx.save();
-        painter.ctx.translate(268, 250);
-        painter.ctx.rotate(Math.PI * 0.02);
-        painter.ctx.fillStyle = Palette.ERROR_COLOR;
-        painter.ctx.textAlign = 'right';
-        painter.ctx.font = `16px ${Typography.DEFAULT_FONT_FAMILY}`;
-        painter.ctx.fillText("outputs change", 0, 0);
-        painter.ctx.restore();
-
-        painter.ctx.beginPath();
-        painter.ctx.moveTo(270, 245);
-        painter.ctx.bezierCurveTo(
-            300, 245,
-            315, 235,
-            325, 225);
-        painter.ctx.strokeStyle = Palette.ERROR_COLOR;
-        painter.ctx.lineWidth = 3;
-        painter.ctx.stroke();
-
-        painter.trace(tracer => {
-            tracer.arrowHead(330, 219, 10, Math.PI*-0.265, 1.3);
-        }).thenFill(Palette.ERROR_COLOR);
-
-        painter.ctx.restore();
-    }
-
-    _hintVisibility() {
-        if (this.displayedCircuit.circuitDefinition.columns.length > 0) {
-            return 0;
-        }
-        return this.hand.pos === undefined || !this.hand.isBusy() ? 1.0 :
-            this.hand.heldGate !== undefined && this.hand.heldGate.isControl() ? 1.0 :
-            (this.displayedCircuit.top + 2 - this.hand.pos.y)/50;
-    }
-
-
-
-    /**
-     * @param {!Painter} painter
-     * @private
-     */
-    _drawHint_useControls(painter) {
-        let visibilityFactor = this._hintVisibility();
-        if (visibilityFactor <= 0) {
-            return;
-        }
-        painter.ctx.save();
-        painter.ctx.globalAlpha *= Math.min(1, visibilityFactor);
-
-        let firstSlotAvailable = this.displayedCircuit.circuitDefinition.gateInSlot(0, 0) === undefined;
-        let fy = firstSlotAvailable ? 173 : 223;
-
-        painter.ctx.save();
-        painter.ctx.translate(70, fy-3);
-        painter.ctx.rotate(Math.PI * -0.01);
-        painter.ctx.fillStyle = Palette.ERROR_COLOR;
-        painter.ctx.font = `16px ${Typography.DEFAULT_FONT_FAMILY}`;
-        painter.ctx.fillText("use controls", 0, 0);
-        painter.ctx.restore();
-
-        painter.ctx.beginPath();
-        if (firstSlotAvailable) {
-            painter.ctx.moveTo(90, 125);
-            painter.ctx.bezierCurveTo(
-                60, 140,
-                48, 160,
-                55, fy);
-        } else {
-            painter.ctx.moveTo(100, 125);
-            painter.ctx.bezierCurveTo(
-                115, 150,
-                105, 170,
-                55, fy);
-        }
-        painter.ctx.strokeStyle = Palette.ERROR_COLOR;
-        painter.ctx.lineWidth = 3;
-        painter.ctx.stroke();
-        painter.ctx.beginPath();
-        painter.ctx.arc(55, fy, 5, 0, 2 * Math.PI);
-        painter.ctx.fillStyle = Palette.ERROR_COLOR;
-        painter.ctx.fill();
-
-        painter.ctx.restore();
     }
 }
 
