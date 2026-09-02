@@ -31,7 +31,7 @@ function AppDialogs({overlayState}) {
 let appDialogsRoot;
 
 /**
- * Mounts the three overlays. Rendered synchronously, because the src/ui modules that run next look
+ * Mounts the app overlays. Rendered synchronously, because the src/ui modules that run next look
  * the dialogs' elements up by id.
  *
  * @param {!OverlayState} overlayState

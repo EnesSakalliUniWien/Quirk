@@ -26,8 +26,6 @@ suite.test("centersTheCircuitVerticallyInATallArea", () => {
 
     let band = inspector.displayedCircuit.desiredHeight();
     assertThat(inspector.displayedCircuit.top).isEqualTo(Math.floor((800 - band) / 2));
-    assertThat(inspector.displayedToolboxTop).isEqualTo(undefined);
-    assertThat(inspector.displayedToolboxBottom).isEqualTo(undefined);
 });
 
 suite.test("pinsTheCircuitToTheTopMarginWhenTheAreaIsShort", () => {

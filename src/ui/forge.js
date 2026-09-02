@@ -492,4 +492,4 @@ function parseUserGateFromCircuitRange(circuit, colRangeText, wireRangeText, nam
         gate;
 }
 
-export {initForge, parseUserRotation, parseUserMatrix, parseUserGateFromCircuitRange}
+export {initForge, parseUserRotation, parseUserMatrix}

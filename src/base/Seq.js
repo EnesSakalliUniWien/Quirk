@@ -16,7 +16,7 @@
 
 import {DetailedError} from "./DetailedError.js"
 
-export const THROW_IF_EMPTY = { if_same_instance_as_this_then_throw: true };
+const THROW_IF_EMPTY = { if_same_instance_as_this_then_throw: true };
 
 /**
  * A private sygil/sentinel value that shouldn't ever be present in a sequence, and so can be used as a placeholder for

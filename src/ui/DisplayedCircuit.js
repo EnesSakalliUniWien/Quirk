@@ -662,4 +662,4 @@ let GATE_CIRCUIT_DRAWER = args => {
 // imports the serializer right back.
 setCustomGateCircuitDrawer(GATE_CIRCUIT_DRAWER);
 
-export {DisplayedCircuit, drawCircuitTooltip, GATE_CIRCUIT_DRAWER}
+export {DisplayedCircuit, drawCircuitTooltip}

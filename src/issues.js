@@ -15,8 +15,7 @@
  */
 
 let canvasCreatedForTesting = document.createElement('canvas');
-let webglContextCreatedForTesting = canvasCreatedForTesting.getContext('webgl') ||
-    canvasCreatedForTesting.getContext('experimental-webgl');
+let webglContextCreatedForTesting = canvasCreatedForTesting.getContext('webgl');
 
 /** @returns {!boolean} */
 function detectWebGlNotSupported() {

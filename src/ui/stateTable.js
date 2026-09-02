@@ -206,4 +206,4 @@ function initStateTable(obsPlayheadStats) {
     });
 }
 
-export {initStateTable, stateTableRows, MAX_ROWS, NEGLIGIBLE_PROBABILITY}
+export {initStateTable, stateTableRows}

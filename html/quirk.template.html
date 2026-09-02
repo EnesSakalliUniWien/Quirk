@@ -99,8 +99,7 @@
 
         <!-- Javascript detection -->
         <div id="noscript-div" class="noscript-warning"
-             style="animation: 3s delay-showing-before-hide-script-can-run-but-then-jump-in;
-                    background-color: white; border: 1px solid red; padding: 10px;">
+             style="animation: 3s delay-showing-before-hide-script-can-run-but-then-jump-in;">
             You appear to have JavaScript blocked. And Shadow-Quant is made out of JavaScript... :(
         </div>
         <script>
@@ -109,7 +108,6 @@
 
         <script>
           document.getElementById('noscript-div').style.display = 'block';
-          //noinspection InnerHTMLJS
           document.QUIRK_QUINE_ALL_HTML_ORIGINAL = '<!'+'DOCTYPE html>\n<'+'html>\n    ' +
                   document.documentElement.innerHTML + '\n<' + '/html>';
           document.getElementById('noscript-div').style.display = 'none';

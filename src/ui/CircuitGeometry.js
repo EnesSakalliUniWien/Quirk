@@ -192,4 +192,4 @@ class CircuitGeometry {
     }
 }
 
-export {CircuitGeometry, EXTRA_COLS_FOR_SINGLE_QUBIT_DISPLAYS}
+export {CircuitGeometry}
