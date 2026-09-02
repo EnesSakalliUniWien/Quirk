@@ -67,11 +67,43 @@
 
     .gate-group-label {
         margin: 0 0 calc(var(--spacing) * 2);
+    }
+
+    /* The group heading doubles as its fold toggle, with a chevron that reports the fold state. */
+    .gate-group-toggle {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        gap: calc(var(--spacing) * 1);
+        padding: 0;
+        background: transparent;
+        border: 0;
         color: var(--muted-foreground);
+        cursor: pointer;
         font-size: 0.6875rem;
         font-weight: 650;
         letter-spacing: 0.08em;
+        text-align: left;
         text-transform: uppercase;
+    }
+
+    .gate-group-toggle:hover {
+        color: var(--foreground);
+    }
+
+    .gate-group-toggle::before {
+        content: '';
+        width: 7px;
+        height: 7px;
+        flex: 0 0 auto;
+        border-right: 1.5px solid currentColor;
+        border-bottom: 1.5px solid currentColor;
+        transform: rotate(45deg);
+        transition: transform 140ms ease;
+    }
+
+    .gate-group-toggle[aria-expanded="false"]::before {
+        transform: rotate(-45deg);
     }
 
     /* Named rows, the way a DAW browser lists devices: the name identifies, the glyph shows what
@@ -79,6 +111,11 @@
     .gate-group-tiles {
         display: grid;
         gap: 2px;
+    }
+
+    /* The display:grid above outranks the browser's [hidden] rule, so fold it back in. */
+    .gate-group-tiles[hidden] {
+        display: none;
     }
 
     .gate-tile {

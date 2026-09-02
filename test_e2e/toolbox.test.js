@@ -123,3 +123,32 @@ test('keeps the gate toolbox beside the circuit until the viewport is too narrow
         assert.ok(compactLayout.toolbox.tileCount > 90, 'The gates must survive the reflow.');
     });
 });
+
+test('folds toolbox groups shut and remembers the folding across reloads', async browser => {
+    await withQuirkPage(browser, {cols: [['H']]}, async page => {
+        const groupState = () => page.evaluate(() => ({
+            expanded: document.querySelector('.gate-group-toggle').getAttribute('aria-expanded'),
+            hidden: document.querySelector('.gate-group-tiles').hidden
+        }));
+        assert.deepEqual(await groupState(), {expanded: 'true', hidden: false});
+
+        await page.click('.gate-group-toggle');
+        assert.deepEqual(await groupState(), {expanded: 'false', hidden: true});
+
+        // A search overrides the folding, so matches are always visible.
+        await page.click('#gate-search');
+        await page.keyboard.type('measure');
+        await page.waitForFunction(
+            () => !document.querySelector('.gate-group-tiles').hidden,
+            {timeout: TEST_TIMEOUT_MILLIS});
+        await page.keyboard.press('Escape');
+        await page.waitForFunction(
+            () => document.querySelector('.gate-group-tiles').hidden,
+            {timeout: TEST_TIMEOUT_MILLIS});
+
+        // The folding is remembered per browser.
+        await page.reload();
+        await waitForQuirk(page);
+        assert.deepEqual(await groupState(), {expanded: 'false', hidden: true});
+    });
+});

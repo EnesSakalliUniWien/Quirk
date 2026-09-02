@@ -41,6 +41,7 @@ const GROUP_CATEGORIES = new Map([
     ['Half Turns', 'turn'],
     ['Quarter Turns', 'turn'],
     ['Eighth Turns', 'turn'],
+    ['Rotations', 'time'],
     ['Spinning', 'time'],
     ['Formulaic', 'time'],
     ['Parametrized', 'time'],
@@ -52,6 +53,33 @@ const GROUP_CATEGORIES = new Map([
     ['Modular', 'compute'],
     ['Scalar', 'compute']
 ]);
+
+const COLLAPSED_GROUPS_STORAGE_KEY = 'toolbox-collapsed-groups';
+
+/**
+ * @returns {!Set.<!string>}
+ * @private
+ */
+function _loadCollapsedGroups() {
+    try {
+        let parsed = JSON.parse(window.localStorage.getItem(COLLAPSED_GROUPS_STORAGE_KEY) || '[]');
+        return new Set(Array.isArray(parsed) ? parsed : []);
+    } catch {
+        return new Set();
+    }
+}
+
+/**
+ * @param {!Set.<!string>} collapsed
+ * @private
+ */
+function _storeCollapsedGroups(collapsed) {
+    try {
+        window.localStorage.setItem(COLLAPSED_GROUPS_STORAGE_KEY, JSON.stringify([...collapsed]));
+    } catch {
+        // A blocked storage just means the folding does not survive a reload.
+    }
+}
 
 /**
  * @returns {!number}
@@ -208,10 +236,12 @@ function initToolbox(obsCustomGateSet, mostRecentStats, onGrab, onPlace) {
 
     /** @type {!Array.<!{gate: !Gate, chip: !HTMLElement, tile: !HTMLElement, search: !string}>} */
     let tiles = [];
-    /** @type {!Array.<!HTMLElement>} */
+    /** @type {!Array.<!{section: !HTMLElement, grid: !HTMLElement, hint: !string}>} */
     let groupElements = [];
     /** @type {!number} */
     let latestTime = 0;
+    /** @type {!Set.<!string>} Hints of the groups the user has folded shut. */
+    let collapsedGroups = _loadCollapsedGroups();
 
     /**
      * @param {!Gate} gate
@@ -303,25 +333,44 @@ function initToolbox(obsCustomGateSet, mostRecentStats, onGrab, onPlace) {
 
             const label = document.createElement('h3');
             label.className = 'gate-group-label';
-            label.textContent = group.hint;
+            const toggle = document.createElement('button');
+            toggle.type = 'button';
+            toggle.className = 'gate-group-toggle';
+            toggle.textContent = group.hint;
+            toggle.setAttribute('aria-expanded', '' + !collapsedGroups.has(group.hint));
+            label.appendChild(toggle);
             section.appendChild(label);
 
             const grid = document.createElement('div');
             grid.className = 'gate-group-tiles';
+            grid.id = `gate-group-tiles-${groupElements.length}`;
+            toggle.setAttribute('aria-controls', grid.id);
             for (let gate of gates) {
                 grid.appendChild(buildTile(gate, group.hint));
             }
             section.appendChild(grid);
 
+            toggle.addEventListener('click', () => {
+                if (collapsedGroups.has(group.hint)) {
+                    collapsedGroups.delete(group.hint);
+                } else {
+                    collapsedGroups.add(group.hint);
+                }
+                toggle.setAttribute('aria-expanded', '' + !collapsedGroups.has(group.hint));
+                _storeCollapsedGroups(collapsedGroups);
+                applyFilter();
+            });
+
             groupsElement.appendChild(section);
-            groupElements.push(section);
+            groupElements.push({section, grid, hint: group.hint});
         }
     };
 
     // The list is one tab stop, like the toolbar: Up and Down move between the visible tiles, and
     // Enter or Space places the focused gate. Without this the gates are over a hundred tab stops
     // between the search box and the rest of the page.
-    const visibleTileElements = () => tiles.filter(entry => !entry.tile.hidden).map(entry => entry.tile);
+    const visibleTileElements = () =>
+        tiles.filter(entry => !entry.tile.hidden && !entry.tile.parentElement.hidden).map(entry => entry.tile);
     const setTileStop = stop => {
         for (let {tile} of tiles) {
             tile.tabIndex = tile === stop ? 0 : -1;
@@ -333,7 +382,8 @@ function initToolbox(obsCustomGateSet, mostRecentStats, onGrab, onPlace) {
             return;
         }
         const stops = tiles.map(entry => entry.tile).filter(tile => tile.tabIndex === 0);
-        if (stops.length !== 1 || stops[0].hidden) {
+        // The stop must be reachable: not filtered out, and not inside a folded group.
+        if (stops.length !== 1 || !usable.includes(stops[0])) {
             setTileStop(usable[0]);
         }
     };
@@ -368,9 +418,11 @@ function initToolbox(obsCustomGateSet, mostRecentStats, onGrab, onPlace) {
             tile.hidden = query !== '' && !search.includes(query);
         }
         let anyShown = false;
-        for (let section of groupElements) {
+        for (let {section, grid, hint} of groupElements) {
             const shown = [...section.querySelectorAll('.gate-tile')].some(tile => !tile.hidden);
             section.hidden = !shown;
+            // A search overrides folding: matches must be visible to be believed.
+            grid.hidden = query === '' && collapsedGroups.has(hint);
             anyShown = anyShown || shown;
         }
         emptyElement.hidden = anyShown;
