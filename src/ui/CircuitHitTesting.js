@@ -186,7 +186,7 @@ function findGateWithButtonContaining(circuit, pos) {
     }
 
     let gate = circuit.circuitDefinition.gateInSlot(foundPt.col, foundPt.row);
-    if (gate.onClickGateFunc === undefined) {
+    if (gate.onClickGateFunc === undefined && gate.paramDialog === undefined) {
         return undefined;
     }
 

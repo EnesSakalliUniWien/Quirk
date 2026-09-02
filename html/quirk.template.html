@@ -26,9 +26,12 @@
             <div class="app-body">
                 <div id="gate-toolbox-root"></div>
 
-                <!-- Circuit drawing area -->
-                <div id="canvasDiv" style="width: 100%; touch-action: manipulation; position: relative;">
-                    <canvas id="drawCanvas"></canvas>
+                <!-- Circuit drawing area, with the zoom and overview overlay pinned over it -->
+                <div id="circuit-area">
+                    <div id="canvasDiv" style="touch-action: manipulation; position: relative;">
+                        <canvas id="drawCanvas"></canvas>
+                    </div>
+                    <div id="circuit-overlay"></div>
                 </div>
             </div>
 
@@ -51,6 +54,21 @@
             </div>
             <div id="forge-dialog-content" class="dialog-content">
                 <!-- INCLUDE FORGE PART -->
+            </div>
+            <div id="gate-param-dialog-content" class="dialog-content">
+                <div class="dialog-panel gate-param-panel" aria-labelledby="gate-param-title">
+                    <header class="dialog-header">
+                        <h2 id="gate-param-title" class="gate-param-title"></h2>
+                    </header>
+                    <p id="gate-param-message" class="gate-param-message"></p>
+                    <input id="gate-param-input" class="gate-param-input" type="text"
+                           aria-label="Parameter value" autocomplete="off" spellcheck="false">
+                    <p id="gate-param-error" class="gate-param-error" role="alert" hidden></p>
+                    <div class="dialog-action-row gate-param-actions">
+                        <button tabindex="120" id="gate-param-apply-button" type="button">Apply</button>
+                        <button tabindex="121" id="gate-param-cancel-button" type="button">Cancel</button>
+                    </div>
+                </div>
             </div>
         </div>
 

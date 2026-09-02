@@ -195,6 +195,77 @@
         background: var(--accent);
     }
 
+    .gate-param-panel {
+        display: grid;
+        width: min(420px, calc(100vw - 48px));
+        gap: calc(var(--spacing) * 3);
+    }
+
+    .gate-param-title {
+        margin: 0;
+        font-size: var(--text-heading);
+        font-weight: 650;
+    }
+
+    .gate-param-message {
+        margin: 0;
+        color: var(--muted-foreground);
+        font-size: 0.8125rem;
+        white-space: pre-line;
+    }
+
+    .gate-param-input {
+        box-sizing: border-box;
+        width: 100%;
+        padding: 7px calc(var(--spacing) * 2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--background);
+        color: var(--foreground);
+        font: inherit;
+    }
+
+    .gate-param-input:focus {
+        border-color: var(--ring);
+        box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring), transparent 72%);
+        outline: none;
+    }
+
+    .gate-param-error {
+        margin: 0;
+        color: var(--destructive);
+        font-size: 0.8125rem;
+    }
+
+    .shortcut-heading {
+        margin-top: calc(var(--spacing) * 4);
+    }
+
+    .shortcut-list {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        align-items: baseline;
+        gap: 5px calc(var(--spacing) * 3);
+        margin: 0;
+        padding: 0 calc(var(--spacing) * 2);
+        color: var(--muted-foreground);
+        font-size: 0.8125rem;
+    }
+
+    .shortcut-list dd {
+        margin: 0;
+    }
+
+    .shortcut-list kbd {
+        padding: 1px 5px;
+        border: 1px solid var(--border);
+        border-radius: 5px;
+        background: var(--accent);
+        color: var(--foreground);
+        font-family: inherit;
+        font-size: 0.75rem;
+    }
+
     .dialog-stack {
         display: grid;
         width: min(780px, calc(100vw - 48px));

@@ -278,7 +278,8 @@ function tryClick(circuit, hand) {
     }
 
     let found = findGateWithButtonContaining(circuit, hand.pos);
-    if (found === undefined) {
+    if (found === undefined || found.gate.onClickGateFunc === undefined) {
+        // Gates with a parameter dialog are handled by the pointer code before it tries a click.
         return undefined;
     }
 

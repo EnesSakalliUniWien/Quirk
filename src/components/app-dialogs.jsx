@@ -4,6 +4,7 @@ import {createRoot} from "react-dom/client";
 
 import {ExportDialog} from "./export-dialog.jsx";
 import {ForgeDialog} from "./forge-dialog.jsx";
+import {GateParamDialog} from "./gate-param-dialog.jsx";
 import {MenuDialog} from "./menu-dialog.jsx";
 
 /**
@@ -20,6 +21,7 @@ function AppDialogs({overlayState}) {
             <MenuDialog active={active} overlayState={overlayState} />
             <ExportDialog active={active} overlayState={overlayState} />
             <ForgeDialog active={active} overlayState={overlayState} />
+            <GateParamDialog active={active} overlayState={overlayState} />
         </>
     );
 }
