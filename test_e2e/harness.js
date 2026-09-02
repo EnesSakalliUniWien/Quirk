@@ -95,7 +95,7 @@ async function exportedCircuit(page) {
     return JSON.parse(jsonText);
 }
 
-async function withQuirkPage(browser, circuit, body, viewport=DEFAULT_VIEWPORT) {
+async function withQuirkPage(browser, circuit, body, viewport=DEFAULT_VIEWPORT, allowedConsoleErrors=[]) {
     const page = await browser.newPage();
     const browserErrors = [];
     page.on('pageerror', error => browserErrors.push(`page error: ${error.message}`));
@@ -111,7 +111,9 @@ async function withQuirkPage(browser, circuit, body, viewport=DEFAULT_VIEWPORT) 
         await page.goto(urlForCircuit(circuit));
         await waitForQuirk(page);
         await body(page);
-        assert.deepEqual(browserErrors, [], 'The page must not report browser errors.');
+        // Tests that deliberately trigger a recovery allow the reporter's own console line.
+        let unexpectedErrors = browserErrors.filter(e => !allowedConsoleErrors.some(regex => regex.test(e)));
+        assert.deepEqual(unexpectedErrors, [], 'The page must not report browser errors.');
     } catch (error) {
         failure = error;
     } finally {

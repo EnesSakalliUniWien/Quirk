@@ -23,6 +23,7 @@ require('./test_e2e/toolbar.test.js');
 require('./test_e2e/overlays.test.js');
 require('./test_e2e/transport.test.js');
 require('./test_e2e/toolbox.test.js');
+require('./test_e2e/errors.test.js');
 
 const puppeteer = require('puppeteer');
 
