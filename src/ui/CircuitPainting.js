@@ -479,7 +479,12 @@ function drawOutputDisplays(circuit, painter, stats, hand) {
         MathPainter.paintProbabilityBox(painter, p, circuit.gateRect(i, chanceCol), hand.hoverPoints());
         let m = stats.qubitDensityMatrix(Infinity, i);
         if (m !== undefined) {
-            paintBlochSphereDisplay(painter, m, circuit.gateRect(i, blochCol), hand.hoverPoints());
+            let blochRect = circuit.gateRect(i, blochCol);
+            paintBlochSphereDisplay(painter, m, blochRect, hand.hoverPoints());
+            // Clicking a sphere opens the enlarged Bloch view; the cursor is the affordance.
+            if (hand.hoverPoints().some(pt => blochRect.containsPoint(pt))) {
+                painter.setDesiredCursor('pointer');
+            }
         }
     }
 

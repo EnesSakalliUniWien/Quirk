@@ -175,6 +175,35 @@ function findGateOverlappingPos(circuit, pos) {
 }
 
 /**
+ * Finds the Bloch sphere drawn at a position: a wire-end sphere in the output display column, or
+ * a Bloch display gate placed in the circuit. Both open the enlarged Bloch sphere view.
+ *
+ * @param {!DisplayedCircuit} circuit
+ * @param {!Point} pos
+ * @returns {undefined|!{row: !int, col: undefined|!int}} col is the placed gate's column, or
+ *     undefined for a wire-end sphere.
+ */
+function findBlochSphereContaining(circuit, pos) {
+    let geometry = circuit.geometry();
+    let blochCol = geometry.clampedCircuitColCount() + 2;
+    let numWire = geometry.importantWireCount();
+    for (let row = 0; row < numWire; row++) {
+        if (circuit.gateRect(row, blochCol).containsPoint(pos)) {
+            return {row, col: undefined};
+        }
+    }
+
+    let found = findGateOverlappingPos(circuit, pos);
+    if (found !== undefined) {
+        let gate = circuit.circuitDefinition.gateInSlot(found.col, found.row);
+        if (gate !== undefined && gate.serializedId === 'Bloch') {
+            return {row: found.row, col: found.col};
+        }
+    }
+    return undefined;
+}
+
+/**
  * @param {!DisplayedCircuit} circuit
  * @param {!Point} pos
  * @returns {undefined|!{col: !int, row: !int, gate: !Gate}}
@@ -239,4 +268,4 @@ function findWireWithInitialStateAreaContaining(circuit, pt) {
     return wire;
 }
 
-export {wireIndexAt, toColumnSpaceCoordinate, indexOfDisplayedRowAt, indexOfDisplayedColumnAt, findOpHalfColumnAt, findModificationIndex_helperColRow, findModificationIndex, findGateOverlappingPos, findGateWithButtonContaining, wireInitialStateClickableRect, findWireWithInitialStateAreaContaining}
+export {wireIndexAt, toColumnSpaceCoordinate, indexOfDisplayedRowAt, indexOfDisplayedColumnAt, findOpHalfColumnAt, findModificationIndex_helperColRow, findModificationIndex, findGateOverlappingPos, findGateWithButtonContaining, findBlochSphereContaining, wireInitialStateClickableRect, findWireWithInitialStateAreaContaining}

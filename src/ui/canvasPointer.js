@@ -28,19 +28,23 @@ import {pointIntoCircuitCoords} from "./zoom.js"
  * @param {!ObservableValue.<!DisplayedInspector>} displayed
  * @param {!function(!DisplayedInspector): !DisplayedInspector} syncArea
  * @param {!function(found: !{col: !int, row: !int, gate: !Gate}): void} openGateParamEditor
+ * @param {!function(target: !{row: !int, col: undefined|!int}): void} openBlochSphereView
  * @returns {void}
  */
-function initCanvasPointer(canvas, canvasDiv, revision, displayed, syncArea, openGateParamEditor) {
+function initCanvasPointer(canvas, canvasDiv, revision, displayed, syncArea, openGateParamEditor,
+                           openBlochSphereView) {
     // Positions arrive in the canvas's on-screen pixels; the hand and geometry live in circuit
-    // coordinates, which differ from those by the zoom factor.
+    // coordinates, which differ from those by the zoom factor and the scroll.
     const intoCircuit = pt => pt === undefined ? undefined : pointIntoCircuitCoords(pt);
     const circuitPosOf = ev => pointIntoCircuitCoords(eventPosRelativeTo(ev, canvas));
 
     /** @type {undefined|!string} */
     let clickDownGateButtonKey = undefined;
+    /** @type {undefined|!Point} Where the gesture pressed down, in circuit coordinates. */
+    let gestureDownPos = undefined;
     canvasDiv.addEventListener('click', ev => {
-        // Relative to the canvas, not canvasDiv: canvasDiv is a scroll container, and drawn
-        // coordinates move with the canvas when it scrolls.
+        // Relative to the canvas, not canvasDiv: the canvas is pinned to the scroll container's
+        // visible corner, and the conversion adds the scroll back.
         let pt = circuitPosOf(ev);
         let curInspector = displayed.get();
         if (curInspector.tryGetHandOverButtonKey() !== clickDownGateButtonKey) {
@@ -51,6 +55,17 @@ function initCanvasPointer(canvas, canvasDiv, revision, displayed, syncArea, ope
         if (buttonGate !== undefined && buttonGate.gate.paramDialog !== undefined) {
             openGateParamEditor(buttonGate);
             return;
+        }
+        // A stationary click on a Bloch sphere opens the enlarged view; the distance check keeps
+        // a drag that happens to end on a sphere from opening it.
+        let wasStationary = gestureDownPos !== undefined &&
+            Math.hypot(pt.x - gestureDownPos.x, pt.y - gestureDownPos.y) < 6;
+        if (wasStationary) {
+            let bloch = syncedInspector.displayedCircuit.findBlochSphereContaining(pt);
+            if (bloch !== undefined) {
+                openBlochSphereView(bloch);
+                return;
+            }
         }
         let clicked = syncedInspector.tryClick();
         if (clicked !== undefined) {
@@ -67,6 +82,7 @@ function initCanvasPointer(canvas, canvasDiv, revision, displayed, syncArea, ope
         (pt, ev) => {
             let oldInspector = displayed.get();
             let newHand = oldInspector.hand.withPos(intoCircuit(pt));
+            gestureDownPos = newHand.pos;
             let newInspector = syncArea(oldInspector.withHand(newHand));
             clickDownGateButtonKey = (
                 ev.ctrlKey || ev.metaKey || ev.shiftKey || ev.altKey ? undefined : newInspector.tryGetHandOverButtonKey());

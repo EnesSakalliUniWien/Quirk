@@ -57,6 +57,29 @@
             <div id="forge-dialog-content" class="dialog-content">
                 <!-- INCLUDE FORGE PART -->
             </div>
+            <div id="bloch-dialog-content" class="dialog-content">
+                <div class="dialog-panel bloch-panel" aria-labelledby="bloch-title">
+                    <header class="dialog-header">
+                        <h2 id="bloch-title" class="bloch-title">Bloch sphere</h2>
+                    </header>
+                    <p id="bloch-subtitle" class="bloch-subtitle"></p>
+                    <canvas id="bloch-canvas" class="bloch-canvas" width="320" height="320"
+                            aria-label="Enlarged Bloch sphere view"></canvas>
+                    <p class="bloch-hint">Drag the sphere to rotate the view.</p>
+                    <dl class="bloch-readout">
+                        <dt>|ψ⟩</dt><dd id="bloch-state"></dd>
+                        <dt>x</dt><dd id="bloch-x"></dd>
+                        <dt>y</dt><dd id="bloch-y"></dd>
+                        <dt>z</dt><dd id="bloch-z"></dd>
+                        <dt>θ</dt><dd id="bloch-theta"></dd>
+                        <dt>ϕ</dt><dd id="bloch-phi"></dd>
+                        <dt>|r|</dt><dd id="bloch-purity"></dd>
+                    </dl>
+                    <div class="dialog-action-row bloch-actions">
+                        <button tabindex="130" id="bloch-close-button" type="button">Close</button>
+                    </div>
+                </div>
+            </div>
             <div id="gate-param-dialog-content" class="dialog-content">
                 <div class="dialog-panel gate-param-panel" aria-labelledby="gate-param-title">
                     <header class="dialog-header">

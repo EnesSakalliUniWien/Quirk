@@ -43,6 +43,7 @@ import {Simulator} from "./ui/sim.js"
 import {circuitZoom, initZoomControls, attachCircuitScrollSource} from "./ui/zoom.js"
 import {initMinimap} from "./ui/minimap.js"
 import {initGateParamDialog} from "./ui/gateParamDialog.js"
+import {initBlochSphereDialog} from "./ui/blochSphereDialog.js"
 
 /**
  * Starts Quirk after its document elements are available. Must be called exactly once.
@@ -138,7 +139,9 @@ function startQuirk() {
     // become circuit coordinates after the container's scroll is added back.
     attachCircuitScrollSource(canvasDiv);
     const openGateParamEditor = initGateParamDialog(revision, displayed, overlayState);
-    initCanvasPointer(canvas, canvasDiv, revision, displayed, syncArea, openGateParamEditor);
+    const openBlochSphereView = initBlochSphereDialog(displayed, mostRecentStats, overlayState);
+    initCanvasPointer(
+        canvas, canvasDiv, revision, displayed, syncArea, openGateParamEditor, openBlochSphereView);
 
     let circuitActions = new CircuitActions(revision, overlayState);
     initUrlCircuitSync(revision);

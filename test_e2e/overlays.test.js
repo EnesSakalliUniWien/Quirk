@@ -85,6 +85,41 @@ test('edits a rotation gate angle through the parameter dialog', async browser =
     });
 });
 
+test('opens the enlarged Bloch sphere view from a Bloch display gate', async browser => {
+    await withQuirkPage(browser, {cols: [['H'], ['Bloch']]}, async page => {
+        const canvasBounds = await page.$eval('#drawCanvas', element => {
+            const bounds = element.getBoundingClientRect();
+            return {x: bounds.x, y: bounds.y};
+        });
+
+        // The Bloch display gate sits in the second column on the first wire.
+        await waitForCanvasViewport(page);
+        const circuitTop = await circuitTopForWires(page, 2);
+        await page.mouse.click(canvasBounds.x + 50 + 32 + 20, canvasBounds.y + circuitTop + 25);
+        await waitForDialog(page, '#bloch-div', true);
+        await page.waitForFunction(
+            () => document.getElementById('bloch-subtitle').textContent !== '',
+            {timeout: TEST_TIMEOUT_MILLIS});
+
+        // After the Hadamard the qubit is |+⟩: on the +x axis, pure, at θ 90°.
+        const readout = await page.evaluate(() => ({
+            subtitle: document.getElementById('bloch-subtitle').textContent,
+            x: document.getElementById('bloch-x').textContent,
+            z: document.getElementById('bloch-z').textContent,
+            theta: document.getElementById('bloch-theta').textContent,
+            purity: document.getElementById('bloch-purity').textContent,
+        }));
+        assert.equal(readout.subtitle, 'Qubit 1 · at column 2');
+        assert.equal(readout.x, '+1.000');
+        assert.equal(readout.z, '+0.000');
+        assert.equal(readout.theta, '90.0°');
+        assert.equal(readout.purity, '1.000');
+
+        await page.keyboard.press('Escape');
+        await waitForDialog(page, '#bloch-div', false);
+    });
+});
+
 test('lists the shortcuts in the menu', async browser => {
     await withQuirkPage(browser, {cols: [['H']]}, async page => {
         await page.click('#menu-button');

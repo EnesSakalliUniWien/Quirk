@@ -15,6 +15,8 @@
 - **zoom the circuit**: use the `−` / `+` / `Fit` buttons over the circuit's corner
 - **scroll a big circuit**: drag the viewport box on the minimap that appears when the circuit
   overflows
+- **inspect a qubit's Bloch sphere**: click any Bloch sphere in the circuit or at a wire's end;
+  drag the enlarged sphere to rotate the view
 
 **Advanced Actions**
 

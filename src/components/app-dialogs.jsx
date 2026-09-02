@@ -2,6 +2,7 @@ import {useEffect, useState} from "react";
 import {flushSync} from "react-dom";
 import {createRoot} from "react-dom/client";
 
+import {BlochDialog} from "./bloch-dialog.jsx";
 import {ExportDialog} from "./export-dialog.jsx";
 import {ForgeDialog} from "./forge-dialog.jsx";
 import {GateParamDialog} from "./gate-param-dialog.jsx";
@@ -22,6 +23,7 @@ function AppDialogs({overlayState}) {
             <ExportDialog active={active} overlayState={overlayState} />
             <ForgeDialog active={active} overlayState={overlayState} />
             <GateParamDialog active={active} overlayState={overlayState} />
+            <BlochDialog active={active} overlayState={overlayState} />
         </>
     );
 }

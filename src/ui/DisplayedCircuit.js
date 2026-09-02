@@ -16,6 +16,7 @@
 
 import {CIRCUIT_OP_HORIZONTAL_SPACING, CIRCUIT_OP_LEFT_SPACING} from "./CircuitLayoutConstants.js"
 import {
+    findBlochSphereContaining,
     findGateOverlappingPos,
     findGateWithButtonContaining,
     findModificationIndex,
@@ -269,6 +270,14 @@ class DisplayedCircuit {
      */
     findGateWithButtonContaining(pos) {
         return findGateWithButtonContaining(this, pos);
+    }
+
+    /**
+     * @param {!Point} pos
+     * @returns {undefined|!{row: !int, col: undefined|!int}}
+     */
+    findBlochSphereContaining(pos) {
+        return findBlochSphereContaining(this, pos);
     }
 
     /**
