@@ -11,19 +11,23 @@
         position: sticky;
         top: 0;
         display: flex;
-        width: 268px;
+        width: var(--sidebar-width);
         max-height: 100vh;
-        flex: 0 0 268px;
+        flex: 0 0 var(--sidebar-width);
         flex-direction: column;
         gap: calc(var(--spacing) * 3);
         padding: calc(var(--spacing) * 3);
-        background: color-mix(in oklch, var(--card), var(--background) 55%);
-        border-right: 1px solid var(--border);
+        color: var(--sidebar-foreground);
+        background: var(--sidebar);
+        border-right: 1px solid var(--sidebar-border);
+    }
+
+    .gate-toolbox-header {
+        flex: 0 0 auto;
     }
 
     .gate-toolbox-search {
         position: relative;
-        flex: 0 0 auto;
     }
 
     .gate-toolbox-search-icon {
@@ -54,15 +58,52 @@
     }
 
     .gate-toolbox-search-input:focus {
-        border-color: var(--ring);
-        box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring), transparent 72%);
+        border-color: var(--sidebar-ring);
+        box-shadow: 0 0 0 3px color-mix(in oklch, var(--sidebar-ring), transparent 72%);
+    }
+
+    /* The scrollable middle region; Base UI's scroll area owns the scrollbar so the native one
+       stays hidden. */
+    .gate-toolbox-content {
+        position: relative;
+        flex: 1 1 auto;
+        min-height: 0;
+    }
+
+    .gate-toolbox-viewport {
+        height: 100%;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding-right: calc(var(--spacing) * 2);
+    }
+
+    .gate-toolbox-scrollbar {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        width: 5px;
+        justify-content: center;
+        border-radius: 3px;
+        opacity: 0;
+        transition: opacity 140ms ease;
+    }
+
+    .gate-toolbox-content:hover .gate-toolbox-scrollbar,
+    .gate-toolbox-scrollbar[data-scrolling] {
+        opacity: 1;
+    }
+
+    .gate-toolbox-scrollbar-thumb {
+        width: 100%;
+        border-radius: 3px;
+        background: color-mix(in oklch, var(--sidebar-foreground), transparent 78%);
     }
 
     .gate-toolbox-groups {
         display: grid;
         gap: calc(var(--spacing) * 4);
-        overflow-y: auto;
-        padding-right: calc(var(--spacing) * 1);
     }
 
     .gate-group-label {
@@ -188,20 +229,20 @@
         /* A flex item refuses to shrink below its content without this, which turned the
            intended ellipsis into silent clipping. */
         min-width: 0;
-        color: var(--foreground);
+        color: var(--sidebar-foreground);
         font-size: var(--text-small);
         text-overflow: ellipsis;
         white-space: nowrap;
     }
 
     .gate-tile:hover {
-        background: var(--accent);
-        box-shadow: 0 0 0 2px color-mix(in oklch, var(--ring), transparent 45%);
+        background: var(--sidebar-accent);
+        box-shadow: 0 0 0 2px color-mix(in oklch, var(--sidebar-ring), transparent 45%);
     }
 
     .gate-tile:focus-visible {
-        background: var(--accent);
-        outline: 3px solid color-mix(in oklch, var(--ring), transparent 48%);
+        background: var(--sidebar-accent);
+        outline: 3px solid color-mix(in oklch, var(--sidebar-ring), transparent 48%);
         outline-offset: 2px;
     }
 
@@ -232,16 +273,55 @@
         border-radius: 9px;
     }
 
-    /* Responsive reflow: below 920px the sidebar becomes a band above the circuit. Placed after
-       the sidebar's own rules so it wins by source order within this layer. */
-    @media (max-width: 920px) {
-        .gate-toolbox {
-            position: static;
-            width: 100%;
-            max-height: 320px;
-            flex: 1 1 100%;
-            border-right: 0;
-            border-bottom: 1px solid var(--border);
-        }
+    /* Below 920px the palette becomes an off-canvas drawer: the trigger floats over the circuit
+       and the sidebar slides in from the left, instead of a band squeezing the circuit down. */
+    /* Mirrors the zoom cluster's corner on the other side of the circuit. */
+    .gate-toolbox-drawer-trigger {
+        position: absolute;
+        bottom: calc(var(--spacing) * 3);
+        left: calc(var(--spacing) * 3);
+        z-index: 5;
+        display: inline-flex;
+        align-items: center;
+        gap: calc(var(--spacing) * 1);
+        padding: 6px calc(var(--spacing) * 2);
+        color: var(--sidebar-foreground);
+        background: var(--sidebar);
+        border: 1px solid var(--sidebar-border);
+        border-radius: 9px;
+        box-shadow: 0 8px 24px rgb(0 0 0 / 35%);
+        font: inherit;
+        font-size: var(--text-small);
+        cursor: pointer;
+    }
+
+    .gate-toolbox-drawer-trigger svg {
+        width: 15px;
+        height: 15px;
+    }
+
+    .gate-toolbox-drawer-viewport {
+        position: fixed;
+        inset: 0;
+        z-index: 11;
+        pointer-events: none;
+    }
+
+    .gate-toolbox-drawer-popup {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        display: flex;
+        pointer-events: auto;
+        box-shadow: 12px 0 40px rgb(0 0 0 / 45%);
+    }
+
+    /* Inside the drawer the sidebar fills the popup instead of holding its rail width. */
+    .gate-toolbox-drawer-popup .gate-toolbox {
+        position: static;
+        width: min(var(--sidebar-width), 85vw);
+        max-height: none;
+        flex: 1 1 auto;
     }
 }

@@ -30,7 +30,7 @@ import {CircuitActions} from "./ui/CircuitActions.js"
 import {Playhead} from "./ui/Playhead.js"
 import {initTransport} from "./ui/transport.js"
 import {initStateTable} from "./ui/stateTable.js"
-import {initToolbox} from "./ui/toolbox.js"
+import {mountGateToolbox} from "./components/gate-toolbox.jsx"
 import {initToolboxDrag, initToolboxKeyboardPlace} from "./ui/toolboxDrag.js"
 import {initRedrawLoop} from "./ui/redrawLoop.js"
 import {initCanvasPointer} from "./ui/canvasPointer.js"
@@ -146,15 +146,16 @@ function startQuirk() {
     initClear(circuitActions);
     initTransport(playhead);
     initStateTable(playheadStats);
-    initToolbox(
+    mountGateToolbox({
         // Compared by content, not identity: every commit deserializes a fresh CustomGateSet, and
-        // rebuilding the toolbox for each one would repaint every tile and drop keyboard focus.
-        displayed.observable().
+        // rebuilding the toolbox for each one would recreate every tile and drop keyboard focus.
+        obsCustomGateSet: displayed.observable().
             map(e => e.displayedCircuit.circuitDefinition.customGateSet).
             whenDifferent(Util.CUSTOM_IS_EQUAL_TO_EQUALITY),
         mostRecentStats,
-        initToolboxDrag(canvas, revision, displayed, syncArea),
-        initToolboxKeyboardPlace(revision, displayed, syncArea));
+        onGrab: initToolboxDrag(canvas, revision, displayed, syncArea),
+        onPlace: initToolboxKeyboardPlace(revision, displayed, syncArea),
+    });
     initMenu(revision, overlayState);
     initTitleSync(revision);
     const circuitOverlay = document.getElementById('circuit-overlay');

@@ -20,7 +20,6 @@ import {detectWebGlNotSupported} from "./issues.js"
 import {startQuirk} from "./QuirkApp.js"
 import {mountAppToolbar} from "./components/app-toolbar.jsx"
 import {mountTransportBar} from "./components/transport-bar.jsx"
-import {mountGateToolbox} from "./components/gate-toolbox.jsx"
 import "./styles/globals.css"
 
 installErrorReporter();
@@ -29,5 +28,5 @@ if (detectWebGlNotSupported()) {
 }
 mountAppToolbar();
 mountTransportBar();
-mountGateToolbox();
+// The gate toolbox mounts inside startQuirk: it needs the circuit's drag and place pipelines.
 startQuirk();

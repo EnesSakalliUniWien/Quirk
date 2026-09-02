@@ -17,6 +17,8 @@
   overflows
 - **inspect a qubit's Bloch sphere**: click any Bloch sphere in the circuit or at a wire's end;
   drag the enlarged sphere to rotate the view
+- **open the gates on a narrow screen**: click the `Gates` button over the circuit's corner; the
+  palette slides in as a drawer and closes when a gate is dragged out
 
 **Advanced Actions**
 

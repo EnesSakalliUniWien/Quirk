@@ -114,18 +114,27 @@ test('keeps the gate toolbox beside the circuit until the viewport is too narrow
         });
         assert.ok(viewportMatch, 'The canvas must fill its scroll cell exactly.');
 
-        // Below 920px the sidebar stacks above the circuit rather than squeezing it.
+        // Below 920px the sidebar leaves the row and becomes an off-canvas drawer, so the
+        // circuit keeps the full width instead of being squeezed under a band of gates.
         await page.setViewport({width: 700, height: 480, deviceScaleFactor: 1});
         await page.waitForFunction(
-            () => innerWidth === 700 && document.querySelector('.gate-toolbox').getBoundingClientRect().width > 600,
+            () => innerWidth === 700 &&
+                document.querySelector('.gate-toolbox') === null &&
+                document.querySelector('.gate-toolbox-drawer-trigger') !== null,
+            {timeout: TEST_TIMEOUT_MILLIS});
+        const canvasSpansViewport = await page.$eval(
+            '#canvasDiv', element => element.getBoundingClientRect().width > 690);
+        assert.ok(canvasSpansViewport, 'The circuit must span the viewport once the sidebar is a drawer.');
+
+        await page.click('.gate-toolbox-drawer-trigger');
+        await page.waitForFunction(
+            () => document.querySelectorAll('.gate-toolbox .gate-tile').length > 90,
             {timeout: TEST_TIMEOUT_MILLIS});
 
-        const compactLayout = await canvasLayout(page);
-        assert.ok(
-            compactLayout.canvas.top >= compactLayout.toolbox.bottom - 1,
-            'The stacked toolbox must stay above the canvas.');
-        assert.ok(compactLayout.toolbox.width > 600, 'The stacked toolbox must span the viewport.');
-        assert.ok(compactLayout.toolbox.tileCount > 90, 'The gates must survive the reflow.');
+        await page.keyboard.press('Escape');
+        await page.waitForFunction(
+            () => document.querySelector('.gate-toolbox') === null,
+            {timeout: TEST_TIMEOUT_MILLIS});
     });
 });
 
