@@ -17,13 +17,19 @@
 // The transport bar and the state-at-the-playhead panel.
 
 const assert = require('node:assert/strict');
-const {test, withQuirkPage, waitForQuirk, waitForCircuit, waitForDialog, currentCircuit, exportedCircuit, urlForCircuit, TEST_TIMEOUT_MILLIS} = require('./harness.js');
+const {test, withQuirkPage, waitForQuirk, waitForCircuit, waitForDialog, currentCircuit, exportedCircuit, urlForCircuit, TEST_TIMEOUT_MILLIS, waitForCanvasViewport} = require('./harness.js');
 
 async function playheadBandPixels(page, columnLeft) {
+    await waitForCanvasViewport(page);
     return page.evaluate(left => {
         const canvas = document.getElementById('drawCanvas');
         const context = canvas.getContext('2d');
-        const data = context.getImageData(left - 3, 70, 46, 8).data;
+        // The strip between this spec's two wire rows; the circuit band centers vertically, so
+        // the sample follows the same layout the app computes.
+        const div = document.getElementById('canvasDiv');
+        const band = 2 * 50 + 105;
+        const top = Math.max(24, Math.floor((Math.max(div.clientHeight, band + 48) - band) / 2));
+        const data = context.getImageData(left - 3, top + 46, 46, 8).data;
         let amber = 0;
         for (let i = 0; i < data.length; i += 4) {
             if (data[i] > data[i + 1] + 15 && data[i + 1] > data[i + 2] + 15 && data[i] > 40) {

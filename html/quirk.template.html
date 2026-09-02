@@ -30,6 +30,8 @@
                 <div id="circuit-area">
                     <div id="canvasDiv" style="touch-action: manipulation; position: relative;">
                         <canvas id="drawCanvas"></canvas>
+                        <!-- Carries the scroll extent, so the canvas can stay viewport-sized. -->
+                        <div id="canvas-scroll-spacer" aria-hidden="true"></div>
                     </div>
                     <div id="circuit-overlay"></div>
                 </div>

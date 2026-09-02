@@ -17,7 +17,7 @@
 // The gate toolbox: search, tooltips, and the responsive reflow.
 
 const assert = require('node:assert/strict');
-const {test, withQuirkPage, waitForQuirk, waitForCircuit, waitForDialog, currentCircuit, exportedCircuit, urlForCircuit, TEST_TIMEOUT_MILLIS, canvasLayout, assertCircuitLayout} = require('./harness.js');
+const {test, withQuirkPage, waitForQuirk, waitForCircuit, waitForDialog, currentCircuit, exportedCircuit, urlForCircuit, TEST_TIMEOUT_MILLIS, canvasLayout, assertCircuitLayout, waitForCanvasViewport} = require('./harness.js');
 
 test('searches the gate toolbox and documents a gate on hover', async browser => {
     await withQuirkPage(browser, {cols: [['H']]}, async page => {
@@ -105,9 +105,14 @@ test('keeps the gate toolbox beside the circuit until the viewport is too narrow
         const wideLayout = await canvasLayout(page);
         assertCircuitLayout(wideLayout);
 
-        // The canvas hugs its content, which is now only the circuit: margin (24) plus 2 wires,
-        // under the 400px floor that leaves room for tooltips.
-        assert.equal(wideLayout.canvas.height, 400);
+        // The canvas is a fixed viewport: it fills its scroll cell exactly, and the circuit
+        // centers inside it.
+        await waitForCanvasViewport(page);
+        const viewportMatch = await page.$eval('#canvasDiv', e => {
+            const canvas = document.getElementById('drawCanvas');
+            return canvas.width === e.clientWidth && canvas.height === e.clientHeight;
+        });
+        assert.ok(viewportMatch, 'The canvas must fill its scroll cell exactly.');
 
         // Below 920px the sidebar stacks above the circuit rather than squeezing it.
         await page.setViewport({width: 700, height: 480, deviceScaleFactor: 1});

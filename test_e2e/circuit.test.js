@@ -17,7 +17,7 @@
 // The circuit area: loading from a URL, drag editing, and history.
 
 const assert = require('node:assert/strict');
-const {test, withQuirkPage, waitForQuirk, waitForCircuit, waitForDialog, currentCircuit, exportedCircuit, urlForCircuit, TEST_TIMEOUT_MILLIS, canvasLayout, assertCircuitLayout} = require('./harness.js');
+const {test, withQuirkPage, waitForQuirk, waitForCircuit, waitForDialog, currentCircuit, exportedCircuit, urlForCircuit, TEST_TIMEOUT_MILLIS, canvasLayout, assertCircuitLayout, circuitTopForWires, waitForCanvasViewport} = require('./harness.js');
 
 test('loads a URL circuit and renders its Bloch sphere in the circuit area', async browser => {
     const circuit = {cols: [['H'], ['Bloch']]};
@@ -46,9 +46,11 @@ test('drags a gate onto a wire and supports undo, redo, and clear actions', asyn
             const bounds = tile.getBoundingClientRect();
             return {x: bounds.x + bounds.width/2, y: bounds.y + bounds.height/2};
         });
+        await waitForCanvasViewport(page);
+        const circuitTop = await circuitTopForWires(page, 2);
         const firstWireFirstColumn = {
             x: canvasBounds.x + 55,
-            y: canvasBounds.y + 24 + 25
+            y: canvasBounds.y + circuitTop + 25
         };
 
         await page.mouse.move(halfTurnH.x, halfTurnH.y);
@@ -131,9 +133,11 @@ test('keeps drops accurate while zoomed out and fits the circuit on demand', asy
         });
         // On-screen pixels are circuit coordinates scaled by the zoom, so the drop target for the
         // first wire's first column shrinks with it.
+        await waitForCanvasViewport(page);
+        const circuitTop = await circuitTopForWires(page, 2, 0.8);
         const firstWireFirstColumn = {
             x: canvasBounds.x + 55 * 0.8,
-            y: canvasBounds.y + (24 + 25) * 0.8
+            y: canvasBounds.y + (circuitTop + 25) * 0.8
         };
         await page.mouse.move(halfTurnH.x, halfTurnH.y);
         await page.mouse.down();

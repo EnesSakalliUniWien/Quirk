@@ -24,4 +24,46 @@ const CIRCUIT_OP_HORIZONTAL_SPACING = 10;
 /** @type {!number} The gutter left of the first column, where the initial-state kets sit. */
 const CIRCUIT_OP_LEFT_SPACING = 32;
 
-export {CIRCUIT_OP_HORIZONTAL_SPACING, CIRCUIT_OP_LEFT_SPACING}
+/**
+ * @type {!number} The strip beside and below the superposition grid where its binary labels draw;
+ * the label painter scales its text down to fit this span, so the strip never needs to grow with
+ * the wire count.
+ */
+const SUPERPOSITION_GRID_LABEL_SPAN = 50;
+
+/** @type {!number} The width the caption paragraphs beside the output displays wrap into. */
+const DISPLAY_CAPTION_WIDTH = 100;
+
+/** @type {!number} The gap between the superposition grid and its captions. */
+const DISPLAY_CAPTION_GAP = 3;
+
+/**
+ * @type {!number} The space kept right of the superposition grid: the row labels and the
+ * "Final amplitudes" caption both draw there, so the margin is whichever needs more.
+ */
+const CIRCUIT_RIGHT_MARGIN = Math.max(
+    SUPERPOSITION_GRID_LABEL_SPAN,
+    DISPLAY_CAPTION_GAP + DISPLAY_CAPTION_WIDTH);
+
+/**
+ * @type {!number} The strip under the superposition grid's column labels where the measurement
+ * and discard-rate warnings print.
+ */
+const DISPLAY_WARNING_STRIP_HEIGHT = 60;
+
+/**
+ * @type {!number} The space kept below the superposition grid: first the column labels, then the
+ * warning strip.
+ */
+const CIRCUIT_BOTTOM_MARGIN = SUPERPOSITION_GRID_LABEL_SPAN + DISPLAY_WARNING_STRIP_HEIGHT;
+
+export {
+    CIRCUIT_OP_HORIZONTAL_SPACING,
+    CIRCUIT_OP_LEFT_SPACING,
+    SUPERPOSITION_GRID_LABEL_SPAN,
+    DISPLAY_CAPTION_WIDTH,
+    DISPLAY_CAPTION_GAP,
+    DISPLAY_WARNING_STRIP_HEIGHT,
+    CIRCUIT_RIGHT_MARGIN,
+    CIRCUIT_BOTTOM_MARGIN,
+}

@@ -18,7 +18,12 @@ import {DetailedError} from "../base/DetailedError.js"
 import {Layout} from "../config/Layout.js"
 import {Rect} from "../math/Rect.js"
 import {Simulation} from "../config/Simulation.js"
-import {CIRCUIT_OP_HORIZONTAL_SPACING, CIRCUIT_OP_LEFT_SPACING} from "./CircuitLayoutConstants.js"
+import {
+    CIRCUIT_OP_HORIZONTAL_SPACING,
+    CIRCUIT_OP_LEFT_SPACING,
+    CIRCUIT_RIGHT_MARGIN,
+    CIRCUIT_BOTTOM_MARGIN,
+} from "./CircuitLayoutConstants.js"
 
 /** The chance and Bloch columns drawn after the circuit's last column. */
 const EXTRA_COLS_FOR_SINGLE_QUBIT_DISPLAYS = 2;
@@ -101,7 +106,11 @@ class CircuitGeometry {
         if (forTooltip) {
             return this.circuitDefinition.numWires * Layout.WIRE_SPACING;
         }
-        return this.groundedWireCount() * Layout.WIRE_SPACING + 105;
+        // The superposition grid's bottom edge lines up with the last wire's gate rect; the labels
+        // and warnings drawn under it need the bottom margin.
+        let n = this.groundedWireCount();
+        let gridBottom = (n - 1) * Layout.WIRE_SPACING + Layout.WIRE_SPACING / 2 + Layout.GATE_RADIUS;
+        return gridBottom + CIRCUIT_BOTTOM_MARGIN;
     }
 
     /**
@@ -112,7 +121,8 @@ class CircuitGeometry {
         if (forTooltip) {
             return this.opRect(this.circuitDefinition.columns.length - 1).right() + CIRCUIT_OP_LEFT_SPACING;
         }
-        return this.rectForSuperpositionDisplay().right() + 101;
+        // The grid's row labels and captions draw right of it, inside the right margin.
+        return this.rectForSuperpositionDisplay().right() + CIRCUIT_RIGHT_MARGIN;
     }
 
     /**

@@ -53,7 +53,12 @@ class DisplayedInspector {
     updateArea(drawArea) {
         this.drawArea = drawArea;
 
-        this.displayedCircuit = this.displayedCircuit.withTop(Layout.CIRCUIT_TOP_MARGIN);
+        // The circuit band sits vertically centered in the area, and pins to the top margin when
+        // the area is too short to center within. The band height ignores the top, so this
+        // converges in one pass.
+        let bandHeight = this.displayedCircuit.desiredHeight();
+        let top = Math.max(Layout.CIRCUIT_TOP_MARGIN, Math.floor((drawArea.h - bandHeight) / 2));
+        this.displayedCircuit = this.displayedCircuit.withTop(top);
         this.displayedCircuit.updateDisplayShift(drawArea.w);
     }
 
@@ -238,12 +243,12 @@ class DisplayedInspector {
     }
 
     /**
-     * @returns {!number}
+     * @returns {!number} The least height the content wants: the circuit band with a symmetric
+     *     margin above and below. The visible area wins when it is taller; the circuit then
+     *     centers inside it.
      */
     desiredHeight() {
-        return Math.max(
-            Layout.MINIMUM_CANVAS_HEIGHT,
-            Layout.CIRCUIT_TOP_MARGIN + this.displayedCircuit.desiredHeight());
+        return this.displayedCircuit.desiredHeight() + 2 * Layout.CIRCUIT_TOP_MARGIN;
     }
 
     /**

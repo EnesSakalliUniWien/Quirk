@@ -15,7 +15,6 @@
  */
 
 import {CircuitStats} from "./circuit/CircuitStats.js"
-import {Layout} from "./config/Layout.js"
 import {DisplayedInspector} from "./ui/DisplayedInspector.js"
 import {Rect} from "./math/Rect.js"
 import {Revision} from "./base/Revision.js"
@@ -41,7 +40,7 @@ import {OverlayState} from "./ui/OverlayState.js"
 import {initUrlCircuitSync} from "./ui/url.js"
 import {initTitleSync} from "./ui/title.js"
 import {Simulator} from "./ui/sim.js"
-import {circuitZoom, initZoomControls} from "./ui/zoom.js"
+import {circuitZoom, initZoomControls, attachCircuitScrollSource} from "./ui/zoom.js"
 import {initMinimap} from "./ui/minimap.js"
 import {initGateParamDialog} from "./ui/gateParamDialog.js"
 
@@ -94,11 +93,11 @@ function startQuirk() {
      * @returns {{w: number, h: !number}}
      */
     let desiredCanvasSizeFor = curInspector => {
-        // The canvas hugs its content; the page background continues below it. The visible area
-        // covers more circuit units when zoomed out, so the minimums grow by the inverse zoom.
+        // The content extent, in circuit units: at least the visible area (which covers more
+        // circuit units when zoomed out), grown to fit a circuit larger than it.
         return {
             w: Math.max(canvasDiv.clientWidth / circuitZoom(), curInspector.desiredWidth()),
-            h: Math.max(Layout.MINIMUM_CANVAS_HEIGHT / circuitZoom(), curInspector.desiredHeight())
+            h: Math.max(canvasDiv.clientHeight / circuitZoom(), curInspector.desiredHeight())
         };
     };
 
@@ -135,6 +134,9 @@ function startQuirk() {
         desiredCanvasSizeFor,
         syncArea);
 
+    // The canvas is pinned to the scroll container's visible corner, so pointer positions only
+    // become circuit coordinates after the container's scroll is added back.
+    attachCircuitScrollSource(canvasDiv);
     const openGateParamEditor = initGateParamDialog(revision, displayed, overlayState);
     initCanvasPointer(canvas, canvasDiv, revision, displayed, syncArea, openGateParamEditor);
 

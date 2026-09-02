@@ -17,10 +17,10 @@
 import {Point} from "../math/Point.js"
 
 /**
- * The circuit's zoom factor: 1 is the natural drawing size, smaller pulls a large circuit into
- * view. The drawing pipeline multiplies its canvas sizing and painter scale by the factor, and
- * the pointer code divides screen positions back into circuit coordinates, so everything between
- * the two keeps working in the circuit's own units.
+ * The circuit's camera: a zoom factor plus the scroll container's offset. 1 is the natural
+ * drawing size, smaller pulls a large circuit into view. The drawing pipeline scales and
+ * translates its painter by these, and the pointer code maps screen positions back through them,
+ * so everything between the two keeps working in the circuit's own units.
  */
 
 const ZOOM_MIN = 0.4;
@@ -30,6 +30,8 @@ const ZOOM_STEP = 1.25;
 let _zoom = 1;
 /** @type {!Array.<!function(): void>} */
 let _listeners = [];
+/** @type {undefined|!HTMLElement} */
+let _scrollSource = undefined;
 
 /** @returns {!number} */
 function circuitZoom() {
@@ -58,12 +60,24 @@ function onCircuitZoomChanged(listener) {
 }
 
 /**
+ * Registers the scroll container whose offsets complete the camera. The canvas stays pinned to
+ * the container's visible corner, so canvas-relative positions only become circuit coordinates
+ * after the scroll is added back.
+ * @param {!HTMLElement} element
+ */
+function attachCircuitScrollSource(element) {
+    _scrollSource = element;
+}
+
+/**
  * Maps a position measured against the canvas's on-screen pixels into circuit coordinates.
  * @param {!Point} pt
  * @returns {!Point}
  */
 function pointIntoCircuitCoords(pt) {
-    return new Point(pt.x / _zoom, pt.y / _zoom);
+    let sx = _scrollSource === undefined ? 0 : _scrollSource.scrollLeft;
+    let sy = _scrollSource === undefined ? 0 : _scrollSource.scrollTop;
+    return new Point((pt.x + sx) / _zoom, (pt.y + sy) / _zoom);
 }
 
 /**
@@ -105,4 +119,4 @@ function initZoomControls(container, fitFactorProvider) {
     container.appendChild(cluster);
 }
 
-export {circuitZoom, onCircuitZoomChanged, pointIntoCircuitCoords, initZoomControls}
+export {circuitZoom, onCircuitZoomChanged, pointIntoCircuitCoords, initZoomControls, attachCircuitScrollSource}

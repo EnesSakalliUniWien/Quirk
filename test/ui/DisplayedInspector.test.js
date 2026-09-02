@@ -21,27 +21,26 @@ import {Rect} from "../../src/math/Rect.js"
 
 let suite = new Suite("DisplayedInspector");
 
-suite.test("startsTheCircuitAtTheTopOfTheCanvas", () => {
-    // The gate toolbox is a DOM sidebar now, so nothing on the canvas sits above the circuit.
+suite.test("centersTheCircuitVerticallyInATallArea", () => {
     let inspector = DisplayedInspector.empty(new Rect(0, 0, 1000, 800));
 
-    assertThat(inspector.displayedCircuit.top).isEqualTo(Layout.CIRCUIT_TOP_MARGIN);
+    let band = inspector.displayedCircuit.desiredHeight();
+    assertThat(inspector.displayedCircuit.top).isEqualTo(Math.floor((800 - band) / 2));
     assertThat(inspector.displayedToolboxTop).isEqualTo(undefined);
     assertThat(inspector.displayedToolboxBottom).isEqualTo(undefined);
 });
 
-suite.test("keepsTheCircuitAtTheSameTopWhenTheAreaIsShort", () => {
+suite.test("pinsTheCircuitToTheTopMarginWhenTheAreaIsShort", () => {
     let inspector = DisplayedInspector.empty(new Rect(0, 0, 1000, 100));
 
     assertThat(inspector.displayedCircuit.top).isEqualTo(Layout.CIRCUIT_TOP_MARGIN);
 });
 
-suite.test("hugsTheCircuitVertically", () => {
+suite.test("wantsTheCircuitBandPlusSymmetricMargins", () => {
     let inspector = DisplayedInspector.empty(new Rect(0, 0, 1000, 800));
 
-    assertThat(inspector.desiredHeight()).isEqualTo(Math.max(
-        Layout.MINIMUM_CANVAS_HEIGHT,
-        Layout.CIRCUIT_TOP_MARGIN + inspector.displayedCircuit.desiredHeight()));
+    assertThat(inspector.desiredHeight()).isEqualTo(
+        inspector.displayedCircuit.desiredHeight() + 2 * Layout.CIRCUIT_TOP_MARGIN);
 });
 
 suite.test("endsOutputDisplaysAtTheRightEdgeOfASpaciousArea", () => {

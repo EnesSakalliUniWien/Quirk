@@ -56,6 +56,10 @@ function initRedrawLoop(canvas,
                         desiredCanvasSizeFor,
                         syncArea) {
     let hasStarted = false;
+    // The scroll extent lives on this spacer, not the canvas: the canvas stays viewport-sized
+    // while the spacer stretches to the content, so a wide circuit scrolls without the canvas's
+    // backing store ever growing.
+    const spacer = document.getElementById('canvas-scroll-spacer');
 
     // Some drawn values dither with randomness. Keeping one rng for a fraction of a second, and
     // restarting it each frame, keeps them stable enough to read while still visibly noisy.
@@ -99,16 +103,34 @@ function initRedrawLoop(canvas,
 
         let size = desiredCanvasSizeFor(shown);
         let pixelRatio = window.devicePixelRatio || 1;
-        // The zoom scales both the backing store and the on-screen size, so the painter and the
-        // geometry keep working in the circuit's own units at full sharpness.
         let zoom = circuitZoom();
-        let scale = pixelRatio * zoom;
-        canvas.width = Math.round(size.w * scale);
-        canvas.height = Math.round(size.h * scale);
-        canvas.style.width = (size.w * zoom) + 'px';
-        canvas.style.height = (size.h * zoom) + 'px';
-        let painter = new Painter(canvas, semiStableRng.cur.restarted(), scale);
-        shown.updateArea(painter.paintableArea());
+
+        // The canvas is a fixed viewport pinned to the container's visible corner: its CSS size
+        // is the container's (an integer), and its backing store is that times the device pixel
+        // ratio, so nothing is ever rescaled by a fractional pixel. The spacer under it carries
+        // the content's extent, which is what actually scrolls.
+        let cssW = canvasDiv.clientWidth;
+        let cssH = canvasDiv.clientHeight;
+        let backingW = Math.round(cssW * pixelRatio);
+        let backingH = Math.round(cssH * pixelRatio);
+        if (canvas.width !== backingW || canvas.height !== backingH) {
+            canvas.width = backingW;
+            canvas.height = backingH;
+        }
+        let cssWidthStyle = cssW + 'px';
+        let cssHeightStyle = cssH + 'px';
+        if (canvas.style.width !== cssWidthStyle || canvas.style.height !== cssHeightStyle) {
+            canvas.style.width = cssWidthStyle;
+            canvas.style.height = cssHeightStyle;
+        }
+        spacer.style.width = Math.round(size.w * zoom) + 'px';
+        spacer.style.height = Math.round(size.h * zoom) + 'px';
+
+        // The camera: the painter scales into circuit units, then shifts by the scroll so the
+        // fixed viewport shows the scrolled-to part of the scene.
+        let painter = new Painter(canvas, semiStableRng.cur.restarted(), pixelRatio * zoom);
+        painter.ctx.translate(-canvasDiv.scrollLeft / zoom, -canvasDiv.scrollTop / zoom);
+        shown.updateArea(new Rect(0, 0, size.w, size.h));
         shown.paint(painter, stats, playheadStep);
         painter.paintDeferred();
 
@@ -130,7 +152,35 @@ function initRedrawLoop(canvas,
 
     redrawThrottle = new CooldownThrottle(redrawNow, Layout.REDRAW_COOLDOWN_MILLIS, 0.1, true);
     window.addEventListener('resize', () => redrawThrottle.trigger(), false);
-    onCircuitZoomChanged(() => redrawThrottle.trigger());
+    // The container can resize without the window (the sidebar folding, the state table growing),
+    // and the fixed viewport must follow it.
+    new ResizeObserver(() => redrawThrottle.trigger()).observe(canvasDiv);
+    // The camera shifts with the scroll, so the fixed viewport needs a repaint per scroll step.
+    canvasDiv.addEventListener('scroll', () => redrawThrottle.trigger(), {passive: true});
+    // A monitor change or browser-zoom change alters the device pixel ratio without any resize;
+    // each firing re-registers against the new ratio.
+    const watchPixelRatio = () => {
+        const query = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
+        query.addEventListener('change', () => {
+            redrawThrottle.trigger();
+            watchPixelRatio();
+        }, {once: true});
+    };
+    watchPixelRatio();
+    let lastZoom = circuitZoom();
+    onCircuitZoomChanged(() => {
+        // Keep the scene point at the viewport's center fixed while the zoom changes around it.
+        // The spacer is rescaled first so the new scroll position isn't clamped to the old extent.
+        let factor = circuitZoom() / lastZoom;
+        lastZoom = circuitZoom();
+        spacer.style.width = (parseFloat(spacer.style.width) || 0) * factor + 'px';
+        spacer.style.height = (parseFloat(spacer.style.height) || 0) * factor + 'px';
+        canvasDiv.scrollLeft = (canvasDiv.scrollLeft + canvasDiv.clientWidth / 2) * factor -
+            canvasDiv.clientWidth / 2;
+        canvasDiv.scrollTop = (canvasDiv.scrollTop + canvasDiv.clientHeight / 2) * factor -
+            canvasDiv.clientHeight / 2;
+        redrawThrottle.trigger();
+    });
     if (document.fonts !== undefined) {
         // Canvas text starts out on a fallback font; repaint once the webfont is ready.
         document.fonts.ready.then(() => redrawThrottle.trigger());

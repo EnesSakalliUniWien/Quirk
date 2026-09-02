@@ -17,7 +17,7 @@
 // The menu, export, and gate forge dialogs.
 
 const assert = require('node:assert/strict');
-const {test, withQuirkPage, waitForQuirk, waitForCircuit, waitForDialog, currentCircuit, exportedCircuit, urlForCircuit, TEST_TIMEOUT_MILLIS} = require('./harness.js');
+const {test, withQuirkPage, waitForQuirk, waitForCircuit, waitForDialog, currentCircuit, exportedCircuit, urlForCircuit, TEST_TIMEOUT_MILLIS, circuitTopForWires, waitForCanvasViewport} = require('./harness.js');
 
 test('opens and closes the menu, export, and gate forge overlays', async browser => {
     const circuit = {cols: [['H']]};
@@ -66,7 +66,10 @@ test('edits a rotation gate angle through the parameter dialog', async browser =
         });
 
         // The change button is the bottom half of the gate in the first column on the first wire.
-        await page.mouse.move(canvasBounds.x + 77, canvasBounds.y + 62);
+        // The sampled top races the throttled repaint after the state table fills in without this.
+        await waitForCanvasViewport(page);
+        const circuitTop = await circuitTopForWires(page, 2);
+        await page.mouse.move(canvasBounds.x + 77, canvasBounds.y + circuitTop + 38);
         await page.mouse.down();
         await page.mouse.up();
         await waitForDialog(page, '#gate-param-div', true);

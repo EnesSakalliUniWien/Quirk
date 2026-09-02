@@ -123,14 +123,50 @@ async function withQuirkPage(browser, circuit, body, viewport=DEFAULT_VIEWPORT) 
     }
 }
 
+/**
+ * Waits until the canvas viewport matches its scroll cell, which is also when the last paint used
+ * the cell's current size. Pixel samples taken before that race the throttled repaint that
+ * follows a layout change, such as the state table filling in.
+ */
+async function waitForCanvasViewport(page) {
+    await page.waitForFunction(
+        () => {
+            const canvas = document.getElementById('drawCanvas');
+            const div = document.getElementById('canvasDiv');
+            const dpr = window.devicePixelRatio || 1;
+            return canvas.width === Math.round(div.clientWidth * dpr) &&
+                canvas.height === Math.round(div.clientHeight * dpr);
+        },
+        {timeout: TEST_TIMEOUT_MILLIS});
+}
+
+/**
+ * Where the circuit band starts inside the canvas, in circuit units: centered in the visible
+ * area, but never above the top margin. Mirrors DisplayedInspector.updateArea.
+ */
+async function circuitTopForWires(page, wireCount, zoom = 1) {
+    return page.evaluate((wireCount, zoom) => {
+        const margin = 24;  // Layout.CIRCUIT_TOP_MARGIN.
+        const band = wireCount * 50 + 105;  // Wire band plus the label and warning strips.
+        const div = document.getElementById('canvasDiv');
+        const sceneHeight = Math.max(div.clientHeight / zoom, band + 2 * margin);
+        return Math.max(margin, Math.floor((sceneHeight - band) / 2));
+    }, wireCount, zoom);
+}
+
 // Shared by the circuit and toolbox specs: both check that the circuit paints where the layout
 // says it should.
 async function canvasLayout(page) {
+    await waitForCanvasViewport(page);
     return page.evaluate(() => {
         const canvas = document.getElementById('drawCanvas');
         const context = canvas.getContext('2d');
         const canvasBounds = canvas.getBoundingClientRect();
-        const circuitTop = 24;  // Layout.CIRCUIT_TOP_MARGIN.
+        // The circuit band centers vertically; mirror the app's own layout for a 2-wire circuit.
+        const circuitBand = 2 * 50 + 105;
+        const circuitTop = Math.max(
+            24,
+            Math.floor((Math.max(canvas.clientHeight, circuitBand + 48) - circuitBand) / 2));
 
         const pixelAt = (x, y) => {
             const data = context.getImageData(x, y, 1, 1).data;
@@ -213,4 +249,6 @@ module.exports = {
     TEST_TIMEOUT_MILLIS,
     canvasLayout,
     assertCircuitLayout,
+    circuitTopForWires,
+    waitForCanvasViewport,
 };

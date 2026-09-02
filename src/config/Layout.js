@@ -23,14 +23,9 @@ class Layout {}
 * @type {!number} */
 Layout.GATE_RADIUS = 20;
 Layout.WIRE_SPACING = 50;
-// Vertical gap above the circuit, now that the toolbox is a sidebar rather than a band on top.
+// The least vertical margin above the circuit band; also the margin the band keeps when the
+// visible area is too short to center it.
 Layout.CIRCUIT_TOP_MARGIN = 24;
-/**
- * Some tooltips end up looking terrible without available vertical space.
- * (e.g. the error box might not fit, or the gate tips might get squashed)
- * @type {number}
- */
-Layout.MINIMUM_CANVAS_HEIGHT = 400;
 Layout.REDRAW_COOLDOWN_MILLIS = 10; // Milliseconds. Rate-limit on redraws. Long draws pad this limit.
 Layout.DEFAULT_STROKE_THICKNESS = 1;
 

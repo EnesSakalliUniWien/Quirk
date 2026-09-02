@@ -31,8 +31,12 @@ import {Point} from "../math/Point.js"
 import {Rect} from "../math/Rect.js"
 import {Util} from "../base/Util.js"
 import {paintBlochSphereDisplay} from "../gates/displays/BlochSphereDisplay.js"
-
-const SUPERPOSITION_GRID_LABEL_SPAN = 50;
+import {
+    SUPERPOSITION_GRID_LABEL_SPAN,
+    DISPLAY_CAPTION_WIDTH,
+    DISPLAY_CAPTION_GAP,
+    DISPLAY_WARNING_STRIP_HEIGHT,
+} from "./CircuitLayoutConstants.js"
 
 // One ellipsis stands in for the bits the other axis supplies, keeping labels short enough to read.
 const SUPERPOSITION_GRID_LABEL_ELLIPSIS = '⋯';
@@ -546,19 +550,19 @@ function drawHintLabels(circuit, painter, stats) {
     // Amplitude hint.
     painter.print(
         'Final amplitudes',
-        gridRect.right() + 3,
+        gridRect.right() + DISPLAY_CAPTION_GAP,
         gridRect.bottom() + 3,
         'left',
         'top',
         Palette.MUTED_TEXT_COLOR,
         `12px ${Typography.DEFAULT_FONT_FAMILY}`,
-        100,
+        DISPLAY_CAPTION_WIDTH,
         20);
 
     // Says what each cell's glyphs encode, which is otherwise only discoverable by hovering.
     painter.printParagraph(
         "area = chance\nline = phase",
-        new Rect(gridRect.right() + 3, gridRect.bottom() + 18, 100, 26),
+        new Rect(gridRect.right() + DISPLAY_CAPTION_GAP, gridRect.bottom() + 18, DISPLAY_CAPTION_WIDTH, 26),
         new Point(0, 0),
         Palette.MUTED_TEXT_COLOR,
         10);
@@ -568,10 +572,10 @@ function drawHintLabels(circuit, painter, stats) {
         painter.printParagraph(
             "(assuming measurement deferred)",
             new Rect(
-                gridRect.right() + 3,
+                gridRect.right() + DISPLAY_CAPTION_GAP,
                 gridRect.bottom() + 48,
-                100,
-                75),
+                DISPLAY_CAPTION_WIDTH,
+                DISPLAY_WARNING_STRIP_HEIGHT),
             new Point(0.5, 0),
             Palette.ERROR_COLOR);
     }
