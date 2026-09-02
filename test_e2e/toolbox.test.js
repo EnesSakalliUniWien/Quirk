@@ -46,6 +46,14 @@ test('searches the gate toolbox and documents a gate on hover', async browser =>
         assert.deepEqual(filtered.tiles, ['Fourier Transform Gate', 'Inverse Fourier Transform Gate']);
         assert.deepEqual(filtered.groups, ['Frequency']);
 
+        // The hidden attribute must actually unrender the tile: an author display rule outranks
+        // the browser's [hidden] styling, which once left non-matching tiles painted inside a
+        // partially-matching group.
+        const paintedButHidden = await page.evaluate(() =>
+            [...document.querySelectorAll('.gate-tile')].filter(tile =>
+                tile.hidden && getComputedStyle(tile).display !== 'none').length);
+        assert.equal(paintedButHidden, 0, 'Attribute-hidden tiles must not stay painted.');
+
         // A search that matches nothing says so rather than showing an empty sidebar.
         await page.keyboard.type('zzzz');
         await page.waitForFunction(
