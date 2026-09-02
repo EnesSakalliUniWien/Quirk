@@ -203,6 +203,8 @@ function drawWires(circuit, painter, showLabels, hand) {
             }
             let rect = wireInitialStateClickableRect(circuit, row);
             painter.noteTouchBlocker({rect, cursor: 'pointer'});
+            // A quiet fill marks the ket as clickable before the pointer ever finds it.
+            painter.fillRect(rect, Palette.QUIET_GATE_FILL_COLOR);
             if (circuit._highlightedSlot === undefined && hand.pos !== undefined && rect.containsPoint(hand.pos)) {
                 painter.fillRect(rect, Palette.HIGHLIGHTED_GATE_FILL_COLOR);
             }
@@ -242,6 +244,22 @@ function drawWires(circuit, painter, showLabels, hand) {
         }).thenStroke(Palette.INK_COLOR);
     }
     painter.ctx.restore();
+
+    // A faint stub under the last wire advertises that dragging a gate below the circuit adds a
+    // qubit. While a drag is showing the real preview wire, the hint gets out of the way.
+    if (showLabels &&
+            circuit.geometry().extraWireStartIndex === undefined &&
+            circuit.circuitDefinition.numWires < Simulation.MAX_WIRE_COUNT) {
+        let hintY = Math.round(circuit.wireRect(drawnWireCount).center().y - 0.5) + 0.5;
+        painter.ctx.save();
+        painter.ctx.setLineDash([4, 4]);
+        painter.strokeLine(new Point(28, hintY), new Point(150, hintY), Palette.FAINT_LINE_COLOR);
+        painter.ctx.restore();
+        painter.print(
+            '+', 26, hintY, 'right', 'middle', Palette.FAINT_LINE_COLOR,
+            `14px ${Typography.DEFAULT_FONT_FAMILY}`, 22, Layout.WIRE_SPACING);
+    }
+
     if (circuit.geometry().extraWireStartIndex !== undefined && circuit.circuitDefinition.numWires === Simulation.MAX_WIRE_COUNT) {
         painter.print(
             `(Max wires. Qubit limit is ${Simulation.MAX_WIRE_COUNT}.)`,
