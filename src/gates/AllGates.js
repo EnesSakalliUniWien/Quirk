@@ -20,6 +20,7 @@ import {HalfTurnGates} from "./rotations/HalfTurnGates.js"
 import {ParametrizedRotationGates} from "./rotations/ParametrizedRotationGates.js"
 import {PoweringGates} from "./rotations/PoweringGates.js"
 import {QuarterTurnGates} from "./rotations/QuarterTurnGates.js"
+import {RotationGates} from "./rotations/RotationGates.js"
 import {VariousXGates} from "./rotations/VariousXGates.js"
 import {VariousYGates} from "./rotations/VariousYGates.js"
 import {VariousZGates} from "./rotations/VariousZGates.js"
@@ -111,6 +112,7 @@ Gates.OtherZ = VariousZGates;
 Gates.ParametrizedRotationGates = ParametrizedRotationGates;
 Gates.Powering = PoweringGates;
 Gates.QuarterTurns = QuarterTurnGates;
+Gates.RotationGates = RotationGates;
 
 // Probes.
 Gates.Controls = Controls;
@@ -185,6 +187,7 @@ Gates.KnownToSerializer = [
     ...ExponentiatingGates.all,
     ...PoweringGates.all,
     ...ParametrizedRotationGates.all,
+    ...RotationGates.all,
 
     ...Detectors.all,
     ...PostSelectionGates.all,
@@ -261,6 +264,14 @@ Gates.TopToolboxGroups = [
             VariousZGates.Z4, VariousZGates.Z4i,
             VariousYGates.Y4, VariousYGates.Y4i,
             VariousXGates.X4, VariousXGates.X4i,
+        ]
+    },
+    {
+        hint: "Rotations",
+        gates: [
+            RotationGates.Rz, undefined,
+            RotationGates.Ry, undefined,
+            RotationGates.Rx, undefined,
         ]
     },
     {

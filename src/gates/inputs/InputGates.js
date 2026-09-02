@@ -93,20 +93,20 @@ let makeSetInputGate = key => new GateBuilder().
         GatePainting.paintGateSymbol(args, `${key}=${args.gate.param}`);
         GatePainting.paintGateButton(args);
     }).
-    setOnClickGateFunc(oldGate => {
-        let txt = prompt(`Enter new fallback value for input ${key} (between 0 and 65535).`,
-            '' + oldGate.param);
-        if (txt === null || txt.trim() === '') {
-            return oldGate;
+    setParamDialog({
+        title: `Enter new fallback value for input ${key}.`,
+        message: `The fallback is used when no input gate sets ${key}.\n` +
+            "It must be an integer between 0 and 65535.",
+        applyText: (oldGate, text) => {
+            if (text.trim() === '') {
+                return {gate: oldGate};
+            }
+            let val = parseInt(text);
+            if (!Number.isInteger(val) || val < 0 || val >= 1<<16) {
+                return {error: `'${text}' isn't an integer between 0 and 65535.`};
+            }
+            return {gate: oldGate.withParam(val)};
         }
-
-        let val = parseInt(txt);
-        if (!Number.isInteger(val) || val < 0 || val >= 1<<16) {
-            alert(`'${txt}' isn't an integer between 0 and 65535. Keeping ${oldGate.param}.`);
-            return oldGate;
-        }
-
-        return oldGate.withParam(val);
     }).
     setExtraDisableReasonFinder(args => {
         let p = args.gate.param;

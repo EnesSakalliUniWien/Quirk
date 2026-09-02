@@ -57,6 +57,13 @@ class Gate {
         this.customDrawer = undefined;
         /** @type{undefined|!function(!Gate) : !Gate} */
         this.onClickGateFunc = undefined;
+        /**
+         * When set, clicking the gate's button opens the in-app parameter dialog instead of
+         * calling onClickGateFunc.
+         * @type {undefined|!{title: !string, message: !string,
+         *     applyText: !function(oldGate: !Gate, text: !string): !{gate: !Gate}|!{error: !string}}}
+         */
+        this.paramDialog = undefined;
         /** @type {undefined|*} Used to stash error information when parsing goes bad. */
         this.tag = undefined;
         /**
@@ -290,6 +297,7 @@ class Gate {
         g.alternate = this.alternate;
         g.serializedId = this.serializedId;
         g.onClickGateFunc = this.onClickGateFunc;
+        g.paramDialog = this.paramDialog;
         g.tag = this.tag;
         g.param = this.param;
         g.customDrawer = this.customDrawer;
@@ -619,6 +627,17 @@ class GateBuilder {
      */
     setOnClickGateFunc(gateFunc) {
         this.gate.onClickGateFunc = gateFunc;
+        return this;
+    }
+
+    /**
+     * Makes the gate's button open the in-app parameter dialog.
+     * @param {!{title: !string, message: !string,
+     *     applyText: !function(oldGate: !Gate, text: !string): !{gate: !Gate}|!{error: !string}}} paramDialog
+     * @returns {!GateBuilder}
+     */
+    setParamDialog(paramDialog) {
+        this.gate.paramDialog = paramDialog;
         return this;
     }
 
