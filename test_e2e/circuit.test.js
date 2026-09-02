@@ -103,3 +103,49 @@ test('undoes and redoes with both the control and command modifiers', async brow
         }
     });
 });
+
+test('keeps drops accurate while zoomed out and fits the circuit on demand', async browser => {
+    await withQuirkPage(browser, {cols: []}, async page => {
+        // The welcome menu only opens on a browser's first visit; dismiss it if it is showing.
+        await page.evaluate(() => {
+            const closeButton = document.getElementById('close-menu-button');
+            if (closeButton !== null && closeButton.offsetParent !== null) {
+                closeButton.click();
+            }
+        });
+        const readout = () => page.$eval('.circuit-zoom-button[aria-live]', element => element.textContent);
+
+        await page.click('.circuit-zoom-button[aria-label="Zoom out"]');
+        assert.equal(await readout(), '80%');
+
+        const canvasBounds = await page.$eval('#drawCanvas', element => {
+            const bounds = element.getBoundingClientRect();
+            return {x: bounds.x, y: bounds.y};
+        });
+        const halfTurnH = await page.evaluate(() => {
+            const tile = [...document.querySelectorAll('.gate-tile')].
+                find(e => e.getAttribute('aria-label') === 'Hadamard Gate');
+            tile.scrollIntoView({block: 'center'});
+            const bounds = tile.getBoundingClientRect();
+            return {x: bounds.x + bounds.width/2, y: bounds.y + bounds.height/2};
+        });
+        // On-screen pixels are circuit coordinates scaled by the zoom, so the drop target for the
+        // first wire's first column shrinks with it.
+        const firstWireFirstColumn = {
+            x: canvasBounds.x + 55 * 0.8,
+            y: canvasBounds.y + (24 + 25) * 0.8
+        };
+        await page.mouse.move(halfTurnH.x, halfTurnH.y);
+        await page.mouse.down();
+        await page.mouse.move(firstWireFirstColumn.x, firstWireFirstColumn.y, {steps: 10});
+        await page.mouse.up();
+        await waitForCircuit(page, {cols: [['H']]});
+
+        // Fit never zooms in past 100%: on a small circuit it restores the natural size.
+        await page.click('.circuit-zoom-button[aria-label="Zoom out"]');
+        await page.click('.circuit-zoom-button[aria-label="Fit the circuit to the visible area"]');
+        await page.waitForFunction(
+            () => document.querySelector('.circuit-zoom-button[aria-live]').textContent === '100%',
+            {timeout: TEST_TIMEOUT_MILLIS});
+    });
+});

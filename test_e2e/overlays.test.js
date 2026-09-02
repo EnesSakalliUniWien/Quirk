@@ -57,3 +57,38 @@ test('opens and closes the menu, export, and gate forge overlays', async browser
  * The amber the playhead band paints across one column, counted over the strip between the two
  * wire rows. Gate boxes stop at the rows, so that strip is band or background and nothing else.
  */
+
+test('edits a rotation gate angle through the parameter dialog', async browser => {
+    await withQuirkPage(browser, {cols: [[{id: 'Rx', arg: 'pi/2'}]]}, async page => {
+        const canvasBounds = await page.$eval('#drawCanvas', element => {
+            const bounds = element.getBoundingClientRect();
+            return {x: bounds.x, y: bounds.y};
+        });
+
+        // The change button is the bottom half of the gate in the first column on the first wire.
+        await page.mouse.move(canvasBounds.x + 77, canvasBounds.y + 62);
+        await page.mouse.down();
+        await page.mouse.up();
+        await waitForDialog(page, '#gate-param-div', true);
+        await page.waitForFunction(
+            () => document.activeElement?.id === 'gate-param-input',
+            {timeout: TEST_TIMEOUT_MILLIS});
+
+        // Focusing selects the current value, so typing replaces it; Enter applies.
+        await page.keyboard.type('3pi/4');
+        await page.keyboard.press('Enter');
+        await waitForDialog(page, '#gate-param-div', false);
+        await waitForCircuit(page, {cols: [[{id: 'Rx', arg: '3pi/4'}]]});
+    });
+});
+
+test('lists the shortcuts in the menu', async browser => {
+    await withQuirkPage(browser, {cols: [['H']]}, async page => {
+        await page.click('#menu-button');
+        await waitForDialog(page, '#menu-div', true);
+        const shortcuts = await page.$$eval('.shortcut-list dd', elements => elements.map(e => e.textContent));
+        assert.ok(shortcuts.length >= 8, `The shortcut list must be filled in, saw ${shortcuts.length}.`);
+        assert.ok(shortcuts.includes('Undo'));
+        assert.ok(shortcuts.includes('Play or pause the animation'));
+    });
+});

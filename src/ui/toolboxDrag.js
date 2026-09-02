@@ -17,6 +17,7 @@
 import {Layout} from "../config/Layout.js"
 import {Point} from "../math/Point.js"
 import {eventPosRelativeTo} from "../browser/MouseWatcher.js"
+import {pointIntoCircuitCoords} from "./zoom.js"
 
 /**
  * Bridges a grab in the DOM toolbox onto the canvas's hand.
@@ -46,7 +47,7 @@ function initToolboxDrag(canvas, revision, displayed, syncArea) {
         }
 
         const handAt = source => displayed.get().hand.
-            withPos(eventPosRelativeTo(source, canvas)).
+            withPos(pointIntoCircuitCoords(eventPosRelativeTo(source, canvas))).
             withHeldGate(gate, new Point(Layout.GATE_RADIUS, Layout.GATE_RADIUS));
 
         revision.startedWorkingOnCommit();

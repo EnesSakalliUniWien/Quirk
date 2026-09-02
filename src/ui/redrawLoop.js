@@ -20,8 +20,10 @@ import {Layout} from "../config/Layout.js"
 import {Painter} from "../draw/Painter.js"
 import {Point} from "../math/Point.js"
 import {RestartableRng} from "../base/RestartableRng.js"
+import {Rect} from "../math/Rect.js"
 import {Simulation} from "../config/Simulation.js"
 import {TouchScrollBlocker} from "../browser/TouchScrollBlocker.js"
+import {circuitZoom, onCircuitZoomChanged} from "./zoom.js"
 
 /**
  * The app's frame pipeline: simulate the shown circuit, publish the stats, size the canvas, and
@@ -97,17 +99,27 @@ function initRedrawLoop(canvas,
 
         let size = desiredCanvasSizeFor(shown);
         let pixelRatio = window.devicePixelRatio || 1;
-        canvas.width = Math.round(size.w * pixelRatio);
-        canvas.height = Math.round(size.h * pixelRatio);
-        canvas.style.width = size.w + 'px';
-        canvas.style.height = size.h + 'px';
-        let painter = new Painter(canvas, semiStableRng.cur.restarted(), pixelRatio);
+        // The zoom scales both the backing store and the on-screen size, so the painter and the
+        // geometry keep working in the circuit's own units at full sharpness.
+        let zoom = circuitZoom();
+        let scale = pixelRatio * zoom;
+        canvas.width = Math.round(size.w * scale);
+        canvas.height = Math.round(size.h * scale);
+        canvas.style.width = (size.w * zoom) + 'px';
+        canvas.style.height = (size.h * zoom) + 'px';
+        let painter = new Painter(canvas, semiStableRng.cur.restarted(), scale);
         shown.updateArea(painter.paintableArea());
         shown.paint(painter, stats, playheadStep);
         painter.paintDeferred();
 
         displayed.get().hand.paintCursor(painter);
-        scrollBlocker.setBlockers(painter.touchBlockers, painter.desiredCursorStyle);
+        // The blockers live in the scroll container's CSS pixels, so they shrink with the zoom.
+        scrollBlocker.setBlockers(
+            painter.touchBlockers.map(b => ({
+                rect: new Rect(b.rect.x * zoom, b.rect.y * zoom, b.rect.w * zoom, b.rect.h * zoom),
+                cursor: b.cursor
+            })),
+            painter.desiredCursorStyle);
         canvas.style.cursor = painter.desiredCursorStyle || 'auto';
 
         let dt = displayed.get().stableDuration();
@@ -118,6 +130,7 @@ function initRedrawLoop(canvas,
 
     redrawThrottle = new CooldownThrottle(redrawNow, Layout.REDRAW_COOLDOWN_MILLIS, 0.1, true);
     window.addEventListener('resize', () => redrawThrottle.trigger(), false);
+    onCircuitZoomChanged(() => redrawThrottle.trigger());
     if (document.fonts !== undefined) {
         // Canvas text starts out on a fallback font; repaint once the webfont is ready.
         document.fonts.ready.then(() => redrawThrottle.trigger());

@@ -41,6 +41,9 @@ import {OverlayState} from "./ui/OverlayState.js"
 import {initUrlCircuitSync} from "./ui/url.js"
 import {initTitleSync} from "./ui/title.js"
 import {Simulator} from "./ui/sim.js"
+import {circuitZoom, initZoomControls} from "./ui/zoom.js"
+import {initMinimap} from "./ui/minimap.js"
+import {initGateParamDialog} from "./ui/gateParamDialog.js"
 
 /**
  * Starts Quirk after its document elements are available. Must be called exactly once.
@@ -91,10 +94,11 @@ function startQuirk() {
      * @returns {{w: number, h: !number}}
      */
     let desiredCanvasSizeFor = curInspector => {
-        // The canvas hugs its content; the page background continues below it.
+        // The canvas hugs its content; the page background continues below it. The visible area
+        // covers more circuit units when zoomed out, so the minimums grow by the inverse zoom.
         return {
-            w: Math.max(canvasDiv.clientWidth, curInspector.desiredWidth()),
-            h: Math.max(Layout.MINIMUM_CANVAS_HEIGHT, curInspector.desiredHeight())
+            w: Math.max(canvasDiv.clientWidth / circuitZoom(), curInspector.desiredWidth()),
+            h: Math.max(Layout.MINIMUM_CANVAS_HEIGHT / circuitZoom(), curInspector.desiredHeight())
         };
     };
 
@@ -131,7 +135,8 @@ function startQuirk() {
         desiredCanvasSizeFor,
         syncArea);
 
-    initCanvasPointer(canvas, canvasDiv, revision, displayed, syncArea);
+    const openGateParamEditor = initGateParamDialog(revision, displayed, overlayState);
+    initCanvasPointer(canvas, canvasDiv, revision, displayed, syncArea, openGateParamEditor);
 
     let circuitActions = new CircuitActions(revision, overlayState);
     initUrlCircuitSync(revision);
@@ -152,6 +157,12 @@ function startQuirk() {
         initToolboxKeyboardPlace(revision, displayed, syncArea));
     initMenu(revision, overlayState);
     initTitleSync(revision);
+    const circuitOverlay = document.getElementById('circuit-overlay');
+    // Fitting never zooms in: at 100% or below the whole circuit is judged by its own width,
+    // without the slack the right-aligned output displays absorb.
+    initZoomControls(circuitOverlay, () =>
+        Math.min(1, canvasDiv.clientWidth / displayed.get().displayedCircuit.unshiftedDesiredWidth()));
+    initMinimap(circuitOverlay, canvasDiv, displayed);
     overlayState.active().subscribe(active => {
         canvasDiv.tabIndex = active === undefined ? 0 : -1;
     });

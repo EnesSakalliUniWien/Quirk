@@ -149,6 +149,14 @@ class DisplayedCircuit {
     }
 
     /**
+     * @returns {!number} The width the drawn circuit needs on its own, before the output displays
+     *     are pushed to the right edge of the available area.
+     */
+    unshiftedDesiredWidth() {
+        return this.desiredWidth() - this._displayShift;
+    }
+
+    /**
      * @param {!number} top
      * @returns {!DisplayedCircuit}
      */
