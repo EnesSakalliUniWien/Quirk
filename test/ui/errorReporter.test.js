@@ -108,6 +108,18 @@ suite.test("keeps_a_blocking_banner_through_edits_and_crash_spam", () => {
     });
 });
 
+suite.test("ignores_the_benign_resize_observer_warnings", () => {
+    withInstalledReporter(host => {
+        window.onerror('ResizeObserver loop completed with undelivered notifications.', '', 0, 0, undefined);
+        window.onerror('ResizeObserver loop limit exceeded', '', 0, 0, undefined);
+        assertTrue(bannerIn(host) === null || bannerIn(host).hidden);
+
+        // A real error still banners through the same handler.
+        window.onerror('boom', '', 0, 0, new Error('boom'));
+        assertThat(bannerIn(host).hidden).isEqualTo(false);
+    });
+});
+
 suite.test("banners_an_unhandled_rejection_and_suppresses_the_default_log", () => {
     if (typeof PromiseRejectionEvent === 'undefined') {
         return;

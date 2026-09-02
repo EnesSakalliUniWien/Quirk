@@ -33,6 +33,15 @@ const NEW_ISSUE_URL = 'https://github.com/EnesSakalliUniWien/Quirk/issues/new?ti
 const EDIT_DISMISS_GRACE_MILLIS = 2000;
 
 /**
+ * Browser noise that must never banner. The ResizeObserver overflow warnings are benign by
+ * specification - the missed notifications are simply redelivered on the next frame - and the
+ * redraw loop's own observer resizes the canvas it watches beside, so they fire in normal use.
+ */
+const IGNORED_ERROR_PATTERNS = [
+    /ResizeObserver loop (limit exceeded|completed with undelivered notifications)/,
+];
+
+/**
  * @type {undefined|!{
  *     host: !HTMLElement,
  *     prevOnError: *,
@@ -184,7 +193,7 @@ function installErrorReporter(host = /** @type {!HTMLElement} */ document.getEle
  */
 function reportUnexpectedError(subject, error) {
     try {
-        if (_state === undefined) {
+        if (_state === undefined || IGNORED_ERROR_PATTERNS.some(pattern => pattern.test(subject))) {
             return;
         }
         if (_state.banner !== undefined && _state.banner.kind === 'blocking') {
