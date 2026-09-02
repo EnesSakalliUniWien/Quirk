@@ -58,7 +58,7 @@ import {Matrix} from "../math/Matrix.js"
 import {Rect} from "../math/Rect.js"
 import {Util} from "../base/Util.js"
 import {seq, Seq} from "../base/Seq.js"
-import {paintBlochSphereDisplay} from "../gates/BlochSphereDisplay.js"
+import {paintBlochSphereDisplay} from "../gates/displays/BlochSphereDisplay.js"
 
 
 

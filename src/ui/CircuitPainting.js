@@ -30,7 +30,7 @@ import {MathPainter} from "../draw/MathPainter.js"
 import {Point} from "../math/Point.js"
 import {Rect} from "../math/Rect.js"
 import {Util} from "../base/Util.js"
-import {paintBlochSphereDisplay} from "../gates/BlochSphereDisplay.js"
+import {paintBlochSphereDisplay} from "../gates/displays/BlochSphereDisplay.js"
 
 const SUPERPOSITION_GRID_LABEL_SPAN = 50;
 

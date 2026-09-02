@@ -26,7 +26,7 @@ import {Gate, GateBuilder} from "../../src/circuit/Gate.js"
 import {GateColumn} from "../../src/circuit/GateColumn.js"
 import {Gates} from "../../src/gates/AllGates.js"
 import {Matrix} from "../../src/math/Matrix.js"
-import {MysteryGateMaker} from "../../src/gates/Joke_MysteryGate.js"
+import {MysteryGateMaker} from "../../src/gates/misc/Joke_MysteryGate.js"
 import {seq} from "../../src/base/Seq.js"
 import {Util} from "../../src/base/Util.js"
 

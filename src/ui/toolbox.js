@@ -15,7 +15,7 @@
  */
 
 import {Gates} from "../gates/AllGates.js"
-import {MysteryGateSymbol, MysteryGateMaker} from "../gates/Joke_MysteryGate.js"
+import {MysteryGateSymbol, MysteryGateMaker} from "../gates/misc/Joke_MysteryGate.js"
 import {Painter} from "../draw/Painter.js"
 import {Rect} from "../math/Rect.js"
 import {RestartableRng} from "../base/RestartableRng.js"
