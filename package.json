@@ -24,6 +24,8 @@
     "dev": "vite --open /quirk.html",
     "build": "vite build",
     "preview": "vite preview --open /quirk.html",
+    "start": "node server/index.js",
+    "serve": "npm run build && npm start",
     "test:build": "vite build --mode test",
     "test": "npm run test:build && node PuppeteerRunTests.js test.html",
     "test:e2e": "npm run build && node PuppeteerRunEndToEndTests.js",

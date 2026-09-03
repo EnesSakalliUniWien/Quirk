@@ -19,21 +19,25 @@
 // ../PuppeteerRunEndToEndTests.js imports them and runs the registry.
 
 import assert from 'node:assert/strict';
-import path from 'node:path';
-import {pathToFileURL} from 'node:url';
 
-const APP_FILE_URL = pathToFileURL(path.join(import.meta.dirname, '..', 'out', 'quirk.html'));
 const DEFAULT_VIEWPORT = {width: 1280, height: 720, deviceScaleFactor: 1};
 const TEST_TIMEOUT_MILLIS = 10 * 1000;
 
 const tests = [];
+
+/** Where the built app is served from; the runner sets this before running the registry. */
+let appOrigin = undefined;
+
+function setAppOrigin(origin) {
+    appOrigin = origin;
+}
 
 function test(name, body) {
     tests.push({name, body});
 }
 
 function urlForCircuit(circuit) {
-    const url = new URL(APP_FILE_URL);
+    const url = new URL('/quirk.html', appOrigin);
     url.hash = 'circuit=' + encodeURIComponent(JSON.stringify(circuit));
     return url.href;
 }
@@ -239,6 +243,7 @@ function assertCircuitLayout(layout) {
 }
 
 export {
+    setAppOrigin,
     test,
     tests,
     urlForCircuit,

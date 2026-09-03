@@ -15,11 +15,13 @@
  */
 
 import path from 'node:path';
-import {pathToFileURL} from 'node:url';
 
 import puppeteer from 'puppeteer';
 
+import {startStaticServer} from './server/staticServer.js';
+
 let browser;
+let serve;
 try {
     const pageFile = process.argv[2] || 'test.html';
     if (pageFile !== 'test.html' && pageFile !== 'test_perf.html') {
@@ -35,8 +37,9 @@ try {
         console.error("Page error bubbled into PuppeteerRunTests.js: " + error.message);
     });
 
-    const testUrl = pathToFileURL(path.join(import.meta.dirname, 'out', pageFile));
-    await page.goto(testUrl.href);
+    // Served over http rather than file://, because browsers refuse module scripts from disk.
+    serve = await startStaticServer({root: path.join(import.meta.dirname, 'out')});
+    await page.goto(`${serve.origin}/${pageFile}`);
     await page.waitForSelector('#done', {timeout: 5 * 60 * 1000});
     const result = await page.evaluate(() => ({
         anyFailures: __any_failures,
@@ -54,5 +57,8 @@ try {
 } finally {
     if (browser !== undefined) {
         await browser.close();
+    }
+    if (serve !== undefined) {
+        await serve.close();
     }
 }
