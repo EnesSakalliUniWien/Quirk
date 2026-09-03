@@ -30,17 +30,17 @@ Shadow-Quant assumes you already know background facts like "each wire represent
 
 # Examples
 
-**Basic usage demo**:
+**The app**, with a small circuit using Bloch, amplitude, density, and chance displays:
 
-![Demo](/doc/README_Demo.gif)
+![Demo](/doc/README_Demo.png)
 
-**Grover search circuit** with chance and sample displays (showing that the chance of success increases):
+**Grover search circuit** with chance displays (showing that the chance of success increases):
 
-![Grover search](/doc/README_Grover.gif)
+![Grover search](/doc/README_Grover.png)
 
 **Quantum teleportation circuit** with Bloch sphere displays (showing that the qubit at the top has ended up at the bottom):
 
-![Quantum teleportation](/doc/README_Teleportation.gif)
+![Quantum teleportation](/doc/README_Teleportation.png)
 
 # Building and running
 
