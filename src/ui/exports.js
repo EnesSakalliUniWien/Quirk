@@ -15,15 +15,12 @@
  */
 
 import {AppInfo} from "../config/AppInfo.js"
-import {Serializer} from "../circuit/Serializer.js"
 import {selectAndCopyToClipboard} from "../browser/Clipboard.js"
-import {fromJsonText_CircuitDefinition} from "../circuit/Serializer.js"
-import {saveFile} from "../browser/SaveFile.js"
 
 /**
  * Interface note: also requires #export-button (src/components/app-toolbar.jsx) and the export
- * panel's #export-* and #download-offline-copy-button elements, shipped in
- * html/export.partial.html and mounted by src/components/export-dialog.jsx before this runs.
+ * panel's #export-* elements, shipped in quirk.html's dialog stash and mounted by
+ * src/components/export-dialog.jsx before this runs.
  *
  * @param {!Revision} revision
  * @param {!ObservableValue.<!CircuitStats>} mostRecentStats
@@ -115,64 +112,6 @@ function initExports(revision, mostRecentStats, overlayState) {
                 let raw = JSON.stringify(mostRecentStats.get().toReadableJson(!excludeAmps.checked), null, ' ');
                 return raw.replace(/{\s*"r": /g, '{"r":').replace(/,\s*"i":\s*([-e\d\.]+)\s*}/g, ',"i":$1}');
             });
-    })();
-
-    // Export offline copy.
-    (() => {
-        const downloadButton = /** @type {HTMLButtonElement} */ document.getElementById('download-offline-copy-button');
-
-        const fileNameForState = jsonText => {
-            //noinspection UnusedCatchParameterJS,EmptyCatchBlockJS
-            try {
-                let circuitDef = fromJsonText_CircuitDefinition(jsonText);
-                if (!circuitDef.isEmpty()) {
-                    return `Quirk with Circuit - ${circuitDef.readableHash()}.html`;
-                }
-            } catch (_) {
-            }
-            return 'Quirk.html';
-        };
-
-        let latest;
-        revision.latestActiveCommit().subscribe(jsonText => {
-            downloadButton.innerText = `Download "${fileNameForState(jsonText)}"`;
-            latest = jsonText;
-        });
-
-        downloadButton.addEventListener('click', () => {
-            downloadButton.disabled = true;
-            setTimeout(() => {
-                downloadButton.disabled = false;
-            }, 1000);
-            let originalHtml = document.QUIRK_QUINE_ALL_HTML_ORIGINAL;
-
-            // Inject default circuit.
-            let startDefaultTag = '//DEFAULT_CIRCUIT_START\n';
-            let endDefaultTag = '//DEFAULT_CIRCUIT_END\n';
-            let modStart = originalHtml.indexOf(startDefaultTag);
-            let modStop = originalHtml.indexOf(endDefaultTag, modStart);
-            let moddedHtml =
-                originalHtml.substring(0, modStart) +
-                startDefaultTag +
-                'document.DEFAULT_CIRCUIT = ' + JSON.stringify(latest) + ';\n' +
-                originalHtml.substring(modStop);
-
-            // Strip analytics.
-            let anaStartTag = '<!-- Start Analytics -->\n';
-            let anaStart = moddedHtml.indexOf(anaStartTag);
-            if (anaStart !== -1) {
-                let anaStopTag = '<!-- End Analytics -->\n';
-                let anaStop = moddedHtml.indexOf(anaStopTag, anaStart);
-                if (anaStop !== -1) {
-                    moddedHtml =
-                        moddedHtml.substring(0, anaStart) +
-                        anaStartTag +
-                        moddedHtml.substring(anaStop);
-                }
-            }
-
-            saveFile(fileNameForState(latest), moddedHtml);
-        });
     })();
 }
 

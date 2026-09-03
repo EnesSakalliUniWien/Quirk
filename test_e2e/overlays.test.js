@@ -32,6 +32,8 @@ test('opens and closes the menu, export, and gate forge overlays', async browser
         await waitForDialog(page, '#export-div', true);
         const jsonText = await page.$eval('#export-circuit-json-pre', element => element.textContent);
         assert.deepEqual(JSON.parse(jsonText), circuit);
+        // The offline-copy quine is gone; the dialog must not offer the download any more.
+        assert.equal(await page.$('#download-offline-copy-button'), null);
         await page.keyboard.press('Escape');
         await waitForDialog(page, '#export-div', false);
         assert.equal(await page.$eval('#menu-button', button => button.disabled), false);
@@ -66,13 +68,19 @@ test('edits a rotation gate angle through the parameter dialog', async browser =
         });
 
         // The change button is the bottom half of the gate in the first column on the first wire.
-        // The sampled top races the throttled repaint after the state table fills in without this.
-        await waitForCanvasViewport(page);
-        const circuitTop = await circuitTopForWires(page, 2);
-        await page.mouse.move(canvasBounds.x + 77, canvasBounds.y + circuitTop + 38);
-        await page.mouse.down();
-        await page.mouse.up();
-        await waitForDialog(page, '#gate-param-div', true);
+        // The state table fills in asynchronously and can shift the centered circuit between the
+        // position sample and the click, so retry until the dialog actually opens.
+        let opened = false;
+        for (let attempt = 0; attempt < 3 && !opened; attempt++) {
+            await waitForCanvasViewport(page);
+            const circuitTop = await circuitTopForWires(page, 2);
+            await page.mouse.move(canvasBounds.x + 77, canvasBounds.y + circuitTop + 38);
+            await page.mouse.down();
+            await page.mouse.up();
+            opened = await page.waitForSelector('#gate-param-div', {visible: true, timeout: 2000}).
+                then(() => true, () => false);
+        }
+        assert.ok(opened, 'The parameter dialog must open.');
         await page.waitForFunction(
             () => document.activeElement?.id === 'gate-param-input',
             {timeout: TEST_TIMEOUT_MILLIS});
@@ -92,11 +100,17 @@ test('opens the enlarged Bloch sphere view from a Bloch display gate', async bro
             return {x: bounds.x, y: bounds.y};
         });
 
-        // The Bloch display gate sits in the second column on the first wire.
-        await waitForCanvasViewport(page);
-        const circuitTop = await circuitTopForWires(page, 2);
-        await page.mouse.click(canvasBounds.x + 50 + 32 + 20, canvasBounds.y + circuitTop + 25);
-        await waitForDialog(page, '#bloch-div', true);
+        // The Bloch display gate sits in the second column on the first wire. Retried for the
+        // same layout-shift race the parameter dialog test guards against.
+        let opened = false;
+        for (let attempt = 0; attempt < 3 && !opened; attempt++) {
+            await waitForCanvasViewport(page);
+            const circuitTop = await circuitTopForWires(page, 2);
+            await page.mouse.click(canvasBounds.x + 50 + 32 + 20, canvasBounds.y + circuitTop + 25);
+            opened = await page.waitForSelector('#bloch-div', {visible: true, timeout: 2000}).
+                then(() => true, () => false);
+        }
+        assert.ok(opened, 'The Bloch sphere dialog must open.');
         await page.waitForFunction(
             () => document.getElementById('bloch-subtitle').textContent !== '',
             {timeout: TEST_TIMEOUT_MILLIS});

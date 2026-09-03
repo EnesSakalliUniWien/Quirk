@@ -37,7 +37,7 @@ import {Util} from "../base/Util.js"
 
 /**
  * Interface note: also requires #gate-forge-button (src/components/app-toolbar.jsx) and the forge
- * panel's #gate-forge-* inputs, canvases, and buttons, shipped in html/forge.partial.html and
+ * panel's #gate-forge-* inputs, canvases, and buttons, shipped in quirk.html's dialog stash and
  * mounted by src/components/forge-dialog.jsx before this runs.
  *
  * @param {!Revision} revision

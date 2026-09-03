@@ -71,8 +71,8 @@ function shouldShowWelcome(circuitIsEmpty, storage) {
  * that a WebGL initialization failure surfaces as a runtime error rather than killing the module
  * loading phase.
  *
- * Interface note: also requires #inspectorDiv and #canvasDiv (html/quirk.template.html) and the
- * welcome panel's #loading-div and #close-menu-button (html/menu.partial.html, mounted by
+ * Interface note: also requires #inspectorDiv and #canvasDiv (quirk.html) and the
+ * welcome panel's #loading-div and #close-menu-button (shipped in quirk.html's dialog stash, mounted by
  * src/components/menu-dialog.jsx) to exist before the scheduled tick runs.
  *
  * @param {!ObservableValue.<!DisplayedInspector>} displayed

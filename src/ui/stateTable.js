@@ -148,7 +148,7 @@ function _appendRow(tbody) {
  * the table redraws whenever the circuit or the playhead moves.
  *
  * Interface note: also requires #state-table-body, #state-summary, and #state-truncation-note,
- * shipped in html/state.partial.html.
+ * shipped in quirk.html.
  *
  * @param {!ObservableValue.<!{stats: !CircuitStats, wireCount: !int}>} obsPlayheadStats
  * @returns {void}

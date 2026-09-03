@@ -54,14 +54,7 @@
         }
     }
 
-    /* The only thing that shows when JavaScript is blocked. Kept out of the markup so every rule
-       in the app lives in the stylesheets. */
-    @keyframes delay-showing-before-hide-script-can-run-but-then-jump-in {
-        from { opacity: 0; }
-        95% { opacity: 0; }
-        to { opacity: 1; }
-    }
-
+    /* The only thing that shows when JavaScript is blocked. */
     .noscript-warning {
         position: absolute;
         top: 25%;

@@ -18,7 +18,7 @@ import {EXAMPLE_CIRCUITS} from "./exampleCircuits.js"
 
 /**
  * Interface note: also requires #menu-button (src/components/app-toolbar.jsx) and the welcome
- * panel's #close-menu-button and #example-* anchors, shipped in html/menu.partial.html and
+ * panel's #close-menu-button and #example-* anchors, shipped in quirk.html's dialog stash and
  * mounted by src/components/menu-dialog.jsx before this runs.
  *
  * @param {!Revision} revision

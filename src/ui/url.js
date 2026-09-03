@@ -55,7 +55,7 @@ function initUrlCircuitSync(revision) {
             historyPusher.currentStateIsMemorableButUnknown();
             let params = getHashParameters();
             if (!params.has(AppInfo.URL_CIRCUIT_PARAM_KEY)) {
-                let def = document.DEFAULT_CIRCUIT || JSON.stringify(Serializer.toJson(CircuitDefinition.EMPTY));
+                let def = JSON.stringify(Serializer.toJson(CircuitDefinition.EMPTY));
                 params.set(AppInfo.URL_CIRCUIT_PARAM_KEY, def);
             }
 
