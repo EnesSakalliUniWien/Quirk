@@ -15,7 +15,7 @@
  */
 
 import {Suite, assertTrue, assertFalse} from "../TestUtil.js"
-import {shouldShowWelcome, SEEN_WELCOME_STORAGE_KEY} from "../../src/ui/boot.js"
+import {shouldShowWelcome, SEEN_WELCOME_STORAGE_KEY} from "../../src/app/boot.js"
 
 let suite = new Suite("boot");
 

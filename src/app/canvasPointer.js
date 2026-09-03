@@ -20,7 +20,7 @@ import {pointIntoCircuitCoords} from "./zoom.js"
 /**
  * Wires the canvas's own pointer input: click-to-toggle, grab/drag/drop editing, middle-click
  * delete, and the hover tracking that drives hints and highlights. A drag that starts in the DOM
- * toolbox is not handled here; src/ui/toolboxDrag.js bridges those in.
+ * toolbox is not handled here; src/app/toolboxDrag.js bridges those in.
  *
  * @param {!HTMLCanvasElement} canvas
  * @param {!HTMLElement} canvasDiv

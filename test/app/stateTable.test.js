@@ -18,7 +18,7 @@ import {Suite, assertThat} from "../TestUtil.js"
 import {CircuitDefinition} from "../../src/circuit/CircuitDefinition.js"
 import {CircuitStats} from "../../src/circuit/CircuitStats.js"
 import {Gates} from "../../src/gates/AllGates.js"
-import {stateTableRows} from "../../src/ui/stateTable.js"
+import {stateTableRows} from "../../src/app/stateTable.js"
 
 let suite = new Suite("stateTable");
 

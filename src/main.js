@@ -15,9 +15,9 @@
  */
 
 // The error reporter installs first, so a failure anywhere in startup still reaches the banner.
-import {installErrorReporter, reportBlockingIssue} from "./ui/errorReporter.js"
-import {detectWebGlNotSupported} from "./issues.js"
-import {startQuirk} from "./QuirkApp.js"
+import {installErrorReporter, reportBlockingIssue} from "./diagnostics/errorReporter.js"
+import {detectWebGlNotSupported} from "./webgl/issues.js"
+import {startQuirk} from "./app/QuirkApp.js"
 import {mountAppToolbar} from "./components/app-toolbar.jsx"
 import {mountTransportBar} from "./components/transport-bar.jsx"
 import "./styles/globals.css"

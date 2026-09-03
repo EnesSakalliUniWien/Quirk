@@ -5,7 +5,7 @@ import {Dialog} from "@base-ui/react/dialog";
  * dialog ARIA come from the primitive instead of hand-rolled listeners.
  *
  * The panel content is singleton DOM that ships in the page's hidden #dialog-stash. The vanilla
- * modules in src/ui wire its elements up by id once at startup, so the nodes must never be
+ * modules in src/app wire its elements up by id once at startup, so the nodes must never be
  * re-created: the popup ADOPTS the stashed node while open and returns it on close, which keeps
  * every id and listener alive no matter how often the popup itself is rebuilt.
  */

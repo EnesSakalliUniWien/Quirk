@@ -16,8 +16,8 @@
 
 import {Suite, assertThat} from "../TestUtil.js"
 import {Revision} from "../../src/base/Revision.js"
-import {CircuitActions} from "../../src/ui/CircuitActions.js"
-import {OverlayState} from "../../src/ui/OverlayState.js"
+import {CircuitActions} from "../../src/app/CircuitActions.js"
+import {OverlayState} from "../../src/app/OverlayState.js"
 
 let suite = new Suite("CircuitActions");
 

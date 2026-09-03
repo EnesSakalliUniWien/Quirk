@@ -16,7 +16,7 @@
 
 import {Layout} from "../config/Layout.js"
 import {GatePainting} from "../draw/GatePainting.js"
-import {Hand} from "../ui/Hand.js"
+import {Hand} from "./Hand.js"
 import {Point} from "../math/Point.js"
 import {Rect} from "../math/Rect.js"
 import {CIRCUIT_OP_HORIZONTAL_SPACING, CIRCUIT_OP_LEFT_SPACING} from "./CircuitLayoutConstants.js"

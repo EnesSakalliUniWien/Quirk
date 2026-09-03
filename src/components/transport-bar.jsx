@@ -41,7 +41,7 @@ function TransportBar() {
             <ButtonGroup aria-label="Playhead">
                 <TransportButton id="playhead-reset-button" icon={SkipBackIcon}>Reset</TransportButton>
                 <TransportButton id="playhead-prev-button" icon={ChevronLeftIcon}>Prev</TransportButton>
-                {/* Both glyphs are rendered and one is hidden, because src/ui/transport.js swaps
+                {/* Both glyphs are rendered and one is hidden, because src/app/transport.js swaps
                     them as the playhead starts and stops rather than re-rendering this tree. */}
                 <Button id="playhead-play-button" size="default" variant="ghost">
                     <PlayIcon id="playhead-play-icon" data-icon="inline-start"

@@ -16,8 +16,8 @@
 
 import {Suite, assertThat} from "../TestUtil.js"
 import {ObservableValue} from "../../src/base/Obs.js"
-import {OverlayState} from "../../src/ui/OverlayState.js"
-import {Playhead} from "../../src/ui/Playhead.js"
+import {OverlayState} from "../../src/app/OverlayState.js"
+import {Playhead} from "../../src/app/Playhead.js"
 
 let suite = new Suite("Playhead");
 

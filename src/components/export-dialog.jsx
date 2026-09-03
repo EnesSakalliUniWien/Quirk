@@ -2,7 +2,7 @@ import {AppDialog} from "./app-dialog.jsx";
 
 /**
  * The export overlay: circuit links, JSON, amplitudes, and the offline copy. Its panel markup
- * ships in quirk.html's dialog stash and is wired up by src/ui/exports.js.
+ * ships in quirk.html's dialog stash and is wired up by src/app/exports.js.
  */
 function ExportDialog({active, overlayState}) {
     return (

@@ -15,14 +15,14 @@
  */
 
 import {Suite, assertThat, assertThrows} from "../TestUtil.js"
-import {DisplayedCircuit} from "../../src/ui/DisplayedCircuit.js"
+import {DisplayedCircuit} from "../../src/editor/DisplayedCircuit.js"
 
 import {CircuitDefinition} from "../../src/circuit/CircuitDefinition.js"
 import {CircuitStats} from "../../src/circuit/CircuitStats.js"
 import {Gates} from "../../src/gates/AllGates.js"
 import {Point} from "../../src/math/Point.js"
 import {RestartableRng} from "../../src/base/RestartableRng.js"
-import {Hand} from "../../src/ui/Hand.js"
+import {Hand} from "../../src/editor/Hand.js"
 import {Painter} from "../../src/draw/Painter.js"
 
 const COMMON_GATES = new Map([

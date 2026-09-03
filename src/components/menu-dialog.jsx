@@ -2,7 +2,7 @@ import {AppDialog} from "./app-dialog.jsx";
 
 /**
  * The welcome overlay: the app's greeting, resource links, and example circuits. Its panel markup
- * ships in quirk.html's dialog stash and is wired up by src/ui/menu.js.
+ * ships in quirk.html's dialog stash and is wired up by src/app/menu.js.
  */
 function MenuDialog({active, overlayState}) {
     return (

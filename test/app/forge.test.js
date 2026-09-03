@@ -17,7 +17,7 @@
 import {Suite, assertThat, assertThrows} from "../TestUtil.js"
 import {Complex} from "../../src/math/Complex.js"
 import {Matrix} from "../../src/math/Matrix.js"
-import {parseUserMatrix, parseUserRotation} from "../../src/ui/forge.js"
+import {parseUserMatrix, parseUserRotation} from "../../src/app/forge.js"
 
 let suite = new Suite("forge");
 

@@ -16,7 +16,7 @@
 
 /**
  * The welcome panel's example circuits: data, no behaviour. Each entry names the anchor in
- * quirk.html's menu panel that links to it; src/ui/menu.js wires them up.
+ * quirk.html's menu panel that links to it; src/app/menu.js wires them up.
  */
 
 const groverLink = {

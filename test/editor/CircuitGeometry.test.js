@@ -16,7 +16,7 @@
 
 import {Suite, assertThat, assertTrue} from "../TestUtil.js"
 import {CircuitDefinition} from "../../src/circuit/CircuitDefinition.js"
-import {CircuitGeometry} from "../../src/ui/CircuitGeometry.js"
+import {CircuitGeometry} from "../../src/editor/CircuitGeometry.js"
 import {Gates} from "../../src/gates/AllGates.js"
 import {Layout} from "../../src/config/Layout.js"
 import {Simulation} from "../../src/config/Simulation.js"

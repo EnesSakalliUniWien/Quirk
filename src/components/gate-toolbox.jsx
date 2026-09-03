@@ -17,7 +17,7 @@ import {
     searchTextOf,
     loadCollapsedGroups,
     storeCollapsedGroups,
-} from "../ui/toolbox.js";
+} from "./toolbox.js";
 
 /** Below this width the sidebar becomes an off-canvas drawer instead of squeezing the circuit. */
 const COMPACT_MEDIA_QUERY = '(max-width: 920px)';

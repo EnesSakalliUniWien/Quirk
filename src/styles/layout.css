@@ -66,7 +66,7 @@
 
     /* The error surface: a dismissible banner floated over the circuit's top edge. Non-modal on
        purpose - every report is a recovery or an environment problem, so it must not steal focus
-       or evict an open dialog. src/ui/errorReporter.js builds and drives it. */
+       or evict an open dialog. src/diagnostics/errorReporter.js builds and drives it. */
     #error-banner-root {
         position: absolute;
         top: calc(var(--spacing) * 3);

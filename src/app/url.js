@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {reportRecoveredError} from "./errorReporter.js"
+import {reportRecoveredError} from "../diagnostics/errorReporter.js"
 import {CircuitDefinition} from "../circuit/CircuitDefinition.js"
 import {AppInfo} from "../config/AppInfo.js"
 import {HistoryPusher} from "../browser/HistoryPusher.js"

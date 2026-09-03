@@ -24,7 +24,7 @@ import {Painter} from "./Painter.js"
 import {Point} from "../math/Point.js"
 import {Rect} from "../math/Rect.js"
 import {Seq} from "../base/Seq.js"
-import {drawCircuitTooltip} from "../ui/DisplayedCircuit.js"
+import {drawCircuitTooltip} from "../editor/DisplayedCircuit.js"
 import {Util} from "../base/Util.js"
 
 class WidgetPainter {

@@ -21,7 +21,7 @@ import {
     reportBlockingIssue,
     noteCircuitEdited,
     dismissErrorBanner,
-} from "../../src/ui/errorReporter.js"
+} from "../../src/diagnostics/errorReporter.js"
 
 let suite = new Suite("errorReporter");
 

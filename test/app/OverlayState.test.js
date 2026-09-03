@@ -15,7 +15,7 @@
  */
 
 import {Suite, assertThat} from "../TestUtil.js"
-import {OverlayState} from "../../src/ui/OverlayState.js"
+import {OverlayState} from "../../src/app/OverlayState.js"
 
 let suite = new Suite("OverlayState");
 

@@ -18,9 +18,9 @@ import {GatePainting} from "./GatePainting.js"
 
 /**
  * The one drawer the serializer cannot import: a circuit-defined custom gate is drawn as its
- * little circuit, and that renderer lives up in the ui layer, whose modules import the serializer
- * right back. The ui layer deposits the renderer here at load time, and gates deserialized from a
- * circuit resolve it lazily at paint time.
+ * little circuit, and that renderer lives up in the editor layer, whose modules import the
+ * serializer right back. src/editor/DisplayedCircuit.js deposits the renderer here at load time,
+ * and gates deserialized from a circuit resolve it lazily at paint time.
  *
  * Until it is deposited - as in tests that serialize circuits without ever drawing them - the
  * fallback draws the gate like any other boxed gate.
