@@ -40,7 +40,6 @@ class TouchScrollBlocker {
         this._curShowing = 0;
     }
 
-    //noinspection Eslint
     /**
      * @param {!Array.<!{rect: !Rect, cursor: undefined|!string}>} desiredBlockers
      * @param {undefined|!string} overrideCursorStyle

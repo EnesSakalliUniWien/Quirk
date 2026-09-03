@@ -16,8 +16,8 @@
 
 // The app toolbar: the shadcn buttons and the WAI-ARIA toolbar pattern.
 
-const assert = require('node:assert/strict');
-const {test, withQuirkPage, waitForQuirk, waitForCircuit, waitForDialog, currentCircuit, exportedCircuit, urlForCircuit, TEST_TIMEOUT_MILLIS} = require('./harness.js');
+import assert from 'node:assert/strict';
+import {test, withQuirkPage, waitForQuirk, waitForCircuit, waitForDialog, currentCircuit, exportedCircuit, urlForCircuit, TEST_TIMEOUT_MILLIS} from './harness.js';
 
 test('renders the circuit controls with shadcn buttons', async browser => {
     await withQuirkPage(browser, {cols: [['H']]}, async page => {

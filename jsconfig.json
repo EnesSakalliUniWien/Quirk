@@ -3,9 +3,16 @@
         "baseUrl": ".",
         "checkJs": false,
         "jsx": "react-jsx",
+        "module": "esnext",
+        "moduleResolution": "bundler",
+        "target": "esnext",
         "paths": {
-            "@/*": ["./src/*"]
+            "@/*": [
+                "./src/*"
+            ]
         }
     },
-    "include": ["src"]
+    "include": [
+        "src"
+    ]
 }

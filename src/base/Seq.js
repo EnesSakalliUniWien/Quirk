@@ -210,7 +210,7 @@ class Seq {
         return Seq.fromGenerator(function*() {
             let i = 0;
             //noinspection InfiniteLoopJS
-            while (true) { //eslint-disable-line no-constant-condition
+            while (true) {
                 yield i;
                 i++;
             }

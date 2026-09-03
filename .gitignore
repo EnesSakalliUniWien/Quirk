@@ -11,7 +11,3 @@ screenshot.png
 
 # macOS Finder metadata.
 .DS_Store
-
-# Historical tooling leftovers.
-.eslintrc
-*.git_ignore.js

@@ -14,46 +14,44 @@
  * limitations under the License.
  */
 
-// Runs the end-to-end specs in test_e2e/ against the built out/quirk.html. Requiring a spec
+// Runs the end-to-end specs in test_e2e/ against the built out/quirk.html. Importing a spec
 // registers its tests with the harness; the loop below runs the registry.
 
-const {tests} = require('./test_e2e/harness.js');
-require('./test_e2e/circuit.test.js');
-require('./test_e2e/toolbar.test.js');
-require('./test_e2e/overlays.test.js');
-require('./test_e2e/transport.test.js');
-require('./test_e2e/toolbox.test.js');
-require('./test_e2e/errors.test.js');
+import puppeteer from 'puppeteer';
 
-const puppeteer = require('puppeteer');
+import {tests} from './test_e2e/harness.js';
+import './test_e2e/circuit.test.js';
+import './test_e2e/toolbar.test.js';
+import './test_e2e/overlays.test.js';
+import './test_e2e/transport.test.js';
+import './test_e2e/toolbox.test.js';
+import './test_e2e/errors.test.js';
 
-(async () => {
-    let browser;
-    let completed = 0;
-    try {
-        browser = await puppeteer.launch();
-        console.log(`Running ${tests.length} end-to-end tests...`);
-        for (const {name, body} of tests) {
-            try {
-                await body(browser);
-                completed++;
-                console.log(`PASS ${name}`);
-            } catch (error) {
-                console.error(`FAIL ${name}`);
-                console.error(error.stack || error);
-                process.exitCode = 1;
-            }
-        }
-        console.log(`Completed ${completed}/${tests.length} end-to-end tests.`);
-        if (completed !== tests.length) {
+let browser;
+let completed = 0;
+try {
+    browser = await puppeteer.launch();
+    console.log(`Running ${tests.length} end-to-end tests...`);
+    for (const {name, body} of tests) {
+        try {
+            await body(browser);
+            completed++;
+            console.log(`PASS ${name}`);
+        } catch (error) {
+            console.error(`FAIL ${name}`);
+            console.error(error.stack || error);
             process.exitCode = 1;
         }
-    } catch (error) {
-        console.error('Error bubbled up into PuppeteerRunEndToEndTests.js: ' + error.stack);
-        process.exitCode = 1;
-    } finally {
-        if (browser !== undefined) {
-            await browser.close();
-        }
     }
-})();
+    console.log(`Completed ${completed}/${tests.length} end-to-end tests.`);
+    if (completed !== tests.length) {
+        process.exitCode = 1;
+    }
+} catch (error) {
+    console.error('Error bubbled up into PuppeteerRunEndToEndTests.js: ' + error.stack);
+    process.exitCode = 1;
+} finally {
+    if (browser !== undefined) {
+        await browser.close();
+    }
+}

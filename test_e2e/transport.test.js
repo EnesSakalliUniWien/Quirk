@@ -16,8 +16,8 @@
 
 // The transport bar and the state-at-the-playhead panel.
 
-const assert = require('node:assert/strict');
-const {test, withQuirkPage, waitForQuirk, waitForCircuit, waitForDialog, currentCircuit, exportedCircuit, urlForCircuit, TEST_TIMEOUT_MILLIS, waitForCanvasViewport} = require('./harness.js');
+import assert from 'node:assert/strict';
+import {test, withQuirkPage, waitForQuirk, waitForCircuit, waitForDialog, currentCircuit, exportedCircuit, urlForCircuit, TEST_TIMEOUT_MILLIS, waitForCanvasViewport} from './harness.js';
 
 async function playheadBandPixels(page, columnLeft) {
     await waitForCanvasViewport(page);

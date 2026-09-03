@@ -16,8 +16,8 @@
 
 // The menu, export, and gate forge dialogs.
 
-const assert = require('node:assert/strict');
-const {test, withQuirkPage, waitForQuirk, waitForCircuit, waitForDialog, currentCircuit, exportedCircuit, urlForCircuit, TEST_TIMEOUT_MILLIS, circuitTopForWires, waitForCanvasViewport} = require('./harness.js');
+import assert from 'node:assert/strict';
+import {test, withQuirkPage, waitForQuirk, waitForCircuit, waitForDialog, currentCircuit, exportedCircuit, urlForCircuit, TEST_TIMEOUT_MILLIS, circuitTopForWires, waitForCanvasViewport} from './harness.js';
 
 test('opens and closes the menu, export, and gate forge overlays', async browser => {
     const circuit = {cols: [['H']]};

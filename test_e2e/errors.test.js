@@ -16,8 +16,8 @@
 
 // The error banner: recoveries surface over the circuit without breaking the app.
 
-const assert = require('node:assert/strict');
-const {test, withQuirkPage, waitForQuirk, urlForCircuit, TEST_TIMEOUT_MILLIS} = require('./harness.js');
+import assert from 'node:assert/strict';
+import {test, withQuirkPage, waitForQuirk, urlForCircuit, TEST_TIMEOUT_MILLIS} from './harness.js';
 
 const RECOVERY_CONSOLE_LINE = [/Recovered from unexpected error/];
 

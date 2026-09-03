@@ -15,14 +15,14 @@
  */
 
 // The end-to-end harness: the test registry, the built page, and the waits every spec shares.
-// Specs register with test(name, body) at require time; the runner in
-// ../PuppeteerRunEndToEndTests.js requires them and runs the registry.
+// Specs register with test(name, body) at import time; the runner in
+// ../PuppeteerRunEndToEndTests.js imports them and runs the registry.
 
-const assert = require('node:assert/strict');
-const path = require('node:path');
-const {pathToFileURL} = require('node:url');
+import assert from 'node:assert/strict';
+import path from 'node:path';
+import {pathToFileURL} from 'node:url';
 
-const APP_FILE_URL = pathToFileURL(path.join(__dirname, '..', 'out', 'quirk.html'));
+const APP_FILE_URL = pathToFileURL(path.join(import.meta.dirname, '..', 'out', 'quirk.html'));
 const DEFAULT_VIEWPORT = {width: 1280, height: 720, deviceScaleFactor: 1};
 const TEST_TIMEOUT_MILLIS = 10 * 1000;
 
@@ -238,7 +238,7 @@ function assertCircuitLayout(layout) {
         'The neighboring empty circuit slot should not contain a display gate.');
 }
 
-module.exports = {
+export {
     test,
     tests,
     urlForCircuit,

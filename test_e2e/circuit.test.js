@@ -16,8 +16,8 @@
 
 // The circuit area: loading from a URL, drag editing, and history.
 
-const assert = require('node:assert/strict');
-const {test, withQuirkPage, waitForQuirk, waitForCircuit, waitForDialog, currentCircuit, exportedCircuit, urlForCircuit, TEST_TIMEOUT_MILLIS, canvasLayout, assertCircuitLayout, circuitTopForWires, waitForCanvasViewport} = require('./harness.js');
+import assert from 'node:assert/strict';
+import {test, withQuirkPage, waitForQuirk, waitForCircuit, waitForDialog, currentCircuit, exportedCircuit, urlForCircuit, TEST_TIMEOUT_MILLIS, canvasLayout, assertCircuitLayout, circuitTopForWires, waitForCanvasViewport} from './harness.js';
 
 test('loads a URL circuit and renders its Bloch sphere in the circuit area', async browser => {
     const circuit = {cols: [['H'], ['Bloch']]};

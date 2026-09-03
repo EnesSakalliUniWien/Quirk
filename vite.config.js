@@ -1,13 +1,12 @@
 import {readFileSync} from "node:fs";
-import {dirname, resolve} from "node:path";
-import {fileURLToPath} from "node:url";
+import {resolve} from "node:path";
 
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import {defineConfig} from "vite";
 import {viteSingleFile} from "vite-plugin-singlefile";
 
-const projectRoot = dirname(fileURLToPath(import.meta.url));
+const projectRoot = import.meta.dirname;
 
 const pages = {
     app: {

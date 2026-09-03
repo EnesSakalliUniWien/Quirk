@@ -14,47 +14,45 @@
  * limitations under the License.
  */
 
-const puppeteer = require('puppeteer');
-const path = require('node:path');
-const {pathToFileURL} = require('node:url');
+import path from 'node:path';
+import {pathToFileURL} from 'node:url';
 
-(async () => {
-    let browser;
-    try {
-        const pageFile = process.argv[2] || 'test.html';
-        if (pageFile !== 'test.html' && pageFile !== 'test_perf.html') {
-            throw new Error(`Unsupported test page: ${pageFile}`);
-        }
+import puppeteer from 'puppeteer';
 
-        browser = await puppeteer.launch();
-        const page = await browser.newPage();
-        let caughtPageError = false;
-        page.on('console', message => console.log(message.text()));
-        page.on('pageerror', error => {
-            caughtPageError = true;
-            console.error("Page error bubbled into PuppeteerRunTests.js: " + error.message);
-        });
-
-        const testUrl = pathToFileURL(path.join(__dirname, 'out', pageFile));
-        testUrl.hash = 'blocking';
-        await page.goto(testUrl.href);
-        await page.waitForSelector('#done', {timeout: 5 * 60 * 1000});
-        const result = await page.evaluate(() => ({
-            anyFailures: __any_failures,
-            completed: __total_done,
-            total: __total_tests
-        }));
-        console.log(`Completed ${result.completed}/${result.total} tests.`);
-
-        if (result.anyFailures || caughtPageError || result.total === 0 || result.completed !== result.total) {
-            process.exitCode = 1;
-        }
-    } catch (ex) {
-        console.error("Error bubbled up into PuppeteerRunTests.js: " + ex);
-        process.exitCode = 1;
-    } finally {
-        if (browser !== undefined) {
-            await browser.close();
-        }
+let browser;
+try {
+    const pageFile = process.argv[2] || 'test.html';
+    if (pageFile !== 'test.html' && pageFile !== 'test_perf.html') {
+        throw new Error(`Unsupported test page: ${pageFile}`);
     }
-})();
+
+    browser = await puppeteer.launch();
+    const page = await browser.newPage();
+    let caughtPageError = false;
+    page.on('console', message => console.log(message.text()));
+    page.on('pageerror', error => {
+        caughtPageError = true;
+        console.error("Page error bubbled into PuppeteerRunTests.js: " + error.message);
+    });
+
+    const testUrl = pathToFileURL(path.join(import.meta.dirname, 'out', pageFile));
+    await page.goto(testUrl.href);
+    await page.waitForSelector('#done', {timeout: 5 * 60 * 1000});
+    const result = await page.evaluate(() => ({
+        anyFailures: __any_failures,
+        completed: __total_done,
+        total: __total_tests
+    }));
+    console.log(`Completed ${result.completed}/${result.total} tests.`);
+
+    if (result.anyFailures || caughtPageError || result.total === 0 || result.completed !== result.total) {
+        process.exitCode = 1;
+    }
+} catch (ex) {
+    console.error("Error bubbled up into PuppeteerRunTests.js: " + ex);
+    process.exitCode = 1;
+} finally {
+    if (browser !== undefined) {
+        await browser.close();
+    }
+}
