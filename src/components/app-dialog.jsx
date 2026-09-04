@@ -9,18 +9,24 @@ import {Dialog} from "@base-ui/react/dialog";
  * re-created: the popup ADOPTS the stashed node while open and returns it on close, which keeps
  * every id and listener alive no matter how often the popup itself is rebuilt.
  */
-function AppDialog({name, divId, contentId, labelledBy, initialFocusId, active, overlayState}) {
+function AppDialog({name, divId, contentId, labelledBy, initialFocusId, active, overlayState, docked, onOpened}) {
     const adoptContent = popupElement => {
         if (popupElement === null) {
             return undefined;
         }
         const content = document.getElementById(contentId);
         popupElement.appendChild(content);
+        onOpened(popupElement);
         return () => {
             document.getElementById("dialog-stash").appendChild(content);
         };
     };
 
+    // A docked dialog gives the circuit back: no focus trap, no scroll lock, no pointer blocking
+    // (modal={false}), no backdrop, and no outside-press/focus-out dismissal
+    // (disablePointerDismissal), so clicking the circuit edits it instead of closing the dialog.
+    // Escape and the panel's own close button still close it.
+    const isDocked = docked !== undefined;
     return (
         <Dialog.Root
             open={active === name}
@@ -29,12 +35,14 @@ function AppDialog({name, divId, contentId, labelledBy, initialFocusId, active, 
                     overlayState.close();
                 }
             }}
-            modal>
+            modal={!isDocked}
+            disablePointerDismissal={isDocked}>
             <Dialog.Portal>
-                <Dialog.Backdrop className="dialog-overlay" />
+                {isDocked ? null : <Dialog.Backdrop className="dialog-overlay" />}
                 <Dialog.Popup
                     id={divId}
                     className="dialog-layout"
+                    data-docked={docked}
                     aria-labelledby={labelledBy}
                     initialFocus={initialFocusId === undefined ?
                         undefined :

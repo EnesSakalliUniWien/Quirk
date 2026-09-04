@@ -45,6 +45,7 @@ import {initMinimap} from "./minimap.js"
 import {initGateParamDialog} from "./gateParamDialog.js"
 import {initBlochSphereDialog} from "./blochSphereDialog.js"
 import {noteCircuitEdited} from "../diagnostics/errorReporter.js"
+import {initDialogSnap, notifyDialogOpened, dockModes} from "./dialogSnap.js"
 
 /**
  * Starts Quirk after its document elements are available. Must be called exactly once.
@@ -75,7 +76,8 @@ function startQuirk() {
     const playheadStats = new ObservableValue({stats: CircuitStats.EMPTY, wireCount: 0});
     const overlayState = new OverlayState();
     // Mounted before anything that looks the dialogs' elements up by id.
-    mountAppDialogs(overlayState);
+    initDialogSnap();
+    mountAppDialogs(overlayState, dockModes(), notifyDialogOpened);
     const playhead = new Playhead(
         displayed.observable().
             map(e => e.displayedCircuit.circuitDefinition.columns.length).
@@ -164,8 +166,21 @@ function startQuirk() {
     initZoomControls(circuitOverlay, () =>
         Math.min(1, canvasDiv.clientWidth / displayed.get().displayedCircuit.unshiftedDesiredWidth()));
     initMinimap(circuitOverlay, canvasDiv, displayed);
+    // A docked overlay leaves the circuit editable, so the canvas keeps its tab stop; only a modal
+    // overlay takes it away.
+    let activeOverlay = overlayState.current();
+    let currentDockModes = {};
+    let updateCanvasFocusability = () => {
+        let dockedActive = activeOverlay !== undefined && currentDockModes[activeOverlay] !== undefined;
+        canvasDiv.tabIndex = activeOverlay === undefined || dockedActive ? 0 : -1;
+    };
     overlayState.active().subscribe(active => {
-        canvasDiv.tabIndex = active === undefined ? 0 : -1;
+        activeOverlay = active;
+        updateCanvasFocusability();
+    });
+    dockModes().subscribe(modes => {
+        currentDockModes = modes;
+        updateCanvasFocusability();
     });
 
     scheduleBoot(displayed, overlayState, redrawLoop);
