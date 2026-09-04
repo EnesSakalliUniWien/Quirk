@@ -15,7 +15,16 @@
  */
 
 import {Suite, assertThat} from "../TestUtil.js"
-import {safeRectFor, zoneForPointer, rectForZone, SNAP_EDGE_PX} from "../../src/app/dialogSnap.js"
+import {
+    safeRectFor,
+    zoneForPointer,
+    rectForZone,
+    SNAP_EDGE_PX,
+    setDockMode,
+    clearDockMode,
+    resetDockModes,
+    dockModes,
+} from "../../src/app/dialogSnap.js"
 
 let suite = new Suite("dialogSnap");
 
@@ -49,4 +58,24 @@ suite.test("rectForZone splits the safe area", () => {
     assertThat(rectForZone('left', SAFE)).isEqualTo({x: 0, y: 100, w: 600, h: 700});
     assertThat(rectForZone('right', SAFE)).isEqualTo({x: 600, y: 100, w: 600, h: 700});
     assertThat(rectForZone('max', SAFE)).isEqualTo({x: 0, y: 100, w: 1200, h: 700});
+});
+
+suite.test("dock modes are remembered per dialog and observable", () => {
+    resetDockModes();
+    let seen = [];
+    let unsub = dockModes().subscribe(modes => seen.push(modes));
+
+    setDockMode('bloch', 'right');
+    setDockMode('menu', 'max');
+    clearDockMode('bloch');
+    resetDockModes();
+    unsub();
+
+    assertThat(seen).isEqualTo([
+        {},
+        {bloch: 'right'},
+        {bloch: 'right', menu: 'max'},
+        {menu: 'max'},
+        {},
+    ]);
 });

@@ -75,4 +75,55 @@ function rectForZone(zone, safeRect) {
     }
 }
 
-export {safeRectFor, zoneForPointer, rectForZone, SNAP_EDGE_PX, DRAG_THRESHOLD_PX, MOBILE_BREAKPOINT_PX}
+/** @type {!Map.<!string, !string>} Overlay name -> docked zone, remembered for the session. */
+const _dockModes = new Map();
+const _dockModesValue = new ObservableValue({});
+
+function _emitDockModes() {
+    let snapshot = {};
+    for (let [name, zone] of _dockModes.entries()) {
+        snapshot[name] = zone;
+    }
+    _dockModesValue.set(snapshot);
+}
+
+/** @returns {!Observable.<!Object.<!string, !string>>} */
+function dockModes() {
+    return _dockModesValue.observable();
+}
+
+/**
+ * @param {!string} name
+ * @param {!string} zone
+ */
+function setDockMode(name, zone) {
+    _dockModes.set(name, zone);
+    _emitDockModes();
+}
+
+/** @param {!string} name */
+function clearDockMode(name) {
+    if (_dockModes.delete(name)) {
+        _emitDockModes();
+    }
+}
+
+function resetDockModes() {
+    if (_dockModes.size > 0) {
+        _dockModes.clear();
+    }
+    _emitDockModes();
+}
+
+export {
+    safeRectFor,
+    zoneForPointer,
+    rectForZone,
+    SNAP_EDGE_PX,
+    DRAG_THRESHOLD_PX,
+    MOBILE_BREAKPOINT_PX,
+    dockModes,
+    setDockMode,
+    clearDockMode,
+    resetDockModes,
+}
