@@ -1,13 +1,12 @@
-/* The app toolbar: the circuit's action buttons. The brand, version, and Menu live in the
-   sidebar (src/styles/sidebar/shell.css). */
+/* The app toolbar: the circuit's action buttons. It renders once into #app-toolbar-root and
+   the sidebar adopts it (src/components/gate-toolbox.jsx); the brand, version, and Menu live
+   beside it in src/styles/sidebar/shell.css. */
 @layer components {
     .app-toolbar {
         display: flex;
-        min-height: 52px;
-        align-items: center;
+        align-items: flex-start;
         flex-wrap: wrap;
-        gap: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
-        padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+        gap: calc(var(--spacing) * 2);
     }
 
     .app-toolbar-actions {
@@ -17,20 +16,11 @@
         gap: calc(var(--spacing) * 2);
     }
 
-    /* Keeps the destructive action clear of the others. Spacing rather than a separator,
-       because a separator disappears exactly where the toolbar wraps, below 920px, and that
-       is where the crowding is worst. */
+    /* Keeps the destructive action clear of the others: on the sidebar's narrow column it
+       gets its own row with breathing room, so it never sits flush against Clear Circuit. */
     .app-toolbar-danger {
-        margin-left: auto;
-    }
-
-    @media (max-width: 760px) {
-        .app-toolbar {
-            align-items: flex-start;
-        }
-
-        .app-toolbar-actions {
-            flex: 1 1 100%;
-        }
+        flex: 1 1 100%;
+        margin-top: calc(var(--spacing) * 1);
+        justify-content: flex-start;
     }
 }

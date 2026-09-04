@@ -132,21 +132,43 @@ function GateTile({model, hidden, isStop, onGrab, onPlace, onFocusTile, tooltip,
 
 // Renders once and must never re-render: src/app/menu.js writes `disabled` straight onto
 // #menu-button, and any re-render would wipe it. memo with zero props keeps React away from
-// this subtree while the toolbox re-renders around it — do not add props, state, or hooks.
+// this subtree while the toolbox re-renders around it — do not add props, state, or hooks
+// (the toolbar ref callback below is plain DOM adoption, not a hook).
 const SidebarHeader = memo(function SidebarHeader() {
+    // The circuit actions toolbar is its own render-once React island, mounted once into
+    // #app-toolbar-root at startup. The sidebar ADOPTS that root here and parks it back in
+    // #chrome-stash on unmount, so the drawer's mount-on-open below 920px never recreates the
+    // buttons the src/app modules hold by id — the dialog panels' stash pattern, applied to
+    // chrome.
+    const adoptToolbar = slot => {
+        if (slot === null) {
+            return undefined;
+        }
+        // Captured, not re-queried: by the time the cleanup runs the sidebar subtree is
+        // already detached, so getElementById can no longer find the adopted root.
+        const toolbarRoot = document.getElementById('app-toolbar-root');
+        slot.appendChild(toolbarRoot);
+        return () => {
+            document.getElementById('chrome-stash').appendChild(toolbarRoot);
+        };
+    };
+
     return (
-        <div className="sidebar-brand">
-            <span className="app-brand-mark" aria-hidden="true"><AtomIcon strokeWidth={1.5} /></span>
-            <span className="app-brand-copy">
-                <strong>Shadow-Quant</strong>
-                <small>Quantum circuit simulator</small>
-            </span>
-            <span className="app-version">v2.3</span>
-            <Button id="menu-button" size="default" variant="ghost" className="sidebar-menu-button">
-                <BookOpenIcon data-icon="inline-start" strokeWidth={1.5} />
-                Menu
-            </Button>
-        </div>
+        <>
+            <div className="sidebar-brand">
+                <span className="app-brand-mark" aria-hidden="true"><AtomIcon strokeWidth={1.5} /></span>
+                <span className="app-brand-copy">
+                    <strong>Shadow-Quant</strong>
+                    <small>Quantum circuit simulator</small>
+                </span>
+                <span className="app-version">v2.3</span>
+                <Button id="menu-button" size="default" variant="ghost" className="sidebar-menu-button">
+                    <BookOpenIcon data-icon="inline-start" strokeWidth={1.5} />
+                    Menu
+                </Button>
+            </div>
+            <div className="sidebar-actions" ref={adoptToolbar} />
+        </>
     );
 });
 

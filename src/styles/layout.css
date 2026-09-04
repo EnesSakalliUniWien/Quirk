@@ -19,7 +19,6 @@
             height: 100dvh;
         }
 
-        #app-toolbar-root,
         .state-panel {
             flex: 0 0 auto;
         }

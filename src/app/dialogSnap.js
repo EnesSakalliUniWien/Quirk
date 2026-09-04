@@ -139,9 +139,9 @@ function _ghostElement() {
 }
 
 function _chromeBottom() {
-    // The toolbar is the only top chrome; the transport lives in the bottom debugger dock.
-    let toolbar = document.getElementById('app-toolbar-root');
-    return toolbar === null ? 0 : toolbar.getBoundingClientRect().bottom;
+    // No top chrome remains: the actions live in the sidebar and the transport in the bottom
+    // debugger dock, so docked dialogs may use the full viewport height.
+    return 0;
 }
 
 function _safeRect() {

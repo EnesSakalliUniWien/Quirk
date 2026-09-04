@@ -12,9 +12,6 @@
     <body>
         <!-- Primary content -->
         <div id="inspectorDiv" style="display: none">
-            <!-- Buttons -->
-            <div id="app-toolbar-root"></div>
-
             <!-- Gate palette beside the circuit -->
             <div class="app-body">
                 <div id="gate-toolbox-root"></div>
@@ -68,6 +65,14 @@
 
         <!-- Dialog panels. Parked here while closed; src/components/app-dialogs.jsx moves each
              into its Base UI popup when it opens, so the ids and listeners survive. -->
+        <!-- The circuit actions toolbar parks here whenever no sidebar has adopted it (below
+             920px the sidebar is a drawer that mounts on open); src/components/gate-toolbox.jsx
+             adopts the root into the sidebar, so the buttons' ids and listeners survive every
+             drawer rebuild the way the dialog panels survive popup rebuilds. -->
+        <div id="chrome-stash" hidden>
+            <div id="app-toolbar-root"></div>
+        </div>
+
         <div id="dialog-stash" hidden>
             <div id="menu-dialog-content" class="dialog-content">
                 <div class="dialog-panel welcome-panel" aria-labelledby="welcome-title">

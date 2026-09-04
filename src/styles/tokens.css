@@ -114,7 +114,9 @@
     /* The sidebar's own surface family, shadcn-style: a half step between the chrome and the
        panels, with its content colours derived from the shared ramp. The primary pair is unused
        today; it completes the standard sidebar token set so themes can override it wholesale. */
-    --sidebar: color-mix(in oklch, var(--card), var(--background) 55%);
+    /* The chrome regions share the page ground: the sidebar, the debugger dock, and the
+       circuit column all sit on the same colour. */
+    --sidebar: var(--background);
     --sidebar-foreground: var(--foreground);
     --sidebar-primary: var(--primary);
     --sidebar-primary-foreground: var(--primary-foreground);

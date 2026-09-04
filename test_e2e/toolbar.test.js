@@ -51,12 +51,14 @@ test('renders the circuit controls with shadcn buttons', async browser => {
         ]);
         assert.equal(toolbar.buttonGroupCount, 1);
 
+        // In the sidebar's narrow column the separation is vertical: Clear All takes its own
+        // row below the rest, so the two destructive-adjacent buttons never sit flush.
         const clearGap = await page.evaluate(() => {
             const a = document.getElementById('clear-circuit-button').getBoundingClientRect();
             const b = document.getElementById('clear-all-button').getBoundingClientRect();
-            return Math.round(b.left - a.right);
+            return Math.round(b.top - a.bottom);
         });
-        assert.ok(clearGap > 100, `Clear All must sit well clear of Clear Circuit, gap was ${clearGap}px.`);
+        assert.ok(clearGap >= 4, `Clear All must sit on its own row clear of Clear Circuit, vertical gap was ${clearGap}px.`);
 
         // The template's unlayered `font: inherit` must not outrank Tailwind's utilities layer,
         // or the shadcn buttons silently lose their text-sm/font-medium type.
