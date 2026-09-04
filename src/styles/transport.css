@@ -11,6 +11,13 @@
         border-bottom: 1px solid var(--border);
     }
 
+    .debugger-bar .transport-bar {
+        min-height: 0;
+        padding: 0;
+        background: transparent;
+        border-bottom: 0;
+    }
+
     .transport-scrub {
         flex: 1 1 160px;
         min-width: 120px;

@@ -5,6 +5,19 @@
         border-top: 1px solid var(--border);
     }
 
+    .debugger-bar {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: calc(var(--spacing) * 2) calc(var(--spacing) * 4);
+        margin-bottom: calc(var(--spacing) * 3);
+    }
+
+    .debugger-bar .state-panel-header {
+        margin-bottom: 0;
+        margin-left: auto;
+    }
+
     .state-panel-header {
         display: flex;
         align-items: baseline;

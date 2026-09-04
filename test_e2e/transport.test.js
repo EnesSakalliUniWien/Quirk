@@ -154,3 +154,17 @@ test('scrubbing to a gate stops playback', async browser => {
         assert.equal(await page.$eval('#playhead-position', e => e.textContent), 'gate 3 / 4');
     });
 });
+
+test('houses the transport in the bottom debugger dock', async browser => {
+    await withQuirkPage(browser, {cols: [['H'], ['X']]}, async page => {
+        const inPanel = await page.evaluate(() =>
+            document.getElementById('state-panel').contains(
+                document.getElementById('transport-bar-root')));
+        assert.ok(inPanel, 'The transport controls must live inside the state panel.');
+
+        await page.click('#playhead-next-button');
+        await page.waitForFunction(
+            () => document.getElementById('playhead-position').textContent.startsWith('gate 1'),
+            {timeout: 2000});
+    });
+});

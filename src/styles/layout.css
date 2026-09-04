@@ -20,7 +20,6 @@
         }
 
         #app-toolbar-root,
-        #transport-bar-root,
         .state-panel {
             flex: 0 0 auto;
         }

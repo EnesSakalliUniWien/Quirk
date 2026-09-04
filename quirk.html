@@ -15,9 +15,6 @@
             <!-- Buttons -->
             <div id="app-toolbar-root"></div>
 
-            <!-- Playhead transport controls -->
-            <div id="transport-bar-root"></div>
-
             <!-- Gate palette beside the circuit -->
             <div class="app-body">
                 <div id="gate-toolbox-root"></div>
@@ -35,17 +32,20 @@
                 </div>
             </div>
 
-        <!-- Amplitudes at the playhead -->
+        <!-- The debugger dock: playhead transport above the amplitudes at the playhead -->
         <section id="state-panel" class="state-panel" aria-labelledby="state-panel-heading">
-            <header class="state-panel-header">
-                <h2 id="state-panel-heading" class="state-panel-heading">State at the playhead</h2>
-                <span id="state-summary" class="state-summary"></span>
-                <span class="state-legend">
-                    <span>phase</span>
-                    <span class="state-legend-strip" aria-hidden="true"></span>
-                    <span>&#8722;&#960; &#8230; +&#960;</span>
-                </span>
-            </header>
+            <div class="debugger-bar">
+                <div id="transport-bar-root"></div>
+                <header class="state-panel-header">
+                    <h2 id="state-panel-heading" class="state-panel-heading">State at the playhead</h2>
+                    <span id="state-summary" class="state-summary"></span>
+                    <span class="state-legend">
+                        <span>phase</span>
+                        <span class="state-legend-strip" aria-hidden="true"></span>
+                        <span>&#8722;&#960; &#8230; +&#960;</span>
+                    </span>
+                </header>
+            </div>
             <div class="state-table-scroll">
                 <table id="state-table" class="state-table">
                     <thead>
