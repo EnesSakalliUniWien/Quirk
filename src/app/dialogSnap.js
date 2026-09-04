@@ -139,8 +139,9 @@ function _ghostElement() {
 }
 
 function _chromeBottom() {
-    let transport = document.getElementById('transport-bar-root');
-    return transport === null ? 0 : transport.getBoundingClientRect().bottom;
+    // The toolbar is the only top chrome; the transport lives in the bottom debugger dock.
+    let toolbar = document.getElementById('app-toolbar-root');
+    return toolbar === null ? 0 : toolbar.getBoundingClientRect().bottom;
 }
 
 function _safeRect() {
