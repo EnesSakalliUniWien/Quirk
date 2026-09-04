@@ -344,6 +344,10 @@ function initBlochSphereDialog(displayed, mostRecentStats, overlayState) {
     // Simulation frames keep arriving while a time-dependent circuit animates; the open dialog
     // follows them.
     mostRecentStats.observable().subscribe(repaint);
+    // A docked dialog resizes the canvas without a stats tick; redraw so the sphere fills it.
+    if (typeof ResizeObserver !== 'undefined') {
+        new ResizeObserver(() => repaint()).observe(canvas);
+    }
     overlayState.active().subscribe(active => {
         if (active !== 'bloch') {
             pending = undefined;
