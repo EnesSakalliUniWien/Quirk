@@ -29,6 +29,7 @@ import './test_e2e/overlays.test.js';
 import './test_e2e/transport.test.js';
 import './test_e2e/toolbox.test.js';
 import './test_e2e/errors.test.js';
+import './test_e2e/dialogSnap.test.js';
 
 let browser;
 let serve;
