@@ -79,3 +79,15 @@ suite.test("dock modes are remembered per dialog and observable", () => {
         {},
     ]);
 });
+
+suite.test("resetDockModes does not emit when already empty", () => {
+    resetDockModes();
+    let seen = [];
+    let unsub = dockModes().subscribe(modes => seen.push(modes));
+
+    resetDockModes();
+    resetDockModes();
+    unsub();
+
+    assertThat(seen).isEqualTo([{}]);
+});

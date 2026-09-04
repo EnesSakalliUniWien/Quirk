@@ -1,3 +1,5 @@
+import {useCallback} from "react";
+
 import {Dialog} from "@base-ui/react/dialog";
 
 /**
@@ -10,7 +12,9 @@ import {Dialog} from "@base-ui/react/dialog";
  * every id and listener alive no matter how often the popup itself is rebuilt.
  */
 function AppDialog({name, divId, contentId, labelledBy, initialFocusId, active, overlayState, docked, onOpened}) {
-    const adoptContent = popupElement => {
+    // Stable identity: React re-invokes a changed callback ref on every render, which would
+    // bounce the adopted content through the stash and re-announce the open to the snap module.
+    const adoptContent = useCallback(popupElement => {
         if (popupElement === null) {
             return undefined;
         }
@@ -20,7 +24,7 @@ function AppDialog({name, divId, contentId, labelledBy, initialFocusId, active, 
         return () => {
             document.getElementById("dialog-stash").appendChild(content);
         };
-    };
+    }, [contentId, onOpened]);
 
     // A docked dialog gives the circuit back: no focus trap, no scroll lock, no pointer blocking
     // (modal={false}), no backdrop, and no outside-press/focus-out dismissal

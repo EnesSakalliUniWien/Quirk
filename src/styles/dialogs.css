@@ -31,6 +31,15 @@
         touch-action: none;
     }
 
+    /* A docked dialog scrolls its own panel; keep the drag handle pinned at the top so it never
+       slides under the app chrome and stays grabbable to move or undock the dialog. */
+    .dialog-layout[data-docked] [data-snap-handle] {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background: var(--card);
+    }
+
     .snap-ghost {
         position: fixed;
         z-index: 12;

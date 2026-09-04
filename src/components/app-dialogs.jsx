@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import {useEffect, useMemo, useState} from "react";
 import {flushSync} from "react-dom";
 import {createRoot} from "react-dom/client";
 
@@ -21,11 +21,21 @@ function AppDialogs({overlayState, dockModes, onDialogOpened}) {
     const [docked, setDocked] = useState({});
     useEffect(() => dockModes.subscribe(setDocked), [dockModes]);
 
+    // Stable per-dialog handlers: a fresh closure each render would change the popup's callback
+    // ref identity, making React re-adopt the dialog content on every re-render.
+    const onOpenedHandlers = useMemo(() => {
+        const handlers = {};
+        for (const name of ['menu', 'export', 'forge', 'gate-param', 'bloch']) {
+            handlers[name] = popupElement => onDialogOpened(name, popupElement);
+        }
+        return handlers;
+    }, [onDialogOpened]);
+
     const dialogProps = name => ({
         active,
         overlayState,
         docked: docked[name],
-        onOpened: popupElement => onDialogOpened(name, popupElement),
+        onOpened: onOpenedHandlers[name],
     });
 
     return (

@@ -111,8 +111,8 @@ function clearDockMode(name) {
 function resetDockModes() {
     if (_dockModes.size > 0) {
         _dockModes.clear();
+        _emitDockModes();
     }
-    _emitDockModes();
 }
 
 /** Popup element ids (src/components/app-dialogs.jsx) keyed back to overlay names. */
