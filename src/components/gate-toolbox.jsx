@@ -1,11 +1,13 @@
-import {useEffect, useMemo, useRef, useState} from "react";
+import {memo, useEffect, useMemo, useRef, useState} from "react";
 import {createPortal, flushSync} from "react-dom";
 import {createRoot} from "react-dom/client";
 
-import {SearchIcon, BlocksIcon} from "lucide-react";
+import {AtomIcon, BookOpenIcon, SearchIcon, BlocksIcon} from "lucide-react";
 import {Collapsible} from "@base-ui/react/collapsible";
 import {ScrollArea} from "@base-ui/react/scroll-area";
 import {Drawer} from "@base-ui/react/drawer";
+
+import {Button} from "@/components/ui/button";
 
 import {Gates} from "../gates/AllGates.js";
 import {MysteryGateSymbol, MysteryGateMaker} from "../gates/misc/Joke_MysteryGate.js";
@@ -128,6 +130,26 @@ function GateTile({model, hidden, isStop, onGrab, onPlace, onFocusTile, tooltip,
     );
 }
 
+// Renders once and must never re-render: src/app/menu.js writes `disabled` straight onto
+// #menu-button, and any re-render would wipe it. memo with zero props keeps React away from
+// this subtree while the toolbox re-renders around it — do not add props, state, or hooks.
+const SidebarHeader = memo(function SidebarHeader() {
+    return (
+        <div className="sidebar-brand">
+            <span className="app-brand-mark" aria-hidden="true"><AtomIcon strokeWidth={1.5} /></span>
+            <span className="app-brand-copy">
+                <strong>Shadow-Quant</strong>
+                <small>Quantum circuit simulator</small>
+            </span>
+            <span className="app-version">v2.3</span>
+            <Button id="menu-button" size="default" variant="ghost" className="sidebar-menu-button">
+                <BookOpenIcon data-icon="inline-start" strokeWidth={1.5} />
+                Menu
+            </Button>
+        </div>
+    );
+});
+
 function GateToolbox({obsCustomGateSet, mostRecentStats, onGrab, onPlace}) {
     const customGateSet = useObservedValue(obsCustomGateSet);
     const [query, setQuery] = useState('');
@@ -246,6 +268,7 @@ function GateToolbox({obsCustomGateSet, mostRecentStats, onGrab, onPlace}) {
 
     return (
         <aside className="gate-toolbox" data-slot="sidebar" aria-label="Gates">
+            <SidebarHeader />
             <div className="gate-toolbox-header" data-slot="sidebar-header">
                 <div className="gate-toolbox-search">
                     <SearchIcon className="gate-toolbox-search-icon" strokeWidth={1.5} aria-hidden="true" />

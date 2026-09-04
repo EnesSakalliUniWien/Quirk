@@ -1,8 +1,6 @@
 import {flushSync} from "react-dom";
 import {createRoot} from "react-dom/client";
 import {
-    AtomIcon,
-    BookOpenIcon,
     DownloadIcon,
     EraserIcon,
     Redo2Icon,
@@ -15,7 +13,6 @@ import {useEffect, useRef} from "react";
 
 import {Button} from "@/components/ui/button";
 import {ButtonGroup} from "@/components/ui/button-group";
-import {Separator} from "@/components/ui/separator";
 
 // Lucide draws at a 24px grid with a stroke of 2. These render at 16px, so the stroke is
 // scaled down to match, which is also what the inline SVGs in the menu use.
@@ -115,19 +112,8 @@ function AppToolbar() {
 
     return (
         <header className="app-toolbar" role="toolbar" aria-label="Circuit controls" ref={toolbarRef}>
-            <div className="app-brand" aria-label="Shadow-Quant quantum circuit simulator">
-                <span className="app-brand-mark" aria-hidden="true"><AtomIcon strokeWidth={ICON_STROKE_WIDTH} /></span>
-                <span className="app-brand-copy">
-                    <strong>Shadow-Quant</strong>
-                    <small>Quantum circuit simulator</small>
-                </span>
-            </div>
-            <Separator orientation="vertical" className="app-toolbar-separator" />
             <div className="app-toolbar-actions">
-                <ButtonGroup aria-label="Application actions">
-                    <ToolbarButton id="menu-button" icon={BookOpenIcon}>Menu</ToolbarButton>
-                    <ToolbarButton id="export-button" icon={DownloadIcon}>Export</ToolbarButton>
-                </ButtonGroup>
+                <ToolbarButton id="export-button" icon={DownloadIcon}>Export</ToolbarButton>
                 <ToolbarButton id="clear-circuit-button" icon={EraserIcon} variant="outline">
                     Clear Circuit
                 </ToolbarButton>
@@ -148,7 +134,6 @@ function AppToolbar() {
                     Clear All
                 </ToolbarButton>
             </div>
-            <span className="app-version">v2.3</span>
         </header>
     );
 }

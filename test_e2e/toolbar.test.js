@@ -23,7 +23,6 @@ test('renders the circuit controls with shadcn buttons', async browser => {
     await withQuirkPage(browser, {cols: [['H']]}, async page => {
         const toolbar = await page.$eval('#app-toolbar-root [role="toolbar"]', element => ({
             label: element.getAttribute('aria-label'),
-            brand: element.querySelector('.app-brand-copy strong')?.textContent,
             buttonIds: Array.from(element.querySelectorAll('[data-slot="button"]'), button => button.id),
             buttonGroupCount: element.querySelectorAll('[data-slot="button-group"]').length
         }));
@@ -34,10 +33,15 @@ test('renders the circuit controls with shadcn buttons', async browser => {
             await page.$eval('#drawCanvas', element => getComputedStyle(element).filter),
             'none');
         assert.equal(toolbar.label, 'Circuit controls');
-        assert.equal(toolbar.brand, 'Shadow-Quant');
+        // The brand and the Menu button live in the sidebar; the toolbar is circuit actions only.
+        const sidebarBrand = await page.$eval('.gate-toolbox .app-brand-copy strong',
+            element => element.textContent);
+        assert.equal(sidebarBrand, 'Shadow-Quant');
+        const menuLabel = await page.$eval('.gate-toolbox #menu-button',
+            element => element.textContent.trim());
+        assert.equal(menuLabel, 'Menu');
         // Clear All comes last, away from Clear Circuit, and is no longer joined to it in a group.
         assert.deepEqual(toolbar.buttonIds, [
-            'menu-button',
             'export-button',
             'clear-circuit-button',
             'undo-button',
@@ -45,7 +49,7 @@ test('renders the circuit controls with shadcn buttons', async browser => {
             'gate-forge-button',
             'clear-all-button'
         ]);
-        assert.equal(toolbar.buttonGroupCount, 2);
+        assert.equal(toolbar.buttonGroupCount, 1);
 
         const clearGap = await page.evaluate(() => {
             const a = document.getElementById('clear-circuit-button').getBoundingClientRect();
