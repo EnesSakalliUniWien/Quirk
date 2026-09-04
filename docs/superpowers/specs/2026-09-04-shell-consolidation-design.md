@@ -39,8 +39,13 @@ The separate transport bar row at the top disappears.
    (`SidebarHeader`) rendered as the first child of the toolbox — memo with no props never
    re-renders, so React never touches its DOM after mount.
 2. **Ids move with their elements.** `menu-button` keeps its id in the sidebar; the playhead
-   ids keep theirs at the bottom. No wiring module (`menu.js`, `transport.js`, `undo.js`, …)
-   changes.
+   ids keep theirs at the bottom. No wiring module (`transport.js`, `undo.js`, …) changes —
+   with one amendment discovered during implementation: below 920px the sidebar is an
+   off-canvas drawer whose content mounts on open and remounts on viewport crossings, so
+   `#menu-button` has no stable element identity there. `menu.js` therefore wires the button
+   by document-level click delegation and re-queries it for `disabled` writes (with a
+   MutationObserver catching up a freshly mounted drawer), instead of holding a reference
+   captured at startup.
 3. **`dialogSnap._chromeBottom()` currently reads `#transport-bar-root`'s bottom edge** to
    compute the docking safe area. With the transport at the bottom this would break; it must
    read `#app-toolbar-root`'s bottom instead (fallback 0 unchanged).

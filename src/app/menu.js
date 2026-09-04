@@ -17,7 +17,7 @@
 import {EXAMPLE_CIRCUITS} from "./exampleCircuits.js"
 
 /**
- * Interface note: also requires #menu-button (src/components/app-toolbar.jsx) and the welcome
+ * Interface note: also requires #menu-button (src/components/gate-toolbox.jsx) and the welcome
  * panel's #close-menu-button and #example-* anchors, shipped in quirk.html's dialog stash and
  * mounted by src/components/menu-dialog.jsx before this runs.
  *
@@ -30,11 +30,33 @@ function initMenu(revision, overlayState) {
 
     // Open and close the menu overlay. Visibility, Escape, backdrop clicks, and focus belong to
     // the Base UI Dialog that wraps it (src/components/app-dialogs.jsx).
+    //
+    // #menu-button lives in the sidebar, which below 920px is an off-canvas drawer whose content
+    // mounts on open and remounts on viewport crossings - so the button's element identity is not
+    // stable. The click is delegated and the disabled write re-queries, instead of holding a
+    // reference that a remount would strand.
     (() => {
-        const menuButton = /** @type {!HTMLButtonElement} */ document.getElementById('menu-button');
         const closeMenuButton = /** @type {!HTMLButtonElement} */ document.getElementById('close-menu-button');
-        menuButton.addEventListener('click', () => overlayState.open("menu"));
-        obsIsAnyOverlayShowing.subscribe(e => { menuButton.disabled = e; });
+        let anyOverlayShowing = false;
+        document.addEventListener('click', ev => {
+            if (ev.target instanceof Element && ev.target.closest('#menu-button') !== null) {
+                overlayState.open("menu");
+            }
+        });
+        obsIsAnyOverlayShowing.subscribe(e => {
+            anyOverlayShowing = e;
+            const menuButton = document.getElementById('menu-button');
+            if (menuButton !== null) {
+                menuButton.disabled = e;
+            }
+        });
+        // A freshly mounted drawer starts with the button enabled; catch it up when it appears.
+        new MutationObserver(() => {
+            const menuButton = document.getElementById('menu-button');
+            if (menuButton !== null && menuButton.disabled !== anyOverlayShowing) {
+                menuButton.disabled = anyOverlayShowing;
+            }
+        }).observe(document.body, {childList: true, subtree: true});
         closeMenuButton.addEventListener('click', () => overlayState.close());
     })();
 
