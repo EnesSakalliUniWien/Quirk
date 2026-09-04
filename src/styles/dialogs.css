@@ -25,6 +25,28 @@
         transform: translate(-50%, -50%);
     }
 
+    [data-snap-handle] {
+        cursor: grab;
+        user-select: none;
+        touch-action: none;
+    }
+
+    .snap-ghost {
+        position: fixed;
+        z-index: 12;
+        pointer-events: none;
+        border: 1px solid var(--ring);
+        background: color-mix(in oklch, var(--ring), transparent 85%);
+        border-radius: 6px;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+        .dialog-layout[data-docked] {
+            transition: left 120ms ease-out, top 120ms ease-out,
+                width 120ms ease-out, height 120ms ease-out;
+        }
+    }
+
     /* A dialog's parked panels, moved between the stash and the popup as one unit. The wrapper is
        not a box, so inside the popup the panels are laid out by .dialog-layout directly. */
     .dialog-content {
