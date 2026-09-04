@@ -153,6 +153,9 @@
     }
 
     .circuit-zoom-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         padding: 3px 9px;
         border: 0;
         background: transparent;

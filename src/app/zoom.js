@@ -93,21 +93,36 @@ function initZoomControls(container, fitFactorProvider) {
     cluster.setAttribute('role', 'group');
     cluster.setAttribute('aria-label', 'Circuit zoom');
 
-    const makeButton = (text, label, onActivate) => {
+    const makeButton = (content, label, onActivate) => {
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'circuit-zoom-button';
-        button.textContent = text;
+        if (content.startsWith('<svg')) {
+            button.innerHTML = content;
+        } else {
+            button.textContent = content;
+        }
         button.setAttribute('aria-label', label);
         button.addEventListener('click', onActivate);
         cluster.appendChild(button);
         return button;
     };
 
-    makeButton('−', 'Zoom out', () => setCircuitZoom(_zoom / ZOOM_STEP));
+    // Lucide's minus and plus, inlined the way quirk.html inlines the menu icons: the same 24px
+    // grid and the app's 1.5 stroke, sized to sit on the buttons' 12px text line.
+    const MINUS_ICON_SVG =
+        '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"' +
+        ' stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"' +
+        ' aria-hidden="true"><path d="M5 12h14"/></svg>';
+    const PLUS_ICON_SVG =
+        '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"' +
+        ' stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"' +
+        ' aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg>';
+
+    makeButton(MINUS_ICON_SVG, 'Zoom out', () => setCircuitZoom(_zoom / ZOOM_STEP));
     const readout = makeButton('100%', 'Reset zoom', () => setCircuitZoom(1));
     readout.setAttribute('aria-live', 'polite');
-    makeButton('+', 'Zoom in', () => setCircuitZoom(_zoom * ZOOM_STEP));
+    makeButton(PLUS_ICON_SVG, 'Zoom in', () => setCircuitZoom(_zoom * ZOOM_STEP));
     makeButton('Fit', 'Fit the circuit to the visible area', () => setCircuitZoom(fitFactorProvider()));
 
     const showZoom = () => {
