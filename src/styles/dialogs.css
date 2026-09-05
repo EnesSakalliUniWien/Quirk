@@ -137,6 +137,14 @@
         font-size: var(--text-body);
     }
 
+    .welcome-version {
+        margin-top: calc(var(--spacing) * 1);
+        color: var(--muted-foreground);
+        font-family: var(--font-mono);
+        font-size: var(--text-small);
+        font-variant-numeric: tabular-nums;
+    }
+
     .welcome-primary {
         margin: calc(var(--spacing) * 6) 0;
     }

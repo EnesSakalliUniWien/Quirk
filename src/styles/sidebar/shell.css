@@ -1,5 +1,5 @@
-/* The sidebar's outer shell: the flex rail beside the circuit, its brand header, and its
-   header slot. */
+/* The sidebar's outer shell: the flex rail beside the circuit, its brand row and action row, and
+   its header slot. */
 @layer components {
     /* The React root is a wrapper, not a box: the sidebar itself is what the flex row lays out. */
     #gate-toolbox-root {
@@ -26,17 +26,17 @@
     .sidebar-brand {
         display: flex;
         align-items: center;
-        flex-wrap: wrap;
         gap: calc(var(--spacing) * 2);
     }
 
-    .sidebar-brand .app-version {
+    .sidebar-brand .sidebar-menu-button {
         margin-left: auto;
     }
 
-    .sidebar-brand .sidebar-menu-button {
-        flex: 1 1 100%;
-        justify-content: flex-start;
+    /* The chrome (brand + actions) ends here; the palette (search + groups) starts below. */
+    .sidebar-actions {
+        padding-bottom: calc(var(--spacing) * 3);
+        border-bottom: 1px solid var(--sidebar-border);
     }
 
     .app-brand-mark {
@@ -61,19 +61,6 @@
     .app-brand-copy strong {
         font-size: 0.9375rem;
         letter-spacing: -0.01em;
-    }
-
-    .app-brand-copy small {
-        margin-top: 3px;
-        color: var(--muted-foreground);
-        font-size: 0.6875rem;
-        font-weight: 450;
-    }
-
-    .app-version {
-        margin-left: auto;
-        font-size: var(--text-small);
-        font-variant-numeric: tabular-nums;
     }
 
     .gate-toolbox-header {

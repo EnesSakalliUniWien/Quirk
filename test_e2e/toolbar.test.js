@@ -38,7 +38,7 @@ test('renders the circuit controls with shadcn buttons', async browser => {
             element => element.textContent);
         assert.equal(sidebarBrand, 'Shadow-Quant');
         const menuLabel = await page.$eval('.gate-toolbox #menu-button',
-            element => element.textContent.trim());
+            element => element.getAttribute('aria-label'));
         assert.equal(menuLabel, 'Menu');
         // Clear All comes last, away from Clear Circuit; the row has no button groups.
         assert.deepEqual(toolbar.buttonIds, [

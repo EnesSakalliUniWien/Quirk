@@ -157,14 +157,15 @@ const SidebarHeader = memo(function SidebarHeader() {
         <>
             <div className="sidebar-brand">
                 <span className="app-brand-mark" aria-hidden="true"><AtomIcon strokeWidth={1.5} /></span>
-                <span className="app-brand-copy">
-                    <strong>Shadow-Quant</strong>
-                    <small>Quantum circuit simulator</small>
-                </span>
-                <span className="app-version">v2.3</span>
-                <Button id="menu-button" size="default" variant="ghost" className="sidebar-menu-button">
-                    <BookOpenIcon data-icon="inline-start" strokeWidth={1.5} />
-                    Menu
+                <span className="app-brand-copy"><strong>Shadow-Quant</strong></span>
+                <Button
+                    id="menu-button"
+                    size="icon"
+                    variant="ghost"
+                    className="sidebar-menu-button"
+                    aria-label="Menu"
+                    title="Menu">
+                    <BookOpenIcon strokeWidth={1.5} aria-hidden="true" />
                 </Button>
             </div>
             <div className="sidebar-actions" ref={adoptToolbar} />
