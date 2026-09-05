@@ -34,18 +34,16 @@ function angleInRadians(param) {
 
 /**
  * @param {!string} axisName
- * @param {!int} xyz
  * @returns {!function(args: !GateDrawParams)}
  */
-function angleRotationDrawer(axisName, xyz) {
-    let xScale = [1, 0.5, -1][xyz];
-    let yScale = [1, 1, -0.5][xyz];
+function angleRotationDrawer(axisName) {
+    // The label states the exact angle; the animation clock the time-varying gates paint
+    // (paintCycleState) is meaningless for a constant angle and only obscured the label.
     return args => {
         GatePainting.paintBackground(args);
         GatePainting.paintOutline(args);
         GatePainting.paintGateSymbol(args, `${axisName}(${args.gate.param})`, false);
         GatePainting.paintGateButton(args);
-        GatePainting.paintCycleState(args, angleInRadians(args.gate.param), xScale, yScale);
     };
 }
 
@@ -90,7 +88,7 @@ RotationGates.Rx = new GateBuilder().
     setTitle("Rx Gate").
     setBlurb("Rotates the target around the X axis by an adjustable angle given in radians.\n" +
         "Click the gate to change the angle.").
-    setDrawer(angleRotationDrawer('Rx', 0)).
+    setDrawer(angleRotationDrawer('Rx')).
     setWidth(2).
     setExtraDisableReasonFinder(badAngleFormulaDetector).
     setParamDialog(radianAngleDialog('Rx')).
@@ -104,7 +102,7 @@ RotationGates.Ry = new GateBuilder().
     setTitle("Ry Gate").
     setBlurb("Rotates the target around the Y axis by an adjustable angle given in radians.\n" +
         "Click the gate to change the angle.").
-    setDrawer(angleRotationDrawer('Ry', 1)).
+    setDrawer(angleRotationDrawer('Ry')).
     setWidth(2).
     setExtraDisableReasonFinder(badAngleFormulaDetector).
     setParamDialog(radianAngleDialog('Ry')).
@@ -118,7 +116,7 @@ RotationGates.Rz = new GateBuilder().
     setTitle("Rz Gate").
     setBlurb("Rotates the target around the Z axis by an adjustable angle given in radians.\n" +
         "Click the gate to change the angle.").
-    setDrawer(angleRotationDrawer('Rz', 2)).
+    setDrawer(angleRotationDrawer('Rz')).
     setWidth(2).
     setExtraDisableReasonFinder(badAngleFormulaDetector).
     setParamDialog(radianAngleDialog('Rz')).
