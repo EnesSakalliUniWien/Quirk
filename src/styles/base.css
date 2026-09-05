@@ -54,17 +54,6 @@
     font-family: var(--font-sans);
     }
 
-  #app-toolbar-root .app-version {
-    color: var(--muted-foreground);
-    }
-
-  #app-toolbar-root .app-brand-mark {
-    background: color-mix(in oklch, var(--primary), transparent 80%);
-    border: 1px solid color-mix(in oklch, var(--primary), transparent 48%);
-    box-shadow: inset 0 0 14px color-mix(in oklch, var(--primary), transparent 76%);
-    color: color-mix(in oklch, var(--primary), white 22%);
-    }
-
     html {
         background: var(--background);
         color-scheme: dark;
