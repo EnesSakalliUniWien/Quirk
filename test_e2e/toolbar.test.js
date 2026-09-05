@@ -40,7 +40,7 @@ test('renders the circuit controls with shadcn buttons', async browser => {
         const menuLabel = await page.$eval('.gate-toolbox #menu-button',
             element => element.textContent.trim());
         assert.equal(menuLabel, 'Menu');
-        // Clear All comes last, away from Clear Circuit, and is no longer joined to it in a group.
+        // Clear All comes last, away from Clear Circuit; the row has no button groups.
         assert.deepEqual(toolbar.buttonIds, [
             'export-button',
             'clear-circuit-button',
@@ -49,16 +49,26 @@ test('renders the circuit controls with shadcn buttons', async browser => {
             'gate-forge-button',
             'clear-all-button'
         ]);
-        assert.equal(toolbar.buttonGroupCount, 1);
+        assert.equal(toolbar.buttonGroupCount, 0);
+        const labels = await page.$$eval('#app-toolbar-root [data-slot="button"]',
+            els => els.map(el => el.getAttribute('aria-label')));
+        assert.deepEqual(labels, ['Export', 'Clear Circuit', 'Undo', 'Redo', 'Make Gate', 'Clear All']);
 
-        // In the sidebar's narrow column the separation is vertical: Clear All takes its own
-        // row below the rest, so the two destructive-adjacent buttons never sit flush.
+        // The destructive action takes the row's slack: never flush against Clear Circuit, and
+        // visibly apart from its neighbour.
         const clearGap = await page.evaluate(() => {
-            const a = document.getElementById('clear-circuit-button').getBoundingClientRect();
-            const b = document.getElementById('clear-all-button').getBoundingClientRect();
-            return Math.round(b.top - a.bottom);
+            const clearCircuit = document.getElementById('clear-circuit-button').getBoundingClientRect();
+            const makeGate = document.getElementById('gate-forge-button').getBoundingClientRect();
+            const clearAll = document.getElementById('clear-all-button').getBoundingClientRect();
+            return {
+                fromClearCircuit: Math.round(clearAll.left - clearCircuit.right),
+                fromNeighbour: Math.round(clearAll.left - makeGate.right),
+            };
         });
-        assert.ok(clearGap >= 4, `Clear All must sit on its own row clear of Clear Circuit, vertical gap was ${clearGap}px.`);
+        assert.ok(clearGap.fromClearCircuit >= 100,
+            `Clear All must sit well clear of Clear Circuit, gap was ${clearGap.fromClearCircuit}px.`);
+        assert.ok(clearGap.fromNeighbour >= 12,
+            `Clear All must sit apart from its neighbour, gap was ${clearGap.fromNeighbour}px.`);
 
         // The template's unlayered `font: inherit` must not outrank Tailwind's utilities layer,
         // or the shadcn buttons silently lose their text-sm/font-medium type.

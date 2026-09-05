@@ -1,26 +1,16 @@
-/* The app toolbar: the circuit's action buttons. It renders once into #app-toolbar-root and
-   the sidebar adopts it (src/components/gate-toolbox.jsx); the brand, version, and Menu live
+/* The app toolbar: the circuit's actions as an icon row. It renders once into #app-toolbar-root
+   and the sidebar adopts it (src/components/gate-toolbox.jsx); the brand, version, and Menu live
    beside it in src/styles/sidebar/shell.css. */
 @layer components {
     .app-toolbar {
         display: flex;
-        align-items: flex-start;
-        flex-wrap: wrap;
-        gap: calc(var(--spacing) * 2);
-    }
-
-    .app-toolbar-actions {
-        display: flex;
         align-items: center;
-        flex-wrap: wrap;
-        gap: calc(var(--spacing) * 2);
+        gap: calc(var(--spacing) * 1);
     }
 
-    /* Keeps the destructive action clear of the others: on the sidebar's narrow column it
-       gets its own row with breathing room, so it never sits flush against Clear Circuit. */
+    /* Keeps the destructive action clear of the others: it takes the row's slack, so it never
+       sits flush against Clear Circuit or its neighbour. */
     .app-toolbar-danger {
-        flex: 1 1 100%;
-        margin-top: calc(var(--spacing) * 1);
-        justify-content: flex-start;
+        margin-left: auto;
     }
 }

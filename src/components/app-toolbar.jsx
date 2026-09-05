@@ -12,17 +12,15 @@ import {
 import {useEffect, useRef} from "react";
 
 import {Button} from "@/components/ui/button";
-import {ButtonGroup} from "@/components/ui/button-group";
 
 // Lucide draws at a 24px grid with a stroke of 2. These render at 16px, so the stroke is
 // scaled down to match, which is also what the inline SVGs in the menu use.
 const ICON_STROKE_WIDTH = 1.5;
 
-function ToolbarButton({id, icon: Icon, children, variant = "ghost", className}) {
+function ToolbarButton({id, icon: Icon, label, className}) {
     return (
-        <Button id={id} size="default" variant={variant} className={className}>
-            <Icon data-icon="inline-start" strokeWidth={ICON_STROKE_WIDTH} />
-            {children}
+        <Button id={id} size="icon" variant="ghost" className={className} aria-label={label} title={label}>
+            <Icon strokeWidth={ICON_STROKE_WIDTH} aria-hidden="true" />
         </Button>
     );
 }
@@ -112,28 +110,19 @@ function AppToolbar() {
 
     return (
         <header className="app-toolbar" role="toolbar" aria-label="Circuit controls" ref={toolbarRef}>
-            <div className="app-toolbar-actions">
-                <ToolbarButton id="export-button" icon={DownloadIcon}>Export</ToolbarButton>
-                <ToolbarButton id="clear-circuit-button" icon={EraserIcon} variant="outline">
-                    Clear Circuit
-                </ToolbarButton>
-                <ButtonGroup aria-label="History actions">
-                    <ToolbarButton id="undo-button" icon={Undo2Icon}>Undo</ToolbarButton>
-                    <ToolbarButton id="redo-button" icon={Redo2Icon}>Redo</ToolbarButton>
-                </ButtonGroup>
-                <ToolbarButton id="gate-forge-button" icon={WandSparklesIcon} variant="outline">
-                    Make Gate
-                </ToolbarButton>
-                {/* Last, and pushed clear of the others: it discards custom gates as well as the
-                    circuit, and sitting flush against Clear Circuit made the two easy to confuse. */}
-                <ToolbarButton
-                    id="clear-all-button"
-                    icon={Trash2Icon}
-                    variant="destructive"
-                    className="app-toolbar-danger">
-                    Clear All
-                </ToolbarButton>
-            </div>
+            <ToolbarButton id="export-button" icon={DownloadIcon} label="Export" />
+            <ToolbarButton id="clear-circuit-button" icon={EraserIcon} label="Clear Circuit" />
+            <ToolbarButton id="undo-button" icon={Undo2Icon} label="Undo" />
+            <ToolbarButton id="redo-button" icon={Redo2Icon} label="Redo" />
+            <ToolbarButton id="gate-forge-button" icon={WandSparklesIcon} label="Make Gate" />
+            {/* Last, and pushed clear of the others by its auto margin: it discards custom gates
+                as well as the circuit, and sitting flush against the rest made it easy to hit
+                by mistake. Distinguished by colour, not by size. */}
+            <ToolbarButton
+                id="clear-all-button"
+                icon={Trash2Icon}
+                label="Clear All"
+                className="app-toolbar-danger text-destructive" />
         </header>
     );
 }
