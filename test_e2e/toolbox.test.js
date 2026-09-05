@@ -116,10 +116,13 @@ test('keeps the gate toolbox beside the circuit until the viewport is too narrow
         // The canvas is a fixed viewport: it fills its scroll cell exactly, and the circuit
         // centers inside it.
         await waitForCanvasViewport(page);
-        const viewportMatch = await page.$eval('#canvasDiv', e => {
+        // The redraw loop resizes the canvas from a ResizeObserver a frame or two after layout
+        // settles, so wait for the match rather than sampling it once.
+        const viewportMatch = await page.waitForFunction(() => {
+            const cell = document.getElementById('canvasDiv');
             const canvas = document.getElementById('drawCanvas');
-            return canvas.width === e.clientWidth && canvas.height === e.clientHeight;
-        });
+            return canvas.width === cell.clientWidth && canvas.height === cell.clientHeight;
+        }, {timeout: TEST_TIMEOUT_MILLIS}).then(() => true, () => false);
         assert.ok(viewportMatch, 'The canvas must fill its scroll cell exactly.');
 
         // Below 920px the sidebar leaves the row and becomes an off-canvas drawer, so the

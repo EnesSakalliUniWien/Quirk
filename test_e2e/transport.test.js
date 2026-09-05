@@ -140,8 +140,12 @@ test('toggles playback with the space bar', async browser => {
 
 test('scrubbing to a gate stops playback', async browser => {
     await withQuirkPage(browser, {cols: [['H'], ['X'], ['Z'], ['H']]}, async page => {
+        // The label and the readout follow the playhead's state ticks, so each expectation is
+        // awaited rather than sampled once.
         await page.click('#playhead-play-button');
-        assert.equal(await page.$eval('#playhead-play-label', e => e.textContent), 'Pause');
+        await page.waitForFunction(
+            () => document.getElementById('playhead-play-label').textContent === 'Pause',
+            {timeout: TEST_TIMEOUT_MILLIS});
 
         await page.$eval('#playhead-scrub', element => {
             element.value = '3';
@@ -150,6 +154,9 @@ test('scrubbing to a gate stops playback', async browser => {
 
         await page.waitForFunction(
             () => document.getElementById('playhead-play-label').textContent === 'Play',
+            {timeout: TEST_TIMEOUT_MILLIS});
+        await page.waitForFunction(
+            () => document.getElementById('playhead-position').textContent === 'gate 3 / 4',
             {timeout: TEST_TIMEOUT_MILLIS});
         assert.equal(await page.$eval('#playhead-position', e => e.textContent), 'gate 3 / 4');
     });
