@@ -52,7 +52,9 @@ function AppDialog({name, title, divId, contentId, labelledBy, initialFocusId, a
                     data-docked={docked}
                     aria-labelledby={labelledBy}
                     initialFocus={initialFocusId === undefined ?
-                        undefined :
+                        // A floating window with no field to fill must not pull focus away from
+                        // the circuit (or land it on its own close button).
+                        () => false :
                         () => document.getElementById(initialFocusId)}
                     ref={adoptContent}>
                     <div className="dialog-titlebar" data-snap-handle>

@@ -54,8 +54,11 @@
         display: inline-flex;
         width: 26px;
         height: 26px;
+        flex: 0 0 auto;
         align-items: center;
         justify-content: center;
+        /* The panels' generic button padding would leave a 2px content box for the icon. */
+        padding: 0;
         border: 0;
         border-radius: 7px;
         background: transparent;
@@ -71,6 +74,7 @@
     .dialog-titlebar-close svg {
         width: 15px;
         height: 15px;
+        flex: 0 0 auto;
     }
 
     [data-snap-handle] {
