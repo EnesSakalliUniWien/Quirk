@@ -26,11 +26,10 @@ function AppDialog({name, divId, contentId, labelledBy, initialFocusId, active, 
         };
     }, [contentId, onOpened]);
 
-    // A docked dialog gives the circuit back: no focus trap, no scroll lock, no pointer blocking
-    // (modal={false}), no backdrop, and no outside-press/focus-out dismissal
-    // (disablePointerDismissal), so clicking the circuit edits it instead of closing the dialog.
-    // Escape and the panel's own close button still close it.
-    const isDocked = docked !== undefined;
+    // Every dialog is a floating window, not a modal: no focus trap, no scroll lock, no pointer
+    // blocking (modal={false}), no backdrop, and no outside-press/focus-out dismissal
+    // (disablePointerDismissal), so the circuit stays editable while a dialog is open, docked
+    // or not. Escape and the panel's own close button still close it.
     return (
         <Dialog.Root
             open={active === name}
@@ -39,10 +38,9 @@ function AppDialog({name, divId, contentId, labelledBy, initialFocusId, active, 
                     overlayState.close();
                 }
             }}
-            modal={!isDocked}
-            disablePointerDismissal={isDocked}>
+            modal={false}
+            disablePointerDismissal>
             <Dialog.Portal>
-                {isDocked ? null : <Dialog.Backdrop className="dialog-overlay" />}
                 <Dialog.Popup
                     id={divId}
                     className="dialog-layout"

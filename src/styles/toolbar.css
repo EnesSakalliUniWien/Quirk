@@ -5,7 +5,9 @@
     .app-toolbar {
         display: flex;
         align-items: center;
-        gap: calc(var(--spacing) * 1);
+        /* Six 32px buttons on the 240px sidebar's 216px inner width: a 2px gap leaves the
+           auto margin enough slack to hold Clear All visibly apart. */
+        gap: 2px;
     }
 
     /* Keeps the destructive action clear of the others: it takes the row's slack, so it never

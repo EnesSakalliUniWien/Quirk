@@ -14,7 +14,8 @@ docks the dialog into one of three zones:
 - **max** — the whole safe area.
 
 A **docked dialog is non-modal**: the backdrop and focus trap are removed and the circuit stays
-interactive underneath. The motivating use case is docking the enlarged Bloch sphere view beside
+interactive underneath. (Superseded 2026-09-05: every dialog is now non-modal whether docked or
+not — floating windows over an always-editable circuit; docking keeps only its placement role.) The motivating use case is docking the enlarged Bloch sphere view beside
 the circuit and watching it update live while editing. Dragging a docked dialog out of its zone
 restores its pre-snap geometry and modal behaviour. Free-form dragging without hitting a zone
 just moves the (still modal) dialog.

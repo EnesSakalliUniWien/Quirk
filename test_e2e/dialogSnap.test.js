@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-// Dragging a dialog header into a snap zone docks it, which also makes it non-modal.
+// Dragging a dialog header into a snap zone docks it; dialogs are non-modal windows throughout.
 
 import assert from 'node:assert/strict';
 
@@ -65,7 +65,7 @@ test('docks the Bloch view to the right and keeps the circuit editable', async b
             () => document.getElementById('bloch-div').dataset.docked === 'right',
             {timeout: 2000});
         assert.equal(await page.$('.dialog-overlay'), null,
-            'A docked dialog must not render the modal backdrop.');
+            'A dialog must never render a modal backdrop.');
         const widthAfter = await page.$eval('#bloch-canvas', e => e.getBoundingClientRect().width);
         assert.notEqual(widthBefore, widthAfter, 'Docking must resize the Bloch canvas.');
 
@@ -75,12 +75,15 @@ test('docks the Bloch view to the right and keeps the circuit editable', async b
         const canvasFocusable = await page.$eval('#canvasDiv', e => e.tabIndex);
         assert.equal(canvasFocusable, 0, 'The canvas must stay focusable while docked.');
 
-        // Dragging back out restores modality.
+        // Dragging back out undocks it; it stays a floating window with no backdrop, and the
+        // circuit stays reachable.
         await dragHeaderTo(page, viewport.width / 2, viewport.height / 2);
         await page.waitForFunction(
             () => document.getElementById('bloch-div').dataset.docked === undefined,
             {timeout: 2000});
-        assert.notEqual(await page.$('.dialog-overlay'), null,
-            'An undocked dialog must be modal again.');
+        assert.equal(await page.$('.dialog-overlay'), null,
+            'An undocked dialog must not render a modal backdrop either.');
+        assert.equal(await page.$eval('#canvasDiv', e => e.tabIndex), 0,
+            'The canvas must stay focusable with an undocked dialog open.');
     });
 });

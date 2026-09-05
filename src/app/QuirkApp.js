@@ -166,22 +166,9 @@ function startQuirk() {
     initZoomControls(circuitOverlay, () =>
         Math.min(1, canvasDiv.clientWidth / displayed.get().displayedCircuit.unshiftedDesiredWidth()));
     initMinimap(circuitOverlay, canvasDiv, displayed);
-    // A docked overlay leaves the circuit editable, so the canvas keeps its tab stop; only a modal
-    // overlay takes it away.
-    let activeOverlay = overlayState.current();
-    let currentDockModes = {};
-    let updateCanvasFocusability = () => {
-        let dockedActive = activeOverlay !== undefined && currentDockModes[activeOverlay] !== undefined;
-        canvasDiv.tabIndex = activeOverlay === undefined || dockedActive ? 0 : -1;
-    };
-    overlayState.active().subscribe(active => {
-        activeOverlay = active;
-        updateCanvasFocusability();
-    });
-    dockModes().subscribe(modes => {
-        currentDockModes = modes;
-        updateCanvasFocusability();
-    });
+    // The dialogs are floating, non-modal windows, so the circuit is always editable and the
+    // canvas always keeps its tab stop.
+    canvasDiv.tabIndex = 0;
 
     scheduleBoot(displayed, overlayState, redrawLoop);
 }
