@@ -37,6 +37,11 @@ async function openBlochDialog(page) {
 }
 
 async function dragHeaderTo(page, x, y) {
+    // Docking animates the dialog into its zone (120ms on left/top); measure the header only
+    // once the dialog has come to rest, or the press lands where the header used to be.
+    await page.waitForFunction(
+        () => document.getElementById('bloch-div').getAnimations({subtree: true}).length === 0,
+        {timeout: 2000});
     const header = await page.$eval('#bloch-div [data-snap-handle]', element => {
         const bounds = element.getBoundingClientRect();
         return {x: bounds.x + bounds.width / 2, y: bounds.y + 10};
