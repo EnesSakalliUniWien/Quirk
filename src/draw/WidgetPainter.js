@@ -1,29 +1,31 @@
-// Copyright 2017 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/**
+ * Copyright 2017 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import {Complex} from "src/math/Complex.js"
-import {Config} from "src/Config.js"
-import {Format} from "src/base/Format.js"
-import {Gate} from "src/circuit/Gate.js"
-import {MathPainter} from "src/draw/MathPainter.js"
-import {Matrix} from "src/math/Matrix.js"
-import {Painter} from "src/draw/Painter.js"
-import {Point} from "src/math/Point.js"
-import {Rect} from "src/math/Rect.js"
-import {Seq} from "src/base/Seq.js"
-import {drawCircuitTooltip} from "src/ui/DisplayedCircuit.js"
-import {Util} from "src/base/Util.js"
+import {Complex} from "../math/Complex.js"
+import {Palette} from "../config/Palette.js"
+import {Format} from "../base/Format.js"
+import {Gate} from "../circuit/Gate.js"
+import {MathPainter} from "./MathPainter.js"
+import {Matrix} from "../math/Matrix.js"
+import {Painter} from "./Painter.js"
+import {Point} from "../math/Point.js"
+import {Rect} from "../math/Rect.js"
+import {Seq} from "../base/Seq.js"
+import {drawCircuitTooltip} from "../editor/DisplayedCircuit.js"
+import {Util} from "../base/Util.js"
 
 class WidgetPainter {
 
@@ -78,17 +80,17 @@ class WidgetPainter {
         }
 
         pushRect(new Rect(0, nextY(), 1, 0), pad*2);
-        pushRect(painter.printParagraph('As matrix:', new Rect(pad, nextY(), w, 18), new Point(0, 0), 'black', 12), 0);
+        pushRect(painter.printParagraph('As matrix:', new Rect(pad, nextY(), w, 18), new Point(0, 0), Palette.INK_COLOR, 12), 0);
         let matrixRect = new Rect(pad, nextY(), dispSize, dispSize);
         let matrixDescRect = new Rect(0, matrixRect.y, w - pad, dispSize).skipLeft(matrixRect.right() + pad);
         MathPainter.paintMatrix(
             painter,
             matrix,
             matrixRect,
-            Config.OPERATION_FORE_COLOR,
-            'black',
+            Palette.OPERATION_FORE_COLOR,
+            Palette.INK_COLOR,
             undefined,
-            Config.OPERATION_BACK_COLOR,
+            Palette.OPERATION_BACK_COLOR,
             undefined,
             'transparent');
         pushRect(matrixRect);
@@ -102,7 +104,7 @@ class WidgetPainter {
                     matDescs[r],
                     matrixDescRect.skipTop(r * rowHeight).takeTop(rowHeight),
                     new Point(0, 0.5),
-                    'black',
+                    Palette.INK_COLOR,
                     12));
             }
         }
@@ -129,7 +131,7 @@ class WidgetPainter {
             'As rotation:',
             new Rect(pad, nextY(), w, 18),
             new Point(0, 0),
-            'black',
+            Palette.INK_COLOR,
             12), 0);
         let {angle, axis, phase} = matrix.qubitOperationToAngleAxisRotation();
 
@@ -138,8 +140,8 @@ class WidgetPainter {
             painter,
             matrix,
             blochRect,
-            Config.OPERATION_BACK_COLOR,
-            Config.OPERATION_FORE_COLOR);
+            Palette.OPERATION_BACK_COLOR,
+            Palette.OPERATION_FORE_COLOR);
         pushRect(blochRect);
 
         let format = gate.stableDuration() < 0.2 ? Format.CONSISTENT : Format.SIMPLIFIED;
@@ -154,7 +156,7 @@ class WidgetPainter {
             rotDesc,
             new Rect(0, blochRect.y, w - pad, dispSize).skipLeft(blochRect.right() + pad),
             new Point(0, 0.5),
-            'black',
+            Palette.INK_COLOR,
             12));
     }
 
@@ -182,7 +184,7 @@ class WidgetPainter {
             `As circuit (gate weight = ${weight}):`,
             new Rect(pad, nextY(), w, 18),
             new Point(0, 0),
-            'black',
+            Palette.INK_COLOR,
             12), 0);
 
         let circuitRect = new Rect(pad, nextY(), w, dispSize);
@@ -206,9 +208,9 @@ class WidgetPainter {
             maxX = Math.max(maxX, rect.right() + actualPad);
         };
 
-        pushRect(painter.printLine(gate.name, new Rect(pad, maxY, w, 18), 0, "blue", 24));
+        pushRect(painter.printLine(gate.name, new Rect(pad, maxY, w, 18), 0, Palette.TOOLTIP_TITLE_COLOR, 24));
         if (gate.blurb !== '') {
-            pushRect(painter.printParagraph(gate.blurb, new Rect(pad, maxY, w, 50), new Point(0, 0), 'black', 14));
+            pushRect(painter.printParagraph(gate.blurb, new Rect(pad, maxY, w, 50), new Point(0, 0), Palette.INK_COLOR, 14));
         }
 
         let matrix = gate.knownMatrixAt(time);
@@ -245,8 +247,8 @@ class WidgetPainter {
 
         let {maxX, maxY} = WidgetPainter.paintGateTooltipHelper(painter, w, gate, time);
         let r = new Rect(0, 0, maxX, maxY);
-        painter.fillRect(r, '#F9FFF9');
-        painter.strokeRect(r, 'black');
+        painter.fillRect(r, Palette.TOOLTIP_BACK_COLOR);
+        painter.strokeRect(r, Palette.INK_COLOR);
         WidgetPainter.paintGateTooltipHelper(painter, w, gate, time);
 
         painter.ctx.restore();

@@ -1,0 +1,62 @@
+/* A collapsible gate group: its heading doubles as the fold toggle, with a chevron that
+   reports the fold state, and its panel holds the tile list. */
+@layer components {
+    .gate-group-label {
+        margin: 0 0 calc(var(--spacing) * 2);
+    }
+
+    .gate-group-toggle {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        gap: calc(var(--spacing) * 1);
+        padding: 0;
+        background: transparent;
+        border: 0;
+        border-radius: 6px;
+        color: color-mix(in oklch, var(--sidebar-foreground), transparent 40%);
+        cursor: pointer;
+        font-size: var(--text-caption);
+        font-weight: 650;
+        letter-spacing: 0.08em;
+        text-align: left;
+        text-transform: uppercase;
+    }
+
+    .gate-group-toggle:hover {
+        color: var(--sidebar-foreground);
+    }
+
+    .gate-group-toggle:focus-visible {
+        color: var(--sidebar-foreground);
+        outline: 3px solid color-mix(in oklch, var(--sidebar-ring), transparent 48%);
+        outline-offset: 2px;
+    }
+
+    .gate-group-toggle::before {
+        content: '';
+        width: 7px;
+        height: 7px;
+        flex: 0 0 auto;
+        border-right: 1.5px solid currentColor;
+        border-bottom: 1.5px solid currentColor;
+        transform: rotate(45deg);
+        transition: transform 140ms ease;
+    }
+
+    .gate-group-toggle[aria-expanded="false"]::before {
+        transform: rotate(-45deg);
+    }
+
+    /* Named rows, the way a DAW browser lists devices: the name identifies, the glyph shows what
+       the gate looks like on the circuit. */
+    .gate-group-tiles {
+        display: grid;
+        gap: 2px;
+    }
+
+    /* The display:grid above outranks the browser's [hidden] rule, so fold it back in. */
+    .gate-group-tiles[hidden] {
+        display: none;
+    }
+}

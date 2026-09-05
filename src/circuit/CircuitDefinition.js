@@ -1,30 +1,36 @@
-// Copyright 2017 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/**
+ * Copyright 2017 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import {CircuitShaders} from "src/circuit/CircuitShaders.js"
-import {Config} from "src/Config.js"
-import {Controls} from "src/circuit/Controls.js"
-import {CustomGateSet} from "src/circuit/CustomGateSet.js"
-import {DetailedError} from "src/base/DetailedError.js"
-import {equate_Maps} from "src/base/Equate.js";
-import {Gate} from "src/circuit/Gate.js"
-import {GateColumn} from "src/circuit/GateColumn.js"
-import {GateShaders} from "src/circuit/GateShaders.js"
-import {Gates, INITIAL_STATES_TO_GATES} from "src/gates/AllGates.js"
-import {Point} from "src/math/Point.js"
-import {seq, Seq} from "src/base/Seq.js"
-import {Util} from "src/base/Util.js"
+import {
+    applyAfterOperationsInCol,
+    applyBeforeOperationsInCol,
+    applyInitialStateOperations,
+    applyMainOperationsInCol,
+} from "./CircuitExecution.js"
+import {AppInfo} from "../config/AppInfo.js"
+import {Controls} from "./Controls.js"
+import {CustomGateSet} from "./CustomGateSet.js"
+import {DetailedError} from "../base/DetailedError.js"
+import {equate_Maps} from "../base/Equate.js";
+import {Gate} from "./Gate.js"
+import {GateColumn} from "./GateColumn.js"
+import {Gates, INITIAL_STATES_TO_GATES} from "../gates/AllGates.js"
+import {Point} from "../math/Point.js"
+import {seq, Seq} from "../base/Seq.js"
+import {Util} from "../base/Util.js"
 
 /**
  * Defines a circuit layout, with wires and columns and gates.
@@ -153,7 +159,7 @@ class CircuitDefinition {
         if (newStateIndex !== undefined) {
             newVal = newStateIndex;
         }
-        if (newVal === undefined) {
+        if (newVal === undefined || newVal === 0) {
             m.delete(wire);
         } else {
             m.set(wire, newVal);
@@ -388,7 +394,7 @@ class CircuitDefinition {
             .map(e => e.symbol)
             .toArray();
         if (allGates.length === 0) {
-            return Config.EMPTY_CIRCUIT_TITLE;
+            return AppInfo.EMPTY_CIRCUIT_TITLE;
         }
         let allGatesString = `${this.numWires} wires, ${allGates.length} ops, ${allGates.join("").split("^").join("")}`;
         if (allGatesString.length <= 40) {
@@ -923,15 +929,7 @@ class CircuitDefinition {
      * @return {void}
      */
     applyInitialStateOperations(ctx) {
-        for (let wire = 0; wire < this.numWires; wire++) {
-            let state = this.customInitialValues.get(wire);
-            if (!INITIAL_STATES_TO_GATES.has(state)) {
-                throw new DetailedError('Unrecognized initial state.', {state});
-            }
-            for (let gate of INITIAL_STATES_TO_GATES.get(state)) {
-                GateShaders.applyMatrixOperation(ctx.withRow(ctx.row + wire), gate.knownMatrixAt(ctx.time))
-            }
-        }
+        applyInitialStateOperations(this, ctx);
     }
 
     /**
@@ -940,27 +938,7 @@ class CircuitDefinition {
      * @return {void}
      */
     applyMainOperationsInCol(colIndex, ctx) {
-        if (colIndex < 0 || colIndex >= this.columns.length) {
-            return;
-        }
-
-        this._applyOpsInCol(colIndex, ctx, gate => {
-            if (gate.definitelyHasNoEffect() || gate === Gates.Special.SwapHalf) {
-                return undefined;
-            }
-
-            if (gate.customOperation !== undefined) {
-                return gate.customOperation;
-            }
-
-            return ctx => GateShaders.applyMatrixOperation(ctx, gate.knownMatrixAt(ctx.time));
-        });
-
-        let swapRows = this.colGetEnabledSwapGate(colIndex);
-        if (swapRows !== undefined) {
-            let [i, j] = swapRows;
-            ctx.applyOperation(CircuitShaders.swap(ctx.withRow(i + ctx.row), j + ctx.row));
-        }
+        applyMainOperationsInCol(this, colIndex, ctx);
     }
 
     /**
@@ -969,7 +947,7 @@ class CircuitDefinition {
      * @return {void}
      */
     applyBeforeOperationsInCol(colIndex, ctx) {
-        this._applyOpsInCol(colIndex, ctx, g => g.customBeforeOperation);
+        applyBeforeOperationsInCol(this, colIndex, ctx);
     }
 
     /**
@@ -978,32 +956,7 @@ class CircuitDefinition {
      * @return {void}
      */
     applyAfterOperationsInCol(colIndex, ctx) {
-        this._applyOpsInCol(colIndex, ctx, g => g.customAfterOperation);
-    }
-
-    /**
-     * @param {!int} colIndex
-     * @param {!CircuitEvalContext} ctx
-     * @param {!function(!Gate) : !function(!CircuitEvalContext)} opGetter
-     * @private
-     */
-    _applyOpsInCol(colIndex, ctx, opGetter) {
-        if (colIndex < 0 || colIndex >= this.columns.length) {
-            return;
-        }
-        let col = this.columns[colIndex];
-
-        for (let row = 0; row < this.numWires; row++) {
-            let gate = col.gates[row];
-            if (gate === undefined || this.gateAtLocIsDisabledReason(colIndex, row) !== undefined) {
-                continue;
-            }
-
-            let op = opGetter(gate);
-            if (op !== undefined) {
-                op(ctx.withRow(ctx.row + row));
-            }
-        }
+        applyAfterOperationsInCol(this, colIndex, ctx);
     }
 
     /**

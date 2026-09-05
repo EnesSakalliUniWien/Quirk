@@ -1,0 +1,17 @@
+import {AppDialog} from "./app-dialog.jsx";
+
+/**
+ * The enlarged Bloch sphere overlay: a rotatable sphere plus the state as numbers. Its panel
+ * markup ships in the page template's dialog stash and is wired up by src/app/blochSphereDialog.js.
+ */
+function BlochDialog({active, overlayState, docked, onOpened}) {
+    return (
+        <AppDialog
+            name="bloch" title="Bloch Sphere" divId="bloch-div" contentId="bloch-dialog-content"
+            labelledBy="bloch-title" initialFocusId="bloch-close-button"
+            active={active} overlayState={overlayState}
+            docked={docked} onOpened={onOpened} />
+    );
+}
+
+export {BlochDialog};

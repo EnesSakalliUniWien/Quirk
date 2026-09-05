@@ -11,12 +11,24 @@
 - **remove qubit**: re-arrange gates so that the bottom wire is unused
 - **show intermediate state**: `drag` a display gate onto the circuit
 - **view tips**: `hover` with mouse **OR** awkwardly tap-hold with finger
+- **play/pause the animation**: `space` **OR** click the transport's play button
+- **zoom the circuit**: use the `−` / `+` / `Fit` buttons over the circuit's corner
+- **scroll a big circuit**: drag the viewport box on the minimap that appears when the circuit
+  overflows
+- **inspect a qubit's Bloch sphere**: click any Bloch sphere in the circuit or at a wire's end;
+  drag the enlarged sphere to rotate the view
+- **open the gates on a narrow screen**: click the `Gates` button over the circuit's corner; the
+  palette slides in as a drawer and closes when a gate is dragged out
 
 **Advanced Actions**
 
 - **copy gate**: `shift + drag` gate in circuit
+- **grab a gate's inverse**: `alt + drag` gate
 - **move column**: `ctrl + drag` in circuit
 - **copy column**: `ctrl + shift + drag` in circuit
+- **set a gate's parameter**: click the 'change' button on a parametrized gate (the Rx/Ry/Rz
+  rotation gates take their angle in radians)
+- **fold a toolbox group**: click the group's heading; the folding is remembered
 - **create custom gate**: click 'Make Gate' button
 - **remove custom gate**: [crummy support] have to use undo or clear all or manually edit URL
 
@@ -36,4 +48,4 @@
   - Green: probabilities / densities
   - Yellow: change / varying
   - Orange: focused
-  - Red: error / attention
+  - Magenta: error / attention

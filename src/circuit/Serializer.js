@@ -1,54 +1,37 @@
-// Copyright 2017 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-import {CircuitDefinition} from "src/circuit/CircuitDefinition.js"
-import {Complex} from "src/math/Complex.js"
-import {Config} from "src/Config.js"
-import {CustomGateSet} from "src/circuit/CustomGateSet.js"
-import {describe} from "src/base/Describe.js"
-import {DetailedError} from "src/base/DetailedError.js"
-import {Format} from "src/base/Format.js"
-import {Gate, GateBuilder} from "src/circuit/Gate.js"
-import {GateColumn} from "src/circuit/GateColumn.js"
-import {Gates, INITIAL_STATES_TO_GATES} from "src/gates/AllGates.js"
-import {Matrix} from "src/math/Matrix.js"
-import {Util} from "src/base/Util.js"
-import {notifyAboutRecoveryFromUnexpectedError} from "src/fallback.js"
-import {MysteryGateSymbol, MysteryGateMakerWithMatrix} from "src/gates/Joke_MysteryGate.js"
-import {seq} from "src/base/Seq.js"
-import {setGateBuilderEffectToCircuit} from "src/circuit/CircuitComputeUtil.js"
-
-/** @type {!function(!GateDrawParams)} */
-let matrixDrawer = undefined;
-/** @type {!function(!GateDrawParams)} */
-let circuitDrawer = undefined;
-/** @type {!function(!GateDrawParams)} */
-let labelDrawer = undefined;
-/** @type {!function(!GateDrawParams)} */
-let locationIndependentDrawer = undefined;
 /**
- * @param {!function(!GateDrawParams)} gateLabelDrawer
- * @param {!function(!GateDrawParams)} gateMatrixDrawer
- * @param {!function(!GateDrawParams)} gateCircuitDrawer
- * @param {!function(!GateDrawParams)} locationIndependentGateDrawer
+ * Copyright 2017 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-function initSerializer(gateLabelDrawer, gateMatrixDrawer, gateCircuitDrawer, locationIndependentGateDrawer) {
-    labelDrawer = gateLabelDrawer;
-    matrixDrawer = gateMatrixDrawer;
-    circuitDrawer = gateCircuitDrawer;
-    locationIndependentDrawer = locationIndependentGateDrawer;
-}
+
+import {CircuitDefinition} from "./CircuitDefinition.js"
+import {Complex} from "../math/Complex.js"
+import {Simulation} from "../config/Simulation.js"
+import {CustomGateSet} from "./CustomGateSet.js"
+import {describe} from "../base/Describe.js"
+import {DetailedError} from "../base/DetailedError.js"
+import {Format} from "../base/Format.js"
+import {Gate, GateBuilder} from "./Gate.js"
+import {GateColumn} from "./GateColumn.js"
+import {Gates, INITIAL_STATES_TO_GATES} from "../gates/AllGates.js"
+import {Matrix} from "../math/Matrix.js"
+import {Util} from "../base/Util.js"
+import {reportRecoveredError} from "../diagnostics/errorReporter.js"
+import {MysteryGateSymbol, MysteryGateMakerWithMatrix} from "../gates/misc/Joke_MysteryGate.js"
+import {seq} from "../base/Seq.js"
+import {setGateBuilderEffectToCircuit} from "./CircuitComputeUtil.js"
+import {GatePainting} from "../draw/GatePainting.js"
+import {drawCustomGateCircuit} from "../draw/CustomGateCircuitDrawer.js"
 
 /**
  * Serializes supported values to/from json elements.
@@ -242,9 +225,9 @@ let fromJson_Gate_Matrix = props => {
         setTitle(props.name).
         setHeight(height).
         setWidth(width).
-        setDrawer(props.symbol === "" ? matrixDrawer
-            : matrix.isIdentity() ? labelDrawer
-            : matrix.isScaler() ? locationIndependentDrawer
+        setDrawer(props.symbol === "" ? GatePainting.MATRIX_DRAWER
+            : matrix.isIdentity() ? GatePainting.LABEL_DRAWER
+            : matrix.isScaler() ? GatePainting.LOCATION_INDEPENDENT_GATE_DRAWER
             : undefined).
         setKnownEffectToMatrix(matrix);
     if (matrix.isIdentity()) {
@@ -264,7 +247,7 @@ let fromJson_Gate_Circuit = (props, context) => {
         setSerializedId(props.id).
         setSymbol(props.symbol).
         setTitle(props.name).
-        setDrawer(circuitDrawer).
+        setDrawer(drawCustomGateCircuit).
         gate;
 };
 
@@ -300,7 +283,7 @@ let fromJson_Gate = (json, context=new CustomGateSet()) => {
         return match;
 
     } catch (ex) {
-        notifyAboutRecoveryFromUnexpectedError(
+        reportRecoveredError(
             "Defaulted to a do-nothing 'parse error' gate. Failed to understand the json defining a gate.",
             {gate_json: json},
             ex);
@@ -458,8 +441,8 @@ function fromJson_CircuitDefinition(json, context=undefined) {
         numWires = Math.max(numWires, col.minimumRequiredWireCount());
     }
     numWires = Math.max(
-        Config.MIN_WIRE_COUNT,
-        Math.min(numWires, Config.MAX_WIRE_COUNT),
+        Simulation.MIN_WIRE_COUNT,
+        Math.min(numWires, Simulation.MAX_WIRE_COUNT),
         ...[...initialValues.keys()].map(e => e + 1));
 
     gateCols = gateCols.map(col => new GateColumn([
@@ -481,4 +464,4 @@ const BINDINGS = [
     [CircuitDefinition, toJson_CircuitDefinition, fromJson_CircuitDefinition]
 ];
 
-export {Serializer, initSerializer, fromJsonText_CircuitDefinition}
+export {Serializer, fromJsonText_CircuitDefinition}

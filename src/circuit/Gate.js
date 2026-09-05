@@ -1,21 +1,23 @@
-// Copyright 2017 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/**
+ * Copyright 2017 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import {DetailedError} from "src/base/DetailedError.js"
-import {GateDrawParams} from "src/draw/GateDrawParams.js"
-import {Complex} from "src/math/Complex.js"
-import {Matrix} from "src/math/Matrix.js"
+import {DetailedError} from "../base/DetailedError.js"
+import {GateDrawParams} from "../draw/GateDrawParams.js"
+import {Complex} from "../math/Complex.js"
+import {Matrix} from "../math/Matrix.js"
 
 /**
  * Describes a quantum operation that may vary with time.
@@ -28,6 +30,12 @@ class Gate {
         this.serializedId = '';
         /** @type {!string} The title text of gate tooltips. */
         this.name = '';
+        /**
+         * A shorter name for places that list gates in a fixed width, like the toolbox rows.
+         * Empty means the full name fits and is used as-is.
+         * @type {!string}
+         */
+        this.listName = '';
         /** @type {!string} Detail text of gate tooltips. */
         this.blurb = '';
         /** @type {!int} The number of columns the gate spans on a circuit. Controls go on the first column. */
@@ -49,6 +57,13 @@ class Gate {
         this.customDrawer = undefined;
         /** @type{undefined|!function(!Gate) : !Gate} */
         this.onClickGateFunc = undefined;
+        /**
+         * When set, clicking the gate's button opens the in-app parameter dialog instead of
+         * calling onClickGateFunc.
+         * @type {undefined|!{title: !string, message: !string,
+         *     applyText: !function(oldGate: !Gate, text: !string): !{gate: !Gate}|!{error: !string}}}
+         */
+        this.paramDialog = undefined;
         /** @type {undefined|*} Used to stash error information when parsing goes bad. */
         this.tag = undefined;
         /**
@@ -277,10 +292,12 @@ class Gate {
         let g = new Gate();
         g.symbol = this.symbol;
         g.name = this.name;
+        g.listName = this.listName;
         g.blurb = this.blurb;
         g.alternate = this.alternate;
         g.serializedId = this.serializedId;
         g.onClickGateFunc = this.onClickGateFunc;
+        g.paramDialog = this.paramDialog;
         g.tag = this.tag;
         g.param = this.param;
         g.customDrawer = this.customDrawer;
@@ -555,6 +572,16 @@ class GateBuilder {
     }
 
     /**
+     * Sets a shorter name for fixed-width lists, when the full title would truncate there.
+     * @param {!string} listName
+     * @returns {!GateBuilder}
+     */
+    setListName(listName) {
+        this.gate.listName = listName;
+        return this;
+    }
+
+    /**
      * Sets the detail text shown inside tooltips for the gate.
      * @param {!string} blurb A helpful description of what the gate does.
      * @returns {!GateBuilder}
@@ -600,6 +627,17 @@ class GateBuilder {
      */
     setOnClickGateFunc(gateFunc) {
         this.gate.onClickGateFunc = gateFunc;
+        return this;
+    }
+
+    /**
+     * Makes the gate's button open the in-app parameter dialog.
+     * @param {!{title: !string, message: !string,
+     *     applyText: !function(oldGate: !Gate, text: !string): !{gate: !Gate}|!{error: !string}}} paramDialog
+     * @returns {!GateBuilder}
+     */
+    setParamDialog(paramDialog) {
+        this.gate.paramDialog = paramDialog;
         return this;
     }
 

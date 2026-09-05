@@ -1,18 +1,20 @@
-// Copyright 2017 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/**
+ * Copyright 2017 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import {Point} from "src/math/Point.js"
+import {Point} from "../math/Point.js"
 
 const ALLOW_REGRAB_WATCHDOG_TIME_MS = 5000;
 const MOUSE_ID = "mouse!";
@@ -21,13 +23,35 @@ const MOUSE_ID = "mouse!";
  * @param {!TouchEvent|!MouseEvent} ev
  * @returns {!boolean}
  */
-let isLeftClicking = ev => (window.TouchEvent !== undefined && ev instanceof TouchEvent) || ev.which === 1;
+let isTouchEvent = ev => window.TouchEvent !== undefined && ev instanceof TouchEvent;
+
+/**
+ * Whether the left button is the one that just changed state.
+ *
+ * Only meaningful for 'mousedown' and 'mouseup'. MouseEvent.button identifies the button that changed, and is reported
+ * as 0 (the left button) on events where no button changed at all.
+ *
+ * @param {!TouchEvent|!MouseEvent} ev
+ * @returns {!boolean}
+ */
+let isLeftClicking = ev => isTouchEvent(ev) || ev.button === 0;
+
+/**
+ * Whether the left button is currently held down.
+ *
+ * Used for 'mousemove', 'mouseenter', and 'mouseleave', where no button changed and MouseEvent.buttons is the only
+ * field saying what is still pressed.
+ *
+ * @param {!TouchEvent|!MouseEvent} ev
+ * @returns {!boolean}
+ */
+let isLeftButtonHeld = ev => isTouchEvent(ev) || (ev.buttons & 1) !== 0;
 
 /**
  * @param {!MouseEvent} ev
  * @returns {!boolean}
  */
-let isMiddleClicking = ev => ev.which === 2;
+let isMiddleClicking = ev => ev.button === 1;
 
 /**
  * @param {!MouseEvent|!Touch} ev
@@ -45,10 +69,13 @@ function eventPosRelativeTo(ev, element) {
  * @param {!function(!MouseEvent|!TouchEvent) : void} cancelHandler
  * @param {!function(undefined|!Point, !MouseEvent|!TouchEvent) : void} dragHandler
  * @param {!function(undefined|!Point, !MouseEvent|!TouchEvent) : void} dropHandler
+ * @param {!HTMLElement=} measureElement Positions are reported relative to this element instead of
+ *     the listening element. Needed when the listening element is a scroll container, whose own
+ *     corner stays put while its content moves.
  * @returns {!function() : void} Call this to dispose the watcher (removing any global callbacks it added).
  */
-function watchDrags(element, grabHandler, cancelHandler, dragHandler, dropHandler) {
-    return new DragWatcher(element, grabHandler, cancelHandler, dragHandler, dropHandler)
+function watchDrags(element, grabHandler, cancelHandler, dragHandler, dropHandler, measureElement=element) {
+    return new DragWatcher(element, grabHandler, cancelHandler, dragHandler, dropHandler, measureElement)
         .addListenersUntilResultInvoked();
 }
 
@@ -70,10 +97,13 @@ class DragWatcher {
      * @param {!function(!MouseEvent|!TouchEvent) : void} cancelHandler
      * @param {!function(undefined|!Point, !MouseEvent|!TouchEvent) : void} dragHandler
      * @param {!function(undefined|!Point, !MouseEvent|!TouchEvent) : void} dropHandler
+     * @param {!HTMLElement=} measureElement
      */
-    constructor(element, grabHandler, cancelHandler, dragHandler, dropHandler) {
+    constructor(element, grabHandler, cancelHandler, dragHandler, dropHandler, measureElement=element) {
         /** @type {!HTMLElement} */
         this._element = element;
+        /** @type {!HTMLElement} */
+        this._measureElement = measureElement;
         /** @type {!function(!Point, !MouseEvent|!TouchEvent) : void} */
         this._grabHandler = grabHandler;
         /** @type {!function(!MouseEvent|!TouchEvent) : void} */
@@ -153,7 +183,7 @@ class DragWatcher {
             return;
         }
 
-        if (!isLeftClicking(ev)) {
+        if (!isLeftButtonHeld(ev)) {
             // Dropped on another window with browser out of focus.
             this._lastPos = undefined;
             this._lastEv = undefined;
@@ -211,7 +241,7 @@ class DragWatcher {
      * @param {!MouseEvent|!TouchEvent} ev
      */
     onLeave(pt, id, ev) {
-        if (!isLeftClicking(ev) || this._grabPointerId !== id) {
+        if (!isLeftButtonHeld(ev) || this._grabPointerId !== id) {
             return;
         }
 
@@ -229,7 +259,7 @@ class DragWatcher {
      * @param {!MouseEvent|!TouchEvent} ev
      */
     onEnter(pt, id, ev) {
-        if (isLeftClicking(ev) || this._grabPointerId !== id) {
+        if (isLeftButtonHeld(ev) || this._grabPointerId !== id) {
             return;
         }
 
@@ -245,7 +275,7 @@ class DragWatcher {
      * @returns {!Point}
      */
     relativeEventPos(ev) {
-        return eventPosRelativeTo(ev, this._element);
+        return eventPosRelativeTo(ev, this._measureElement);
     }
 
     /**
@@ -268,4 +298,4 @@ class DragWatcher {
     }
 }
 
-export {watchDrags, isLeftClicking, isMiddleClicking, eventPosRelativeTo};
+export {watchDrags, isLeftClicking, isLeftButtonHeld, isMiddleClicking, eventPosRelativeTo};

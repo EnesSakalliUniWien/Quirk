@@ -1,19 +1,21 @@
-// Copyright 2017 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/**
+ * Copyright 2017 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import {Painter} from "src/draw/Painter.js"
-import {RestartableRng} from "src/base/RestartableRng.js"
+import {Painter} from "./Painter.js"
+import {RestartableRng} from "../base/RestartableRng.js"
 
 const fixedRng = new RestartableRng();
 
@@ -47,15 +49,18 @@ class CachablePainting {
      * @param {!*=} key
      */
     paint(x, y, painter, key=undefined) {
-        if (!this._cachedCanvases.has(key)) {
+        let pixelRatio = painter.pixelRatio;
+        let cacheKey = `${key}@${pixelRatio}`;
+        if (!this._cachedCanvases.has(cacheKey)) {
             let canvas = /** @type {!HTMLCanvasElement} */ document.createElement('canvas');
             let {width, height} = this.sizeFunc(key);
-            canvas.width = width;
-            canvas.height = height;
-            this._drawingFunc(new Painter(canvas, fixedRng.restarted()), key);
-            this._cachedCanvases.set(key, canvas);
+            canvas.width = Math.round(width * pixelRatio);
+            canvas.height = Math.round(height * pixelRatio);
+            this._drawingFunc(new Painter(canvas, fixedRng.restarted(), pixelRatio), key);
+            this._cachedCanvases.set(cacheKey, canvas);
         }
-        painter.ctx.drawImage(this._cachedCanvases.get(key), x, y);
+        let cached = this._cachedCanvases.get(cacheKey);
+        painter.ctx.drawImage(cached, x, y, cached.width / pixelRatio, cached.height / pixelRatio);
     }
 }
 

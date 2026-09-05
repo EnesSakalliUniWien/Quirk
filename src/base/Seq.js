@@ -1,20 +1,22 @@
-// Copyright 2017 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/**
+ * Copyright 2017 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import {DetailedError} from "src/base/DetailedError.js"
+import {DetailedError} from "./DetailedError.js"
 
-export const THROW_IF_EMPTY = { if_same_instance_as_this_then_throw: true };
+const THROW_IF_EMPTY = { if_same_instance_as_this_then_throw: true };
 
 /**
  * A private sygil/sentinel value that shouldn't ever be present in a sequence, and so can be used as a placeholder for
@@ -208,7 +210,7 @@ class Seq {
         return Seq.fromGenerator(function*() {
             let i = 0;
             //noinspection InfiniteLoopJS
-            while (true) { //eslint-disable-line no-constant-condition
+            while (true) {
                 yield i;
                 i++;
             }

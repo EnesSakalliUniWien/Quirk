@@ -1,34 +1,43 @@
-// Copyright 2017 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/**
+ * Copyright 2017 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import {Config} from "src/Config.js"
-import {Point} from "src/math/Point.js"
-import {Rect} from "src/math/Rect.js"
-import {RestartableRng} from "src/base/RestartableRng.js"
-import {seq, Seq} from "src/base/Seq.js"
-import {Util} from "src/base/Util.js"
+import {Layout} from "../config/Layout.js"
+import {Palette} from "../config/Palette.js"
+import {Typography} from "../config/Typography.js"
+import {Point} from "../math/Point.js"
+import {Rect} from "../math/Rect.js"
+import {RestartableRng} from "../base/RestartableRng.js"
+import {seq, Seq} from "../base/Seq.js"
+import {Util} from "../base/Util.js"
 
 class Painter {
     /**
      * @param {!HTMLCanvasElement} canvas
      * @param {!RestartableRng=} rng
+     * @param {!number=} pixelRatio The ratio of canvas backing pixels to logical drawing units. Painting code always
+     *     works in logical units; a ratio above 1 renders sharper output on high-density displays.
      */
-    constructor(canvas, rng = new RestartableRng()) {
+    constructor(canvas, rng = new RestartableRng(), pixelRatio = 1) {
         /** @type {!HTMLCanvasElement} */
         this.canvas = canvas;
         /** @type {!CanvasRenderingContext2D} */
         this.ctx = canvas.getContext("2d");
+        /** @type {!number} */
+        this.pixelRatio = pixelRatio;
+        this.ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
         /**
          * @type {!Array.<!function()>}
          * @private
@@ -102,13 +111,13 @@ class Painter {
      * @returns {!Rect}
      */
     paintableArea() {
-        return new Rect(0, 0, this.canvas.width, this.canvas.height);
+        return new Rect(0, 0, this.canvas.width / this.pixelRatio, this.canvas.height / this.pixelRatio);
     }
 
     /**
      * @param {!string=} color
      */
-    clear(color = Config.DEFAULT_FILL_COLOR) {
+    clear(color = Palette.DEFAULT_FILL_COLOR) {
         this.ctx.fillStyle = color;
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     }
@@ -121,7 +130,7 @@ class Painter {
      * @param {=string} color The color of the drawn line.
      * @param {=number} thickness The thickness of the drawn line.
      */
-    strokeLine(p1, p2, color = Config.DEFAULT_STROKE_COLOR, thickness = 1) {
+    strokeLine(p1, p2, color = Palette.DEFAULT_STROKE_COLOR, thickness = 1) {
         this.ctx.beginPath();
         this.ctx.moveTo(p1.x, p1.y);
         this.ctx.lineTo(p2.x, p2.y);
@@ -136,7 +145,7 @@ class Painter {
      * @param {!string=} color The stroke color.
      * @param {!number=} thickness The stroke thickness.
      */
-    strokeRect(rect, color = "black", thickness = 1) {
+    strokeRect(rect, color = Palette.DEFAULT_STROKE_COLOR, thickness = 1) {
         this.ctx.strokeStyle = color;
         this.ctx.lineWidth = thickness;
         this.ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
@@ -147,9 +156,68 @@ class Painter {
      * @param {!Rect} rect The rectangular area to fill.
      * @param {!string=} color The fill color.
      */
-    fillRect(rect, color = Config.DEFAULT_FILL_COLOR) {
+    fillRect(rect, color = Palette.DEFAULT_FILL_COLOR) {
         this.ctx.fillStyle = color;
         this.ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+    }
+
+    /**
+     * Starts a rounded rectangle path.
+     * @param {!Rect} rect
+     * @param {!number} radius
+     * @private
+     */
+    _startRoundedRectPath(rect, radius) {
+        let r = Math.max(0, Math.min(radius, rect.w / 2, rect.h / 2));
+        let x2 = rect.right();
+        let y2 = rect.bottom();
+        this.ctx.beginPath();
+        this.ctx.moveTo(rect.x + r, rect.y);
+        this.ctx.lineTo(x2 - r, rect.y);
+        this.ctx.arcTo(x2, rect.y, x2, rect.y + r, r);
+        this.ctx.lineTo(x2, y2 - r);
+        this.ctx.arcTo(x2, y2, x2 - r, y2, r);
+        this.ctx.lineTo(rect.x + r, y2);
+        this.ctx.arcTo(rect.x, y2, rect.x, y2 - r, r);
+        this.ctx.lineTo(rect.x, rect.y + r);
+        this.ctx.arcTo(rect.x, rect.y, rect.x + r, rect.y, r);
+        this.ctx.closePath();
+    }
+
+    /**
+     * Draws the inside of a rounded rectangle.
+     * @param {!Rect} rect
+     * @param {!string=} color
+     * @param {!number=} radius
+     */
+    fillRoundedRect(rect, color = Palette.DEFAULT_FILL_COLOR, radius = 0) {
+        this._startRoundedRectPath(rect, radius);
+        this.ctx.fillStyle = color;
+        this.ctx.fill();
+    }
+
+    /**
+     * Draws the outside of a rounded rectangle.
+     * @param {!Rect} rect
+     * @param {!string=} color
+     * @param {!number=} thickness
+     * @param {!number=} radius
+     */
+    strokeRoundedRect(rect, color = Palette.DEFAULT_STROKE_COLOR, thickness = 1, radius = 0) {
+        this._startRoundedRectPath(rect, radius);
+        this.ctx.strokeStyle = color;
+        this.ctx.lineWidth = thickness;
+        this.ctx.stroke();
+    }
+
+    /**
+     * Restricts subsequent drawing to a rounded rectangle.
+     * @param {!Rect} rect
+     * @param {!number=} radius
+     */
+    clipRoundedRect(rect, radius = 0) {
+        this._startRoundedRectPath(rect, radius);
+        this.ctx.clip();
     }
 
     /**
@@ -159,7 +227,7 @@ class Painter {
      * @param {!string=} color The stroke color.
      * @param {!number=} thickness The stroke thickness.
      */
-    strokeCircle(center, radius, color = Config.DEFAULT_STROKE_COLOR, thickness = Config.DEFAULT_STROKE_THICKNESS) {
+    strokeCircle(center, radius, color = Palette.DEFAULT_STROKE_COLOR, thickness = Layout.DEFAULT_STROKE_THICKNESS) {
         this.ctx.beginPath();
         this.ctx.strokeStyle = color;
         this.ctx.lineWidth = thickness;
@@ -183,7 +251,7 @@ class Painter {
      * @param {!number} radius The distance from the center of the circle to its side.
      * @param {!string=} color The fill color. Defaults to white.
      */
-    fillCircle(center, radius, color = Config.DEFAULT_FILL_COLOR) {
+    fillCircle(center, radius, color = Palette.DEFAULT_FILL_COLOR) {
         this.ctx.beginPath();
         this.ctx.arc(center.x, center.y, Math.max(radius - 0.5, 0), 0, 2 * Math.PI);
         this.ctx.fillStyle = color;
@@ -254,9 +322,9 @@ class Painter {
     printParagraph(text,
                    area,
                    proportionalCenterOfAlignment = new Point(0, 0),
-                   fontColor = Config.DEFAULT_TEXT_COLOR,
-                   maxFontSize = Config.DEFAULT_FONT_SIZE,
-                   fontFamily = Config.DEFAULT_FONT_FAMILY) {
+                   fontColor = Palette.DEFAULT_TEXT_COLOR,
+                   maxFontSize = Typography.DEFAULT_FONT_SIZE,
+                   fontFamily = Typography.DEFAULT_FONT_FAMILY) {
 
         let fontSize;
         let ascendingHeightOf = metric => {
@@ -319,9 +387,9 @@ class Painter {
     printLine(text,
               area,
               proportionalCenterOfHorizontalAlignment = 0,
-              fontColor = Config.DEFAULT_TEXT_COLOR,
-              maxFontSize = Config.DEFAULT_FONT_SIZE,
-              fontFamily = Config.DEFAULT_FONT_FAMILY,
+              fontColor = Palette.DEFAULT_TEXT_COLOR,
+              maxFontSize = Typography.DEFAULT_FONT_SIZE,
+              fontFamily = Typography.DEFAULT_FONT_FAMILY,
               proportionalCenterOfVerticalAlignment = undefined) {
 
         let fontSize;
@@ -366,8 +434,8 @@ class Painter {
      * @param {!number=} strokeThickness The stroke thickness.
      */
     strokePolygon(vertices,
-                  strokeColor = Config.DEFAULT_STROKE_COLOR,
-                  strokeThickness = Config.DEFAULT_STROKE_THICKNESS) {
+                  strokeColor = Palette.DEFAULT_STROKE_COLOR,
+                  strokeThickness = Layout.DEFAULT_STROKE_THICKNESS) {
         if (vertices.length === 0) {
             return;
         }
@@ -391,8 +459,8 @@ class Painter {
      * @param {!number=} strokeThickness The stroke thickness.
      */
     strokePath(vertices,
-                  strokeColor = Config.DEFAULT_STROKE_COLOR,
-                  strokeThickness = Config.DEFAULT_STROKE_THICKNESS) {
+                  strokeColor = Palette.DEFAULT_STROKE_COLOR,
+                  strokeThickness = Layout.DEFAULT_STROKE_THICKNESS) {
         if (vertices.length === 0) {
             return;
         }

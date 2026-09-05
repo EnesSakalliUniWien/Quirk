@@ -1,0 +1,73 @@
+/* The sidebar's outer shell: the flex rail beside the circuit, its brand row and action row, and
+   its header slot. */
+@layer components {
+    /* The React root is a wrapper, not a box: the sidebar itself is what the flex row lays out. */
+    #gate-toolbox-root {
+        display: contents;
+    }
+
+    .gate-toolbox {
+        /* A drag that begins here is a gate grab, never a text selection. */
+        user-select: none;
+        position: sticky;
+        top: 0;
+        display: flex;
+        width: var(--sidebar-width);
+        max-height: 100vh;
+        flex: 0 0 var(--sidebar-width);
+        flex-direction: column;
+        gap: calc(var(--spacing) * 3);
+        padding: calc(var(--spacing) * 3);
+        color: var(--sidebar-foreground);
+        background: var(--sidebar);
+        border-right: 1px solid var(--sidebar-border);
+    }
+
+    .sidebar-brand {
+        display: flex;
+        align-items: center;
+        gap: calc(var(--spacing) * 2);
+    }
+
+    .sidebar-brand .sidebar-menu-button {
+        margin-left: auto;
+    }
+
+    /* The chrome (brand + actions) ends here; the palette (search + groups) starts below. */
+    .sidebar-actions {
+        padding-bottom: calc(var(--spacing) * 2);
+        border-bottom: 1px solid var(--sidebar-border);
+    }
+
+    .app-brand-mark {
+        display: inline-flex;
+        width: 32px;
+        height: 32px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        color: color-mix(in oklch, var(--primary), white 22%);
+        background: color-mix(in oklch, var(--primary), transparent 80%);
+        border: 1px solid color-mix(in oklch, var(--primary), transparent 48%);
+        box-shadow: inset 0 0 14px color-mix(in oklch, var(--primary), transparent 76%);
+    }
+
+    .app-brand-mark svg {
+        width: 17px;
+        height: 17px;
+    }
+
+    .app-brand-copy {
+        display: grid;
+        line-height: 1.1;
+    }
+
+    .app-brand-copy strong {
+        font-size: 0.9375rem;
+        letter-spacing: -0.01em;
+    }
+
+    .gate-toolbox-header {
+        flex: 0 0 auto;
+    }
+}

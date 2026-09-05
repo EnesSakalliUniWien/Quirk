@@ -1,66 +1,85 @@
-// Copyright 2017 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/**
+ * Copyright 2017 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import {ArithmeticGates} from "src/gates/ArithmeticGates.js"
-import {AmplitudeDisplayFamily} from "src/gates/AmplitudeDisplay.js"
-import {BitCountGates} from "src/gates/BitCountGates.js"
-import {BlochSphereDisplay} from "src/gates/BlochSphereDisplay.js"
-import {ComparisonGates} from "src/gates/ComparisonGates.js"
-import {Controls} from "src/gates/Controls.js"
-import {CountingGates} from "src/gates/CountingGates.js"
-import {CycleBitsGates} from "src/gates/CycleBitsGates.js"
-import {DensityMatrixDisplayFamily} from "src/gates/DensityMatrixDisplay.js"
-import {ErrorInjectionGate} from "src/gates/Debug_ErrorInjectionGate.js"
-import {ExponentiatingGates} from "src/gates/ExponentiatingGates.js"
-import {FourierTransformGates} from "src/gates/FourierTransformGates.js"
-import {HalfTurnGates} from "src/gates/HalfTurnGates.js"
+// Rotations.
+import {ExponentiatingGates} from "./rotations/ExponentiatingGates.js"
+import {HalfTurnGates} from "./rotations/HalfTurnGates.js"
+import {ParametrizedRotationGates} from "./rotations/ParametrizedRotationGates.js"
+import {PoweringGates} from "./rotations/PoweringGates.js"
+import {QuarterTurnGates} from "./rotations/QuarterTurnGates.js"
+import {RotationGates} from "./rotations/RotationGates.js"
+import {VariousXGates} from "./rotations/VariousXGates.js"
+import {VariousYGates} from "./rotations/VariousYGates.js"
+import {VariousZGates} from "./rotations/VariousZGates.js"
+
+// Displays.
+import {AmplitudeDisplayFamily} from "./displays/AmplitudeDisplay.js"
+import {BlochSphereDisplay} from "./displays/BlochSphereDisplay.js"
+import {DensityMatrixDisplayFamily} from "./displays/DensityMatrixDisplay.js"
+import {ProbabilityDisplayFamily} from "./displays/ProbabilityDisplay.js"
+import {SampleDisplayFamily} from "./displays/SampleDisplay.js"
+
+// Probes.
+import {Controls} from "./probes/Controls.js"
+import {Detectors} from "./probes/Detector.js"
+import {MeasurementGate} from "./probes/MeasurementGate.js"
+import {PostSelectionGates} from "./probes/PostSelectionGates.js"
+
+// Inputs.
+import {InputGates} from "./inputs/InputGates.js"
+
+// Arithmetic.
+import {ArithmeticGates} from "./arithmetic/ArithmeticGates.js"
+import {BitCountGates} from "./arithmetic/BitCountGates.js"
+import {ComparisonGates} from "./arithmetic/ComparisonGates.js"
+import {IncrementGates} from "./arithmetic/IncrementGates.js"
+import {ModularAdditionGates} from "./arithmetic/ModularAdditionGates.js"
+import {ModularIncrementGates} from "./arithmetic/ModularIncrementGates.js"
+import {ModularMultiplicationGates} from "./arithmetic/ModularMultiplicationGates.js"
+import {ModularMultiplyAccumulateGates} from "./arithmetic/ModularMultiplyAccumulateGates.js"
+import {MultiplicationGates} from "./arithmetic/MultiplicationGates.js"
+import {MultiplyAccumulateGates} from "./arithmetic/MultiplyAccumulateGates.js"
+import {XorGates} from "./arithmetic/XorGates.js"
+
+// Ordering.
+import {CountingGates} from "./ordering/CountingGates.js"
+import {CycleBitsGates} from "./ordering/CycleBitsGates.js"
+import {InterleaveBitsGates} from "./ordering/InterleaveBitsGates.js"
+import {PivotFlipGates} from "./ordering/PivotFlipGates.js"
+import {ReverseBitsGateFamily} from "./ordering/ReverseBitsGate.js"
+
+// Frequency.
+import {FourierTransformGates} from "./frequency/FourierTransformGates.js"
+import {PhaseGradientGates} from "./frequency/PhaseGradientGates.js"
+
+// Miscellaneous.
+import {ErrorInjectionGate} from "./misc/Debug_ErrorInjectionGate.js"
+import {UniversalNotGate} from "./misc/Impossible_UniversalNotGate.js"
 import {
     ImaginaryGate,
     AntiImaginaryGate,
     SqrtImaginaryGate,
     AntiSqrtImaginaryGate
-} from "src/gates/Joke_ImaginaryGate.js"
-import {IncrementGates} from "src/gates/IncrementGates.js"
-import {InputGates} from "src/gates/InputGates.js"
-import {InterleaveBitsGates} from "src/gates/InterleaveBitsGates.js"
-import {MeasurementGate} from "src/gates/MeasurementGate.js"
-import {ModularIncrementGates} from "src/gates/ModularIncrementGates.js"
-import {ModularAdditionGates} from "src/gates/ModularAdditionGates.js"
-import {ModularMultiplicationGates} from "src/gates/ModularMultiplicationGates.js"
-import {ModularMultiplyAccumulateGates} from "src/gates/ModularMultiplyAccumulateGates.js"
-import {MultiplicationGates} from "src/gates/MultiplicationGates.js"
-import {MultiplyAccumulateGates} from "src/gates/MultiplyAccumulateGates.js"
-import {NeGate} from "src/gates/Joke_NeGate.js"
-import {ParametrizedRotationGates} from "src/gates/ParametrizedRotationGates.js"
-import {PhaseGradientGates} from "src/gates/PhaseGradientGates.js"
-import {PivotFlipGates} from "src/gates/PivotFlipGates.js"
-import {PostSelectionGates} from "src/gates/PostSelectionGates.js"
-import {PoweringGates} from "src/gates/PoweringGates.js"
-import {ProbabilityDisplayFamily} from "src/gates/ProbabilityDisplay.js"
-import {QuarterTurnGates} from "src/gates/QuarterTurnGates.js"
-import {ReverseBitsGateFamily} from "src/gates/ReverseBitsGate.js"
-import {SampleDisplayFamily} from "src/gates/SampleDisplay.js"
-import {Detectors} from "src/gates/Detector.js"
-import {SpacerGate} from "src/gates/SpacerGate.js"
-import {SwapGateHalf} from "src/gates/SwapGateHalf.js"
-import {UniversalNotGate} from "src/gates/Impossible_UniversalNotGate.js"
-import {VariousXGates} from "src/gates/VariousXGates.js"
-import {VariousYGates} from "src/gates/VariousYGates.js"
-import {VariousZGates} from "src/gates/VariousZGates.js"
-import {XorGates} from "src/gates/XorGates.js"
-import {ZeroGate} from "src/gates/Joke_ZeroGate.js"
-import {seq} from "src/base/Seq.js"
+} from "./misc/Joke_ImaginaryGate.js"
+import {NeGate} from "./misc/Joke_NeGate.js"
+import {ZeroGate} from "./misc/Joke_ZeroGate.js"
+import {SpacerGate} from "./misc/SpacerGate.js"
+import {SwapGateHalf} from "./misc/SwapGateHalf.js"
+
+import {seq} from "../base/Seq.js"
 
 let Gates = {};
 
@@ -80,47 +99,62 @@ Gates.Displays = {
     DensityMatrixDisplayFamily: DensityMatrixDisplayFamily,
     BlochSphereDisplay: BlochSphereDisplay
 };
-Gates.Arithmetic = ArithmeticGates;
-Gates.BitCountGates = BitCountGates;
-Gates.ComparisonGates = ComparisonGates;
-Gates.Controls = Controls;
-Gates.CountingGates = CountingGates;
-Gates.CycleBitsGates = CycleBitsGates;
 Gates.Displays.DensityMatrixDisplay = DensityMatrixDisplayFamily.ofSize(1);
 Gates.Displays.DensityMatrixDisplay2 = DensityMatrixDisplayFamily.ofSize(2);
 Gates.Displays.ChanceDisplay = Gates.Displays.ProbabilityDisplayFamily.ofSize(1);
-Gates.ErrorInjection = ErrorInjectionGate;
+
+// Rotations.
 Gates.Exponentiating = ExponentiatingGates;
-Gates.FourierTransformGates = FourierTransformGates;
 Gates.HalfTurns = HalfTurnGates;
-Gates.ImaginaryGate = ImaginaryGate;
-Gates.AntiImaginaryGate = AntiImaginaryGate;
-Gates.SqrtImaginaryGate = SqrtImaginaryGate;
-Gates.AntiSqrtImaginaryGate = AntiSqrtImaginaryGate;
-Gates.IncrementGates = IncrementGates;
-Gates.InputGates = InputGates;
-Gates.InterleaveBitsGates = InterleaveBitsGates;
-Gates.ModularIncrementGates = ModularIncrementGates;
-Gates.ModularAdditionGates = ModularAdditionGates;
-Gates.ModularMultiplicationGates = ModularMultiplicationGates;
-Gates.ModularMultiplyAccumulateGates = ModularMultiplyAccumulateGates;
-Gates.MultiplicationGates = MultiplicationGates;
-Gates.MultiplyAccumulateGates = MultiplyAccumulateGates;
-Gates.NeGate = NeGate;
 Gates.OtherX = VariousXGates;
 Gates.OtherY = VariousYGates;
 Gates.OtherZ = VariousZGates;
 Gates.ParametrizedRotationGates = ParametrizedRotationGates;
-Gates.PhaseGradientGates = PhaseGradientGates;
-Gates.PivotFlipGates = PivotFlipGates;
-Gates.PostSelectionGates = PostSelectionGates;
 Gates.Powering = PoweringGates;
 Gates.QuarterTurns = QuarterTurnGates;
-Gates.ReverseBitsGateFamily = ReverseBitsGateFamily;
+Gates.RotationGates = RotationGates;
+
+// Probes.
+Gates.Controls = Controls;
 Gates.Detectors = Detectors;
-Gates.SpacerGate = SpacerGate;
-Gates.UniversalNot = UniversalNotGate;
+Gates.PostSelectionGates = PostSelectionGates;
+
+// Inputs.
+Gates.InputGates = InputGates;
+
+// Arithmetic.
+Gates.Arithmetic = ArithmeticGates;
+Gates.BitCountGates = BitCountGates;
+Gates.ComparisonGates = ComparisonGates;
+Gates.IncrementGates = IncrementGates;
+Gates.ModularAdditionGates = ModularAdditionGates;
+Gates.ModularIncrementGates = ModularIncrementGates;
+Gates.ModularMultiplicationGates = ModularMultiplicationGates;
+Gates.ModularMultiplyAccumulateGates = ModularMultiplyAccumulateGates;
+Gates.MultiplicationGates = MultiplicationGates;
+Gates.MultiplyAccumulateGates = MultiplyAccumulateGates;
 Gates.XorGates = XorGates;
+
+// Ordering.
+Gates.CountingGates = CountingGates;
+Gates.CycleBitsGates = CycleBitsGates;
+Gates.InterleaveBitsGates = InterleaveBitsGates;
+Gates.PivotFlipGates = PivotFlipGates;
+Gates.ReverseBitsGateFamily = ReverseBitsGateFamily;
+
+// Frequency.
+Gates.FourierTransformGates = FourierTransformGates;
+Gates.PhaseGradientGates = PhaseGradientGates;
+
+// Miscellaneous.
+Gates.AntiImaginaryGate = AntiImaginaryGate;
+Gates.AntiSqrtImaginaryGate = AntiSqrtImaginaryGate;
+Gates.ErrorInjection = ErrorInjectionGate;
+Gates.ImaginaryGate = ImaginaryGate;
+Gates.NeGate = NeGate;
+Gates.SpacerGate = SpacerGate;
+Gates.SqrtImaginaryGate = SqrtImaginaryGate;
+Gates.UniversalNot = UniversalNotGate;
 Gates.ZeroGate = ZeroGate;
 
 /** @type {!Array.<!Gate>} */
@@ -145,34 +179,39 @@ Gates.KnownToSerializer = [
     ...DensityMatrixDisplayFamily.all,
     BlochSphereDisplay,
 
+    ...HalfTurnGates.all,
+    ...QuarterTurnGates.all,
+    ...VariousXGates.all,
+    ...VariousYGates.all,
+    ...VariousZGates.all,
+    ...ExponentiatingGates.all,
+    ...PoweringGates.all,
+    ...ParametrizedRotationGates.all,
+    ...RotationGates.all,
+
+    ...Detectors.all,
+    ...PostSelectionGates.all,
+
     ...ArithmeticGates.all,
     ...BitCountGates.all,
     ...ComparisonGates.all,
-    ...CountingGates.all,
-    ...CycleBitsGates.all,
-    ...Detectors.all,
-    ...ExponentiatingGates.all,
-    ...FourierTransformGates.all,
-    ...HalfTurnGates.all,
     ...IncrementGates.all,
-    ...InterleaveBitsGates.all,
     ...ModularAdditionGates.all,
     ...ModularIncrementGates.all,
     ...ModularMultiplicationGates.all,
     ...ModularMultiplyAccumulateGates.all,
     ...MultiplicationGates.all,
     ...MultiplyAccumulateGates.all,
-    ...QuarterTurnGates.all,
-    ...ParametrizedRotationGates.all,
-    ...PhaseGradientGates.all,
+    ...XorGates.all,
+
+    ...CountingGates.all,
+    ...CycleBitsGates.all,
+    ...InterleaveBitsGates.all,
     ...PivotFlipGates.all,
-    ...PostSelectionGates.all,
-    ...PoweringGates.all,
     ...ReverseBitsGateFamily.all,
-    ...VariousXGates.all,
-    ...VariousYGates.all,
-    ...VariousZGates.all,
-    ...XorGates.all
+
+    ...FourierTransformGates.all,
+    ...PhaseGradientGates.all
 ];
 
 let gatesById = seq(Gates.KnownToSerializer).keyedBy(g => g.serializedId);
@@ -225,6 +264,14 @@ Gates.TopToolboxGroups = [
             VariousZGates.Z4, VariousZGates.Z4i,
             VariousYGates.Y4, VariousYGates.Y4i,
             VariousXGates.X4, VariousXGates.X4i,
+        ]
+    },
+    {
+        hint: "Rotations",
+        gates: [
+            RotationGates.Rz, undefined,
+            RotationGates.Ry, undefined,
+            RotationGates.Rx, undefined,
         ]
     },
     {

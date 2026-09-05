@@ -1,0 +1,129 @@
+/* The app's overall arrangement: the work-area row, the fixed-height shell, the narrow-viewport
+   reflow, motion preferences, and the no-script warning. Imported last so its media overrides win
+   by source order over the feature files' own rules within the components layer. */
+@layer components {
+    .app-body {
+        display: flex;
+        flex: 1 1 auto;
+        align-items: flex-start;
+        min-height: 0;
+    }
+
+    /* The app shell: with the sidebar beside the circuit the page is a fixed-height column -
+       toolbar, transport, work area, state panel - and only the work area's own cells scroll.
+       The toolbar and transport controls therefore never leave the screen, and the state panel
+       is always in reach while stepping the playhead. */
+    @media (min-width: 921px) {
+        #inspectorDiv {
+            height: 100vh;
+            height: 100dvh;
+        }
+
+        .state-panel {
+            flex: 0 0 auto;
+        }
+
+        .app-body {
+            align-items: stretch;
+        }
+
+        .gate-toolbox {
+            max-height: none;
+        }
+
+        /* Short windows keep circuit room by giving the table less of the column. */
+        .state-table-scroll {
+            max-height: min(320px, 32vh);
+        }
+    }
+
+    @media (max-width: 920px) {
+        .app-body {
+            flex-wrap: wrap;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            scroll-behavior: auto;
+            transition-duration: 0.01ms;
+        }
+    }
+
+    /* The only thing that shows when JavaScript is blocked. */
+    .noscript-warning {
+        position: absolute;
+        top: 25%;
+        left: 50%;
+        color: #E879F9;
+        font-size: 24px;
+        transform: translate(-50%, -50%);
+    }
+
+    /* The error surface: a dismissible banner floated over the circuit's top edge. Non-modal on
+       purpose - every report is a recovery or an environment problem, so it must not steal focus
+       or evict an open dialog. src/diagnostics/errorReporter.js builds and drives it. */
+    #error-banner-root {
+        position: absolute;
+        top: calc(var(--spacing) * 3);
+        left: 50%;
+        z-index: 6;
+        transform: translateX(-50%);
+        max-width: min(640px, calc(100% - var(--spacing) * 8));
+        pointer-events: none;
+    }
+
+    /* display:flex would outrank the UA's [hidden] rule. */
+    .error-banner[hidden] {
+        display: none;
+    }
+
+    .error-banner {
+        display: flex;
+        align-items: center;
+        gap: calc(var(--spacing) * 2);
+        padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+        background: var(--card);
+        border: 1px solid color-mix(in oklch, var(--destructive), transparent 50%);
+        border-radius: 10px;
+        box-shadow: 0 8px 24px rgb(0 0 0 / 40%);
+        font-size: var(--text-body);
+        pointer-events: auto;
+    }
+
+    .error-banner-message {
+        color: var(--destructive);
+    }
+
+    .error-banner-count {
+        color: var(--muted-foreground);
+        font-family: var(--font-mono);
+    }
+
+    .error-banner-button {
+        flex-shrink: 0;
+        padding: 3px calc(var(--spacing) * 2);
+        border: 1px solid var(--border);
+        border-radius: 7px;
+        background: transparent;
+        color: var(--foreground);
+        font: inherit;
+        font-size: 0.75rem;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .error-banner-button:hover {
+        background: var(--accent);
+    }
+
+    .error-banner-dismiss {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        line-height: 1;
+    }
+}

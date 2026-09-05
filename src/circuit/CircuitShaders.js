@@ -1,30 +1,32 @@
-// Copyright 2017 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/**
+ * Copyright 2017 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import {Config} from "src/Config.js"
-import {Controls} from "src/circuit/Controls.js"
-import {ketArgs, ketShaderPermute} from "src/circuit/KetShaderUtil.js"
-import {Shaders} from "src/webgl/Shaders.js"
-import {Util} from "src/base/Util.js"
-import {WglArg} from "src/webgl/WglArg.js"
-import {WglConfiguredShader} from "src/webgl/WglConfiguredShader.js"
+import {Simulation} from "../config/Simulation.js"
+import {Controls} from "./Controls.js"
+import {ketArgs, ketShaderPermute} from "./KetShaderUtil.js"
+import {Shaders} from "../webgl/Shaders.js"
+import {Util} from "../base/Util.js"
+import {WglArg} from "../webgl/WglArg.js"
+import {WglConfiguredShader} from "../webgl/WglConfiguredShader.js"
 import {
     currentShaderCoder,
     makePseudoShaderWithInputsAndOutputAndCode,
     Inputs,
     Outputs
-} from "src/webgl/ShaderCoders.js"
+} from "../webgl/ShaderCoders.js"
 
 /**
  * Defines operations used to initialize, advance, and inspect quantum states stored in WebGL textures.
@@ -93,7 +95,7 @@ const CONTROL_MASK_SHADER = makePseudoShaderWithInputsAndOutputAndCode([], Outpu
     bool outputFor(float k) {
         float pass = 1.0;
         float bit = 1.0;
-        for (int i = 0; i < ${Config.MAX_WIRE_COUNT}; i++) {
+        for (int i = 0; i < ${Simulation.MAX_WIRE_COUNT}; i++) {
             float v = mod(floor(k/bit), 2.0);
             float u = mod(floor(used/bit), 2.0);
             float d = mod(floor(desired/bit), 2.0);
@@ -134,7 +136,7 @@ const CONTROL_SELECT_SHADER = makePseudoShaderWithInputsAndOutputAndCode(
         float maskPos = 1.0;
         float coordPos = 1.0;
         float result = 0.0;
-        for (int i = 0; i < ${Config.MAX_WIRE_COUNT}; i++) {
+        for (int i = 0; i < ${Simulation.MAX_WIRE_COUNT}; i++) {
             float v = mod(floor(k/coordPos), 2.0);
             float u = mod(floor(used/maskPos), 2.0);
             float d = mod(floor(desired/maskPos), 2.0);
@@ -195,7 +197,7 @@ const QUBIT_DENSITIES_SHADER = makePseudoShaderWithInputsAndOutputAndCode(
         float result = 0.0;
         float posUsed = 1.0;
         float posVal = 1.0;
-        for (int i = 0; i < ${Config.MAX_WIRE_COUNT}; i++) {
+        for (int i = 0; i < ${Simulation.MAX_WIRE_COUNT}; i++) {
             float u = mod(floor(used/posUsed), 2.0);
             float v = mod(floor(val/posVal), 2.0);
             result += u * v * posUsed;

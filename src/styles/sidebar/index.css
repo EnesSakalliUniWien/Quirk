@@ -1,0 +1,14 @@
+/* The sidebar: the gate palette with its search header, collapsible groups, tiles, painted
+   tooltip, and the off-canvas drawer it becomes on narrow viewports. Colours come from the
+   sidebar token family in tokens.css, so the whole surface retints from one place.
+
+   One module per region, in the order the panel is composed: the shell around everything, the
+   search header, the scrollable content region, the collapsible groups, the tiles inside them,
+   the painted tooltip they open, and the drawer the whole panel becomes when narrow. */
+@import "./shell.css";
+@import "./search.css";
+@import "./content.css";
+@import "./groups.css";
+@import "./tiles.css";
+@import "./tooltip.css";
+@import "./drawer.css";

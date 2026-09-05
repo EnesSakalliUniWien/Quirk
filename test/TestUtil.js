@@ -1,28 +1,29 @@
-// Copyright 2017 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/**
+ * Copyright 2017 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 // Cheat a little bit on the testing library being independent from what it tests
-import {} from "src/browser/Polyfills.js"
-import {describe} from "src/base/Describe.js"
-import {equate} from "src/base/Equate.js"
-import {WglTexturePool} from "src/webgl/WglTexturePool.js"
-import {changeShaderCoder, canTestFloatShaders} from "src/webgl/ShaderCoders.js"
-import {SHADER_CODER_BYTES} from "src/webgl/ShaderCoders_intoBytes.js"
-import {SHADER_CODER_FLOATS} from "src/webgl/ShaderCoders_intoFloats.js"
-import {DetailedError} from "src/base/DetailedError.js"
-import {Config} from "src/Config.js"
-Config.CHECK_WEB_GL_ERRORS_EVEN_ON_HOT_PATHS = true;
+import {describe} from "../src/base/Describe.js"
+import {equate} from "../src/base/Equate.js"
+import {WglTexturePool} from "../src/webgl/WglTexturePool.js"
+import {changeShaderCoder, canTestFloatShaders} from "../src/webgl/ShaderCoders.js"
+import {SHADER_CODER_BYTES} from "../src/webgl/ShaderCoders_intoBytes.js"
+import {SHADER_CODER_FLOATS} from "../src/webgl/ShaderCoders_intoFloats.js"
+import {DetailedError} from "../src/base/DetailedError.js"
+import {Diagnostics} from "../src/config/Diagnostics.js"
+Diagnostics.CHECK_WEB_GL_ERRORS_EVEN_ON_HOT_PATHS = true;
 
 /** @type {!int} */
 let assertionSubjectIndexForNextTest = 1;
@@ -327,7 +328,7 @@ function isWebGLSupportPresent() {
                 let term = "extension `GL_ARB_gpu_shader5' unsupported";
                 __onlyPartialWebGLSupportPresent = ctx.getShaderInfoLog(shader).indexOf(term) !== -1;
                 if (__onlyPartialWebGLSupportPresent) {
-                    Config.IGNORED_WEBGL_INFO_TERMS.push(term);
+                    Diagnostics.IGNORED_WEBGL_INFO_TERMS.push(term);
                     console.log('Only partial WebGL support is present. Some tests may fail and be ignored.')
                 }
             }

@@ -1,26 +1,29 @@
-// Copyright 2017 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/**
+ * Copyright 2017 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import {Painter} from "src/draw/Painter.js"
-import {Format} from "src/base/Format.js"
-import {Point} from "src/math/Point.js"
-import {Rect} from "src/math/Rect.js"
-import {seq, Seq} from "src/base/Seq.js"
-import {Util} from "src/base/Util.js"
-import {Config} from "src/Config.js"
-import {Complex} from "src/math/Complex.js"
-import {Matrix} from "src/math/Matrix.js"
+import {Painter} from "./Painter.js"
+import {Format} from "../base/Format.js"
+import {Point} from "../math/Point.js"
+import {Rect} from "../math/Rect.js"
+import {seq, Seq} from "../base/Seq.js"
+import {Util} from "../base/Util.js"
+import {Palette} from "../config/Palette.js"
+import {Typography} from "../config/Typography.js"
+import {Complex} from "../math/Complex.js"
+import {Matrix} from "../math/Matrix.js"
 
 class MathPainter {
     static describeProbability(p, fractionalDigits) {
@@ -49,13 +52,13 @@ class MathPainter {
                                probability,
                                drawArea,
                                focusPoints = [],
-                               backgroundColor = Config.DISPLAY_GATE_BACK_COLOR,
-                               fillColor = Config.DISPLAY_GATE_FORE_COLOR) {
+                               backgroundColor = Palette.DISPLAY_GATE_BACK_COLOR,
+                               fillColor = Palette.DISPLAY_GATE_FORE_COLOR) {
         painter.fillRect(drawArea, backgroundColor);
         let cen = drawArea.center();
         if (isNaN(probability)) {
             painter.fillPolygon([drawArea.bottomLeft(), drawArea.topLeft(), drawArea.topRight()], fillColor);
-            painter.print("NaN", cen.x, cen.y, 'center', 'middle', 'red', '9pt sans-serif', drawArea.w, drawArea.h);
+            painter.print("NaN", cen.x, cen.y, 'center', 'middle', Palette.ERROR_COLOR, `9pt ${Typography.DEFAULT_FONT_FAMILY}`, drawArea.w, drawArea.h);
         } else {
             painter.fillRect(drawArea.takeBottomProportion(probability), fillColor);
             painter.print(
@@ -64,18 +67,18 @@ class MathPainter {
                 cen.y,
                 'center',
                 'middle',
-                'black',
-                '9pt sans-serif',
+                Palette.INK_COLOR,
+                `9pt ${Typography.DEFAULT_FONT_FAMILY}`,
                 drawArea.w,
                 drawArea.h);
         }
 
-        painter.strokeRect(drawArea, 'lightgray');
+        painter.strokeRect(drawArea, Palette.GRID_LINE_COLOR);
 
 
         // Tool tips.
         if (seq(focusPoints).any(pt => drawArea.containsPoint(pt))) {
-            painter.strokeRect(drawArea, 'orange', 2);
+            painter.strokeRect(drawArea, Palette.HIGHLIGHT_STROKE_COLOR, 2);
             MathPainter.paintDeferredValueTooltip(
                 painter,
                 drawArea.right(),
@@ -110,7 +113,7 @@ class MathPainter {
             let c = Math.floor((pt.x - x) / diam);
             let r = Math.floor((pt.y - y) / diam);
             if (c >= 0 && c < matrix.width() && r >= 0 && r < matrix.height()) {
-                painter.strokeRect(new Rect(x + diam*c, y + diam*r, diam, diam), 'orange', 2);
+                painter.strokeRect(new Rect(x + diam*c, y + diam*r, diam, diam), Palette.HIGHLIGHT_STROKE_COLOR, 2);
                 let v = matrix.cell(c, r);
                 MathPainter.paintDeferredValueTooltip(
                     painter,
@@ -235,9 +238,9 @@ class MathPainter {
                        amplitudeCircleFillColor,
                        amplitudeCircleStrokeColor,
                        amplitudeProbabilityFillColor,
-                       backColor = Config.DISPLAY_GATE_BACK_COLOR,
+                       backColor = Palette.DISPLAY_GATE_BACK_COLOR,
                        amplitudePhaseStrokeColor = undefined,
-                       logCircleStrokeColor = '#AAA') {
+                       logCircleStrokeColor = Palette.FAINT_LINE_COLOR) {
         let numCols = matrix.width();
         let numRows = matrix.height();
         let buf = matrix.rawBuffer();
@@ -269,7 +272,7 @@ class MathPainter {
             if (amplitudeProbabilityFillColor !== undefined) {
                 traceCellsWith(MathPainter._traceAmplitudeProbabilitySquare).
                     thenFill(amplitudeProbabilityFillColor).
-                    thenStroke('lightgray', 0.5);
+                    thenStroke(Palette.GRID_LINE_COLOR, 0.5);
             }
 
             // Circles.
@@ -285,7 +288,7 @@ class MathPainter {
 
         // Dividers.
         painter.trace(trace => trace.grid(x, y, drawArea.w, drawArea.h, numCols, numRows)).
-            thenStroke('lightgray');
+            thenStroke(Palette.GRID_LINE_COLOR);
 
         if (!hasNaN) {
             // Phase lines.
@@ -303,8 +306,8 @@ class MathPainter {
                 drawArea.y + drawArea.h/2,
                 'center',
                 'middle',
-                'red',
-                '16px sans-serif',
+                Palette.ERROR_COLOR,
+                `16px ${Typography.DEFAULT_FONT_FAMILY}`,
                 drawArea.w,
                 drawArea.h);
         }
@@ -326,9 +329,9 @@ class MathPainter {
             labelText,
             valueText,
             valueText2 = undefined,
-            backColor = Config.DISPLAY_GATE_BACK_COLOR) {
-        const labelFont = '12px sans-serif';
-        const valueFont = 'bold 12px monospace';
+            backColor = Palette.DISPLAY_GATE_BACK_COLOR) {
+        const labelFont = `12px ${Typography.DEFAULT_FONT_FAMILY}`;
+        const valueFont = `bold 12px ${Typography.MONO_FONT_FAMILY}`;
         painter.defer(() => {
             painter.ctx.font = labelFont;
             let width1 = painter.ctx.measureText(labelText).width;
@@ -350,7 +353,7 @@ class MathPainter {
                     h).paddedBy(4);
                 painter.trace(tracer => tracer.rect(r.x, r.y, r.w, r.h)).
                     thenFill(backColor).
-                    thenStroke('black');
+                    thenStroke(Palette.INK_COLOR);
             };
 
             let labelPainter = (w, h) => {
@@ -360,7 +363,7 @@ class MathPainter {
                     boundingRect.bottom()-h,
                     'left',
                     'bottom',
-                    'black',
+                    Palette.INK_COLOR,
                     labelFont,
                     boundingRect.w,
                     lineHeight,
@@ -374,7 +377,7 @@ class MathPainter {
                     boundingRect.bottom()-h,
                     'left',
                     'bottom',
-                    'black',
+                    Palette.INK_COLOR,
                     valueFont,
                     boundingRect.w,
                     lineHeight,
@@ -390,7 +393,7 @@ class MathPainter {
                     boundingRect.bottom(),
                     'left',
                     'bottom',
-                    'black',
+                    Palette.INK_COLOR,
                     valueFont,
                     boundingRect.w,
                     lineHeight,
@@ -421,8 +424,8 @@ class MathPainter {
     static paintBlochSphereRotation(painter,
                                     operation,
                                     drawArea,
-                                    backgroundColor = Config.DISPLAY_GATE_BACK_COLOR,
-                                    fillColor = Config.DISPLAY_GATE_FORE_COLOR) {
+                                    backgroundColor = Palette.DISPLAY_GATE_BACK_COLOR,
+                                    fillColor = Palette.DISPLAY_GATE_FORE_COLOR) {
         let c = drawArea.center();
         let u = Math.min(drawArea.w, drawArea.h) / 2;
         let {dx, dy, dz} = MathPainter.coordinateSystem(u);
@@ -447,7 +450,7 @@ class MathPainter {
                 let d = projToPt(a);
                 trace.line(c.x - d.x, c.y - d.y, c.x + d.x, c.y + d.y);
             }
-        }).thenStroke('#BBB');
+        }).thenStroke(Palette.FAINT_LINE_COLOR);
 
         let {angle, axis} = operation.qubitOperationToAngleAxisRotation();
         let axisVec = Matrix.col(...axis);
@@ -463,9 +466,9 @@ class MathPainter {
             reverse().
             concat(guideDeltas.map(d => d.times(-1))).
             map(d => c.plus(d)).
-            toArray(), '#666');
+            toArray(), Palette.MUTED_TEXT_COLOR);
         // Rotation axis.
-        painter.strokeLine(c.plus(dAxis), c.plus(dAxis.times(-1)), 'black', 2);
+        painter.strokeLine(c.plus(dAxis), c.plus(dAxis.times(-1)), Palette.INK_COLOR, 2);
 
         // Find perpendicular axes, for drawing the rotation arrow circles.
         let norm = e => Math.sqrt(e.adjoint().times(e).cell(0, 0).real);
@@ -519,10 +522,10 @@ class MathPainter {
             ].map(d => arrowHeadRoot.plus(d));
             let interleaved = [].concat.apply([], arrowHeadPts.map(e => [e.x, e.y]));
 
-            painter.strokePath(arcPts, '#444');
+            painter.strokePath(arcPts, Palette.BRIGHT_LINE_COLOR);
             painter.trace(tracer => tracer.polygon(interleaved)).
                 thenFill(fillColor).
-                thenStroke('#444');
+                thenStroke(Palette.BRIGHT_LINE_COLOR);
         }
     }
 
@@ -538,8 +541,8 @@ class MathPainter {
                               matrix,
                               drawArea,
                               focusPoints = [],
-                              backgroundColor = Config.DISPLAY_GATE_BACK_COLOR,
-                              fillColor = Config.DISPLAY_GATE_FORE_COLOR) {
+                              backgroundColor = Palette.DISPLAY_GATE_BACK_COLOR,
+                              fillColor = Palette.DISPLAY_GATE_FORE_COLOR) {
         let numCols = matrix.width();
         let numRows = matrix.height();
         let buf = matrix.rawBuffer();
@@ -581,28 +584,28 @@ class MathPainter {
         if (!hasNaN) {
             traceDiagonalWith(MathPainter._traceProbabilitySquare).
                 thenFill(fillColor).
-                thenStroke('#040', 0.5);
+                thenStroke(Palette.DISPLAY_DIM_COLOR, 0.5);
 
             traceCouplingsWith(MathPainter._traceAmplitudeProbabilityCircle).
                 thenFill(fillColor).
-                thenStroke('#040', 0.5);
+                thenStroke(Palette.DISPLAY_DIM_COLOR, 0.5);
 
             traceCouplingsWith(MathPainter._traceAmplitudeLogarithmCircle).
-                thenStroke('#BBB', 0.5);
+                thenStroke(Palette.FAINT_LINE_COLOR, 0.5);
 
             traceCouplingsWith(MathPainter._traceAmplitudePhaseDirection).
-                thenStroke('black');
+                thenStroke(Palette.INK_COLOR);
         }
 
         // Dividers.
         let d = drawArea.w/numCols;
         if (d > 2) {
             painter.trace(trace => trace.grid(x, y, drawArea.w, drawArea.h, numCols, numRows)).
-                thenStroke('lightgray', Math.min(1, 2/Math.log(numCols)));
+                thenStroke(Palette.GRID_LINE_COLOR, Math.min(1, 2/Math.log(numCols)));
         } else {
            painter.ctx.save();
            painter.ctx.globalAlpha *= 0.2;
-           painter.fillRect(drawArea, 'lightgray');
+           painter.fillRect(drawArea, Palette.GRID_LINE_COLOR);
            painter.ctx.restore();
         }
 
@@ -613,8 +616,8 @@ class MathPainter {
                 drawArea.y + drawArea.h/2,
                 'center',
                 'middle',
-                'red',
-                '16px sans-serif',
+                Palette.ERROR_COLOR,
+                `16px ${Typography.DEFAULT_FONT_FAMILY}`,
                 drawArea.w,
                 drawArea.h);
         }

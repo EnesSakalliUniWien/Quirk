@@ -1,0 +1,186 @@
+/* The state-at-the-playhead panel: header, phase legend, and amplitude table. */
+@layer components {
+    .state-panel {
+        padding: calc(var(--spacing) * 3) calc(var(--spacing) * 3) calc(var(--spacing) * 4);
+        border-top: 1px solid var(--border);
+    }
+
+    .debugger-bar {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: calc(var(--spacing) * 1) calc(var(--spacing) * 4);
+        margin-bottom: calc(var(--spacing) * 3);
+    }
+
+    .debugger-bar .state-panel-header {
+        margin-bottom: 0;
+        margin-left: auto;
+    }
+
+    .state-panel-header {
+        display: flex;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+        margin-bottom: calc(var(--spacing) * 3);
+    }
+
+    .state-panel-heading {
+        margin: 0;
+        font-size: var(--text-heading);
+        font-weight: 650;
+        letter-spacing: -0.015em;
+    }
+
+    .state-summary {
+        color: var(--muted-foreground);
+        font-family: var(--font-mono);
+        font-size: var(--text-small);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .state-legend {
+        display: flex;
+        align-items: center;
+        gap: calc(var(--spacing) * 2);
+        margin-left: auto;
+        color: var(--muted-foreground);
+        font-size: var(--text-small);
+    }
+
+    .state-legend-strip {
+        width: 96px;
+        height: 8px;
+        border-radius: 999px;
+        /* Matches the hue the phase column paints: -pi and +pi meet at the same colour. */
+        background: linear-gradient(
+            to right,
+            hsl(180 85% 62%),
+            hsl(270 85% 62%),
+            hsl(0 85% 62%),
+            hsl(90 85% 62%),
+            hsl(180 85% 62%));
+    }
+
+    .state-table-scroll {
+        max-height: 320px;
+        overflow: auto;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+    }
+
+    .state-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: var(--font-mono);
+        font-size: var(--text-small);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .state-table th:nth-child(1) {
+        width: 18%;
+    }
+
+    .state-table th:nth-child(2) {
+        width: 26%;
+    }
+
+    .state-table th:nth-child(3) {
+        width: 30%;
+    }
+
+    .state-table th:nth-child(4) {
+        width: 26%;
+    }
+
+    .state-table th {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+        color: var(--muted-foreground);
+        background: var(--card);
+        border-bottom: 1px solid var(--border);
+        font-weight: 550;
+        text-align: left;
+        white-space: nowrap;
+    }
+
+    .state-table td {
+        padding: 3px calc(var(--spacing) * 3);
+        border-bottom: 1px solid color-mix(in oklch, var(--border), transparent 55%);
+        white-space: nowrap;
+    }
+
+    .state-table tr:last-child td {
+        border-bottom: 0;
+    }
+
+    /* Percentages rather than content widths, so the columns hold still as the numbers
+       change from one step to the next. */
+    .state-ket {
+        width: 18%;
+    }
+
+    .state-probability {
+        width: 26%;
+    }
+
+    .state-amplitude {
+        width: 30%;
+    }
+
+    .state-phase {
+        width: 26%;
+    }
+
+    .state-bar,
+    .state-swatch {
+        margin-right: calc(var(--spacing) * 2);
+        vertical-align: middle;
+    }
+
+    .state-bar {
+        display: inline-block;
+        width: 88px;
+        height: 8px;
+        overflow: hidden;
+        background: var(--muted);
+        border-radius: 999px;
+    }
+
+    .state-bar-fill {
+        display: block;
+        width: 0;
+        height: 100%;
+        background: color-mix(in oklch, var(--primary), var(--muted) 25%);
+    }
+
+    .state-swatch {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 3px;
+    }
+
+    .state-number {
+        vertical-align: middle;
+    }
+
+    .state-note:empty {
+        display: none;
+    }
+
+    .state-note {
+        margin: calc(var(--spacing) * 2) 0 0;
+        color: var(--muted-foreground);
+        font-size: var(--text-small);
+    }
+
+    @media (max-width: 920px) {
+        .state-legend {
+            display: none;
+        }
+    }
+}

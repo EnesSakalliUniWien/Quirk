@@ -1,0 +1,38 @@
+/* The search field in the sidebar's header. */
+@layer components {
+    .gate-toolbox-search {
+        position: relative;
+    }
+
+    .gate-toolbox-search-icon {
+        position: absolute;
+        top: 50%;
+        left: calc(var(--spacing) * 2);
+        width: 15px;
+        height: 15px;
+        color: color-mix(in oklch, var(--sidebar-foreground), transparent 45%);
+        transform: translateY(-50%);
+        pointer-events: none;
+    }
+
+    .gate-toolbox-search-input {
+        width: 100%;
+        min-height: 32px;
+        padding: 6px calc(var(--spacing) * 2) 6px calc(var(--spacing) * 7.5);
+        color: var(--sidebar-foreground);
+        background: color-mix(in oklch, var(--sidebar), white 3%);
+        border: 1px solid var(--input);
+        border-radius: 8px;
+        font-size: var(--text-small);
+        outline: none;
+    }
+
+    .gate-toolbox-search-input::placeholder {
+        color: color-mix(in oklch, var(--sidebar-foreground), transparent 45%);
+    }
+
+    .gate-toolbox-search-input:focus {
+        border-color: var(--sidebar-ring);
+        box-shadow: 0 0 0 3px color-mix(in oklch, var(--sidebar-ring), transparent 72%);
+    }
+}

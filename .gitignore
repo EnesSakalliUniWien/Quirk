@@ -1,5 +1,13 @@
+# IDE and editor state.
 .idea/*
+.claude/*
+# Except the dev-server launch config, which the preview tooling reads.
+!.claude/launch.json
+
+# Dependencies and build output.
 node_modules/*
 out/*
-.eslintrc
-*.git_ignore.js
+screenshot.png
+
+# macOS Finder metadata.
+.DS_Store

@@ -1,0 +1,18 @@
+/* The app toolbar: the circuit's actions as an icon row. It renders once into #app-toolbar-root
+   and the sidebar adopts it (src/components/gate-toolbox.jsx); the brand, version, and Menu live
+   beside it in src/styles/sidebar/shell.css. */
+@layer components {
+    .app-toolbar {
+        display: flex;
+        align-items: center;
+        /* Six 32px buttons on the 240px sidebar's 216px inner width: a 2px gap leaves the
+           auto margin enough slack to hold Clear All visibly apart. */
+        gap: 2px;
+    }
+
+    /* Keeps the destructive action clear of the others: it takes the row's slack, so it never
+       sits flush against Clear Circuit or its neighbour. */
+    .app-toolbar-danger {
+        margin-left: auto;
+    }
+}

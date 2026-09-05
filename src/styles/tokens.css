@@ -1,0 +1,128 @@
+@custom-variant dark (&:is(.dark *));
+
+/* The app's own scale, declared through Tailwind's theme so it is one system rather than a
+   parallel set of variables. Every value is also available as a utility class. */
+@theme {
+    --font-mono: ui-monospace, "SFMono-Regular", Consolas, monospace;
+    --text-caption: 0.6875rem;
+    --text-small: 0.8125rem;
+    --text-body: 0.9375rem;
+    --text-heading: 1.125rem;
+    --text-title: 1.75rem;
+}
+
+/* Every colour the canvas paints with. src/config/Palette.js reads these at startup, so the
+   canvas and the DOM cannot drift apart. */
+:root {
+    /* The neutrals share a barely-there indigo cast (oklch hue ~265) instead of pure gray: the
+       canvas is the darkest "deep field" layer so the readout colours glow against it, and the
+       chrome and panels step up from there. Chromatic colours are the identity and stay put. */
+    --canvas-gate-fill: #191C24;
+    --canvas-gate-fill-highlighted: #92400E;
+    --canvas-time-dependent-highlight: #3A3A12;
+    --canvas-display-back: #0F1F14;
+    --canvas-display-fore: #22C55E;
+    --canvas-operation-back: #2E2A12;
+    --canvas-operation-fore: #EAB308;
+    --canvas-superposition-back: #0E1B1E;
+    --canvas-superposition-mid: #0E7490;
+    --canvas-superposition-fore: #22D3EE;
+    --canvas-ink: #E3E5EC;
+    --canvas-surface: #191C24;
+    /* Cold magenta rather than warm red: still reads as "stop", but on the palette's cold side. */
+    --canvas-error: #E879F9;
+    --canvas-grid-line: #3D4250;
+    --canvas-mid-line: #6F7689;
+    --canvas-muted-text: #9AA1B5;
+    --canvas-faint-line: #515769;
+    --canvas-highlight-stroke: #F59E0B;
+    --canvas-highlight-fill: #EAB308;
+    --canvas-playhead-band: rgba(245, 158, 11, 0.27);
+    --canvas-background: #14161D;
+    --canvas-default-text: #FAFAFA;
+    --canvas-quiet-gate-fill: #232630;
+    --canvas-bright-line: #D3D6E0;
+    --canvas-display-dim: #15803D;
+    --canvas-tooltip-title: #60A5FA;
+    --canvas-tooltip-back: #101812;
+    --canvas-drop-target-fill: rgba(255, 196, 112, 0.7);
+}
+
+/* The gate chips' category rules, in the canvas's colour language: red collapses or inspects the
+   state, green reads it out, amber rotates it, cyan computes over it, and violet depends on time
+   or a parameter. */
+:root {
+    --chip-rule-measure: var(--canvas-error);
+    --chip-rule-display: var(--canvas-display-fore);
+    --chip-rule-turn: var(--canvas-operation-fore);
+    --chip-rule-time: #A78BFA;
+    --chip-rule-compute: var(--canvas-superposition-fore);
+    --chip-rule-neutral: var(--canvas-faint-line);
+}
+
+@theme inline {
+    --font-sans: 'Geist Variable', sans-serif;
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --radius-lg: var(--radius);
+}
+
+/* The app always renders dark - html.dark is hardcoded in the template - so the stock shadcn
+   light values never show. Only the shared radius lives outside the dark block. */
+:root {
+    --radius: 0.625rem;
+}
+
+.dark {
+    /* App chrome sits one elevation step above the canvas's deep field, panels a step above
+       that; all on the same cold indigo cast as the canvas neutrals. */
+    --background: #1A1D25;
+    --foreground: oklch(0.985 0.005 265);
+    --card: #232630;
+    --card-foreground: oklch(0.985 0.005 265);
+    --popover: #232630;
+    --popover-foreground: oklch(0.985 0.005 265);
+    --primary: oklch(0.922 0.01 265);
+    --primary-foreground: #232630;
+    --secondary: #2B2F3B;
+    --secondary-foreground: oklch(0.985 0.005 265);
+    --muted: #2B2F3B;
+    --muted-foreground: #9AA1B5;
+    --accent: #2B2F3B;
+    --accent-foreground: oklch(0.985 0.005 265);
+    --destructive: oklch(0.72 0.19 330);
+    --border: oklch(0.85 0.02 265 / 14%);
+    --input: oklch(0.85 0.02 265 / 30%);
+    --ring: oklch(0.6 0.02 265);
+
+    /* The sidebar's own surface family, shadcn-style: a half step between the chrome and the
+       panels, with its content colours derived from the shared ramp. The primary pair is unused
+       today; it completes the standard sidebar token set so themes can override it wholesale. */
+    /* The chrome regions share the page ground: the sidebar, the debugger dock, and the
+       circuit column all sit on the same colour. */
+    --sidebar: var(--background);
+    --sidebar-foreground: var(--foreground);
+    --sidebar-primary: var(--primary);
+    --sidebar-primary-foreground: var(--primary-foreground);
+    --sidebar-accent: var(--accent);
+    --sidebar-accent-foreground: var(--accent-foreground);
+    --sidebar-border: var(--border);
+    --sidebar-ring: var(--ring);
+    --sidebar-width: 240px;
+}

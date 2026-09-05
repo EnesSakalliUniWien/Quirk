@@ -1,0 +1,20 @@
+/* The app's styling entry point. The layer order here is the precedence contract - utilities
+   beat components beat base - and the file order below matters within each layer: layout.css
+   comes last so its shell and reflow media rules win by source order, and dialogs.css follows
+   forge.css so its narrow-viewport dialog sizing wins over .forge-dialog's own width. */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+
+@import "./tokens.css";
+@import "./base.css";
+@import "./toolbar.css";
+@import "./transport.css";
+@import "./state-panel.css";
+@import "./forge.css";
+@import "./dialogs.css";
+@import "./sidebar/index.css";
+@import "./layout.css";
