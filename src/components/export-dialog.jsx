@@ -7,7 +7,7 @@ import {AppDialog} from "./app-dialog.jsx";
 function ExportDialog({active, overlayState, docked, onOpened}) {
     return (
         <AppDialog
-            name="export" divId="export-div" contentId="export-dialog-content"
+            name="export" title="Export" divId="export-div" contentId="export-dialog-content"
             labelledBy="export-title" initialFocusId="export-link-copy-button"
             active={active} overlayState={overlayState}
             docked={docked} onOpened={onOpened} />

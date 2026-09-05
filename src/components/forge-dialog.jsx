@@ -7,7 +7,7 @@ import {AppDialog} from "./app-dialog.jsx";
 function ForgeDialog({active, overlayState, docked, onOpened}) {
     return (
         <AppDialog
-            name="forge" divId="gate-forge-div" contentId="forge-dialog-content"
+            name="forge" title="Make Gate" divId="gate-forge-div" contentId="forge-dialog-content"
             labelledBy="forge-title" initialFocusId="gate-forge-rotation-axis"
             active={active} overlayState={overlayState}
             docked={docked} onOpened={onOpened} />

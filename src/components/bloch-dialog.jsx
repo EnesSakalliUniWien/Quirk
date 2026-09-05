@@ -7,7 +7,7 @@ import {AppDialog} from "./app-dialog.jsx";
 function BlochDialog({active, overlayState, docked, onOpened}) {
     return (
         <AppDialog
-            name="bloch" divId="bloch-div" contentId="bloch-dialog-content"
+            name="bloch" title="Bloch Sphere" divId="bloch-div" contentId="bloch-dialog-content"
             labelledBy="bloch-title" initialFocusId="bloch-close-button"
             active={active} overlayState={overlayState}
             docked={docked} onOpened={onOpened} />

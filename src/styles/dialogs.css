@@ -10,6 +10,7 @@
         backdrop-filter: blur(7px);
     }
 
+    /* A window: the title bar on top, the adopted panels in a row beneath it. */
     .dialog-layout {
         position: fixed;
         top: 50%;
@@ -19,25 +20,63 @@
         width: fit-content;
         max-width: calc(100vw - 48px);
         max-height: calc(100vh - 48px);
+        flex-direction: column;
         align-items: stretch;
-        gap: calc(var(--spacing) * 3);
+        gap: calc(var(--spacing) * 1);
         overflow: auto;
         transform: translate(-50%, -50%);
+    }
+
+    /* Sticky like a real window's title bar: the popup scrolls its content, and focusing a
+       control low in a panel must never scroll the handle out of reach. */
+    .dialog-titlebar {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: calc(var(--spacing) * 2);
+        padding: calc(var(--spacing) * 1) calc(var(--spacing) * 1) calc(var(--spacing) * 1) calc(var(--spacing) * 3);
+        color: var(--muted-foreground);
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+    }
+
+    .dialog-titlebar-title {
+        flex: 1 1 auto;
+        font-size: var(--text-small);
+        font-weight: 600;
+        letter-spacing: 0.01em;
+    }
+
+    .dialog-titlebar-close {
+        display: inline-flex;
+        width: 26px;
+        height: 26px;
+        align-items: center;
+        justify-content: center;
+        border: 0;
+        border-radius: 7px;
+        background: transparent;
+        color: var(--muted-foreground);
+        cursor: pointer;
+    }
+
+    .dialog-titlebar-close:hover {
+        color: var(--foreground);
+        background: var(--accent);
+    }
+
+    .dialog-titlebar-close svg {
+        width: 15px;
+        height: 15px;
     }
 
     [data-snap-handle] {
         cursor: grab;
         user-select: none;
         touch-action: none;
-    }
-
-    /* A docked dialog scrolls its own panel; keep the drag handle pinned at the top so it never
-       slides under the app chrome and stays grabbable to move or undock the dialog. */
-    .dialog-layout[data-docked] [data-snap-handle] {
-        position: sticky;
-        top: 0;
-        z-index: 1;
-        background: var(--card);
     }
 
     .snap-ghost {
@@ -56,10 +95,12 @@
         }
     }
 
-    /* A dialog's parked panels, moved between the stash and the popup as one unit. The wrapper is
-       not a box, so inside the popup the panels are laid out by .dialog-layout directly. */
+    /* A dialog's parked panels, moved between the stash and the popup as one unit; inside the
+       popup it is the row of panels under the title bar. */
     .dialog-content {
-        display: contents;
+        display: flex;
+        align-items: stretch;
+        gap: calc(var(--spacing) * 3);
     }
 
     .dialog-panel,
@@ -456,6 +497,10 @@
             max-height: none;
             flex-direction: column;
             transform: none;
+        }
+
+        .dialog-content {
+            flex-wrap: wrap;
         }
 
         .dialog-panel,

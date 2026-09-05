@@ -7,7 +7,7 @@ import {AppDialog} from "./app-dialog.jsx";
 function GateParamDialog({active, overlayState, docked, onOpened}) {
     return (
         <AppDialog
-            name="gate-param" divId="gate-param-div" contentId="gate-param-dialog-content"
+            name="gate-param" title="Gate Parameter" divId="gate-param-div" contentId="gate-param-dialog-content"
             labelledBy="gate-param-title" initialFocusId="gate-param-input"
             active={active} overlayState={overlayState}
             docked={docked} onOpened={onOpened} />

@@ -7,7 +7,7 @@ import {AppDialog} from "./app-dialog.jsx";
 function MenuDialog({active, overlayState, docked, onOpened}) {
     return (
         <AppDialog
-            name="menu" divId="menu-div" contentId="menu-dialog-content"
+            name="menu" title="Welcome" divId="menu-div" contentId="menu-dialog-content"
             labelledBy="welcome-title"
             active={active} overlayState={overlayState}
             docked={docked} onOpened={onOpened} />
