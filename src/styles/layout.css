@@ -57,7 +57,8 @@
         position: absolute;
         top: 25%;
         left: 50%;
-        color: #E879F9;
+        color: CanvasText;
+        background: Canvas;
         font-size: 24px;
         transform: translate(-50%, -50%);
     }
@@ -86,9 +87,9 @@
         gap: calc(var(--spacing) * 2);
         padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
         background: var(--card);
-        border: 1px solid color-mix(in oklch, var(--destructive), transparent 50%);
+        border: 1px solid var(--error-border);
         border-radius: 10px;
-        box-shadow: 0 8px 24px rgb(0 0 0 / 40%);
+        box-shadow: 0 8px 24px var(--shadow-banner);
         font-size: var(--text-body);
         pointer-events: auto;
     }

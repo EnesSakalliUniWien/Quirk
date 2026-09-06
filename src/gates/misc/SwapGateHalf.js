@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-import {GateBuilder} from "../../circuit/Gate.js"
-import {GatePainting} from "../../draw/GatePainting.js"
-import {Matrix} from "../../math/Matrix.js"
-import {Rect} from "../../math/Rect.js"
-import {Seq} from "../../base/Seq.js"
+import {gateStyle} from '../../config/CanvasTheme.js';
+import {strokePath} from '../../draw/pixi/ShapeView.js';
+
+import {GateBuilder} from '../../circuit/model/Gate.js';
+import {GatePainting} from '../../draw/GatePainting.js';
+import {Matrix} from '../../math/Matrix.js';
+import {Rect} from '../../math/Rect.js';
+import {Seq} from '../../base/Seq.js';
 
 // Note: there is special code to handle swaps sprinkled everywhere, since it's the only gate with two paired sides.
 
@@ -40,8 +43,8 @@ let SwapGateHalf = new GateBuilder().
 
         // A swap gate half is shown as a small X (joined by a line to the other half; that's handled elsewhere).
         let swapRect = Rect.centeredSquareWithRadius(args.rect.center(), args.rect.w / 6);
-        args.painter.strokeLine(swapRect.topLeft(), swapRect.bottomRight());
-        args.painter.strokeLine(swapRect.topRight(), swapRect.bottomLeft());
+        strokePath(args.painter, [swapRect.topLeft(), swapRect.bottomRight()], gateStyle(args.gate).fill, 1);
+        strokePath(args.painter, [swapRect.topRight(), swapRect.bottomLeft()], gateStyle(args.gate).fill, 1);
     }).
     setExtraDisableReasonFinder(args => {
         let col = args.innerColumn;

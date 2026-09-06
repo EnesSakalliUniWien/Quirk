@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import {CircuitShaders} from "../../circuit/CircuitShaders.js"
-import {Gate, GateBuilder} from "../../circuit/Gate.js"
+import {CircuitShaders} from "../../circuit/simulation/gpu/CircuitShaders.js"
+import {Gate, GateBuilder} from "../../circuit/model/Gate.js"
 import {GatePainting} from "../../draw/GatePainting.js"
-import {GateShaders} from "../../circuit/GateShaders.js"
-import {MathPainter} from "../../draw/MathPainter.js"
+import {GateShaders} from "../../circuit/simulation/gpu/GateShaders.js"
+import {paintDensityMatrix} from "../../draw/pixi/displays/DensityMatrixView.js"
 import {Matrix} from "../../math/Matrix.js"
 import {Shaders} from "../../webgl/Shaders.js"
 import {Util} from "../../base/Util.js"
@@ -174,7 +174,7 @@ function singleDensityMatrixDisplayMaker(builder) {
         setDrawer(GatePainting.makeDisplayDrawer(args => {
             let {col, row} = args.positionInCircuit;
             let ρ = args.stats.qubitDensityMatrix(col, row).transpose();
-            MathPainter.paintDensityMatrix(args.painter, ρ, args.rect, args.focusPoints);
+            paintDensityMatrix(args.painter, ρ, args.rect, args.focusPoints);
         }));
 }
 
@@ -202,7 +202,7 @@ function largeDensityMatrixDisplayMaker(span, builder) {
 const DENSITY_MATRIX_DRAWER_FROM_CUSTOM_STATS = GatePainting.makeDisplayDrawer(args => {
     let n = args.gate.height;
     let ρ = args.customStats || Matrix.zero(1<<n, 1<<n).times(NaN);
-    MathPainter.paintDensityMatrix(args.painter, ρ, args.rect, args.focusPoints);
+    paintDensityMatrix(args.painter, ρ, args.rect, args.focusPoints);
 });
 
 let DensityMatrixDisplayFamily = Gate.buildFamily(1, 8, (span, builder) =>

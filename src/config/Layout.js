@@ -19,10 +19,22 @@
  */
 class Layout {}
 
-/** Half of the span of a drawn gate, width-wise and height-wise.
-* @type {!number} */
-Layout.GATE_RADIUS = 20;
-Layout.WIRE_SPACING = 50;
+// One logical unit is an ordinary gate's diameter. Camera zoom scales all of these together.
+Layout.UNIT = 40;
+Layout.GATE_RADIUS = Layout.UNIT / 2;
+Layout.REGISTER_MARGIN = Layout.UNIT * 0.2;
+Layout.REGISTER_INDEX_WIDTH = Layout.UNIT * 0.9;
+Layout.REGISTER_KET_WIDTH = Layout.UNIT * 1.1;
+Layout.REGISTER_HEIGHT = Layout.UNIT;
+Layout.REGISTER_FONT_SIZE = Layout.UNIT * 0.4;
+Layout.BLOCH_RADIUS = Layout.UNIT * 0.75;
+Layout.BLOCH_LABEL_MARGIN = Layout.UNIT * 0.15;
+Layout.BLOCH_READOUT_HEIGHT = Layout.UNIT * 0.45;
+Layout.COLUMN_SPACING = 2 * (Layout.BLOCH_RADIUS + Layout.BLOCH_LABEL_MARGIN) + Layout.UNIT * 0.2;
+// Leave room for the first column's half-slot insertion preview, including a Bloch display.
+Layout.REGISTER_WIRE_GAP = Layout.COLUMN_SPACING / 2 + Layout.UNIT * 0.6;
+Layout.WIRE_SPACING = 2 * (Layout.BLOCH_RADIUS + Layout.BLOCH_LABEL_MARGIN +
+    Layout.BLOCH_READOUT_HEIGHT) + Layout.UNIT * 0.1;
 // The least vertical margin above the circuit band; also the margin the band keeps when the
 // visible area is too short to center it.
 Layout.CIRCUIT_TOP_MARGIN = 24;

@@ -14,43 +14,17 @@
  * limitations under the License.
  */
 
-import {Painter} from "../draw/Painter.js"
-import {Rect} from "../math/Rect.js"
-import {RestartableRng} from "../base/RestartableRng.js"
-import {WidgetPainter} from "../draw/WidgetPainter.js"
+import {DisplayView} from '../draw/pixi/DisplayView.js';
+import {RenderSurface} from '../draw/pixi/RenderSurface.js';
+import {Rect} from '../math/Rect.js';
+import {RestartableRng} from '../base/RestartableRng.js';
+import {WidgetPainter} from '../draw/WidgetPainter.js';
 
 /** The tooltip is measured into this box first, then drawn at the size it reports back. */
 const TOOLTIP_MEASURING_AREA = new Rect(0, 0, 500, 300);
 
 /** Pixels kept between the tooltip and the edge of the window. */
 const TOOLTIP_MARGIN = 8;
-
-/**
- * Which functional family each toolbox group belongs to. The chip's edge rule encodes the family,
- * in the canvas's colour language: red collapses or inspects the state, green reads it out, amber
- * rotates it, cyan computes over it, and violet depends on time or a parameter. Groups not listed
- * here (such as Custom Gates) fall back to a neutral rule.
- */
-const GROUP_CATEGORIES = new Map([
-    ['Probes', 'measure'],
-    ['X/Y Probes', 'measure'],
-    ['Sampling', 'measure'],
-    ['Displays', 'display'],
-    ['Half Turns', 'turn'],
-    ['Quarter Turns', 'turn'],
-    ['Eighth Turns', 'turn'],
-    ['Rotations', 'time'],
-    ['Spinning', 'time'],
-    ['Formulaic', 'time'],
-    ['Parametrized', 'time'],
-    ['Parity', 'compute'],
-    ['Order', 'compute'],
-    ['Frequency', 'compute'],
-    ['Arithmetic', 'compute'],
-    ['Compare', 'compute'],
-    ['Modular', 'compute'],
-    ['Scalar', 'compute']
-]);
 
 const COLLAPSED_GROUPS_STORAGE_KEY = 'toolbox-collapsed-groups';
 
@@ -140,13 +114,12 @@ class GateTooltip {
      * @returns {void}
      */
     show(anchor, gate, time) {
-        let measurer = new Painter(this._measuringCanvas, new RestartableRng(), 1);
-        measurer.ctx.save();
-        measurer.ctx.globalAlpha = 0;
+        let measurer = new DisplayView(this._measuringCanvas, new RestartableRng(), 1);
+        measurer.alpha = 0;
         let {maxW, maxH} = WidgetPainter.paintGateTooltip(
             measurer, TOOLTIP_MEASURING_AREA, gate, time, true);
-        measurer.paintDeferred();
-        measurer.ctx.restore();
+        measurer.tooltips?.flush();
+        measurer.destroy();
 
         let needsScaling = maxW >= TOOLTIP_MEASURING_AREA.w || maxH >= TOOLTIP_MEASURING_AREA.h;
         let ratio = _pixelRatio();
@@ -155,9 +128,9 @@ class GateTooltip {
         this._canvas.style.width = `${maxW}px`;
         this._canvas.style.height = `${maxH}px`;
 
-        let painter = new Painter(this._canvas, new RestartableRng(), ratio);
+        let painter = RenderSurface.forCanvas(this._canvas).beginFrame(new RestartableRng(), ratio);
         WidgetPainter.paintGateTooltip(painter, new Rect(0, 0, maxW, maxH), gate, time, needsScaling);
-        painter.paintDeferred();
+        painter.tooltips?.flush();
 
         // Fixed positioning, because the toolbox scrolls and the tooltip must not scroll with it.
         let bounds = anchor.getBoundingClientRect();
@@ -187,7 +160,6 @@ function searchTextOf(gate, groupHint) {
 
 export {
     GateTooltip,
-    GROUP_CATEGORIES,
     chipPartsOf,
     listNameOf,
     searchTextOf,

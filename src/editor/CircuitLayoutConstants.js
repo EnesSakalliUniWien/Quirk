@@ -14,15 +14,18 @@
  * limitations under the License.
  */
 
+import {Layout} from "../config/Layout.js"
+
 /**
  * Geometry shared by the circuit itself and the code that maps positions back onto it.
  */
 
 /** @type {!number} */
-const CIRCUIT_OP_HORIZONTAL_SPACING = 10;
+const CIRCUIT_OP_HORIZONTAL_SPACING = Layout.COLUMN_SPACING - 2 * Layout.GATE_RADIUS;
 
 /** @type {!number} The gutter left of the first column, where the initial-state kets sit. */
-const CIRCUIT_OP_LEFT_SPACING = 32;
+const CIRCUIT_OP_LEFT_SPACING = 2 * Layout.REGISTER_MARGIN + Layout.REGISTER_INDEX_WIDTH +
+    Layout.REGISTER_KET_WIDTH + Layout.REGISTER_WIRE_GAP;
 
 /**
  * @type {!number} The strip beside and below the superposition grid where its binary labels draw;

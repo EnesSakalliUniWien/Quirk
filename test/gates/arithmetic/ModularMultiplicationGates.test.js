@@ -25,9 +25,9 @@ import {
 } from "../../../src/gates/arithmetic/ModularMultiplicationGates.js"
 
 import {assertThatGateActsLikePermutation} from "../../CircuitOperationTestUtil.js"
-import {CircuitDefinition} from "../../../src/circuit/CircuitDefinition.js"
-import {CircuitStats} from "../../../src/circuit/CircuitStats.js"
-import {GateColumn} from "../../../src/circuit/GateColumn.js"
+import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js"
+import {CircuitStats} from "../../../src/circuit/simulation/CircuitStats.js"
+import {GateColumn} from "../../../src/circuit/model/GateColumn.js"
 import {Gates} from "../../../src/gates/AllGates.js"
 import {Outputs, makePseudoShaderWithInputsAndOutputAndCode} from "../../../src/webgl/ShaderCoders.js"
 import {Seq} from "../../../src/base/Seq.js"

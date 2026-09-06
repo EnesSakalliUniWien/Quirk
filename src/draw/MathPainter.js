@@ -14,16 +14,21 @@
  * limitations under the License.
  */
 
-import {Painter} from "./Painter.js"
-import {Format} from "../base/Format.js"
-import {Point} from "../math/Point.js"
-import {Rect} from "../math/Rect.js"
-import {seq, Seq} from "../base/Seq.js"
-import {Util} from "../base/Util.js"
-import {Palette} from "../config/Palette.js"
-import {Typography} from "../config/Typography.js"
-import {Complex} from "../math/Complex.js"
-import {Matrix} from "../math/Matrix.js"
+import {PathGeometry} from './pixi/PathGeometry.js';
+import {drawPath, rectangle, circle, strokePath} from './pixi/ShapeView.js';
+import {TooltipLayer} from './pixi/TooltipView.js';
+import {fitText} from './pixi/TextLayout.js';
+
+/** @typedef {import('./pixi/DisplayView.js').DisplayView} DisplayView */
+
+import {Point} from '../math/Point.js';
+import {Rect} from '../math/Rect.js';
+import {seq, Seq} from '../base/Seq.js';
+
+import {CanvasTheme} from '../config/CanvasTheme.js';
+import {Typography} from '../config/Typography.js';
+
+import {Matrix} from '../math/Matrix.js';
 
 class MathPainter {
     static describeProbability(p, fractionalDigits) {
@@ -41,7 +46,7 @@ class MathPainter {
     }
 
     /**
-     * @param {!Painter} painter
+     * @param {!DisplayView} painter
      * @param {!number} probability
      * @param {!Rect} drawArea
      * @param {!Array.<!Point>=} focusPoints
@@ -52,33 +57,42 @@ class MathPainter {
                                probability,
                                drawArea,
                                focusPoints = [],
-                               backgroundColor = Palette.DISPLAY_GATE_BACK_COLOR,
-                               fillColor = Palette.DISPLAY_GATE_FORE_COLOR) {
-        painter.fillRect(drawArea, backgroundColor);
+                               backgroundColor = CanvasTheme.probability.background,
+                               fillColor = CanvasTheme.probability.fill) {
+        rectangle(painter, drawArea, {fill: backgroundColor});
         let cen = drawArea.center();
         if (isNaN(probability)) {
-            painter.fillPolygon([drawArea.bottomLeft(), drawArea.topLeft(), drawArea.topRight()], fillColor);
-            painter.print("NaN", cen.x, cen.y, 'center', 'middle', Palette.ERROR_COLOR, `9pt ${Typography.DEFAULT_FONT_FAMILY}`, drawArea.w, drawArea.h);
+            rectangle(painter, drawArea, {fill: CanvasTheme.error.background});
+            fitText(painter, "NaN", {
+                x: cen.x,
+                y: cen.y,
+                align: 'center',
+                baseline: 'middle',
+                fill: CanvasTheme.error.text,
+                font: {fontSize: 12, fontFamily: Typography.DEFAULT_FONT_FAMILY},
+                width: drawArea.w,
+                height: drawArea.h
+            });
         } else {
-            painter.fillRect(drawArea.takeBottomProportion(probability), fillColor);
-            painter.print(
-                MathPainter.describeProbability(probability, 1),
-                cen.x,
-                cen.y,
-                'center',
-                'middle',
-                Palette.INK_COLOR,
-                `9pt ${Typography.DEFAULT_FONT_FAMILY}`,
-                drawArea.w,
-                drawArea.h);
+            rectangle(painter, drawArea.takeBottomProportion(probability), {fill: fillColor});
+            fitText(painter, MathPainter.describeProbability(probability, 1), {
+                x: cen.x,
+                y: cen.y,
+                align: 'center',
+                baseline: 'middle',
+                fill: CanvasTheme.text.primary,
+                font: {fontSize: 12, fontFamily: Typography.DEFAULT_FONT_FAMILY},
+                width: drawArea.w,
+                height: drawArea.h,
+                beforeDraw: (w, h) => rectangle(painter, new Rect(cen.x - w/2 - 1, cen.y - h/2, w + 2, h), {fill: CanvasTheme.surface.gate})
+            });
         }
 
-        painter.strokeRect(drawArea, Palette.GRID_LINE_COLOR);
-
+        rectangle(painter, drawArea, {stroke: {color: CanvasTheme.stroke.grid, width: 1}});
 
         // Tool tips.
         if (seq(focusPoints).any(pt => drawArea.containsPoint(pt))) {
-            painter.strokeRect(drawArea, Palette.HIGHLIGHT_STROKE_COLOR, 2);
+            rectangle(painter, drawArea, {stroke: {color: CanvasTheme.interaction.outline, width: 2}});
             MathPainter.paintDeferredValueTooltip(
                 painter,
                 drawArea.right(),
@@ -89,7 +103,7 @@ class MathPainter {
     }
 
     /**
-     * @param {!Painter} painter
+     * @param {!DisplayView} painter
      * @param {!Matrix} matrix The matrix to draw.
      * @param {!Rect} drawArea The rectangle to draw the matrix within.
      * @param {!Array.<!Point>} focusPoints
@@ -113,7 +127,7 @@ class MathPainter {
             let c = Math.floor((pt.x - x) / diam);
             let r = Math.floor((pt.y - y) / diam);
             if (c >= 0 && c < matrix.width() && r >= 0 && r < matrix.height()) {
-                painter.strokeRect(new Rect(x + diam*c, y + diam*r, diam, diam), Palette.HIGHLIGHT_STROKE_COLOR, 2);
+                rectangle(painter, new Rect(x + diam*c, y + diam*r, diam, diam), {stroke: {color: CanvasTheme.interaction.outline, width: 2}});
                 let v = matrix.cell(c, r);
                 MathPainter.paintDeferredValueTooltip(
                     painter,
@@ -127,7 +141,7 @@ class MathPainter {
     }
 
     /**
-     * @param {!Tracer} trace
+     * @param {!GraphicsPath} trace
      * @param {!number} real
      * @param {!number} imag
      * @param {!number} x
@@ -138,7 +152,7 @@ class MathPainter {
     static _traceAmplitudeProbabilitySquare(trace, real, imag, x, y, d) {
         let p = real*real + imag*imag;
         if (p > 0.001) {
-            trace.polygon([
+            trace.poly([
                 x, y + d * (1 - p),
                 x + d, y + d * (1 - p),
                 x + d, y + d,
@@ -148,7 +162,7 @@ class MathPainter {
 
     //noinspection JSUnusedLocalSymbols
     /**
-     * @param {!Tracer} trace
+     * @param {!GraphicsPath} trace
      * @param {!number} real
      * @param {!number} imag
      * @param {!number} x
@@ -159,7 +173,7 @@ class MathPainter {
     static _traceProbabilitySquare(trace, real, imag, x, y, d) {
         let p = real;
         if (d*p > 0.1) {
-            trace.polygon([
+            trace.poly([
                 x, y + d * (1 - p),
                 x + d, y + d * (1 - p),
                 x + d, y + d,
@@ -168,7 +182,7 @@ class MathPainter {
     }
 
     /**
-     * @param {!Tracer} trace
+     * @param {!GraphicsPath} trace
      * @param {!number} real
      * @param {!number} imag
      * @param {!number} x
@@ -184,7 +198,7 @@ class MathPainter {
     }
 
     /**
-     * @param {!Tracer} trace
+     * @param {!GraphicsPath} trace
      * @param {!number} real
      * @param {!number} imag
      * @param {!number} x
@@ -200,7 +214,7 @@ class MathPainter {
     }
 
     /**
-     * @param {!Tracer} trace
+     * @param {!GraphicsPath} trace
      * @param {!number} real
      * @param {!number} imag
      * @param {!number} x
@@ -210,6 +224,7 @@ class MathPainter {
      */
     static _traceAmplitudePhaseDirection(trace, real, imag, x, y, d) {
         let mag = Math.sqrt(real*real + imag*imag);
+        if (mag === 0) return;
         let g = 1 + Math.log(mag)/10;
         let r = Math.max(1, g/mag)*Math.max(d/2, 5);
         if (r < 0.1) {
@@ -217,19 +232,19 @@ class MathPainter {
         }
         let cx = x + d/2;
         let cy = y + d/2;
-        trace.line(cx, cy, cx + real*r, cy - imag*r);
+        PathGeometry.line(trace, cx, cy, cx + real*r, cy - imag*r);
     }
 
     /**
      * Draws a visual representation of a complex matrix.
-     * @param {!Painter} painter
+     * @param {!DisplayView} painter
      * @param {!Matrix} matrix The matrix to draw.
      * @param {!Rect} drawArea The rectangle to draw the matrix within.
      * @param {undefined|!string} amplitudeCircleFillColor
      * @param {!string} amplitudeCircleStrokeColor
      * @param {undefined|!string} amplitudeProbabilityFillColor
      * @param {undefined|!string=} backColor
-     * @param {undefined|!string=} amplitudePhaseStrokeColor
+     * @param {(!function(!number): (undefined|!string))=} phaseColorForDegrees
      * @param {undefined|!string=} logCircleStrokeColor
      */
     static paintMatrix(painter,
@@ -238,9 +253,9 @@ class MathPainter {
                        amplitudeCircleFillColor,
                        amplitudeCircleStrokeColor,
                        amplitudeProbabilityFillColor,
-                       backColor = Palette.DISPLAY_GATE_BACK_COLOR,
-                       amplitudePhaseStrokeColor = undefined,
-                       logCircleStrokeColor = Palette.FAINT_LINE_COLOR) {
+                       backColor = CanvasTheme.probability.background,
+                       phaseColorForDegrees = () => amplitudeCircleStrokeColor,
+                       logCircleStrokeColor = CanvasTheme.stroke.faint) {
         let numCols = matrix.width();
         let numRows = matrix.height();
         let buf = matrix.rawBuffer();
@@ -248,11 +263,10 @@ class MathPainter {
         drawArea = drawArea.withW(diam * numCols).withH(diam*numRows);
         let {x, y} = drawArea;
         let hasNaN = matrix.hasNaN();
-        amplitudePhaseStrokeColor = amplitudePhaseStrokeColor || amplitudeCircleStrokeColor;
 
-        painter.fillRect(drawArea, backColor);
+        rectangle(painter, drawArea, {fill: backColor});
 
-        let traceCellsWith = cellTraceFunc => painter.trace(trace => {
+        let traceCellsWith = cellTraceFunc => trace => {
             for (let row = 0; row < numRows; row++) {
                 for (let col = 0; col < numCols; col++) {
                     let k = (row * numCols + col) * 2;
@@ -265,56 +279,66 @@ class MathPainter {
                         diam);
                 }
             }
-        });
+        };
 
         if (!hasNaN) {
             // Squared magnitude levels.
             if (amplitudeProbabilityFillColor !== undefined) {
-                traceCellsWith(MathPainter._traceAmplitudeProbabilitySquare).
-                    thenFill(amplitudeProbabilityFillColor).
-                    thenStroke(Palette.GRID_LINE_COLOR, 0.5);
+                drawPath(painter, traceCellsWith(MathPainter._traceAmplitudeProbabilitySquare), [{fill: amplitudeProbabilityFillColor}, {stroke: {color: CanvasTheme.stroke.grid, width: 0.5}}]);
             }
 
             // Circles.
             if (amplitudeCircleFillColor !== undefined) {
-                traceCellsWith(MathPainter._traceAmplitudeProbabilityCircle).
-                    thenFill(amplitudeCircleFillColor).
-                    thenStroke(amplitudeCircleStrokeColor, 0.5);
+                drawPath(painter, traceCellsWith(MathPainter._traceAmplitudeProbabilityCircle), [{fill: amplitudeCircleFillColor}, {stroke: {color: amplitudeCircleStrokeColor, width: 0.5}}]);
 
-                traceCellsWith(MathPainter._traceAmplitudeLogarithmCircle).
-                    thenStroke(logCircleStrokeColor, 0.5);
+                drawPath(painter, traceCellsWith(MathPainter._traceAmplitudeLogarithmCircle), [{stroke: {color: logCircleStrokeColor, width: 0.5}}]);
             }
         }
 
         // Dividers.
-        painter.trace(trace => trace.grid(x, y, drawArea.w, drawArea.h, numCols, numRows)).
-            thenStroke(Palette.GRID_LINE_COLOR);
+        drawPath(painter, trace => PathGeometry.grid(trace, x, y, drawArea.w, drawArea.h, numCols, numRows), [{stroke: {color: CanvasTheme.amplitude.phaseHalo, width: 3}}, {stroke: {color: CanvasTheme.stroke.grid, width: 1}}]);
 
         if (!hasNaN) {
             // Phase lines.
             if (logCircleStrokeColor !== undefined) {
-                traceCellsWith(MathPainter._traceAmplitudePhaseDirection).
-                    thenStroke(amplitudePhaseStrokeColor);
+                // Group equal colours so a large monochrome matrix still uses one canvas path.
+                const cellsByColor = new Map();
+                for (let k = 0; k < buf.length; k += 2) {
+                    if (buf[k] === 0 && buf[k + 1] === 0) continue;
+                    const color = phaseColorForDegrees(Math.atan2(buf[k + 1], buf[k]) * 180 / Math.PI);
+                    if (color === undefined) continue;
+                    if (!cellsByColor.has(color)) cellsByColor.set(color, []);
+                    cellsByColor.get(color).push(k);
+                }
+                for (const [color, cells] of cellsByColor) {
+                    drawPath(painter, trace => {
+                        for (const k of cells) {
+                            const row = Math.floor(k / 2 / numCols), col = k / 2 % numCols;
+                            MathPainter._traceAmplitudePhaseDirection(trace, buf[k], buf[k + 1],
+                                x + diam * col, y + diam * row, diam);
+                        }
+                    }, [{stroke: {color: CanvasTheme.amplitude.phaseHalo, width: 3}}, {stroke: {color: color, width: 1}}]);
+                }
             }
         }
 
         // Error text.
         if (hasNaN) {
-            painter.print(
-                'NaN',
-                drawArea.x + drawArea.w/2,
-                drawArea.y + drawArea.h/2,
-                'center',
-                'middle',
-                Palette.ERROR_COLOR,
-                `16px ${Typography.DEFAULT_FONT_FAMILY}`,
-                drawArea.w,
-                drawArea.h);
+            fitText(painter, 'NaN', {
+                x: drawArea.x + drawArea.w/2,
+                y: drawArea.y + drawArea.h/2,
+                align: 'center',
+                baseline: 'middle',
+                fill: CanvasTheme.error.text,
+                font: {fontSize: 16, fontFamily: Typography.DEFAULT_FONT_FAMILY},
+                width: drawArea.w,
+                height: drawArea.h
+            });
         }
     }
 
     /**
-     * @param {!Painter} painter
+     * @param {!DisplayView} painter
      * @param {!number} x
      * @param {!number} y
      * @param {!string} labelText
@@ -322,84 +346,8 @@ class MathPainter {
      * @param {undefined|!string=} valueText2
      * @param {!string=} backColor
      */
-    static paintDeferredValueTooltip(
-            painter,
-            x,
-            y,
-            labelText,
-            valueText,
-            valueText2 = undefined,
-            backColor = Palette.DISPLAY_GATE_BACK_COLOR) {
-        const labelFont = `12px ${Typography.DEFAULT_FONT_FAMILY}`;
-        const valueFont = `bold 12px ${Typography.MONO_FONT_FAMILY}`;
-        painter.defer(() => {
-            painter.ctx.font = labelFont;
-            let width1 = painter.ctx.measureText(labelText).width;
-            painter.ctx.font = valueFont;
-            let width2 = painter.ctx.measureText(valueText).width;
-            let width3 = valueText2 === undefined ? 0 : painter.ctx.measureText(valueText2).width;
-
-            let lineHeight = 20;
-            let height = 40 + (valueText2 === undefined ? 0 : 20);
-            let width = Math.max(Math.max(width1, width2), width3);
-            let boundingRect = new Rect(x, y - height, width, height).snapInside(
-                new Rect(0, 0, painter.ctx.canvas.clientWidth, painter.ctx.canvas.clientHeight));
-
-            let borderPainter = (w, h) => {
-                let r = new Rect(
-                    boundingRect.x,
-                    boundingRect.bottom()-h,
-                    w,
-                    h).paddedBy(4);
-                painter.trace(tracer => tracer.rect(r.x, r.y, r.w, r.h)).
-                    thenFill(backColor).
-                    thenStroke(Palette.INK_COLOR);
-            };
-
-            let labelPainter = (w, h) => {
-                painter.print(
-                    labelText,
-                    boundingRect.x,
-                    boundingRect.bottom()-h,
-                    'left',
-                    'bottom',
-                    Palette.INK_COLOR,
-                    labelFont,
-                    boundingRect.w,
-                    lineHeight,
-                    (w2, h2) => borderPainter(Math.max(w, w2), h + h2));
-            };
-
-            let value1Painter = (w, h) => {
-                painter.print(
-                    valueText,
-                    boundingRect.x,
-                    boundingRect.bottom()-h,
-                    'left',
-                    'bottom',
-                    Palette.INK_COLOR,
-                    valueFont,
-                    boundingRect.w,
-                    lineHeight,
-                    (w2, h2) => labelPainter(Math.max(w, w2), h + h2));
-            };
-
-            if (valueText2 === undefined) {
-                value1Painter(0, 0);
-            } else {
-                painter.print(
-                    valueText2,
-                    boundingRect.x,
-                    boundingRect.bottom(),
-                    'left',
-                    'bottom',
-                    Palette.INK_COLOR,
-                    valueFont,
-                    boundingRect.w,
-                    lineHeight,
-                    value1Painter);
-            }
-        });
+    static paintDeferredValueTooltip(painter, x, y, labelText, valueText, valueText2, backColor = CanvasTheme.probability.background) {
+        TooltipLayer.forView(painter).show(painter, {x, y, labelText, valueText, valueText2, backColor});
     }
 
     /**
@@ -415,7 +363,7 @@ class MathPainter {
     }
 
     /**
-     * @param {!Painter} painter
+     * @param {!DisplayView} painter
      * @param {!Matrix} operation
      * @param {!Rect} drawArea
      * @param {!string=} backgroundColor
@@ -424,8 +372,8 @@ class MathPainter {
     static paintBlochSphereRotation(painter,
                                     operation,
                                     drawArea,
-                                    backgroundColor = Palette.DISPLAY_GATE_BACK_COLOR,
-                                    fillColor = Palette.DISPLAY_GATE_FORE_COLOR) {
+                                    backgroundColor = CanvasTheme.probability.background,
+                                    fillColor = CanvasTheme.probability.fill) {
         let c = drawArea.center();
         let u = Math.min(drawArea.w, drawArea.h) / 2;
         let {dx, dy, dz} = MathPainter.coordinateSystem(u);
@@ -441,16 +389,16 @@ class MathPainter {
         let axes = Seq.range(3).map(i => Matrix.generate(1, 3, (r, _) => r === i ? 1 : 0)).toArray();
 
         // Draw sphere and axis lines (in not-quite-proper 3d).
-        painter.fillCircle(c, u, backgroundColor);
-        painter.trace(trace => {
+        circle(painter, c, u, {fill: backgroundColor});
+        drawPath(painter, trace => {
             trace.circle(c.x, c.y, u);
             trace.ellipse(c.x, c.y, u, u / 3);
             trace.ellipse(c.x, c.y, u / 3, u);
             for (let a of axes) {
                 let d = projToPt(a);
-                trace.line(c.x - d.x, c.y - d.y, c.x + d.x, c.y + d.y);
+                PathGeometry.line(trace, c.x - d.x, c.y - d.y, c.x + d.x, c.y + d.y);
             }
-        }).thenStroke(Palette.FAINT_LINE_COLOR);
+        }, [{stroke: {color: CanvasTheme.stroke.faint, width: 1}}]);
 
         let {angle, axis} = operation.qubitOperationToAngleAxisRotation();
         let axisVec = Matrix.col(...axis);
@@ -462,13 +410,21 @@ class MathPainter {
             axisVec,
             Matrix.col(0, 0, axis[2])
         ].map(projToPt);
-        painter.strokePolygon(seq(guideDeltas).
+        strokePath(painter, (seq(guideDeltas).
             reverse().
             concat(guideDeltas.map(d => d.times(-1))).
             map(d => c.plus(d)).
-            toArray(), Palette.MUTED_TEXT_COLOR);
+            toArray()).length ? [(seq(guideDeltas).
+            reverse().
+            concat(guideDeltas.map(d => d.times(-1))).
+            map(d => c.plus(d)).
+            toArray()).at(-1), ...(seq(guideDeltas).
+            reverse().
+            concat(guideDeltas.map(d => d.times(-1))).
+            map(d => c.plus(d)).
+            toArray())] : [], CanvasTheme.text.muted, 1);
         // Rotation axis.
-        painter.strokeLine(c.plus(dAxis), c.plus(dAxis.times(-1)), Palette.INK_COLOR, 2);
+        strokePath(painter, [c.plus(dAxis), c.plus(dAxis.times(-1))], CanvasTheme.text.primary, 2);
 
         // Find perpendicular axes, for drawing the rotation arrow circles.
         let norm = e => Math.sqrt(e.adjoint().times(e).cell(0, 0).real);
@@ -486,7 +442,7 @@ class MathPainter {
     }
 
     /**
-     * @param {!Painter} painter
+     * @param {!DisplayView} painter
      * @param {!Point} center
      * @param {!number} angle
      * @param {!Point} dAlong
@@ -522,115 +478,11 @@ class MathPainter {
             ].map(d => arrowHeadRoot.plus(d));
             let interleaved = [].concat.apply([], arrowHeadPts.map(e => [e.x, e.y]));
 
-            painter.strokePath(arcPts, Palette.BRIGHT_LINE_COLOR);
-            painter.trace(tracer => tracer.polygon(interleaved)).
-                thenFill(fillColor).
-                thenStroke(Palette.BRIGHT_LINE_COLOR);
+            strokePath(painter, arcPts, CanvasTheme.stroke.bright, 1);
+            drawPath(painter, tracer => tracer.poly(interleaved), [{fill: fillColor}, {stroke: {color: CanvasTheme.stroke.bright, width: 1}}]);
         }
     }
 
-    /**
-     * @param {!Painter} painter
-     * @param {!Matrix} matrix
-     * @param {!Rect} drawArea
-     * @param {!Array.<!Point>} focusPoints
-     * @param {!string=} backgroundColor
-     * @param {!string=} fillColor
-     */
-    static paintDensityMatrix(painter,
-                              matrix,
-                              drawArea,
-                              focusPoints = [],
-                              backgroundColor = Palette.DISPLAY_GATE_BACK_COLOR,
-                              fillColor = Palette.DISPLAY_GATE_FORE_COLOR) {
-        let numCols = matrix.width();
-        let numRows = matrix.height();
-        let buf = matrix.rawBuffer();
-        let diam = Math.min(drawArea.w / numCols, drawArea.h / numRows);
-        let x = drawArea.x;
-        let y = drawArea.y;
-        let hasNaN = matrix.hasNaN();
-
-        let traceCouplingsWith = cellTraceFunc => painter.trace(trace => {
-            for (let row = 0; row < numRows; row++) {
-                for (let col = 0; col < numCols; col++) {
-                    let k = (row * numCols + col) * 2;
-                    cellTraceFunc(
-                        trace,
-                        buf[k],
-                        buf[k + 1],
-                        x + diam * col,
-                        y + diam * row,
-                        diam);
-                }
-            }
-        });
-
-        let traceDiagonalWith = cellTraceFunc => painter.trace(trace => {
-            for (let col = 0; col < numRows; col++) {
-                let k = col * (numCols + 1) * 2;
-                cellTraceFunc(
-                    trace,
-                    buf[k],
-                    buf[k + 1],
-                    x + diam * col,
-                    y + diam * col,
-                    diam);
-            }
-        });
-
-        painter.fillRect(drawArea, backgroundColor);
-
-        if (!hasNaN) {
-            traceDiagonalWith(MathPainter._traceProbabilitySquare).
-                thenFill(fillColor).
-                thenStroke(Palette.DISPLAY_DIM_COLOR, 0.5);
-
-            traceCouplingsWith(MathPainter._traceAmplitudeProbabilityCircle).
-                thenFill(fillColor).
-                thenStroke(Palette.DISPLAY_DIM_COLOR, 0.5);
-
-            traceCouplingsWith(MathPainter._traceAmplitudeLogarithmCircle).
-                thenStroke(Palette.FAINT_LINE_COLOR, 0.5);
-
-            traceCouplingsWith(MathPainter._traceAmplitudePhaseDirection).
-                thenStroke(Palette.INK_COLOR);
-        }
-
-        // Dividers.
-        let d = drawArea.w/numCols;
-        if (d > 2) {
-            painter.trace(trace => trace.grid(x, y, drawArea.w, drawArea.h, numCols, numRows)).
-                thenStroke(Palette.GRID_LINE_COLOR, Math.min(1, 2/Math.log(numCols)));
-        } else {
-           painter.ctx.save();
-           painter.ctx.globalAlpha *= 0.2;
-           painter.fillRect(drawArea, Palette.GRID_LINE_COLOR);
-           painter.ctx.restore();
-        }
-
-        if (hasNaN) {
-            painter.print(
-                'NaN',
-                drawArea.x + drawArea.w/2,
-                drawArea.y + drawArea.h/2,
-                'center',
-                'middle',
-                Palette.ERROR_COLOR,
-                `16px ${Typography.DEFAULT_FONT_FAMILY}`,
-                drawArea.w,
-                drawArea.h);
-        }
-
-        let n = Math.round(Math.log2(numRows));
-        MathPainter.paintMatrixTooltip(painter, matrix, drawArea, focusPoints,
-            (c, r) => c === r ?
-                `Probability of |${Util.bin(c, n)}⟩ (decimal ${c})` :
-                `Coupling of |${Util.bin(r, n)}⟩ to ⟨${Util.bin(c, n)}| (decimal ${r} to ${c})`,
-            (c, r, v) => c === r ?
-                (matrix.cell(c, r).real*100).toFixed(4) + "%" :
-                matrix.cell(c, r).toString(new Format(false, 0, 6, ", ")));
-    }
 }
 
 export {MathPainter}

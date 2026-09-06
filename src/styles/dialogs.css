@@ -6,7 +6,7 @@
         position: fixed;
         inset: 0;
         z-index: 10;
-        background: color-mix(in oklch, var(--background), transparent 16%);
+        background: var(--dialog-backdrop);
         backdrop-filter: blur(7px);
     }
 
@@ -88,7 +88,7 @@
         z-index: 12;
         pointer-events: none;
         border: 1px solid var(--ring);
-        background: color-mix(in oklch, var(--ring), transparent 85%);
+        background: var(--dialog-snap-preview);
         border-radius: 6px;
     }
 
@@ -114,7 +114,7 @@
         background: var(--card);
         border: 1px solid var(--border);
         border-radius: 12px;
-        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+        box-shadow: 0 24px 70px var(--shadow-popup);
     }
 
     .dialog-panel {
@@ -128,7 +128,7 @@
 
     .dialog-eyebrow {
         margin: 0;
-        color: color-mix(in oklch, var(--primary), white 20%);
+        color: var(--dialog-heading);
         font-size: var(--text-caption);
         font-weight: 650;
         letter-spacing: 0.1em;
@@ -172,8 +172,8 @@
     .welcome-title svg {
         width: 32px;
         height: 32px;
-        color: color-mix(in oklch, var(--primary), white 22%);
-        filter: drop-shadow(0 0 9px color-mix(in oklch, var(--ring), transparent 40%));
+        color: var(--brand-ink);
+        filter: drop-shadow(0 0 9px var(--dialog-glow));
     }
 
     .welcome-tagline {
@@ -204,7 +204,7 @@
     }
 
     .welcome-primary-action:hover:not(:disabled) {
-        background: color-mix(in oklch, var(--primary), white 8%);
+        background: var(--dialog-primary-hover);
     }
 
     .resource-grid {
@@ -220,7 +220,7 @@
         justify-content: center;
         padding: calc(var(--spacing) * 3);
         color: var(--muted-foreground);
-        background: color-mix(in oklch, var(--muted), transparent 38%);
+        background: var(--dialog-option-surface);
         border: 1px solid var(--border);
         border-radius: 10px;
         font-size: 0.875rem;
@@ -233,7 +233,7 @@
     .resource-card:hover {
         color: var(--foreground);
         background: var(--accent);
-        border-color: color-mix(in oklch, var(--ring), var(--border) 45%);
+        border-color: var(--dialog-option-border);
         transform: translateY(-1px);
     }
 
@@ -311,7 +311,7 @@
 
     .gate-param-input:focus {
         border-color: var(--ring);
-        box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring), transparent 72%);
+        box-shadow: 0 0 0 3px var(--focus-shadow);
         outline: none;
     }
 
@@ -350,7 +350,6 @@
         aspect-ratio: 1;
         border: 1px solid var(--border);
         border-radius: 12px;
-        background: var(--canvas-background);
         cursor: grab;
         touch-action: none;
     }
@@ -430,7 +429,7 @@
         display: grid;
         gap: calc(var(--spacing) * 3);
         padding: calc(var(--spacing) * 4);
-        background: color-mix(in oklch, var(--muted), transparent 48%);
+        background: var(--inset-surface);
         border: 1px solid var(--border);
         border-radius: 10px;
     }
@@ -464,7 +463,7 @@
     }
 
     .copy-result {
-        color: color-mix(in oklch, var(--ring), white 14%);
+        color: var(--dialog-link);
         font-size: var(--text-small);
         font-weight: 600;
     }
@@ -477,7 +476,7 @@
         margin: 0;
         padding: calc(var(--spacing) * 3);
         color: var(--muted-foreground);
-        background: color-mix(in oklch, var(--background), white 2%);
+        background: var(--input-surface);
         border: 1px solid var(--border);
         border-radius: 8px;
         font-family: var(--font-mono);
@@ -487,7 +486,7 @@
     }
 
     .output-box a {
-        color: color-mix(in oklch, var(--ring), white 12%);
+        color: var(--dialog-link-hover);
     }
 
     @media (max-width: 760px) {

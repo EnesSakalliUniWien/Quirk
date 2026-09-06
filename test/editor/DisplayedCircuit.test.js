@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-import {Suite, assertThat, assertThrows} from "../TestUtil.js"
-import {DisplayedCircuit} from "../../src/editor/DisplayedCircuit.js"
+import {Suite, assertThat, assertThrows} from '../TestUtil.js';
+import {DisplayedCircuit} from '../../src/editor/DisplayedCircuit.js';
 
-import {CircuitDefinition} from "../../src/circuit/CircuitDefinition.js"
-import {CircuitStats} from "../../src/circuit/CircuitStats.js"
-import {Gates} from "../../src/gates/AllGates.js"
-import {Point} from "../../src/math/Point.js"
-import {RestartableRng} from "../../src/base/RestartableRng.js"
-import {Hand} from "../../src/editor/Hand.js"
-import {Painter} from "../../src/draw/Painter.js"
+import {CircuitDefinition} from '../../src/circuit/model/CircuitDefinition.js';
+import {CircuitStats} from '../../src/circuit/simulation/CircuitStats.js';
+import {Gates} from '../../src/gates/AllGates.js';
+import {Layout} from '../../src/config/Layout.js';
+import {CIRCUIT_OP_LEFT_SPACING} from '../../src/editor/CircuitLayoutConstants.js';
+import {Point} from '../../src/math/Point.js';
+import {RestartableRng} from '../../src/base/RestartableRng.js';
+import {Hand} from '../../src/editor/Hand.js';
+import {GatePainting} from '../../src/draw/GatePainting.js';
+import {DisplayView} from '../draw/TestDisplayView.js';
 
 const COMMON_GATES = new Map([
     ['X', Gates.HalfTurns.X],
@@ -188,12 +191,10 @@ suite.test("bootstrap_diagram", () => {
             undefined,
             undefined),
         pts: [
-            new Point(35.5, 10.5),
-            new Point(60.5, 10.5),
-            new Point(35.5, 35.5),
-            new Point(85.5, 60.5),
-            new Point(135.5, 85.5),
-            new Point(110.5, 85.5)
+            ...[[0, 0], [1, 0], [0, 1], [2, 2], [4, 3], [3, 3]].map(([col, row]) => new Point(
+                CIRCUIT_OP_LEFT_SPACING + Layout.GATE_RADIUS - Layout.COLUMN_SPACING / 2 +
+                    Layout.UNIT * 0.2 + 0.5 + col * Layout.COLUMN_SPACING / 2,
+                10.5 + row * Layout.WIRE_SPACING / 2))
         ]
     });
 });
@@ -237,7 +238,7 @@ suite.testUsingWebGL("drawCircuitCompletes_QuantumTeleportation", () => {
     let canvas = /** @type {HTMLCanvasElement} */ document.createElement("canvas");
     canvas.width = 1000;
     canvas.height = 1000;
-    let painter = new Painter(canvas, new RestartableRng());
+    let painter = new DisplayView(canvas, new RestartableRng());
 
     // We're just checking that this runs to completion without throwing an exception.
     displayed.paint(painter, Hand.EMPTY, stats);
@@ -277,15 +278,19 @@ suite.test("dragXIntoCNot", () => {
 });
 
 suite.test("resizeQft", () => {
-    let drag = simulateDrag(`|
-                             |-Q-
-                             | 1
-                             |-/-
-                             | 0
-                             |-+-
-                             |
-                             |-+-
-                             | 2`);
+    let beforeGrab = DisplayedCircuit.empty(10).withCircuit(circuit(`Q
+        /
+        -
+        -`));
+    let tab = GatePainting.rectForResizeTab(beforeGrab.gateRect(0, 0, 1, 2));
+    let start = tab.center();
+    let {newCircuit: afterGrab, newHand} = beforeGrab.tryGrab(Hand.EMPTY.withPos(start));
+    let points = [start, start.plus(new Point(0, -Layout.WIRE_SPACING)),
+        start.plus(new Point(0, 2 * Layout.WIRE_SPACING))];
+    let afterDrop = afterGrab.afterDropping(newHand.withPos(points[2]));
+    let drag = {beforeGrab, afterGrab, afterDrop,
+        hovers: points.map(pt => afterGrab.previewDrop(newHand.withPos(pt))),
+        afterDropAndTidy: afterDrop.afterTidyingUp()};
 
     assertThat(drag.beforeGrab.circuitDefinition).isEqualTo(circuit(`Q
                                                                      /

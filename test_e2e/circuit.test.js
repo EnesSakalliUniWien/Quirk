@@ -17,7 +17,52 @@
 // The circuit area: loading from a URL, drag editing, and history.
 
 import assert from 'node:assert/strict';
-import {test, withQuirkPage, waitForQuirk, waitForCircuit, waitForDialog, currentCircuit, exportedCircuit, urlForCircuit, TEST_TIMEOUT_MILLIS, canvasLayout, assertCircuitLayout, circuitTopForWires, waitForCanvasViewport} from './harness.js';
+import {CanvasTheme, gateStyle} from '../src/config/CanvasTheme.js';
+import {Layout} from '../src/config/Layout.js';
+import {Typography} from '../src/config/Typography.js';
+import {circuitMetrics, test, withQuirkPage, waitForQuirk, waitForCircuit, waitForDialog, currentCircuit, exportedCircuit, urlForCircuit, TEST_TIMEOUT_MILLIS, canvasLayout, assertCircuitLayout, circuitTopForWires, waitForCanvasViewport} from './harness.js';
+
+test('paints canvas colours directly while DOM controls use stylesheet colours', async browser => {
+    await withQuirkPage(browser, {cols: [['H'], ['Bloch']]}, async page => {
+        const read = () => page.evaluate(() => {
+            const style = getComputedStyle(document.documentElement);
+            const canvas = document.getElementById('drawCanvas');
+            const copy = document.createElement('canvas');
+            copy.width = canvas.width; copy.height = canvas.height;
+            const context = copy.getContext('2d');
+            context.drawImage(canvas, 0, 0);
+            const pixel = context.getImageData(1, 1, 1, 1).data;
+            return {
+                background: style.getPropertyValue('--canvas-background').trim(),
+                bodyBackground: getComputedStyle(document.body).backgroundColor,
+                probability: getComputedStyle(document.querySelector('.state-bar-fill')).backgroundColor,
+                font: getComputedStyle(document.body).fontFamily,
+                pixel: [...pixel].slice(0, 3)
+            };
+        });
+        const beforeFonts = await read();
+        await page.evaluate(() => document.fonts.ready);
+        const afterFonts = await read();
+        assert.deepEqual(beforeFonts, afterFonts);
+        assert.equal(afterFonts.background, '');
+        assert.equal(afterFonts.bodyBackground, 'rgb(26, 29, 37)');
+        assert.equal(afterFonts.probability, 'rgb(34, 197, 94)');
+        const expectedFont = await page.evaluate(font => {
+            const element = document.createElement('span');
+            element.style.fontFamily = font;
+            return element.style.fontFamily;
+        }, Typography.DEFAULT_FONT_FAMILY);
+        assert.equal(afterFonts.font, expectedFont);
+        assert.deepEqual(afterFonts.pixel, CanvasTheme.surface.background.slice(1).match(/../g).map(v => parseInt(v, 16)));
+        // Legacy CSS variables and element backgrounds must not control painted canvas pixels.
+        await page.evaluate(() => {
+            document.documentElement.style.setProperty('--canvas-background', 'red');
+            document.getElementById('drawCanvas').style.backgroundColor = 'red';
+            window.dispatchEvent(new Event('resize'));
+        });
+        assert.deepEqual((await read()).pixel, afterFonts.pixel);
+    });
+});
 
 test('loads a URL circuit and renders its Bloch sphere in the circuit area', async browser => {
     const circuit = {cols: [['H'], ['Bloch']]};
@@ -27,6 +72,40 @@ test('loads a URL circuit and renders its Bloch sphere in the circuit area', asy
         assert.deepEqual(await exportedCircuit(page), circuit);
         assertCircuitLayout(await canvasLayout(page));
     });
+});
+
+test('IQP-dark chips share the canvas assignment and Register clicks survive zoom and DPR', async browser => {
+    const circuit = {cols: [['H', 'Y', 'Z']], init: [0, '-i', '+']};
+    await withQuirkPage(browser, circuit, async page => {
+        await page.evaluate(() => document.fonts.ready);
+        for (const id of ['H', 'X', 'Y', 'Z', 'Rx', 'Rz', 'Measure']) {
+            const colors = await page.$eval(`.gate-tile[data-gate-id="${id}"] .gate-chip`, element => {
+                const style = getComputedStyle(element);
+                return [style.backgroundColor, style.color];
+            });
+            const rgb = hex => `rgb(${hex.slice(1).match(/../g).map(v => parseInt(v, 16)).join(', ')})`;
+            const style = gateStyle({serializedId: id});
+            assert.deepEqual(colors, [rgb(style.fill), rgb(style.text)]);
+        }
+        for (const zoom of [1, 0.8]) {
+            if (zoom === 0.8) await page.click('.circuit-zoom-button[aria-label="Zoom out"]');
+            await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+            await waitForCanvasViewport(page);
+            const top = await circuitTopForWires(page, 3, zoom);
+            const bounds = await page.$eval('#drawCanvas', element => {
+                const r = element.getBoundingClientRect();
+                const div = document.getElementById('canvasDiv');
+                return {x: r.x - div.scrollLeft, y: r.y - div.scrollTop};
+            });
+            const click = x => page.mouse.click(bounds.x + x * zoom,
+                bounds.y + (top + 1.5 * Layout.WIRE_SPACING) * zoom);
+            const before = await currentCircuit(page);
+            await click(Layout.REGISTER_MARGIN + Layout.REGISTER_INDEX_WIDTH / 2);
+            assert.deepEqual(await currentCircuit(page), before);
+            await click(2 * Layout.REGISTER_MARGIN + Layout.REGISTER_INDEX_WIDTH + Layout.REGISTER_KET_WIDTH / 2);
+            await waitForCircuit(page, {cols: circuit.cols, init: [0, zoom === 1 ? 0 : 1, '+']});
+        }
+    }, {width: 1440, height: 1000, deviceScaleFactor: 2});
 });
 
 test('drags a gate onto a wire and supports undo, redo, and clear actions', async browser => {
@@ -49,8 +128,8 @@ test('drags a gate onto a wire and supports undo, redo, and clear actions', asyn
         await waitForCanvasViewport(page);
         const circuitTop = await circuitTopForWires(page, 2);
         const firstWireFirstColumn = {
-            x: canvasBounds.x + 55,
-            y: canvasBounds.y + circuitTop + 25
+            x: canvasBounds.x + (circuitMetrics.firstColumnLeft + circuitMetrics.gateSize / 2),
+            y: canvasBounds.y + circuitTop + circuitMetrics.wireSpacing / 2
         };
 
         await page.mouse.move(halfTurnH.x, halfTurnH.y);
@@ -136,8 +215,8 @@ test('keeps drops accurate while zoomed out and fits the circuit on demand', asy
         await waitForCanvasViewport(page);
         const circuitTop = await circuitTopForWires(page, 2, 0.8);
         const firstWireFirstColumn = {
-            x: canvasBounds.x + 55 * 0.8,
-            y: canvasBounds.y + (circuitTop + 25) * 0.8
+            x: canvasBounds.x + (circuitMetrics.firstColumnLeft + circuitMetrics.gateSize / 2) * 0.8,
+            y: canvasBounds.y + (circuitTop + circuitMetrics.wireSpacing / 2) * 0.8
         };
         await page.mouse.move(halfTurnH.x, halfTurnH.y);
         await page.mouse.down();
@@ -145,11 +224,15 @@ test('keeps drops accurate while zoomed out and fits the circuit on demand', asy
         await page.mouse.up();
         await waitForCircuit(page, {cols: [['H']]});
 
-        // Fit never zooms in past 100%: on a small circuit it restores the natural size.
+        // Fit includes the Register gutter and never zooms past the natural size.
         await page.click('.circuit-zoom-button[aria-label="Zoom out"]');
         await page.click('.circuit-zoom-button[aria-label="Fit the circuit to the visible area"]');
         await page.waitForFunction(
-            () => document.querySelector('.circuit-zoom-button[aria-live]').textContent === '100%',
+            () => {
+                const zoom = parseInt(document.querySelector('.circuit-zoom-button[aria-live]').textContent);
+                const div = document.getElementById('canvasDiv');
+                return zoom > 64 && zoom <= 100 && div.scrollWidth <= div.clientWidth + 1;
+            },
             {timeout: TEST_TIMEOUT_MILLIS});
     });
 });

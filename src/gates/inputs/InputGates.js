@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-import {Palette} from "../../config/Palette.js"
-import {Typography} from "../../config/Typography.js"
-import {Gate, GateBuilder} from "../../circuit/Gate.js"
-import {GatePainting} from "../../draw/GatePainting.js"
-import {reverseShaderForSize} from "../ordering/ReverseBitsGate.js"
+import {fitText} from '../../draw/pixi/TextLayout.js';
+import {rectangle} from '../../draw/pixi/ShapeView.js';
+
+import {CanvasTheme} from '../../config/CanvasTheme.js';
+import {Typography} from '../../config/Typography.js';
+import {Gate, GateBuilder} from '../../circuit/model/Gate.js';
+import {GatePainting} from '../../draw/GatePainting.js';
+import {reverseShaderForSize} from '../ordering/ReverseBitsGate.js';
 
 let InputGates = {};
 
@@ -28,31 +31,31 @@ let InputGates = {};
  * @param {!boolean} reverse
  */
 function drawInputGate(args, key, reverse) {
-    GatePainting.paintBackground(args, Palette.QUIET_GATE_FILL_COLOR);
-    args.painter.strokeRect(args.rect, Palette.MID_LINE_COLOR);
+    GatePainting.paintBackground(args, CanvasTheme.surface.quiet);
+    rectangle(args.painter, args.rect, {stroke: {color: CanvasTheme.stroke.guide, width: 1}});
     GatePainting.paintResizeTab(args);
 
     let {x, y} = args.rect.center();
-    args.painter.print(
-        'input',
+    fitText(args.painter, 'input', {
         x,
-        y-2,
-        'center',
-        'bottom',
-        Palette.INK_COLOR,
-        `16px ${Typography.DEFAULT_FONT_FAMILY}`,
-        args.rect.w - 2,
-        args.rect.h / 2);
-    args.painter.print(
-        key + (reverse ? '[::-1]' : ''),
+        y: y-2,
+        align: 'center',
+        baseline: 'bottom',
+        fill: CanvasTheme.text.primary,
+        font: {fontSize: 16, fontFamily: Typography.DEFAULT_FONT_FAMILY},
+        width: args.rect.w - 2,
+        height: args.rect.h / 2
+    });
+    fitText(args.painter, key + (reverse ? '[::-1]' : ''), {
         x,
-        y+2,
-        'center',
-        'top',
-        Palette.INK_COLOR,
-        `16px ${Typography.DEFAULT_FONT_FAMILY}`,
-        args.rect.w - 2,
-        args.rect.h / 2);
+        y: y+2,
+        align: 'center',
+        baseline: 'top',
+        fill: CanvasTheme.text.primary,
+        font: {fontSize: 16, fontFamily: Typography.DEFAULT_FONT_FAMILY},
+        width: args.rect.w - 2,
+        height: args.rect.h / 2
+    });
 }
 
 let makeInputGate = (key, reverse) => Gate.buildFamily(1, 16, (span, builder) => builder.
@@ -89,7 +92,7 @@ let makeSetInputGate = key => new GateBuilder().
         sticky: true
     }]).
     setDrawer(args => {
-        GatePainting.paintLocationIndependentFrame(args, Palette.QUIET_GATE_FILL_COLOR);
+        GatePainting.paintLocationIndependentFrame(args, CanvasTheme.surface.quiet);
         GatePainting.paintGateSymbol(args, `${key}=${args.gate.param}`);
         GatePainting.paintGateButton(args);
     }).

@@ -1,4 +1,4 @@
-/* A gate tile: the draggable row of chip plus name, and the chip's category styling. */
+/* Gate chip colours are assigned from CanvasTheme in GateChip. */
 @layer components {
     /* display:flex below outranks the browser's [hidden] rule, so fold it back in; without this
        a search paints the non-matching tiles of a partially-matching group. */
@@ -31,28 +31,9 @@
         justify-content: center;
         overflow: hidden;
         padding: 0 var(--spacing) 0 calc(var(--spacing) * 2);
-        background: color-mix(in oklch, var(--sidebar-accent), white 6%);
         border-radius: 6px;
         font-weight: 500;
     }
-
-    /* The category rule down the leading edge says what family the gate belongs to. */
-    .gate-chip::before {
-        content: "";
-        position: absolute;
-        top: 4px;
-        bottom: 4px;
-        left: 0;
-        width: 3px;
-        border-radius: 0 2px 2px 0;
-        background: var(--chip-rule-neutral);
-    }
-
-    .gate-chip[data-category="measure"]::before { background: var(--chip-rule-measure); }
-    .gate-chip[data-category="display"]::before { background: var(--chip-rule-display); }
-    .gate-chip[data-category="turn"]::before { background: var(--chip-rule-turn); }
-    .gate-chip[data-category="time"]::before { background: var(--chip-rule-time); }
-    .gate-chip[data-category="compute"]::before { background: var(--chip-rule-compute); }
 
     .gate-chip-symbol {
         max-width: 100%;
@@ -84,12 +65,12 @@
 
     .gate-tile:hover {
         background: var(--sidebar-accent);
-        box-shadow: 0 0 0 2px color-mix(in oklch, var(--sidebar-ring), transparent 45%);
+        box-shadow: 0 0 0 2px var(--tile-outline);
     }
 
     .gate-tile:focus-visible {
         background: var(--sidebar-accent);
-        outline: 3px solid color-mix(in oklch, var(--sidebar-ring), transparent 48%);
+        outline: 3px solid var(--focus-outline);
         outline-offset: 2px;
     }
 

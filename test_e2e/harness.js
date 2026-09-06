@@ -19,6 +19,17 @@
 // ../PuppeteerRunEndToEndTests.js imports them and runs the registry.
 
 import assert from 'node:assert/strict';
+import {CanvasTheme} from '../src/config/CanvasTheme.js';
+import {Layout} from '../src/config/Layout.js';
+import {CIRCUIT_OP_LEFT_SPACING, CIRCUIT_BOTTOM_MARGIN} from '../src/editor/CircuitLayoutConstants.js';
+
+const circuitMetrics = {
+    wireSpacing: Layout.WIRE_SPACING, columnSpacing: Layout.COLUMN_SPACING,
+    gateSize: 2 * Layout.GATE_RADIUS, firstColumnLeft: CIRCUIT_OP_LEFT_SPACING,
+    topMargin: Layout.CIRCUIT_TOP_MARGIN, bottomMargin: CIRCUIT_BOTTOM_MARGIN,
+    blochRadius: Layout.BLOCH_RADIUS,
+    background: CanvasTheme.surface.background.slice(1).match(/../g).map(v => parseInt(v, 16))
+};
 
 const DEFAULT_VIEWPORT = {width: 1280, height: 720, deviceScaleFactor: 1};
 const TEST_TIMEOUT_MILLIS = 10 * 1000;
@@ -48,14 +59,15 @@ async function waitForQuirk(page) {
         () => {
             const inspector = document.getElementById('inspectorDiv');
             const canvas = document.getElementById('drawCanvas');
-            return inspector.style.display !== 'none' && canvas.width > 0 && canvas.height > 0;
+            return inspector.style.display !== 'none' && canvas.width > 0 && canvas.height > 0 && canvas.dataset.renderer === 'pixijs';
         },
         {timeout: TEST_TIMEOUT_MILLIS});
 }
 
+// Circuit hashes use URI encoding, so a literal + is a ket sign, not a form-encoded space.
 async function currentCircuit(page) {
     return page.evaluate(() => {
-        const params = new URLSearchParams(document.location.hash.substring(1));
+        const params = new URLSearchParams(document.location.hash.substring(1).replace(/\+/g, '%2B'));
         const jsonText = params.get('circuit');
         return jsonText === null ? {cols: []} : JSON.parse(jsonText);
     });
@@ -65,7 +77,7 @@ async function waitForCircuit(page, expectedCircuit) {
     const expectedJson = JSON.stringify(expectedCircuit);
     await page.waitForFunction(
         expected => {
-            const params = new URLSearchParams(document.location.hash.substring(1));
+            const params = new URLSearchParams(document.location.hash.substring(1).replace(/\+/g, '%2B'));
             const jsonText = params.get('circuit');
             const actual = jsonText === null ? {cols: []} : JSON.parse(jsonText);
             return JSON.stringify(actual) === expected;
@@ -151,36 +163,38 @@ async function waitForCanvasViewport(page) {
  * area, but never above the top margin. Mirrors DisplayedInspector.updateArea.
  */
 async function circuitTopForWires(page, wireCount, zoom = 1) {
-    return page.evaluate((wireCount, zoom) => {
-        const margin = 24;  // Layout.CIRCUIT_TOP_MARGIN.
-        const band = wireCount * 50 + 105;  // Wire band plus the label and warning strips.
+    return page.evaluate((wireCount, zoom, m) => {
+        const margin = m.topMargin;
+        const band = (wireCount - 0.5) * m.wireSpacing + m.gateSize / 2 + m.bottomMargin;
         const div = document.getElementById('canvasDiv');
         const sceneHeight = Math.max(div.clientHeight / zoom, band + 2 * margin);
         return Math.max(margin, Math.floor((sceneHeight - band) / 2));
-    }, wireCount, zoom);
+    }, wireCount, zoom, circuitMetrics);
 }
 
 // Shared by the circuit and toolbox specs: both check that the circuit paints where the layout
 // says it should.
 async function canvasLayout(page) {
     await waitForCanvasViewport(page);
-    return page.evaluate(() => {
+    return page.evaluate(m => {
         const canvas = document.getElementById('drawCanvas');
-        const context = canvas.getContext('2d');
+        const copy = document.createElement('canvas');
+        copy.width = canvas.width; copy.height = canvas.height;
+        const context = copy.getContext('2d');
+        context.drawImage(canvas, 0, 0);
         const canvasBounds = canvas.getBoundingClientRect();
         // The circuit band centers vertically; mirror the app's own layout for a 2-wire circuit.
-        const circuitBand = 2 * 50 + 105;
+        const circuitBand = 1.5 * m.wireSpacing + m.gateSize / 2 + m.bottomMargin;
         const circuitTop = Math.max(
-            24,
-            Math.floor((Math.max(canvas.clientHeight, circuitBand + 48) - circuitBand) / 2));
+            m.topMargin,
+            Math.floor((Math.max(canvas.clientHeight, circuitBand + 2 * m.topMargin) - circuitBand) / 2));
 
         const pixelAt = (x, y) => {
             const data = context.getImageData(x, y, 1, 1).data;
             return [data[0], data[1], data[2], data[3]];
         };
         const countRegion = (x, y, width, height) => {
-            // The canvas paints a real dark theme; the circuit background is #14161D.
-            const background = [20, 22, 29];
+            const background = m.background;
             const data = context.getImageData(x, y, width, height).data;
             let painted = 0;
             let greenish = 0;
@@ -217,10 +231,12 @@ async function canvasLayout(page) {
                 };
             })(),
             circuitTopPixel: pixelAt(10, 10),
-            blochGateRegion: countRegion(85, circuitTop + 5, 40, 40),
-            emptyCircuitRegion: countRegion(135, circuitTop + 5, 40, 40)
+            blochGateRegion: countRegion(m.firstColumnLeft + m.columnSpacing + m.gateSize / 2 - m.blochRadius,
+                circuitTop + m.wireSpacing / 2 - m.blochRadius, 2 * m.blochRadius, 2 * m.blochRadius),
+            emptyCircuitRegion: countRegion(m.firstColumnLeft + 2 * m.columnSpacing,
+                circuitTop + m.wireSpacing / 2 - m.gateSize / 2, m.gateSize, m.gateSize)
         };
-    });
+    }, circuitMetrics);
 }
 
 function assertCircuitLayout(layout) {
@@ -230,7 +246,7 @@ function assertCircuitLayout(layout) {
     assert.ok(
         layout.canvas.left >= layout.toolbox.right - 1,
         'The circuit canvas must sit beside the gate toolbox, not below it.');
-    assert.deepEqual(layout.circuitTopPixel, [20, 22, 29, 255]);
+    assert.deepEqual(layout.circuitTopPixel, [...circuitMetrics.background, 255]);
     assert.ok(
         layout.blochGateRegion.painted > 1000,
         'The Bloch sphere must be painted in its circuit gate slot.');
@@ -243,6 +259,7 @@ function assertCircuitLayout(layout) {
 }
 
 export {
+    circuitMetrics,
     setAppOrigin,
     test,
     tests,

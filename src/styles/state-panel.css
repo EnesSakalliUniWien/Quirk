@@ -54,13 +54,7 @@
         height: 8px;
         border-radius: 999px;
         /* Matches the hue the phase column paints: -pi and +pi meet at the same colour. */
-        background: linear-gradient(
-            to right,
-            hsl(180 85% 62%),
-            hsl(270 85% 62%),
-            hsl(0 85% 62%),
-            hsl(90 85% 62%),
-            hsl(180 85% 62%));
+        background: var(--phase-legend);
     }
 
     .state-table-scroll {
@@ -109,7 +103,7 @@
 
     .state-table td {
         padding: 3px calc(var(--spacing) * 3);
-        border-bottom: 1px solid color-mix(in oklch, var(--border), transparent 55%);
+        border-bottom: 1px solid var(--table-divider);
         white-space: nowrap;
     }
 
@@ -146,7 +140,7 @@
         width: 88px;
         height: 8px;
         overflow: hidden;
-        background: var(--muted);
+        background: var(--state-probability-back);
         border-radius: 999px;
     }
 
@@ -154,7 +148,7 @@
         display: block;
         width: 0;
         height: 100%;
-        background: color-mix(in oklch, var(--primary), var(--muted) 25%);
+        background: var(--state-probability-fill);
     }
 
     .state-swatch {

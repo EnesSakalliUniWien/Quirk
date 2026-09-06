@@ -18,7 +18,7 @@
 
 import assert from 'node:assert/strict';
 
-import {test, withQuirkPage, waitForCanvasViewport, circuitTopForWires} from './harness.js';
+import {circuitMetrics, test, withQuirkPage, waitForCanvasViewport, circuitTopForWires} from './harness.js';
 
 async function openBlochDialog(page) {
     const canvasBounds = await page.$eval('#drawCanvas', element => {
@@ -29,7 +29,7 @@ async function openBlochDialog(page) {
     for (let attempt = 0; attempt < 3 && !opened; attempt++) {
         await waitForCanvasViewport(page);
         const circuitTop = await circuitTopForWires(page, 2);
-        await page.mouse.click(canvasBounds.x + 50 + 32 + 20, canvasBounds.y + circuitTop + 25);
+        await page.mouse.click(canvasBounds.x + circuitMetrics.columnSpacing + circuitMetrics.firstColumnLeft + circuitMetrics.gateSize / 2, canvasBounds.y + circuitTop + circuitMetrics.wireSpacing / 2);
         opened = await page.waitForSelector('#bloch-div', {visible: true, timeout: 2000}).
             then(() => true, () => false);
     }

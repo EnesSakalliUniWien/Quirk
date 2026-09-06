@@ -19,7 +19,7 @@ import {assertThatCircuitOutputsBasisKet} from "../../CircuitOperationTestUtil.j
 
 import {PivotFlipGates} from "../../../src/gates/ordering/PivotFlipGates.js"
 import {Gates} from "../../../src/gates/AllGates.js"
-import {CircuitDefinition} from "../../../src/circuit/CircuitDefinition.js"
+import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js"
 
 let suite = new Suite("PivotFlipGates");
 

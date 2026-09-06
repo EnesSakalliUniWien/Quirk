@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {phaseColor} from "../config/CanvasTheme.js"
 import {CooldownThrottle} from "../base/CooldownThrottle.js"
 import {Util} from "../base/Util.js"
 
@@ -93,16 +94,6 @@ function stateTableRows(stats, wireCount, maxRows=MAX_ROWS) {
  */
 function _forceSign(v, digits) {
     return (v >= 0 ? '+' : '') + v.toFixed(digits);
-}
-
-/**
- * The hue carries the phase, so a glance down the column shows which amplitudes share one.
- * @param {!number} phaseDegrees
- * @returns {!string}
- * @private
- */
-function _phaseColor(phaseDegrees) {
-    return `hsl(${((phaseDegrees % 360) + 360) % 360} 85% 62%)`;
 }
 
 /**
@@ -194,7 +185,7 @@ function initStateTable(obsPlayheadStats) {
             cells.bar.style.width = `${Math.min(100, probability * 100)}%`;
             cells.probability.textContent = probability.toFixed(4);
             cells.amplitude.textContent = `${_forceSign(real, 3)} ${_forceSign(imag, 3)}i`;
-            cells.swatch.style.background = _phaseColor(phaseDegrees);
+            cells.swatch.style.background = phaseColor(phaseDegrees);
             cells.phase.textContent = _forceSign(phaseDegrees, 2);
         }
     };

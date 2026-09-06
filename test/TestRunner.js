@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-import {Suite} from "./TestUtil.js";
+import {disposeTestScenes} from './draw/TestDisplayView.js';
+import {Suite} from './TestUtil.js';
 
 const TEST_SUITE_NAME_FILTER = /** @type {!RegExp|undefined} */ undefined;
 const TEST_NAME_FILTER = /** @type {!RegExp|undefined} */ undefined;
@@ -142,10 +143,10 @@ __testRunner__.start = () => {
                     suite.testsMatching(TEST_NAME_FILTER, later).
                         map(e => promiseRepeatTest(suite, e[0], e[1], TEST_REPETITIONS)));
                 suiteResult.catch(() => console.error(`${suite.name} suite failed`));
-                resolver();
+                suiteResult.finally(resolver);
             }, 0)));
         }
     }
 
-    return chain.then(() => __testRunner__.complete());
+    return chain.then(disposeTestScenes).then(() => __testRunner__.complete());
 };

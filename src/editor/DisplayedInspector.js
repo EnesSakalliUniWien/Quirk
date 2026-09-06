@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-import {CircuitDefinition} from "../circuit/CircuitDefinition.js"
-import {CircuitStats} from "../circuit/CircuitStats.js"
-import {Layout} from "../config/Layout.js"
-import {Palette} from "../config/Palette.js"
-import {DisplayedCircuit} from "./DisplayedCircuit.js"
-import {GateDrawParams} from "../draw/GateDrawParams.js"
-import {GatePainting} from "../draw/GatePainting.js"
-import {Hand} from "./Hand.js"
-import {Painter} from "../draw/Painter.js"
-import {Rect} from "../math/Rect.js"
-import {Serializer} from "../circuit/Serializer.js"
+import {rectangle} from '../draw/pixi/ShapeView.js';
+
+/** @typedef {import('../draw/pixi/DisplayView.js').DisplayView} DisplayView */
+
+import {Layout} from '../config/Layout.js';
+import {CanvasTheme} from '../config/CanvasTheme.js';
+import {DisplayedCircuit} from './DisplayedCircuit.js';
+import {GateDrawParams} from '../draw/GateDrawParams.js';
+import {GatePainting} from '../draw/GatePainting.js';
+import {Hand} from './Hand.js';
+import {CircuitGeometry} from './CircuitGeometry.js';
+
+import {Rect} from '../math/Rect.js';
+import {Serializer} from '../circuit/serialization/Serializer.js';
 
 class DisplayedInspector {
     /**
@@ -74,19 +77,19 @@ class DisplayedInspector {
     }
 
     /**
-     * @param {!Painter} painter
+     * @param {!DisplayView} painter
      * @param {!CircuitStats} stats
      * @param {undefined|!int} playheadStep The number of columns that have executed at the playhead.
      */
     paint(painter, stats, playheadStep=undefined) {
-        painter.fillRect(this.drawArea, Palette.BACKGROUND_COLOR);
+        rectangle(painter, this.drawArea, {fill: CanvasTheme.surface.background});
 
-        this.displayedCircuit.paint(painter, this.hand, stats, false, true, playheadStep);
-        this._paintHand(painter, stats);
+        painter.group('circuit', view => this.displayedCircuit.paint(view, this.hand, stats, false, true, playheadStep));
+        painter.group('held-gates', view => this._paintHand(view, stats));
     }
 
     /**
-     * @param {!Painter} painter
+     * @param {!DisplayView} painter
      * @param {!CircuitStats} stats
      * @private
      */
@@ -100,8 +103,11 @@ class DisplayedInspector {
         let rect = new Rect(
             Math.round(pos.x - 0.5) + 0.5,
             Math.round(pos.y - 0.5) + 0.5,
-            Layout.GATE_RADIUS*2 + Layout.WIRE_SPACING*(gate.width-1),
+            Layout.GATE_RADIUS*2 + Layout.COLUMN_SPACING*(gate.width-1),
             Layout.GATE_RADIUS*2 + Layout.WIRE_SPACING*(gate.height-1));
+        if (gate.serializedId === 'Bloch') {
+            rect = CircuitGeometry.blochDisplayRect(rect);
+        }
         let drawer = gate.customDrawer || GatePainting.DEFAULT_DRAWER;
         drawer(GateDrawParams.held(painter, this.hand, rect, gate, stats));
     }

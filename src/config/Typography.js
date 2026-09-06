@@ -14,18 +14,14 @@
  * limitations under the License.
  */
 
-import {readStyleToken} from "./StyleTokens.js"
-
 /**
- * Fonts the canvas draws text with, read from the theme in src/styles/globals.css so the canvas
- * and the DOM use one set of stacks.
+ * Font definitions for canvas drawing. DOM fonts are defined in styles/tokens.css.
  */
 class Typography {}
 
 Typography.DEFAULT_FONT_SIZE = 12;
-Typography.DEFAULT_FONT_FAMILY = readStyleToken('--font-sans', "'Geist Variable', sans-serif");
-Typography.MONO_FONT_FAMILY = readStyleToken(
-    '--font-mono', 'ui-monospace, "SFMono-Regular", Consolas, monospace');
+Typography.DEFAULT_FONT_FAMILY = "'Geist Variable', sans-serif";
+Typography.MONO_FONT_FAMILY = 'ui-monospace, "SFMono-Regular", Consolas, monospace';
 // Gate symbols are the tile's content, not a label, at the same medium weight the shadcn Button
 // uses, so both control surfaces read alike.
 Typography.GATE_SYMBOL_FONT_SIZE = 16;

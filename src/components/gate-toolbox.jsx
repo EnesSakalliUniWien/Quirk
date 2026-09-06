@@ -9,11 +9,11 @@ import {Drawer} from "@base-ui/react/drawer";
 
 import {Button} from "@/components/ui/button";
 
+import {gateStyle} from "../config/CanvasTheme.js";
 import {Gates} from "../gates/AllGates.js";
 import {MysteryGateSymbol, MysteryGateMaker} from "../gates/misc/Joke_MysteryGate.js";
 import {
     GateTooltip,
-    GROUP_CATEGORIES,
     chipPartsOf,
     listNameOf,
     searchTextOf,
@@ -61,7 +61,7 @@ function useMediaQuery(query) {
 
 /**
  * @param {*} customGateSet
- * @returns {!Array.<!{key: !string, hint: !string, category: !string, gate: *, search: !string}>}
+ * @returns {!Array.<!{key: !string, hint: !string, gate: *, search: !string}>}
  */
 function buildTileModels(customGateSet) {
     let groups = [...Gates.TopToolboxGroups, ...Gates.BottomToolboxGroups];
@@ -74,7 +74,6 @@ function buildTileModels(customGateSet) {
         gates.forEach((gate, index) => models.push({
             key: `${group.hint}:${index}`,
             hint: group.hint,
-            category: GROUP_CATEGORIES.get(group.hint) || 'neutral',
             gate,
             search: searchTextOf(gate, group.hint),
         }));
@@ -82,12 +81,13 @@ function buildTileModels(customGateSet) {
     return models;
 }
 
-function GateChip({gate, category}) {
+function GateChip({gate}) {
+    const style = gateStyle(gate);
     const {base, sup} = chipPartsOf(gate);
     const length = base.length + sup.length;
     const fit = length <= 3 ? 'large' : length <= 6 ? 'medium' : 'small';
     return (
-        <span className="gate-chip" data-category={category} data-fit={fit}>
+        <span className="gate-chip" data-fit={fit} style={{backgroundColor: style.fill, color: style.text}}>
             <span className="gate-chip-symbol">{base}{sup !== '' && <sup>{sup}</sup>}</span>
         </span>
     );
@@ -124,7 +124,7 @@ function GateTile({model, hidden, isStop, onGrab, onPlace, onFocusTile, tooltip,
                     onPlace(model);
                 }
             }}>
-            <GateChip gate={gate} category={model.category} />
+            <GateChip gate={gate} />
             <span className="gate-tile-name">{listNameOf(gate)}</span>
         </button>
     );

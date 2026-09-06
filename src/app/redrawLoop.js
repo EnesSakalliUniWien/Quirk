@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-import {CooldownThrottle} from "../base/CooldownThrottle.js"
-import {GateColumn} from "../circuit/GateColumn.js"
-import {Layout} from "../config/Layout.js"
-import {Painter} from "../draw/Painter.js"
-import {Point} from "../math/Point.js"
-import {RestartableRng} from "../base/RestartableRng.js"
-import {Rect} from "../math/Rect.js"
-import {Simulation} from "../config/Simulation.js"
-import {TouchScrollBlocker} from "../browser/TouchScrollBlocker.js"
-import {circuitZoom, onCircuitZoomChanged} from "./zoom.js"
+import {CooldownThrottle} from '../base/CooldownThrottle.js';
+import {GateColumn} from '../circuit/model/GateColumn.js';
+import {Layout} from '../config/Layout.js';
+import {invalidateTextLayout} from '../draw/pixi/TextLayout.js';
+import {CircuitScene} from '../draw/pixi/CircuitScene.js';
+import {RenderSurface} from '../draw/pixi/RenderSurface.js';
+import {Point} from '../math/Point.js';
+import {RestartableRng} from '../base/RestartableRng.js';
+import {Rect} from '../math/Rect.js';
+import {Simulation} from '../config/Simulation.js';
+import {TouchScrollBlocker} from '../browser/TouchScrollBlocker.js';
+import {invalidateCircuitLabelCache} from '../editor/CircuitPainting.js';
+import {circuitZoom, onCircuitZoomChanged} from './zoom.js';
 
 /**
  * The app's frame pipeline: simulate the shown circuit, publish the stats, size the canvas, and
@@ -56,6 +59,7 @@ function initRedrawLoop(canvas,
                         desiredCanvasSizeFor,
                         syncArea) {
     let hasStarted = false;
+    const scene = new CircuitScene(RenderSurface.forCanvas(canvas));
     // The scroll extent lives on this spacer, not the canvas: the canvas stays viewport-sized
     // while the spacer stretches to the content, so a wide circuit scrolls without the canvas's
     // backing store ever growing.
@@ -128,21 +132,21 @@ function initRedrawLoop(canvas,
 
         // The camera: the painter scales into circuit units, then shifts by the scroll so the
         // fixed viewport shows the scrolled-to part of the scene.
-        let painter = new Painter(canvas, semiStableRng.cur.restarted(), pixelRatio * zoom);
-        painter.ctx.translate(-canvasDiv.scrollLeft / zoom, -canvasDiv.scrollTop / zoom);
         shown.updateArea(new Rect(0, 0, size.w, size.h));
-        shown.paint(painter, stats, playheadStep);
-        painter.paintDeferred();
+        const painter = scene.update(shown, stats, playheadStep, {
+            rng: semiStableRng.cur.restarted(), resolution: pixelRatio * zoom,
+            scrollX: canvasDiv.scrollLeft / zoom, scrollY: canvasDiv.scrollTop / zoom,
+        });
 
         displayed.get().hand.paintCursor(painter);
         // The blockers live in the scroll container's CSS pixels, so they shrink with the zoom.
         scrollBlocker.setBlockers(
-            painter.touchBlockers.map(b => ({
+            painter.interaction.touchBlockers.map(b => ({
                 rect: new Rect(b.rect.x * zoom, b.rect.y * zoom, b.rect.w * zoom, b.rect.h * zoom),
                 cursor: b.cursor
             })),
-            painter.desiredCursorStyle);
-        canvas.style.cursor = painter.desiredCursorStyle || 'auto';
+            painter.interaction.cursor);
+        canvas.style.cursor = painter.interaction.cursor || 'auto';
 
         let dt = displayed.get().stableDuration();
         if (dt < Infinity) {
@@ -183,7 +187,11 @@ function initRedrawLoop(canvas,
     });
     if (document.fonts !== undefined) {
         // Canvas text starts out on a fallback font; repaint once the webfont is ready.
-        document.fonts.ready.then(() => redrawThrottle.trigger());
+        document.fonts.ready.then(() => {
+            invalidateTextLayout();
+            invalidateCircuitLabelCache();
+            redrawThrottle.trigger();
+        });
     }
     displayed.observable().subscribe(() => redrawThrottle.trigger());
     // Moving the playhead changes the band on the canvas and the state the panel reports, neither of

@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+/** @typedef {import('./pixi/DisplayView.js').DisplayView} DisplayView */
+
 /**
  * Values used by the various gate drawing strategies.
  *
@@ -23,7 +25,7 @@
 class GateDrawParams {
     /**
      * Prefer the named factories; the positional constructor is their implementation.
-     * @param {!Painter} painter
+     * @param {!DisplayView} painter
      * @param {!Hand} hand
      * @param {!boolean} isHighlighted
      * @param {!boolean} isResizeShowing
@@ -46,7 +48,7 @@ class GateDrawParams {
                 positionInCircuit,
                 focusPoints,
                 customStatsForCircuitPos) {
-        /** @type {!Painter} */
+        /** @type {!DisplayView} */
         this.painter = painter;
         /** @type {!Hand} */
         this.hand = hand;
@@ -73,7 +75,7 @@ class GateDrawParams {
     /**
      * A gate drawn at its slot on the circuit.
      *
-     * @param {!Painter} painter
+     * @param {!DisplayView} painter
      * @param {!Hand} hand
      * @param {!Rect} rect
      * @param {!Gate} gate
@@ -106,7 +108,7 @@ class GateDrawParams {
     /**
      * The gate riding the cursor: highlighted, resize tab showing, not yet anywhere.
      *
-     * @param {!Painter} painter
+     * @param {!DisplayView} painter
      * @param {!Hand} hand
      * @param {!Rect} rect
      * @param {!Gate} gate
@@ -132,6 +134,12 @@ class GateDrawParams {
      * @param {!string} key
      * @returns {undefined|*}
      */
+    withPainter(painter) {
+        return new GateDrawParams(painter, this.hand, this.isHighlighted, this.isResizeShowing,
+            this.isResizeHighlighted, this.rect, this.gate, this.stats, this.positionInCircuit,
+            this.focusPoints, this.customStats);
+    }
+
     getGateContext(key) {
         if (this.positionInCircuit === undefined) {
             return undefined;

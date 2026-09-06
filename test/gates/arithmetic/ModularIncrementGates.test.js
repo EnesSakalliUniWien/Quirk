@@ -20,7 +20,7 @@ import {assertThatGateActsLikePermutation} from "../../CircuitOperationTestUtil.
 import {ModularIncrementGates} from "../../../src/gates/arithmetic/ModularIncrementGates.js"
 import {ModularAdditionGates} from "../../../src/gates/arithmetic/ModularAdditionGates.js"
 import {InputGates} from "../../../src/gates/inputs/InputGates.js"
-import {CircuitDefinition} from "../../../src/circuit/CircuitDefinition.js"
+import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js"
 
 let suite = new Suite("ModularIncrementGates");
 

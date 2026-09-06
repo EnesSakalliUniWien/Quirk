@@ -17,31 +17,42 @@
 // The transport bar and the state-at-the-playhead panel.
 
 import assert from 'node:assert/strict';
-import {test, withQuirkPage, waitForQuirk, waitForCircuit, waitForDialog, currentCircuit, exportedCircuit, urlForCircuit, TEST_TIMEOUT_MILLIS, waitForCanvasViewport} from './harness.js';
+import {CanvasTheme} from '../src/config/CanvasTheme.js';
+import {circuitMetrics, test, withQuirkPage, waitForQuirk, waitForCircuit, waitForDialog, currentCircuit, exportedCircuit, urlForCircuit, TEST_TIMEOUT_MILLIS, waitForCanvasViewport} from './harness.js';
 
 async function playheadBandPixels(page, columnLeft) {
     await waitForCanvasViewport(page);
-    return page.evaluate(left => {
+    return page.evaluate((left, m, background, bandColor) => {
         const canvas = document.getElementById('drawCanvas');
-        const context = canvas.getContext('2d');
+        const copy = document.createElement('canvas');
+        copy.width = canvas.width; copy.height = canvas.height;
+        const context = copy.getContext('2d');
+        context.drawImage(canvas, 0, 0);
         // The strip between this spec's two wire rows; the circuit band centers vertically, so
         // the sample follows the same layout the app computes.
         const div = document.getElementById('canvasDiv');
-        const band = 2 * 50 + 105;
-        const top = Math.max(24, Math.floor((Math.max(div.clientHeight, band + 48) - band) / 2));
-        const data = context.getImageData(left - 3, top + 46, 46, 8).data;
-        let amber = 0;
+        const band = 1.5 * m.wireSpacing + m.gateSize / 2 + m.bottomMargin;
+        const top = Math.max(m.topMargin, Math.floor((Math.max(div.clientHeight, band + 2 * m.topMargin) - band) / 2));
+        const data = context.getImageData(left - 3, top + m.wireSpacing - 4, 46, 8).data;
+        // Compare against the actual theme's composited band, independent of its hue.
+        const sample = document.createElement('canvas').getContext('2d');
+        sample.fillStyle = background;
+        sample.fillRect(0, 0, 1, 1);
+        sample.fillStyle = bandColor;
+        sample.fillRect(0, 0, 1, 1);
+        const expected = sample.getImageData(0, 0, 1, 1).data;
+        let bandPixels = 0;
         for (let i = 0; i < data.length; i += 4) {
-            if (data[i] > data[i + 1] + 15 && data[i + 1] > data[i + 2] + 15 && data[i] > 40) {
-                amber++;
+            if ([0, 1, 2].every(channel => Math.abs(data[i + channel] - expected[channel]) <= 2)) {
+                bandPixels++;
             }
         }
-        return amber;
-    }, columnLeft);
+        return bandPixels;
+    }, columnLeft, circuitMetrics, CanvasTheme.surface.background, CanvasTheme.interaction.playheadBand);
 }
 
-const FIRST_COLUMN_LEFT = 32;
-const SECOND_COLUMN_LEFT = 82;
+const FIRST_COLUMN_LEFT = circuitMetrics.firstColumnLeft;
+const SECOND_COLUMN_LEFT = FIRST_COLUMN_LEFT + circuitMetrics.columnSpacing;
 const BANDED_PIXELS = 250;
 const UNBANDED_PIXELS = 20;
 

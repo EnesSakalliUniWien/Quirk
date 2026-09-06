@@ -25,7 +25,7 @@ import {
     wireInitialStateClickableRect,
 } from "./CircuitHitTesting.js"
 import {DisplayedCircuit} from "./DisplayedCircuit.js"
-import {GateColumn} from "../circuit/GateColumn.js"
+import {GateColumn} from "../circuit/model/GateColumn.js"
 import {Layout} from "../config/Layout.js"
 import {Simulation} from "../config/Simulation.js"
 import {Point} from "../math/Point.js"

@@ -136,6 +136,19 @@ class CircuitGeometry {
         return new Rect(0, this.top + Layout.WIRE_SPACING * wireIndex, Infinity, Layout.WIRE_SPACING);
     }
 
+    /** Noninteractive wire index and clickable initial ket share one scalable Register gutter. */
+    wireIndexRect(wireIndex) {
+        return new Rect(Layout.REGISTER_MARGIN,
+            this.wireRect(wireIndex).center().y - Layout.REGISTER_HEIGHT / 2,
+            Layout.REGISTER_INDEX_WIDTH, Layout.REGISTER_HEIGHT);
+    }
+
+    wireInitialStateRect(wireIndex) {
+        const index = this.wireIndexRect(wireIndex);
+        return new Rect(index.right() + Layout.REGISTER_MARGIN, index.y,
+            Layout.REGISTER_KET_WIDTH, index.h);
+    }
+
     /**
      * @param {!int} operationIndex
      * @returns {Rect!}
@@ -171,10 +184,22 @@ class CircuitGeometry {
         let r = new Rect(
             op.center().x - Layout.GATE_RADIUS,
             wire.center().y - Layout.GATE_RADIUS,
-            2*Layout.GATE_RADIUS + (width-1)*Layout.WIRE_SPACING,
+            2*Layout.GATE_RADIUS + (width-1)*Layout.COLUMN_SPACING,
             2*Layout.GATE_RADIUS + (height-1)*Layout.WIRE_SPACING);
 
         return new Rect(Math.round(r.x - 0.5) + 0.5, Math.round(r.y - 0.5) + 0.5, Math.round(r.w), Math.round(r.h));
+    }
+
+    /** The Bloch display reserves space around the sphere for axes and below it for the readout. */
+    static blochDisplayRect(gateRect) {
+        let c = gateRect.center();
+        let half = Layout.BLOCH_RADIUS + Layout.BLOCH_LABEL_MARGIN;
+        return new Rect(c.x - half, c.y - half, 2 * half, 2 * half + Layout.BLOCH_READOUT_HEIGHT);
+    }
+
+    gateDrawRect(row, col, gate) {
+        let rect = this.gateRect(row, col, gate.width, gate.height);
+        return gate.serializedId === 'Bloch' ? CircuitGeometry.blochDisplayRect(rect) : rect;
     }
 
     /**
@@ -193,3 +218,10 @@ class CircuitGeometry {
 }
 
 export {CircuitGeometry}
+
+export function gateButtonRect(wholeRect) {
+    if (wholeRect.h > 50) {
+        return wholeRect.bottomHalf().skipTop(6).paddedBy(-7);
+    }
+    return wholeRect.bottomHalf().paddedBy(+2);
+}

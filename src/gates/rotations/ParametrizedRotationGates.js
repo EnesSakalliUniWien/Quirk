@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-import {Palette} from "../../config/Palette.js"
-import {GateBuilder} from "../../circuit/Gate.js"
+import {GateBuilder} from "../../circuit/model/Gate.js"
 import {GatePainting} from "../../draw/GatePainting.js"
 import {Matrix} from "../../math/Matrix.js"
-import {ketArgs, ketShader, ketShaderPhase, ketInputGateShaderCode} from "../../circuit/KetShaderUtil.js"
+import {ketArgs, ketShader, ketShaderPhase, ketInputGateShaderCode} from "../../circuit/simulation/gpu/KetShaderUtil.js"
 import {WglArg} from "../../webgl/WglArg.js"
 import {Util} from "../../base/Util.js";
 import {XExp, YExp, ZExp} from "./ExponentiatingGates.js";
@@ -36,17 +35,17 @@ function configurableRotationDrawer(pattern, xyz, tScale) {
     let xScale = [1, 0.5, -1][xyz];
     let yScale = [1, 1, -0.5][xyz];
     return args => {
-        GatePainting.paintBackground(args, Palette.TIME_DEPENDENT_HIGHLIGHT_COLOR);
+        GatePainting.paintBackground(args);
         GatePainting.paintOutline(args);
         let text = pattern.split('f(t)').join(args.gate.param);
         GatePainting.paintGateSymbol(args, text, pattern.indexOf('^') !== -1);
-        GatePainting.paintGateButton(args);
 
         let isStable = args.gate.stableDuration() === Infinity;
         if (!isStable) {
             let rads = tScale * parseTimeFormula(args.gate.param, args.stats.time*2, false) || 0;
             GatePainting.paintCycleState(args, rads, xScale, yScale);
         }
+        GatePainting.paintGateButton(args);
     };
 }
 

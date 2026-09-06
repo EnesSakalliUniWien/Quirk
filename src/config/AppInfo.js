@@ -19,7 +19,7 @@
  */
 class AppInfo {}
 
-AppInfo.EMPTY_CIRCUIT_TITLE = 'Shadow-Quant: Quantum Circuit Simulator';
-AppInfo.URL_CIRCUIT_PARAM_KEY = 'circuit';
+AppInfo.EMPTY_CIRCUIT_TITLE = "Shadow-Quant: Quantum Circuit Simulator";
+AppInfo.URL_CIRCUIT_PARAM_KEY = "circuit";
 
-export {AppInfo}
+export { AppInfo };

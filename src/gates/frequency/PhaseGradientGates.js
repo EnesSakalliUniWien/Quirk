@@ -15,9 +15,9 @@
  */
 
 import {Simulation} from "../../config/Simulation.js"
-import {Gate} from "../../circuit/Gate.js"
+import {Gate} from "../../circuit/model/Gate.js"
 import {GatePainting} from "../../draw/GatePainting.js"
-import {ketArgs, ketShaderPhase} from "../../circuit/KetShaderUtil.js"
+import {ketArgs, ketShaderPhase} from "../../circuit/simulation/gpu/KetShaderUtil.js"
 import {MUL_STEP} from "../arithmetic/MultiplyAccumulateGates.js"
 import {WglArg} from "../../webgl/WglArg.js"
 import {Matrix} from "../../math/Matrix.js";

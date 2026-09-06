@@ -14,54 +14,33 @@
  * limitations under the License.
  */
 
-import {CIRCUIT_OP_HORIZONTAL_SPACING, CIRCUIT_OP_LEFT_SPACING} from "./CircuitLayoutConstants.js"
-import {
-    findBlochSphereContaining,
-    findGateOverlappingPos,
-    findGateWithButtonContaining,
-    findModificationIndex,
-    findModificationIndex_helperColRow,
-    findOpHalfColumnAt,
-    findWireWithInitialStateAreaContaining,
-    indexOfDisplayedColumnAt,
-    indexOfDisplayedRowAt,
-    toColumnSpaceCoordinate,
-    wireIndexAt,
-    wireInitialStateClickableRect,
-} from "./CircuitHitTesting.js"
-import {
-    afterDropping,
-    previewDrop,
-    tryClick,
-    tryGrab,
-    withJustEnoughWires,
-} from "./CircuitEditing.js"
-import {paintCircuit} from "./CircuitPainting.js"
-import {CachablePainting} from "../draw/CachablePainting.js"
-import {CircuitDefinition} from "../circuit/CircuitDefinition.js"
-import {CircuitGeometry} from "./CircuitGeometry.js"
-import {setCustomGateCircuitDrawer} from "../draw/CustomGateCircuitDrawer.js"
-import {CircuitStats} from "../circuit/CircuitStats.js"
-import {Layout} from "../config/Layout.js"
-import {Palette} from "../config/Palette.js"
-import {Simulation} from "../config/Simulation.js"
-import {Typography} from "../config/Typography.js"
-import {DetailedError} from "../base/DetailedError.js"
-import {equate} from "../base/Equate.js"
-import {Format} from "../base/Format.js"
-import {GateColumn} from "../circuit/GateColumn.js"
-import {GateDrawParams} from "../draw/GateDrawParams.js"
-import {GatePainting} from "../draw/GatePainting.js"
-import {Hand} from "./Hand.js"
-import {MathPainter} from "../draw/MathPainter.js"
-import {Point} from "../math/Point.js"
-import {Matrix} from "../math/Matrix.js"
-import {Rect} from "../math/Rect.js"
-import {Util} from "../base/Util.js"
-import {seq, Seq} from "../base/Seq.js"
-import {paintBlochSphereDisplay} from "../gates/displays/BlochSphereDisplay.js"
+import {rectangle} from '../draw/pixi/ShapeView.js';
 
+/** @typedef {import('../draw/pixi/DisplayView.js').DisplayView} DisplayView */
 
+import {CIRCUIT_OP_LEFT_SPACING} from './CircuitLayoutConstants.js';
+import {findBlochSphereContaining, findGateOverlappingPos, findGateWithButtonContaining, findWireWithInitialStateAreaContaining, indexOfDisplayedRowAt} from './CircuitHitTesting.js';
+import {afterDropping, previewDrop, tryClick, tryGrab, withJustEnoughWires} from './CircuitEditing.js';
+import {paintCircuit} from './CircuitPainting.js';
+
+import {CircuitDefinition} from '../circuit/model/CircuitDefinition.js';
+import {CircuitGeometry} from './CircuitGeometry.js';
+import {setCustomGateCircuitDrawer} from '../draw/CustomGateCircuitDrawer.js';
+import {CircuitStats} from '../circuit/simulation/CircuitStats.js';
+import {Layout} from '../config/Layout.js';
+import {CanvasTheme} from '../config/CanvasTheme.js';
+import {Simulation} from '../config/Simulation.js';
+
+import {DetailedError} from '../base/DetailedError.js';
+import {equate} from '../base/Equate.js';
+
+import {GatePainting} from '../draw/GatePainting.js';
+import {Hand} from './Hand.js';
+
+import {Point} from '../math/Point.js';
+import {Matrix} from '../math/Matrix.js';
+
+import {seq, Seq} from '../base/Seq.js';
 
 class DisplayedCircuit {
     /**
@@ -214,13 +193,6 @@ class DisplayedCircuit {
         return this.geometry().wireRect(wireIndex);
     }
 
-
-
-
-
-
-
-
     /**
      * @param {!int} operationIndex
      * @returns {Rect!}
@@ -289,7 +261,7 @@ class DisplayedCircuit {
     }
 
     /**
-     * @param {!Painter} painter
+     * @param {!DisplayView} painter
      * @param {!Hand} hand
      * @param {!CircuitStats} stats
      * @param {!boolean=false} forTooltip
@@ -315,8 +287,6 @@ class DisplayedCircuit {
             this._extraWireStartIndex === other._extraWireStartIndex &&
             equate(this._highlightedSlot, other._highlightedSlot);
     }
-
-
 
     /**
      * @param {!int} col
@@ -364,12 +334,6 @@ class DisplayedCircuit {
 
         return {isHighlighted, isResizeShowing, isResizeHighlighted};
     }
-
-
-
-
-
-
 
     /**
      * @param {!Hand} hand
@@ -501,8 +465,6 @@ class DisplayedCircuit {
         return this.geometry().clampedCircuitColCount();
     }
 
-
-
     /**
      * @param {!CircuitStats} stats
      * @returns {!Matrix}
@@ -522,9 +484,6 @@ class DisplayedCircuit {
         //noinspection JSCheckFunctionSignatures
         return new Matrix(colCount, rowCount, buf);
     }
-
-
-
 
     /**
      * Parses a text diagram of a circuit, with positions marked by numbers, into a displayed circuit and a list of the
@@ -577,7 +536,8 @@ class DisplayedCircuit {
                     pos.col += 1;
                 }
                 return new Point(
-                    pos.col * Layout.WIRE_SPACING / 2 + 35.5,
+                    pos.col * Layout.COLUMN_SPACING / 2 + CIRCUIT_OP_LEFT_SPACING +
+                        Layout.GATE_RADIUS - Layout.COLUMN_SPACING / 2 + Layout.UNIT * 0.2 + 0.5,
                     pos.row * Layout.WIRE_SPACING / 2 + 10.5);
             }).toArray();
         return {circuit, pts};
@@ -585,7 +545,7 @@ class DisplayedCircuit {
 }
 
 /**
- * @param {!Painter} painter
+ * @param {!DisplayView} painter
  * @param {!CircuitDefinition} circuitDefinition
  * @param {!Rect} rect
  * @param {!boolean} showWires
@@ -609,20 +569,11 @@ function drawCircuitTooltip(painter, circuitDefinition, rect, showWires, time) {
         scaleY = s;
     }
     let stats = CircuitStats.withNanDataFromCircuitAtTime(circuitDefinition, time);
-    try {
-        painter.ctx.save();
-        painter.ctx.translate(rect.x, rect.y);
-        painter.ctx.scale(Math.min(1, scaleX), Math.min(1, scaleY));
-        painter.ctx.translate(0, 0);
-        displayed.paint(
-            painter,
-            Hand.EMPTY,
-            stats,
-            true,
-            showWires);
-    } finally {
-        painter.ctx.restore();
-    }
+    painter.group('circuit-preview', painter => {
+        painter.position.set(rect.x, rect.y);
+        painter.scale.set(Math.min(1, scaleX), Math.min(1, scaleY));
+        displayed.paint(painter, Hand.EMPTY, stats, true, showWires);
+    });
     return {maxW: neededWidth*scaleX, maxH: neededHeight*scaleY};
 }
 
@@ -641,22 +592,21 @@ let GATE_CIRCUIT_DRAWER = args => {
     }
 
     let toolboxColor = args.gate.stableDuration() === Infinity ?
-        Palette.GATE_FILL_COLOR :
-        Palette.TIME_DEPENDENT_HIGHLIGHT_COLOR;
+        CanvasTheme.surface.gate :
+        CanvasTheme.gate.time;
     GatePainting.paintBackground(args, toolboxColor);
     drawCircuitTooltip(args.painter, args.gate.knownCircuitNested, args.rect, false, args.stats.time);
     GatePainting.paintOutline(args);
     if (args.isHighlighted) {
-        args.painter.ctx.save();
-        args.painter.ctx.globalAlpha *= 0.9;
-        args.painter.fillRect(args.rect, Palette.HIGHLIGHTED_GATE_FILL_COLOR);
-        args.painter.ctx.restore();
+        args.painter.group('hover-' + args.painter.order, painter => {
+            painter.alpha *= 0.9;
+            rectangle(painter, args.rect, {
+                fill: CanvasTheme.gate.hover
+            });
+        });
     }
     GatePainting.paintOutline(args);
 };
-
-
-
 
 // Deposited rather than imported by the serializer, because this module (via CircuitStats)
 // imports the serializer right back.

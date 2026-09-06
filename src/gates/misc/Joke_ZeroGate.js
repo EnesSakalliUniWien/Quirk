@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import {Palette} from "../../config/Palette.js"
-import {GateBuilder} from "../../circuit/Gate.js"
+import {CanvasTheme} from "../../config/CanvasTheme.js"
+import {GateBuilder} from "../../circuit/model/Gate.js"
 import {GatePainting} from "../../draw/GatePainting.js"
 import {Matrix} from "../../math/Matrix.js"
 
@@ -24,7 +24,7 @@ const ZeroGate = new GateBuilder().
     setSerializedIdAndSymbol("0").
     setTitle("Nothing Gate").
     setBlurb("Destroys the universe.").
-    setDrawer(GatePainting.makeLocationIndependentGateDrawer(Palette.MUTED_TEXT_COLOR)).
+    setDrawer(GatePainting.makeLocationIndependentGateDrawer(CanvasTheme.text.muted)).
     setKnownEffectToMatrix(Matrix.square(0, 0, 0, 0)).
     gate;
 

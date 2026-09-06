@@ -18,9 +18,9 @@ import {Suite} from "../../TestUtil.js"
 import {BitCountGates} from "../../../src/gates/arithmetic/BitCountGates.js"
 import {InputGates} from "../../../src/gates/inputs/InputGates.js"
 import {assertThatCircuitUpdateActsLikeMatrix} from "../../CircuitOperationTestUtil.js"
-import {advanceStateWithCircuit} from "../../../src/circuit/CircuitComputeUtil.js"
+import {advanceStateWithCircuit} from "../../../src/circuit/simulation/CircuitComputeUtil.js"
 
-import {CircuitDefinition} from "../../../src/circuit/CircuitDefinition.js"
+import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js"
 import {Matrix} from "../../../src/math/Matrix.js"
 import {Util} from "../../../src/base/Util.js"
 

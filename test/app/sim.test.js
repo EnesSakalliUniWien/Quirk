@@ -15,7 +15,7 @@
  */
 
 import {Suite, assertThat, assertTrue, assertFalse} from "../TestUtil.js"
-import {CircuitDefinition} from "../../src/circuit/CircuitDefinition.js"
+import {CircuitDefinition} from "../../src/circuit/model/CircuitDefinition.js"
 import {Gates} from "../../src/gates/AllGates.js"
 import {Simulation} from "../../src/config/Simulation.js"
 import {Simulator} from "../../src/app/sim.js"

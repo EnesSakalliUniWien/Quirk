@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-import {Palette} from "../../config/Palette.js"
-import {GateBuilder} from "../../circuit/Gate.js"
-import {GatePainting} from "../../draw/GatePainting.js"
-import {Rect} from "../../math/Rect.js"
+import {rectangle, circle} from '../../draw/pixi/ShapeView.js';
+
+import {CanvasTheme} from '../../config/CanvasTheme.js';
+import {GateBuilder} from '../../circuit/model/Gate.js';
+import {GatePainting} from '../../draw/GatePainting.js';
+import {Rect} from '../../math/Rect.js';
 
 let SpacerGate = new GateBuilder().
     setSerializedIdAndSymbol("…").
@@ -28,17 +30,17 @@ let SpacerGate = new GateBuilder().
     setDrawer(args => {
         // Drawn as an ellipsis.
         if (args.isHighlighted) {
-            args.painter.fillRect(args.rect, Palette.HIGHLIGHTED_GATE_FILL_COLOR);
+            rectangle(args.painter, args.rect, {fill: CanvasTheme.gate.hover});
             GatePainting.paintOutline(args);
         } else {
             // Whitespace for the ellipsis.
             let {x, y} = args.rect.center();
             let r = new Rect(x - 14, y - 2, 28, 4);
-            args.painter.fillRect(r, Palette.BACKGROUND_COLOR_CIRCUIT);
+            rectangle(args.painter, r, {fill: CanvasTheme.surface.background});
         }
-        args.painter.fillCircle(args.rect.center().offsetBy(7, 0), 2, Palette.INK_COLOR);
-        args.painter.fillCircle(args.rect.center(), 2, Palette.INK_COLOR);
-        args.painter.fillCircle(args.rect.center().offsetBy(-7, 0), 2, Palette.INK_COLOR);
+        circle(args.painter, args.rect.center().offsetBy(7, 0), 2, {fill: CanvasTheme.text.primary});
+        circle(args.painter, args.rect.center(), 2, {fill: CanvasTheme.text.primary});
+        circle(args.painter, args.rect.center().offsetBy(-7, 0), 2, {fill: CanvasTheme.text.primary});
     }).
     gate;
 

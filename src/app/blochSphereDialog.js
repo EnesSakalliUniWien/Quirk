@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-import {Palette} from "../config/Palette.js"
-import {Typography} from "../config/Typography.js"
+import {drawBlochScene, projectPoint} from "../draw/pixi/displays/BlochScene.js"
 
 /**
  * The enlarged Bloch sphere view: clicking any Bloch sphere on the canvas opens this dialog,
@@ -27,7 +26,6 @@ import {Typography} from "../config/Typography.js"
 const DEFAULT_YAW = Math.PI * -0.15;
 const DEFAULT_PITCH = Math.PI * 0.11;
 // The sphere fills this fraction of the canvas; the rest is room for the axis labels.
-const SPHERE_CANVAS_FRACTION = 0.72;
 const PURE_STATE_THRESHOLD = 0.999;
 
 /**
@@ -67,178 +65,6 @@ function pureStateText(theta, phi) {
     let bi = Math.sin(theta / 2) * Math.sin(phi);
     let sign = v => (v >= 0 ? '+' : '-') + Math.abs(v).toFixed(3);
     return `${a.toFixed(3)} |0⟩ + (${sign(br)}${sign(bi)}i) |1⟩`;
-}
-
-/**
- * Orthographic projection of a scene point through the view rotation. Depth is positive toward
- * the viewer, so positive-depth strokes draw as the front of the sphere.
- * @param {!number} x
- * @param {!number} y
- * @param {!number} z
- * @param {!number} yaw
- * @param {!number} pitch
- * @returns {!{sx: !number, sy: !number, depth: !number}} Unit-sphere screen offsets (y up).
- */
-function projectPoint(x, y, z, yaw, pitch) {
-    let cy = Math.cos(yaw);
-    let sy = Math.sin(yaw);
-    let right = -x * sy + y * cy;
-    let toward = x * cy + y * sy;
-    let cp = Math.cos(pitch);
-    let sp = Math.sin(pitch);
-    return {
-        sx: right,
-        sy: z * cp + toward * sp,
-        depth: toward * cp - z * sp,
-    };
-}
-
-/**
- * Strokes one great circle of the sphere in two passes: the part facing the viewer solid, the
- * part behind dashed and dimmer, which is most of the view's depth cue.
- * @param {!CanvasRenderingContext2D} ctx
- * @param {!function(!number): !Array.<!number>} pointAt Maps an angle to a scene point.
- * @param {!number} cx
- * @param {!number} cy
- * @param {!number} scale
- * @param {!number} yaw
- * @param {!number} pitch
- */
-function strokeGreatCircle(ctx, pointAt, cx, cy, scale, yaw, pitch) {
-    for (let front of [false, true]) {
-        ctx.beginPath();
-        ctx.strokeStyle = front ? Palette.MID_LINE_COLOR : Palette.FAINT_LINE_COLOR;
-        ctx.setLineDash(front ? [] : [3, 4]);
-        let penDown = false;
-        for (let i = 0; i <= 120; i++) {
-            let [x, y, z] = pointAt(i * Math.PI * 2 / 120);
-            let p = projectPoint(x, y, z, yaw, pitch);
-            if ((p.depth >= 0) === front) {
-                let px = cx + p.sx * scale;
-                let py = cy - p.sy * scale;
-                if (penDown) {
-                    ctx.lineTo(px, py);
-                } else {
-                    ctx.moveTo(px, py);
-                    penDown = true;
-                }
-            } else {
-                penDown = false;
-            }
-        }
-        ctx.stroke();
-    }
-    ctx.setLineDash([]);
-}
-
-/**
- * @param {!HTMLCanvasElement} canvas
- * @param {undefined|!{x: !number, y: !number, z: !number}} vec undefined paints the NaN state.
- * @param {!number} yaw
- * @param {!number} pitch
- */
-function drawBlochScene(canvas, vec, yaw, pitch) {
-    let cssSize = canvas.clientWidth;
-    if (cssSize === 0) {
-        return;
-    }
-    let dpr = window.devicePixelRatio || 1;
-    let backing = Math.round(cssSize * dpr);
-    if (canvas.width !== backing || canvas.height !== backing) {
-        canvas.width = backing;
-        canvas.height = backing;
-    }
-    let ctx = canvas.getContext('2d');
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, cssSize, cssSize);
-
-    let cx = cssSize / 2;
-    let cy = cssSize / 2;
-    let scale = cssSize * SPHERE_CANVAS_FRACTION / 2;
-    let project = (x, y, z) => {
-        let p = projectPoint(x, y, z, yaw, pitch);
-        return {x: cx + p.sx * scale, y: cy - p.sy * scale, depth: p.depth};
-    };
-
-    // The shell.
-    ctx.fillStyle = Palette.DISPLAY_GATE_BACK_COLOR;
-    ctx.strokeStyle = Palette.MID_LINE_COLOR;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.arc(cx, cy, scale, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-
-    // The equator and the two meridians through the axis poles.
-    strokeGreatCircle(ctx, t => [Math.cos(t), Math.sin(t), 0], cx, cy, scale, yaw, pitch);
-    strokeGreatCircle(ctx, t => [Math.cos(t), 0, Math.sin(t)], cx, cy, scale, yaw, pitch);
-    strokeGreatCircle(ctx, t => [0, Math.cos(t), Math.sin(t)], cx, cy, scale, yaw, pitch);
-
-    // The axes, with their basis-state kets on the tips and the axis letters on the positive ones.
-    let axes = [
-        {dir: [1, 0, 0], ket: '|+⟩', letter: 'x'},
-        {dir: [-1, 0, 0], ket: '|−⟩', letter: undefined},
-        {dir: [0, 1, 0], ket: '|+i⟩', letter: 'y'},
-        {dir: [0, -1, 0], ket: '|−i⟩', letter: undefined},
-        {dir: [0, 0, 1], ket: '|0⟩', letter: 'z'},
-        {dir: [0, 0, -1], ket: '|1⟩', letter: undefined},
-    ];
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    for (let axis of axes) {
-        let [x, y, z] = axis.dir;
-        let tip = project(x, y, z);
-        ctx.strokeStyle = tip.depth >= 0 ? Palette.MID_LINE_COLOR : Palette.FAINT_LINE_COLOR;
-        ctx.setLineDash(tip.depth >= 0 ? [] : [3, 4]);
-        ctx.beginPath();
-        ctx.moveTo(cx, cy);
-        ctx.lineTo(tip.x, tip.y);
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        let label = project(x * 1.22, y * 1.22, z * 1.22);
-        ctx.fillStyle = tip.depth >= 0 ? Palette.INK_COLOR : Palette.MUTED_TEXT_COLOR;
-        ctx.font = `13px ${Typography.MONO_FONT_FAMILY}`;
-        ctx.fillText(axis.ket, label.x, label.y);
-        if (axis.letter !== undefined) {
-            ctx.fillStyle = Palette.MUTED_TEXT_COLOR;
-            ctx.font = `11px ${Typography.MONO_FONT_FAMILY}`;
-            ctx.fillText(axis.letter, label.x, label.y + 14);
-        }
-    }
-
-    if (vec === undefined) {
-        ctx.fillStyle = Palette.ERROR_COLOR;
-        ctx.font = `14px ${Typography.MONO_FONT_FAMILY}`;
-        ctx.fillText('NaN', cx, cy);
-        return;
-    }
-
-    // The state vector, with a dashed drop line to the equator plane as its depth guide.
-    let tip = project(vec.x, vec.y, vec.z);
-    let foot = project(vec.x, vec.y, 0);
-    ctx.strokeStyle = Palette.MUTED_TEXT_COLOR;
-    ctx.setLineDash([3, 4]);
-    ctx.beginPath();
-    ctx.moveTo(tip.x, tip.y);
-    ctx.lineTo(foot.x, foot.y);
-    ctx.lineTo(cx, cy);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    ctx.strokeStyle = Palette.DISPLAY_GATE_FORE_COLOR;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(cx, cy);
-    ctx.lineTo(tip.x, tip.y);
-    ctx.stroke();
-    ctx.lineWidth = 1;
-    ctx.fillStyle = Palette.DISPLAY_GATE_FORE_COLOR;
-    ctx.beginPath();
-    ctx.arc(tip.x, tip.y, 5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = Palette.INK_COLOR;
-    ctx.stroke();
 }
 
 /**

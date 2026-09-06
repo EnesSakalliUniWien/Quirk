@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-import {GateBuilder} from "../../circuit/Gate.js"
-import {GatePainting} from "../../draw/GatePainting.js"
-import {GateShaders} from "../../circuit/GateShaders.js"
-import {HalfTurnGates} from "../rotations/HalfTurnGates.js"
-import {QuarterTurnGates} from "../rotations/QuarterTurnGates.js"
-import {Palette} from "../../config/Palette.js"
-import {Simulation} from "../../config/Simulation.js"
-import {ketArgs, ketShaderPermute} from "../../circuit/KetShaderUtil.js";
-import {WglArg} from "../../webgl/WglArg.js";
-import {Util} from "../../base/Util.js";
+import {fitLine} from '../../draw/pixi/TextLayout.js';
+import {circle, strokePath, rectangle} from '../../draw/pixi/ShapeView.js';
+
+import {GateBuilder} from '../../circuit/model/Gate.js';
+import {GatePainting} from '../../draw/GatePainting.js';
+import {GateShaders} from '../../circuit/simulation/gpu/GateShaders.js';
+import {HalfTurnGates} from '../rotations/HalfTurnGates.js';
+import {QuarterTurnGates} from '../rotations/QuarterTurnGates.js';
+import {CanvasTheme} from '../../config/CanvasTheme.js';
+import {Simulation} from '../../config/Simulation.js';
+import {ketArgs, ketShaderPermute} from '../../circuit/simulation/gpu/KetShaderUtil.js';
+import {WglArg} from '../../webgl/WglArg.js';
+import {Util} from '../../base/Util.js';
 
 let Controls = {};
 
@@ -39,7 +42,7 @@ Controls.Control = new GateBuilder().
             GatePainting.paintBackground(args);
             GatePainting.paintOutline(args);
         }
-        args.painter.fillCircle(args.rect.center(), 5, Palette.INK_COLOR);
+        circle(args.painter, args.rect.center(), 5, {fill: CanvasTheme.text.primary});
     }).
     gate;
 
@@ -57,8 +60,8 @@ Controls.AntiControl = new GateBuilder().
             GatePainting.paintOutline(args);
         }
         let p = args.rect.center();
-        args.painter.fillCircle(p, 5);
-        args.painter.strokeCircle(p, 5);
+        circle(args.painter, p, 5, {fill: CanvasTheme.surface.gate});
+        circle(args.painter, p, 5, {stroke: {color: CanvasTheme.text.primary, width: 1}});
     }).
     gate;
 
@@ -81,9 +84,9 @@ Controls.XAntiControl = new GateBuilder().
             GatePainting.paintOutline(args);
         }
         let p = args.rect.center();
-        args.painter.fillCircle(p, 5);
-        args.painter.strokeCircle(p, 5);
-        args.painter.strokeLine(p.offsetBy(-5, 0), p.offsetBy(+5, 0));
+        circle(args.painter, p, 5, {fill: CanvasTheme.surface.gate});
+        circle(args.painter, p, 5, {stroke: {color: CanvasTheme.text.primary, width: 1}});
+        strokePath(args.painter, [p.offsetBy(-5, 0), p.offsetBy(+5, 0)], CanvasTheme.text.primary, 1);
     }).
     gate;
 
@@ -107,10 +110,10 @@ Controls.XControl = new GateBuilder().
             GatePainting.paintOutline(args);
         }
         let p = args.rect.center();
-        args.painter.fillCircle(p, 5);
-        args.painter.strokeCircle(p, 5);
-        args.painter.strokeLine(p.offsetBy(0, -5), p.offsetBy(0, +5));
-        args.painter.strokeLine(p.offsetBy(-5, 0), p.offsetBy(+5, 0));
+        circle(args.painter, p, 5, {fill: CanvasTheme.surface.gate});
+        circle(args.painter, p, 5, {stroke: {color: CanvasTheme.text.primary, width: 1}});
+        strokePath(args.painter, [p.offsetBy(0, -5), p.offsetBy(0, +5)], CanvasTheme.text.primary, 1);
+        strokePath(args.painter, [p.offsetBy(-5, 0), p.offsetBy(+5, 0)], CanvasTheme.text.primary, 1);
     }).
     gate;
 
@@ -133,10 +136,10 @@ Controls.YAntiControl = new GateBuilder().
             GatePainting.paintOutline(args);
         }
         let p = args.rect.center();
-        args.painter.fillCircle(p, 5);
-        args.painter.strokeCircle(p, 5);
+        circle(args.painter, p, 5, {fill: CanvasTheme.surface.gate});
+        circle(args.painter, p, 5, {stroke: {color: CanvasTheme.text.primary, width: 1}});
         let r = 5*Math.sqrt(0.5)*1.1;
-        args.painter.strokeLine(p.offsetBy(+r, -r), p.offsetBy(-r, +r));
+        strokePath(args.painter, [p.offsetBy(+r, -r), p.offsetBy(-r, +r)], CanvasTheme.text.primary, 1);
         if (args.isHighlighted) {
             GatePainting.paintOutline(args);
         }
@@ -223,11 +226,19 @@ function parityDrawer(name) {
             GatePainting.paintOutline(args);
         }
         let center = args.rect.paddedBy(-10);
-        args.painter.fillRect(center);
-        args.painter.strokeRect(center);
-        args.painter.fillRect(center.paddedBy(-4).skipBottom(-6).skipTop(-6));
-        args.painter.printLine(name, center, 0.5, undefined, undefined, undefined, 0);
-        args.painter.printLine('par', center, 0.5, Palette.ERROR_COLOR, 10, undefined, 1);
+        rectangle(args.painter, center, {fill: CanvasTheme.surface.gate});
+        rectangle(args.painter, center, {stroke: {color: CanvasTheme.text.primary, width: 1}});
+        rectangle(args.painter, center.paddedBy(-4).skipBottom(-6).skipTop(-6), {fill: CanvasTheme.surface.gate});
+        fitLine(args.painter, name, center, {
+            horizontal: 0.5,
+            vertical: 0
+        });
+        fitLine(args.painter, 'par', center, {
+            horizontal: 0.5,
+            fill: CanvasTheme.error.text,
+            maxFontSize: 10,
+            vertical: 1
+        });
     }
 }
 

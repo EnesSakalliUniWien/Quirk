@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-import {Palette} from "../../config/Palette.js"
-import {Gate, GateBuilder} from "../../circuit/Gate.js"
-import {GatePainting} from "../../draw/GatePainting.js"
-import {Matrix} from "../../math/Matrix.js"
-import {Point} from "../../math/Point.js"
-import {ketArgs} from "../../circuit/KetShaderUtil.js"
-import {WglArg} from "../../webgl/WglArg.js"
+import {polygon, strokePath, rectangle} from '../../draw/pixi/ShapeView.js';
 
-import {offsetShader} from "../arithmetic/IncrementGates.js"
-import {makeCycleBitsPermutation, cycleBitsShader} from "./CycleBitsGates.js"
+import {CanvasTheme} from '../../config/CanvasTheme.js';
+import {Gate, GateBuilder} from '../../circuit/model/Gate.js';
+import {GatePainting} from '../../draw/GatePainting.js';
+import {Matrix} from '../../math/Matrix.js';
+import {Point} from '../../math/Point.js';
+import {ketArgs} from '../../circuit/simulation/gpu/KetShaderUtil.js';
+import {WglArg} from '../../webgl/WglArg.js';
+
+import {offsetShader} from '../arithmetic/IncrementGates.js';
+import {makeCycleBitsPermutation, cycleBitsShader} from './CycleBitsGates.js';
 
 let CountingGates = {};
 
@@ -42,7 +44,7 @@ const staircaseCurve = steps => {
 };
 
 let STAIRCASE_DRAWER = (timeOffset, steps, flip=false) => args => {
-    GatePainting.MAKE_HIGHLIGHTED_DRAWER(Palette.TIME_DEPENDENT_HIGHLIGHT_COLOR)(args);
+    GatePainting.MAKE_HIGHLIGHTED_DRAWER(CanvasTheme.gate.time)(args);
 
     let t = (args.stats.time + timeOffset) % 1;
     let yOn = args.rect.y + 3;
@@ -63,18 +65,26 @@ let STAIRCASE_DRAWER = (timeOffset, steps, flip=false) => args => {
     curve.push(...staircaseCurve(steps).map(p => new Point(xt(p.x + 1 - t), yt(p.y))));
     curve.push(new Point(xf, yNeutral));
 
-    args.painter.ctx.save();
-    args.painter.ctx.globalAlpha *= 0.3;
-    args.painter.fillPolygon(curve, Palette.HIGHLIGHT_FILL_COLOR);
-    for (let i = 1; i < curve.length - 2; i++) {
-        args.painter.strokeLine(curve[i], curve[i+1], Palette.INK_COLOR);
-    }
-    if (steps === 2 && t < 0.5) {
-        args.painter.fillRect(args.rect, Palette.GATE_FILL_COLOR);
-        args.painter.fillRect(args.rect, Palette.GATE_FILL_COLOR);
-        args.painter.fillRect(args.rect, Palette.GATE_FILL_COLOR);
-    }
-    args.painter.ctx.restore();
+    args.painter.group('counting-curve-' + args.painter.order, painter => {
+        painter.alpha *= 0.3;
+        polygon(painter, curve, {
+            fill: CanvasTheme.operation.fill
+        });
+        for (let i = 1; i < curve.length - 2; i++) {
+            strokePath(painter, [curve[i], curve[i + 1]], CanvasTheme.text.primary, 1);
+        }
+        if (steps === 2 && t < 0.5) {
+            rectangle(painter, args.rect, {
+                fill: CanvasTheme.surface.gate
+            });
+            rectangle(painter, args.rect, {
+                fill: CanvasTheme.surface.gate
+            });
+            rectangle(painter, args.rect, {
+                fill: CanvasTheme.surface.gate
+            });
+        }
+    });
 };
 
 /**

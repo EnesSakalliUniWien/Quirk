@@ -14,7 +14,7 @@
         background: transparent;
         border: 0;
         border-radius: 6px;
-        color: color-mix(in oklch, var(--sidebar-foreground), transparent 40%);
+        color: var(--sidebar-muted);
         cursor: pointer;
         font-size: var(--text-caption);
         font-weight: 650;
@@ -29,7 +29,7 @@
 
     .gate-group-toggle:focus-visible {
         color: var(--sidebar-foreground);
-        outline: 3px solid color-mix(in oklch, var(--sidebar-ring), transparent 48%);
+        outline: 3px solid var(--focus-outline);
         outline-offset: 2px;
     }
 

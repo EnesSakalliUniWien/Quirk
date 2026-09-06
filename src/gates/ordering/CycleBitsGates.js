@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-import {Layout} from "../../config/Layout.js"
-import {Gate} from "../../circuit/Gate.js"
-import {GatePainting} from "../../draw/GatePainting.js"
-import {ketArgs, ketShaderPermute} from "../../circuit/KetShaderUtil.js"
-import {Matrix} from "../../math/Matrix.js"
-import {Point} from "../../math/Point.js"
-import {Util} from "../../base/Util.js"
-import {WglArg} from "../../webgl/WglArg.js"
-import {WglConfiguredShader} from "../../webgl/WglConfiguredShader.js"
+import {CanvasTheme} from '../../config/CanvasTheme.js';
+import {strokePath} from '../../draw/pixi/ShapeView.js';
+
+import {Layout} from '../../config/Layout.js';
+import {Gate} from '../../circuit/model/Gate.js';
+import {GatePainting} from '../../draw/GatePainting.js';
+import {ketArgs, ketShaderPermute} from '../../circuit/simulation/gpu/KetShaderUtil.js';
+import {Matrix} from '../../math/Matrix.js';
+import {Point} from '../../math/Point.js';
+import {Util} from '../../base/Util.js';
+import {WglArg} from '../../webgl/WglArg.js';
 
 let CycleBitsGates = {};
 
@@ -65,12 +67,12 @@ let cyclePainter = reverse => args => {
         let j = (i + (reverse ? 2 : 1)) % 3;
         let y1 = y + i*dh;
         let y2 = y + j*dh;
-        args.painter.strokePath([
+        strokePath(args.painter, [
             new Point(x1, y1),
             new Point(x1 + 8, y1),
             new Point(x2 - 8, y2),
             new Point(x2, y2)
-        ]);
+        ], CanvasTheme.text.primary, 1);
     }
 };
 

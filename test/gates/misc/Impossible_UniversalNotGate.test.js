@@ -15,11 +15,11 @@
  */
 
 import {Suite, assertThat} from "../../TestUtil.js"
-import {CircuitEvalContext} from "../../../src/circuit/CircuitEvalContext.js"
-import {CircuitShaders} from "../../../src/circuit/CircuitShaders.js"
+import {CircuitEvalContext} from "../../../src/circuit/simulation/CircuitEvalContext.js"
+import {CircuitShaders} from "../../../src/circuit/simulation/gpu/CircuitShaders.js"
 import {universalNot} from "../../../src/gates/misc/Impossible_UniversalNotGate.js"
 
-import {Controls} from "../../../src/circuit/Controls.js"
+import {Controls} from "../../../src/circuit/model/Controls.js"
 import {Shaders} from "../../../src/webgl/Shaders.js"
 import {WglTextureTrader} from "../../../src/webgl/WglTextureTrader.js"
 

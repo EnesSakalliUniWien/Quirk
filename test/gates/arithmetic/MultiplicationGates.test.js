@@ -16,7 +16,7 @@
 
 import {Suite} from "../../TestUtil.js"
 import {Gates} from "../../../src/gates/AllGates.js"
-import {CircuitDefinition} from "../../../src/circuit/CircuitDefinition.js"
+import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js"
 import {modularMultiply, modularUnmultiply} from "../../../src/gates/arithmetic/ModularMultiplicationGates.js"
 import {assertThatGateActsLikePermutation, assertThatCircuitOutputsBasisKet} from "../../CircuitOperationTestUtil.js"
 

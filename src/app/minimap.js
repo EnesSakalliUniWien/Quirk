@@ -14,8 +14,13 @@
  * limitations under the License.
  */
 
-import {Palette} from "../config/Palette.js"
-import {circuitZoom, onCircuitZoomChanged} from "./zoom.js"
+import {rectangle, strokePath} from '../draw/pixi/ShapeView.js';
+
+import {RenderSurface} from '../draw/pixi/RenderSurface.js';
+import {Point} from '../math/Point.js';
+import {Rect} from '../math/Rect.js';
+import {CanvasTheme} from '../config/CanvasTheme.js';
+import {circuitZoom, onCircuitZoomChanged} from './zoom.js';
 
 const MINIMAP_WIDTH = 180;
 const MINIMAP_MAX_HEIGHT = 110;
@@ -60,27 +65,20 @@ function initMinimap(container, canvasDiv, displayed) {
         canvas.style.width = w + 'px';
         canvas.style.height = h + 'px';
 
-        const ctx = canvas.getContext('2d');
-        ctx.setTransform(pixelRatio * scale, 0, 0, pixelRatio * scale, 0, 0);
-        ctx.fillStyle = Palette.SURFACE_COLOR;
-        ctx.fillRect(0, 0, contentWidth, contentHeight);
+        const view = RenderSurface.forCanvas(canvas).beginFrame(undefined, pixelRatio * scale);
+        rectangle(view, new Rect(0, 0, contentWidth, contentHeight), {fill: CanvasTheme.surface.gate});
 
         // Wires.
         const circuitDefinition = geometry.circuitDefinition;
         const wireCount = geometry.importantWireCount();
         const wireEndX = geometry.rectForSuperpositionDisplay().x - 4;
-        ctx.strokeStyle = Palette.FAINT_LINE_COLOR;
-        ctx.lineWidth = 1 / scale;
-        ctx.beginPath();
+
         for (let row = 0; row < wireCount; row++) {
             let y = geometry.wireRect(row).center().y;
-            ctx.moveTo(0, y);
-            ctx.lineTo(wireEndX, y);
+            strokePath(view, [new Point(0, y), new Point(wireEndX, y)], CanvasTheme.stroke.faint, 1 / scale);
         }
-        ctx.stroke();
 
         // Gates as blocks.
-        ctx.fillStyle = Palette.MID_LINE_COLOR;
         for (let col = 0; col < circuitDefinition.columns.length; col++) {
             let gates = circuitDefinition.columns[col].gates;
             for (let row = 0; row < gates.length; row++) {
@@ -89,20 +87,17 @@ function initMinimap(container, canvasDiv, displayed) {
                     continue;
                 }
                 let r = geometry.gateRect(row, col, gate.width, gate.height);
-                ctx.fillRect(r.x, r.y, r.w, r.h);
+                rectangle(view, r, {fill: CanvasTheme.stroke.guide});
             }
         }
 
         // The output display block.
         let grid = geometry.rectForSuperpositionDisplay();
-        ctx.strokeStyle = Palette.MID_LINE_COLOR;
-        ctx.strokeRect(grid.x, grid.y, grid.w, grid.h);
+        rectangle(view, grid, {stroke: {color: CanvasTheme.stroke.guide, width: 1}});
 
         // The visible part.
         let viewX = canvasDiv.scrollLeft / circuitZoom();
-        ctx.strokeStyle = Palette.HIGHLIGHT_STROKE_COLOR;
-        ctx.lineWidth = 1.5 / scale;
-        ctx.strokeRect(viewX, 0, visibleWidth, contentHeight);
+        rectangle(view, new Rect(viewX, 0, visibleWidth, contentHeight), {stroke: {color: CanvasTheme.interaction.outline, width: 1.5 / scale}});
     };
 
     const scrollTo = ev => {

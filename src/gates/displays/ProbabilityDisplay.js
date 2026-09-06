@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
+import {paintMultiProbabilityDisplay} from '../../draw/pixi/displays/ProbabilityView.js';
+
 import {Complex} from "../../math/Complex.js"
-import {Palette} from "../../config/Palette.js"
-import {Typography} from "../../config/Typography.js"
-import {Gate} from "../../circuit/Gate.js"
+
+import {Gate} from "../../circuit/model/Gate.js"
 import {GatePainting} from "../../draw/GatePainting.js"
-import {GateShaders} from "../../circuit/GateShaders.js"
+import {GateShaders} from "../../circuit/simulation/gpu/GateShaders.js"
 import {MathPainter} from "../../draw/MathPainter.js"
 import {Matrix} from "../../math/Matrix.js"
-import {Point} from "../../math/Point.js"
-import {Rect} from "../../math/Rect.js"
+
 import {Seq} from "../../base/Seq.js"
 import {Shaders} from "../../webgl/Shaders.js"
-import {Util} from "../../base/Util.js"
+
 import {WglConfiguredShader} from "../../webgl/WglConfiguredShader.js"
 import {
     Inputs,
@@ -116,145 +116,6 @@ function probabilityDataToJson(data) {
     return {
         probabilities: Seq.range(data.height()).map(k => Complex.realPartOf(data.cell(0, k))).toArray()
     };
-}
-
-/**
- * @param {!GateDrawParams} args
- * @private
- */
-function _paintMultiProbabilityDisplay_grid(args) {
-    let {painter, rect: {x, y, w, h}} = args;
-    let n = 1 << args.gate.height;
-    let d = h / n;
-    painter.fillRect(args.rect, Palette.DISPLAY_GATE_BACK_COLOR);
-
-    if (d < 1) {
-        args.painter.ctx.save();
-        args.painter.ctx.globalAlpha *= 0.2;
-        painter.fillRect(args.rect, Palette.GRID_LINE_COLOR);
-        args.painter.ctx.restore();
-        return;
-    }
-    let r = args.gate.height - 5;
-    painter.trace(tracer => {
-        for (let i = 1; i < n; i++) {
-            tracer.line(x, y + d * i, x + w, y + d * i);
-        }
-    }).thenStroke(Palette.GRID_LINE_COLOR, r <= 0 ? 1 : 1 / r);
-    painter.strokeRect(args.rect, Palette.GRID_LINE_COLOR);
-}
-
-function _paintMultiProbabilityDisplay_probabilityBars(args) {
-    let {painter, rect: {x, y, w, h}, customStats: probabilities} = args;
-    let n = 1 << args.gate.height;
-    let d = h / n;
-    let e = Math.max(d, 1);
-
-    painter.ctx.save();
-    painter.ctx.beginPath();
-    painter.ctx.moveTo(x, y);
-    for (let i = 0; i < n; i++) {
-        let p = probabilities.rawBuffer()[i * 2];
-        let px = x + w * p;
-        let py = y + d * i;
-        painter.ctx.lineTo(px, py);
-        painter.ctx.lineTo(px, py + e);
-    }
-    painter.ctx.lineTo(x, y + h);
-    painter.ctx.lineTo(x, y);
-
-    painter.ctx.strokeStyle = Palette.MID_LINE_COLOR;
-    painter.ctx.lineWidth = 1;
-    painter.ctx.stroke();
-    painter.ctx.fillStyle = Palette.DISPLAY_GATE_FORE_COLOR;
-    painter.ctx.fill();
-    painter.ctx.restore();
-}
-
-function _paintMultiProbabilityDisplay_logarithmHints(args) {
-    let {painter, rect: {x, y, w, h}, customStats: probabilities} = args;
-    let n = 1 << args.gate.height;
-    let d = h / n;
-    let e = Math.max(d, 1);
-
-    painter.ctx.save();
-    painter.ctx.beginPath();
-    painter.ctx.moveTo(x, y);
-    let s = 1 / (4 + Math.max(8, args.gate.height));
-    for (let i = 0; i < n; i++) {
-        let p = probabilities.rawBuffer()[i * 2];
-        let px = x + w * Math.min(1, Math.max(0, 1 + Math.log(p) * s));
-        let py = y + d * i;
-        painter.ctx.lineTo(px, py);
-        painter.ctx.lineTo(px, py + e);
-    }
-    painter.ctx.lineTo(x, y + h);
-
-    painter.ctx.lineWidth = 1;
-    painter.ctx.strokeStyle = Palette.FAINT_LINE_COLOR;
-    painter.ctx.stroke();
-    painter.ctx.restore();
-}
-
-function _paintMultiProbabilityDisplay_tooltips(args) {
-    let {painter, rect: {x, y, w, h}, customStats: probabilities} = args;
-    let n = 1 << args.gate.height;
-    let d = h / n;
-
-    for (let pt of args.focusPoints) {
-        let k = Math.floor((pt.y - y) / d);
-        if (args.rect.containsPoint(pt) && k >= 0 && k < n) {
-            let p = probabilities === undefined ? NaN : probabilities.rawBuffer()[k * 2];
-            painter.strokeRect(new Rect(x, y + k * d, w, d), Palette.HIGHLIGHT_STROKE_COLOR, 2);
-            MathPainter.paintDeferredValueTooltip(
-                painter,
-                x + w,
-                y + k * d,
-                `Chance of |${Util.bin(k, args.gate.height)}⟩ (decimal ${k}) if measured`,
-                'raw: ' + (p * 100).toFixed(4) + "%",
-                'log: ' + (Math.log10(p) * 10).toFixed(1) + " dB");
-        }
-    }
-}
-
-function _paintMultiProbabilityDisplay_probabilityTexts(args) {
-    let {painter, rect: {x, y, w, h}, customStats: probabilities} = args;
-    let d = h / probabilities.height();
-
-    for (let i = 0; i < probabilities.height(); i++) {
-        let p = probabilities.rawBuffer()[i * 2];
-        painter.print(
-            (p * 100).toFixed(1) + "%",
-            x + w - 2,
-            y + d * (i + 0.5),
-            'right',
-            'middle',
-            Palette.INK_COLOR,
-            `8pt ${Typography.MONO_FONT_FAMILY}`,
-            w - 4,
-            d);
-    }
-}
-
-function paintMultiProbabilityDisplay(args) {
-    _paintMultiProbabilityDisplay_grid(args);
-
-    let probabilities = args.customStats;
-    let noData = probabilities === undefined || probabilities.hasNaN();
-    if (noData) {
-        args.painter.printParagraph("NaN", args.rect, new Point(0.5, 0.5), Palette.ERROR_COLOR);
-    } else {
-        let textFits = args.rect.h / probabilities.height() > 8;
-        if (!textFits) {
-            _paintMultiProbabilityDisplay_logarithmHints(args);
-        }
-        _paintMultiProbabilityDisplay_probabilityBars(args);
-        if (textFits) {
-            _paintMultiProbabilityDisplay_probabilityTexts(args);
-        }
-    }
-
-    _paintMultiProbabilityDisplay_tooltips(args);
 }
 
 /**

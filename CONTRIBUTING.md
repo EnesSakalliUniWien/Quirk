@@ -21,7 +21,9 @@ Before opening the pull request, keep the checks green:
 - `src/components/` — the React chrome (toolbar, transport bar, dialogs, gate toolbox), its
   shadcn primitives under `src/components/ui/`, and `toolbox.js`, the vanilla helper module the
   gate toolbox drives.
-- `src/circuit/` — the circuit domain model, serialization, and GPU-backed evaluation.
+- `src/circuit/` — circuit models in `model/`, JSON conversion in `serialization/`, and
+  evaluation in `simulation/`, with its shader and texture utilities in `simulation/gpu/`.
+  See [the circuit directory guide](src/circuit/README.md) for individual file responsibilities.
 - `src/gates/` — the gate catalogue, aggregated by `AllGates.js`; a gate missing from its
   lists silently stops serializing and disappears from the toolbox.
 - `src/draw/` — canvas painting primitives.

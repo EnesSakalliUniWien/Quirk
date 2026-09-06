@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {GateColumn} from "../circuit/GateColumn.js"
+import {GateColumn} from "../circuit/model/GateColumn.js"
 
 /**
  * The in-app replacement for the browser prompt that parametrized gates used: clicking a gate's

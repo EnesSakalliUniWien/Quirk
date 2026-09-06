@@ -18,7 +18,7 @@ import {Suite, assertThat, assertThrows, assertTrue, assertFalse} from "../TestU
 import {Matrix} from "../../src/math/Matrix.js"
 
 import {Complex} from "../../src/math/Complex.js"
-import {Controls} from "../../src/circuit/Controls.js"
+import {Controls} from "../../src/circuit/model/Controls.js"
 import {Format} from "../../src/base/Format.js"
 import {Seq} from "../../src/base/Seq.js"
 

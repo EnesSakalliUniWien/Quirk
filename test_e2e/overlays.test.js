@@ -17,7 +17,32 @@
 // The menu, export, and gate forge dialogs.
 
 import assert from 'node:assert/strict';
-import {test, withQuirkPage, waitForQuirk, waitForCircuit, waitForDialog, currentCircuit, exportedCircuit, urlForCircuit, TEST_TIMEOUT_MILLIS, circuitTopForWires, waitForCanvasViewport} from './harness.js';
+import {circuitMetrics, test, withQuirkPage, waitForQuirk, waitForCircuit, waitForDialog, currentCircuit, exportedCircuit, urlForCircuit, TEST_TIMEOUT_MILLIS, circuitTopForWires, waitForCanvasViewport} from './harness.js';
+
+test('opens a Bloch sphere from its enlarged edge at different zoom levels', async browser => {
+    await withQuirkPage(browser, {cols: [['H'], ['Bloch']]}, async page => {
+        for (const [button, zoom] of [['Zoom out', 0.8], ['Zoom in', 1.25]]) {
+            await page.click('[aria-label="Reset zoom"]');
+            await page.click(`[aria-label="${button}"]`);
+            // Zoom preserves the viewport centre and can scroll the first columns out of view.
+            await page.$eval('#canvasDiv', element => element.scrollTo({left: 0, top: 0, behavior: 'instant'}));
+            await waitForCanvasViewport(page);
+            const top = await circuitTopForWires(page, 2, zoom);
+            const canvas = await page.$eval('#drawCanvas', element => {
+                const rect = element.getBoundingClientRect();
+                return {x: rect.x, y: rect.y};
+            });
+            // This point is inside the enlarged sphere but outside the ordinary gate rectangle.
+            const x = circuitMetrics.firstColumnLeft + circuitMetrics.columnSpacing +
+                circuitMetrics.gateSize / 2 + circuitMetrics.blochRadius * 0.9;
+            await page.mouse.click(canvas.x + x * zoom,
+                canvas.y + (top + circuitMetrics.wireSpacing / 2) * zoom);
+            await waitForDialog(page, '#bloch-div', true);
+            await page.keyboard.press('Escape');
+            await waitForDialog(page, '#bloch-div', false);
+        }
+    });
+});
 
 test('opens and closes the menu, export, and gate forge overlays', async browser => {
     const circuit = {cols: [['H']]};
@@ -74,7 +99,7 @@ test('edits a rotation gate angle through the parameter dialog', async browser =
         for (let attempt = 0; attempt < 3 && !opened; attempt++) {
             await waitForCanvasViewport(page);
             const circuitTop = await circuitTopForWires(page, 2);
-            await page.mouse.move(canvasBounds.x + 77, canvasBounds.y + circuitTop + 38);
+            await page.mouse.move(canvasBounds.x + circuitMetrics.firstColumnLeft + circuitMetrics.gateSize / 2, canvasBounds.y + circuitTop + circuitMetrics.wireSpacing / 2 + 13);
             await page.mouse.down();
             await page.mouse.up();
             opened = await page.waitForSelector('#gate-param-div', {visible: true, timeout: 2000}).
@@ -106,7 +131,7 @@ test('opens the enlarged Bloch sphere view from a Bloch display gate', async bro
         for (let attempt = 0; attempt < 3 && !opened; attempt++) {
             await waitForCanvasViewport(page);
             const circuitTop = await circuitTopForWires(page, 2);
-            await page.mouse.click(canvasBounds.x + 50 + 32 + 20, canvasBounds.y + circuitTop + 25);
+            await page.mouse.click(canvasBounds.x + circuitMetrics.columnSpacing + circuitMetrics.firstColumnLeft + circuitMetrics.gateSize / 2, canvasBounds.y + circuitTop + circuitMetrics.wireSpacing / 2);
             opened = await page.waitForSelector('#bloch-div', {visible: true, timeout: 2000}).
                 then(() => true, () => false);
         }

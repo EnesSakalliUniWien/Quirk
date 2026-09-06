@@ -95,9 +95,7 @@
         min-height: 0;
         overflow: auto;
         display: grid;
-        /* The circuit cell is the deep-field layer: darkest in the app, matching what the canvas
-           itself paints, so the cell and its drawing read as one surface. */
-        background: var(--canvas-background);
+        /* The canvas paints its own opaque background from CanvasTheme. */
         box-shadow: inset 0 1px 0 var(--border);
     }
 
@@ -200,7 +198,7 @@
     button:hover:not(:disabled) {
         color: var(--foreground);
         background: var(--accent);
-        border-color: color-mix(in oklch, var(--primary), var(--border) 45%);
+        border-color: var(--control-border);
     }
 
     button:disabled {
@@ -213,7 +211,7 @@
         min-height: 32px;
         padding: 6px 9px;
         color: var(--foreground);
-        background: color-mix(in oklch, var(--background), white 2%);
+        background: var(--input-surface);
         border: 1px solid var(--input);
         border-radius: 8px;
         outline: none;
@@ -229,13 +227,13 @@
     }
 
     :focus-visible {
-        outline: 3px solid color-mix(in oklch, var(--ring), transparent 48%);
+        outline: 3px solid var(--focus-outline);
         outline-offset: 2px;
     }
 
     input[type="text"]:focus,
     textarea:focus {
         border-color: var(--ring);
-        box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring), transparent 72%);
+        box-shadow: 0 0 0 3px var(--focus-shadow);
     }
 }

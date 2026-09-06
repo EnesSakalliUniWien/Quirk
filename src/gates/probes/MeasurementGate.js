@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-import {Palette} from "../../config/Palette.js"
-import {GateBuilder} from "../../circuit/Gate.js"
-import {GatePainting} from "../../draw/GatePainting.js"
+import {PathGeometry} from '../../draw/pixi/PathGeometry.js';
+import {drawPath} from '../../draw/pixi/ShapeView.js';
+import {gateStyle} from '../../config/CanvasTheme.js';
+
+import {GateBuilder} from '../../circuit/model/Gate.js';
+import {GatePainting} from '../../draw/GatePainting.js';
 
 /**
  * @param {!GateDrawParams} args
  */
 function drawMeasurementGate(args) {
-    let backColor = Palette.GATE_FILL_COLOR;
-    if (args.isHighlighted) {
-        backColor = Palette.HIGHLIGHTED_GATE_FILL_COLOR;
-    }
-    args.painter.fillRect(args.rect, backColor);
+    const style = gateStyle(args.gate);
+    GatePainting.paintBackground(args);
     GatePainting.paintOutline(args);
 
     const τ = Math.PI * 2;
@@ -38,12 +38,12 @@ function drawMeasurementGate(args) {
     let [p, q] = [x + c, y + s];
 
     // Draw the dial and shaft.
-    args.painter.trace(trace => {
-        trace.ctx.arc(x, y, r, τ/2, τ);
-        trace.line(x, y, p, q);
-    }).thenStroke(Palette.INK_COLOR);
+    drawPath(args.painter, trace => {
+        trace.arc(x, y, r, τ/2, τ);
+        PathGeometry.line(trace, x, y, p, q);
+    }, [{stroke: {color: style.text, width: 1}}]);
     // Draw the indicator head.
-    args.painter.trace(trace => trace.arrowHead(p, q, r*0.3, a, τ/4)).thenFill(Palette.INK_COLOR);
+    drawPath(args.painter, trace => PathGeometry.arrowHead(trace, p, q, r*0.3, a, τ/4), [{fill: style.text}]);
 }
 
 let MeasurementGate = new GateBuilder().

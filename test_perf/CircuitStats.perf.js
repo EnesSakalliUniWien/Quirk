@@ -15,9 +15,9 @@
  */
 
 import {perfGoal, millis} from "./TestPerfUtil.js"
-import {CircuitDefinition} from "../src/circuit/CircuitDefinition.js"
-import {CircuitStats} from "../src/circuit/CircuitStats.js"
-import {Gate} from "../src/circuit/Gate.js"
+import {CircuitDefinition} from "../src/circuit/model/CircuitDefinition.js"
+import {CircuitStats} from "../src/circuit/simulation/CircuitStats.js"
+import {Gate} from "../src/circuit/model/Gate.js"
 import {Gates} from "../src/gates/AllGates.js"
 import {Matrix} from "../src/math/Matrix.js"
 

@@ -35,7 +35,7 @@
     .gate-toolbox-scrollbar-thumb {
         width: 100%;
         border-radius: 3px;
-        background: color-mix(in oklch, var(--sidebar-foreground), transparent 78%);
+        background: var(--sidebar-scrollbar);
     }
 
     .gate-toolbox-groups {
@@ -45,7 +45,7 @@
 
     .gate-toolbox-empty {
         margin: 0;
-        color: color-mix(in oklch, var(--sidebar-foreground), transparent 40%);
+        color: var(--sidebar-muted);
         font-size: var(--text-small);
     }
 }

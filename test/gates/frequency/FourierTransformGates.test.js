@@ -17,9 +17,9 @@
 import {Suite} from "../../TestUtil.js"
 import {assertThatCircuitUpdateActsLikeMatrix} from "../../CircuitOperationTestUtil.js"
 import {applyControlledPhaseGradient, FourierTransformGates} from "../../../src/gates/frequency/FourierTransformGates.js"
-import {CircuitDefinition} from "../../../src/circuit/CircuitDefinition.js"
-import {GateColumn} from "../../../src/circuit/GateColumn.js"
-import {advanceStateWithCircuit} from "../../../src/circuit/CircuitComputeUtil.js"
+import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js"
+import {GateColumn} from "../../../src/circuit/model/GateColumn.js"
+import {advanceStateWithCircuit} from "../../../src/circuit/simulation/CircuitComputeUtil.js"
 
 import {Complex} from "../../../src/math/Complex.js"
 import {Matrix} from "../../../src/math/Matrix.js"

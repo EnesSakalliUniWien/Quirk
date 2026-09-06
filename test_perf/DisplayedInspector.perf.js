@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
-import {perfGoal, millis} from "./TestPerfUtil.js"
-import {CircuitDefinition} from "../src/circuit/CircuitDefinition.js"
-import {CircuitStats} from "../src/circuit/CircuitStats.js"
-import {Rect} from "../src/math/Rect.js"
-import {Gates} from "../src/gates/AllGates.js"
-import {Hand} from "../src/editor/Hand.js"
-import {Painter} from "../src/draw/Painter.js"
-import {RestartableRng} from "../src/base/RestartableRng.js"
-import {DisplayedCircuit} from "../src/editor/DisplayedCircuit.js"
-import {DisplayedInspector} from "../src/editor/DisplayedInspector.js"
-import {Serializer} from "../src/circuit/Serializer.js"
+import {perfGoal, millis} from './TestPerfUtil.js';
+import {CircuitDefinition} from '../src/circuit/model/CircuitDefinition.js';
+import {CircuitStats} from '../src/circuit/simulation/CircuitStats.js';
+import {Rect} from '../src/math/Rect.js';
+import {Gates} from '../src/gates/AllGates.js';
+import {Hand} from '../src/editor/Hand.js';
+import {DisplayView} from '../src/draw/pixi/DisplayView.js';
+import {RestartableRng} from '../src/base/RestartableRng.js';
+import {DisplayedCircuit} from '../src/editor/DisplayedCircuit.js';
+import {DisplayedInspector} from '../src/editor/DisplayedInspector.js';
+import {Serializer} from '../src/circuit/serialization/Serializer.js';
+
+const scenes = new WeakMap();
 
 perfGoal(
     "Update inspector circuit",
@@ -57,7 +59,7 @@ perfGoal(
          //////////////////////////////`)]);
 
 perfGoal(
-    "React and Redraw 16-qubit circuit",
+    "Update Pixi scene for 16-qubit circuit",
     millis(200),
     ([canvas, {circuit, pts: [p1, p2]}]) => {
         let inspector = DisplayedInspector.empty(new Rect(0, 0, 1000, 1000));
@@ -70,7 +72,14 @@ perfGoal(
         canvas.width = inspector.desiredWidth();
         canvas.height = inspector.desiredHeight();
         let stats = CircuitStats.fromCircuitAtTime(inspector.displayedCircuit.circuitDefinition, 0);
-        inspector.paint(new Painter(canvas, new RestartableRng()), stats);
+        let view = scenes.get(canvas);
+        if (!view) { view = new DisplayView(canvas); scenes.set(canvas, view); }
+        view.begin(new RestartableRng());
+        view.interaction.reset();
+        view.tooltips?.begin();
+        inspector.paint(view, stats);
+        view.tooltips?.flush();
+        view.finish();
     },
     [
         (() => {
@@ -121,4 +130,4 @@ perfGoal(
              |-/-----------------------------------------------------------•-H-
              |`)
     ],
-    arg => document.body.removeChild(arg[0]));
+    arg => { scenes.get(arg[0])?.destroy(); scenes.delete(arg[0]); document.body.removeChild(arg[0]); });

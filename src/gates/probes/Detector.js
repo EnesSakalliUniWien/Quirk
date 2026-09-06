@@ -14,25 +14,28 @@
  * limitations under the License.
  */
 
-import {GateBuilder} from "../../circuit/Gate.js"
-import {amplitudesToProbabilities} from "../displays/ProbabilityDisplay.js"
-import {WglTexturePool} from "../../webgl/WglTexturePool.js";
-import {WglTextureTrader} from "../../webgl/WglTextureTrader.js";
-import {Shaders} from "../../webgl/Shaders.js"
-import {currentShaderCoder, Inputs} from "../../webgl/ShaderCoders.js";
-import {CircuitShaders} from "../../circuit/CircuitShaders.js"
-import {Controls} from "../../circuit/Controls.js";
-import {WglArg} from "../../webgl/WglArg.js";
-import {Palette} from "../../config/Palette.js"
-import {Typography} from "../../config/Typography.js"
-import {GatePainting} from "../../draw/GatePainting.js"
-import {makePseudoShaderWithInputsAndOutputAndCode, Outputs} from "../../webgl/ShaderCoders.js";
-import {Matrix} from "../../math/Matrix.js";
-import {GateShaders} from "../../circuit/GateShaders.js";
-import {Point} from "../../math/Point.js";
-import {DetailedError} from "../../base/DetailedError.js";
-import {QuarterTurnGates} from "../rotations/QuarterTurnGates.js";
-import {HalfTurnGates} from "../rotations/HalfTurnGates.js";
+import {drawPath, rectangle, circle, strokePath} from '../../draw/pixi/ShapeView.js';
+import {fitLine, fitText} from '../../draw/pixi/TextLayout.js';
+
+import {GateBuilder} from '../../circuit/model/Gate.js';
+import {amplitudesToProbabilities} from '../displays/ProbabilityDisplay.js';
+import {WglTexturePool} from '../../webgl/WglTexturePool.js';
+import {WglTextureTrader} from '../../webgl/WglTextureTrader.js';
+import {Shaders} from '../../webgl/Shaders.js';
+import {currentShaderCoder, Inputs, makePseudoShaderWithInputsAndOutputAndCode, Outputs} from '../../webgl/ShaderCoders.js';
+import {CircuitShaders} from '../../circuit/simulation/gpu/CircuitShaders.js';
+import {Controls} from '../../circuit/model/Controls.js';
+import {WglArg} from '../../webgl/WglArg.js';
+import {CanvasTheme} from '../../config/CanvasTheme.js';
+import {Typography} from '../../config/Typography.js';
+import {GatePainting} from '../../draw/GatePainting.js';
+
+import {Matrix} from '../../math/Matrix.js';
+import {GateShaders} from '../../circuit/simulation/gpu/GateShaders.js';
+import {Point} from '../../math/Point.js';
+import {DetailedError} from '../../base/DetailedError.js';
+import {QuarterTurnGates} from '../rotations/QuarterTurnGates.js';
+import {HalfTurnGates} from '../rotations/HalfTurnGates.js';
 
 /**
  * @param {!CircuitEvalContext} ctx
@@ -98,7 +101,7 @@ let detectorShader = makePseudoShaderWithInputsAndOutputAndCode(
     Outputs.vec2(),
     `
         uniform float rnd;
-    
+
         vec2 outputFor(float k) {
             float detectChance = read_detection_weight(0.0) / read_total_weight(0.0);
             float detection_type = float(rnd < detectChance);
@@ -175,7 +178,7 @@ function drawDetector(args, axis) {
 function drawHighlight(args) {
     // Can't use the typical highlight function because the detector has no box outline.
     if (args.isHighlighted) {
-        args.painter.fillRect(args.rect, Palette.HIGHLIGHTED_GATE_FILL_COLOR);
+        rectangle(args.painter, args.rect, {fill: CanvasTheme.gate.hover});
         GatePainting.paintOutline(args);
     }
 }
@@ -192,11 +195,14 @@ function drawWedge(args, axis) {
     x -= r*0.5;
     x += 0.5;
     y += 0.5;
-    args.painter.trace(trace => {
-        trace.ctx.arc(x, y, r, τ*3/4, τ/4);
-        trace.ctx.lineTo(x, y - r - 1);
-    }).thenStroke(Palette.INK_COLOR, 2).thenFill(Palette.TIME_DEPENDENT_HIGHLIGHT_COLOR);
-    args.painter.printLine(axis, args.rect, 0.5, undefined, undefined, undefined, 0.5);
+    drawPath(args.painter, trace => {
+        trace.arc(x, y, r, τ*3/4, τ/4);
+        trace.lineTo(x, y - r - 1);
+    }, [{stroke: {color: CanvasTheme.text.primary, width: 2}}, {fill: CanvasTheme.gate.time}]);
+    fitLine(args.painter, axis, args.rect, {
+        horizontal: 0.5,
+        vertical: 0.5
+    });
 }
 
 /**
@@ -210,39 +216,46 @@ function drawClick(args, axis) {
         return;
 }
     let r = Math.min(args.rect.h / 2, args.rect.w);
-    args.painter.ctx.save();
-    args.painter.ctx.translate(args.rect.center().x, args.rect.center().y);
-    args.painter.ctx.rotate(axis === undefined ? Math.PI/3 : Math.PI/4);
-    args.painter.ctx.strokeStyle = Palette.BACKGROUND_COLOR_CIRCUIT;
-    args.painter.ctx.lineWidth = 3;
-    args.painter.print(
-        '*click*',
-        0,
-        axis === undefined ? 0 : -5,
-        'center',
-        'middle',
-        Palette.INK_COLOR,
-        `bold 16px ${Typography.DEFAULT_FONT_FAMILY}`,
-        r*2.8,
-        r*2.8,
-        undefined,
-        true);
-
-    if (axis !== undefined) {
-        args.painter.print(
-            axis,
-            0,
-            10,
-            'center',
-            'middle',
-            Palette.INK_COLOR,
-            `bold 16px ${Typography.DEFAULT_FONT_FAMILY}`,
-            r * 2.8,
-            r * 2.8,
-            undefined,
-            true);
-    }
-    args.painter.ctx.restore();
+    args.painter.group('click-label-' + args.painter.order, painter => {
+        painter.position.set(args.rect.center().x, args.rect.center().y);
+        painter.rotation = axis === undefined ? Math.PI / 3 : Math.PI / 4;
+        const stroke = {
+            color: CanvasTheme.surface.background,
+            width: 3
+        };
+        fitText(painter, '*click*', {
+            x: 0,
+            y: axis === undefined ? 0 : -5,
+            align: 'center',
+            baseline: 'middle',
+            fill: CanvasTheme.text.primary,
+            font: {
+                fontSize: 16,
+                fontFamily: Typography.DEFAULT_FONT_FAMILY,
+                fontWeight: 'bold'
+            },
+            width: r * 2.8,
+            height: r * 2.8,
+            stroke
+        });
+        if (axis !== undefined) {
+            fitText(painter, axis, {
+                x: 0,
+                y: 10,
+                align: 'center',
+                baseline: 'middle',
+                fill: CanvasTheme.text.primary,
+                font: {
+                    fontSize: 16,
+                    fontFamily: Typography.DEFAULT_FONT_FAMILY,
+                    fontWeight: 'bold'
+                },
+                width: r * 2.8,
+                height: r * 2.8,
+                stroke
+            });
+        }
+    });
 }
 
 /**
@@ -254,20 +267,20 @@ function drawControlBulb(args, axis) {
     let p = args.rect.center();
     switch (axis) {
         case 'X':
-            args.painter.fillCircle(p, 5);
-            args.painter.strokeCircle(p, 5);
-            args.painter.strokeLine(p.offsetBy(0, -5), p.offsetBy(0, +5));
-            args.painter.strokeLine(p.offsetBy(-5, 0), p.offsetBy(+5, 0));
+            circle(args.painter, p, 5, {fill: CanvasTheme.surface.gate});
+            circle(args.painter, p, 5, {stroke: {color: CanvasTheme.text.primary, width: 1}});
+            strokePath(args.painter, [p.offsetBy(0, -5), p.offsetBy(0, +5)], CanvasTheme.text.primary, 1);
+            strokePath(args.painter, [p.offsetBy(-5, 0), p.offsetBy(+5, 0)], CanvasTheme.text.primary, 1);
             break;
         case 'Y':
-            args.painter.fillCircle(p, 5);
-            args.painter.strokeCircle(p, 5);
+            circle(args.painter, p, 5, {fill: CanvasTheme.surface.gate});
+            circle(args.painter, p, 5, {stroke: {color: CanvasTheme.text.primary, width: 1}});
             let r = 5*Math.sqrt(0.5)*1.1;
-            args.painter.strokeLine(p.offsetBy(+r, -r), p.offsetBy(-r, +r));
-            args.painter.strokeLine(p.offsetBy(-r, -r), p.offsetBy(+r, +r));
+            strokePath(args.painter, [p.offsetBy(+r, -r), p.offsetBy(-r, +r)], CanvasTheme.text.primary, 1);
+            strokePath(args.painter, [p.offsetBy(-r, -r), p.offsetBy(+r, +r)], CanvasTheme.text.primary, 1);
             break;
         case 'Z':
-            args.painter.fillCircle(p, 5, Palette.INK_COLOR);
+            circle(args.painter, p, 5, {fill: CanvasTheme.text.primary});
             break;
         default:
             throw new DetailedError('Unrecognized axis.', {axis});
@@ -287,11 +300,14 @@ function drawDetectClearReset(args, axis) {
     let clearWireRect = fullRect.rightHalf();
     clearWireRect.y += clearWireRect.h / 2 - 2;
     clearWireRect.h = 5;
-    args.painter.fillRect(clearWireRect, Palette.BACKGROUND_COLOR_CIRCUIT);
+    rectangle(args.painter, clearWireRect, {fill: CanvasTheme.surface.background});
     drawHighlight(args);
 
     // Draw text elements.
-    args.painter.printLine('|0⟩', resetRect, 1, undefined, undefined, undefined, 0.5);
+    fitLine(args.painter, '|0⟩', resetRect, {
+        horizontal: 1,
+        vertical: 0.5
+    });
 
     // Draw detector.
     args.rect = detectorRect;
@@ -319,10 +335,9 @@ function redrawControlWires(args) {
     // Dashed line indicates effects from non-unitary gates may affect, or appear to affect, other wires.
     let circuit = args.stats.circuitDefinition;
     if (circuit.columns[columnIndex].hasGatesWithGlobalEffects()) {
-        painter.ctx.save();
-        painter.ctx.setLineDash([1, 4]);
-        painter.strokeLine(new Point(x, args.rect.y), new Point(x, args.rect.bottom()));
-        painter.ctx.restore();
+        painter.group('global-control-' + painter.order, painter => {
+            strokePath(painter, [new Point(x, args.rect.y), new Point(x, args.rect.bottom())], CanvasTheme.text.primary, 1, [1, 4]);
+        });
     }
 
     let row = args.positionInCircuit.row;
@@ -331,10 +346,10 @@ function redrawControlWires(args) {
             let y1 = first === row ? args.rect.center().y : args.rect.y;
             let y2 = last === row ? args.rect.center().y : args.rect.bottom();
             if (measured) {
-                painter.strokeLine(new Point(x + 1, y1), new Point(x + 1, y2));
-                painter.strokeLine(new Point(x - 1, y1), new Point(x - 1, y2));
+                strokePath(painter, [new Point(x + 1, y1), new Point(x + 1, y2)], CanvasTheme.text.primary, 1);
+                strokePath(painter, [new Point(x - 1, y1), new Point(x - 1, y2)], CanvasTheme.text.primary, 1);
             } else {
-                painter.strokeLine(new Point(x, y1), new Point(x, y2));
+                strokePath(painter, [new Point(x, y1), new Point(x, y2)], CanvasTheme.text.primary, 1);
             }
         }
     }

@@ -14,26 +14,30 @@
  * limitations under the License.
  */
 
-import {Axis} from "../math/Axis.js"
-import {CircuitDefinition} from "../circuit/CircuitDefinition.js"
-import {setGateBuilderEffectToCircuit} from "../circuit/CircuitComputeUtil.js"
-import {Complex} from "../math/Complex.js"
-import {Palette} from "../config/Palette.js"
-import {DetailedError} from "../base/DetailedError.js"
-import {drawCircuitTooltip} from "../editor/DisplayedCircuit.js"
-import {Format} from "../base/Format.js"
-import {Gate, GateBuilder} from "../circuit/Gate.js"
-import {GateColumn} from "../circuit/GateColumn.js"
-import {MathPainter} from "../draw/MathPainter.js"
-import {Matrix} from "../math/Matrix.js"
-import {Observable, ObservableValue} from "../base/Obs.js"
-import {Painter} from "../draw/Painter.js"
-import {Point} from "../math/Point.js"
-import {Rect} from "../math/Rect.js"
-import {fromJsonText_CircuitDefinition, Serializer} from "../circuit/Serializer.js"
-import {seq} from "../base/Seq.js"
-import {textEditObservable} from "../browser/EventUtil.js"
-import {Util} from "../base/Util.js"
+import {fitParagraph} from '../draw/pixi/TextLayout.js';
+import {drawingArea} from '../draw/pixi/DisplayView.js';
+import {rectangle, strokePath} from '../draw/pixi/ShapeView.js';
+
+import {Axis} from '../math/Axis.js';
+import {CircuitDefinition} from '../circuit/model/CircuitDefinition.js';
+import {setGateBuilderEffectToCircuit} from '../circuit/simulation/CircuitComputeUtil.js';
+import {Complex} from '../math/Complex.js';
+import {CanvasTheme} from '../config/CanvasTheme.js';
+import {DetailedError} from '../base/DetailedError.js';
+import {drawCircuitTooltip} from '../editor/DisplayedCircuit.js';
+import {Format} from '../base/Format.js';
+import {GateBuilder} from '../circuit/model/Gate.js';
+import {GateColumn} from '../circuit/model/GateColumn.js';
+import {MathPainter} from '../draw/MathPainter.js';
+import {Matrix} from '../math/Matrix.js';
+import {Observable, ObservableValue} from '../base/Obs.js';
+import {RenderSurface} from '../draw/pixi/RenderSurface.js';
+import {Point} from '../math/Point.js';
+import {Rect} from '../math/Rect.js';
+import {fromJsonText_CircuitDefinition, Serializer} from '../circuit/serialization/Serializer.js';
+import {seq} from '../base/Seq.js';
+import {textEditObservable} from '../browser/EventUtil.js';
+import {Util} from '../base/Util.js';
 
 /**
  * Interface note: also requires #gate-forge-button (src/components/app-toolbar.jsx) and the forge
@@ -64,8 +68,8 @@ function initForge(revision, overlayState, getCycleTime) {
 
     function computeAndPaintOp(canvas, opGetter, button) {
         button.disabled = true;
-        let painter = new Painter(canvas);
-        painter.clear();
+        let painter = RenderSurface.forCanvas(canvas).beginFrame();
+        rectangle(painter, drawingArea(painter), {fill: CanvasTheme.surface.gate});
         let d = Math.min((canvas.width - 5)/2, canvas.height);
         let rect1 = new Rect(0, 0, d, d);
         let rect2 = new Rect(d + 5, 0, d, d);
@@ -75,36 +79,43 @@ function initForge(revision, overlayState, getCycleTime) {
                 painter,
                 op,
                 rect1,
-                Palette.OPERATION_FORE_COLOR,
-                Palette.INK_COLOR,
+                CanvasTheme.operation.fill,
+                CanvasTheme.text.primary,
                 undefined,
-                Palette.OPERATION_BACK_COLOR,
+                CanvasTheme.operation.background,
                 undefined,
-                'transparent');
+                CanvasTheme.transparent);
             if (!op.isUnitary(0.009)) {
-                painter.printParagraph('NOT UNITARY', rect2, new Point(0.5, 0.5), Palette.ERROR_COLOR, 24);
+                fitParagraph(painter, 'NOT UNITARY', rect2, {
+                    alignment: new Point(0.5, 0.5),
+                    fill: CanvasTheme.error.text,
+                    maxFontSize: 24
+                });
             } else  if (op.width() !== 2) {
-                painter.printParagraph('(Not a 1-qubit rotation)', rect2, new Point(0.5, 0.5), Palette.MUTED_TEXT_COLOR, 20);
+                fitParagraph(painter, '(Not a 1-qubit rotation)', rect2, {
+                    alignment: new Point(0.5, 0.5),
+                    fill: CanvasTheme.text.muted,
+                    maxFontSize: 20
+                });
             } else {
                 MathPainter.paintBlochSphereRotation(
                     painter,
                     op,
                     rect2,
-                    Palette.OPERATION_BACK_COLOR,
-                    Palette.OPERATION_FORE_COLOR);
+                    CanvasTheme.operation.background,
+                    CanvasTheme.operation.fill);
             }
             let cx = (rect1.right() + rect2.x)/2;
-            painter.strokeLine(new Point(cx, 0), new Point(cx, canvas.height), Palette.INK_COLOR, 2);
+            strokePath(painter, [new Point(cx, 0), new Point(cx, canvas.height)], CanvasTheme.text.primary, 2);
             if (!op.hasNaN()) {
                 button.disabled = false;
             }
         } catch (ex) {
-            painter.printParagraph(
-                ex+"",
-                new Rect(0, 0, canvas.width, canvas.height),
-                new Point(0.5, 0.5),
-                Palette.ERROR_COLOR,
-                24);
+            fitParagraph(painter, ex+"", new Rect(0, 0, canvas.width, canvas.height), {
+                alignment: new Point(0.5, 0.5),
+                fill: CanvasTheme.error.text,
+                maxFontSize: 24
+            });
         }
     }
 
@@ -251,15 +262,15 @@ function initForge(revision, overlayState, getCycleTime) {
                 Observable.requestAnimationTicker().map(_ => e)).
             flattenLatest().
             subscribe(e => {
-                let painter = new Painter(circuitCanvas);
-                painter.clear();
+                let painter = RenderSurface.forCanvas(circuitCanvas).beginFrame();
+                rectangle(painter, drawingArea(painter), {fill: CanvasTheme.surface.gate});
                 drawGate(painter, e.gate);
             });
 
         let redraw = () => {
             circuitButton.disabled = true;
-            let painter = new Painter(circuitCanvas);
-            painter.clear();
+            let painter = RenderSurface.forCanvas(circuitCanvas).beginFrame();
+            rectangle(painter, drawingArea(painter), {fill: CanvasTheme.surface.gate});
             try {
                 let {gate} = parseEnteredCircuitGate();
                 let keys = gate.getUnmetContextKeys();
@@ -275,12 +286,11 @@ function initForge(revision, overlayState, getCycleTime) {
                 latestGate.set(undefined);
                 spanInputs.innerText = "(err)";
                 spanWeight.innerText = "(err)";
-                painter.printParagraph(
-                    ex+"",
-                    new Rect(0, 0, circuitCanvas.width, circuitCanvas.height),
-                    new Point(0.5, 0.5),
-                    Palette.ERROR_COLOR,
-                    24);
+                fitParagraph(painter, ex+"", new Rect(0, 0, circuitCanvas.width, circuitCanvas.height), {
+                    alignment: new Point(0.5, 0.5),
+                    fill: CanvasTheme.error.text,
+                    maxFontSize: 24
+                });
             }
         };
 

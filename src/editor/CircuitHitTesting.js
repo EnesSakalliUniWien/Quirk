@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
+import {CircuitGeometry, gateButtonRect} from "./CircuitGeometry.js"
 import {Layout} from "../config/Layout.js"
-import {GatePainting} from "../draw/GatePainting.js"
 import {Hand} from "./Hand.js"
 import {Point} from "../math/Point.js"
 import {Rect} from "../math/Rect.js"
@@ -167,7 +167,7 @@ function findGateOverlappingPos(circuit, pos) {
     }
 
     let gateRect = circuit.gateRect(target.row, target.col, target.gate.width, target.gate.height);
-    if (!gateRect.containsPoint(pos)) {
+    if (!circuit.geometry().gateDrawRect(target.row, target.col, target.gate).containsPoint(pos)) {
         return undefined;
     }
 
@@ -188,7 +188,7 @@ function findBlochSphereContaining(circuit, pos) {
     let blochCol = geometry.clampedCircuitColCount() + 2;
     let numWire = geometry.importantWireCount();
     for (let row = 0; row < numWire; row++) {
-        if (circuit.gateRect(row, blochCol).containsPoint(pos)) {
+        if (CircuitGeometry.blochDisplayRect(circuit.gateRect(row, blochCol)).containsPoint(pos)) {
             return {row, col: undefined};
         }
     }
@@ -219,7 +219,7 @@ function findGateWithButtonContaining(circuit, pos) {
         return undefined;
     }
 
-    let buttonRect = GatePainting.gateButtonRect(circuit.gateRect(foundPt.row, foundPt.col, gate.width, gate.height));
+    let buttonRect = gateButtonRect(circuit.gateRect(foundPt.row, foundPt.col, gate.width, gate.height));
     if (!buttonRect.containsPoint(pos)) {
         return undefined;
     }
@@ -233,12 +233,7 @@ function findGateWithButtonContaining(circuit, pos) {
  * @returns {!Rect}
  */
 function wireInitialStateClickableRect(circuit, wire) {
-    let r = circuit.wireRect(wire);
-    r.x = 0;
-    r.y += 5;
-    r.w = 30;
-    r.h -= 10;
-    return r;
+    return circuit.geometry().wireInitialStateRect(wire);
 }
 
 /**
@@ -247,11 +242,6 @@ function wireInitialStateClickableRect(circuit, wire) {
  * @returns {undefined|!int}
  */
 function findWireWithInitialStateAreaContaining(circuit, pt) {
-    // Is it in the right vertical band; the one at the start of the circuit?
-    if (pt.x < 0 || pt.x > 30) {
-        return undefined;
-    }
-
     // Which wire is it? Is it one that's actually in the circuit?
     let wire = wireIndexAt(circuit, pt.y);
     if (wire < 0 || wire >= circuit.circuitDefinition.numWires) {

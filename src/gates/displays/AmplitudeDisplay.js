@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 
-import {Palette} from "../../config/Palette.js"
-import {Typography} from "../../config/Typography.js"
-import {CircuitShaders} from "../../circuit/CircuitShaders.js"
-import {Gate} from "../../circuit/Gate.js"
-import {GatePainting} from "../../draw/GatePainting.js"
-import {GateShaders} from "../../circuit/GateShaders.js"
-import {Format} from "../../base/Format.js"
-import {MathPainter} from "../../draw/MathPainter.js"
+import {AMPLITUDE_DRAWER_FROM_CUSTOM_STATS} from "../../draw/pixi/displays/AmplitudeView.js";
+
+import {CircuitShaders} from "../../circuit/simulation/gpu/CircuitShaders.js"
+import {Gate} from "../../circuit/model/Gate.js"
+
+import {GateShaders} from "../../circuit/simulation/gpu/GateShaders.js"
+
 import {Matrix, complexVectorToReadableJson, realVectorToReadableJson} from "../../math/Matrix.js"
 import {probabilityStatTexture} from "./ProbabilityDisplay.js"
-import {Point} from "../../math/Point.js"
+
 import {Util} from "../../base/Util.js"
 import {Shaders} from "../../webgl/Shaders.js"
-import {WglConfiguredShader} from "../../webgl/WglConfiguredShader.js"
+
 import {
     Inputs,
     Outputs,
@@ -233,102 +232,6 @@ const POINTWISE_CMUL_CONJ_SHADER = makePseudoShaderWithInputsAndOutputAndCode(
         return cmul_conj(in1, in2);
     }
     `);
-
-/**
- * @type {!function(!GateDrawParams)}
- */
-const AMPLITUDE_DRAWER_FROM_CUSTOM_STATS = GatePainting.makeDisplayDrawer(args => {
-    let n = args.gate.height;
-    let {quality, ket, phaseLockIndex, incoherentKet} = args.customStats || {
-        ket: (n === 1 ? Matrix.zero(2, 1) : Matrix.zero(1 << Math.floor(n / 2), 1 << Math.ceil(n / 2))).times(NaN),
-        quality: 1,
-        phaseLockIndex: 0,
-        incoherentKet: undefined
-    };
-
-    let isIncoherent = quality < 0.99;
-    let matrix = isIncoherent ? incoherentKet : ket;
-    let dw = args.rect.w - args.rect.h*ket.width()/ket.height();
-    let drawRect = args.rect.skipLeft(dw/2).skipRight(dw/2);
-    let indicatorAlpha = Math.min(1, Math.max(0, (quality - 0.9999) / 0.0001));
-    MathPainter.paintMatrix(
-        args.painter,
-        matrix,
-        drawRect,
-        Palette.SUPERPOSITION_MID_COLOR,
-        Palette.INK_COLOR,
-        Palette.SUPERPOSITION_FORE_COLOR,
-        Palette.SUPERPOSITION_BACK_COLOR,
-        `rgba(0, 0, 0, ${indicatorAlpha})`);
-
-    let forceSign = v => (v >= 0 ? '+' : '') + v.toFixed(2);
-    if (isIncoherent) {
-        MathPainter.paintMatrixTooltip(args.painter, matrix, drawRect, args.focusPoints,
-            (c, r) => `Chance of |${Util.bin(r*matrix.width() + c, args.gate.height)}⟩ (decimal ${r*matrix.width() + c}) [amplitude not defined]`,
-            (c, r, v) => `raw: ${(v.norm2()*100).toFixed(4)}%, log: ${(Math.log10(v.norm2())*10).toFixed(1)} dB`,
-            (c, r, v) => '[entangled with other qubits]');
-    } else {
-        MathPainter.paintMatrixTooltip(args.painter, matrix, drawRect, args.focusPoints,
-            (c, r) => `Amplitude of |${Util.bin(r*matrix.width() + c, args.gate.height)}⟩ (decimal ${r*matrix.width() + c})`,
-            (c, r, v) => 'val:' + v.toString(new Format(false, 0, 5, ", ")),
-            (c, r, v) => `mag²:${(v.norm2()*100).toFixed(4)}%, phase:${forceSign(v.phase() * 180 / Math.PI)}°`);
-        if (phaseLockIndex !== undefined) {
-            let cw = drawRect.w/matrix.width();
-            let rh = drawRect.h/matrix.height();
-            let c = phaseLockIndex % matrix.width();
-            let r = Math.floor(phaseLockIndex / matrix.width());
-            let cx = drawRect.x + cw*(c+0.5);
-            let cy = drawRect.y + rh*(r+0.5);
-            args.painter.strokeLine(
-                new Point(cx, cy),
-                new Point(cx + cw/2, cy),
-                `rgba(255,0,0,${indicatorAlpha})`,
-                2);
-            args.painter.print(
-                'fixed',
-                cx + 0.5*cw,
-                cy,
-                'right',
-                'bottom',
-                `rgba(255,0,0,${indicatorAlpha})`,
-                `12px ${Typography.MONO_FONT_FAMILY}`,
-                cw*0.5,
-                rh*0.5);
-        }
-    }
-
-    paintErrorIfPresent(args, indicatorAlpha);
-});
-
-/**
- * @param {!GateDrawParams} args
- * @param {!number} indicatorAlpha
- */
-function paintErrorIfPresent(args, indicatorAlpha) {
-    /** @type {undefined|!string} */
-    let err = undefined;
-    let {col, row} = args.positionInCircuit;
-    let measured = ((args.stats.circuitDefinition.colIsMeasuredMask(col) >> row) & ((1 << args.gate.height) - 1)) !== 0;
-    if (measured) {
-        indicatorAlpha = 0;
-        err = args.gate.width <= 2 ? '(w/ measure defer)' : '(assuming measurement deferred)';
-    } else if (indicatorAlpha < 0.999) {
-        err = 'incoherent';
-    }
-    if (err !== undefined) {
-        args.painter.print(
-            err,
-            args.rect.x+args.rect.w/2,
-            args.rect.y+args.rect.h,
-            'center',
-            'hanging',
-            `rgba(255,0,0,${1-indicatorAlpha})`,
-            `12px ${Typography.DEFAULT_FONT_FAMILY}`,
-            args.rect.w,
-            args.rect.h,
-            undefined);
-    }
-}
 
 /**
  * @param {!{quality: !number, ket: !Matrix, phaseLockIndex: !int,incoherentKet: !Matrix}} customStats

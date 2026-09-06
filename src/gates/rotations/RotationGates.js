@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {GateBuilder} from "../../circuit/Gate.js"
+import {GateBuilder} from "../../circuit/model/Gate.js"
 import {GatePainting} from "../../draw/GatePainting.js"
 import {XExp, YExp, ZExp} from "./ExponentiatingGates.js"
 import {parseTimeFormula, makeUpdateFormulaFunc} from "./FormulaGateUtil.js"

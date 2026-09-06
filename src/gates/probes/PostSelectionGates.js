@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-import {Complex} from "../../math/Complex.js"
-import {Palette} from "../../config/Palette.js"
-import {Typography} from "../../config/Typography.js"
-import {GateBuilder} from "../../circuit/Gate.js"
-import {GatePainting} from "../../draw/GatePainting.js"
-import {Matrix} from "../../math/Matrix.js"
+import {fitText} from '../../draw/pixi/TextLayout.js';
+import {rectangle} from '../../draw/pixi/ShapeView.js';
+
+import {Complex} from '../../math/Complex.js';
+import {CanvasTheme} from '../../config/CanvasTheme.js';
+import {Typography} from '../../config/Typography.js';
+import {GateBuilder} from '../../circuit/model/Gate.js';
+import {GatePainting} from '../../draw/GatePainting.js';
+import {Matrix} from '../../math/Matrix.js';
 
 let PostSelectionGates = {};
 
@@ -27,15 +30,31 @@ let POST_SELECT_DRAWER = args => {
     if (args.isHighlighted) {
         GatePainting.DEFAULT_DRAWER(args);
     } else {
-        args.painter.fillRect(args.rect, Palette.GATE_FILL_COLOR);
+        rectangle(args.painter, args.rect, {fill: CanvasTheme.surface.gate});
         GatePainting.paintGateSymbol(args);
     }
 
     let {x, y, w, h} = args.rect;
-    args.painter.print(
-        "post-", x + w / 2, y, 'center', 'hanging', Palette.ERROR_COLOR, `10px ${Typography.DEFAULT_FONT_FAMILY}`, w, h / 2);
-    args.painter.print(
-        "select", x + w / 2, y + h, 'center', 'bottom', Palette.ERROR_COLOR, `10px ${Typography.DEFAULT_FONT_FAMILY}`, w, h / 2);
+    fitText(args.painter, "post-", {
+        x: x + w / 2,
+        y,
+        align: 'center',
+        baseline: 'hanging',
+        fill: CanvasTheme.error.text,
+        font: {fontSize: 10, fontFamily: Typography.DEFAULT_FONT_FAMILY},
+        width: w,
+        height: h / 2
+    });
+    fitText(args.painter, "select", {
+        x: x + w / 2,
+        y: y + h,
+        align: 'center',
+        baseline: 'bottom',
+        fill: CanvasTheme.error.text,
+        font: {fontSize: 10, fontFamily: Typography.DEFAULT_FONT_FAMILY},
+        width: w,
+        height: h / 2
+    });
 };
 
 /** @type {!Gate} */

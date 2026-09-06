@@ -15,16 +15,16 @@
  */
 
 import {assertThat, Suite} from "../../TestUtil.js"
-import {CircuitDefinition} from "../../../src/circuit/CircuitDefinition.js"
-import {CircuitStats} from "../../../src/circuit/CircuitStats.js";
-import {Gate} from "../../../src/circuit/Gate.js"
-import {GateColumn} from "../../../src/circuit/GateColumn.js"
+import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js"
+import {CircuitStats} from "../../../src/circuit/simulation/CircuitStats.js";
+import {Gate} from "../../../src/circuit/model/Gate.js"
+import {GateColumn} from "../../../src/circuit/model/GateColumn.js"
 import {Gates} from "../../../src/gates/AllGates.js"
 
 import {Complex} from "../../../src/math/Complex.js"
 import {Matrix} from "../../../src/math/Matrix.js"
 import {Util} from "../../../src/base/Util.js"
-import {advanceStateWithCircuit} from "../../../src/circuit/CircuitComputeUtil.js";
+import {advanceStateWithCircuit} from "../../../src/circuit/simulation/CircuitComputeUtil.js";
 import {
     assertThatCircuitUpdateActsLikeMatrix,
 } from "../../CircuitOperationTestUtil.js";

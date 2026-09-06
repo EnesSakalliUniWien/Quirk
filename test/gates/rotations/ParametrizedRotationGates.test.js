@@ -14,15 +14,45 @@
  * limitations under the License.
  */
 
-import {assertThat, Suite} from "../../TestUtil.js"
+import {assertThat, Suite} from '../../TestUtil.js';
 
-import {CircuitDefinition} from "../../../src/circuit/CircuitDefinition.js"
-import {CircuitStats} from "../../../src/circuit/CircuitStats.js"
-import {Complex} from "../../../src/math/Complex.js"
-import {Gates} from "../../../src/gates/AllGates.js"
-import {Matrix} from "../../../src/math/Matrix.js"
+import {CircuitDefinition} from '../../../src/circuit/model/CircuitDefinition.js';
+import {CircuitStats} from '../../../src/circuit/simulation/CircuitStats.js';
+import {Complex} from '../../../src/math/Complex.js';
+import {Gates} from '../../../src/gates/AllGates.js';
+import {Matrix} from '../../../src/math/Matrix.js';
+import {GatePainting} from '../../../src/draw/GatePainting.js';
+import {DisplayView, scenePixels} from '../../draw/TestDisplayView.js';
+import {gateButtonRect} from '../../../src/editor/CircuitGeometry.js';
+import {Rect} from '../../../src/math/Rect.js';
 
 let suite = new Suite("ParametrizedRotationGates");
+
+suite.test("formulaClock_doesNotCoverChangeButton", async () => {
+    for (let name of ['FormulaicRotationX', 'FormulaicRotationY', 'FormulaicRotationZ',
+        'FormulaicRotationRx', 'FormulaicRotationRy', 'FormulaicRotationRz']) {
+        for (let formula of ['t', '0.5']) {
+            let canvas = document.createElement('canvas');
+            let painter = new DisplayView(canvas);
+            let args = {
+                painter,
+                rect: new Rect(20, 20, 80, 40),
+                gate: Gates.ParametrizedRotationGates[name].withParam(formula),
+                stats: {time: 0.25},
+                isHighlighted: true,
+                hand: {isHoldingSomething: () => false},
+                focusPoints: []
+            };
+            args.gate.customDrawer(args);
+            let button = gateButtonRect(args.rect).paddedBy(-1);
+            let before = (await scenePixels(canvas, button.x, button.y, button.w, button.h)).data;
+            // Repainting the opaque button must not change any pixel in its interior.
+            GatePainting.paintGateButton(args);
+            let after = (await scenePixels(canvas, button.x, button.y, button.w, button.h)).data;
+            assertThat(before).isEqualTo(after);
+        }
+    }
+});
 
 let evalTopQubit = diagram => CircuitStats.fromCircuitAtTime(CircuitDefinition.fromTextDiagram(new Map([
     ['1', Gates.HalfTurns.X],

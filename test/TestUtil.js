@@ -15,14 +15,15 @@
  */
 
 // Cheat a little bit on the testing library being independent from what it tests
-import {describe} from "../src/base/Describe.js"
-import {equate} from "../src/base/Equate.js"
-import {WglTexturePool} from "../src/webgl/WglTexturePool.js"
-import {changeShaderCoder, canTestFloatShaders} from "../src/webgl/ShaderCoders.js"
-import {SHADER_CODER_BYTES} from "../src/webgl/ShaderCoders_intoBytes.js"
-import {SHADER_CODER_FLOATS} from "../src/webgl/ShaderCoders_intoFloats.js"
-import {DetailedError} from "../src/base/DetailedError.js"
-import {Diagnostics} from "../src/config/Diagnostics.js"
+import {scenePixels} from './draw/TestDisplayView.js';
+import {describe} from '../src/base/Describe.js';
+import {equate} from '../src/base/Equate.js';
+import {WglTexturePool} from '../src/webgl/WglTexturePool.js';
+import {changeShaderCoder, canTestFloatShaders} from '../src/webgl/ShaderCoders.js';
+import {SHADER_CODER_BYTES} from '../src/webgl/ShaderCoders_intoBytes.js';
+import {SHADER_CODER_FLOATS} from '../src/webgl/ShaderCoders_intoFloats.js';
+import {DetailedError} from '../src/base/DetailedError.js';
+import {Diagnostics} from '../src/config/Diagnostics.js';
 Diagnostics.CHECK_WEB_GL_ERRORS_EVEN_ON_HOT_PATHS = true;
 
 /** @type {!int} */
@@ -490,12 +491,12 @@ export class Suite {
      * @param {!int=} tolerance
      */
     canvasAppearanceTest(name, width, height, method, expectedSrc, tolerance = 256) {
-        this.test(name, status => {
+        this.test(name, async status => {
             let actualCanvas = /** @type {!HTMLCanvasElement} */ document.createElement("canvas");
             actualCanvas.width = width;
             actualCanvas.height = height;
-            method(actualCanvas, status);
-            let actualData = actualCanvas.getContext("2d").getImageData(0, 0, actualCanvas.width, actualCanvas.height);
+            await method(actualCanvas, status);
+            let actualData = await scenePixels(actualCanvas);
 
             return promiseImageDataFromSrc(expectedSrc).then(expectedData => {
                 let mse = meanSquaredError(actualData.data, expectedData.data);

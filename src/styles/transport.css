@@ -7,7 +7,7 @@
         flex-wrap: wrap;
         gap: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
         padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
-        background: color-mix(in oklch, var(--card), var(--background) 55%);
+        background: var(--transport-surface);
         border-bottom: 1px solid var(--border);
     }
 

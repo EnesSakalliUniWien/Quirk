@@ -14,14 +14,21 @@
  * limitations under the License.
  */
 
-import {Layout} from "../config/Layout.js"
-import {Palette} from "../config/Palette.js"
-import {Typography} from "../config/Typography.js"
-import {GateDrawParams} from "./GateDrawParams.js"
-import {MathPainter} from "./MathPainter.js"
-import {Point} from "../math/Point.js"
-import {Rect} from "../math/Rect.js"
-import {Util} from "../base/Util.js"
+import {PathGeometry} from './pixi/PathGeometry.js';
+import {drawPath, rectangle, strokePath} from './pixi/ShapeView.js';
+import {fitText, measureText} from './pixi/TextLayout.js';
+
+/** @typedef {import('./pixi/DisplayView.js').DisplayView} DisplayView */
+
+import {Layout} from '../config/Layout.js';
+import {gateButtonRect} from '../editor/CircuitGeometry.js';
+import {CanvasTheme, gateStyle} from '../config/CanvasTheme.js';
+import {Typography} from '../config/Typography.js';
+
+import {MathPainter} from './MathPainter.js';
+import {Point} from '../math/Point.js';
+import {Rect} from '../math/Rect.js';
+import {Util} from '../base/Util.js';
 
 /**
  * A described and possibly time-varying quantum operation.
@@ -33,13 +40,13 @@ class GatePainting {}
  * @returns {!string}
  */
 function gateSymbolFont(size) {
-    return `${Typography.GATE_SYMBOL_FONT_WEIGHT} ${size}px ${Typography.DEFAULT_FONT_FAMILY}`;
+    return {fontWeight: Typography.GATE_SYMBOL_FONT_WEIGHT, fontSize: size, fontFamily: Typography.DEFAULT_FONT_FAMILY};
 }
 
 const GATE_SYMBOL_FONT = gateSymbolFont(Typography.GATE_SYMBOL_FONT_SIZE);
 
 /**
- * The sizes a gate symbol is allowed to take. Painter.print shrinks text to whatever fits, with no
+ * The sizes a gate symbol is allowed to take. fitText shrinks text to whatever fits, with no
  * floor, which let a long symbol like Rz(f(t)) render at a few pixels beside a Z at sixteen. The
  * symbol steps down this ramp instead, and wraps once it reaches the bottom.
  * @type {!Array.<!number>}
@@ -70,15 +77,15 @@ function splitGateSymbol(text) {
 
 /**
  * The largest step of the ramp the text fits on, and the lines to draw it as.
- * @param {!Painter} painter
+ * @param {!DisplayView} painter
  * @param {!string} text
  * @param {!number} maxWidth
- * @returns {!{font: !string, lines: !Array.<!string>}}
+ * @returns {!{font: !Object, lines: !Array.<!string>}}
  */
 function fitGateSymbol(painter, text, maxWidth) {
     for (let size of GATE_SYMBOL_FONT_SIZES) {
-        painter.ctx.font = gateSymbolFont(size);
-        if (painter.ctx.measureText(text).width <= maxWidth) {
+        const font = gateSymbolFont(size);
+        if (measureText(text, font).width <= maxWidth) {
             return {font: gateSymbolFont(size), lines: [text]};
         }
     }
@@ -89,14 +96,12 @@ function fitGateSymbol(painter, text, maxWidth) {
 }
 
 GatePainting.paintOutline = args => {
-    args.painter.strokeRect(args.rect, Palette.INK_COLOR);
+    rectangle(args.painter, args.rect, {stroke: {color: args.isHighlighted ? CanvasTheme.interaction.outline : CanvasTheme.text.primary, width: 1}});
 };
 
 GatePainting.paintBackground =
-    (args, fillColor = Palette.GATE_FILL_COLOR) => {
-        args.painter.fillRect(
-            args.rect,
-            args.isHighlighted ? Palette.HIGHLIGHTED_GATE_FILL_COLOR : fillColor);
+    (args, fillColor = gateStyle(args.gate).fill) => {
+        rectangle(args.painter, args.rect, {fill: fillColor});
     };
 
 /**
@@ -109,7 +114,7 @@ GatePainting.LABEL_DRAWER = args => {
     }
 
     let cut = Math.max(0, args.rect.h - Layout.GATE_RADIUS*2)/2;
-    args.painter.fillRect(args.rect.skipTop(cut).skipBottom(cut), Palette.GATE_FILL_COLOR);
+    rectangle(args.painter, args.rect.skipTop(cut).skipBottom(cut), {fill: CanvasTheme.surface.gate});
 
     GatePainting.paintGateSymbol(args);
 };
@@ -119,7 +124,7 @@ GatePainting.LABEL_DRAWER = args => {
  * @constructor
  */
 GatePainting.MAKE_HIGHLIGHTED_DRAWER =
-    (fillColor = Palette.GATE_FILL_COLOR) => args => {
+    (fillColor = undefined) => args => {
         GatePainting.paintBackground(args, fillColor);
         GatePainting.paintOutline(args);
         GatePainting.paintResizeTab(args);
@@ -152,24 +157,31 @@ GatePainting.paintResizeTab = args => {
     let rect = GatePainting.rectForResizeTab(args.rect);
     let trimRect = rect.skipLeft(2).skipRight(2);
     let {x: cx, y: cy} = trimRect.center();
-    let backColor = args.isResizeHighlighted ? Palette.HIGHLIGHTED_GATE_FILL_COLOR : Palette.GATE_FILL_COLOR;
-    let foreColor = args.isResizeHighlighted ? Palette.DEFAULT_TEXT_COLOR : Palette.MID_LINE_COLOR;
-    args.painter.ctx.save();
-    args.painter.ctx.globalAlpha *= args.isResizeHighlighted ? 1 : 0.7;
-    args.painter.fillRect(trimRect, backColor);
-    args.painter.strokeRect(trimRect, Palette.MID_LINE_COLOR);
-    args.painter.ctx.restore();
-    args.painter.print(
-        'resize',
-        cx,
-        cy,
-        'center',
-        'middle',
-        foreColor,
-        `16px ${Typography.MONO_FONT_FAMILY}`,
-        trimRect.w - 4,
-        trimRect.h - 4);
-    args.painter.trace(tracer => {
+    let backColor = args.isResizeHighlighted ? CanvasTheme.gate.hover : CanvasTheme.surface.gate;
+    let foreColor = args.isResizeHighlighted ? CanvasTheme.text.default : CanvasTheme.text.muted;
+    args.painter.group('resize-tab-' + args.painter.order, painter => {
+        painter.alpha *= args.isResizeHighlighted ? 1 : 0.7;
+        rectangle(painter, trimRect, {
+            fill: backColor
+        });
+        rectangle(painter, trimRect, {
+            stroke: {
+                color: CanvasTheme.stroke.guide,
+                width: 1
+            }
+        });
+    });
+    fitText(args.painter, 'resize', {
+        x: cx,
+        y: cy,
+        align: 'center',
+        baseline: 'middle',
+        fill: foreColor,
+        font: {fontSize: 16, fontFamily: Typography.MONO_FONT_FAMILY},
+        width: trimRect.w - 4,
+        height: trimRect.h - 4
+    });
+    drawPath(args.painter, tracer => {
         let arrowDirs = [
             args.gate.canIncreaseInSize() ? +1 : -1,
             args.gate.canDecreaseInSize() ? -1 : +1
@@ -180,10 +192,10 @@ GatePainting.paintResizeTab = args => {
                 let by = cy + d*arrowOffsets[k]*5/8;
                 let y1 = by + d*arrowDirs[k]/8;
                 let y2 = by - d*arrowDirs[k]/8;
-                tracer.line(cx, y1, cx + d*sx*0.3, y2);
+                PathGeometry.line(tracer, cx, y1, cx + d*sx*0.3, y2);
             }
         }
-    }).thenStroke(foreColor);
+    }, [{stroke: {color: foreColor, width: 1}}]);
 };
 
 /**
@@ -193,12 +205,13 @@ GatePainting.paintResizeTab = args => {
  */
 GatePainting.paintGateSymbol = (args, symbolOverride=undefined, allowExponent=true) => {
     let painter = args.painter;
+    const ink = gateStyle(args.gate).text;
     let rect = args.rect.paddedBy(-2);
     if (symbolOverride === undefined) {
         symbolOverride = args.gate.symbol;
     }
-    let {symbol, offsetY} = _paintSymbolHandleLines(args.painter, symbolOverride, rect);
-    painter.ctx.font = GATE_SYMBOL_FONT;  // So that measure-text calls return the right stuff.
+    let {symbol, offsetY} = _paintSymbolHandleLines(args.painter, symbolOverride, rect, ink);
+    const font = GATE_SYMBOL_FONT;  // So that measure-text calls return the right stuff.
 
     let splitIndex = allowExponent ? symbol.indexOf('^') : -1;
     let parts = splitIndex === -1 ? [symbol] : [symbol.substr(0, splitIndex), symbol.substr(splitIndex + 1)];
@@ -206,16 +219,16 @@ GatePainting.paintGateSymbol = (args, symbolOverride=undefined, allowExponent=tr
         let {font, lines: symbolLines} = fitGateSymbol(painter, symbol, rect.w);
         let lineHeight = rect.h / symbolLines.length;
         for (let i = 0; i < symbolLines.length; i++) {
-            painter.print(
-                symbolLines[i],
-                rect.x + rect.w/2,
-                rect.y + rect.h/2 + offsetY + (i - (symbolLines.length - 1)/2) * lineHeight,
-                'center',
-                'middle',
-                Palette.INK_COLOR,
+            fitText(painter, symbolLines[i], {
+                x: rect.x + rect.w/2,
+                y: rect.y + rect.h/2 + offsetY + (i - (symbolLines.length - 1)/2) * lineHeight,
+                align: 'center',
+                baseline: 'middle',
+                fill: ink,
                 font,
-                rect.w,
-                lineHeight);
+                width: rect.w,
+                height: lineHeight
+            });
         }
         return;
     }
@@ -227,54 +240,54 @@ GatePainting.paintGateSymbol = (args, symbolOverride=undefined, allowExponent=tr
     // The same ramp as the plain branch, so a symbol with an exponent and one without come out at
     // the same size rather than as two typographic systems side by side.
     let {font: symbolFont} = fitGateSymbol(painter, baseText + expText, rect.w);
-    painter.ctx.font = symbolFont;
-    let baseWidth = painter.ctx.measureText(baseText).width;
-    let expWidth = painter.ctx.measureText(expText).width;
+
+    let baseWidth = measureText(baseText, symbolFont).width;
+    let expWidth = measureText(expText, symbolFont).width;
     let scaleDown = Math.min(rect.w, baseWidth + expWidth) / (baseWidth + expWidth);
     let divider = rect.w/2 + (baseWidth - expWidth)*scaleDown/2;
-    painter.print(
-        baseText,
-        rect.x + divider,
-        rect.y + rect.h/2 + offsetY,
-        'right',
-        'hanging',
-        Palette.INK_COLOR,
-        symbolFont,
-        divider,
-        rect.h);
-    painter.print(
-        expText,
-        rect.x + divider,
-        rect.y + rect.h/2 + offsetY,
-        'left',
-        'alphabetic',
-        Palette.INK_COLOR,
-        symbolFont,
-        rect.w - divider,
-        rect.h);
+    fitText(painter, baseText, {
+        x: rect.x + divider,
+        y: rect.y + rect.h/2 + offsetY,
+        align: 'right',
+        baseline: 'hanging',
+        fill: ink,
+        font: symbolFont,
+        width: divider,
+        height: rect.h
+    });
+    fitText(painter, expText, {
+        x: rect.x + divider,
+        y: rect.y + rect.h/2 + offsetY,
+        align: 'left',
+        baseline: 'alphabetic',
+        fill: ink,
+        font: symbolFont,
+        width: rect.w - divider,
+        height: rect.h
+    });
 };
 
 /**
- * @param {!Painter} painter
+ * @param {!DisplayView} painter
  * @param {!string} symbol
  * @param {!Rect} rect
  * @returns {!{symbol: !string, offsetY: !int}} The symbol without any extra lines.
  * @private
  */
-function _paintSymbolHandleLines(painter, symbol, rect) {
+function _paintSymbolHandleLines(painter, symbol, rect, ink) {
     let lines = symbol.split('\n');
 
     for (let i = 1; i < lines.length; i++) {
-        painter.print(
-            lines[i],
-            rect.x + rect.w/2,
-            rect.y + rect.h/2 + 9*i,
-            'center',
-            'hanging',
-            Palette.INK_COLOR,
-            GATE_SYMBOL_FONT,
-            rect.w,
-            16);
+        fitText(painter, lines[i], {
+            x: rect.x + rect.w/2,
+            y: rect.y + rect.h/2 + 9*i,
+            align: 'center',
+            baseline: 'hanging',
+            fill: ink,
+            font: GATE_SYMBOL_FONT,
+            width: rect.w,
+            height: 16
+        });
     }
 
     return {symbol: lines[0], offsetY: lines.length > 1 ? -5 : 0};
@@ -282,13 +295,13 @@ function _paintSymbolHandleLines(painter, symbol, rect) {
 
 /**
  * @param {!GateDrawParams} args
- * @param {!Tracer} tracer
+ * @param {!GraphicsPath} tracer
  */
 GatePainting.traceLocationIndependentOutline = (args, tracer) => {
     let [x1, x2, y1, y2] = [args.rect.x, args.rect.right(), args.rect.y, args.rect.bottom()];
     let diameter = Math.min(args.rect.h, args.rect.w, Layout.GATE_RADIUS*2);
     let clip = diameter / (2 + Math.sqrt(2));
-    tracer.polygon([
+    tracer.poly([
         x1, y1 + clip,
         x1 + clip, y1,
 
@@ -307,11 +320,9 @@ GatePainting.traceLocationIndependentOutline = (args, tracer) => {
  * @param {!GateDrawParams} args
  * @param {!string} normalFillColor
  */
-GatePainting.paintLocationIndependentFrame = (args, normalFillColor = Palette.GATE_FILL_COLOR) => {
-    let backColor = args.isHighlighted ? Palette.HIGHLIGHTED_GATE_FILL_COLOR : normalFillColor;
-    args.painter.trace(tracer => GatePainting.traceLocationIndependentOutline(args, tracer)).
-    thenFill(backColor).
-    thenStroke(Palette.INK_COLOR);
+GatePainting.paintLocationIndependentFrame = (args, normalFillColor = CanvasTheme.surface.gate) => {
+    let backColor = args.isHighlighted ? CanvasTheme.gate.hover : normalFillColor;
+    drawPath(args.painter, tracer => GatePainting.traceLocationIndependentOutline(args, tracer), [{fill: backColor}, {stroke: {color: CanvasTheme.text.primary, width: 1}}]);
 };
 
 /**
@@ -326,7 +337,7 @@ GatePainting.makeLocationIndependentGateDrawer = normalFillColor => args => {
 /**
  * @param {!GateDrawParams} args
  */
-GatePainting.LOCATION_INDEPENDENT_GATE_DRAWER = GatePainting.makeLocationIndependentGateDrawer(Palette.GATE_FILL_COLOR);
+GatePainting.LOCATION_INDEPENDENT_GATE_DRAWER = GatePainting.makeLocationIndependentGateDrawer(CanvasTheme.surface.gate);
 
 /**
  * @param {!Array.<!string>} labels
@@ -334,32 +345,32 @@ GatePainting.LOCATION_INDEPENDENT_GATE_DRAWER = GatePainting.makeLocationIndepen
  * @returns {!function(!GateDrawParams)}
  */
 GatePainting.SECTIONED_DRAWER_MAKER = (labels, dividers) => args => {
-    let backColor = args.isHighlighted ? Palette.HIGHLIGHTED_GATE_FILL_COLOR : Palette.GATE_FILL_COLOR;
+    let backColor = args.isHighlighted ? CanvasTheme.gate.hover : CanvasTheme.surface.gate;
     const font = GATE_SYMBOL_FONT;
-    args.painter.fillRect(args.rect, backColor);
+    rectangle(args.painter, args.rect, {fill: backColor});
     let p = 0;
     for (let i = 0; i < labels.length; i++) {
         let p2;
         if (i < labels.length - 1) {
             p2 = p + dividers[i];
             let cy = args.rect.y + args.rect.h*p2;
-            args.painter.strokeLine(new Point(args.rect.x, cy), new Point(args.rect.right(), cy), Palette.FAINT_LINE_COLOR);
+            strokePath(args.painter, [new Point(args.rect.x, cy), new Point(args.rect.right(), cy)], CanvasTheme.stroke.faint, 1);
         } else {
             p2 = 1;
         }
-        args.painter.print(
-            labels[i],
-            args.rect.x + args.rect.w/2,
-            args.rect.y + args.rect.h*(p + p2)/2,
-            'center',
-            'middle',
-            Palette.INK_COLOR,
+        fitText(args.painter, labels[i], {
+            x: args.rect.x + args.rect.w/2,
+            y: args.rect.y + args.rect.h*(p + p2)/2,
+            align: 'center',
+            baseline: 'middle',
+            fill: CanvasTheme.text.primary,
             font,
-            args.rect.w-2,
-            args.rect.h*(p2-p));
+            width: args.rect.w-2,
+            height: args.rect.h*(p2-p)
+        });
         p = p2;
     }
-    args.painter.strokeRect(args.rect);
+    rectangle(args.painter, args.rect, {stroke: {color: CanvasTheme.text.primary, width: 1}});
     GatePainting.paintResizeTab(args);
 };
 
@@ -371,18 +382,14 @@ GatePainting.makeDisplayDrawer = statePainter => args => {
         return;
     }
 
-    GatePainting.paintResizeTab(args);
-
     statePainter(args);
 
     if (args.isHighlighted) {
-        args.painter.strokeRect(args.rect, Palette.INK_COLOR, 1.5);
+        rectangle(args.painter, args.rect, {stroke: {color: CanvasTheme.text.primary, width: 1.5}});
     }
 
-    args.painter.ctx.save();
-    args.painter.ctx.globalAlpha *= 0.25;
+    // Draw the tab once, above the display, with its normal/highlight opacity.
     GatePainting.paintResizeTab(args);
-    args.painter.ctx.restore();
 };
 
 /**
@@ -395,22 +402,24 @@ GatePainting.MATRIX_DRAWER = args => {
         return;
     }
 
-    args.painter.fillRect(args.rect, args.isHighlighted ? Palette.HIGHLIGHTED_GATE_FILL_COLOR : Palette.GATE_FILL_COLOR);
+    rectangle(args.painter, args.rect, {fill: args.isHighlighted ? CanvasTheme.gate.hover : CanvasTheme.surface.gate});
     MathPainter.paintMatrix(
         args.painter,
         m,
         args.rect,
-        Palette.OPERATION_FORE_COLOR,
-        Palette.INK_COLOR,
+        CanvasTheme.operation.fill,
+        CanvasTheme.text.primary,
         undefined,
-        Palette.OPERATION_BACK_COLOR,
+        CanvasTheme.operation.background,
         undefined,
-        'transparent');
+        CanvasTheme.transparent);
     if (args.isHighlighted) {
-        args.painter.ctx.save();
-        args.painter.ctx.globalAlpha *= 0.9;
-        args.painter.fillRect(args.rect, Palette.HIGHLIGHTED_GATE_FILL_COLOR);
-        args.painter.ctx.restore();
+        args.painter.group('hover-' + args.painter.order, painter => {
+            painter.alpha *= 0.9;
+            rectangle(painter, args.rect, {
+                fill: CanvasTheme.gate.hover
+            });
+        });
     }
     GatePainting.paintOutline(args);
 };
@@ -423,8 +432,8 @@ GatePainting.MATRIX_DRAWER = args => {
  * @returns {!function(!GateDrawParams) : *}
  */
 GatePainting.makeCycleDrawer = (xScale=1, yScale=1, tScale=1, zeroAngle=0) => args => {
-    // The olive fill marks a column that is still moving.
-    GatePainting.MAKE_HIGHLIGHTED_DRAWER(Palette.TIME_DEPENDENT_HIGHLIGHT_COLOR)(args);
+    // The clock marks time dependence while the fill retains the operation family.
+    GatePainting.DEFAULT_DRAWER(args);
     GatePainting.paintCycleState(args, args.stats.time * 2 * Math.PI * tScale, xScale, yScale, zeroAngle);
 };
 
@@ -440,27 +449,25 @@ GatePainting.paintCycleState = (args, angle, xScale=1, yScale=1, zeroAngle=0) =>
     let c = args.rect.center();
     let r = 16;
 
-    args.painter.ctx.save();
-
-    args.painter.ctx.translate(c.x, c.y);
-    args.painter.ctx.scale(-xScale, -yScale);
-    args.painter.ctx.rotate(zeroAngle);
-    args.painter.ctx.strokeStyle = Palette.INK_COLOR;
-    args.painter.ctx.fillStyle = Palette.HIGHLIGHT_FILL_COLOR;
-    args.painter.ctx.globalAlpha *= 0.4;
-
-    args.painter.ctx.beginPath();
-    args.painter.ctx.moveTo(0, 0);
-    args.painter.ctx.lineTo(0, r);
-    args.painter.ctx.arc(0, 0, r, Math.PI/2, Math.PI/2 + t, true);
-    args.painter.ctx.lineTo(0, 0);
-    args.painter.ctx.closePath();
-    args.painter.ctx.stroke();
-    args.painter.ctx.fill();
-
-    args.painter.ctx.restore();
+    args.painter.group('cycle-' + args.painter.order, painter => {
+        painter.position.set(c.x, c.y);
+        painter.scale.set(-xScale, -yScale);
+        painter.alpha = 0.4;
+        painter.group('angle', painter => {
+            painter.rotation = zeroAngle;
+            const path = painter.graphics();
+            path.moveTo(0, 0);
+            path.lineTo(0, r);
+            path.arc(0, 0, r, Math.PI / 2, Math.PI / 2 + t, true);
+            path.lineTo(0, 0);
+            path.closePath();
+            path.stroke({
+                color: CanvasTheme.text.primary,
+                width: 1
+            }).fill(CanvasTheme.operation.fill);
+        });
+    });
 };
-
 
 /**
  * @param {!GateDrawParams} args
@@ -475,12 +482,6 @@ function _wireY(args, offset) {
  * @param {!Rect} wholeRect
  * @returns {!Rect}
  */
-GatePainting.gateButtonRect = wholeRect => {
-    if (wholeRect.h > 50) {
-        return wholeRect.bottomHalf().skipTop(6).paddedBy(-7);
-    }
-    return wholeRect.bottomHalf().paddedBy(+2);
-};
 
 /**
  * @param {!GateDrawParams} args
@@ -490,22 +491,21 @@ GatePainting.paintGateButton = args => {
         return;
     }
 
-    let buttonRect = GatePainting.gateButtonRect(args.rect);
+    let buttonRect = gateButtonRect(args.rect);
     let buttonFocus = !args.focusPoints.every(pt => !buttonRect.containsPoint(pt));
-    args.painter.fillRect(buttonRect, buttonFocus ? Palette.ERROR_COLOR : Palette.HIGHLIGHT_STROKE_COLOR);
-    args.painter.print(
-        'change',
-        buttonRect.center().x,
-        buttonRect.center().y,
-        'center',
-        'middle',
-        Palette.INK_COLOR,
-        `12px ${Typography.DEFAULT_FONT_FAMILY}`,
-        buttonRect.w,
-        buttonRect.h);
-    args.painter.strokeRect(buttonRect, Palette.INK_COLOR);
+    rectangle(args.painter, buttonRect, {fill: buttonFocus ? CanvasTheme.interaction.buttonFocus : CanvasTheme.interaction.button});
+    fitText(args.painter, 'change', {
+        x: buttonRect.center().x,
+        y: buttonRect.center().y,
+        align: 'center',
+        baseline: 'middle',
+        fill: CanvasTheme.text.onBright,
+        font: {fontSize: 12, fontFamily: Typography.DEFAULT_FONT_FAMILY},
+        width: buttonRect.w,
+        height: buttonRect.h
+    });
+    rectangle(args.painter, buttonRect, {stroke: {color: CanvasTheme.text.primary, width: 1}});
 };
-
 
 /**
  * @param {!GateDrawParams} args
@@ -521,10 +521,10 @@ function _eraseWiresForPermutation(args) {
         let isMeasured2 = args.stats.circuitDefinition.locIsMeasured(loc.offsetBy(1, 0));
 
         for (let dy of isMeasured1 ? [-1, +1] : [0]) {
-            args.painter.strokeLine(p.offsetBy(0, dy), c.offsetBy(1, dy), Palette.BACKGROUND_COLOR_CIRCUIT);
+            strokePath(args.painter, [p.offsetBy(0, dy), c.offsetBy(1, dy)], CanvasTheme.surface.background, 1);
         }
         for (let dy of isMeasured2 ? [-1, +1] : [0]) {
-            args.painter.strokeLine(c.offsetBy(-1, dy), q.offsetBy(0, dy), Palette.BACKGROUND_COLOR_CIRCUIT);
+            strokePath(args.painter, [c.offsetBy(-1, dy), q.offsetBy(0, dy)], CanvasTheme.surface.background, 1);
         }
     }
 }
@@ -542,7 +542,7 @@ GatePainting.PERMUTATION_DRAWER = args => {
     if (args.isHighlighted ||
             args.isResizeHighlighted ||
             args.stats.circuitDefinition.colHasControls(args.positionInCircuit.col)) {
-        GatePainting.paintBackground(args, Palette.QUIET_GATE_FILL_COLOR);
+        GatePainting.paintBackground(args, CanvasTheme.surface.quiet);
         GatePainting.paintOutline(args);
         GatePainting.paintResizeTab(args);
     } else {
@@ -552,7 +552,6 @@ GatePainting.PERMUTATION_DRAWER = args => {
     // Draw wires.
     let x1 = args.rect.x;
     let x2 = args.rect.right();
-    args.painter.ctx.strokeStyle = Palette.INK_COLOR;
     for (let i = 0; i < args.gate.height; i++) {
         let j = args.gate.knownBitPermutationFunc(i);
 
@@ -560,14 +559,14 @@ GatePainting.PERMUTATION_DRAWER = args => {
         let isMeasured = args.stats.circuitDefinition.locIsMeasured(pt);
         let y1 = _wireY(args, i);
         let y2 = _wireY(args, j);
-        args.painter.ctx.beginPath();
+        const path = args.painter.graphics();
         for (let [dx, dy] of isMeasured ? [[j > i ? +1 : -1, -1], [0, +1]] : [[0, 0]]) {
-            args.painter.ctx.moveTo(Math.min(x1, x1 + dx), y1 + dy);
-            args.painter.ctx.lineTo(x1 + dx, y1 + dy);
-            args.painter.ctx.lineTo(x2 + dx, y2 + dy);
-            args.painter.ctx.lineTo(Math.max(x2, x2 + dx), y2 + dy);
+            path.moveTo(Math.min(x1, x1 + dx), y1 + dy);
+            path.lineTo(x1 + dx, y1 + dy);
+            path.lineTo(x2 + dx, y2 + dy);
+            path.lineTo(Math.max(x2, x2 + dx), y2 + dy);
         }
-        args.painter.ctx.stroke();
+        path.stroke({color: CanvasTheme.text.primary, width: 1});
     }
 };
 

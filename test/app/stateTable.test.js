@@ -15,8 +15,8 @@
  */
 
 import {Suite, assertThat} from "../TestUtil.js"
-import {CircuitDefinition} from "../../src/circuit/CircuitDefinition.js"
-import {CircuitStats} from "../../src/circuit/CircuitStats.js"
+import {CircuitDefinition} from "../../src/circuit/model/CircuitDefinition.js"
+import {CircuitStats} from "../../src/circuit/simulation/CircuitStats.js"
 import {Gates} from "../../src/gates/AllGates.js"
 import {stateTableRows} from "../../src/app/stateTable.js"
 

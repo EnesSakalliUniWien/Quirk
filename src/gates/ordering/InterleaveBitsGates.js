@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-import {Layout} from "../../config/Layout.js"
-import {Simulation} from "../../config/Simulation.js"
-import {Gate} from "../../circuit/Gate.js"
-import {ketArgs, ketShaderPermute} from "../../circuit/KetShaderUtil.js"
-import {GatePainting} from "../../draw/GatePainting.js"
-import {Point} from "../../math/Point.js"
-import {Seq} from "../../base/Seq.js"
+import {CanvasTheme} from '../../config/CanvasTheme.js';
+import {strokePath} from '../../draw/pixi/ShapeView.js';
+
+import {Layout} from '../../config/Layout.js';
+import {Simulation} from '../../config/Simulation.js';
+import {Gate} from '../../circuit/model/Gate.js';
+import {ketArgs, ketShaderPermute} from '../../circuit/simulation/gpu/KetShaderUtil.js';
+import {GatePainting} from '../../draw/GatePainting.js';
+import {Point} from '../../math/Point.js';
+import {Seq} from '../../base/Seq.js';
 
 let InterleaveBitsGates = {};
 
@@ -107,12 +110,12 @@ let interleavePainter = reverse => args => {
         let yi = y + i*dh + Math.floor(i/3)*14;
         let yj = y + j*dh + Math.floor(j/2)*7;
         let [y1, y2] = reverse ? [yj, yi] : [yi, yj];
-        args.painter.strokePath([
+        strokePath(args.painter, [
             new Point(x1, y1),
             new Point(x1 + 8, y1),
             new Point(x2 - 8, y2),
             new Point(x2, y2)
-        ]);
+        ], CanvasTheme.text.primary, 1);
     }
 };
 

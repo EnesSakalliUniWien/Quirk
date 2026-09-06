@@ -19,8 +19,8 @@ import {assertThat, Suite} from "../../TestUtil.js"
 import {Complex} from "../../../src/math/Complex.js"
 import {Gates} from "../../../src/gates/AllGates.js"
 import {Matrix} from "../../../src/math/Matrix.js"
-import {Serializer} from "../../../src/circuit/Serializer.js"
-import {Gate} from "../../../src/circuit/Gate.js"
+import {Serializer} from "../../../src/circuit/serialization/Serializer.js"
+import {Gate} from "../../../src/circuit/model/Gate.js"
 
 let suite = new Suite("RotationGates");
 

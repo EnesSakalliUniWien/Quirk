@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-import {describe} from "../base/Describe.js"
-import {DetailedError} from "../base/DetailedError.js"
-import {Gate} from "../circuit/Gate.js"
-import {GateColumn} from "../circuit/GateColumn.js"
-import {Point} from "../math/Point.js"
-import {Util} from "../base/Util.js"
+/** @typedef {import('../draw/pixi/DisplayView.js').DisplayView} DisplayView */
+
+import {describe} from '../base/Describe.js';
+import {DetailedError} from '../base/DetailedError.js';
+import {Gate} from '../circuit/model/Gate.js';
+import {GateColumn} from '../circuit/model/GateColumn.js';
+import {Point} from '../math/Point.js';
+import {Util} from '../base/Util.js';
 
 class Hand {
     /**
@@ -76,13 +78,13 @@ class Hand {
     }
 
     /**
-     * @param {!Painter} painter
+     * @param {!DisplayView} painter
      */
     paintCursor(painter) {
         if (this.heldGate !== undefined || this.heldColumn !== undefined) {
-            painter.setDesiredCursor('move');
+            painter.interaction.cursor = 'move';
         } else if (this.resizingGateSlot !== undefined) {
-            painter.setDesiredCursor('ns-resize');
+            painter.interaction.cursor = 'ns-resize';
         }
     }
 

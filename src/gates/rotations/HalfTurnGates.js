@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-import {Gate, GateBuilder} from "../../circuit/Gate.js"
-import {GatePainting} from "../../draw/GatePainting.js"
-import {Matrix} from "../../math/Matrix.js"
-import {Point} from "../../math/Point.js"
-import {ketArgs, ketShader, ketShaderPermute} from "../../circuit/KetShaderUtil.js"
+import {gateStyle} from '../../config/CanvasTheme.js';
+import {circle, strokePath} from '../../draw/pixi/ShapeView.js';
+
+import {GateBuilder} from '../../circuit/model/Gate.js';
+import {GatePainting} from '../../draw/GatePainting.js';
+import {Matrix} from '../../math/Matrix.js';
+import {Point} from '../../math/Point.js';
+import {ketArgs, ketShader, ketShaderPermute} from '../../circuit/simulation/gpu/KetShaderUtil.js';
 
 /**
  * Gates that correspond to 180 degree rotations around the Bloch sphere, so they're their own inverses.
@@ -42,8 +45,9 @@ function NOT_DRAWER(args) {
     }
 
     let drawArea = args.rect.scaledOutwardBy(0.6);
-    args.painter.fillCircle(drawArea.center(), drawArea.w / 2);
-    args.painter.strokeCircle(drawArea.center(), drawArea.w / 2);
+    const style = gateStyle(args.gate);
+    circle(args.painter, drawArea.center(), drawArea.w / 2, {fill: style.fill});
+    circle(args.painter, drawArea.center(), drawArea.w / 2, {stroke: {color: style.fill, width: 1}});
 
     // Vertical stroke(s).
     let hasSingleWireControl =
@@ -53,21 +57,21 @@ function NOT_DRAWER(args) {
         args.positionInCircuit !== undefined &&
         args.stats.circuitDefinition.colHasDoubleWireControl(args.positionInCircuit.col);
     if (hasSingleWireControl || !hasDoubleWireControl) {
-        args.painter.strokeLine(drawArea.topCenter(), drawArea.bottomCenter());
+        strokePath(args.painter, [drawArea.topCenter(), drawArea.bottomCenter()], style.text, 1);
     }
     if (hasDoubleWireControl) {
-        args.painter.strokeLine(drawArea.topCenter().offsetBy(-1, 0), drawArea.bottomCenter().offsetBy(-1, 0));
-        args.painter.strokeLine(drawArea.topCenter().offsetBy(+1, 0), drawArea.bottomCenter().offsetBy(+1, 0));
+        strokePath(args.painter, [drawArea.topCenter().offsetBy(-1, 0), drawArea.bottomCenter().offsetBy(-1, 0)], style.text, 1);
+        strokePath(args.painter, [drawArea.topCenter().offsetBy(+1, 0), drawArea.bottomCenter().offsetBy(+1, 0)], style.text, 1);
     }
 
     // Horizontal stroke(s).
     let isMeasured = args.positionInCircuit !== undefined && args.stats.circuitDefinition.locIsMeasured(
         new Point(args.positionInCircuit.col, args.positionInCircuit.row));
     if (isMeasured) {
-        args.painter.strokeLine(drawArea.centerLeft().offsetBy(0, -1), drawArea.centerRight().offsetBy(0, -1));
-        args.painter.strokeLine(drawArea.centerLeft().offsetBy(0, +1), drawArea.centerRight().offsetBy(0, +1));
+        strokePath(args.painter, [drawArea.centerLeft().offsetBy(0, -1), drawArea.centerRight().offsetBy(0, -1)], style.text, 1);
+        strokePath(args.painter, [drawArea.centerLeft().offsetBy(0, +1), drawArea.centerRight().offsetBy(0, +1)], style.text, 1);
     } else {
-        args.painter.strokeLine(drawArea.centerLeft(), drawArea.centerRight());
+        strokePath(args.painter, [drawArea.centerLeft(), drawArea.centerRight()], style.text, 1);
     }
 }
 

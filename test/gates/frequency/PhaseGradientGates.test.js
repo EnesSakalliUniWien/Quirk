@@ -23,7 +23,7 @@ import {PHASE_GRADIENT_SHADER, PhaseGradientGates} from "../../../src/gates/freq
 
 import {Complex} from "../../../src/math/Complex.js"
 import {Matrix} from "../../../src/math/Matrix.js"
-import {ketArgs} from "../../../src/circuit/KetShaderUtil.js"
+import {ketArgs} from "../../../src/circuit/simulation/gpu/KetShaderUtil.js"
 import {WglArg} from "../../../src/webgl/WglArg.js"
 
 let suite = new Suite("PhaseGradientGates");

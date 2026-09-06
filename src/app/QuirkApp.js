@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import {CircuitStats} from "../circuit/CircuitStats.js"
+import {CircuitStats} from "../circuit/simulation/CircuitStats.js"
 import {DisplayedInspector} from "../editor/DisplayedInspector.js"
 import {Rect} from "../math/Rect.js"
 import {Revision} from "../base/Revision.js"
-import {fromJsonText_CircuitDefinition} from "../circuit/Serializer.js"
+import {fromJsonText_CircuitDefinition} from "../circuit/serialization/Serializer.js"
 import {Util} from "../base/Util.js"
 import {ObservableValue} from "../base/Obs.js"
 import {initExports} from "./exports.js"
@@ -100,7 +100,9 @@ function startQuirk() {
         // The content extent, in circuit units: at least the visible area (which covers more
         // circuit units when zoomed out), grown to fit a circuit larger than it.
         return {
-            w: Math.max(canvasDiv.clientWidth / circuitZoom(), curInspector.desiredWidth()),
+            // Previous right-alignment slack must not become a minimum width after zooming in.
+            w: Math.max(canvasDiv.clientWidth / circuitZoom(),
+                curInspector.displayedCircuit.unshiftedDesiredWidth()),
             h: Math.max(canvasDiv.clientHeight / circuitZoom(), curInspector.desiredHeight())
         };
     };

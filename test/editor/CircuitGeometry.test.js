@@ -15,13 +15,64 @@
  */
 
 import {Suite, assertThat, assertTrue} from "../TestUtil.js"
-import {CircuitDefinition} from "../../src/circuit/CircuitDefinition.js"
+import {CircuitDefinition} from "../../src/circuit/model/CircuitDefinition.js"
 import {CircuitGeometry} from "../../src/editor/CircuitGeometry.js"
-import {Gates} from "../../src/gates/AllGates.js"
+import {Gates, INITIAL_STATES_TO_GATES} from "../../src/gates/AllGates.js"
 import {Layout} from "../../src/config/Layout.js"
 import {Simulation} from "../../src/config/Simulation.js"
+import {DisplayedCircuit} from "../../src/editor/DisplayedCircuit.js"
+import {Point} from "../../src/math/Point.js"
+import {findGateOverlappingPos, findWireWithInitialStateAreaContaining} from "../../src/editor/CircuitHitTesting.js"
+import {Typography} from "../../src/config/Typography.js"
+import {Hand} from "../../src/editor/Hand.js"
 
 let suite = new Suite("CircuitGeometry");
+
+suite.test("Register labels fit, ket hits stay within their control, and insertion clears the gutter", () => {
+    const displayed = DisplayedCircuit.empty(0).withCircuit(new CircuitDefinition(Simulation.MAX_WIRE_COUNT, []));
+    const g = displayed.geometry();
+    const ctx = document.createElement('canvas').getContext('2d');
+    for (let row = 0; row < Simulation.MAX_WIRE_COUNT; row++) {
+        const index = g.wireIndexRect(row), ket = g.wireInitialStateRect(row);
+        ctx.font = `${Layout.REGISTER_FONT_SIZE}px ${Typography.MONO_FONT_FAMILY}`;
+        assertTrue(ctx.measureText(`q${row}`).width <= index.w);
+        ctx.font = `${Layout.REGISTER_FONT_SIZE}px ${Typography.DEFAULT_FONT_FAMILY}`;
+        for (const state of INITIAL_STATES_TO_GATES.keys()) {
+            assertTrue(ctx.measureText(`|${state || '0'}⟩`).width <= ket.w - Layout.REGISTER_MARGIN);
+        }
+        assertTrue(index.right() < ket.x && ket.bottom() < g.wireRect(row).bottom());
+        assertThat(findWireWithInitialStateAreaContaining(displayed, ket.center())).isEqualTo(row);
+        assertThat(findWireWithInitialStateAreaContaining(displayed, index.center())).isEqualTo(undefined);
+        assertThat(findWireWithInitialStateAreaContaining(displayed, new Point(ket.center().x, ket.bottom() + 1))).isEqualTo(undefined);
+        assertThat(displayed.tryClick(Hand.EMPTY.withPos(ket.center())).circuitDefinition.customInitialValues.get(row)).isEqualTo('1');
+    }
+    const preview = new CircuitGeometry(0, g.circuitDefinition, 0, undefined, 0);
+    assertTrue(preview.gateDrawRect(0, 0, Gates.Displays.BlochSphereDisplay).x > g.wireInitialStateRect(0).right());
+});
+
+suite.test("Bloch bounds fit their row and column and include the enlarged click area", () => {
+    let definition = CircuitDefinition.fromTextDiagram(new Map([['B', Gates.Displays.BlochSphereDisplay]]), 'BB\nBB');
+    let displayed = DisplayedCircuit.empty(0).withCircuit(definition);
+    let g = displayed.geometry();
+    let gate = Gates.Displays.BlochSphereDisplay;
+    let rect = g.gateDrawRect(0, 0, gate);
+    assertTrue(rect.w > g.gateRect(0, 0).w);
+    assertTrue(rect.right() < g.gateDrawRect(0, 1, gate).x);
+    assertTrue(rect.bottom() < g.gateDrawRect(1, 0, gate).y);
+    assertTrue(rect.y >= g.wireRect(0).y && rect.bottom() <= g.wireRect(0).bottom());
+    let edge = new Point(rect.x + 1, rect.center().y);
+    assertThat(displayed.findBlochSphereContaining(edge)).isEqualTo({row: 0, col: 0});
+    let found = findGateOverlappingPos(displayed, edge);
+    // Drag offsets remain relative to the logical slot, even when grabbed outside that slot.
+    assertThat(found.offset).isEqualTo(edge.minus(g.gateRect(0, 0).topLeft()));
+});
+
+suite.test("multi-column and multi-wire gates use their respective spacing", () => {
+    let g = plainGeometry();
+    let rect = g.gateRect(0, 0, 2, 2);
+    assertThat(rect.w).isEqualTo(2 * Layout.GATE_RADIUS + Layout.COLUMN_SPACING);
+    assertThat(rect.h).isEqualTo(2 * Layout.GATE_RADIUS + Layout.WIRE_SPACING);
+});
 
 const circuit = diagram => CircuitDefinition.fromTextDiagram(new Map([
     ['H', Gates.HalfTurns.H],

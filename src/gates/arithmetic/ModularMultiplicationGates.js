@@ -15,12 +15,12 @@
  */
 
 import {Simulation} from "../../config/Simulation.js"
-import {Gate} from "../../circuit/Gate.js"
+import {Gate} from "../../circuit/model/Gate.js"
 import {
     ketArgs,
     ketShaderPermute,
     ketInputGateShaderCode
-} from "../../circuit/KetShaderUtil.js"
+} from "../../circuit/simulation/gpu/KetShaderUtil.js"
 import {modulusTooBigChecker} from "./ModularIncrementGates.js"
 import {BIG_MUL_MOD_SHADER_CODE} from "./MultiplyAccumulateGates.js"
 import {Util} from "../../base/Util.js"
