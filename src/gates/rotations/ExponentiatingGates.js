@@ -15,8 +15,8 @@
  */
 
 import {GateBuilder} from "../../circuit/model/Gate.js"
-import {GatePainting} from "../../draw/GatePainting.js"
-import {Matrix} from "../../math/Matrix.js"
+import {GatePainting} from "../../draw/gate/GatePainting.js"
+import {Matrix} from "../../engine/math/matrix/Matrix.js"
 
 let ExponentiatingGates = {};
 

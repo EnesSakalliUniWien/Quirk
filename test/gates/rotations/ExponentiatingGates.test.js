@@ -16,8 +16,10 @@
 
 import {Suite, assertThat} from "../../TestUtil.js"
 import {Gates} from "../../../src/gates/AllGates.js"
-import {Complex} from "../../../src/math/Complex.js"
-import {Matrix} from "../../../src/math/Matrix.js"
+import {Complex} from "../../../src/engine/math/complex/Complex.js"
+import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
+import {liftApply} from "../../MatrixTestUtil.js"
+import {QubitMatrix} from "../../../src/engine/math/matrix/QubitMatrix.js"
 
 let suite = new Suite("ExponentiatingGates");
 
@@ -32,39 +34,39 @@ suite.test("timeBased_matchUnoptimized", () => {
     let τ = Math.PI * 2;
     matches(
         Gates.Exponentiating.XForward,
-        t => Matrix.PAULI_X.liftApply(c => c.times(τ * -t).times(i).exp()));
+        t => liftApply(QubitMatrix.PAULI_X, c => c.times(τ * -t).times(i).exp()));
     matches(
         Gates.Exponentiating.XBackward,
-        t => Matrix.PAULI_X.liftApply(c => c.times(τ * t).times(i).exp()));
+        t => liftApply(QubitMatrix.PAULI_X, c => c.times(τ * t).times(i).exp()));
     matches(
         Gates.Exponentiating.YForward,
-        t => Matrix.PAULI_Y.liftApply(c => c.times(τ * -t).times(i).exp()));
+        t => liftApply(QubitMatrix.PAULI_Y, c => c.times(τ * -t).times(i).exp()));
     matches(
         Gates.Exponentiating.YBackward,
-        t => Matrix.PAULI_Y.liftApply(c => c.times(τ * t).times(i).exp()));
+        t => liftApply(QubitMatrix.PAULI_Y, c => c.times(τ * t).times(i).exp()));
     matches(
         Gates.Exponentiating.ZForward,
-        t => Matrix.PAULI_Z.liftApply(c => c.times(τ * -t).times(i).exp()));
+        t => liftApply(QubitMatrix.PAULI_Z, c => c.times(τ * -t).times(i).exp()));
     matches(
         Gates.Exponentiating.ZBackward,
-        t => Matrix.PAULI_Z.liftApply(c => c.times(τ * t).times(i).exp()));
+        t => liftApply(QubitMatrix.PAULI_Z, c => c.times(τ * t).times(i).exp()));
 
     matches(
         Gates.Powering.XForward,
-        t => Matrix.PAULI_X.liftApply(c => c.raisedTo(t * 2)));
+        t => liftApply(QubitMatrix.PAULI_X, c => c.raisedTo(t * 2)));
     matches(
         Gates.Powering.XBackward,
-        t => Matrix.PAULI_X.liftApply(c => c.raisedTo(-t * 2)));
+        t => liftApply(QubitMatrix.PAULI_X, c => c.raisedTo(-t * 2)));
     matches(
         Gates.Powering.YForward,
-        t => Matrix.PAULI_Y.liftApply(c => c.raisedTo(t * 2)));
+        t => liftApply(QubitMatrix.PAULI_Y, c => c.raisedTo(t * 2)));
     matches(
         Gates.Powering.YBackward,
-        t => Matrix.PAULI_Y.liftApply(c => c.raisedTo(-t * 2)));
+        t => liftApply(QubitMatrix.PAULI_Y, c => c.raisedTo(-t * 2)));
     matches(
         Gates.Powering.ZForward,
-        t => Matrix.PAULI_Z.liftApply(c => c.raisedTo(t * 2)));
+        t => liftApply(QubitMatrix.PAULI_Z, c => c.raisedTo(t * 2)));
     matches(
         Gates.Powering.ZBackward,
-        t => Matrix.PAULI_Z.liftApply(c => c.raisedTo(-t * 2)));
+        t => liftApply(QubitMatrix.PAULI_Z, c => c.raisedTo(-t * 2)));
 });

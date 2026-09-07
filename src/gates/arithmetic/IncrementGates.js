@@ -15,8 +15,8 @@
  */
 
 import {Gate} from "../../circuit/model/Gate.js"
-import {ketArgs, ketShaderPermute} from "../../circuit/simulation/gpu/KetShaderUtil.js"
-import {WglArg} from "../../webgl/WglArg.js"
+import {ketArgs, ketShaderPermute} from "../../engine/simulation/gpu/KetShaderUtil.js"
+import {WglArg} from "../../engine/webgl/shader/WglArg.js"
 
 let IncrementGates = {};
 

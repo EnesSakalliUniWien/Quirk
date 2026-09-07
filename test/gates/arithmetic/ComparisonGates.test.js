@@ -18,10 +18,10 @@ import {Suite} from "../../TestUtil.js"
 import {Gates} from "../../../src/gates/AllGates.js"
 import {ComparisonGates} from "../../../src/gates/arithmetic/ComparisonGates.js"
 import {assertThatCircuitUpdateActsLikeMatrix} from "../../CircuitOperationTestUtil.js"
-import {advanceStateWithCircuit} from "../../../src/circuit/simulation/CircuitComputeUtil.js"
+import {advanceStateWithCircuit} from "../../../src/engine/simulation/CircuitComputeUtil.js"
 
 import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js"
-import {Matrix} from "../../../src/math/Matrix.js"
+import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
 
 let suite = new Suite("ComparisonGates");
 

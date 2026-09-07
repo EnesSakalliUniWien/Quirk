@@ -14,55 +14,66 @@
  * limitations under the License.
  */
 
-import {GateBuilder} from "../../circuit/model/Gate.js"
-import {Matrix} from "../../math/Matrix.js"
-import {Complex} from "../../math/Complex.js"
-import {GatePainting} from "../../draw/GatePainting.js"
+import { GateBuilder } from "../../circuit/model/Gate.js";
+import { Matrix } from "../../engine/math/matrix/Matrix.js";
+import { Complex } from "../../engine/math/complex/Complex.js";
+import { GatePainting } from "../../draw/gate/GatePainting.js";
 
-const ImaginaryGate = new GateBuilder().
-    setSerializedIdAndSymbol("i").
-    setTitle("Imaginary Gate").
-    setBlurb("Phases everything by i.").
-    setDrawer(args => {
-        GatePainting.paintLocationIndependentFrame(args);
-        GatePainting.paintGateSymbol(args);
-    }).
-    setKnownEffectToMatrix(Matrix.square(Complex.I, 0, 0, Complex.I)).
-    gate;
+const ImaginaryGate = new GateBuilder()
+  .setSerializedIdAndSymbol("i")
+  .setTitle("Imaginary Gate")
+  .setBlurb("Phases everything by i.")
+  .setDrawer((args) => {
+    GatePainting.paintLocationIndependentFrame(args);
+    GatePainting.paintGateSymbol(args);
+  })
+  .setKnownEffectToMatrix(Matrix.square(Complex.I, 0, 0, Complex.I)).gate;
 
-const AntiImaginaryGate = new GateBuilder().
-    setAlternate(ImaginaryGate).
-    setSerializedIdAndSymbol("-i").
-    setTitle("Anti-Imaginary Gate").
-    setBlurb("Phases everything by -i.").
-    setDrawer(args => {
-        GatePainting.paintLocationIndependentFrame(args);
-        GatePainting.paintGateSymbol(args);
-    }).
-    setKnownEffectToMatrix(Matrix.square(Complex.I.neg(), 0, 0, Complex.I.neg())).
-    gate;
+const AntiImaginaryGate = new GateBuilder()
+  .setAlternate(ImaginaryGate)
+  .setSerializedIdAndSymbol("-i")
+  .setTitle("Anti-Imaginary Gate")
+  .setBlurb("Phases everything by -i.")
+  .setDrawer((args) => {
+    GatePainting.paintLocationIndependentFrame(args);
+    GatePainting.paintGateSymbol(args);
+  })
+  .setKnownEffectToMatrix(
+    Matrix.square(Complex.I.neg(), 0, 0, Complex.I.neg()),
+  ).gate;
 
-const SqrtImaginaryGate = new GateBuilder().
-    setSerializedIdAndSymbol("√i").
-    setTitle("Half Imaginary Gate").
-    setBlurb("Phases everything by √i.").
-    setDrawer(args => {
-        GatePainting.paintLocationIndependentFrame(args);
-        GatePainting.paintGateSymbol(args);
-    }).
-    setKnownEffectToMatrix(Matrix.square(1, 0, 0, 1).times(new Complex(Math.sqrt(0.5), Math.sqrt(0.5)))).
-    gate;
+const SqrtImaginaryGate = new GateBuilder()
+  .setSerializedIdAndSymbol("√i")
+  .setTitle("Half Imaginary Gate")
+  .setBlurb("Phases everything by √i.")
+  .setDrawer((args) => {
+    GatePainting.paintLocationIndependentFrame(args);
+    GatePainting.paintGateSymbol(args);
+  })
+  .setKnownEffectToMatrix(
+    Matrix.square(1, 0, 0, 1).times(
+      new Complex(Math.sqrt(0.5), Math.sqrt(0.5)),
+    ),
+  ).gate;
 
-const AntiSqrtImaginaryGate = new GateBuilder().
-    setAlternate(SqrtImaginaryGate).
-    setSerializedIdAndSymbol("√-i").
-    setTitle("Half Anti-Imaginary Gate").
-    setBlurb("Phases everything by √-i.").
-    setDrawer(args => {
-        GatePainting.paintLocationIndependentFrame(args);
-        GatePainting.paintGateSymbol(args);
-    }).
-    setKnownEffectToMatrix(Matrix.square(1, 0, 0, 1).times(new Complex(Math.sqrt(0.5), -Math.sqrt(0.5)))).
-    gate;
+const AntiSqrtImaginaryGate = new GateBuilder()
+  .setAlternate(SqrtImaginaryGate)
+  .setSerializedIdAndSymbol("√-i")
+  .setTitle("Half Anti-Imaginary Gate")
+  .setBlurb("Phases everything by √-i.")
+  .setDrawer((args) => {
+    GatePainting.paintLocationIndependentFrame(args);
+    GatePainting.paintGateSymbol(args);
+  })
+  .setKnownEffectToMatrix(
+    Matrix.square(1, 0, 0, 1).times(
+      new Complex(Math.sqrt(0.5), -Math.sqrt(0.5)),
+    ),
+  ).gate;
 
-export {AntiImaginaryGate, ImaginaryGate, SqrtImaginaryGate, AntiSqrtImaginaryGate}
+export {
+  AntiImaginaryGate,
+  ImaginaryGate,
+  SqrtImaginaryGate,
+  AntiSqrtImaginaryGate,
+};

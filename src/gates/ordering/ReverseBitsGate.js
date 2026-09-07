@@ -16,7 +16,7 @@
 
 import {Simulation} from "../../config/Simulation.js"
 import {Gate} from "../../circuit/model/Gate.js"
-import {ketArgs, ketShaderPermute} from "../../circuit/simulation/gpu/KetShaderUtil.js"
+import {ketArgs, ketShaderPermute} from "../../engine/simulation/gpu/KetShaderUtil.js"
 import {Seq} from "../../base/Seq.js"
 
 let _generateReverseShaderForSize = span => span < 2 ? undefined : ketShaderPermute(

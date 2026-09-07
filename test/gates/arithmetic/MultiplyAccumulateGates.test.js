@@ -18,11 +18,11 @@ import {Suite} from "../../TestUtil.js"
 import {MultiplyAccumulateGates} from "../../../src/gates/arithmetic/MultiplyAccumulateGates.js"
 import {InputGates} from "../../../src/gates/inputs/InputGates.js"
 import {assertThatCircuitOutputsBasisKet, assertThatCircuitUpdateActsLikeMatrix} from "../../CircuitOperationTestUtil.js"
-import {advanceStateWithCircuit} from "../../../src/circuit/simulation/CircuitComputeUtil.js"
+import {advanceStateWithCircuit} from "../../../src/engine/simulation/CircuitComputeUtil.js"
 
 import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js"
 import {GateColumn} from "../../../src/circuit/model/GateColumn.js"
-import {Matrix} from "../../../src/math/Matrix.js"
+import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
 
 let suite = new Suite("MultiplyAccumulateGates");
 

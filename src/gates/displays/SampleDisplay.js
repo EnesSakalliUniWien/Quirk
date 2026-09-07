@@ -14,28 +14,42 @@
  * limitations under the License.
  */
 
-import {paintSampleDisplay} from "../../draw/pixi/displays/SampleView.js";
+import { paintSampleDisplay } from "../../draw/pixi/displays/SampleView.js";
 
-import {Gate} from "../../circuit/model/Gate.js"
-import {GatePainting} from "../../draw/GatePainting.js"
+import { Gate } from "../../circuit/model/Gate.js";
+import { GatePainting } from "../../draw/gate/GatePainting.js";
 
 import {
-    probabilityStatTexture,
-    probabilityPixelsToColumnVector,
-    probabilityDataToJson
-} from "./ProbabilityDisplay.js"
+  probabilityStatTexture,
+  probabilityPixelsToColumnVector,
+  probabilityDataToJson,
+} from "./ProbabilityDisplay.js";
 
-let SampleDisplayFamily = Gate.buildFamily(1, 16, (span, builder) => builder.
-    setSerializedId("Sample" + span).
-    setSymbol("Sample").
-    setTitle("Sampled Results Display").
-    setBlurb("Shows a random sample of possible measurement outcomes.\nUse controls to see conditional samples.").
-    setStatTexturesMaker(ctx =>
-        probabilityStatTexture(ctx.stateTrader.currentTexture, ctx.controlsTexture, ctx.row, span)).
-    setStatPixelDataPostProcessor(e => probabilityPixelsToColumnVector(e, span)).
-    promiseHasNoNetEffectOnStateVectorButStillRequiresDynamicRedraw().
-    setProcessedStatsToJsonFunc(probabilityDataToJson).
-    setDrawer(GatePainting.makeDisplayDrawer(paintSampleDisplay)).
-    setExtraDisableReasonFinder(args => args.isNested ? "can't\nnest\ndisplays\n(sorry)" : undefined));
+let SampleDisplayFamily = Gate.buildFamily(1, 16, (span, builder) =>
+  builder
+    .setSerializedId("Sample" + span)
+    .setSymbol("Sample")
+    .setTitle("Sampled Results Display")
+    .setBlurb(
+      "Shows a random sample of possible measurement outcomes.\nUse controls to see conditional samples.",
+    )
+    .setStatTexturesMaker((ctx) =>
+      probabilityStatTexture(
+        ctx.stateTrader.currentTexture,
+        ctx.controlsTexture,
+        ctx.row,
+        span,
+      ),
+    )
+    .setStatPixelDataPostProcessor((e) =>
+      probabilityPixelsToColumnVector(e, span),
+    )
+    .promiseHasNoNetEffectOnStateVectorButStillRequiresDynamicRedraw()
+    .setProcessedStatsToJsonFunc(probabilityDataToJson)
+    .setDrawer(GatePainting.makeDisplayDrawer(paintSampleDisplay))
+    .setExtraDisableReasonFinder((args) =>
+      args.isNested ? "can't\nnest\ndisplays\n(sorry)" : undefined,
+    ),
+);
 
-export {SampleDisplayFamily}
+export { SampleDisplayFamily };

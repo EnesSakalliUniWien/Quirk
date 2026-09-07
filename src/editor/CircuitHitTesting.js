@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-import {CircuitGeometry, gateButtonRect} from "./CircuitGeometry.js"
-import {Layout} from "../config/Layout.js"
-import {Hand} from "./Hand.js"
-import {Point} from "../math/Point.js"
-import {Rect} from "../math/Rect.js"
-import {CIRCUIT_OP_HORIZONTAL_SPACING, CIRCUIT_OP_LEFT_SPACING} from "./CircuitLayoutConstants.js"
+import { CircuitGeometry, gateButtonRect } from "./CircuitGeometry.js";
+import { Layout } from "../config/Layout.js";
+import { Hand } from "./Hand.js";
+import { Point } from "../geometry/Point.js";
+import { Rect } from "../geometry/Rect.js";
+import {
+  CIRCUIT_OP_HORIZONTAL_SPACING,
+  CIRCUIT_OP_LEFT_SPACING,
+} from "./CircuitLayoutConstants.js";
 
 /**
  * Maps a position on the canvas back to what is under it: a wire, a column, a gate, a resize
@@ -33,7 +36,7 @@ import {CIRCUIT_OP_HORIZONTAL_SPACING, CIRCUIT_OP_LEFT_SPACING} from "./CircuitL
  * @returns {!int}
  */
 function wireIndexAt(circuit, y) {
-    return Math.floor((y - circuit.top) / Layout.WIRE_SPACING);
+  return Math.floor((y - circuit.top) / Layout.WIRE_SPACING);
 }
 
 //noinspection JSMethodCanBeStatic
@@ -43,9 +46,9 @@ function wireIndexAt(circuit, y) {
  * @returns {!number} The continuous column-space coordinate corresponding to the given display-space coordinate.
  */
 function toColumnSpaceCoordinate(circuit, x) {
-    let spacing = (CIRCUIT_OP_HORIZONTAL_SPACING + Layout.GATE_RADIUS * 2);
-    let left = CIRCUIT_OP_LEFT_SPACING - CIRCUIT_OP_HORIZONTAL_SPACING / 2;
-    return (x - left) / spacing - 0.5;
+  let spacing = CIRCUIT_OP_HORIZONTAL_SPACING + Layout.GATE_RADIUS * 2;
+  let left = CIRCUIT_OP_LEFT_SPACING - CIRCUIT_OP_HORIZONTAL_SPACING / 2;
+  return (x - left) / spacing - 0.5;
 }
 
 /**
@@ -54,11 +57,11 @@ function toColumnSpaceCoordinate(circuit, x) {
  * @returns {undefined|!int}
  */
 function indexOfDisplayedRowAt(circuit, y) {
-    let i = Math.floor((y - circuit.top) / Layout.WIRE_SPACING);
-    if (i < 0 || i >= circuit.circuitDefinition.numWires) {
-        return undefined;
-    }
-    return i;
+  let i = Math.floor((y - circuit.top) / Layout.WIRE_SPACING);
+  if (i < 0 || i >= circuit.circuitDefinition.numWires) {
+    return undefined;
+  }
+  return i;
 }
 
 /**
@@ -67,22 +70,25 @@ function indexOfDisplayedRowAt(circuit, y) {
  * @returns {undefined|!int}
  */
 function indexOfDisplayedColumnAt(circuit, x) {
-    let col = toColumnSpaceCoordinate(circuit, x);
-    let compressedColumnIndex = circuit.geometry().compressedColumnIndex;
-    let i;
-    if (compressedColumnIndex === undefined || col < compressedColumnIndex - 0.75) {
-        i = Math.round(col);
-    } else if (col < compressedColumnIndex - 0.25) {
-        i = compressedColumnIndex;
-    } else {
-        i = Math.round(col) - 1;
-    }
+  let col = toColumnSpaceCoordinate(circuit, x);
+  let compressedColumnIndex = circuit.geometry().compressedColumnIndex;
+  let i;
+  if (
+    compressedColumnIndex === undefined ||
+    col < compressedColumnIndex - 0.75
+  ) {
+    i = Math.round(col);
+  } else if (col < compressedColumnIndex - 0.25) {
+    i = compressedColumnIndex;
+  } else {
+    i = Math.round(col) - 1;
+  }
 
-    if (i < 0 || i >= circuit.circuitDefinition.columns.length) {
-        return undefined;
-    }
+  if (i < 0 || i >= circuit.circuitDefinition.columns.length) {
+    return undefined;
+  }
 
-    return i;
+  return i;
 }
 
 /**
@@ -91,11 +97,18 @@ function indexOfDisplayedColumnAt(circuit, x) {
  * @returns {undefined|!number}
  */
 function findOpHalfColumnAt(circuit, p) {
-    if (p.x < 0 || p.y < circuit.top || p.y > circuit.top + circuit.desiredHeight()) {
-        return undefined;
-    }
+  if (
+    p.x < 0 ||
+    p.y < circuit.top ||
+    p.y > circuit.top + circuit.desiredHeight()
+  ) {
+    return undefined;
+  }
 
-    return Math.max(-0.5, Math.round(toColumnSpaceCoordinate(circuit, p.x) * 2) / 2);
+  return Math.max(
+    -0.5,
+    Math.round(toColumnSpaceCoordinate(circuit, p.x) * 2) / 2,
+  );
 }
 
 /**
@@ -104,17 +117,19 @@ function findOpHalfColumnAt(circuit, p) {
  * @returns {undefined|!{col: !int, row: !int, halfColIndex: !number}}
  */
 function findModificationIndex_helperColRow(circuit, hand) {
-    if (hand.pos === undefined || hand.heldGate === undefined) {
-        return undefined;
-    }
-    let pos = hand.pos.minus(hand.holdOffset).plus(new Point(Layout.GATE_RADIUS, Layout.GATE_RADIUS));
-    let halfColIndex = findOpHalfColumnAt(circuit, pos);
-    let row = indexOfDisplayedRowAt(circuit, pos.y);
-    if (halfColIndex === undefined || row === undefined) {
-        return undefined;
-    }
-    let col = Math.ceil(halfColIndex);
-    return {col, row, halfColIndex};
+  if (hand.pos === undefined || hand.heldGate === undefined) {
+    return undefined;
+  }
+  let pos = hand.pos
+    .minus(hand.holdOffset)
+    .plus(new Point(Layout.GATE_RADIUS, Layout.GATE_RADIUS));
+  let halfColIndex = findOpHalfColumnAt(circuit, pos);
+  let row = indexOfDisplayedRowAt(circuit, pos.y);
+  if (halfColIndex === undefined || row === undefined) {
+    return undefined;
+  }
+  let col = Math.ceil(halfColIndex);
+  return { col, row, halfColIndex };
 }
 
 /**
@@ -123,30 +138,34 @@ function findModificationIndex_helperColRow(circuit, hand) {
  * @returns {?{ col : !number, row : !number, isInsert : !boolean }}
  */
 function findModificationIndex(circuit, hand) {
-    let loc = findModificationIndex_helperColRow(circuit, hand);
-    if (loc === undefined) {
-        return undefined;
-    }
-    let {col, row, halfColIndex} = loc;
+  let loc = findModificationIndex_helperColRow(circuit, hand);
+  if (loc === undefined) {
+    return undefined;
+  }
+  let { col, row, halfColIndex } = loc;
 
-    let isInsert = Math.abs(halfColIndex % 1) === 0.5;
-    if (col >= circuit.circuitDefinition.columns.length) {
-        return {col: col, row: row, isInsert: isInsert};
-    }
+  let isInsert = Math.abs(halfColIndex % 1) === 0.5;
+  if (col >= circuit.circuitDefinition.columns.length) {
+    return { col: col, row: row, isInsert: isInsert };
+  }
 
-    if (!isInsert) {
-        let mustInsert = circuit.circuitDefinition.isSlotRectCoveredByGateInSameColumn(
-            col, row, hand.heldGate.height);
-        if (mustInsert) {
-            let isAfter = hand.pos.x > circuit.opRect(col).center().x;
-            isInsert = true;
-            if (isAfter) {
-                col += 1;
-            }
-        }
+  if (!isInsert) {
+    let mustInsert =
+      circuit.circuitDefinition.isSlotRectCoveredByGateInSameColumn(
+        col,
+        row,
+        hand.heldGate.height,
+      );
+    if (mustInsert) {
+      let isAfter = hand.pos.x > circuit.opRect(col).center().x;
+      isInsert = true;
+      if (isAfter) {
+        col += 1;
+      }
     }
+  }
 
-    return {col: col, row: row, isInsert: isInsert};
+  return { col: col, row: row, isInsert: isInsert };
 }
 
 /**
@@ -155,23 +174,37 @@ function findModificationIndex(circuit, hand) {
  * @returns {undefined|!{col: !int, row: !int, offset: !Point}}
  */
 function findGateOverlappingPos(circuit, pos) {
-    let col = indexOfDisplayedColumnAt(circuit, pos.x);
-    let row = indexOfDisplayedRowAt(circuit, pos.y);
-    if (col === undefined || row === undefined) {
-        return undefined;
-    }
+  let col = indexOfDisplayedColumnAt(circuit, pos.x);
+  let row = indexOfDisplayedRowAt(circuit, pos.y);
+  if (col === undefined || row === undefined) {
+    return undefined;
+  }
 
-    let target = circuit.circuitDefinition.findGateCoveringSlot(col, row);
-    if (target === undefined) {
-        return undefined;
-    }
+  let target = circuit.circuitDefinition.findGateCoveringSlot(col, row);
+  if (target === undefined) {
+    return undefined;
+  }
 
-    let gateRect = circuit.gateRect(target.row, target.col, target.gate.width, target.gate.height);
-    if (!circuit.geometry().gateDrawRect(target.row, target.col, target.gate).containsPoint(pos)) {
-        return undefined;
-    }
+  let gateRect = circuit.gateRect(
+    target.row,
+    target.col,
+    target.gate.width,
+    target.gate.height,
+  );
+  if (
+    !circuit
+      .geometry()
+      .gateDrawRect(target.row, target.col, target.gate)
+      .containsPoint(pos)
+  ) {
+    return undefined;
+  }
 
-    return {col: target.col, row: target.row, offset: pos.minus(gateRect.topLeft())};
+  return {
+    col: target.col,
+    row: target.row,
+    offset: pos.minus(gateRect.topLeft()),
+  };
 }
 
 /**
@@ -184,23 +217,27 @@ function findGateOverlappingPos(circuit, pos) {
  *     undefined for a wire-end sphere.
  */
 function findBlochSphereContaining(circuit, pos) {
-    let geometry = circuit.geometry();
-    let blochCol = geometry.clampedCircuitColCount() + 2;
-    let numWire = geometry.importantWireCount();
-    for (let row = 0; row < numWire; row++) {
-        if (CircuitGeometry.blochDisplayRect(circuit.gateRect(row, blochCol)).containsPoint(pos)) {
-            return {row, col: undefined};
-        }
+  let geometry = circuit.geometry();
+  let blochCol = geometry.clampedCircuitColCount() + 2;
+  let numWire = geometry.importantWireCount();
+  for (let row = 0; row < numWire; row++) {
+    if (
+      CircuitGeometry.blochDisplayRect(
+        circuit.gateRect(row, blochCol),
+      ).containsPoint(pos)
+    ) {
+      return { row, col: undefined };
     }
+  }
 
-    let found = findGateOverlappingPos(circuit, pos);
-    if (found !== undefined) {
-        let gate = circuit.circuitDefinition.gateInSlot(found.col, found.row);
-        if (gate !== undefined && gate.serializedId === 'Bloch') {
-            return {row: found.row, col: found.col};
-        }
+  let found = findGateOverlappingPos(circuit, pos);
+  if (found !== undefined) {
+    let gate = circuit.circuitDefinition.gateInSlot(found.col, found.row);
+    if (gate !== undefined && gate.serializedId === "Bloch") {
+      return { row: found.row, col: found.col };
     }
-    return undefined;
+  }
+  return undefined;
 }
 
 /**
@@ -209,22 +246,24 @@ function findBlochSphereContaining(circuit, pos) {
  * @returns {undefined|!{col: !int, row: !int, gate: !Gate}}
  */
 function findGateWithButtonContaining(circuit, pos) {
-    let foundPt = findGateOverlappingPos(circuit, pos);
-    if (foundPt === undefined) {
-        return undefined;
-    }
+  let foundPt = findGateOverlappingPos(circuit, pos);
+  if (foundPt === undefined) {
+    return undefined;
+  }
 
-    let gate = circuit.circuitDefinition.gateInSlot(foundPt.col, foundPt.row);
-    if (gate.onClickGateFunc === undefined && gate.paramDialog === undefined) {
-        return undefined;
-    }
+  let gate = circuit.circuitDefinition.gateInSlot(foundPt.col, foundPt.row);
+  if (gate.onClickGateFunc === undefined && gate.paramDialog === undefined) {
+    return undefined;
+  }
 
-    let buttonRect = gateButtonRect(circuit.gateRect(foundPt.row, foundPt.col, gate.width, gate.height));
-    if (!buttonRect.containsPoint(pos)) {
-        return undefined;
-    }
+  let buttonRect = gateButtonRect(
+    circuit.gateRect(foundPt.row, foundPt.col, gate.width, gate.height),
+  );
+  if (!buttonRect.containsPoint(pos)) {
+    return undefined;
+  }
 
-    return {col: foundPt.col, row: foundPt.row, gate};
+  return { col: foundPt.col, row: foundPt.row, gate };
 }
 
 /**
@@ -233,7 +272,7 @@ function findGateWithButtonContaining(circuit, pos) {
  * @returns {!Rect}
  */
 function wireInitialStateClickableRect(circuit, wire) {
-    return circuit.geometry().wireInitialStateRect(wire);
+  return circuit.geometry().wireInitialStateRect(wire);
 }
 
 /**
@@ -242,20 +281,33 @@ function wireInitialStateClickableRect(circuit, wire) {
  * @returns {undefined|!int}
  */
 function findWireWithInitialStateAreaContaining(circuit, pt) {
-    // Which wire is it? Is it one that's actually in the circuit?
-    let wire = wireIndexAt(circuit, pt.y);
-    if (wire < 0 || wire >= circuit.circuitDefinition.numWires) {
-        return undefined;
-    }
+  // Which wire is it? Is it one that's actually in the circuit?
+  let wire = wireIndexAt(circuit, pt.y);
+  if (wire < 0 || wire >= circuit.circuitDefinition.numWires) {
+    return undefined;
+  }
 
-    // Is it inside the intended click area, instead of just off to the side?
-    let r = wireInitialStateClickableRect(circuit, wire);
-    if (!r.containsPoint(pt)) {
-        return undefined;
-    }
+  // Is it inside the intended click area, instead of just off to the side?
+  let r = wireInitialStateClickableRect(circuit, wire);
+  if (!r.containsPoint(pt)) {
+    return undefined;
+  }
 
-    // Good to go.
-    return wire;
+  // Good to go.
+  return wire;
 }
 
-export {wireIndexAt, toColumnSpaceCoordinate, indexOfDisplayedRowAt, indexOfDisplayedColumnAt, findOpHalfColumnAt, findModificationIndex_helperColRow, findModificationIndex, findGateOverlappingPos, findGateWithButtonContaining, findBlochSphereContaining, wireInitialStateClickableRect, findWireWithInitialStateAreaContaining}
+export {
+  wireIndexAt,
+  toColumnSpaceCoordinate,
+  indexOfDisplayedRowAt,
+  indexOfDisplayedColumnAt,
+  findOpHalfColumnAt,
+  findModificationIndex_helperColRow,
+  findModificationIndex,
+  findGateOverlappingPos,
+  findGateWithButtonContaining,
+  findBlochSphereContaining,
+  wireInitialStateClickableRect,
+  findWireWithInitialStateAreaContaining,
+};

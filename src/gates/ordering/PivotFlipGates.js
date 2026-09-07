@@ -15,7 +15,7 @@
  */
 
 import {Gate} from "../../circuit/model/Gate.js"
-import {ketArgs, ketShaderPermute, ketInputGateShaderCode} from "../../circuit/simulation/gpu/KetShaderUtil.js"
+import {ketArgs, ketShaderPermute, ketInputGateShaderCode} from "../../engine/simulation/gpu/KetShaderUtil.js"
 import {modulusTooBigChecker} from "../arithmetic/ModularIncrementGates.js"
 
 let PivotFlipGates = {};

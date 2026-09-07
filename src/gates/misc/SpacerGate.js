@@ -14,34 +14,39 @@
  * limitations under the License.
  */
 
-import {rectangle, circle} from '../../draw/pixi/ShapeView.js';
+import { rectangle, circle } from "../../draw/pixi/ShapeView.js";
 
-import {CanvasTheme} from '../../config/CanvasTheme.js';
-import {GateBuilder} from '../../circuit/model/Gate.js';
-import {GatePainting} from '../../draw/GatePainting.js';
-import {Rect} from '../../math/Rect.js';
+import { CanvasTheme } from "../../config/CanvasTheme.js";
+import { GateBuilder } from "../../circuit/model/Gate.js";
+import { GatePainting } from "../../draw/gate/GatePainting.js";
+import { Rect } from "../../geometry/Rect.js";
 
-let SpacerGate = new GateBuilder().
-    setSerializedIdAndSymbol("…").
-    setTitle("Spacer").
-    setBlurb("A gate with no effect.").
-    markAsNotInterestedInControls().
-    promiseHasNoNetEffectOnStateVector().
-    setDrawer(args => {
-        // Drawn as an ellipsis.
-        if (args.isHighlighted) {
-            rectangle(args.painter, args.rect, {fill: CanvasTheme.gate.hover});
-            GatePainting.paintOutline(args);
-        } else {
-            // Whitespace for the ellipsis.
-            let {x, y} = args.rect.center();
-            let r = new Rect(x - 14, y - 2, 28, 4);
-            rectangle(args.painter, r, {fill: CanvasTheme.surface.background});
-        }
-        circle(args.painter, args.rect.center().offsetBy(7, 0), 2, {fill: CanvasTheme.text.primary});
-        circle(args.painter, args.rect.center(), 2, {fill: CanvasTheme.text.primary});
-        circle(args.painter, args.rect.center().offsetBy(-7, 0), 2, {fill: CanvasTheme.text.primary});
-    }).
-    gate;
+let SpacerGate = new GateBuilder()
+  .setSerializedIdAndSymbol("…")
+  .setTitle("Spacer")
+  .setBlurb("A gate with no effect.")
+  .markAsNotInterestedInControls()
+  .promiseHasNoNetEffectOnStateVector()
+  .setDrawer((args) => {
+    // Drawn as an ellipsis.
+    if (args.isHighlighted) {
+      rectangle(args.painter, args.rect, { fill: CanvasTheme.gate.hover });
+      GatePainting.paintOutline(args);
+    } else {
+      // Whitespace for the ellipsis.
+      let { x, y } = args.rect.center();
+      let r = new Rect(x - 14, y - 2, 28, 4);
+      rectangle(args.painter, r, { fill: CanvasTheme.surface.background });
+    }
+    circle(args.painter, args.rect.center().offsetBy(7, 0), 2, {
+      fill: CanvasTheme.text.primary,
+    });
+    circle(args.painter, args.rect.center(), 2, {
+      fill: CanvasTheme.text.primary,
+    });
+    circle(args.painter, args.rect.center().offsetBy(-7, 0), 2, {
+      fill: CanvasTheme.text.primary,
+    });
+  }).gate;
 
-export {SpacerGate}
+export { SpacerGate };

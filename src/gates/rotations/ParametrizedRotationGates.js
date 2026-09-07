@@ -15,13 +15,14 @@
  */
 
 import {GateBuilder} from "../../circuit/model/Gate.js"
-import {GatePainting} from "../../draw/GatePainting.js"
-import {Matrix} from "../../math/Matrix.js"
-import {ketArgs, ketShader, ketShaderPhase, ketInputGateShaderCode} from "../../circuit/simulation/gpu/KetShaderUtil.js"
-import {WglArg} from "../../webgl/WglArg.js"
+import {GatePainting} from "../../draw/gate/GatePainting.js"
+import {Matrix} from "../../engine/math/matrix/Matrix.js"
+import {ketArgs, ketShader, ketShaderPhase, ketInputGateShaderCode} from "../../engine/simulation/gpu/KetShaderUtil.js"
+import {WglArg} from "../../engine/webgl/shader/WglArg.js"
 import {Util} from "../../base/Util.js";
 import {XExp, YExp, ZExp} from "./ExponentiatingGates.js";
 import {parseTimeFormula, makeUpdateFormulaFunc, TIME_PROBE_VALUES} from "./FormulaGateUtil.js";
+import {QubitMatrix} from "../../engine/math/matrix/QubitMatrix.js"
 
 let ParametrizedRotationGates = {};
 
@@ -246,7 +247,7 @@ ParametrizedRotationGates.FormulaicRotationX = new GateBuilder().
     setParamDialog(angleFormulaDialog("X gate's exponent")).
     setEffectToTimeVaryingMatrix((t, formula) => {
         let exponent = parseTimeFormula(formula, t*2, true) || 0;
-        return Matrix.fromPauliRotation(exponent/2, 0, 0);
+        return QubitMatrix.fromPauliRotation(exponent/2, 0, 0);
     }).
     setWithParamPropertyRecomputeFunc(updateUsingFormula).
     promiseEffectIsUnitary().
@@ -262,7 +263,7 @@ ParametrizedRotationGates.FormulaicRotationY = new GateBuilder().
     setParamDialog(angleFormulaDialog("Y gate's exponent")).
     setEffectToTimeVaryingMatrix((t, formula) => {
         let exponent = parseTimeFormula(formula, t*2, true) || 0;
-        return Matrix.fromPauliRotation(0, exponent/2, 0);
+        return QubitMatrix.fromPauliRotation(0, exponent/2, 0);
     }).
     setWithParamPropertyRecomputeFunc(updateUsingFormula).
     promiseEffectIsUnitary().
@@ -278,7 +279,7 @@ ParametrizedRotationGates.FormulaicRotationZ = new GateBuilder().
     setParamDialog(angleFormulaDialog("Z gate's exponent")).
     setEffectToTimeVaryingMatrix((t, formula) => {
         let exponent = parseTimeFormula(formula, t*2, true) || 0;
-        return Matrix.fromPauliRotation(0, 0, exponent/2);
+        return QubitMatrix.fromPauliRotation(0, 0, exponent/2);
     }).
     setWithParamPropertyRecomputeFunc(updateUsingFormula).
     promiseEffectOnlyPhases().

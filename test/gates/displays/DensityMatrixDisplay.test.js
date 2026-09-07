@@ -16,7 +16,7 @@
 
 import {Suite, assertThat} from "../../TestUtil.js"
 import {amplitudesToCouplings} from "../../../src/gates/displays/DensityMatrixDisplay.js"
-import {Shaders} from "../../../src/webgl/Shaders.js"
+import {Shaders} from "../../../src/engine/webgl/shader/Shaders.js"
 
 let suite = new Suite("DensityMatrixDisplay");
 

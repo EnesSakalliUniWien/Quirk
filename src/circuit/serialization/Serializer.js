@@ -15,7 +15,7 @@
  */
 
 import {CircuitDefinition} from "../model/CircuitDefinition.js"
-import {Complex} from "../../math/Complex.js"
+import {Complex} from "../../engine/math/complex/Complex.js"
 import {Simulation} from "../../config/Simulation.js"
 import {CustomGateSet} from "../model/CustomGateSet.js"
 import {describe} from "../../base/Describe.js"
@@ -24,14 +24,15 @@ import {Format} from "../../base/Format.js"
 import {Gate, GateBuilder} from "../model/Gate.js"
 import {GateColumn} from "../model/GateColumn.js"
 import {Gates, INITIAL_STATES_TO_GATES} from "../../gates/AllGates.js"
-import {Matrix} from "../../math/Matrix.js"
+import {Matrix} from "../../engine/math/matrix/Matrix.js"
 import {Util} from "../../base/Util.js"
 import {reportRecoveredError} from "../../diagnostics/errorReporter.js"
 import {MysteryGateSymbol, MysteryGateMakerWithMatrix} from "../../gates/misc/Joke_MysteryGate.js"
 import {seq} from "../../base/Seq.js"
-import {setGateBuilderEffectToCircuit} from "../simulation/CircuitComputeUtil.js"
-import {GatePainting} from "../../draw/GatePainting.js"
-import {drawCustomGateCircuit} from "../../draw/CustomGateCircuitDrawer.js"
+import {setGateBuilderEffectToCircuit} from "../../engine/simulation/CircuitComputeUtil.js"
+import {GatePainting} from "../../draw/gate/GatePainting.js"
+import {drawCustomGateCircuit} from "../../draw/gate/CustomGateCircuitDrawer.js"
+import {ComplexFormula} from "../../engine/math/formula/ComplexFormula.js"
 
 /**
  * Serializes supported values to/from json elements.
@@ -86,7 +87,7 @@ let toJson_Complex = v => v.toString(Format.MINIFIED);
  */
 let fromJson_Complex = json => {
     if (typeof json === "string") {
-        return Complex.parse(json);
+        return ComplexFormula.parse(json);
     }
     throw new Error("Not a packed complex string: " + json);
 };

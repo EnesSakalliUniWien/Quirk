@@ -21,14 +21,15 @@ import {fitText} from './pixi/TextLayout.js';
 
 /** @typedef {import('./pixi/DisplayView.js').DisplayView} DisplayView */
 
-import {Point} from '../math/Point.js';
-import {Rect} from '../math/Rect.js';
+import {Point} from '../geometry/Point.js';
+import {Rect} from '../geometry/Rect.js';
 import {seq, Seq} from '../base/Seq.js';
 
 import {CanvasTheme} from '../config/CanvasTheme.js';
 import {Typography} from '../config/Typography.js';
 
-import {Matrix} from '../math/Matrix.js';
+import {Matrix} from '../engine/math/matrix/Matrix.js';
+import {QubitMatrix} from '../engine/math/matrix/QubitMatrix.js';
 
 class MathPainter {
     static describeProbability(p, fractionalDigits) {
@@ -400,7 +401,7 @@ class MathPainter {
             }
         }, [{stroke: {color: CanvasTheme.stroke.faint, width: 1}}]);
 
-        let {angle, axis} = operation.qubitOperationToAngleAxisRotation();
+        let {angle, axis} = QubitMatrix.operationToAngleAxisRotation(operation);
         let axisVec = Matrix.col(...axis);
         let dAxis = projToPt(axisVec);
 

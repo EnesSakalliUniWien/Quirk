@@ -18,14 +18,14 @@ import {Suite, assertThat, assertThrows} from '../TestUtil.js';
 import {DisplayedCircuit} from '../../src/editor/DisplayedCircuit.js';
 
 import {CircuitDefinition} from '../../src/circuit/model/CircuitDefinition.js';
-import {CircuitStats} from '../../src/circuit/simulation/CircuitStats.js';
+import {CircuitStats} from '../../src/engine/simulation/CircuitStats.js';
 import {Gates} from '../../src/gates/AllGates.js';
 import {Layout} from '../../src/config/Layout.js';
 import {CIRCUIT_OP_LEFT_SPACING} from '../../src/editor/CircuitLayoutConstants.js';
-import {Point} from '../../src/math/Point.js';
+import {Point} from '../../src/geometry/Point.js';
 import {RestartableRng} from '../../src/base/RestartableRng.js';
 import {Hand} from '../../src/editor/Hand.js';
-import {GatePainting} from '../../src/draw/GatePainting.js';
+import {GatePainting} from '../../src/draw/gate/GatePainting.js';
 import {DisplayView} from '../draw/TestDisplayView.js';
 
 const COMMON_GATES = new Map([

@@ -3,8 +3,8 @@ import {paintBlochSphereDisplay} from '../../../src/gates/displays/BlochSphereDi
 import {CircuitGeometry} from '../../../src/editor/CircuitGeometry.js';
 import {Layout} from '../../../src/config/Layout.js';
 import {DisplayView} from '../../draw/TestDisplayView.js';
-import {Rect} from '../../../src/math/Rect.js';
-import {Matrix} from '../../../src/math/Matrix.js';
+import {Rect} from '../../../src/geometry/Rect.js';
+import {Matrix} from '../../../src/engine/math/matrix/Matrix.js';
 
 let suite = new Suite("BlochSphereDisplay");
 

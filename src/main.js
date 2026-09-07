@@ -15,16 +15,20 @@
  */
 
 // The error reporter installs first, so a failure anywhere in startup still reaches the banner.
-import {installErrorReporter, reportBlockingIssue} from "./diagnostics/errorReporter.js"
-import {detectWebGlNotSupported} from "./webgl/issues.js"
-import {startQuirk} from "./app/QuirkApp.js"
-import {mountAppToolbar} from "./components/app-toolbar.jsx"
-import {mountTransportBar} from "./components/transport-bar.jsx"
-import "./styles/globals.css"
+import {
+  installErrorReporter,
+  reportBlockingIssue,
+} from "./diagnostics/errorReporter.js";
+import { webGl2SupportProblem } from "./engine/webgl/context/issues.js";
+import { startQuirk } from "./app/QuirkApp.js";
+import { mountAppToolbar } from "./components/toolbar/app-toolbar.jsx";
+import { mountTransportBar } from "./components/toolbar/transport-bar.jsx";
+import "./styles/globals.css";
 
 installErrorReporter();
-if (detectWebGlNotSupported()) {
-    reportBlockingIssue("Can't simulate circuits. Your browser doesn't support WebGL, or has it disabled.");
+const gpuProblem = webGl2SupportProblem();
+if (gpuProblem !== undefined) {
+  reportBlockingIssue("Can't simulate circuits. " + gpuProblem);
 }
 mountAppToolbar();
 mountTransportBar();

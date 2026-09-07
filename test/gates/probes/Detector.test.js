@@ -17,8 +17,8 @@
 import {Suite, assertThat} from "../../TestUtil.js"
 import {Gates} from "../../../src/gates/AllGates.js"
 import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js";
-import {CircuitStats} from "../../../src/circuit/simulation/CircuitStats.js";
-import {Matrix} from "../../../src/math/Matrix.js";
+import {CircuitStats} from "../../../src/engine/simulation/CircuitStats.js";
+import {Matrix} from "../../../src/engine/math/matrix/Matrix.js";
 
 let suite = new Suite("Detector");
 

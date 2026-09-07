@@ -19,12 +19,13 @@ import {strokePath} from '../../draw/pixi/ShapeView.js';
 
 import {Layout} from '../../config/Layout.js';
 import {Gate} from '../../circuit/model/Gate.js';
-import {GatePainting} from '../../draw/GatePainting.js';
-import {ketArgs, ketShaderPermute} from '../../circuit/simulation/gpu/KetShaderUtil.js';
-import {Matrix} from '../../math/Matrix.js';
-import {Point} from '../../math/Point.js';
+import {paintBackground, paintOutline, paintResizeTab} from '../../draw/gate/GateFrame.js';
+import {PERMUTATION_DRAWER} from './PermutationDrawer.js';
+import {ketArgs, ketShaderPermute} from '../../engine/simulation/gpu/KetShaderUtil.js';
+import {Matrix} from '../../engine/math/matrix/Matrix.js';
+import {Point} from '../../geometry/Point.js';
 import {Util} from '../../base/Util.js';
-import {WglArg} from '../../webgl/WglArg.js';
+import {WglArg} from '../../engine/webgl/shader/WglArg.js';
 
 let CycleBitsGates = {};
 
@@ -50,13 +51,13 @@ const makeCycleBitsMatrix = (shift, span) => Matrix.generateTransition(1<<span, 
 
 let cyclePainter = reverse => args => {
     if (args.positionInCircuit !== undefined) {
-        GatePainting.PERMUTATION_DRAWER(args);
+        PERMUTATION_DRAWER(args);
         return;
     }
 
-    GatePainting.paintBackground(args);
-    GatePainting.paintOutline(args);
-    GatePainting.paintResizeTab(args);
+    paintBackground(args);
+    paintOutline(args);
+    paintResizeTab(args);
 
     let x1 = args.rect.x + 6;
     let x2 = args.rect.right() - 6;

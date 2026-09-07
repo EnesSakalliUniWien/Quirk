@@ -11,18 +11,8 @@ circuit/
 │   ├── Gate.js
 │   ├── GateCheckArgs.js
 │   └── GateColumn.js
-├── serialization/
-│   └── Serializer.js
-└── simulation/
-    ├── CircuitComputeUtil.js
-    ├── CircuitEvalContext.js
-    ├── CircuitExecution.js
-    ├── CircuitStats.js
-    └── gpu/
-        ├── CircuitShaders.js
-        ├── GateShaders.js
-        ├── KetShaderUtil.js
-        └── KetTextureUtil.js
+└── serialization/
+    └── Serializer.js
 ```
 
 ## Models
@@ -39,23 +29,16 @@ It also configures custom gates reconstructed from saved circuits.
 
 ## Simulation
 
-`CircuitEvalContext` carries the current state and execution inputs. `CircuitExecution` applies
-initial-state and column operations. `CircuitComputeUtil` advances an entire circuit, collects
-requested statistics and configures circuit-backed gates. `CircuitStats` computes and exposes
-amplitudes, probabilities, density matrices and display statistics.
-
-The `gpu/` directory contains circuit-specific WebGL work: `CircuitShaders` initializes and
-inspects states, `GateShaders` applies gate operations, `KetShaderUtil` constructs ket shaders,
-and `KetTextureUtil` manages state-texture transformations and readback. General WebGL resources
-and shader infrastructure live in `src/webgl/`.
+Simulation moved to `src/engine/simulation/`, next to the math and WebGL code it depends on, so
+that every calculation lives under one namespace. See `src/engine/README.md`.
 
 ## References and tests
 
 Import the owning file directly. Existing relationships remain in place: for example,
-`CircuitDefinition` delegates execution to `CircuitExecution`, while `Serializer` uses
-`CircuitComputeUtil` when reconstructing circuit-backed gates. Directory placement does not
-introduce new dependency restrictions.
+`CircuitDefinition` delegates execution to `engine/simulation/CircuitExecution`, while
+`Serializer` uses `engine/simulation/CircuitComputeUtil` when reconstructing circuit-backed
+gates. Directory placement does not introduce new dependency restrictions.
 
 `test/circuit/` mirrors this hierarchy for the existing unit tests. The recursive test discovery
 includes these subdirectories. Run `npm test`, `npm run test:e2e` and `npm run test:perf` from the
-repository root to check simulation, application integration and the existing performance cases.
+repository root to check the models, application integration and the existing performance cases.

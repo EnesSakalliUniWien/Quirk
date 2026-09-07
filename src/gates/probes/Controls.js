@@ -18,14 +18,14 @@ import {fitLine} from '../../draw/pixi/TextLayout.js';
 import {circle, strokePath, rectangle} from '../../draw/pixi/ShapeView.js';
 
 import {GateBuilder} from '../../circuit/model/Gate.js';
-import {GatePainting} from '../../draw/GatePainting.js';
-import {GateShaders} from '../../circuit/simulation/gpu/GateShaders.js';
+import {GatePainting} from '../../draw/gate/GatePainting.js';
+import {GateShaders} from '../../engine/simulation/gpu/GateShaders.js';
 import {HalfTurnGates} from '../rotations/HalfTurnGates.js';
 import {QuarterTurnGates} from '../rotations/QuarterTurnGates.js';
 import {CanvasTheme} from '../../config/CanvasTheme.js';
 import {Simulation} from '../../config/Simulation.js';
-import {ketArgs, ketShaderPermute} from '../../circuit/simulation/gpu/KetShaderUtil.js';
-import {WglArg} from '../../webgl/WglArg.js';
+import {ketArgs, ketShaderPermute} from '../../engine/simulation/gpu/KetShaderUtil.js';
+import {WglArg} from '../../engine/webgl/shader/WglArg.js';
 import {Util} from '../../base/Util.js';
 
 let Controls = {};

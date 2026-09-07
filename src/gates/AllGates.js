@@ -15,93 +15,94 @@
  */
 
 // Rotations.
-import {ExponentiatingGates} from "./rotations/ExponentiatingGates.js"
-import {HalfTurnGates} from "./rotations/HalfTurnGates.js"
-import {ParametrizedRotationGates} from "./rotations/ParametrizedRotationGates.js"
-import {PoweringGates} from "./rotations/PoweringGates.js"
-import {QuarterTurnGates} from "./rotations/QuarterTurnGates.js"
-import {RotationGates} from "./rotations/RotationGates.js"
-import {VariousXGates} from "./rotations/VariousXGates.js"
-import {VariousYGates} from "./rotations/VariousYGates.js"
-import {VariousZGates} from "./rotations/VariousZGates.js"
+import { ExponentiatingGates } from "./rotations/ExponentiatingGates.js";
+import { HalfTurnGates } from "./rotations/HalfTurnGates.js";
+import { ParametrizedRotationGates } from "./rotations/ParametrizedRotationGates.js";
+import { PoweringGates } from "./rotations/PoweringGates.js";
+import { QuarterTurnGates } from "./rotations/QuarterTurnGates.js";
+import { RotationGates } from "./rotations/RotationGates.js";
+import { VariousXGates } from "./rotations/VariousXGates.js";
+import { VariousYGates } from "./rotations/VariousYGates.js";
+import { VariousZGates } from "./rotations/VariousZGates.js";
 
 // Displays.
-import {AmplitudeDisplayFamily} from "./displays/AmplitudeDisplay.js"
-import {BlochSphereDisplay} from "./displays/BlochSphereDisplay.js"
-import {DensityMatrixDisplayFamily} from "./displays/DensityMatrixDisplay.js"
-import {ProbabilityDisplayFamily} from "./displays/ProbabilityDisplay.js"
-import {SampleDisplayFamily} from "./displays/SampleDisplay.js"
+import { AmplitudeDisplayFamily } from "./displays/AmplitudeDisplay.js";
+import { BlochSphereDisplay } from "./displays/BlochSphereDisplay.js";
+import { DensityMatrixDisplayFamily } from "./displays/DensityMatrixDisplay.js";
+import { ProbabilityDisplayFamily } from "./displays/ProbabilityDisplay.js";
+import { SampleDisplayFamily } from "./displays/SampleDisplay.js";
 
 // Probes.
-import {Controls} from "./probes/Controls.js"
-import {Detectors} from "./probes/Detector.js"
-import {MeasurementGate} from "./probes/MeasurementGate.js"
-import {PostSelectionGates} from "./probes/PostSelectionGates.js"
+import { Controls } from "./probes/Controls.js";
+import { Detectors } from "./probes/Detector.js";
+import { MeasurementGate } from "./probes/MeasurementGate.js";
+import { PostSelectionGates } from "./probes/PostSelectionGates.js";
 
 // Inputs.
-import {InputGates} from "./inputs/InputGates.js"
+import { InputGates } from "./inputs/InputGates.js";
 
 // Arithmetic.
-import {ArithmeticGates} from "./arithmetic/ArithmeticGates.js"
-import {BitCountGates} from "./arithmetic/BitCountGates.js"
-import {ComparisonGates} from "./arithmetic/ComparisonGates.js"
-import {IncrementGates} from "./arithmetic/IncrementGates.js"
-import {ModularAdditionGates} from "./arithmetic/ModularAdditionGates.js"
-import {ModularIncrementGates} from "./arithmetic/ModularIncrementGates.js"
-import {ModularMultiplicationGates} from "./arithmetic/ModularMultiplicationGates.js"
-import {ModularMultiplyAccumulateGates} from "./arithmetic/ModularMultiplyAccumulateGates.js"
-import {MultiplicationGates} from "./arithmetic/MultiplicationGates.js"
-import {MultiplyAccumulateGates} from "./arithmetic/MultiplyAccumulateGates.js"
-import {XorGates} from "./arithmetic/XorGates.js"
+import { ArithmeticGates } from "./arithmetic/ArithmeticGates.js";
+import { BitCountGates } from "./arithmetic/BitCountGates.js";
+import { ComparisonGates } from "./arithmetic/ComparisonGates.js";
+import { IncrementGates } from "./arithmetic/IncrementGates.js";
+import { ModularAdditionGates } from "./arithmetic/ModularAdditionGates.js";
+import { ModularIncrementGates } from "./arithmetic/ModularIncrementGates.js";
+import { ModularMultiplicationGates } from "./arithmetic/ModularMultiplicationGates.js";
+import { ModularMultiplyAccumulateGates } from "./arithmetic/ModularMultiplyAccumulateGates.js";
+import { MultiplicationGates } from "./arithmetic/MultiplicationGates.js";
+import { MultiplyAccumulateGates } from "./arithmetic/MultiplyAccumulateGates.js";
+import { XorGates } from "./arithmetic/XorGates.js";
 
 // Ordering.
-import {CountingGates} from "./ordering/CountingGates.js"
-import {CycleBitsGates} from "./ordering/CycleBitsGates.js"
-import {InterleaveBitsGates} from "./ordering/InterleaveBitsGates.js"
-import {PivotFlipGates} from "./ordering/PivotFlipGates.js"
-import {ReverseBitsGateFamily} from "./ordering/ReverseBitsGate.js"
+import { CountingGates } from "./ordering/CountingGates.js";
+import { CycleBitsGates } from "./ordering/CycleBitsGates.js";
+import { InterleaveBitsGates } from "./ordering/InterleaveBitsGates.js";
+import { PivotFlipGates } from "./ordering/PivotFlipGates.js";
+import { ReverseBitsGateFamily } from "./ordering/ReverseBitsGate.js";
 
 // Frequency.
-import {FourierTransformGates} from "./frequency/FourierTransformGates.js"
-import {PhaseGradientGates} from "./frequency/PhaseGradientGates.js"
+import { FourierTransformGates } from "./frequency/FourierTransformGates.js";
+import { PhaseGradientGates } from "./frequency/PhaseGradientGates.js";
 
 // Miscellaneous.
-import {ErrorInjectionGate} from "./misc/Debug_ErrorInjectionGate.js"
-import {UniversalNotGate} from "./misc/Impossible_UniversalNotGate.js"
+import { ErrorInjectionGate } from "./misc/Debug_ErrorInjectionGate.js";
+import { UniversalNotGate } from "./misc/Impossible_UniversalNotGate.js";
 import {
-    ImaginaryGate,
-    AntiImaginaryGate,
-    SqrtImaginaryGate,
-    AntiSqrtImaginaryGate
-} from "./misc/Joke_ImaginaryGate.js"
-import {NeGate} from "./misc/Joke_NeGate.js"
-import {ZeroGate} from "./misc/Joke_ZeroGate.js"
-import {SpacerGate} from "./misc/SpacerGate.js"
-import {SwapGateHalf} from "./misc/SwapGateHalf.js"
+  ImaginaryGate,
+  AntiImaginaryGate,
+  SqrtImaginaryGate,
+  AntiSqrtImaginaryGate,
+} from "./misc/Joke_ImaginaryGate.js";
+import { NeGate } from "./misc/Joke_NeGate.js";
+import { ZeroGate } from "./misc/Joke_ZeroGate.js";
+import { SpacerGate } from "./misc/SpacerGate.js";
+import { SwapGateHalf } from "./misc/SwapGateHalf.js";
 
-import {seq} from "../base/Seq.js"
+import { seq } from "../base/Seq.js";
 
 let Gates = {};
 
 /** Gates that have special behavior requiring custom code / logic to handle. */
 Gates.Special = {
-    Measurement: MeasurementGate,
-    SwapHalf: SwapGateHalf
+  Measurement: MeasurementGate,
+  SwapHalf: SwapGateHalf,
 };
 /**
  * Gates that display information without affecting the state.
  * (In reality these would require multiple runs of the circuit to do tomography.)
  */
 Gates.Displays = {
-    AmplitudeDisplayFamily: AmplitudeDisplayFamily,
-    ProbabilityDisplayFamily: ProbabilityDisplayFamily,
-    SampleDisplayFamily: SampleDisplayFamily,
-    DensityMatrixDisplayFamily: DensityMatrixDisplayFamily,
-    BlochSphereDisplay: BlochSphereDisplay
+  AmplitudeDisplayFamily: AmplitudeDisplayFamily,
+  ProbabilityDisplayFamily: ProbabilityDisplayFamily,
+  SampleDisplayFamily: SampleDisplayFamily,
+  DensityMatrixDisplayFamily: DensityMatrixDisplayFamily,
+  BlochSphereDisplay: BlochSphereDisplay,
 };
 Gates.Displays.DensityMatrixDisplay = DensityMatrixDisplayFamily.ofSize(1);
 Gates.Displays.DensityMatrixDisplay2 = DensityMatrixDisplayFamily.ofSize(2);
-Gates.Displays.ChanceDisplay = Gates.Displays.ProbabilityDisplayFamily.ofSize(1);
+Gates.Displays.ChanceDisplay =
+  Gates.Displays.ProbabilityDisplayFamily.ofSize(1);
 
 // Rotations.
 Gates.Exponentiating = ExponentiatingGates;
@@ -159,254 +160,314 @@ Gates.ZeroGate = ZeroGate;
 
 /** @type {!Array.<!Gate>} */
 Gates.KnownToSerializer = [
-    ...Controls.all,
-    ...InputGates.all,
-    MeasurementGate,
-    SwapGateHalf,
-    SpacerGate,
-    UniversalNotGate,
-    ErrorInjectionGate,
-    ZeroGate,
-    NeGate,
-    ImaginaryGate,
-    AntiImaginaryGate,
-    SqrtImaginaryGate,
-    AntiSqrtImaginaryGate,
+  ...Controls.all,
+  ...InputGates.all,
+  MeasurementGate,
+  SwapGateHalf,
+  SpacerGate,
+  UniversalNotGate,
+  ErrorInjectionGate,
+  ZeroGate,
+  NeGate,
+  ImaginaryGate,
+  AntiImaginaryGate,
+  SqrtImaginaryGate,
+  AntiSqrtImaginaryGate,
 
-    ...AmplitudeDisplayFamily.all,
-    ...ProbabilityDisplayFamily.all,
-    ...SampleDisplayFamily.all,
-    ...DensityMatrixDisplayFamily.all,
-    BlochSphereDisplay,
+  ...AmplitudeDisplayFamily.all,
+  ...ProbabilityDisplayFamily.all,
+  ...SampleDisplayFamily.all,
+  ...DensityMatrixDisplayFamily.all,
+  BlochSphereDisplay,
 
-    ...HalfTurnGates.all,
-    ...QuarterTurnGates.all,
-    ...VariousXGates.all,
-    ...VariousYGates.all,
-    ...VariousZGates.all,
-    ...ExponentiatingGates.all,
-    ...PoweringGates.all,
-    ...ParametrizedRotationGates.all,
-    ...RotationGates.all,
+  ...HalfTurnGates.all,
+  ...QuarterTurnGates.all,
+  ...VariousXGates.all,
+  ...VariousYGates.all,
+  ...VariousZGates.all,
+  ...ExponentiatingGates.all,
+  ...PoweringGates.all,
+  ...ParametrizedRotationGates.all,
+  ...RotationGates.all,
 
-    ...Detectors.all,
-    ...PostSelectionGates.all,
+  ...Detectors.all,
+  ...PostSelectionGates.all,
 
-    ...ArithmeticGates.all,
-    ...BitCountGates.all,
-    ...ComparisonGates.all,
-    ...IncrementGates.all,
-    ...ModularAdditionGates.all,
-    ...ModularIncrementGates.all,
-    ...ModularMultiplicationGates.all,
-    ...ModularMultiplyAccumulateGates.all,
-    ...MultiplicationGates.all,
-    ...MultiplyAccumulateGates.all,
-    ...XorGates.all,
+  ...ArithmeticGates.all,
+  ...BitCountGates.all,
+  ...ComparisonGates.all,
+  ...IncrementGates.all,
+  ...ModularAdditionGates.all,
+  ...ModularIncrementGates.all,
+  ...ModularMultiplicationGates.all,
+  ...ModularMultiplyAccumulateGates.all,
+  ...MultiplicationGates.all,
+  ...MultiplyAccumulateGates.all,
+  ...XorGates.all,
 
-    ...CountingGates.all,
-    ...CycleBitsGates.all,
-    ...InterleaveBitsGates.all,
-    ...PivotFlipGates.all,
-    ...ReverseBitsGateFamily.all,
+  ...CountingGates.all,
+  ...CycleBitsGates.all,
+  ...InterleaveBitsGates.all,
+  ...PivotFlipGates.all,
+  ...ReverseBitsGateFamily.all,
 
-    ...FourierTransformGates.all,
-    ...PhaseGradientGates.all
+  ...FourierTransformGates.all,
+  ...PhaseGradientGates.all,
 ];
 
-let gatesById = seq(Gates.KnownToSerializer).keyedBy(g => g.serializedId);
+let gatesById = seq(Gates.KnownToSerializer).keyedBy((g) => g.serializedId);
 /**
  * @param {!String} id
  * @param {!CustomGateSet} customGateSet
  * @returns {undefined|!Gate}
  */
 Gates.findKnownGateById = (id, customGateSet) => {
-    return gatesById.has(id) ? gatesById.get(id) : customGateSet.findGateWithSerializedId(id);
+  return gatesById.has(id)
+    ? gatesById.get(id)
+    : customGateSet.findGateWithSerializedId(id);
 };
 
 /** @type {!Array<!{hint: !string, gates: !Array<undefined|!Gate>}>} */
 Gates.TopToolboxGroups = [
-    {
-        hint: "Probes",
-        gates: [
-            MeasurementGate,                  undefined,
-            PostSelectionGates.PostSelectOff, PostSelectionGates.PostSelectOn,
-            Controls.AntiControl,             Controls.Control
-        ]
-    },
-    {
-        hint: "Displays",
-        gates: [
-            undefined, undefined,
-            DensityMatrixDisplayFamily.ofSize(1), BlochSphereDisplay,
-            ProbabilityDisplayFamily.ofSize(1),   AmplitudeDisplayFamily.ofSize(2)
-        ]
-    },
-    {
-        hint: "Half Turns",
-        gates: [
-            HalfTurnGates.Z, SwapGateHalf,
-            HalfTurnGates.Y, undefined,
-            HalfTurnGates.X, HalfTurnGates.H
-        ]
-    },
-    {
-        hint: "Quarter Turns",
-        gates: [
-            QuarterTurnGates.SqrtZForward, QuarterTurnGates.SqrtZBackward,
-            QuarterTurnGates.SqrtYForward, QuarterTurnGates.SqrtYBackward,
-            QuarterTurnGates.SqrtXForward, QuarterTurnGates.SqrtXBackward
-        ]
-    },
-    {
-        hint: "Eighth Turns",
-        gates: [
-            VariousZGates.Z4, VariousZGates.Z4i,
-            VariousYGates.Y4, VariousYGates.Y4i,
-            VariousXGates.X4, VariousXGates.X4i,
-        ]
-    },
-    {
-        hint: "Rotations",
-        gates: [
-            RotationGates.Rz, undefined,
-            RotationGates.Ry, undefined,
-            RotationGates.Rx, undefined,
-        ]
-    },
-    {
-        hint: "Spinning",
-        gates: [
-            PoweringGates.ZForward, PoweringGates.ZBackward,
-            PoweringGates.YForward, PoweringGates.YBackward,
-            PoweringGates.XForward, PoweringGates.XBackward,
-        ]
-    },
-    {
-        hint: "Formulaic",
-        gates: [
-            ParametrizedRotationGates.FormulaicRotationZ, ParametrizedRotationGates.FormulaicRotationRz,
-            ParametrizedRotationGates.FormulaicRotationY, ParametrizedRotationGates.FormulaicRotationRy,
-            ParametrizedRotationGates.FormulaicRotationX, ParametrizedRotationGates.FormulaicRotationRx,
-        ]
-    },
-    {
-        hint: "Parametrized",
-        gates: [
-            ParametrizedRotationGates.ZToA, ParametrizedRotationGates.ZToMinusA,
-            ParametrizedRotationGates.YToA, ParametrizedRotationGates.YToMinusA,
-            ParametrizedRotationGates.XToA, ParametrizedRotationGates.XToMinusA,
-        ]
-    },
-    {
-        hint: 'Sampling',
-        gates: [
-            Detectors.ZDetector, Detectors.ZDetectControlClear,
-            Detectors.YDetector, Detectors.YDetectControlClear,
-            Detectors.XDetector, Detectors.XDetectControlClear,
-        ]
-    },
-    {
-        hint: "Parity",
-        gates: [
-            Controls.ZParityControl, undefined,
-            Controls.YParityControl, undefined,
-            Controls.XParityControl, undefined,
-        ]
-    },
+  {
+    hint: "Probes",
+    gates: [
+      MeasurementGate,
+      undefined,
+      PostSelectionGates.PostSelectOff,
+      PostSelectionGates.PostSelectOn,
+      Controls.AntiControl,
+      Controls.Control,
+    ],
+  },
+  {
+    hint: "Displays",
+    gates: [
+      undefined,
+      undefined,
+      DensityMatrixDisplayFamily.ofSize(1),
+      BlochSphereDisplay,
+      ProbabilityDisplayFamily.ofSize(1),
+      AmplitudeDisplayFamily.ofSize(2),
+    ],
+  },
+  {
+    hint: "Half Turns",
+    gates: [
+      HalfTurnGates.Z,
+      SwapGateHalf,
+      HalfTurnGates.Y,
+      undefined,
+      HalfTurnGates.X,
+      HalfTurnGates.H,
+    ],
+  },
+  {
+    hint: "Quarter Turns",
+    gates: [
+      QuarterTurnGates.SqrtZForward,
+      QuarterTurnGates.SqrtZBackward,
+      QuarterTurnGates.SqrtYForward,
+      QuarterTurnGates.SqrtYBackward,
+      QuarterTurnGates.SqrtXForward,
+      QuarterTurnGates.SqrtXBackward,
+    ],
+  },
+  {
+    hint: "Eighth Turns",
+    gates: [
+      VariousZGates.Z4,
+      VariousZGates.Z4i,
+      VariousYGates.Y4,
+      VariousYGates.Y4i,
+      VariousXGates.X4,
+      VariousXGates.X4i,
+    ],
+  },
+  {
+    hint: "Rotations",
+    gates: [
+      RotationGates.Rz,
+      undefined,
+      RotationGates.Ry,
+      undefined,
+      RotationGates.Rx,
+      undefined,
+    ],
+  },
+  {
+    hint: "Spinning",
+    gates: [
+      PoweringGates.ZForward,
+      PoweringGates.ZBackward,
+      PoweringGates.YForward,
+      PoweringGates.YBackward,
+      PoweringGates.XForward,
+      PoweringGates.XBackward,
+    ],
+  },
+  {
+    hint: "Formulaic",
+    gates: [
+      ParametrizedRotationGates.FormulaicRotationZ,
+      ParametrizedRotationGates.FormulaicRotationRz,
+      ParametrizedRotationGates.FormulaicRotationY,
+      ParametrizedRotationGates.FormulaicRotationRy,
+      ParametrizedRotationGates.FormulaicRotationX,
+      ParametrizedRotationGates.FormulaicRotationRx,
+    ],
+  },
+  {
+    hint: "Parametrized",
+    gates: [
+      ParametrizedRotationGates.ZToA,
+      ParametrizedRotationGates.ZToMinusA,
+      ParametrizedRotationGates.YToA,
+      ParametrizedRotationGates.YToMinusA,
+      ParametrizedRotationGates.XToA,
+      ParametrizedRotationGates.XToMinusA,
+    ],
+  },
+  {
+    hint: "Sampling",
+    gates: [
+      Detectors.ZDetector,
+      Detectors.ZDetectControlClear,
+      Detectors.YDetector,
+      Detectors.YDetectControlClear,
+      Detectors.XDetector,
+      Detectors.XDetectControlClear,
+    ],
+  },
+  {
+    hint: "Parity",
+    gates: [
+      Controls.ZParityControl,
+      undefined,
+      Controls.YParityControl,
+      undefined,
+      Controls.XParityControl,
+      undefined,
+    ],
+  },
 ];
 
 /** @type {!Array<!{hint: !string, gates: !Array<undefined|!Gate>}>} */
 Gates.BottomToolboxGroups = [
-    {
-        hint: "X/Y Probes",
-        gates: [
-            Controls.XAntiControl, Controls.XControl,
-            Controls.YAntiControl, Controls.YControl,
-            PostSelectionGates.PostSelectAntiX, PostSelectionGates.PostSelectX,
-            PostSelectionGates.PostSelectAntiY, PostSelectionGates.PostSelectY,
-        ]
-    },
-    {
-        hint: "Order",
-        gates: [
-            CountingGates.CountingFamily.ofSize(3),          CountingGates.UncountingFamily.ofSize(3),
-            ReverseBitsGateFamily.ofSize(2), undefined,
-            CycleBitsGates.CycleBitsFamily.ofSize(3),        CycleBitsGates.ReverseCycleBitsFamily.ofSize(3),
-            InterleaveBitsGates.InterleaveBitsGateFamily.ofSize(6),
-            InterleaveBitsGates.DeinterleaveBitsGateFamily.ofSize(6),
-        ]
-    },
-    {
-        hint: 'Frequency',
-        gates: [
-            FourierTransformGates.FourierTransformFamily.ofSize(2),
-                FourierTransformGates.InverseFourierTransformFamily.ofSize(2),
-            undefined, undefined,
-            PhaseGradientGates.PhaseGradientFamily.ofSize(2),
-                PhaseGradientGates.PhaseDegradientFamily.ofSize(2),
-            PhaseGradientGates.DynamicPhaseGradientFamily.ofSize(2),
-                PhaseGradientGates.DynamicPhaseDegradientFamily.ofSize(2),
-        ]
-    },
-    {
-        hint: "Inputs",
-        gates: [
-            InputGates.InputAFamily.ofSize(2), InputGates.SetA,
-            InputGates.InputBFamily.ofSize(2), InputGates.SetB,
-            InputGates.InputRFamily.ofSize(2), InputGates.SetR,
-            undefined, undefined,
-        ]
-    },
-    {
-        hint: 'Arithmetic',
-        gates: [
-            IncrementGates.IncrementFamily.ofSize(2), IncrementGates.DecrementFamily.ofSize(2),
-            ArithmeticGates.PlusAFamily.ofSize(2), ArithmeticGates.MinusAFamily.ofSize(2),
-            MultiplyAccumulateGates.MultiplyAddInputsFamily.ofSize(2),
-                MultiplyAccumulateGates.MultiplySubtractInputsFamily.ofSize(2),
-            MultiplicationGates.TimesAFamily.ofSize(2), MultiplicationGates.TimesAInverseFamily.ofSize(2),
-        ]
-    },
-    {
-        hint: "Compare",
-        gates: [
-            ComparisonGates.ALessThanB, ComparisonGates.AGreaterThanB,
-            ComparisonGates.ALessThanOrEqualToB, ComparisonGates.AGreaterThanOrEqualToB,
-            ComparisonGates.AEqualToB, ComparisonGates.ANotEqualToB,
-            undefined, undefined,
-        ]
-    },
-    {
-        hint: "Modular",
-        gates: [
-            ModularIncrementGates.IncrementModRFamily.ofSize(2), ModularIncrementGates.DecrementModRFamily.ofSize(2),
-            ModularAdditionGates.PlusAModRFamily.ofSize(2), ModularAdditionGates.MinusAModRFamily.ofSize(2),
-            ModularMultiplicationGates.TimesAModRFamily.ofSize(2),
-                ModularMultiplicationGates.TimesAModRInverseFamily.ofSize(2),
-            ModularMultiplicationGates.TimesBToTheAModRFamily.ofSize(2),
-                ModularMultiplicationGates.TimesInverseBToTheAModRFamily.ofSize(2),
-        ]
-    },
-    {
-        hint: 'Scalar',
-        gates: [
-            SpacerGate, ZeroGate,
-            NeGate, undefined,
-            ImaginaryGate, AntiImaginaryGate,
-            SqrtImaginaryGate, AntiSqrtImaginaryGate,
-        ]
-    },
+  {
+    hint: "X/Y Probes",
+    gates: [
+      Controls.XAntiControl,
+      Controls.XControl,
+      Controls.YAntiControl,
+      Controls.YControl,
+      PostSelectionGates.PostSelectAntiX,
+      PostSelectionGates.PostSelectX,
+      PostSelectionGates.PostSelectAntiY,
+      PostSelectionGates.PostSelectY,
+    ],
+  },
+  {
+    hint: "Order",
+    gates: [
+      CountingGates.CountingFamily.ofSize(3),
+      CountingGates.UncountingFamily.ofSize(3),
+      ReverseBitsGateFamily.ofSize(2),
+      undefined,
+      CycleBitsGates.CycleBitsFamily.ofSize(3),
+      CycleBitsGates.ReverseCycleBitsFamily.ofSize(3),
+      InterleaveBitsGates.InterleaveBitsGateFamily.ofSize(6),
+      InterleaveBitsGates.DeinterleaveBitsGateFamily.ofSize(6),
+    ],
+  },
+  {
+    hint: "Frequency",
+    gates: [
+      FourierTransformGates.FourierTransformFamily.ofSize(2),
+      FourierTransformGates.InverseFourierTransformFamily.ofSize(2),
+      undefined,
+      undefined,
+      PhaseGradientGates.PhaseGradientFamily.ofSize(2),
+      PhaseGradientGates.PhaseDegradientFamily.ofSize(2),
+      PhaseGradientGates.DynamicPhaseGradientFamily.ofSize(2),
+      PhaseGradientGates.DynamicPhaseDegradientFamily.ofSize(2),
+    ],
+  },
+  {
+    hint: "Inputs",
+    gates: [
+      InputGates.InputAFamily.ofSize(2),
+      InputGates.SetA,
+      InputGates.InputBFamily.ofSize(2),
+      InputGates.SetB,
+      InputGates.InputRFamily.ofSize(2),
+      InputGates.SetR,
+      undefined,
+      undefined,
+    ],
+  },
+  {
+    hint: "Arithmetic",
+    gates: [
+      IncrementGates.IncrementFamily.ofSize(2),
+      IncrementGates.DecrementFamily.ofSize(2),
+      ArithmeticGates.PlusAFamily.ofSize(2),
+      ArithmeticGates.MinusAFamily.ofSize(2),
+      MultiplyAccumulateGates.MultiplyAddInputsFamily.ofSize(2),
+      MultiplyAccumulateGates.MultiplySubtractInputsFamily.ofSize(2),
+      MultiplicationGates.TimesAFamily.ofSize(2),
+      MultiplicationGates.TimesAInverseFamily.ofSize(2),
+    ],
+  },
+  {
+    hint: "Compare",
+    gates: [
+      ComparisonGates.ALessThanB,
+      ComparisonGates.AGreaterThanB,
+      ComparisonGates.ALessThanOrEqualToB,
+      ComparisonGates.AGreaterThanOrEqualToB,
+      ComparisonGates.AEqualToB,
+      ComparisonGates.ANotEqualToB,
+      undefined,
+      undefined,
+    ],
+  },
+  {
+    hint: "Modular",
+    gates: [
+      ModularIncrementGates.IncrementModRFamily.ofSize(2),
+      ModularIncrementGates.DecrementModRFamily.ofSize(2),
+      ModularAdditionGates.PlusAModRFamily.ofSize(2),
+      ModularAdditionGates.MinusAModRFamily.ofSize(2),
+      ModularMultiplicationGates.TimesAModRFamily.ofSize(2),
+      ModularMultiplicationGates.TimesAModRInverseFamily.ofSize(2),
+      ModularMultiplicationGates.TimesBToTheAModRFamily.ofSize(2),
+      ModularMultiplicationGates.TimesInverseBToTheAModRFamily.ofSize(2),
+    ],
+  },
+  {
+    hint: "Scalar",
+    gates: [
+      SpacerGate,
+      ZeroGate,
+      NeGate,
+      undefined,
+      ImaginaryGate,
+      AntiImaginaryGate,
+      SqrtImaginaryGate,
+      AntiSqrtImaginaryGate,
+    ],
+  },
 ];
 
 /** @type {!Map.<undefined|!string, !Array.<!Gate>>} */
 const INITIAL_STATES_TO_GATES = new Map([
-    [undefined, []],
-    ['1', [Gates.HalfTurns.X]],
-    ['+', [Gates.HalfTurns.H]],
-    ['-', [Gates.HalfTurns.H, Gates.HalfTurns.Z]],
-    ['i', [Gates.HalfTurns.H, Gates.QuarterTurns.SqrtZForward]],
-    ['-i', [Gates.HalfTurns.H, Gates.QuarterTurns.SqrtZBackward]]
+  [undefined, []],
+  ["1", [Gates.HalfTurns.X]],
+  ["+", [Gates.HalfTurns.H]],
+  ["-", [Gates.HalfTurns.H, Gates.HalfTurns.Z]],
+  ["i", [Gates.HalfTurns.H, Gates.QuarterTurns.SqrtZForward]],
+  ["-i", [Gates.HalfTurns.H, Gates.QuarterTurns.SqrtZBackward]],
 ]);
 
-export {Gates, INITIAL_STATES_TO_GATES}
+export { Gates, INITIAL_STATES_TO_GATES };

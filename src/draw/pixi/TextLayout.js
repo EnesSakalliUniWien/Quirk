@@ -18,8 +18,8 @@ import {LabelView} from './LabelView.js';
 import {CanvasTextMetrics, TextStyle} from 'pixi.js';
 import {Typography} from '../../config/Typography.js';
 import {CanvasTheme} from '../../config/CanvasTheme.js';
-import {Rect} from '../../math/Rect.js';
-import {Point} from '../../math/Point.js';
+import {Rect} from '../../geometry/Rect.js';
+import {Point} from '../../geometry/Point.js';
 
 const DEFAULT_FONT = {fontSize: Typography.DEFAULT_FONT_SIZE, fontFamily: Typography.DEFAULT_FONT_FAMILY};
 export let textLayoutVersion = 0;

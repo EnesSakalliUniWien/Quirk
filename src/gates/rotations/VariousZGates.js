@@ -15,18 +15,19 @@
  */
 
 import {Gate} from "../../circuit/model/Gate.js"
-import {Matrix} from "../../math/Matrix.js"
+import {Matrix} from "../../engine/math/matrix/Matrix.js"
+import {QubitMatrix} from "../../engine/math/matrix/QubitMatrix.js"
 
 let VariousZGates = {};
 
 VariousZGates.Z3 = Gate.fromKnownMatrix(
     "Z^⅓",
-    Matrix.fromPauliRotation(0, 0, 1 / 6),
+    QubitMatrix.fromPauliRotation(0, 0, 1 / 6),
     "Z^⅓ Gate",
     "Principle third root of Z.");
 VariousZGates.Z3i = Gate.fromKnownMatrix(
     "Z^-⅓",
-    Matrix.fromPauliRotation(0, 0, -1 / 6),
+    QubitMatrix.fromPauliRotation(0, 0, -1 / 6),
     "Z^-⅓ Gate",
     "Adjoint third root of Z.",
     undefined,
@@ -35,37 +36,37 @@ VariousZGates.Z3i = Gate.fromKnownMatrix(
 // toolbox row never shows two different names for one gate.
 VariousZGates.Z4 = Gate.fromKnownMatrix(
     "T",
-    Matrix.fromPauliRotation(0, 0, 1 / 8),
+    QubitMatrix.fromPauliRotation(0, 0, 1 / 8),
     "T Gate (Z^¼)",
     "Principle fourth root of Z.",
     "Z^¼");
 VariousZGates.Z4i = Gate.fromKnownMatrix(
     "T^-1",
-    Matrix.fromPauliRotation(0, 0, -1 / 8),
+    QubitMatrix.fromPauliRotation(0, 0, -1 / 8),
     "T^-1 Gate (Z^-¼)",
     "Adjoint fourth root of Z.",
     "Z^-¼",
     VariousZGates.Z4);
 VariousZGates.Z8 = Gate.fromKnownMatrix(
     "Z^⅛",
-    Matrix.fromPauliRotation(0, 0, 1 / 16),
+    QubitMatrix.fromPauliRotation(0, 0, 1 / 16),
     "Z^⅛ Gate",
     "Principle eighth root of Z.");
 VariousZGates.Z8i = Gate.fromKnownMatrix(
     "Z^-⅛",
-    Matrix.fromPauliRotation(0, 0, -1 / 16),
+    QubitMatrix.fromPauliRotation(0, 0, -1 / 16),
     "Z^-⅛ Gate",
     "Adjoint eighth root of Z.",
     undefined,
     VariousZGates.Z8);
 VariousZGates.Z16 = Gate.fromKnownMatrix(
     "Z^⅟₁₆",
-    Matrix.fromPauliRotation(0, 0, 1 / 32),
+    QubitMatrix.fromPauliRotation(0, 0, 1 / 32),
     "Z^⅟₁₆ Gate",
     "Principle 16'th root of Z.");
 VariousZGates.Z16i = Gate.fromKnownMatrix(
     "Z^-⅟₁₆",
-    Matrix.fromPauliRotation(0, 0, -1 / 32),
+    QubitMatrix.fromPauliRotation(0, 0, -1 / 32),
     "Z^-⅟₁₆ Gate",
     "Adjoint 16'th root of Z.",
     undefined,
@@ -73,17 +74,17 @@ VariousZGates.Z16i = Gate.fromKnownMatrix(
 
 VariousZGates.Z32 = Gate.fromKnownMatrix(
     "Z^⅟₃₂",
-    Matrix.fromPauliRotation(0, 0, 1 / 64),
+    QubitMatrix.fromPauliRotation(0, 0, 1 / 64),
     "Z^⅟₃₂ Gate",
     "Principle 32'nd root of Z.");
 VariousZGates.Z64 = Gate.fromKnownMatrix(
     "Z^⅟₆₄",
-    Matrix.fromPauliRotation(0, 0, 1 / 128),
+    QubitMatrix.fromPauliRotation(0, 0, 1 / 128),
     "Z^⅟₆₄ Gate",
     "Principle 64'th root of Z.");
 VariousZGates.Z128 = Gate.fromKnownMatrix(
     "Z^⅟₁₂₈",
-    Matrix.fromPauliRotation(0, 0, 1 / 256),
+    QubitMatrix.fromPauliRotation(0, 0, 1 / 256),
     "Z^⅟₁₂₈ Gate",
     "Principle 128'th root of Z.");
 

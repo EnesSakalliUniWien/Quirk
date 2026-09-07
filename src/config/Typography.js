@@ -21,7 +21,8 @@ class Typography {}
 
 Typography.DEFAULT_FONT_SIZE = 12;
 Typography.DEFAULT_FONT_FAMILY = "'Geist Variable', sans-serif";
-Typography.MONO_FONT_FAMILY = 'ui-monospace, "SFMono-Regular", Consolas, monospace';
+Typography.MONO_FONT_FAMILY =
+  'ui-monospace, "SFMono-Regular", Consolas, monospace';
 // Gate symbols are the tile's content, not a label, at the same medium weight the shadcn Button
 // uses, so both control surfaces read alike.
 Typography.GATE_SYMBOL_FONT_SIZE = 16;
@@ -30,4 +31,4 @@ Typography.GATE_SYMBOL_FONT_WEIGHT = 500;
 // ones wrap to two lines rather than shrinking further.
 Typography.GATE_SYMBOL_MIN_FONT_SIZE = 11;
 
-export {Typography}
+export { Typography };

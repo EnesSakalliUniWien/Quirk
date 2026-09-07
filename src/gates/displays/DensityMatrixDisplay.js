@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-import {CircuitShaders} from "../../circuit/simulation/gpu/CircuitShaders.js"
+import {CircuitShaders} from "../../engine/simulation/gpu/CircuitShaders.js"
 import {Gate, GateBuilder} from "../../circuit/model/Gate.js"
-import {GatePainting} from "../../draw/GatePainting.js"
-import {GateShaders} from "../../circuit/simulation/gpu/GateShaders.js"
+import {GatePainting} from "../../draw/gate/GatePainting.js"
+import {GateShaders} from "../../engine/simulation/gpu/GateShaders.js"
 import {paintDensityMatrix} from "../../draw/pixi/displays/DensityMatrixView.js"
-import {Matrix} from "../../math/Matrix.js"
-import {Shaders} from "../../webgl/Shaders.js"
+import {Matrix} from "../../engine/math/matrix/Matrix.js"
+import {Shaders} from "../../engine/webgl/shader/Shaders.js"
 import {Util} from "../../base/Util.js"
-import {WglArg} from "../../webgl/WglArg.js"
-import {WglConfiguredShader} from "../../webgl/WglConfiguredShader.js"
+import {WglArg} from "../../engine/webgl/shader/WglArg.js"
+import {WglConfiguredShader} from "../../engine/webgl/shader/WglConfiguredShader.js"
 import {
     Inputs,
     Outputs,
     currentShaderCoder,
     makePseudoShaderWithInputsAndOutputAndCode
-} from "../../webgl/ShaderCoders.js"
-import {WglTexturePool} from "../../webgl/WglTexturePool.js"
-import {WglTextureTrader} from "../../webgl/WglTextureTrader.js"
+} from "../../engine/webgl/coder/ShaderCoders.js"
+import {WglTexturePool} from "../../engine/webgl/texture/WglTexturePool.js"
+import {WglTextureTrader} from "../../engine/webgl/texture/WglTextureTrader.js"
 
 /**
  * @param {!WglTexture} inp

@@ -15,13 +15,13 @@
  */
 
 import {Suite, assertThat} from "../../TestUtil.js"
-import {CircuitEvalContext} from "../../../src/circuit/simulation/CircuitEvalContext.js"
-import {CircuitShaders} from "../../../src/circuit/simulation/gpu/CircuitShaders.js"
+import {CircuitEvalContext} from "../../../src/engine/simulation/CircuitEvalContext.js"
+import {CircuitShaders} from "../../../src/engine/simulation/gpu/CircuitShaders.js"
 import {universalNot} from "../../../src/gates/misc/Impossible_UniversalNotGate.js"
 
 import {Controls} from "../../../src/circuit/model/Controls.js"
-import {Shaders} from "../../../src/webgl/Shaders.js"
-import {WglTextureTrader} from "../../../src/webgl/WglTextureTrader.js"
+import {Shaders} from "../../../src/engine/webgl/shader/Shaders.js"
+import {WglTextureTrader} from "../../../src/engine/webgl/texture/WglTextureTrader.js"
 
 let suite = new Suite("Impossible_UniverseNotGate");
 

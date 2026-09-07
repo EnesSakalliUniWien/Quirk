@@ -17,7 +17,7 @@
 import {Suite, assertThat} from "../../TestUtil.js"
 
 import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js"
-import {CircuitStats} from "../../../src/circuit/simulation/CircuitStats.js"
+import {CircuitStats} from "../../../src/engine/simulation/CircuitStats.js"
 import {Serializer} from "../../../src/circuit/serialization/Serializer.js"
 
 let suite = new Suite("SampleDisplay");

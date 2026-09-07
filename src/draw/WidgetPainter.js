@@ -19,17 +19,18 @@ import { fitParagraph, fitLine } from "./pixi/TextLayout.js";
 
 /** @typedef {import('./pixi/DisplayView.js').DisplayView} DisplayView */
 
-import { Complex } from "../math/Complex.js";
+import { Complex } from "../engine/math/complex/Complex.js";
 import { CanvasTheme } from "../config/CanvasTheme.js";
 import { Format } from "../base/Format.js";
 
 import { MathPainter } from "./MathPainter.js";
 
-import { Point } from "../math/Point.js";
-import { Rect } from "../math/Rect.js";
+import { Point } from "../geometry/Point.js";
+import { Rect } from "../geometry/Rect.js";
 import { Seq } from "../base/Seq.js";
 import { drawCircuitTooltip } from "../editor/DisplayedCircuit.js";
 import { Util } from "../base/Util.js";
+import { QubitMatrix } from "../engine/math/matrix/QubitMatrix.js";
 
 class WidgetPainter {
   /**
@@ -192,7 +193,8 @@ class WidgetPainter {
       }),
       0,
     );
-    let { angle, axis, phase } = matrix.qubitOperationToAngleAxisRotation();
+    let { angle, axis, phase } =
+      QubitMatrix.operationToAngleAxisRotation(matrix);
 
     let blochRect = new Rect(pad, nextY(), dispSize, dispSize);
     MathPainter.paintBlochSphereRotation(

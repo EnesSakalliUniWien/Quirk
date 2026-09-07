@@ -16,12 +16,12 @@
 
 import {Simulation} from "../../config/Simulation.js"
 import {Gate} from "../../circuit/model/Gate.js"
-import {GatePainting} from "../../draw/GatePainting.js"
-import {ketArgs, ketShaderPhase} from "../../circuit/simulation/gpu/KetShaderUtil.js"
+import {GatePainting} from "../../draw/gate/GatePainting.js"
+import {ketArgs, ketShaderPhase} from "../../engine/simulation/gpu/KetShaderUtil.js"
 import {MUL_STEP} from "../arithmetic/MultiplyAccumulateGates.js"
-import {WglArg} from "../../webgl/WglArg.js"
-import {Matrix} from "../../math/Matrix.js";
-import {Complex} from "../../math/Complex.js";
+import {WglArg} from "../../engine/webgl/shader/WglArg.js"
+import {Matrix} from "../../engine/math/matrix/Matrix.js";
+import {Complex} from "../../engine/math/complex/Complex.js";
 
 const PHASE_GRADIENT_SHADER = ketShaderPhase(
     `

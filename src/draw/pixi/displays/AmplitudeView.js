@@ -19,11 +19,11 @@ import {strokePath, rectangle} from '../ShapeView.js';
 
 import {CanvasTheme, phaseColor} from '../../../config/CanvasTheme.js';
 import {Typography} from '../../../config/Typography.js';
-import {GatePainting} from '../../GatePainting.js';
+import {GatePainting} from '../../gate/GatePainting.js';
 import {Format} from '../../../base/Format.js';
 import {MathPainter} from '../../MathPainter.js';
-import {Matrix} from '../../../math/Matrix.js';
-import {Point} from '../../../math/Point.js';
+import {Matrix} from '../../../engine/math/matrix/Matrix.js';
+import {Point} from '../../../geometry/Point.js';
 import {Util} from '../../../base/Util.js';
 
 /**

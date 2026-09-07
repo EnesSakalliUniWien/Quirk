@@ -17,7 +17,7 @@
 /**
  * Snap-zone tiling for the app dialogs, in the spirit of a desktop window manager: drag a
  * dialog by its header, and edge zones dock it into halves of the safe area. Docked dialogs
- * are rendered non-modal by src/components/app-dialogs.jsx, which subscribes to this module's
+ * are rendered non-modal by src/components/dialogs/app-dialogs.jsx, which subscribes to this module's
  * dock state.
  */
 
@@ -115,7 +115,7 @@ function resetDockModes() {
     }
 }
 
-/** Popup element ids (src/components/app-dialogs.jsx) keyed back to overlay names. */
+/** Popup element ids (src/components/dialogs/app-dialogs.jsx) keyed back to overlay names. */
 const _NAME_BY_DIV_ID = new Map([
     ['menu-div', 'menu'],
     ['export-div', 'export'],

@@ -20,7 +20,7 @@ import {describe} from '../base/Describe.js';
 import {DetailedError} from '../base/DetailedError.js';
 import {Gate} from '../circuit/model/Gate.js';
 import {GateColumn} from '../circuit/model/GateColumn.js';
-import {Point} from '../math/Point.js';
+import {Point} from '../geometry/Point.js';
 import {Util} from '../base/Util.js';
 
 class Hand {

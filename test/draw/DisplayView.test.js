@@ -25,8 +25,8 @@ import {Suite, assertThat} from '../TestUtil.js';
 import {RenderSurface} from '../../src/draw/pixi/RenderSurface.js';
 import {DisplayView, scenePixels} from './TestDisplayView.js';
 
-import {Point} from '../../src/math/Point.js';
-import {Rect} from '../../src/math/Rect.js';
+import {Point} from '../../src/geometry/Point.js';
+import {Rect} from '../../src/geometry/Rect.js';
 
 let suite = new Suite("DisplayView");
 

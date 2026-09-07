@@ -1,0 +1,99 @@
+/**
+ * Copyright 2017 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import {strokePath} from '../../draw/pixi/ShapeView.js';
+
+import {Layout} from '../../config/Layout.js';
+import {CanvasTheme} from '../../config/CanvasTheme.js';
+import {Point} from '../../geometry/Point.js';
+import {DEFAULT_DRAWER} from '../../draw/gate/GateDrawers.js';
+import {paintBackground, paintOutline, paintResizeTab} from '../../draw/gate/GateFrame.js';
+
+/** @typedef {import('../../draw/gate/GateDrawParams.js').GateDrawParams} GateDrawParams */
+
+/**
+ * @param {!GateDrawParams} args
+ * @param {!int} offset
+ * @returns {!number}
+ */
+function wireY(args, offset) {
+    return args.rect.center().y + (offset - args.gate.height/2 + 0.5) * Layout.WIRE_SPACING;
+}
+
+/**
+ * @param {!GateDrawParams} args
+ */
+function eraseWiresForPermutation(args) {
+    for (let i = 0; i < args.gate.height; i++) {
+        let y = wireY(args, i);
+        let p = new Point(args.rect.x, y);
+        let c = new Point(args.rect.x + Layout.GATE_RADIUS, y);
+        let q = new Point(args.rect.right(), y);
+        let loc = new Point(args.positionInCircuit.col, args.positionInCircuit.row + i);
+        let isMeasured1 = args.stats.circuitDefinition.locIsMeasured(loc);
+        let isMeasured2 = args.stats.circuitDefinition.locIsMeasured(loc.offsetBy(1, 0));
+
+        for (let dy of isMeasured1 ? [-1, +1] : [0]) {
+            strokePath(args.painter, [p.offsetBy(0, dy), c.offsetBy(1, dy)], CanvasTheme.surface.background, 1);
+        }
+        for (let dy of isMeasured2 ? [-1, +1] : [0]) {
+            strokePath(args.painter, [c.offsetBy(-1, dy), q.offsetBy(0, dy)], CanvasTheme.surface.background, 1);
+        }
+    }
+}
+
+/**
+ * Draws the gate as a re-arrangement of wires.
+ * @param {!GateDrawParams} args
+ */
+const PERMUTATION_DRAWER = args => {
+    if (args.positionInCircuit === undefined) {
+        DEFAULT_DRAWER(args);
+        return;
+    }
+
+    if (args.isHighlighted ||
+            args.isResizeHighlighted ||
+            args.stats.circuitDefinition.colHasControls(args.positionInCircuit.col)) {
+        paintBackground(args, CanvasTheme.surface.quiet);
+        paintOutline(args);
+        paintResizeTab(args);
+    } else {
+        eraseWiresForPermutation(args);
+    }
+
+    // Draw wires.
+    let x1 = args.rect.x;
+    let x2 = args.rect.right();
+    for (let i = 0; i < args.gate.height; i++) {
+        let j = args.gate.knownBitPermutationFunc(i);
+
+        let pt = new Point(args.positionInCircuit.col, args.positionInCircuit.row + i);
+        let isMeasured = args.stats.circuitDefinition.locIsMeasured(pt);
+        let y1 = wireY(args, i);
+        let y2 = wireY(args, j);
+        const path = args.painter.graphics();
+        for (let [dx, dy] of isMeasured ? [[j > i ? +1 : -1, -1], [0, +1]] : [[0, 0]]) {
+            path.moveTo(Math.min(x1, x1 + dx), y1 + dy);
+            path.lineTo(x1 + dx, y1 + dy);
+            path.lineTo(x2 + dx, y2 + dy);
+            path.lineTo(Math.max(x2, x2 + dx), y2 + dy);
+        }
+        path.stroke({color: CanvasTheme.text.primary, width: 1});
+    }
+};
+
+export {PERMUTATION_DRAWER}

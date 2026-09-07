@@ -14,26 +14,30 @@
  * limitations under the License.
  */
 
-import {Complex} from "../../math/Complex.js"
-import {GateBuilder} from "../../circuit/model/Gate.js"
-import {GatePainting} from "../../draw/GatePainting.js"
-import {Matrix} from "../../math/Matrix.js"
+import { Complex } from "../../engine/math/complex/Complex.js";
+import { GateBuilder } from "../../circuit/model/Gate.js";
+import { GatePainting } from "../../draw/gate/GatePainting.js";
+import { Matrix } from "../../engine/math/matrix/Matrix.js";
+import { MatrixDecomposition } from "../../engine/math/matrix/MatrixDecomposition.js";
 
 let MysteryGateSymbol = "?";
 
-let MysteryGateMakerWithMatrix = matrix => new GateBuilder().
-    setSerializedIdAndSymbol(MysteryGateSymbol).
-    setTitle("Mystery Gate").
-    setBlurb("Different every time.\n(Use shift+drag to copy circuit gates.)").
-    setDrawer(GatePainting.MATRIX_DRAWER).
-    setKnownEffectToMatrix(matrix).
-    gate;
+let MysteryGateMakerWithMatrix = (matrix) =>
+  new GateBuilder()
+    .setSerializedIdAndSymbol(MysteryGateSymbol)
+    .setTitle("Mystery Gate")
+    .setBlurb("Different every time.\n(Use shift+drag to copy circuit gates.)")
+    .setDrawer(GatePainting.MATRIX_DRAWER)
+    .setKnownEffectToMatrix(matrix).gate;
 
-let MysteryGateMaker = () => MysteryGateMakerWithMatrix(Matrix.square(
-    new Complex(Math.random() - 0.5, Math.random() - 0.5),
-    new Complex(Math.random() - 0.5, Math.random() - 0.5),
-    new Complex(Math.random() - 0.5, Math.random() - 0.5),
-    new Complex(Math.random() - 0.5, Math.random() - 0.5)
-).closestUnitary(0.00001));
+let MysteryGateMaker = () =>
+  MysteryGateMakerWithMatrix(
+    MatrixDecomposition.closestUnitary(Matrix.square(
+      new Complex(Math.random() - 0.5, Math.random() - 0.5),
+      new Complex(Math.random() - 0.5, Math.random() - 0.5),
+      new Complex(Math.random() - 0.5, Math.random() - 0.5),
+      new Complex(Math.random() - 0.5, Math.random() - 0.5),
+    ), 0.00001),
+  );
 
-export {MysteryGateSymbol, MysteryGateMaker, MysteryGateMakerWithMatrix};
+export { MysteryGateSymbol, MysteryGateMaker, MysteryGateMakerWithMatrix };

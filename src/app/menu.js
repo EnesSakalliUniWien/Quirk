@@ -17,9 +17,9 @@
 import {EXAMPLE_CIRCUITS} from "./exampleCircuits.js"
 
 /**
- * Interface note: also requires #menu-button (src/components/gate-toolbox.jsx) and the welcome
+ * Interface note: also requires #menu-button (src/components/toolbox/gate-toolbox.jsx) and the welcome
  * panel's #close-menu-button and #example-* anchors, shipped in quirk.html's dialog stash and
- * mounted by src/components/menu-dialog.jsx before this runs.
+ * mounted by src/components/dialogs/menu-dialog.jsx before this runs.
  *
  * @param {!Revision} revision
  * @param {!OverlayState} overlayState
@@ -29,7 +29,7 @@ function initMenu(revision, overlayState) {
     const obsIsAnyOverlayShowing = obsActiveOverlay.map(active => active !== undefined).whenDifferent();
 
     // Open and close the menu overlay. Visibility, Escape, backdrop clicks, and focus belong to
-    // the Base UI Dialog that wraps it (src/components/app-dialogs.jsx).
+    // the Base UI Dialog that wraps it (src/components/dialogs/app-dialogs.jsx).
     //
     // #menu-button lives in the sidebar, which below 920px is an off-canvas drawer whose content
     // mounts on open and remounts on viewport crossings - so the button's element identity is not

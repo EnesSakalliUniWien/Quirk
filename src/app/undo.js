@@ -16,7 +16,7 @@
 
 /**
  * Interface note: also requires #undo-button and #redo-button, rendered by
- * src/components/app-toolbar.jsx before this runs.
+ * src/components/toolbar/app-toolbar.jsx before this runs.
  *
  * @param {!CircuitActions} circuitActions
  */

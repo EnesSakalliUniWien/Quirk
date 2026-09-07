@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Rect} from "../math/Rect.js"
+import {Rect} from "../geometry/Rect.js"
 
 class TouchScrollBlocker {
     /**

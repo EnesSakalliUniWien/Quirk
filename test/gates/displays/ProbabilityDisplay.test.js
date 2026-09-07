@@ -17,9 +17,9 @@
 import {Suite, assertThat} from "../../TestUtil.js"
 import {amplitudesToProbabilities} from "../../../src/gates/displays/ProbabilityDisplay.js"
 
-import {CircuitShaders} from "../../../src/circuit/simulation/gpu/CircuitShaders.js"
+import {CircuitShaders} from "../../../src/engine/simulation/gpu/CircuitShaders.js"
 import {Controls} from "../../../src/circuit/model/Controls.js"
-import {Shaders} from "../../../src/webgl/Shaders.js"
+import {Shaders} from "../../../src/engine/webgl/shader/Shaders.js"
 
 let suite = new Suite("ProbabilityDisplay");
 

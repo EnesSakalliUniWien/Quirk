@@ -17,8 +17,8 @@
 import {rectangle, strokePath} from '../draw/pixi/ShapeView.js';
 
 import {RenderSurface} from '../draw/pixi/RenderSurface.js';
-import {Point} from '../math/Point.js';
-import {Rect} from '../math/Rect.js';
+import {Point} from '../geometry/Point.js';
+import {Rect} from '../geometry/Rect.js';
 import {CanvasTheme} from '../config/CanvasTheme.js';
 import {circuitZoom, onCircuitZoomChanged} from './zoom.js';
 

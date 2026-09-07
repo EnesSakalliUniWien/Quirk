@@ -14,22 +14,25 @@
  * limitations under the License.
  */
 
-import {CanvasTheme} from "../../config/CanvasTheme.js"
-import {DetailedError} from "../../base/DetailedError.js"
-import {GateBuilder} from "../../circuit/model/Gate.js"
-import {GatePainting} from "../../draw/GatePainting.js"
+import { CanvasTheme } from "../../config/CanvasTheme.js";
+import { DetailedError } from "../../base/DetailedError.js";
+import { GateBuilder } from "../../circuit/model/Gate.js";
+import { GatePainting } from "../../draw/gate/GatePainting.js";
 
-let ErrorInjectionGate = new GateBuilder().
-    setSerializedId("__error__").
-    setSymbol("ERR!").
-    setTitle("Error Injection Gate").
-    setBlurb("Throws an exception during circuit stat computations, for testing error paths.").
-    setDrawer(GatePainting.MAKE_HIGHLIGHTED_DRAWER(CanvasTheme.error.background)).
-    setActualEffectToUpdateFunc(ctx => {
-        throw new DetailedError("Applied an Error Injection Gate",
-            {qubit: ctx.row, recognition_code: '927, I am a potato'});
-    }).
-    promiseEffectIsStable().
-    gate;
+let ErrorInjectionGate = new GateBuilder()
+  .setSerializedId("__error__")
+  .setSymbol("ERR!")
+  .setTitle("Error Injection Gate")
+  .setBlurb(
+    "Throws an exception during circuit stat computations, for testing error paths.",
+  )
+  .setDrawer(GatePainting.MAKE_HIGHLIGHTED_DRAWER(CanvasTheme.error.background))
+  .setActualEffectToUpdateFunc((ctx) => {
+    throw new DetailedError("Applied an Error Injection Gate", {
+      qubit: ctx.row,
+      recognition_code: "927, I am a potato",
+    });
+  })
+  .promiseEffectIsStable().gate;
 
-export {ErrorInjectionGate}
+export { ErrorInjectionGate };

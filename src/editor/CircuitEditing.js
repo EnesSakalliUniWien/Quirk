@@ -28,7 +28,7 @@ import {DisplayedCircuit} from "./DisplayedCircuit.js"
 import {GateColumn} from "../circuit/model/GateColumn.js"
 import {Layout} from "../config/Layout.js"
 import {Simulation} from "../config/Simulation.js"
-import {Point} from "../math/Point.js"
+import {Point} from "../geometry/Point.js"
 import {seq} from "../base/Seq.js"
 
 /**

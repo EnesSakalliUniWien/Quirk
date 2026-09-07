@@ -15,7 +15,8 @@
  */
 
 import {Gate, GateBuilder} from "../../circuit/model/Gate.js"
-import {Matrix} from "../../math/Matrix.js"
+import {Matrix} from "../../engine/math/matrix/Matrix.js"
+import {QubitMatrix} from "../../engine/math/matrix/QubitMatrix.js"
 
 let QuarterTurnGates = {};
 
@@ -26,7 +27,7 @@ QuarterTurnGates.SqrtXForward = new GateBuilder().
     setSerializedIdAndSymbol('X^½').
     setTitle("X^½ Gate (√X)").
     setBlurb("Principle square root of Not.").
-    setKnownEffectToMatrix(Matrix.fromPauliRotation(0.25, 0, 0)).
+    setKnownEffectToMatrix(QubitMatrix.fromPauliRotation(0.25, 0, 0)).
     gate;
 
 /** @type {!Gate} */
@@ -35,7 +36,7 @@ QuarterTurnGates.SqrtXBackward = new GateBuilder().
     setSerializedIdAndSymbol('X^-½').
     setTitle("X^-½ Gate").
     setBlurb("Adjoint square root of Not.").
-    setKnownEffectToMatrix(Matrix.fromPauliRotation(0.75, 0, 0)).
+    setKnownEffectToMatrix(QubitMatrix.fromPauliRotation(0.75, 0, 0)).
     gate;
 
 /** @type {!Gate} */
@@ -43,7 +44,7 @@ QuarterTurnGates.SqrtYForward = new GateBuilder().
     setSerializedIdAndSymbol('Y^½').
     setTitle("Y^½ Gate (√Y)").
     setBlurb("Principle square root of Y.").
-    setKnownEffectToMatrix(Matrix.fromPauliRotation(0, 0.25, 0)).
+    setKnownEffectToMatrix(QubitMatrix.fromPauliRotation(0, 0.25, 0)).
     gate;
 
 /** @type {!Gate} */
@@ -52,7 +53,7 @@ QuarterTurnGates.SqrtYBackward = new GateBuilder().
     setSerializedIdAndSymbol('Y^-½').
     setTitle("Y^-½ Gate").
     setBlurb("Adjoint square root of Y.").
-    setKnownEffectToMatrix(Matrix.fromPauliRotation(0, 0.75, 0)).
+    setKnownEffectToMatrix(QubitMatrix.fromPauliRotation(0, 0.75, 0)).
     gate;
 
 /** @type {!Gate} */
@@ -61,7 +62,7 @@ QuarterTurnGates.SqrtZForward = new GateBuilder().
     setSymbol('S').
     setTitle("S Gate (√Z)").
     setBlurb("Principle square root of Z.").
-    setKnownEffectToMatrix(Matrix.fromPauliRotation(0, 0, 0.25)).
+    setKnownEffectToMatrix(QubitMatrix.fromPauliRotation(0, 0, 0.25)).
     gate;
 
 /** @type {!Gate} */
@@ -71,7 +72,7 @@ QuarterTurnGates.SqrtZBackward = new GateBuilder().
     setSymbol('S^-1').
     setTitle("S^-1 Gate (Z^-½)").
     setBlurb("Adjoint square root of Z.").
-    setKnownEffectToMatrix(Matrix.fromPauliRotation(0, 0, 0.75)).
+    setKnownEffectToMatrix(QubitMatrix.fromPauliRotation(0, 0, 0.75)).
     gate;
 
 QuarterTurnGates.all = [

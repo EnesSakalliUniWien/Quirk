@@ -15,7 +15,7 @@
  */
 
 import {Layout} from "../config/Layout.js"
-import {Point} from "../math/Point.js"
+import {Point} from "../geometry/Point.js"
 import {eventPosRelativeTo} from "../browser/MouseWatcher.js"
 import {pointIntoCircuitCoords} from "./zoom.js"
 

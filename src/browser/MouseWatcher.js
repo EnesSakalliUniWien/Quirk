@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Point} from "../math/Point.js"
+import {Point} from "../geometry/Point.js"
 
 const ALLOW_REGRAB_WATCHDOG_TIME_MS = 5000;
 const MOUSE_ID = "mouse!";

@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-import {Complex, PARSE_COMPLEX_TOKEN_MAP_RAD} from "../../math/Complex.js"
-import {parseFormula} from "../../math/FormulaParser.js"
+import {ComplexFormula} from "../../engine/math/formula/ComplexFormula.js"
 
 /**
  * @param {!string} formula
@@ -24,12 +23,9 @@ import {parseFormula} from "../../math/FormulaParser.js"
  * @returns {undefined|!number}
  */
 function parseTimeFormula(formula, time, warn) {
-    let tokenMap = new Map([...PARSE_COMPLEX_TOKEN_MAP_RAD.entries()]);
-    if (time !== undefined) {
-        tokenMap.set('t', time);
-    }
+    let variables = time === undefined ? {} : {t: time};
     try {
-        let angle = Complex.from(parseFormula(formula, tokenMap));
+        let angle = ComplexFormula.parse(formula, {angleUnit: ComplexFormula.RADIANS, variables});
         if (Math.abs(angle.imag) > 0.0001) {
             throw new Error(`Non-real angle: ${formula} = ${angle}`);
         }

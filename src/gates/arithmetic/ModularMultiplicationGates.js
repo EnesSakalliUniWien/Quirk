@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-import {Simulation} from "../../config/Simulation.js"
-import {Gate} from "../../circuit/model/Gate.js"
+import { Simulation } from "../../config/Simulation.js";
+import { Gate } from "../../circuit/model/Gate.js";
 import {
-    ketArgs,
-    ketShaderPermute,
-    ketInputGateShaderCode
-} from "../../circuit/simulation/gpu/KetShaderUtil.js"
-import {modulusTooBigChecker} from "./ModularIncrementGates.js"
-import {BIG_MUL_MOD_SHADER_CODE} from "./MultiplyAccumulateGates.js"
-import {Util} from "../../base/Util.js"
-import {WglArg} from "../../webgl/WglArg.js"
+  ketArgs,
+  ketShaderPermute,
+  ketInputGateShaderCode,
+} from "../../engine/simulation/gpu/KetShaderUtil.js";
+import { modulusTooBigChecker } from "./ModularIncrementGates.js";
+import { BIG_MUL_MOD_SHADER_CODE } from "./MultiplyAccumulateGates.js";
+import { Util } from "../../base/Util.js";
+import { WglArg } from "../../engine/webgl/shader/WglArg.js";
 
 let ModularMultiplicationGates = {};
 
@@ -41,7 +41,7 @@ const MODULAR_INVERSE_SHADER_CODE = `
         vec2 r = vec2(modulus, value);
         float q;
         // For values up to x, a number of iterations n satisfying phi^n > x should be sufficient.
-        for (int repeat = 0; repeat < ${Math.ceil(Simulation.MAX_WIRE_COUNT/(Math.log2(1+Math.sqrt(5))-1))}; repeat++) {
+        for (int repeat = 0; repeat < ${Math.ceil(Simulation.MAX_WIRE_COUNT / (Math.log2(1 + Math.sqrt(5)) - 1))}; repeat++) {
             if (r.x != 0.0) {
                 q = floor(r.y / r.x);
                 r = _mod_mul_step(r, q);
@@ -94,14 +94,14 @@ const POW_MOD_SHADER_CODE = `
  * @returns {!int}
  */
 function modularMultiply(val, factor, modulus) {
-    if (val >= modulus) {
-        return val;
-    }
-    factor = Util.properMod(factor, modulus);
-    if (factor === 0 || Util.extended_gcd(factor, modulus).gcd !== 1) {
-        return val;
-    }
-    return (val * factor) % modulus;
+  if (val >= modulus) {
+    return val;
+  }
+  factor = Util.properMod(factor, modulus);
+  if (factor === 0 || Util.extended_gcd(factor, modulus).gcd !== 1) {
+    return val;
+  }
+  return (val * factor) % modulus;
 }
 
 /**
@@ -115,19 +115,19 @@ function modularMultiply(val, factor, modulus) {
  * @returns {!int}
  */
 function modularUnmultiply(val, factor, modulus) {
-    if (val >= modulus) {
-        return val;
-    }
-    factor = Util.properMod(factor, modulus);
-    if (factor === 0) {
-        return val;
-    }
+  if (val >= modulus) {
+    return val;
+  }
+  factor = Util.properMod(factor, modulus);
+  if (factor === 0) {
+    return val;
+  }
 
-    let inverse_factor = Util.modular_multiplicative_inverse(factor, modulus);
-    if (inverse_factor === undefined) {
-        return val;
-    }
-    return (val * inverse_factor) % modulus;
+  let inverse_factor = Util.modular_multiplicative_inverse(factor, modulus);
+  if (inverse_factor === undefined) {
+    return val;
+  }
+  return (val * inverse_factor) % modulus;
 }
 
 /**
@@ -138,37 +138,37 @@ function modularUnmultiply(val, factor, modulus) {
  * @returns {!int}
  */
 function modularPowerMultiply(val, base, exponent, modulus) {
-    if (val >= modulus) {
-        return val;
-    }
-    base = Util.properMod(base, modulus);
-    let inverse = Util.modular_multiplicative_inverse(base, modulus);
-    if (inverse === undefined) {
-        return val;
-    }
-
-    if (exponent < 0) {
-        exponent = -exponent;
-        base = inverse;
-    }
-
-    while (exponent > 0) {
-        if ((exponent & 1) !== 0) {
-            val = (val * base) % modulus;
-        }
-        base = (base*base) % modulus;
-        exponent >>= 1;
-    }
+  if (val >= modulus) {
     return val;
+  }
+  base = Util.properMod(base, modulus);
+  let inverse = Util.modular_multiplicative_inverse(base, modulus);
+  if (inverse === undefined) {
+    return val;
+  }
+
+  if (exponent < 0) {
+    exponent = -exponent;
+    base = inverse;
+  }
+
+  while (exponent > 0) {
+    if ((exponent & 1) !== 0) {
+      val = (val * base) % modulus;
+    }
+    base = (base * base) % modulus;
+    exponent >>= 1;
+  }
+  return val;
 }
 
 const MODULAR_MULTIPLICATION_SHADER = ketShaderPermute(
-    `
+  `
         ${MODULAR_INVERSE_SHADER_CODE}
-        ${ketInputGateShaderCode('A')}
-        ${ketInputGateShaderCode('R')}
+        ${ketInputGateShaderCode("A")}
+        ${ketInputGateShaderCode("R")}
     `,
-    `
+  `
         float input_a = read_input_A();
         float modulus = read_input_R();
         input_a = floor(mod(input_a + 0.5, modulus));
@@ -177,15 +177,16 @@ const MODULAR_MULTIPLICATION_SHADER = ketShaderPermute(
             return out_id;
         }
         return big_mul_mod(out_id, v, modulus);
-    `);
+    `,
+);
 
 const MODULAR_INVERSE_MULTIPLICATION_SHADER = ketShaderPermute(
-    `
+  `
         ${MODULAR_INVERSE_SHADER_CODE}
-        ${ketInputGateShaderCode('A')}
-        ${ketInputGateShaderCode('R')}
+        ${ketInputGateShaderCode("A")}
+        ${ketInputGateShaderCode("R")}
     `,
-    `
+  `
         float input_a = read_input_A();
         float modulus = read_input_R();
         input_a = floor(mod(input_a + 0.5, modulus));
@@ -193,17 +194,18 @@ const MODULAR_INVERSE_MULTIPLICATION_SHADER = ketShaderPermute(
             return out_id;
         }
         return big_mul_mod(out_id, input_a, modulus);
-    `);
+    `,
+);
 
 const MODULAR_POWER_MULTIPLICATION_SHADER = ketShaderPermute(
-    `
+  `
         uniform float factor;
-        ${ketInputGateShaderCode('A')}
-        ${ketInputGateShaderCode('B')}
-        ${ketInputGateShaderCode('R')}
+        ${ketInputGateShaderCode("A")}
+        ${ketInputGateShaderCode("B")}
+        ${ketInputGateShaderCode("R")}
         ${POW_MOD_SHADER_CODE}
     `,
-    `
+  `
         float exponent = -read_input_A() * factor;
         float base = read_input_B();
         float modulus = read_input_R();
@@ -212,77 +214,122 @@ const MODULAR_POWER_MULTIPLICATION_SHADER = ketShaderPermute(
             return out_id;
         }
         return big_mul_mod(out_id, f, modulus);
-    `);
+    `,
+);
 
-ModularMultiplicationGates.TimesAModRFamily = Gate.buildFamily(1, 16, (span, builder) => builder.
-    setSerializedId("*AmodR" + span).
-    setSymbol("×A\nmod R").
-    setTitle("Modular Multiplication Gate").
-    setBlurb("Multiplies the target by input A mod input R.\n" +
-        "Only affects values less than R.\n" +
-        "No effect if the multiplication would be irreversible.").
-    setRequiredContextKeys("Input Range A", "Input Range R").
-    setExtraDisableReasonFinder(modulusTooBigChecker("R", span)).
-    setActualEffectToShaderProvider(ctx => MODULAR_MULTIPLICATION_SHADER.withArgs(
-        ...ketArgs(ctx, span, ['A', 'R']))).
-    setKnownEffectToParametrizedPermutation(modularMultiply));
+ModularMultiplicationGates.TimesAModRFamily = Gate.buildFamily(
+  1,
+  16,
+  (span, builder) =>
+    builder
+      .setSerializedId("*AmodR" + span)
+      .setSymbol("×A\nmod R")
+      .setTitle("Modular Multiplication Gate")
+      .setBlurb(
+        "Multiplies the target by input A mod input R.\n" +
+          "Only affects values less than R.\n" +
+          "No effect if the multiplication would be irreversible.",
+      )
+      .setRequiredContextKeys("Input Range A", "Input Range R")
+      .setExtraDisableReasonFinder(modulusTooBigChecker("R", span))
+      .setActualEffectToShaderProvider((ctx) =>
+        MODULAR_MULTIPLICATION_SHADER.withArgs(
+          ...ketArgs(ctx, span, ["A", "R"]),
+        ),
+      )
+      .setKnownEffectToParametrizedPermutation(modularMultiply),
+);
 
-ModularMultiplicationGates.TimesAModRInverseFamily = Gate.buildFamily(1, 16, (span, builder) => builder.
-    setAlternateFromFamily(ModularMultiplicationGates.TimesAModRFamily).
-    setSerializedId("/AmodR" + span).
-    setSymbol("×A^-1\nmod R").
-    setTitle("Modular Division Gate").
-    setBlurb("Inverse-multiplies the target by input A mod input R.\n" +
-        "Only affects values less than R.\n" +
-        "No effect if the multiplication would be irreversible.").
-    setRequiredContextKeys("Input Range A", "Input Range R").
-    setExtraDisableReasonFinder(modulusTooBigChecker("R", span)).
-    setActualEffectToShaderProvider(ctx => MODULAR_INVERSE_MULTIPLICATION_SHADER.withArgs(
-        ...ketArgs(ctx, span, ['A', 'R']))).
-    setKnownEffectToParametrizedPermutation(modularUnmultiply));
+ModularMultiplicationGates.TimesAModRInverseFamily = Gate.buildFamily(
+  1,
+  16,
+  (span, builder) =>
+    builder
+      .setAlternateFromFamily(ModularMultiplicationGates.TimesAModRFamily)
+      .setSerializedId("/AmodR" + span)
+      .setSymbol("×A^-1\nmod R")
+      .setTitle("Modular Division Gate")
+      .setBlurb(
+        "Inverse-multiplies the target by input A mod input R.\n" +
+          "Only affects values less than R.\n" +
+          "No effect if the multiplication would be irreversible.",
+      )
+      .setRequiredContextKeys("Input Range A", "Input Range R")
+      .setExtraDisableReasonFinder(modulusTooBigChecker("R", span))
+      .setActualEffectToShaderProvider((ctx) =>
+        MODULAR_INVERSE_MULTIPLICATION_SHADER.withArgs(
+          ...ketArgs(ctx, span, ["A", "R"]),
+        ),
+      )
+      .setKnownEffectToParametrizedPermutation(modularUnmultiply),
+);
 
-ModularMultiplicationGates.TimesBToTheAModRFamily = Gate.buildFamily(1, 16, (span, builder) => builder.
-    setSerializedId("*BToAmodR" + span).
-    setSymbol("×B^A\nmod R").
-    setTitle("Modular Power Multiplication Gate").
-    setListName("Modular Power Multiply").
-    setBlurb("Multiplies the target by input B raised to the input A mod input R.\n" +
-            "Only affects values less than R.\n" +
-            "No effect if the multiplication would be irreversible.").
-    setRequiredContextKeys("Input Range A", "Input Range B", "Input Range R").
-    setExtraDisableReasonFinder(modulusTooBigChecker("R", span)).
-    setActualEffectToShaderProvider(ctx => MODULAR_POWER_MULTIPLICATION_SHADER.withArgs(
-        ...ketArgs(ctx, span, ['A', 'B', 'R']),
-        WglArg.float('factor', +1))).
-    setKnownEffectToParametrizedPermutation((t, a, b, r) => modularPowerMultiply(t, b, a, r)));
+ModularMultiplicationGates.TimesBToTheAModRFamily = Gate.buildFamily(
+  1,
+  16,
+  (span, builder) =>
+    builder
+      .setSerializedId("*BToAmodR" + span)
+      .setSymbol("×B^A\nmod R")
+      .setTitle("Modular Power Multiplication Gate")
+      .setListName("Modular Power Multiply")
+      .setBlurb(
+        "Multiplies the target by input B raised to the input A mod input R.\n" +
+          "Only affects values less than R.\n" +
+          "No effect if the multiplication would be irreversible.",
+      )
+      .setRequiredContextKeys("Input Range A", "Input Range B", "Input Range R")
+      .setExtraDisableReasonFinder(modulusTooBigChecker("R", span))
+      .setActualEffectToShaderProvider((ctx) =>
+        MODULAR_POWER_MULTIPLICATION_SHADER.withArgs(
+          ...ketArgs(ctx, span, ["A", "B", "R"]),
+          WglArg.float("factor", +1),
+        ),
+      )
+      .setKnownEffectToParametrizedPermutation((t, a, b, r) =>
+        modularPowerMultiply(t, b, a, r),
+      ),
+);
 
-ModularMultiplicationGates.TimesInverseBToTheAModRFamily = Gate.buildFamily(1, 16, (span, builder) => builder.
-    setAlternateFromFamily(ModularMultiplicationGates.TimesBToTheAModRFamily).
-    setSerializedId("/BToAmodR" + span).
-    setSymbol("×B^-A\nmod R").
-    setTitle("Modular Power Division Gate").
-    setBlurb("Inverse-multiplies the target by input B raised to the input A mod input R.\n" +
-            "Only affects values less than R.\n" +
-            "No effect if the multiplication would be irreversible.").
-    setRequiredContextKeys("Input Range A", "Input Range B", "Input Range R").
-    setExtraDisableReasonFinder(modulusTooBigChecker("R", span)).
-    setActualEffectToShaderProvider(ctx => MODULAR_POWER_MULTIPLICATION_SHADER.withArgs(
-        ...ketArgs(ctx, span, ['A', 'B', 'R']),
-        WglArg.float('factor', -1))).
-    setKnownEffectToParametrizedPermutation((t, a, b, r) => modularPowerMultiply(t, b, -a, r)));
+ModularMultiplicationGates.TimesInverseBToTheAModRFamily = Gate.buildFamily(
+  1,
+  16,
+  (span, builder) =>
+    builder
+      .setAlternateFromFamily(ModularMultiplicationGates.TimesBToTheAModRFamily)
+      .setSerializedId("/BToAmodR" + span)
+      .setSymbol("×B^-A\nmod R")
+      .setTitle("Modular Power Division Gate")
+      .setBlurb(
+        "Inverse-multiplies the target by input B raised to the input A mod input R.\n" +
+          "Only affects values less than R.\n" +
+          "No effect if the multiplication would be irreversible.",
+      )
+      .setRequiredContextKeys("Input Range A", "Input Range B", "Input Range R")
+      .setExtraDisableReasonFinder(modulusTooBigChecker("R", span))
+      .setActualEffectToShaderProvider((ctx) =>
+        MODULAR_POWER_MULTIPLICATION_SHADER.withArgs(
+          ...ketArgs(ctx, span, ["A", "B", "R"]),
+          WglArg.float("factor", -1),
+        ),
+      )
+      .setKnownEffectToParametrizedPermutation((t, a, b, r) =>
+        modularPowerMultiply(t, b, -a, r),
+      ),
+);
 
 ModularMultiplicationGates.all = [
-    ...ModularMultiplicationGates.TimesAModRFamily.all,
-    ...ModularMultiplicationGates.TimesAModRInverseFamily.all,
-    ...ModularMultiplicationGates.TimesBToTheAModRFamily.all,
-    ...ModularMultiplicationGates.TimesInverseBToTheAModRFamily.all,
+  ...ModularMultiplicationGates.TimesAModRFamily.all,
+  ...ModularMultiplicationGates.TimesAModRInverseFamily.all,
+  ...ModularMultiplicationGates.TimesBToTheAModRFamily.all,
+  ...ModularMultiplicationGates.TimesInverseBToTheAModRFamily.all,
 ];
 
 export {
-    ModularMultiplicationGates,
-    MODULAR_INVERSE_SHADER_CODE,
-    POW_MOD_SHADER_CODE,
-    modularMultiply,
-    modularUnmultiply,
-    modularPowerMultiply
-}
+  ModularMultiplicationGates,
+  MODULAR_INVERSE_SHADER_CODE,
+  POW_MOD_SHADER_CODE,
+  modularMultiply,
+  modularUnmultiply,
+  modularPowerMultiply,
+};

@@ -21,8 +21,8 @@ import {Layout} from '../../../config/Layout.js';
 import {CanvasTheme} from '../../../config/CanvasTheme.js';
 import {Typography} from '../../../config/Typography.js';
 import {MathPainter} from '../../MathPainter.js';
-import {Point} from '../../../math/Point.js';
-import {Rect} from '../../../math/Rect.js';
+import {Point} from '../../../geometry/Point.js';
+import {Rect} from '../../../geometry/Rect.js';
 import {Util} from '../../../base/Util.js';
 
 /**

@@ -18,9 +18,9 @@ import {strokePath} from '../../draw/pixi/ShapeView.js';
 
 import {CanvasTheme} from '../../config/CanvasTheme.js';
 import {GateBuilder} from '../../circuit/model/Gate.js';
-import {Matrix} from '../../math/Matrix.js';
-import {Point} from '../../math/Point.js';
-import {GatePainting} from '../../draw/GatePainting.js';
+import {Matrix} from '../../engine/math/matrix/Matrix.js';
+import {Point} from '../../geometry/Point.js';
+import {GatePainting} from '../../draw/gate/GatePainting.js';
 
 const NeGate = new GateBuilder().
     setSerializedId("NeGate").

@@ -16,10 +16,11 @@
 
 import {perfGoal, millis} from "./TestPerfUtil.js"
 import {CircuitDefinition} from "../src/circuit/model/CircuitDefinition.js"
-import {CircuitStats} from "../src/circuit/simulation/CircuitStats.js"
+import {CircuitStats} from "../src/engine/simulation/CircuitStats.js"
 import {Gate} from "../src/circuit/model/Gate.js"
 import {Gates} from "../src/gates/AllGates.js"
-import {Matrix} from "../src/math/Matrix.js"
+import {Matrix} from "../src/engine/math/matrix/Matrix.js"
+import {QubitMatrix} from "../src/engine/math/matrix/QubitMatrix.js"
 
 const diagram = (diagram, ...extras) => CircuitDefinition.fromTextDiagram(new Map([
     ...extras,
@@ -35,14 +36,14 @@ const diagram = (diagram, ...extras) => CircuitDefinition.fromTextDiagram(new Ma
     ['5', Gates.OtherZ.Z32],
     ['6', Gates.OtherZ.Z64],
     ['7', Gates.OtherZ.Z128],
-    ['8', Gate.fromKnownMatrix("8", Matrix.fromPauliRotation(0, 0, 1/(1<<9)))],
-    ['9', Gate.fromKnownMatrix("9", Matrix.fromPauliRotation(0, 0, 1/(1<<10)))],
-    ['A', Gate.fromKnownMatrix("A", Matrix.fromPauliRotation(0, 0, 1/(1<<11)))],
-    ['B', Gate.fromKnownMatrix("B", Matrix.fromPauliRotation(0, 0, 1/(1<<12)))],
-    ['C', Gate.fromKnownMatrix("C", Matrix.fromPauliRotation(0, 0, 1/(1<<13)))],
-    ['D', Gate.fromKnownMatrix("D", Matrix.fromPauliRotation(0, 0, 1/(1<<14)))],
-    ['E', Gate.fromKnownMatrix("E", Matrix.fromPauliRotation(0, 0, 1/(1<<15)))],
-    ['F', Gate.fromKnownMatrix("F", Matrix.fromPauliRotation(0, 0, 1/(1<<16)))],
+    ['8', Gate.fromKnownMatrix("8", QubitMatrix.fromPauliRotation(0, 0, 1/(1<<9)))],
+    ['9', Gate.fromKnownMatrix("9", QubitMatrix.fromPauliRotation(0, 0, 1/(1<<10)))],
+    ['A', Gate.fromKnownMatrix("A", QubitMatrix.fromPauliRotation(0, 0, 1/(1<<11)))],
+    ['B', Gate.fromKnownMatrix("B", QubitMatrix.fromPauliRotation(0, 0, 1/(1<<12)))],
+    ['C', Gate.fromKnownMatrix("C", QubitMatrix.fromPauliRotation(0, 0, 1/(1<<13)))],
+    ['D', Gate.fromKnownMatrix("D", QubitMatrix.fromPauliRotation(0, 0, 1/(1<<14)))],
+    ['E', Gate.fromKnownMatrix("E", QubitMatrix.fromPauliRotation(0, 0, 1/(1<<15)))],
+    ['F', Gate.fromKnownMatrix("F", QubitMatrix.fromPauliRotation(0, 0, 1/(1<<16)))],
     ['-', undefined],
     ['/', null],
     ['Q', Gates.FourierTransformGates.InverseFourierTransformFamily]

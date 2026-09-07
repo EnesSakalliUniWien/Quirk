@@ -18,7 +18,7 @@ import {Suite, assertThat} from "../TestUtil.js"
 import {WidgetPainter} from "../../src/draw/WidgetPainter.js"
 
 import {Format} from "../../src/base/Format.js"
-import {Complex} from "../../src/math/Complex.js"
+import {Complex} from "../../src/engine/math/complex/Complex.js"
 
 let suite = new Suite("WidgetPainter");
 

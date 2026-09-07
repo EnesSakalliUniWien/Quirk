@@ -16,7 +16,7 @@
 
 import {DetailedError} from "../base/DetailedError.js"
 import {Layout} from "../config/Layout.js"
-import {Rect} from "../math/Rect.js"
+import {Rect} from "../geometry/Rect.js"
 import {Simulation} from "../config/Simulation.js"
 import {
     CIRCUIT_OP_HORIZONTAL_SPACING,
@@ -224,4 +224,14 @@ export function gateButtonRect(wholeRect) {
         return wholeRect.bottomHalf().skipTop(6).paddedBy(-7);
     }
     return wholeRect.bottomHalf().paddedBy(+2);
+}
+
+/**
+ * The strip along a gate's bottom edge that drags to change its height.
+ * @param {!Rect} gateRect
+ * @returns {!Rect}
+ */
+export function rectForResizeTab(gateRect) {
+    let overlap = Math.min(Layout.GATE_RADIUS, gateRect.h/4);
+    return new Rect(gateRect.x, gateRect.bottom() - overlap, gateRect.w, Layout.GATE_RADIUS * 2);
 }

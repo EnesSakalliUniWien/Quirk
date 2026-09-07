@@ -17,7 +17,7 @@
 import {Suite, assertThat} from "../TestUtil.js"
 import {Layout} from "../../src/config/Layout.js"
 import {DisplayedInspector} from "../../src/editor/DisplayedInspector.js"
-import {Rect} from "../../src/math/Rect.js"
+import {Rect} from "../../src/geometry/Rect.js"
 
 let suite = new Suite("DisplayedInspector");
 

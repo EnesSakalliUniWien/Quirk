@@ -15,6 +15,7 @@
  */
 
 import {drawBlochScene, projectPoint} from "../draw/pixi/displays/BlochScene.js"
+import {QubitMatrix} from "../engine/math/matrix/QubitMatrix.js"
 
 /**
  * The enlarged Bloch sphere view: clicking any Bloch sphere on the canvas opens this dialog,
@@ -36,7 +37,7 @@ const PURE_STATE_THRESHOLD = 0.999;
  * @returns {!{x: !number, y: !number, z: !number}}
  */
 function blochCoordinates(densityMatrix) {
-    let [ix, iy, iz] = densityMatrix.qubitDensityMatrixToBlochVector();
+    let [ix, iy, iz] = QubitMatrix.densityMatrixToBlochVector(densityMatrix);
     return {x: -ix, y: iy, z: -iz};
 }
 

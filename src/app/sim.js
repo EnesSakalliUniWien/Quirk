@@ -16,7 +16,7 @@
 
 import {CircuitDefinition} from "../circuit/model/CircuitDefinition.js"
 import {Simulation} from "../config/Simulation.js"
-import {CircuitStats} from "../circuit/simulation/CircuitStats.js"
+import {CircuitStats} from "../engine/simulation/CircuitStats.js"
 
 /**
  * Holds onto the last stats computed for one circuit, so redrawing an unchanging circuit doesn't

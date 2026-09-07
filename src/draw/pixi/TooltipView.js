@@ -18,7 +18,7 @@ import {Container} from 'pixi.js';
 import {DisplayView} from './DisplayView.js';
 import {CanvasTheme} from '../../config/CanvasTheme.js';
 import {Typography} from '../../config/Typography.js';
-import {Rect} from '../../math/Rect.js';
+import {Rect} from '../../geometry/Rect.js';
 import {rectangle} from './ShapeView.js';
 import {measureText, fitText} from './TextLayout.js';
 

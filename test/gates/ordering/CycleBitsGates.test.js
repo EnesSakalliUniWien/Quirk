@@ -18,7 +18,7 @@ import {Suite} from "../../TestUtil.js"
 import {assertThatCircuitShaderActsLikeMatrix} from "../../CircuitOperationTestUtil.js"
 import {cycleBitsShader} from "../../../src/gates/ordering/CycleBitsGates.js"
 
-import {Matrix} from "../../../src/math/Matrix.js"
+import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
 
 let suite = new Suite("CycleBitsGates");
 

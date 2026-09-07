@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Point} from "../math/Point.js"
+import {Point} from "../geometry/Point.js"
 
 /**
  * The circuit's camera: a zoom factor plus the scroll container's offset. 1 is the natural

@@ -17,14 +17,14 @@
 import {Suite, assertThat} from "../TestUtil.js"
 import {Gates} from "../../src/gates/AllGates.js"
 
-import {CircuitEvalContext} from "../../src/circuit/simulation/CircuitEvalContext.js"
-import {CircuitShaders} from "../../src/circuit/simulation/gpu/CircuitShaders.js"
+import {CircuitEvalContext} from "../../src/engine/simulation/CircuitEvalContext.js"
+import {CircuitShaders} from "../../src/engine/simulation/gpu/CircuitShaders.js"
 import {Controls} from "../../src/circuit/model/Controls.js"
-import {Matrix} from "../../src/math/Matrix.js"
+import {Matrix} from "../../src/engine/math/matrix/Matrix.js"
 import {Gate} from "../../src/circuit/model/Gate.js"
 import {seq} from "../../src/base/Seq.js"
-import {WglTextureTrader} from "../../src/webgl/WglTextureTrader.js"
-import {currentShaderCoder} from "../../src/webgl/ShaderCoders.js"
+import {WglTextureTrader} from "../../src/engine/webgl/texture/WglTextureTrader.js"
+import {currentShaderCoder} from "../../src/engine/webgl/coder/ShaderCoders.js"
 import {
     assertThatGateActsLikePermutation,
     assertThatGateActsLikePhaser

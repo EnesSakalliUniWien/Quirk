@@ -17,7 +17,7 @@
 import {paintBlochSphereDisplay} from '../../draw/pixi/displays/BlochView.js';
 
 import {GateBuilder} from "../../circuit/model/Gate.js"
-import {GatePainting} from "../../draw/GatePainting.js"
+import {GatePainting} from "../../draw/gate/GatePainting.js"
 
 let BlochSphereDisplay = new GateBuilder().
     setSerializedIdAndSymbol("Bloch").

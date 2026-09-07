@@ -18,10 +18,7 @@
 import {scenePixels} from './draw/TestDisplayView.js';
 import {describe} from '../src/base/Describe.js';
 import {equate} from '../src/base/Equate.js';
-import {WglTexturePool} from '../src/webgl/WglTexturePool.js';
-import {changeShaderCoder, canTestFloatShaders} from '../src/webgl/ShaderCoders.js';
-import {SHADER_CODER_BYTES} from '../src/webgl/ShaderCoders_intoBytes.js';
-import {SHADER_CODER_FLOATS} from '../src/webgl/ShaderCoders_intoFloats.js';
+import {WglTexturePool} from '../src/engine/webgl/texture/WglTexturePool.js';
 import {DetailedError} from '../src/base/DetailedError.js';
 import {Diagnostics} from '../src/config/Diagnostics.js';
 Diagnostics.CHECK_WEB_GL_ERRORS_EVEN_ON_HOT_PATHS = true;
@@ -310,17 +307,17 @@ let __onlyPartialWebGLSupportPresent = undefined;
 function isWebGLSupportPresent() {
     if (__webGLSupportPresent === undefined) {
         __webGLSupportPresent = false;
-        if (window.WebGLRenderingContext !== undefined) {
+        if (window.WebGL2RenderingContext !== undefined) {
             let canvas = document.createElement('canvas');
-            let ctx = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-            if (ctx instanceof WebGLRenderingContext) {
+            let ctx = canvas.getContext('webgl2');
+            if (ctx instanceof WebGL2RenderingContext && ctx.getExtension('EXT_color_buffer_float') !== null) {
                 __webGLSupportPresent = true;
 
-                let shader = ctx.createShader(WebGLRenderingContext.VERTEX_SHADER);
-                ctx.shaderSource(shader, `
+                let shader = ctx.createShader(WebGL2RenderingContext.VERTEX_SHADER);
+                ctx.shaderSource(shader, `#version 300 es
                     precision highp float;
                     precision highp int;
-                    attribute vec2 position;
+                    in vec2 position;
                     void main() {gl_Position = vec4(position, 0, 1);}`);
                 ctx.compileShader(shader);
 
@@ -370,8 +367,6 @@ let meanSquaredError = (data1, data2) => {
     return err / data1.length;
 };
 
-let isFirstByteCoderWebGlTest = true;
-let isFirstFloatCoderWebGlTest = true;
 
 /**
  * A named collection of tests.
@@ -417,18 +412,10 @@ export class Suite {
     /**
      * @param {!string} name
      * @param {!function(!{ warn_only: !boolean|!string })} method
-     * @param {!boolean=false} needsFloatSupport
      */
-    testUsingWebGL(name, method, needsFloatSupport=false) {
-        let wrappedMethod = (caseName, status, subNeedFloats) => {
-            if (subNeedFloats && !canTestFloatShaders()) {
-                let msg = `Skipping ${this.name}.${caseName} due to lack of WebGL float texture support.`;
-                console.warn(msg);
-                status.log.push(msg);
-                assertThat(undefined); // Cancel 'no assertion' warning.
-                return;
-            }
-
+    testUsingWebGL(name, method) {
+        this.test(name, status => {
+            let caseName = name;
             if (!isWebGLSupportPresent()) {
                 let msg = `Skipping ${this.name}.${caseName} due to lack of WebGL support.`;
                 console.warn(msg);
@@ -453,23 +440,7 @@ export class Suite {
             }
 
             status.wasWebGLTest = true;
-        };
-
-        this.test(name + '[byte-coder]', status => {
-            if (isFirstByteCoderWebGlTest) {
-                changeShaderCoder(SHADER_CODER_BYTES);
-                isFirstByteCoderWebGlTest = false;
-            }
-            wrappedMethod(name + '[byte-coder]', status, needsFloatSupport)
-        }, false);
-
-        this.test(name + '[float-coder]', status => {
-            if (isFirstFloatCoderWebGlTest) {
-                changeShaderCoder(SHADER_CODER_FLOATS);
-                isFirstFloatCoderWebGlTest = false;
-            }
-            wrappedMethod(name + '[float-coder]', status, true);
-        }, true);
+        });
     }
 
     /**
@@ -477,7 +448,7 @@ export class Suite {
      * @param {!function(!{ warn_only: !boolean|!string })} method
      */
     testUsingWebGLFloatTextures(name, method) {
-        this.testUsingWebGL(name, method, true);
+        this.testUsingWebGL(name, method);
     }
 
         /**

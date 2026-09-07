@@ -20,9 +20,10 @@ import {strokePath} from '../../draw/pixi/ShapeView.js';
 import {Layout} from '../../config/Layout.js';
 import {Simulation} from '../../config/Simulation.js';
 import {Gate} from '../../circuit/model/Gate.js';
-import {ketArgs, ketShaderPermute} from '../../circuit/simulation/gpu/KetShaderUtil.js';
-import {GatePainting} from '../../draw/GatePainting.js';
-import {Point} from '../../math/Point.js';
+import {ketArgs, ketShaderPermute} from '../../engine/simulation/gpu/KetShaderUtil.js';
+import {paintBackground, paintOutline, paintResizeTab} from '../../draw/gate/GateFrame.js';
+import {PERMUTATION_DRAWER} from './PermutationDrawer.js';
+import {Point} from '../../geometry/Point.js';
 import {Seq} from '../../base/Seq.js';
 
 let InterleaveBitsGates = {};
@@ -92,13 +93,13 @@ let _deinterleaveShadersForSize = Seq.range(Simulation.MAX_WIRE_COUNT + 1).
 
 let interleavePainter = reverse => args => {
     if (args.positionInCircuit !== undefined) {
-        GatePainting.PERMUTATION_DRAWER(args);
+        PERMUTATION_DRAWER(args);
         return;
     }
 
-    GatePainting.paintBackground(args);
-    GatePainting.paintOutline(args);
-    GatePainting.paintResizeTab(args);
+    paintBackground(args);
+    paintOutline(args);
+    paintResizeTab(args);
 
     let x1 = args.rect.x + 6;
     let x2 = args.rect.right() - 6;

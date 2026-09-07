@@ -15,9 +15,9 @@
  */
 
 import {DetailedError} from "../../base/DetailedError.js"
-import {GateDrawParams} from "../../draw/GateDrawParams.js"
-import {Complex} from "../../math/Complex.js"
-import {Matrix} from "../../math/Matrix.js"
+import {GateDrawParams} from "../../draw/gate/GateDrawParams.js"
+import {Complex} from "../../engine/math/complex/Complex.js"
+import {Matrix} from "../../engine/math/matrix/Matrix.js"
 
 /**
  * Describes a quantum operation that may vary with time.

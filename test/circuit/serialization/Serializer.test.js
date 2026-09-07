@@ -18,14 +18,14 @@ import {Suite, assertThat, assertTrue} from "../../TestUtil.js"
 import {Serializer} from "../../../src/circuit/serialization/Serializer.js"
 
 import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js"
-import {setGateBuilderEffectToCircuit} from "../../../src/circuit/simulation/CircuitComputeUtil.js"
-import {Complex} from "../../../src/math/Complex.js"
+import {setGateBuilderEffectToCircuit} from "../../../src/engine/simulation/CircuitComputeUtil.js"
+import {Complex} from "../../../src/engine/math/complex/Complex.js"
 import {CustomGateSet} from "../../../src/circuit/model/CustomGateSet.js"
 import {describe} from "../../../src/base/Describe.js"
 import {Gate, GateBuilder} from "../../../src/circuit/model/Gate.js"
 import {GateColumn} from "../../../src/circuit/model/GateColumn.js"
 import {Gates} from "../../../src/gates/AllGates.js"
-import {Matrix} from "../../../src/math/Matrix.js"
+import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
 import {MysteryGateMaker} from "../../../src/gates/misc/Joke_MysteryGate.js"
 import {seq} from "../../../src/base/Seq.js"
 import {Util} from "../../../src/base/Util.js"
@@ -59,7 +59,7 @@ suite.test("roundTrip_Complex", () => {
 });
 
 suite.test("roundTrip_Matrix", () => {
-    assertRoundTrip(Matrix, Matrix.row(1, Complex.I), "{{1,i}}");
+    assertRoundTrip(Matrix, Matrix.fromRows([[1, Complex.I]]), "{{1,i}}");
     assertRoundTrip(Matrix, Matrix.col(1, Complex.I), "{{1},{i}}");
     assertRoundTrip(Matrix, Matrix.square(1 / 3 + 0.00001, Complex.I.plus(1), -1 / 3, 0),
         "{{0.3333433333333333,1+i},{-\u2153,0}}");

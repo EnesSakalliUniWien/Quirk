@@ -26,13 +26,13 @@ import {
 
 import {assertThatGateActsLikePermutation} from "../../CircuitOperationTestUtil.js"
 import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js"
-import {CircuitStats} from "../../../src/circuit/simulation/CircuitStats.js"
+import {CircuitStats} from "../../../src/engine/simulation/CircuitStats.js"
 import {GateColumn} from "../../../src/circuit/model/GateColumn.js"
 import {Gates} from "../../../src/gates/AllGates.js"
-import {Outputs, makePseudoShaderWithInputsAndOutputAndCode} from "../../../src/webgl/ShaderCoders.js"
+import {Outputs, makePseudoShaderWithInputsAndOutputAndCode} from "../../../src/engine/webgl/coder/ShaderCoders.js"
 import {Seq} from "../../../src/base/Seq.js"
 import {Util} from "../../../src/base/Util.js"
-import {WglArg} from "../../../src/webgl/WglArg.js"
+import {WglArg} from "../../../src/engine/webgl/shader/WglArg.js"
 
 let suite = new Suite("ModularMultiplicationGates");
 

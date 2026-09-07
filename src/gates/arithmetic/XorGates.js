@@ -14,15 +14,19 @@
  * limitations under the License.
  */
 
-import {Simulation} from "../../config/Simulation.js"
-import {Gate} from "../../circuit/model/Gate.js"
-import {ketArgs, ketShaderPermute, ketInputGateShaderCode} from "../../circuit/simulation/gpu/KetShaderUtil.js"
+import { Simulation } from "../../config/Simulation.js";
+import { Gate } from "../../circuit/model/Gate.js";
+import {
+  ketArgs,
+  ketShaderPermute,
+  ketInputGateShaderCode,
+} from "../../engine/simulation/gpu/KetShaderUtil.js";
 
 let XorGates = {};
 
 const XOR_SHADER = ketShaderPermute(
-    ketInputGateShaderCode('A'),
-    `
+  ketInputGateShaderCode("A"),
+  `
         float srcMask = mod(read_input_A(), span);
         float bitPos = 1.0;
         float result = 0.0;
@@ -32,19 +36,24 @@ const XOR_SHADER = ketShaderPermute(
             result += (dstBit + srcBit - dstBit * srcBit * 2.0) * bitPos;
             bitPos *= 2.0;
         }
-        return result;`);
+        return result;`,
+);
 
-XorGates.XorAFamily = Gate.buildFamily(1, 16, (span, builder) => builder.
-    setSerializedId("^=A" + span).
-    setSymbol("⊕A").
-    setTitle("Xor Gate [input A]").
-    setBlurb("Xors input A into the qubits covered by this gate.").
-    setRequiredContextKeys("Input Range A").
-    setKnownEffectToParametrizedPermutation((t, a) => t ^ (a & ((1<<span)-1))).
-    setActualEffectToShaderProvider(ctx => XOR_SHADER.withArgs(...ketArgs(ctx, span, ['A']))));
+XorGates.XorAFamily = Gate.buildFamily(1, 16, (span, builder) =>
+  builder
+    .setSerializedId("^=A" + span)
+    .setSymbol("⊕A")
+    .setTitle("Xor Gate [input A]")
+    .setBlurb("Xors input A into the qubits covered by this gate.")
+    .setRequiredContextKeys("Input Range A")
+    .setKnownEffectToParametrizedPermutation(
+      (t, a) => t ^ (a & ((1 << span) - 1)),
+    )
+    .setActualEffectToShaderProvider((ctx) =>
+      XOR_SHADER.withArgs(...ketArgs(ctx, span, ["A"])),
+    ),
+);
 
-XorGates.all = [
-    ...XorGates.XorAFamily.all,
-];
+XorGates.all = [...XorGates.XorAFamily.all];
 
-export {XorGates}
+export { XorGates };

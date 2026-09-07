@@ -22,9 +22,10 @@ import {circle, strokePath, rectangle} from '../ShapeView.js';
 import {CanvasTheme} from '../../../config/CanvasTheme.js';
 import {Layout} from '../../../config/Layout.js';
 import {MathPainter} from '../../MathPainter.js';
-import {Point} from '../../../math/Point.js';
-import {Rect} from '../../../math/Rect.js';
+import {Point} from '../../../geometry/Point.js';
+import {Rect} from '../../../geometry/Rect.js';
 import {Typography} from '../../../config/Typography.js';
+import {QubitMatrix} from '../../../engine/math/matrix/QubitMatrix.js';
 
 const PURE_STATE_THRESHOLD = 0.999;
 
@@ -164,7 +165,7 @@ function paintBlochSphereDisplay(
     let {dx, dy, dz} = MathPainter.coordinateSystem(u);
 
     let hasNaN = qubitDensityMatrix.hasNaN();
-    let [x, y, z] = hasNaN ? [NaN, NaN, NaN] : qubitDensityMatrix.qubitDensityMatrixToBlochVector();
+    let [x, y, z] = hasNaN ? [NaN, NaN, NaN] : QubitMatrix.densityMatrixToBlochVector(qubitDensityMatrix);
     let r = hasNaN ? NaN : Math.min(1, Math.sqrt(x*x + y*y + z*z));
 
     // Draw sphere and axis lines (in not-quite-proper 3d).

@@ -17,12 +17,12 @@
 import {fitText} from '../../draw/pixi/TextLayout.js';
 import {rectangle} from '../../draw/pixi/ShapeView.js';
 
-import {Complex} from '../../math/Complex.js';
+import {Complex} from '../../engine/math/complex/Complex.js';
 import {CanvasTheme} from '../../config/CanvasTheme.js';
 import {Typography} from '../../config/Typography.js';
 import {GateBuilder} from '../../circuit/model/Gate.js';
-import {GatePainting} from '../../draw/GatePainting.js';
-import {Matrix} from '../../math/Matrix.js';
+import {GatePainting} from '../../draw/gate/GatePainting.js';
+import {Matrix} from '../../engine/math/matrix/Matrix.js';
 
 let PostSelectionGates = {};
 

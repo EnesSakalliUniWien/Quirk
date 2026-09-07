@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import {Complex} from "../../math/Complex.js"
+import {Complex} from "../../engine/math/complex/Complex.js"
 import {Gate} from "../../circuit/model/Gate.js"
-import {ketArgs, ketShaderPhase} from "../../circuit/simulation/gpu/KetShaderUtil.js"
-import {Matrix} from "../../math/Matrix.js"
+import {ketArgs, ketShaderPhase} from "../../engine/simulation/gpu/KetShaderUtil.js"
+import {Matrix} from "../../engine/math/matrix/Matrix.js"
 import {HalfTurnGates} from "../rotations/HalfTurnGates.js"
 import {reverseShaderForSize} from "../ordering/ReverseBitsGate.js"
-import {WglArg} from "../../webgl/WglArg.js"
+import {WglArg} from "../../engine/webgl/shader/WglArg.js"
 
 /**
  * @param {!CircuitEvalContext} ctx

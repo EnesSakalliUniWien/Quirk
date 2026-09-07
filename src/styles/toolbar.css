@@ -1,5 +1,5 @@
 /* The app toolbar: the circuit's actions as an icon row. It renders once into #app-toolbar-root
-   and the sidebar adopts it (src/components/gate-toolbox.jsx); the brand, version, and Menu live
+   and the sidebar adopts it (src/components/toolbox/gate-toolbox.jsx); the brand, version, and Menu live
    beside it in src/styles/sidebar/shell.css. */
 @layer components {
     .app-toolbar {

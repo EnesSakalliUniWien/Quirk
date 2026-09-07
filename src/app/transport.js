@@ -16,7 +16,7 @@
 
 /**
  * Interface note: also requires the #playhead-* buttons, icons, scrub slider, and position
- * readout, rendered by src/components/transport-bar.jsx before this runs.
+ * readout, rendered by src/components/toolbar/transport-bar.jsx before this runs.
  *
  * @param {!Playhead} playhead
  */

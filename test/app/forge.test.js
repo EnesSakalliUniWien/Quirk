@@ -15,9 +15,10 @@
  */
 
 import {Suite, assertThat, assertThrows} from "../TestUtil.js"
-import {Complex} from "../../src/math/Complex.js"
-import {Matrix} from "../../src/math/Matrix.js"
+import {Complex} from "../../src/engine/math/complex/Complex.js"
+import {Matrix} from "../../src/engine/math/matrix/Matrix.js"
 import {parseUserMatrix, parseUserRotation} from "../../src/app/forge.js"
+import {QubitMatrix} from "../../src/engine/math/matrix/QubitMatrix.js"
 
 let suite = new Suite("forge");
 
@@ -52,10 +53,10 @@ suite.test("parseUserMatrix", () => {
 suite.test("parseUserRotation", () => {
     let s = Math.sqrt(0.5);
     let si = new Complex(0, s);
-    assertThat(parseUserRotation("180", "90", "X")).isEqualTo(Matrix.PAULI_X);
-    assertThat(parseUserRotation("180", "90", "Y")).isEqualTo(Matrix.PAULI_Y);
-    assertThat(parseUserRotation("180", "90", "Z")).isEqualTo(Matrix.PAULI_Z);
-    assertThat(parseUserRotation("180", "90", "X+Z")).isEqualTo(Matrix.HADAMARD);
-    assertThat(parseUserRotation("90", "45", "X")).isEqualTo(Matrix.fromPauliRotation(0.25, 0, 0));
+    assertThat(parseUserRotation("180", "90", "X")).isEqualTo(QubitMatrix.PAULI_X);
+    assertThat(parseUserRotation("180", "90", "Y")).isEqualTo(QubitMatrix.PAULI_Y);
+    assertThat(parseUserRotation("180", "90", "Z")).isEqualTo(QubitMatrix.PAULI_Z);
+    assertThat(parseUserRotation("180", "90", "X+Z")).isEqualTo(QubitMatrix.HADAMARD);
+    assertThat(parseUserRotation("90", "45", "X")).isEqualTo(QubitMatrix.fromPauliRotation(0.25, 0, 0));
     assertThat(parseUserRotation("-2*45", "2^3-8", "X")).isEqualTo(Matrix.square(s, si, si, s));
 });

@@ -18,9 +18,9 @@ import {AppInfo} from "../config/AppInfo.js"
 import {selectAndCopyToClipboard} from "../browser/Clipboard.js"
 
 /**
- * Interface note: also requires #export-button (src/components/app-toolbar.jsx) and the export
+ * Interface note: also requires #export-button (src/components/toolbar/app-toolbar.jsx) and the export
  * panel's #export-* elements, shipped in quirk.html's dialog stash and mounted by
- * src/components/export-dialog.jsx before this runs.
+ * src/components/dialogs/export-dialog.jsx before this runs.
  *
  * @param {!Revision} revision
  * @param {!ObservableValue.<!CircuitStats>} mostRecentStats
@@ -31,7 +31,7 @@ function initExports(revision, mostRecentStats, overlayState) {
     const obsIsAnyOverlayShowing = obsActiveOverlay.map(active => active !== undefined).whenDifferent();
 
     // Open the exports overlay. Visibility, Escape, backdrop clicks, and focus belong to the
-    // Base UI Dialog that wraps it (src/components/app-dialogs.jsx).
+    // Base UI Dialog that wraps it (src/components/dialogs/app-dialogs.jsx).
     (() => {
         const exportButton = /** @type {!HTMLButtonElement} */ document.getElementById('export-button');
         exportButton.addEventListener('click', () => overlayState.open("export"));

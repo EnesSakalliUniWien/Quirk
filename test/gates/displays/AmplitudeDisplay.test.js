@@ -24,15 +24,15 @@ import {
     POINTWISE_CMUL_CONJ_SHADER,
 } from "../../../src/gates/displays/AmplitudeDisplay.js"
 
-import {Complex} from "../../../src/math/Complex.js"
+import {Complex} from "../../../src/engine/math/complex/Complex.js"
 import {Controls} from "../../../src/circuit/model/Controls.js"
 import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js"
-import {CircuitStats} from "../../../src/circuit/simulation/CircuitStats.js"
-import {CircuitShaders} from "../../../src/circuit/simulation/gpu/CircuitShaders.js"
+import {CircuitStats} from "../../../src/engine/simulation/CircuitStats.js"
+import {CircuitShaders} from "../../../src/engine/simulation/gpu/CircuitShaders.js"
 import {Serializer} from "../../../src/circuit/serialization/Serializer.js"
 import {seq} from "../../../src/base/Seq.js"
-import {Shaders} from "../../../src/webgl/Shaders.js"
-import {currentShaderCoder} from "../../../src/webgl/ShaderCoders.js"
+import {Shaders} from "../../../src/engine/webgl/shader/Shaders.js"
+import {currentShaderCoder} from "../../../src/engine/webgl/coder/ShaderCoders.js"
 
 let suite = new Suite("AmplitudeDisplay");
 

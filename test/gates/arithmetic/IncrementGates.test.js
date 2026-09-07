@@ -21,8 +21,8 @@ import {
     assertThatGateActsLikePermutation,
 } from "../../CircuitOperationTestUtil.js"
 
-import {ketArgs} from "../../../src/circuit/simulation/gpu/KetShaderUtil.js"
-import {WglArg} from "../../../src/webgl/WglArg.js"
+import {ketArgs} from "../../../src/engine/simulation/gpu/KetShaderUtil.js"
+import {WglArg} from "../../../src/engine/webgl/shader/WglArg.js"
 
 let suite = new Suite("ArithmeticGates");
 

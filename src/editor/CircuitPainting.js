@@ -32,14 +32,14 @@ import {Simulation} from '../config/Simulation.js';
 import {Typography} from '../config/Typography.js';
 import {Format} from '../base/Format.js';
 
-import {GateDrawParams} from '../draw/GateDrawParams.js';
-import {GatePainting} from '../draw/GatePainting.js';
+import {GateDrawParams} from '../draw/gate/GateDrawParams.js';
+import {GatePainting} from '../draw/gate/GatePainting.js';
 
 import {MathPainter} from '../draw/MathPainter.js';
-import {Point} from '../math/Point.js';
-import {Rect} from '../math/Rect.js';
+import {Point} from '../geometry/Point.js';
+import {Rect} from '../geometry/Rect.js';
 import {Util} from '../base/Util.js';
-import {CircuitGeometry} from './CircuitGeometry.js';
+import {CircuitGeometry, rectForResizeTab} from './CircuitGeometry.js';
 import {paintBlochSphereDisplay} from '../gates/displays/BlochSphereDisplay.js';
 import {SUPERPOSITION_GRID_LABEL_SPAN, DISPLAY_CAPTION_WIDTH, DISPLAY_CAPTION_GAP, DISPLAY_WARNING_STRIP_HEIGHT} from './CircuitLayoutConstants.js';
 
@@ -375,7 +375,7 @@ function drawColumn(circuit, painter, gateColumn, col, hand, stats) {
         let drawer = gate.customDrawer || GatePainting.DEFAULT_DRAWER;
         painter.interaction.block({rect: gateRect, cursor: 'pointer'});
         if (gate.canChangeInSize()) {
-            painter.interaction.block({rect: GatePainting.rectForResizeTab(gateRect), cursor: 'ns-resize'});
+            painter.interaction.block({rect: rectForResizeTab(gateRect), cursor: 'ns-resize'});
         }
         renderGateView(painter, `gate-${col}-${row}`, GateDrawParams.inCircuit(painter, hand, gateRect, gate, stats, {row, col}, {
             isHighlighted: isHighlighted && !isResizeHighlighted,

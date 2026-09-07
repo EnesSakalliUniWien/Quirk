@@ -20,8 +20,8 @@ import {strokePath, rectangle, circle} from '../ShapeView.js';
 import {CanvasTheme} from '../../../config/CanvasTheme.js';
 import {Typography} from '../../../config/Typography.js';
 import {RenderSurface} from '../RenderSurface.js';
-import {Rect} from '../../../math/Rect.js';
-import {Point} from '../../../math/Point.js';
+import {Rect} from '../../../geometry/Rect.js';
+import {Point} from '../../../geometry/Point.js';
 
 function projectPoint(x, y, z, yaw, pitch) {
     let cy = Math.cos(yaw);

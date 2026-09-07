@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {initializedWglContext} from "../webgl/WglContext.js"
+import {initializedWglContext} from "../engine/webgl/context/WglContext.js"
 
 /**
  * Remembers that the welcome overlay has been shown. Without it the overlay is the app's starting
@@ -73,7 +73,7 @@ function shouldShowWelcome(circuitIsEmpty, storage) {
  *
  * Interface note: also requires #inspectorDiv and #canvasDiv (quirk.html) and the
  * welcome panel's #loading-div and #close-menu-button (shipped in quirk.html's dialog stash, mounted by
- * src/components/menu-dialog.jsx) to exist before the scheduled tick runs.
+ * src/components/dialogs/menu-dialog.jsx) to exist before the scheduled tick runs.
  *
  * @param {!ObservableValue.<!DisplayedInspector>} displayed
  * @param {!OverlayState} overlayState

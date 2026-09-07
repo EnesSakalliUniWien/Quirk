@@ -17,14 +17,14 @@
 import {assertThat, Suite} from '../../TestUtil.js';
 
 import {CircuitDefinition} from '../../../src/circuit/model/CircuitDefinition.js';
-import {CircuitStats} from '../../../src/circuit/simulation/CircuitStats.js';
-import {Complex} from '../../../src/math/Complex.js';
+import {CircuitStats} from '../../../src/engine/simulation/CircuitStats.js';
+import {Complex} from '../../../src/engine/math/complex/Complex.js';
 import {Gates} from '../../../src/gates/AllGates.js';
-import {Matrix} from '../../../src/math/Matrix.js';
-import {GatePainting} from '../../../src/draw/GatePainting.js';
+import {Matrix} from '../../../src/engine/math/matrix/Matrix.js';
+import {GatePainting} from '../../../src/draw/gate/GatePainting.js';
 import {DisplayView, scenePixels} from '../../draw/TestDisplayView.js';
 import {gateButtonRect} from '../../../src/editor/CircuitGeometry.js';
-import {Rect} from '../../../src/math/Rect.js';
+import {Rect} from '../../../src/geometry/Rect.js';
 
 let suite = new Suite("ParametrizedRotationGates");
 
@@ -69,7 +69,7 @@ let evalTopQubit = diagram => CircuitStats.fromCircuitAtTime(CircuitDefinition.f
 ]), diagram), 0).qubitDensityMatrix(Infinity, 0);
 
 function state(...row) {
-    let v = Matrix.row(...row);
+    let v = Matrix.fromRows([[...row]]);
     return v.adjoint().times(v).times(1/v.norm2());
 }
 

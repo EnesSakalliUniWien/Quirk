@@ -19,8 +19,8 @@ import {Container, Color} from 'pixi.js';
 import {Suite, assertThat} from '../TestUtil.js';
 import {MathPainter} from '../../src/draw/MathPainter.js';
 import {DisplayView} from './TestDisplayView.js';
-import {Rect} from '../../src/math/Rect.js';
-import {Matrix} from '../../src/math/Matrix.js';
+import {Rect} from '../../src/geometry/Rect.js';
+import {Matrix} from '../../src/engine/math/matrix/Matrix.js';
 import {CanvasTheme, phaseColor} from '../../src/config/CanvasTheme.js';
 
 let suite = new Suite("MathPainter");
@@ -49,7 +49,7 @@ suite.test("phaseMapping_ignoresZeroEntriesAndCanSuppressUndefinedLocalPhase", (
     assertThat(phases).isEqualTo([0, 180]);
 
     painter.begin();
-    MathPainter.paintMatrix(painter, Matrix.solo(1), new Rect(0, 0, 40, 40),
+    MathPainter.paintMatrix(painter, Matrix.fromRows([[1]]), new Rect(0, 0, 40, 40),
         undefined, CanvasTheme.text.primary, undefined, CanvasTheme.amplitude.background, () => undefined);
     // Only the grid halo and grid stroke remain; no false phase is drawn for incoherent data.
     painter.finish();

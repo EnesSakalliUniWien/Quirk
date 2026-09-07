@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Rect} from '../../math/Rect.js';
+import {Rect} from '../../geometry/Rect.js';
 import {Container, Graphics} from 'pixi.js';
 import {RestartableRng} from '../../base/RestartableRng.js';
 import {InteractionState} from './InteractionState.js';

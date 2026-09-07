@@ -16,18 +16,19 @@
 
 import {assertThat, Suite} from "../../TestUtil.js"
 import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js"
-import {CircuitStats} from "../../../src/circuit/simulation/CircuitStats.js";
+import {CircuitStats} from "../../../src/engine/simulation/CircuitStats.js";
 import {Gate} from "../../../src/circuit/model/Gate.js"
 import {GateColumn} from "../../../src/circuit/model/GateColumn.js"
 import {Gates} from "../../../src/gates/AllGates.js"
 
-import {Complex} from "../../../src/math/Complex.js"
-import {Matrix} from "../../../src/math/Matrix.js"
+import {Complex} from "../../../src/engine/math/complex/Complex.js"
+import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
 import {Util} from "../../../src/base/Util.js"
-import {advanceStateWithCircuit} from "../../../src/circuit/simulation/CircuitComputeUtil.js";
+import {advanceStateWithCircuit} from "../../../src/engine/simulation/CircuitComputeUtil.js";
 import {
     assertThatCircuitUpdateActsLikeMatrix,
 } from "../../CircuitOperationTestUtil.js";
+import {determinant} from "../../MatrixTestUtil.js"
 
 let suite = new Suite("Gates.Controls");
 
@@ -35,7 +36,7 @@ function assertControlOverlapState(control, expectedOverlap, state) {
     let [a, b] = state;
     let u = Matrix.square(a, Complex.from(b).conjugate().neg(),
                           b, Complex.from(a).conjugate());
-    u = u.times(1/Math.sqrt(u.determinant().abs()));
+    u = u.times(1/Math.sqrt(determinant(u).abs()));
     assertThat(u.isUnitary(0.00001)).withInfo({state, u}).isEqualTo(true);
 
     let circuit = new CircuitDefinition(2, [

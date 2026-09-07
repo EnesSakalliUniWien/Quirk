@@ -14,20 +14,24 @@
  * limitations under the License.
  */
 
-import {Simulation} from "../../config/Simulation.js"
-import {Gate} from "../../circuit/model/Gate.js"
-import {ketArgs, ketShaderPermute, ketInputGateShaderCode} from "../../circuit/simulation/gpu/KetShaderUtil.js"
-import {Util} from "../../base/Util.js"
-import {WglArg} from "../../webgl/WglArg.js"
+import { Simulation } from "../../config/Simulation.js";
+import { Gate } from "../../circuit/model/Gate.js";
+import {
+  ketArgs,
+  ketShaderPermute,
+  ketInputGateShaderCode,
+} from "../../engine/simulation/gpu/KetShaderUtil.js";
+import { Util } from "../../base/Util.js";
+import { WglArg } from "../../engine/webgl/shader/WglArg.js";
 
 let BitCountGates = {};
 
 const POP_COUNT_SHADER = ketShaderPermute(
-    `
+  `
         uniform float factor;
-        ${ketInputGateShaderCode('A')}
+        ${ketInputGateShaderCode("A")}
     `,
-    `
+  `
         float d = read_input_A();
         float popcnt = 0.0;
         for (int i = 0; i < ${Simulation.MAX_WIRE_COUNT}; i++) {
@@ -35,34 +39,53 @@ const POP_COUNT_SHADER = ketShaderPermute(
             d = floor(d / 2.0);
         }
         float offset = mod(popcnt * factor, span);
-        return mod(out_id + span - offset, span);`);
+        return mod(out_id + span - offset, span);`,
+);
 
-BitCountGates.PlusBitCountAFamily = Gate.buildFamily(1, 16, (span, builder) => builder.
-    setSerializedIdAndSymbol("+cntA" + span).
-    setSymbol("+1s(A)").
-    setTitle("Bit Count Gate").
-    setBlurb("Counts the number of ON bits in input A and adds that into this output.").
-    setRequiredContextKeys("Input Range A").
-    setActualEffectToShaderProvider(ctx => POP_COUNT_SHADER.withArgs(
-        ...ketArgs(ctx, span, ['A']),
-        WglArg.float("factor", +1))).
-    setKnownEffectToParametrizedPermutation((t, a) => (t + Util.numberOfSetBits(a)) & ((1 << span) - 1)));
+BitCountGates.PlusBitCountAFamily = Gate.buildFamily(1, 16, (span, builder) =>
+  builder
+    .setSerializedIdAndSymbol("+cntA" + span)
+    .setSymbol("+1s(A)")
+    .setTitle("Bit Count Gate")
+    .setBlurb(
+      "Counts the number of ON bits in input A and adds that into this output.",
+    )
+    .setRequiredContextKeys("Input Range A")
+    .setActualEffectToShaderProvider((ctx) =>
+      POP_COUNT_SHADER.withArgs(
+        ...ketArgs(ctx, span, ["A"]),
+        WglArg.float("factor", +1),
+      ),
+    )
+    .setKnownEffectToParametrizedPermutation(
+      (t, a) => (t + Util.numberOfSetBits(a)) & ((1 << span) - 1),
+    ),
+);
 
-BitCountGates.MinusBitCountAFamily = Gate.buildFamily(1, 16, (span, builder) => builder.
-    setAlternateFromFamily(BitCountGates.PlusBitCountAFamily).
-    setSerializedIdAndSymbol("-cntA" + span).
-    setSymbol("-1s(A)").
-    setTitle("Bit Un-Count Gate").
-    setBlurb("Counts the number of ON bits in input A and subtracts that into this output.").
-    setRequiredContextKeys("Input Range A").
-    setActualEffectToShaderProvider(ctx => POP_COUNT_SHADER.withArgs(
-        ...ketArgs(ctx, span, ['A']),
-        WglArg.float("factor", -1))).
-    setKnownEffectToParametrizedPermutation((t, a) => (t - Util.numberOfSetBits(a)) & ((1 << span) - 1)));
+BitCountGates.MinusBitCountAFamily = Gate.buildFamily(1, 16, (span, builder) =>
+  builder
+    .setAlternateFromFamily(BitCountGates.PlusBitCountAFamily)
+    .setSerializedIdAndSymbol("-cntA" + span)
+    .setSymbol("-1s(A)")
+    .setTitle("Bit Un-Count Gate")
+    .setBlurb(
+      "Counts the number of ON bits in input A and subtracts that into this output.",
+    )
+    .setRequiredContextKeys("Input Range A")
+    .setActualEffectToShaderProvider((ctx) =>
+      POP_COUNT_SHADER.withArgs(
+        ...ketArgs(ctx, span, ["A"]),
+        WglArg.float("factor", -1),
+      ),
+    )
+    .setKnownEffectToParametrizedPermutation(
+      (t, a) => (t - Util.numberOfSetBits(a)) & ((1 << span) - 1),
+    ),
+);
 
 BitCountGates.all = [
-    ...BitCountGates.PlusBitCountAFamily.all,
-    ...BitCountGates.MinusBitCountAFamily.all
+  ...BitCountGates.PlusBitCountAFamily.all,
+  ...BitCountGates.MinusBitCountAFamily.all,
 ];
 
-export {BitCountGates}
+export { BitCountGates };

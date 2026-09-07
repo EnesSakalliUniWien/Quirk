@@ -14,28 +14,28 @@
  * limitations under the License.
  */
 
-import {paintMultiProbabilityDisplay} from '../../draw/pixi/displays/ProbabilityView.js';
+import { paintMultiProbabilityDisplay } from "../../draw/pixi/displays/ProbabilityView.js";
 
-import {Complex} from "../../math/Complex.js"
+import { Complex } from "../../engine/math/complex/Complex.js";
 
-import {Gate} from "../../circuit/model/Gate.js"
-import {GatePainting} from "../../draw/GatePainting.js"
-import {GateShaders} from "../../circuit/simulation/gpu/GateShaders.js"
-import {MathPainter} from "../../draw/MathPainter.js"
-import {Matrix} from "../../math/Matrix.js"
+import { Gate } from "../../circuit/model/Gate.js";
+import { GatePainting } from "../../draw/gate/GatePainting.js";
+import { GateShaders } from "../../engine/simulation/gpu/GateShaders.js";
+import { MathPainter } from "../../draw/MathPainter.js";
+import { Matrix } from "../../engine/math/matrix/Matrix.js";
 
-import {Seq} from "../../base/Seq.js"
-import {Shaders} from "../../webgl/Shaders.js"
+import { Seq } from "../../base/Seq.js";
+import { Shaders } from "../../engine/webgl/shader/Shaders.js";
 
-import {WglConfiguredShader} from "../../webgl/WglConfiguredShader.js"
+import { WglConfiguredShader } from "../../engine/webgl/shader/WglConfiguredShader.js";
 import {
-    Inputs,
-    Outputs,
-    currentShaderCoder,
-    makePseudoShaderWithInputsAndOutputAndCode
-} from "../../webgl/ShaderCoders.js"
-import {WglTexturePool} from "../../webgl/WglTexturePool.js"
-import {WglTextureTrader} from "../../webgl/WglTextureTrader.js"
+  Inputs,
+  Outputs,
+  currentShaderCoder,
+  makePseudoShaderWithInputsAndOutputAndCode,
+} from "../../engine/webgl/coder/ShaderCoders.js";
+import { WglTexturePool } from "../../engine/webgl/texture/WglTexturePool.js";
+import { WglTextureTrader } from "../../engine/webgl/texture/WglTextureTrader.js";
 
 /**
  * Derives conditional computational basis measurement probabilities from the state vector.
@@ -46,23 +46,33 @@ import {WglTextureTrader} from "../../webgl/WglTextureTrader.js"
  * @param {!int} rangeLength How many wires the probability display covers.
  * @returns {!WglTexture} Texture storing the probabilities. Not normalized.
  */
-function probabilityStatTexture(ketTexture, controlTexture, rangeOffset, rangeLength) {
-    let trader = new WglTextureTrader(ketTexture);
-    trader.dontDeallocCurrentTexture();
-    let n = currentShaderCoder().vec2.arrayPowerSizeOfTexture(ketTexture);
+function probabilityStatTexture(
+  ketTexture,
+  controlTexture,
+  rangeOffset,
+  rangeLength,
+) {
+  let trader = new WglTextureTrader(ketTexture);
+  trader.dontDeallocCurrentTexture();
+  let n = currentShaderCoder().vec2.arrayPowerSizeOfTexture(ketTexture);
 
-    trader.shadeAndTrade(tex => amplitudesToProbabilities(tex, controlTexture), WglTexturePool.takeVecFloatTex(n));
-    trader.shadeAndTrade(tex => GateShaders.cycleAllBitsFloat(tex, -rangeOffset));
+  trader.shadeAndTrade(
+    (tex) => amplitudesToProbabilities(tex, controlTexture),
+    WglTexturePool.takeVecFloatTex(n),
+  );
+  trader.shadeAndTrade((tex) =>
+    GateShaders.cycleAllBitsFloat(tex, -rangeOffset),
+  );
 
-    while (n > rangeLength) {
-        n -= 1;
-        trader.shadeHalveAndTrade(Shaders.sumFoldFloat);
-    }
+  while (n > rangeLength) {
+    n -= 1;
+    trader.shadeHalveAndTrade(Shaders.sumFoldFloat);
+  }
 
-    if (currentShaderCoder().float.needRearrangingToBeInVec4Format) {
-        trader.shadeQuarterAndTrade(Shaders.packFloatIntoVec4);
-    }
-    return trader.currentTexture;
+  if (currentShaderCoder().float.needRearrangingToBeInVec4Format) {
+    trader.shadeQuarterAndTrade(Shaders.packFloatIntoVec4);
+  }
+  return trader.currentTexture;
 }
 
 /**
@@ -71,17 +81,16 @@ function probabilityStatTexture(ketTexture, controlTexture, rangeOffset, rangeLe
  * @returns {!WglConfiguredShader}
  */
 let amplitudesToProbabilities = (inputTexture, controlTex) =>
-    AMPLITUDES_TO_PROBABILITIES_SHADER(inputTexture, controlTex);
-const AMPLITUDES_TO_PROBABILITIES_SHADER = makePseudoShaderWithInputsAndOutputAndCode(
-    [
-        Inputs.vec2('input'),
-        Inputs.bool('control')
-    ],
+  AMPLITUDES_TO_PROBABILITIES_SHADER(inputTexture, controlTex);
+const AMPLITUDES_TO_PROBABILITIES_SHADER =
+  makePseudoShaderWithInputsAndOutputAndCode(
+    [Inputs.vec2("input"), Inputs.bool("control")],
     Outputs.float(),
     `float outputFor(float k) {
         vec2 amp = read_input(k);
         return dot(amp, amp) * read_control(k);
-    }`);
+    }`,
+  );
 
 /**
  * Post-processes the pixels that come out of makeProbabilitySpanPipeline into a vector of normalized probabilities.
@@ -90,21 +99,21 @@ const AMPLITUDES_TO_PROBABILITIES_SHADER = makePseudoShaderWithInputsAndOutputAn
  * @returns {!Matrix}
  */
 function probabilityPixelsToColumnVector(pixels, span) {
-    let n = 1 << span;
-    // CAUTION: pixels may be longer than n due to the length rounding up to a multiple of 4.
+  let n = 1 << span;
+  // CAUTION: pixels may be longer than n due to the length rounding up to a multiple of 4.
 
-    let unity = 0;
-    for (let i = 0; i < n; i++) {
-        unity += pixels[i];
-    }
-    if (isNaN(unity) || unity < 0.000001) {
-        return Matrix.zero(1, n).times(NaN);
-    }
-    let buf = new Float32Array(n*2);
-    for (let i = 0; i < n; i++) {
-        buf[i*2] = pixels[i] / unity;
-    }
-    return new Matrix(1, n, buf);
+  let unity = 0;
+  for (let i = 0; i < n; i++) {
+    unity += pixels[i];
+  }
+  if (isNaN(unity) || unity < 0.000001) {
+    return Matrix.zero(1, n).times(NaN);
+  }
+  let buf = new Float32Array(n * 2);
+  for (let i = 0; i < n; i++) {
+    buf[i * 2] = pixels[i] / unity;
+  }
+  return new Matrix(1, n, buf);
 }
 
 /**
@@ -113,9 +122,11 @@ function probabilityPixelsToColumnVector(pixels, span) {
  * @returns {!{probabilities: !float[]}}
  */
 function probabilityDataToJson(data) {
-    return {
-        probabilities: Seq.range(data.height()).map(k => Complex.realPartOf(data.cell(0, k))).toArray()
-    };
+  return {
+    probabilities: Seq.range(data.height())
+      .map((k) => Complex.realPartOf(data.cell(0, k)))
+      .toArray(),
+  };
 }
 
 /**
@@ -123,13 +134,17 @@ function probabilityDataToJson(data) {
  * @returns {!GateBuilder}
  */
 function shared_chanceGateMaker(builder) {
-    return builder.
-        setSymbol("Chance").
-        setTitle("Probability Display").
-        setBlurb("Shows chances of outcomes if a measurement was performed.\n" +
-            "Use controls to see conditional probabilities.").
-        promiseHasNoNetEffectOnStateVector().
-        setExtraDisableReasonFinder(args => args.isNested ? "can't\nnest\ndisplays\n(sorry)" : undefined);
+  return builder
+    .setSymbol("Chance")
+    .setTitle("Probability Display")
+    .setBlurb(
+      "Shows chances of outcomes if a measurement was performed.\n" +
+        "Use controls to see conditional probabilities.",
+    )
+    .promiseHasNoNetEffectOnStateVector()
+    .setExtraDisableReasonFinder((args) =>
+      args.isNested ? "can't\nnest\ndisplays\n(sorry)" : undefined,
+    );
 }
 
 /**
@@ -138,13 +153,21 @@ function shared_chanceGateMaker(builder) {
  * @returns {!GateBuilder}
  */
 function multiChanceGateMaker(span, builder) {
-    return shared_chanceGateMaker(builder).
-        setSerializedId("Chance" + span).
-        setStatTexturesMaker(ctx =>
-            probabilityStatTexture(ctx.stateTrader.currentTexture, ctx.controlsTexture, ctx.row, span)).
-        setStatPixelDataPostProcessor(pixels => probabilityPixelsToColumnVector(pixels, span)).
-        setProcessedStatsToJsonFunc(probabilityDataToJson).
-        setDrawer(GatePainting.makeDisplayDrawer(paintMultiProbabilityDisplay));
+  return shared_chanceGateMaker(builder)
+    .setSerializedId("Chance" + span)
+    .setStatTexturesMaker((ctx) =>
+      probabilityStatTexture(
+        ctx.stateTrader.currentTexture,
+        ctx.controlsTexture,
+        ctx.row,
+        span,
+      ),
+    )
+    .setStatPixelDataPostProcessor((pixels) =>
+      probabilityPixelsToColumnVector(pixels, span),
+    )
+    .setProcessedStatsToJsonFunc(probabilityDataToJson)
+    .setDrawer(GatePainting.makeDisplayDrawer(paintMultiProbabilityDisplay));
 }
 
 /**
@@ -152,28 +175,32 @@ function multiChanceGateMaker(span, builder) {
  * @returns {!GateBuilder}
  */
 function singleChangeGateMaker(builder) {
-    return shared_chanceGateMaker(builder).
-        setSerializedId("Chance").
-        markAsDrawerNeedsSingleQubitDensityStats().
-        setDrawer(GatePainting.makeDisplayDrawer(args => {
-            let {row, col} = args.positionInCircuit;
-            MathPainter.paintProbabilityBox(
-                args.painter,
-                args.stats.controlledWireProbabilityJustAfter(row, col),
-                args.rect,
-                args.focusPoints);
-        }));
+  return shared_chanceGateMaker(builder)
+    .setSerializedId("Chance")
+    .markAsDrawerNeedsSingleQubitDensityStats()
+    .setDrawer(
+      GatePainting.makeDisplayDrawer((args) => {
+        let { row, col } = args.positionInCircuit;
+        MathPainter.paintProbabilityBox(
+          args.painter,
+          args.stats.controlledWireProbabilityJustAfter(row, col),
+          args.rect,
+          args.focusPoints,
+        );
+      }),
+    );
 }
 
 let ProbabilityDisplayFamily = Gate.buildFamily(1, 16, (span, builder) =>
-    span === 1 ?
-        singleChangeGateMaker(builder) :
-        multiChanceGateMaker(span, builder));
+  span === 1
+    ? singleChangeGateMaker(builder)
+    : multiChanceGateMaker(span, builder),
+);
 
 export {
-    ProbabilityDisplayFamily,
-    probabilityStatTexture,
-    probabilityPixelsToColumnVector,
-    amplitudesToProbabilities,
-    probabilityDataToJson,
+  ProbabilityDisplayFamily,
+  probabilityStatTexture,
+  probabilityPixelsToColumnVector,
+  amplitudesToProbabilities,
+  probabilityDataToJson,
 };

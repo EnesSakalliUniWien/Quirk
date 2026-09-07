@@ -18,10 +18,10 @@ import {fitParagraph} from '../draw/pixi/TextLayout.js';
 import {drawingArea} from '../draw/pixi/DisplayView.js';
 import {rectangle, strokePath} from '../draw/pixi/ShapeView.js';
 
-import {Axis} from '../math/Axis.js';
+import {Axis} from '../engine/math/formula/Axis.js';
 import {CircuitDefinition} from '../circuit/model/CircuitDefinition.js';
-import {setGateBuilderEffectToCircuit} from '../circuit/simulation/CircuitComputeUtil.js';
-import {Complex} from '../math/Complex.js';
+import {setGateBuilderEffectToCircuit} from '../engine/simulation/CircuitComputeUtil.js';
+import {Complex} from '../engine/math/complex/Complex.js';
 import {CanvasTheme} from '../config/CanvasTheme.js';
 import {DetailedError} from '../base/DetailedError.js';
 import {drawCircuitTooltip} from '../editor/DisplayedCircuit.js';
@@ -29,20 +29,23 @@ import {Format} from '../base/Format.js';
 import {GateBuilder} from '../circuit/model/Gate.js';
 import {GateColumn} from '../circuit/model/GateColumn.js';
 import {MathPainter} from '../draw/MathPainter.js';
-import {Matrix} from '../math/Matrix.js';
+import {Matrix} from '../engine/math/matrix/Matrix.js';
 import {Observable, ObservableValue} from '../base/Obs.js';
 import {RenderSurface} from '../draw/pixi/RenderSurface.js';
-import {Point} from '../math/Point.js';
-import {Rect} from '../math/Rect.js';
+import {Point} from '../geometry/Point.js';
+import {Rect} from '../geometry/Rect.js';
 import {fromJsonText_CircuitDefinition, Serializer} from '../circuit/serialization/Serializer.js';
 import {seq} from '../base/Seq.js';
 import {textEditObservable} from '../browser/EventUtil.js';
 import {Util} from '../base/Util.js';
+import {MatrixDecomposition} from '../engine/math/matrix/MatrixDecomposition.js';
+import {QubitMatrix} from '../engine/math/matrix/QubitMatrix.js';
+import {ComplexFormula} from '../engine/math/formula/ComplexFormula.js';
 
 /**
- * Interface note: also requires #gate-forge-button (src/components/app-toolbar.jsx) and the forge
+ * Interface note: also requires #gate-forge-button (src/components/toolbar/app-toolbar.jsx) and the forge
  * panel's #gate-forge-* inputs, canvases, and buttons, shipped in quirk.html's dialog stash and
- * mounted by src/components/forge-dialog.jsx before this runs.
+ * mounted by src/components/dialogs/forge-dialog.jsx before this runs.
  *
  * @param {!Revision} revision
  * @param {!OverlayState} overlayState
@@ -59,7 +62,7 @@ function initForge(revision, overlayState, getCycleTime) {
     revision.latestActiveCommit().subscribe(e => { latestInspectorText = e; });
 
     // Open the forge overlay. Visibility, Escape, backdrop clicks, and focus belong to the
-    // Base UI Dialog that wraps it (src/components/app-dialogs.jsx).
+    // Base UI Dialog that wraps it (src/components/dialogs/app-dialogs.jsx).
     (() => {
         const forgeButton = /** @type {!HTMLButtonElement} */ document.getElementById('gate-forge-button');
         forgeButton.addEventListener('click', () => overlayState.open("forge"));
@@ -329,7 +332,7 @@ function valueElsePlaceholder(textBox) {
  * @returns {!number}
  */
 function parseUserAngle(text) {
-    let c = Complex.parse(text);
+    let c = ComplexFormula.parse(text);
     if (c.imag !== 0 || isNaN(c.imag)) {
         throw new Error("You just had to make it complicated, didn't you?");
     }
@@ -360,7 +363,7 @@ function parseUserRotation(angleText, phaseText, axisText) {
     y /= len;
     z /= len;
 
-    let [I, X, Y, Z] = [Matrix.identity(2), Matrix.PAULI_X, Matrix.PAULI_Y, Matrix.PAULI_Z];
+    let [I, X, Y, Z] = [Matrix.identity(2), QubitMatrix.PAULI_X, QubitMatrix.PAULI_Y, QubitMatrix.PAULI_Z];
     let axisMatrix = X.times(x).plus(Y.times(y)).plus(Z.times(z));
 
     let result = I.times(Math.cos(w/2)).
@@ -391,7 +394,7 @@ function parseUserGateMatrix_noCorrection(text) {
         text = text.substring(0, text.length - 1);
     }
 
-    let parts = text.split(',').map(e => e === '' ? 0 : Complex.parse(e));
+    let parts = text.split(',').map(e => e === '' ? 0 : ComplexFormula.parse(e));
 
     // Expand singleton cell into a 2x2 global phase operation.
     if (parts.length === 1) {
@@ -421,7 +424,7 @@ function parseUserMatrix(text, ensureUnitary) {
         throw Error("Matrix must be 2x2, 4x4, 8x8, or 16x16.")
     }
     if (ensureUnitary && !op.hasNaN()) {
-        op = op.closestUnitary(0.0001);
+        op = MatrixDecomposition.closestUnitary(op, 0.0001);
         op = decreasePrecisionAndSerializedSize(op);
     }
     return op;

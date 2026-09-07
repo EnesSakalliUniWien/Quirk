@@ -19,7 +19,7 @@ import {drawPath} from '../../draw/pixi/ShapeView.js';
 import {gateStyle} from '../../config/CanvasTheme.js';
 
 import {GateBuilder} from '../../circuit/model/Gate.js';
-import {GatePainting} from '../../draw/GatePainting.js';
+import {GatePainting} from '../../draw/gate/GatePainting.js';
 
 /**
  * @param {!GateDrawParams} args

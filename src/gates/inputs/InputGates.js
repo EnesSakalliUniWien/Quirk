@@ -20,7 +20,7 @@ import {rectangle} from '../../draw/pixi/ShapeView.js';
 import {CanvasTheme} from '../../config/CanvasTheme.js';
 import {Typography} from '../../config/Typography.js';
 import {Gate, GateBuilder} from '../../circuit/model/Gate.js';
-import {GatePainting} from '../../draw/GatePainting.js';
+import {GatePainting} from '../../draw/gate/GatePainting.js';
 import {reverseShaderForSize} from '../ordering/ReverseBitsGate.js';
 
 let InputGates = {};

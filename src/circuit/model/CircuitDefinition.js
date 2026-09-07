@@ -19,7 +19,7 @@ import {
     applyBeforeOperationsInCol,
     applyInitialStateOperations,
     applyMainOperationsInCol,
-} from "../simulation/CircuitExecution.js"
+} from "../../engine/simulation/CircuitExecution.js"
 import {AppInfo} from "../../config/AppInfo.js"
 import {Controls} from "./Controls.js"
 import {CustomGateSet} from "./CustomGateSet.js"
@@ -28,7 +28,7 @@ import {equate_Maps} from "../../base/Equate.js";
 import {Gate} from "./Gate.js"
 import {GateColumn} from "./GateColumn.js"
 import {Gates, INITIAL_STATES_TO_GATES} from "../../gates/AllGates.js"
-import {Point} from "../../math/Point.js"
+import {Point} from "../../geometry/Point.js"
 import {seq, Seq} from "../../base/Seq.js"
 import {Util} from "../../base/Util.js"
 

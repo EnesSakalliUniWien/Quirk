@@ -18,14 +18,15 @@ import {polygon, strokePath, rectangle} from '../../draw/pixi/ShapeView.js';
 
 import {CanvasTheme} from '../../config/CanvasTheme.js';
 import {Gate, GateBuilder} from '../../circuit/model/Gate.js';
-import {GatePainting} from '../../draw/GatePainting.js';
-import {Matrix} from '../../math/Matrix.js';
-import {Point} from '../../math/Point.js';
-import {ketArgs} from '../../circuit/simulation/gpu/KetShaderUtil.js';
-import {WglArg} from '../../webgl/WglArg.js';
+import {GatePainting} from '../../draw/gate/GatePainting.js';
+import {Matrix} from '../../engine/math/matrix/Matrix.js';
+import {Point} from '../../geometry/Point.js';
+import {ketArgs} from '../../engine/simulation/gpu/KetShaderUtil.js';
+import {WglArg} from '../../engine/webgl/shader/WglArg.js';
 
 import {offsetShader} from '../arithmetic/IncrementGates.js';
 import {makeCycleBitsPermutation, cycleBitsShader} from './CycleBitsGates.js';
+import {QubitMatrix} from '../../engine/math/matrix/QubitMatrix.js';
 
 let CountingGates = {};
 
@@ -116,7 +117,7 @@ CountingGates.ClockPulseGate = new GateBuilder().
     setTitle("Clock Pulse Gate").
     setBlurb("Xors a square wave into the target wire.").
     setDrawer(STAIRCASE_DRAWER(0, 2)).
-    setEffectToTimeVaryingMatrix(t => (t % 1) < 0.5 ? Matrix.identity(2) : Matrix.PAULI_X).
+    setEffectToTimeVaryingMatrix(t => (t % 1) < 0.5 ? Matrix.identity(2) : QubitMatrix.PAULI_X).
     promiseEffectOnlyPermutesAndPhases().
     gate;
 
@@ -126,7 +127,7 @@ CountingGates.QuarterPhaseClockPulseGate = new GateBuilder().
     setTitle("Clock Pulse Gate (Quarter Phase)").
     setBlurb("Xors a quarter-phased square wave into the target wire.").
     setDrawer(STAIRCASE_DRAWER(0.75, 2)).
-    setEffectToTimeVaryingMatrix(t => ((t+0.75) % 1) < 0.5 ? Matrix.identity(2) : Matrix.PAULI_X).
+    setEffectToTimeVaryingMatrix(t => ((t+0.75) % 1) < 0.5 ? Matrix.identity(2) : QubitMatrix.PAULI_X).
     promiseEffectOnlyPermutesAndPhases().
     gate;
 

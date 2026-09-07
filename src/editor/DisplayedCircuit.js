@@ -24,9 +24,9 @@ import {afterDropping, previewDrop, tryClick, tryGrab, withJustEnoughWires} from
 import {paintCircuit} from './CircuitPainting.js';
 
 import {CircuitDefinition} from '../circuit/model/CircuitDefinition.js';
-import {CircuitGeometry} from './CircuitGeometry.js';
-import {setCustomGateCircuitDrawer} from '../draw/CustomGateCircuitDrawer.js';
-import {CircuitStats} from '../circuit/simulation/CircuitStats.js';
+import {CircuitGeometry, rectForResizeTab} from './CircuitGeometry.js';
+import {setCustomGateCircuitDrawer} from '../draw/gate/CustomGateCircuitDrawer.js';
+import {CircuitStats} from '../engine/simulation/CircuitStats.js';
 import {Layout} from '../config/Layout.js';
 import {CanvasTheme} from '../config/CanvasTheme.js';
 import {Simulation} from '../config/Simulation.js';
@@ -34,11 +34,11 @@ import {Simulation} from '../config/Simulation.js';
 import {DetailedError} from '../base/DetailedError.js';
 import {equate} from '../base/Equate.js';
 
-import {GatePainting} from '../draw/GatePainting.js';
+import {GatePainting} from '../draw/gate/GatePainting.js';
 import {Hand} from './Hand.js';
 
-import {Point} from '../math/Point.js';
-import {Matrix} from '../math/Matrix.js';
+import {Point} from '../geometry/Point.js';
+import {Matrix} from '../engine/math/matrix/Matrix.js';
 
 import {seq, Seq} from '../base/Seq.js';
 
@@ -316,7 +316,7 @@ class DisplayedCircuit {
         }
 
         let gateRect = this.gateRect(row, col, gate.width, gate.height);
-        let resizeTabRect = GatePainting.rectForResizeTab(gateRect);
+        let resizeTabRect = rectForResizeTab(gateRect);
 
         let isOverGate = pos => {
             let overGate = findGateOverlappingPos(this, pos);

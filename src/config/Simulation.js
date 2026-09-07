@@ -34,4 +34,4 @@ Simulation.SEMI_STABLE_RANDOM_VALUE_LIFETIME_MILLIS = 300;
 // How long the playhead rests on a column while playing, in milliseconds.
 Simulation.PLAYHEAD_STEP_DURATION_MS = 600;
 
-export {Simulation}
+export { Simulation };

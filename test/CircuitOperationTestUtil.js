@@ -15,20 +15,21 @@
  */
 
 import {assertThat, assertTrue} from "./TestUtil.js"
-import {advanceStateWithCircuit} from "../src/circuit/simulation/CircuitComputeUtil.js"
+import {advanceStateWithCircuit} from "../src/engine/simulation/CircuitComputeUtil.js"
 import {CircuitDefinition} from "../src/circuit/model/CircuitDefinition.js"
-import {CircuitEvalContext} from "../src/circuit/simulation/CircuitEvalContext.js"
-import {CircuitShaders} from "../src/circuit/simulation/gpu/CircuitShaders.js"
-import {CircuitStats} from "../src/circuit/simulation/CircuitStats.js"
-import {Complex} from "../src/math/Complex.js"
+import {CircuitEvalContext} from "../src/engine/simulation/CircuitEvalContext.js"
+import {CircuitShaders} from "../src/engine/simulation/gpu/CircuitShaders.js"
+import {CircuitStats} from "../src/engine/simulation/CircuitStats.js"
+import {Complex} from "../src/engine/math/complex/Complex.js"
 import {Controls} from "../src/circuit/model/Controls.js"
 import {GateColumn} from "../src/circuit/model/GateColumn.js"
 import {Gates} from "../src/gates/AllGates.js"
-import {Shaders} from "../src/webgl/Shaders.js"
-import {Matrix} from "../src/math/Matrix.js"
-import {KetTextureUtil} from "../src/circuit/simulation/gpu/KetTextureUtil.js"
+import {Shaders} from "../src/engine/webgl/shader/Shaders.js"
+import {Matrix} from "../src/engine/math/matrix/Matrix.js"
+import {KetTextureUtil} from "../src/engine/simulation/gpu/KetTextureUtil.js"
 import {seq, Seq} from "../src/base/Seq.js"
-import {WglTextureTrader} from "../src/webgl/WglTextureTrader.js"
+import {WglTextureTrader} from "../src/engine/webgl/texture/WglTextureTrader.js"
+import {applyToStateVectorAtQubitWithControls} from "./MatrixTestUtil.js"
 
 // Turn this on to make it easier to debug why a randomized test is failing.
 const USE_SIMPLE_VALUES = false;
@@ -219,7 +220,7 @@ function assertThatCircuitMutationActsLikeMatrix_single(updateAction, matrix, fo
     let outData = KetTextureUtil.tradeTextureForVec2Output(trader);
     let outVec = new Matrix(1, ampCount, outData);
 
-    let expectedOutVec = matrix.applyToStateVectorAtQubitWithControls(inVec, qubitIndex, controls);
+    let expectedOutVec = applyToStateVectorAtQubitWithControls(matrix, inVec, qubitIndex, controls);
 
     assertThat(outVec).withInfo({matrix, inVec, ctx}).isApproximatelyEqualTo(expectedOutVec, 0.005);
 }

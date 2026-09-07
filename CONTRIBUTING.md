@@ -21,22 +21,24 @@ Before opening the pull request, keep the checks green:
 - `src/components/` — the React chrome (toolbar, transport bar, dialogs, gate toolbox), its
   shadcn primitives under `src/components/ui/`, and `toolbox.js`, the vanilla helper module the
   gate toolbox drives.
-- `src/circuit/` — circuit models in `model/`, JSON conversion in `serialization/`, and
-  evaluation in `simulation/`, with its shader and texture utilities in `simulation/gpu/`.
+- `src/circuit/` — circuit models in `model/` and JSON conversion in `serialization/`.
   See [the circuit directory guide](src/circuit/README.md) for individual file responsibilities.
 - `src/gates/` — the gate catalogue, aggregated by `AllGates.js`; a gate missing from its
   lists silently stops serializing and disappears from the toolbox.
 - `src/draw/` — canvas painting primitives.
-- `src/webgl/` — the WebGL abstraction; `issues.js` there owns the one shared GL context.
+- `src/engine/` — every calculation: pure numerics in `math/`, the WebGL2 abstraction in `webgl/`
+  (`webgl/context/issues.js` owns the one shared GL context), and circuit evaluation in `simulation/`
+  with its shader and texture utilities in `simulation/gpu/`. See
+  [the engine directory guide](src/engine/README.md).
 - `src/diagnostics/` — the error banner and global error hooks; anything may report into it,
   it depends only on `src/base/`.
-- `src/base/`, `src/math/`, `src/browser/`, `src/config/` — dependency-light foundations:
-  generic utilities, pure math, browser API wrappers, and shared constants.
+- `src/base/`, `src/geometry/`, `src/browser/`, `src/config/` — dependency-light foundations:
+  generic utilities, 2D points and rectangles, browser API wrappers, and shared constants.
 - `src/styles/` — all CSS, aggregated by `globals.css`; `src/lib/` — the shadcn `cn` helper.
 
 Dependencies flow downward: `main → app → (components, editor) → (circuit, gates, draw) →
-(webgl, diagnostics, browser, config, math, base)`. Skipping levels downward is fine (`main`
-also imports `components`, `diagnostics`, and `webgl` directly). The
+(engine, diagnostics, browser, config, geometry, base)`. Skipping levels downward is fine (`main`
+also imports `components`, `diagnostics`, and `engine` directly). The
 `circuit`/`gates`/`draw`/`editor` cluster is mutually entangled for historical reasons (gates
 carry their own drawers); do not add new upward imports beyond it.
 

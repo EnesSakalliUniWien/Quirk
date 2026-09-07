@@ -16,7 +16,7 @@
 
 import {assertThat, Suite} from "../../TestUtil.js"
 import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js"
-import {CircuitStats} from "../../../src/circuit/simulation/CircuitStats.js"
+import {CircuitStats} from "../../../src/engine/simulation/CircuitStats.js"
 import {Gates} from "../../../src/gates/AllGates.js"
 import {Seq} from "../../../src/base/Seq.js"
 import {Util} from "../../../src/base/Util.js"
