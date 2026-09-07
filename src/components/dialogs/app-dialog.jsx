@@ -13,7 +13,7 @@ import {XIcon} from "lucide-react";
  * every id and listener alive no matter how often the popup itself is rebuilt.
  *
  * The popup itself renders a window title bar above the adopted content: the full-width drag
- * handle for src/app/dialogSnap.js (moving and docking the window) plus a close button. It is
+ * handle for src/app/dialogs/dialogSnap.js (moving and docking the window) plus a close button. It is
  * React-owned and never touched by the vanilla modules, so re-rendering it is safe.
  */
 function AppDialog({name, title, divId, contentId, labelledBy, initialFocusId, active, overlayState, docked, onOpened}) {

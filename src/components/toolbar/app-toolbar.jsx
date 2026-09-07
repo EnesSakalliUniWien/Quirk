@@ -10,16 +10,26 @@ import {
 } from "lucide-react";
 
 import {useEffect, useRef} from "react";
+import {useStore} from "zustand";
 
 import {Button} from "@/components/ui/button";
+import {appStore} from "../../app/state/appStore.js";
 
 // Lucide draws at a 24px grid with a stroke of 2. These render at 16px, so the stroke is
 // scaled down to match, which is also what the inline SVGs in the menu use.
 const ICON_STROKE_WIDTH = 1.5;
 
-function ToolbarButton({id, icon: Icon, label, className}) {
+function ToolbarButton({id, icon: Icon, label, className, disabled, onClick}) {
     return (
-        <Button id={id} size="icon" variant="ghost" className={className} aria-label={label} title={label}>
+        <Button
+            id={id}
+            size="icon"
+            variant="ghost"
+            className={className}
+            aria-label={label}
+            title={label}
+            disabled={disabled}
+            onClick={onClick}>
             <Icon strokeWidth={ICON_STROKE_WIDTH} aria-hidden="true" />
         </Button>
     );
@@ -31,9 +41,9 @@ function ToolbarButton({id, icon: Icon, label, className}) {
  *
  * Base UI ships a Toolbar whose composite implements this, and it works. It is not used here for
  * two reasons. Its ToolbarRoot never passes `enableHomeAndEndKeys`, so Home and End do nothing.
- * And it derives the set of skippable items from its own React-side item map, which cannot see the
- * `disabled` that the non-React src/app modules set straight on these elements, so arrowing onto a
- * disabled control silently strands focus. Reading `disabled` from the DOM avoids both.
+ * And it derives the set of skippable items from its own React-side item map, which lags the
+ * `disabled` these buttons take from the app store, so arrowing onto a disabled control can
+ * strand focus. Reading `disabled` from the DOM avoids both.
  */
 function useRovingTabIndex(toolbarRef) {
     useEffect(() => {
@@ -92,7 +102,7 @@ function useRovingTabIndex(toolbarRef) {
         ensureStop();
         toolbar.addEventListener('keydown', onKeyDown);
         toolbar.addEventListener('focusin', onFocusIn);
-        // The src/app modules toggle `disabled` as the circuit changes; the tab stop follows.
+        // `disabled` follows the circuit through the store; the tab stop follows it.
         const observer = new MutationObserver(ensureStop);
         observer.observe(toolbar, {attributes: true, attributeFilter: ['disabled'], subtree: true});
 
@@ -104,17 +114,79 @@ function useRovingTabIndex(toolbarRef) {
     }, [toolbarRef]);
 }
 
+/**
+ * Ctrl+Z / Cmd+Z undoes and Ctrl+Shift+Z, Cmd+Shift+Z or Ctrl+Y redoes, wherever focus is.
+ * Availability already accounts for open overlays, so the shortcuts and the buttons stay in sync.
+ */
+function useUndoRedoShortcuts() {
+    useEffect(() => {
+        const onKeyDown = e => {
+            // Control on Windows and Linux, command on macOS.
+            if (!(e.ctrlKey || e.metaKey) || e.altKey) {
+                return;
+            }
+            const key = e.key.toLowerCase();
+            const isUndo = key === 'z' && !e.shiftKey;
+            const isRedo = (key === 'z' && e.shiftKey) || (key === 'y' && !e.shiftKey);
+            const {circuitActions, circuitAvailability} = appStore.getState();
+            if (circuitActions === undefined) {
+                return;
+            }
+            if (isUndo && circuitAvailability.canUndo) {
+                circuitActions.undo();
+                e.preventDefault();
+            } else if (isRedo && circuitAvailability.canRedo) {
+                circuitActions.redo();
+                e.preventDefault();
+            }
+        };
+        document.addEventListener('keydown', onKeyDown);
+        return () => document.removeEventListener('keydown', onKeyDown);
+    }, []);
+}
+
 function AppToolbar() {
     const toolbarRef = useRef(null);
     useRovingTabIndex(toolbarRef);
+    useUndoRedoShortcuts();
+
+    const availability = useStore(appStore, s => s.circuitAvailability);
+    const overlayOpen = useStore(appStore, s => s.activeOverlay !== undefined);
+    const circuitActions = useStore(appStore, s => s.circuitActions);
+    const openOverlay = useStore(appStore, s => s.openOverlay);
 
     return (
         <header className="app-toolbar" role="toolbar" aria-label="Circuit controls" ref={toolbarRef}>
-            <ToolbarButton id="export-button" icon={DownloadIcon} label="Export" />
-            <ToolbarButton id="clear-circuit-button" icon={EraserIcon} label="Clear Circuit" />
-            <ToolbarButton id="undo-button" icon={Undo2Icon} label="Undo" />
-            <ToolbarButton id="redo-button" icon={Redo2Icon} label="Redo" />
-            <ToolbarButton id="gate-forge-button" icon={WandSparklesIcon} label="Make Gate" />
+            <ToolbarButton
+                id="export-button"
+                icon={DownloadIcon}
+                label="Export"
+                disabled={overlayOpen}
+                onClick={() => openOverlay("export")} />
+            <ToolbarButton
+                id="clear-circuit-button"
+                icon={EraserIcon}
+                label="Clear Circuit"
+                disabled={!availability.canClearCircuit}
+                onClick={() => circuitActions.clearCircuit()} />
+            <ToolbarButton
+                id="undo-button"
+                icon={Undo2Icon}
+                label="Undo"
+                disabled={!availability.canUndo}
+                onClick={() => circuitActions.undo()} />
+            <ToolbarButton
+                id="redo-button"
+                icon={Redo2Icon}
+                label="Redo"
+                disabled={!availability.canRedo}
+                onClick={() => circuitActions.redo()} />
+            <ToolbarButton
+                id="gate-forge-button"
+                icon={WandSparklesIcon}
+                label="Make Gate"
+                disabled={overlayOpen}
+                onClick={() => openOverlay("forge")} />
             {/* Last, and pushed clear of the others by its auto margin: it discards custom gates
                 as well as the circuit, and sitting flush against the rest made it easy to hit
                 by mistake. Distinguished by colour, not by size. */}
@@ -122,7 +194,9 @@ function AppToolbar() {
                 id="clear-all-button"
                 icon={Trash2Icon}
                 label="Clear All"
-                className="app-toolbar-danger text-destructive" />
+                className="app-toolbar-danger text-destructive"
+                disabled={!availability.canClearAll}
+                onClick={() => circuitActions.clearAll()} />
         </header>
     );
 }

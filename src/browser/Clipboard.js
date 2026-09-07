@@ -15,25 +15,40 @@
  */
 
 /**
+ * Copies text to the clipboard through the async Clipboard API, falling back to selecting the
+ * given element and running the legacy copy command where the API is unavailable (an insecure
+ * context, or a browser without it).
+ *
+ * @param {!string} text
+ * @param {!HTMLElement=} fallbackElement An element whose contents equal the text, for the
+ *     legacy path.
+ * @returns {!Promise.<void>} Rejects when neither path could copy.
+ */
+async function copyTextToClipboard(text, fallbackElement = undefined) {
+    if (navigator.clipboard !== undefined && navigator.clipboard.writeText !== undefined) {
+        await navigator.clipboard.writeText(text);
+        return;
+    }
+    if (fallbackElement === undefined) {
+        throw new Error("Clipboard API unavailable and no fallback element given.");
+    }
+    selectAndCopyToClipboard(fallbackElement);
+}
+
+/**
+ * The legacy path: select the element's contents and ask the browser to copy the selection.
  * @param {!HTMLElement} element
  * @throws
  */
 function selectAndCopyToClipboard(element) {
-    if (document.selection) {
-        //noinspection XHTMLIncompatabilitiesJS
-        let range = document.body.createTextRange();
-        range.moveToElementText(element);
-        range.select();
-    } else if (window.getSelection) {
-        let range = document.createRange();
-        range.selectNodeContents(element);
-        window.getSelection().removeAllRanges();
-        window.getSelection().addRange(range);
-    }
-
+    let range = document.createRange();
+    range.selectNodeContents(element);
+    let selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
     if (!document.execCommand('copy')) {
         throw new Error("execCommand failed");
     }
 }
 
-export {selectAndCopyToClipboard}
+export {copyTextToClipboard, selectAndCopyToClipboard}

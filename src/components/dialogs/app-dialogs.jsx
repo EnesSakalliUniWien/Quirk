@@ -1,6 +1,9 @@
 import {useEffect, useMemo, useState} from "react";
 import {flushSync} from "react-dom";
 import {createRoot} from "react-dom/client";
+import {useStore} from "zustand";
+
+import {appStore} from "../../app/state/appStore.js";
 
 import {BlochDialog} from "./bloch-dialog.jsx";
 import {ExportDialog} from "./export-dialog.jsx";
@@ -12,14 +15,13 @@ import {MenuDialog} from "./menu-dialog.jsx";
  * Composes the app's overlays and keeps them in step with the one OverlayState.
  *
  * @param {!OverlayState} overlayState
- * @param {!Observable.<!Object.<!string, !string>>} dockModes Overlay name -> docked snap zone.
  * @param {!function(!string, !HTMLElement): void} onDialogOpened
  */
-function AppDialogs({overlayState, dockModes, onDialogOpened}) {
+function AppDialogs({overlayState, onDialogOpened}) {
     const [active, setActive] = useState(() => overlayState.current());
     useEffect(() => overlayState.active().subscribe(setActive), [overlayState]);
-    const [docked, setDocked] = useState({});
-    useEffect(() => dockModes.subscribe(setDocked), [dockModes]);
+    // Overlay name -> docked snap zone, published by src/app/dialogs/dialogSnap.js.
+    const docked = useStore(appStore, s => s.dockModes);
 
     // Stable per-dialog handlers: a fresh closure each render would change the popup's callback
     // ref identity, making React re-adopt the dialog content on every re-render.
@@ -56,10 +58,9 @@ let appDialogsRoot;
  * the dialogs' elements up by id.
  *
  * @param {!OverlayState} overlayState
- * @param {!Observable.<!Object.<!string, !string>>} dockModes
  * @param {!function(!string, !HTMLElement): void} onDialogOpened
  */
-function mountAppDialogs(overlayState, dockModes, onDialogOpened) {
+function mountAppDialogs(overlayState, onDialogOpened) {
     if (appDialogsRoot !== undefined) {
         throw new Error("The app dialogs have already been mounted.");
     }
@@ -70,10 +71,7 @@ function mountAppDialogs(overlayState, dockModes, onDialogOpened) {
 
     flushSync(() => {
         appDialogsRoot = createRoot(container);
-        appDialogsRoot.render(<AppDialogs
-            overlayState={overlayState}
-            dockModes={dockModes}
-            onDialogOpened={onDialogOpened} />);
+        appDialogsRoot.render(<AppDialogs overlayState={overlayState} onDialogOpened={onDialogOpened} />);
     });
 }
 

@@ -17,6 +17,8 @@
         border-radius: 8px;
         cursor: grab;
         text-align: left;
+        /* A finger on a tile grabs the gate; scrolling the list starts from the gaps and headers. */
+        touch-action: none;
     }
 
     /* The chip: the gate's circuit symbol as designed text, not a shrunken circuit painting.

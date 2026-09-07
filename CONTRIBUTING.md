@@ -13,8 +13,8 @@ Before opening the pull request, keep the checks green:
 
 - `src/main.js` — the page entry; everything else is reached from here.
 - `src/app/` — everything the shell owns: the composition root (`QuirkApp.js`) plus the
-  modules it wires together once at startup (menu, transport, dialogs, zoom, undo, URL sync,
-  the redraw loop, the simulator, and the app-state classes).
+  modules it wires together once at startup, grouped into `state/` (with the zustand app
+  store), `canvas/`, `dialogs/` and `session/`. See [the app directory guide](src/app/README.md).
 - `src/editor/` — the canvas circuit editor's model: the displayed circuit, its geometry,
   hit testing, painting, and drag state. Must never import from `src/app/` or
   `src/components/`, and stays DOM-free (no `document`/`window` access).

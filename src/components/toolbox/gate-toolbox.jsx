@@ -1,4 +1,7 @@
 import { memo, useEffect, useMemo, useRef, useState } from "react";
+import { useStore } from "zustand";
+
+import { appStore } from "../../app/state/appStore.js";
 import { createPortal, flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
 
@@ -139,16 +142,16 @@ function GateTile({
       }}
       onMouseLeave={() => tooltip.hide()}
       onBlur={() => tooltip.hide()}
-      onMouseDown={(ev) => {
-        if (ev.button === 0) {
+      onPointerDown={(ev) => {
+        if (ev.isPrimary && (ev.pointerType !== "mouse" || ev.button === 0)) {
           tooltip.hide();
-          onGrab(model, ev);
+          onGrab(model, ev.nativeEvent);
           ev.preventDefault();
         }
       }}
       onClick={(ev) => {
-        // Enter and Space arrive as a click with no pointer behind it (detail 0). A mouse
-        // press has already gone through the drag path on mousedown.
+        // Enter and Space arrive as a click with no pointer behind it (detail 0). A pointer
+        // press has already gone through the drag path on pointerdown.
         if (ev.detail === 0) {
           onPlace(model);
         }
@@ -160,10 +163,30 @@ function GateTile({
   );
 }
 
-// Renders once and must never re-render: src/app/menu.js writes `disabled` straight onto
-// #menu-button, and any re-render would wipe it. memo with zero props keeps React away from
-// this subtree while the toolbox re-renders around it — do not add props, state, or hooks
-// (the toolbar ref callback below is plain DOM adoption, not a hook).
+// Opens the welcome menu. Disabled while any overlay is open, like the toolbar buttons; it reads
+// that from the app store so a remount of the drawer starts in the right state.
+function MenuButton() {
+  const overlayOpen = useStore(appStore, (s) => s.activeOverlay !== undefined);
+  const openOverlay = useStore(appStore, (s) => s.openOverlay);
+  return (
+    <Button
+      id="menu-button"
+      size="icon"
+      variant="ghost"
+      className="sidebar-menu-button"
+      aria-label="Menu"
+      title="Menu"
+      disabled={overlayOpen}
+      onClick={() => openOverlay("menu")}
+    >
+      <BookOpenIcon strokeWidth={1.5} aria-hidden="true" />
+    </Button>
+  );
+}
+
+// Renders once: memo with zero props keeps React away from this subtree while the toolbox
+// re-renders around it, so the adopted toolbar root below is never re-parented. The menu button
+// is its own component and re-renders on its own.
 const SidebarHeader = memo(function SidebarHeader() {
   // The circuit actions toolbar is its own render-once React island, mounted once into
   // #app-toolbar-root at startup. The sidebar ADOPTS that root here and parks it back in
@@ -192,16 +215,7 @@ const SidebarHeader = memo(function SidebarHeader() {
         <span className="app-brand-copy">
           <strong>Shadow-Quant</strong>
         </span>
-        <Button
-          id="menu-button"
-          size="icon"
-          variant="ghost"
-          className="sidebar-menu-button"
-          aria-label="Menu"
-          title="Menu"
-        >
-          <BookOpenIcon strokeWidth={1.5} aria-hidden="true" />
-        </Button>
+        <MenuButton />
       </div>
       <div className="sidebar-actions" ref={adoptToolbar} />
     </>
@@ -317,30 +331,9 @@ function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace }) {
     afterTaking(model);
   };
 
-  // React registers touch handlers passively, and the grab must preventDefault to stop the
-  // page from scrolling instead; one delegated native listener covers every tile.
+  // Tiles carry touch-action: none in the stylesheet, so a finger on a tile is a grab rather
+  // than a scroll and the pointerdown handler above sees it.
   const groupsRef = useRef(null);
-  const modelsRef = useRef(models);
-  modelsRef.current = models;
-  useEffect(() => {
-    const element = groupsRef.current;
-    const onTouchStart = (ev) => {
-      const tile = ev.target.closest(".gate-tile");
-      if (tile === null) {
-        return;
-      }
-      const model = modelsRef.current.find(
-        (m) => m.key === tile.dataset.tileKey,
-      );
-      if (model !== undefined) {
-        tooltip.hide();
-        grabModel(model, ev.changedTouches[0]);
-        ev.preventDefault();
-      }
-    };
-    element.addEventListener("touchstart", onTouchStart, { passive: false });
-    return () => element.removeEventListener("touchstart", onTouchStart);
-  });
 
   const toggleGroup = (hint, open) => {
     setCollapsed((current) => {
@@ -515,7 +508,7 @@ let gateToolboxRoot;
 
 /**
  * @param {!{obsCustomGateSet: !Observable, mostRecentStats: !ObservableValue,
- *     onGrab: !function(!Gate, !MouseEvent|!Touch): void, onPlace: !function(!Gate): void}} deps
+ *     onGrab: !function(!Gate, !PointerEvent): void, onPlace: !function(!Gate): void}} deps
  */
 function mountGateToolbox(deps) {
   const container = document.getElementById("gate-toolbox-root");

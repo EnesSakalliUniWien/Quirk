@@ -21,31 +21,29 @@ import {Revision} from "../base/Revision.js"
 import {fromJsonText_CircuitDefinition} from "../circuit/serialization/Serializer.js"
 import {Util} from "../base/Util.js"
 import {ObservableValue} from "../base/Obs.js"
-import {initExports} from "./exports.js"
-import {initForge} from "./forge.js"
-import {initMenu} from "./menu.js"
-import {initUndoRedo} from "./undo.js"
-import {initClear} from "./clear.js"
-import {CircuitActions} from "./CircuitActions.js"
-import {Playhead} from "./Playhead.js"
-import {initTransport} from "./transport.js"
-import {initStateTable} from "./stateTable.js"
+import {initExports} from "./dialogs/exports.js"
+import {initForge} from "./dialogs/forge.js"
+import {initMenu} from "./dialogs/menu.js"
+import {CircuitActions} from "./state/CircuitActions.js"
+import {Playhead} from "./state/Playhead.js"
+import {initStateTable} from "./dialogs/stateTable.js"
 import {mountGateToolbox} from "../components/toolbox/gate-toolbox.jsx"
-import {initToolboxDrag, initToolboxKeyboardPlace} from "./toolboxDrag.js"
-import {initRedrawLoop} from "./redrawLoop.js"
-import {initCanvasPointer} from "./canvasPointer.js"
-import {scheduleBoot} from "./boot.js"
+import {initToolboxDrag, initToolboxKeyboardPlace} from "./canvas/toolboxDrag.js"
+import {initRedrawLoop} from "./canvas/redrawLoop.js"
+import {initCanvasPointer} from "./canvas/canvasPointer.js"
+import {scheduleBoot} from "./session/boot.js"
 import {mountAppDialogs} from "../components/dialogs/app-dialogs.jsx"
-import {OverlayState} from "./OverlayState.js"
-import {initUrlCircuitSync} from "./url.js"
-import {initTitleSync} from "./title.js"
-import {Simulator} from "./sim.js"
-import {circuitZoom, initZoomControls, attachCircuitScrollSource} from "./zoom.js"
-import {initMinimap} from "./minimap.js"
-import {initGateParamDialog} from "./gateParamDialog.js"
-import {initBlochSphereDialog} from "./blochSphereDialog.js"
+import {OverlayState} from "./state/OverlayState.js"
+import {initUrlCircuitSync} from "./session/url.js"
+import {initTitleSync} from "./session/title.js"
+import {Simulator} from "./state/Simulator.js"
+import {circuitZoom, initZoomControls, attachCircuitScrollSource} from "./canvas/zoom.js"
+import {initMinimap} from "./canvas/minimap.js"
+import {initGateParamDialog} from "./dialogs/gateParamDialog.js"
+import {initBlochSphereDialog} from "./dialogs/blochSphereDialog.js"
 import {noteCircuitEdited} from "../diagnostics/errorReporter.js"
-import {initDialogSnap, notifyDialogOpened, dockModes} from "./dialogSnap.js"
+import {initDialogSnap, notifyDialogOpened} from "./dialogs/dialogSnap.js"
+import {appStore} from "./state/appStore.js"
 
 /**
  * Starts Quirk after its document elements are available. Must be called exactly once.
@@ -77,7 +75,7 @@ function startQuirk() {
     const overlayState = new OverlayState();
     // Mounted before anything that looks the dialogs' elements up by id.
     initDialogSnap();
-    mountAppDialogs(overlayState, dockModes(), notifyDialogOpened);
+    mountAppDialogs(overlayState, notifyDialogOpened);
     const playhead = new Playhead(
         displayed.observable().
             map(e => e.displayedCircuit.circuitDefinition.columns.length).
@@ -143,12 +141,14 @@ function startQuirk() {
         canvas, canvasDiv, revision, displayed, syncArea, openGateParamEditor, openBlochSphereView);
 
     let circuitActions = new CircuitActions(revision, overlayState);
+    // The toolbar and transport components act on these through the store, and show what they
+    // may do from the mirrored availability and playhead state.
+    appStore.setState({circuitActions, playhead});
+    circuitActions.availability().subscribe(circuitAvailability => appStore.setState({circuitAvailability}));
+    playhead.state().subscribe(playheadState => appStore.setState({playheadState}));
     initUrlCircuitSync(revision);
     initExports(revision, mostRecentStats, overlayState);
     initForge(revision, overlayState, () => simulator.cycleTime());
-    initUndoRedo(circuitActions);
-    initClear(circuitActions);
-    initTransport(playhead);
     initStateTable(playheadStats);
     mountGateToolbox({
         // Compared by content, not identity: every commit deserializes a fresh CustomGateSet, and
