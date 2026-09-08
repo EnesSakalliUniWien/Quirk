@@ -1,51 +1,22 @@
-/* A collapsible gate group: its heading doubles as the fold toggle, with a chevron that
-   reports the fold state, and its panel holds the tile list. */
+/* A gate group: a sticky heading that names it and the tile list under it. The heading is a
+   label, not a control - the groups do not fold, so orientation while scrolling is what the
+   heading has to provide. */
 @layer components {
+    /* Sticky inside the scrolling viewport, so the group a tile belongs to stays named while
+       the list scrolls past. The old fold spacing moves into the padding: a margin would leave
+       a transparent strip for tiles to scroll through while the heading is stuck. */
     .gate-group-label {
-        margin: 0 0 calc(var(--spacing) * 2);
-    }
-
-    .gate-group-toggle {
-        display: flex;
-        width: 100%;
-        align-items: center;
-        gap: calc(var(--spacing) * 1);
-        padding: 0;
-        background: transparent;
-        border: 0;
-        border-radius: 6px;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        margin: 0;
+        padding: calc(var(--spacing) * 1) 0 calc(var(--spacing) * 2);
         color: var(--sidebar-muted);
-        cursor: pointer;
+        background: var(--sidebar);
         font-size: var(--text-caption);
         font-weight: 650;
         letter-spacing: 0.08em;
-        text-align: left;
         text-transform: uppercase;
-    }
-
-    .gate-group-toggle:hover {
-        color: var(--sidebar-foreground);
-    }
-
-    .gate-group-toggle:focus-visible {
-        color: var(--sidebar-foreground);
-        outline: 3px solid var(--focus-outline);
-        outline-offset: 2px;
-    }
-
-    .gate-group-toggle::before {
-        content: '';
-        width: 7px;
-        height: 7px;
-        flex: 0 0 auto;
-        border-right: 1.5px solid currentColor;
-        border-bottom: 1.5px solid currentColor;
-        transform: rotate(45deg);
-        transition: transform 140ms ease;
-    }
-
-    .gate-group-toggle[aria-expanded="false"]::before {
-        transform: rotate(-45deg);
     }
 
     /* Named rows, the way a DAW browser lists devices: the name identifies, the glyph shows what
@@ -53,10 +24,5 @@
     .gate-group-tiles {
         display: grid;
         gap: 2px;
-    }
-
-    /* The display:grid above outranks the browser's [hidden] rule, so fold it back in. */
-    .gate-group-tiles[hidden] {
-        display: none;
     }
 }

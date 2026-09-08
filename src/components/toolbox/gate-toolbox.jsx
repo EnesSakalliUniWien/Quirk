@@ -6,7 +6,6 @@ import { createPortal, flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
 
 import { AtomIcon, BookOpenIcon, SearchIcon, BlocksIcon } from "lucide-react";
-import { Collapsible } from "@base-ui/react/collapsible";
 import { ScrollArea } from "@base-ui/react/scroll-area";
 import { Drawer } from "@base-ui/react/drawer";
 
@@ -23,8 +22,6 @@ import {
   chipPartsOf,
   listNameOf,
   searchTextOf,
-  loadCollapsedGroups,
-  storeCollapsedGroups,
 } from "./toolbox.js";
 
 /** Below this width the sidebar becomes an off-canvas drawer instead of squeezing the circuit. */
@@ -32,9 +29,11 @@ const COMPACT_MEDIA_QUERY = "(max-width: 920px)";
 
 /**
  * The gate palette, structured the way a shadcn sidebar is: a header holding the search, a
- * scrollable content region, and collapsible groups of menu buttons - except the buttons are
- * drag sources for the circuit, not navigation. The painted tooltips stay imperative: they are
- * drawn by the same painter the circuit uses.
+ * scrollable content region, and labelled groups of menu buttons - except the buttons are drag
+ * sources for the circuit, not navigation. The groups do not fold: 112 gates in one scroll
+ * region stay findable, and a fold remembered across sessions only hides gates from the user
+ * who forgot they closed it. Search is the way to narrow the list. The painted tooltips stay
+ * imperative: they are drawn by the same painter the circuit uses.
  */
 
 /**
@@ -225,7 +224,6 @@ const SidebarHeader = memo(function SidebarHeader() {
 function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace }) {
   const customGateSet = useObservedValue(obsCustomGateSet);
   const [query, setQuery] = useState("");
-  const [collapsed, setCollapsed] = useState(loadCollapsedGroups);
   const [stopKey, setStopKey] = useState(undefined);
   // Tile models live in state so taking the mystery gate can swap in a fresh random one.
   const [models, setModels] = useState(() => buildTileModels(customGateSet));
@@ -268,11 +266,7 @@ function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace }) {
       tileElements.current.set(key, element);
     }
   };
-  const visibleKeys = models
-    .filter(
-      (m) => matches(m) && (trimmedQuery !== "" || !collapsed.has(m.hint)),
-    )
-    .map((m) => m.key);
+  const visibleKeys = models.filter(matches).map((m) => m.key);
   const effectiveStop = visibleKeys.includes(stopKey)
     ? stopKey
     : visibleKeys[0];
@@ -335,19 +329,6 @@ function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace }) {
   // than a scroll and the pointerdown handler above sees it.
   const groupsRef = useRef(null);
 
-  const toggleGroup = (hint, open) => {
-    setCollapsed((current) => {
-      const next = new Set(current);
-      if (open) {
-        next.delete(hint);
-      } else {
-        next.add(hint);
-      }
-      storeCollapsedGroups(next);
-      return next;
-    });
-  };
-
   return (
     <aside className="gate-toolbox" data-slot="sidebar" aria-label="Gates">
       <SidebarHeader />
@@ -393,28 +374,19 @@ function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace }) {
               const groupModels = models.filter((m) => m.hint === hint);
               const groupShown = groupModels.some(matches);
               return (
-                <Collapsible.Root
+                <section
                   key={hint}
-                  open={trimmedQuery !== "" || !collapsed.has(hint)}
-                  onOpenChange={(open) => toggleGroup(hint, open)}
-                  render={
-                    <section
-                      className="gate-group"
-                      data-slot="sidebar-group"
-                      hidden={!groupShown}
-                    />
-                  }
+                  className="gate-group"
+                  data-slot="sidebar-group"
+                  hidden={!groupShown}
                 >
                   <h3
                     className="gate-group-label"
                     data-slot="sidebar-group-label"
                   >
-                    <Collapsible.Trigger className="gate-group-toggle">
-                      {hint}
-                    </Collapsible.Trigger>
+                    {hint}
                   </h3>
-                  <Collapsible.Panel
-                    keepMounted
+                  <div
                     className="gate-group-tiles"
                     data-slot="sidebar-group-content"
                   >
@@ -432,8 +404,8 @@ function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace }) {
                         registerTile={registerTile}
                       />
                     ))}
-                  </Collapsible.Panel>
-                </Collapsible.Root>
+                  </div>
+                </section>
               );
             })}
           </div>

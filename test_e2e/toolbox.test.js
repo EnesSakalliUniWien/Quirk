@@ -17,7 +17,7 @@
 // The gate toolbox: search, tooltips, and the responsive reflow.
 
 import assert from 'node:assert/strict';
-import {test, withQuirkPage, waitForQuirk, waitForCircuit, waitForDialog, currentCircuit, exportedCircuit, urlForCircuit, TEST_TIMEOUT_MILLIS, canvasLayout, assertCircuitLayout, waitForCanvasViewport} from './harness.js';
+import {test, withQuirkPage, waitForCircuit, waitForDialog, currentCircuit, exportedCircuit, urlForCircuit, TEST_TIMEOUT_MILLIS, canvasLayout, assertCircuitLayout, waitForCanvasViewport} from './harness.js';
 
 test('searches the gate toolbox and documents a gate on hover', async browser => {
     await withQuirkPage(browser, {cols: [['H']]}, async page => {
@@ -36,6 +36,15 @@ test('searches the gate toolbox and documents a gate on hover', async browser =>
         assert.ok(all.tiles.length > 90, `The toolbox must hold every gate, saw ${all.tiles.length}.`);
         assert.ok(all.tiles.includes('Hadamard Gate'));
         assert.equal(all.emptyShown, false);
+
+        // The group headings name a group, they never hide one: no fold control, and no tile
+        // list left hidden by a fold remembered from an earlier session.
+        const headings = await page.evaluate(() => ({
+            controls: document.querySelectorAll('.gate-group-label button').length,
+            hiddenLists: [...document.querySelectorAll('.gate-group-tiles')].
+                filter(list => list.hidden || getComputedStyle(list).display === 'none').length
+        }));
+        assert.deepEqual(headings, {controls: 0, hiddenLists: 0});
 
         await page.click('#gate-search');
         await page.keyboard.type('qft');
@@ -146,34 +155,5 @@ test('keeps the gate toolbox beside the circuit until the viewport is too narrow
         await page.waitForFunction(
             () => document.querySelector('.gate-toolbox') === null,
             {timeout: TEST_TIMEOUT_MILLIS});
-    });
-});
-
-test('folds toolbox groups shut and remembers the folding across reloads', async browser => {
-    await withQuirkPage(browser, {cols: [['H']]}, async page => {
-        const groupState = () => page.evaluate(() => ({
-            expanded: document.querySelector('.gate-group-toggle').getAttribute('aria-expanded'),
-            hidden: document.querySelector('.gate-group-tiles').hidden
-        }));
-        assert.deepEqual(await groupState(), {expanded: 'true', hidden: false});
-
-        await page.click('.gate-group-toggle');
-        assert.deepEqual(await groupState(), {expanded: 'false', hidden: true});
-
-        // A search overrides the folding, so matches are always visible.
-        await page.click('#gate-search');
-        await page.keyboard.type('measure');
-        await page.waitForFunction(
-            () => !document.querySelector('.gate-group-tiles').hidden,
-            {timeout: TEST_TIMEOUT_MILLIS});
-        await page.keyboard.press('Escape');
-        await page.waitForFunction(
-            () => document.querySelector('.gate-group-tiles').hidden,
-            {timeout: TEST_TIMEOUT_MILLIS});
-
-        // The folding is remembered per browser.
-        await page.reload();
-        await waitForQuirk(page);
-        assert.deepEqual(await groupState(), {expanded: 'false', hidden: true});
     });
 });

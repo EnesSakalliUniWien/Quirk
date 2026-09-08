@@ -26,36 +26,6 @@ const TOOLTIP_MEASURING_AREA = new Rect(0, 0, 500, 300);
 /** Pixels kept between the tooltip and the edge of the window. */
 const TOOLTIP_MARGIN = 8;
 
-const COLLAPSED_GROUPS_STORAGE_KEY = "toolbox-collapsed-groups";
-
-/**
- * @returns {!Set.<!string>} Hints of the groups the user has folded shut.
- */
-function loadCollapsedGroups() {
-  try {
-    let parsed = JSON.parse(
-      window.localStorage.getItem(COLLAPSED_GROUPS_STORAGE_KEY) || "[]",
-    );
-    return new Set(Array.isArray(parsed) ? parsed : []);
-  } catch {
-    return new Set();
-  }
-}
-
-/**
- * @param {!Set.<!string>} collapsed
- */
-function storeCollapsedGroups(collapsed) {
-  try {
-    window.localStorage.setItem(
-      COLLAPSED_GROUPS_STORAGE_KEY,
-      JSON.stringify([...collapsed]),
-    );
-  } catch {
-    // A blocked storage just means the folding does not survive a reload.
-  }
-}
-
 /**
  * @returns {!number}
  * @private
@@ -188,11 +158,4 @@ function searchTextOf(gate, groupHint) {
   return `${gate.name} ${gate.listName} ${gate.symbol} ${gate.serializedId} ${groupHint}`.toLowerCase();
 }
 
-export {
-  GateTooltip,
-  chipPartsOf,
-  listNameOf,
-  searchTextOf,
-  loadCollapsedGroups,
-  storeCollapsedGroups,
-};
+export { GateTooltip, chipPartsOf, listNameOf, searchTextOf };

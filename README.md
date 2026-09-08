@@ -5,7 +5,7 @@
 Shadow-Quant is a toy quantum circuit simulator, intended to help people in learning about quantum
 computing. It is a fork of Craig Gidney's [Quirk](https://github.com/Strilanc/Quirk)
 ([algassert.com/quirk](http://algassert.com/quirk)), rebuilt around a modern app shell: a gate
-sidebar with search, folding, and the circuit actions, a playhead transport docked with the state
+sidebar with search and the circuit actions, a playhead transport docked with the state
 table, circuit zoom with an overview minimap, adjustable Rx/Ry/Rz rotation gates, and floating
 dialog windows — including an enlarged rotatable Bloch sphere view — that drag and snap to the
 screen edges while the circuit stays editable.
