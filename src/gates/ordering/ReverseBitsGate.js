@@ -17,7 +17,6 @@
 import {Simulation} from "../../config/Simulation.js"
 import {Gate} from "../../circuit/model/Gate.js"
 import {ketArgs, ketShaderPermute} from "../../engine/simulation/gpu/KetShaderUtil.js"
-import {Seq} from "../../base/Seq.js"
 
 let _generateReverseShaderForSize = span => span < 2 ? undefined : ketShaderPermute(
     '',
@@ -32,7 +31,9 @@ let _generateReverseShaderForSize = span => span < 2 ? undefined : ketShaderPerm
     `,
     span);
 
-let reverseShaders = Seq.range(Simulation.MAX_WIRE_COUNT + 1).map(_generateReverseShaderForSize).toArray();
+let reverseShaders = Array.from(
+    {length: Simulation.MAX_WIRE_COUNT + 1},
+    (_, i) => _generateReverseShaderForSize(i));
 
 /**
  * @param {!int} span

@@ -20,7 +20,6 @@ import {Matrix} from "../../../../src/engine/math/matrix/Matrix.js"
 import {Complex} from "../../../../src/engine/math/complex/Complex.js"
 import {Controls} from "../../../../src/circuit/model/Controls.js"
 import {Format} from "../../../../src/base/Format.js"
-import {Seq} from "../../../../src/base/Seq.js"
 import {tensorProduct} from "../../../MatrixTestUtil.js"
 import {QubitMatrix} from "../../../../src/engine/math/matrix/QubitMatrix.js"
 

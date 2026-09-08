@@ -19,7 +19,6 @@ import { ComplexFormula } from "../formula/ComplexFormula.js";
 import { ReadableJson } from "./ReadableJson.js";
 import { DetailedError } from "../../../base/DetailedError.js";
 import { Format } from "../../../base/Format.js";
-import { seq, Seq } from "../../../base/Seq.js";
 import { Util } from "../../../base/Util.js";
 
 /**
@@ -88,19 +87,15 @@ class Matrix {
    * @returns {*}
    */
   toReadableJson() {
-    return seq(this.rows()).map(ReadableJson.complexVector).toArray();
+    return this.rows().map((e) => ReadableJson.complexVector(e));
   }
   /**
    * @returns {!Array.<!Array.<Complex>>}
    */
   rows() {
-    return Seq.range(this._height)
-      .map((row) =>
-        Seq.range(this._width)
-          .map((col) => this.cell(col, row))
-          .toArray(),
-      )
-      .toArray();
+    return Array.from({ length: this._height }, (_, row) =>
+      Array.from({ length: this._width }, (_, col) => this.cell(col, row)),
+    );
   }
 
   /**
@@ -114,12 +109,9 @@ class Matrix {
     );
     Util.need(rows.length > 0, "non-zero height", arguments);
 
-    let seqRows = seq(rows);
     let h = rows.length;
-    let w = seqRows
-      .map((e) => e.length)
-      .distinct()
-      .single(null);
+    let widths = new Set(rows.map((e) => e.length));
+    let w = widths.size === 1 ? [...widths][0] : null;
     if (w === null) {
       throw new DetailedError("Inconsistent row widths.", { rows });
     }
@@ -155,9 +147,7 @@ class Matrix {
     return (
       this._width === other._width &&
       this._height === other._height &&
-      Seq.range(this._buffer.length).every(
-        (i) => this._buffer[i] === other._buffer[i],
-      )
+      this._buffer.every((e, i) => e === other._buffer[i])
     );
   }
 
@@ -367,9 +357,7 @@ class Matrix {
     }
 
     // Phased permutations have at most one entry in each row and column.
-    return seq(colCounts)
-      .concat(rowCounts)
-      .every((e) => e <= 1);
+    return [...colCounts, ...rowCounts].every((e) => e <= 1);
   }
 
   /**

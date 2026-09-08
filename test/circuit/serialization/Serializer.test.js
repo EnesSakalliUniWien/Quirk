@@ -27,7 +27,6 @@ import {GateColumn} from "../../../src/circuit/model/GateColumn.js"
 import {Gates} from "../../../src/gates/AllGates.js"
 import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
 import {MysteryGateMaker} from "../../../src/gates/misc/Joke_MysteryGate.js"
-import {seq} from "../../../src/base/Seq.js"
 import {Util} from "../../../src/base/Util.js"
 
 let suite = new Suite("Serializer");
@@ -306,12 +305,10 @@ suite.test("parse_nested_circuits", () => {
 });
 
 suite.test("known_gates_toolbox", () => {
-    let allToolboxGates = seq(Gates.TopToolboxGroups).
-        concat(Gates.BottomToolboxGroups).
+    let allToolboxGates = [...Gates.TopToolboxGroups, ...Gates.BottomToolboxGroups].
         flatMap(e => e.gates).
         filter(e => e !== undefined).
-        flatMap(e => e.gateFamily).
-        toArray();
+        flatMap(e => e.gateFamily);
 
     let knownIds = new Set(Gates.KnownToSerializer.map(e => e.serializedId));
     knownIds.add(MysteryGateMaker().serializedId);

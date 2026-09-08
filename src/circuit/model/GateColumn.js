@@ -18,7 +18,6 @@ import {DetailedError} from "../../base/DetailedError.js"
 import {Gate} from "./Gate.js"
 import {GateCheckArgs} from "./GateCheckArgs.js"
 import {Gates} from "../../gates/AllGates.js"
-import {seq, Seq} from "../../base/Seq.js"
 import {Util} from "../../base/Util.js"
 
 /**
@@ -46,7 +45,8 @@ class GateColumn {
             return true;
         }
         return other instanceof GateColumn &&
-            seq(this.gates).isEqualTo(seq(other.gates), Util.STRICT_EQUALITY);
+            this.gates.length === other.gates.length &&
+            this.gates.every((e, i) => Util.STRICT_EQUALITY(e, other.gates[i]));
     }
 
     /**

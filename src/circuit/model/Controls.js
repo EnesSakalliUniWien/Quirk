@@ -79,17 +79,19 @@ class Controls {
             return "No Controls";
         }
 
-        let range = Seq.naturals().takeWhile(i => (1<<i) <= (this.inclusionMask | this.parityMask));
+        let range = Seq.naturals().
+            takeWhile(i => (1<<i) <= (this.inclusionMask | this.parityMask)).
+            toArray();
         let result = "Controls: ...__" + range.
             map(e => this.desiredValueFor(e)).
             map(e => e === undefined ? "_" : e ? "1" : "0").
-            reverse().
+            toReversed().
             join("");
         if (this.parityMask !== 0) {
             result += "\n  parity: ...__" + range.
                 map(e => this.parityMask & (1 << e)).
                 map(e => e ? "1" : "_").
-                reverse().
+                toReversed().
                 join("")
         }
         return result;

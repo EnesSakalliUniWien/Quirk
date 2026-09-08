@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { seq } from "../../../base/Seq.js";
 import { Complex } from "../complex/Complex.js";
 
 /**
@@ -26,11 +25,10 @@ class ReadableJson {
    * @returns {!Array.<!{r: !number, i: !number}>}
    */
   static complexVector(vector) {
-    return seq(vector)
-      .map((e) => {
-        return { r: Complex.realPartOf(e), i: Complex.imagPartOf(e) };
-      })
-      .toArray();
+    return [...vector].map((e) => ({
+      r: Complex.realPartOf(e),
+      i: Complex.imagPartOf(e),
+    }));
   }
 
   /**
@@ -38,7 +36,7 @@ class ReadableJson {
    * @returns {!Array.<!number>}
    */
   static realVector(vector) {
-    return seq(vector).map(Complex.realPartOf).toArray();
+    return [...vector].map((e) => Complex.realPartOf(e));
   }
 }
 

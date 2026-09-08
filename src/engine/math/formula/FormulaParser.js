@@ -141,7 +141,9 @@ class FormulaParser {
    * @private
    */
   static _tokenize(text) {
-    let tokens = seq(text.toLowerCase().split(/\s/))
+    let tokens = text
+      .toLowerCase()
+      .split(/\s/)
       .flatMap((part) =>
         seq(part)
           .segmentBy((e) => {
@@ -156,10 +158,10 @@ class FormulaParser {
             }
             return NaN; // Always split.
           })
+          .toArray()
           .map((e) => e.join("")),
       )
-      .filter((e) => e.trim() !== "")
-      .toArray();
+      .filter((e) => e.trim() !== "");
 
     return FormulaParser._mergeScientificFloatTokens(tokens);
   }

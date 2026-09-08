@@ -24,7 +24,6 @@ import {ketArgs, ketShaderPermute} from '../../engine/simulation/gpu/KetShaderUt
 import {paintBackground, paintOutline, paintResizeTab} from '../../draw/gate/GateFrame.js';
 import {PERMUTATION_DRAWER} from './PermutationDrawer.js';
 import {Point} from '../../geometry/Point.js';
-import {Seq} from '../../base/Seq.js';
 
 let InterleaveBitsGates = {};
 
@@ -80,16 +79,16 @@ function shaderFromBitPermutation(span, bitPermutation) {
 /**
  * @type {!Map.<!int, !{withArgs: !function(args: ...!WglArg|!WglTexture) : !WglConfiguredShader}>}
  */
-let _interleaveShadersForSize = Seq.range(Simulation.MAX_WIRE_COUNT + 1).
-    skip(2).
-    toMap(k => k, k => shaderFromBitPermutation(k, interleaveBit));
+let _interleaveShadersForSize = new Map(
+    Array.from({length: Simulation.MAX_WIRE_COUNT - 1}, (_, i) => i + 2).
+        map(k => [k, shaderFromBitPermutation(k, interleaveBit)]));
 
 /**
  * @type {!Map.<!int, !{withArgs: !function(args: ...!WglArg|!WglTexture) : !WglConfiguredShader}>}
  */
-let _deinterleaveShadersForSize = Seq.range(Simulation.MAX_WIRE_COUNT + 1).
-    skip(2).
-    toMap(k => k, k => shaderFromBitPermutation(k, deinterleaveBit));
+let _deinterleaveShadersForSize = new Map(
+    Array.from({length: Simulation.MAX_WIRE_COUNT - 1}, (_, i) => i + 2).
+        map(k => [k, shaderFromBitPermutation(k, deinterleaveBit)]));
 
 let interleavePainter = reverse => args => {
     if (args.positionInCircuit !== undefined) {

@@ -22,7 +22,6 @@ import {GateColumn} from "../../../src/circuit/model/GateColumn.js"
 import {Gates} from "../../../src/gates/AllGates.js"
 import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
 import {Serializer} from "../../../src/circuit/serialization/Serializer.js"
-import {seq, Seq} from "../../../src/base/Seq.js"
 import {QubitMatrix} from "../../../src/engine/math/matrix/QubitMatrix.js"
 
 let suite = new Suite("CircuitStats");
@@ -74,12 +73,10 @@ function tryGateSequence(gates, maxHeight) {
 
 // Try known gates, but in separate tests to avoid blowing the per-test time limit warning.
 let knownGateStripes = 32;
-for (let knownGateOffset of Seq.range(knownGateStripes)) {
+for (let knownGateOffset = 0; knownGateOffset < knownGateStripes; knownGateOffset++) {
     suite.testUsingWebGL(`try-known-gates-in-sequence-${knownGateOffset+1}-of-${knownGateStripes}`, () => {
-        let stripe = seq(Gates.KnownToSerializer).
-            skip(knownGateOffset).
-            stride(knownGateStripes).
-            toArray();
+        let stripe = Gates.KnownToSerializer.
+            filter((_, i) => i >= knownGateOffset && (i - knownGateOffset) % knownGateStripes === 0);
         tryGateSequence(stripe, 5);
     });
 }

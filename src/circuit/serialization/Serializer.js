@@ -28,7 +28,6 @@ import {Matrix} from "../../engine/math/matrix/Matrix.js"
 import {Util} from "../../base/Util.js"
 import {reportRecoveredError} from "../../diagnostics/errorReporter.js"
 import {MysteryGateSymbol, MysteryGateMakerWithMatrix} from "../../gates/misc/Joke_MysteryGate.js"
-import {seq} from "../../base/Seq.js"
 import {setGateBuilderEffectToCircuit} from "../../engine/simulation/CircuitComputeUtil.js"
 import {GatePainting} from "../../draw/gate/GatePainting.js"
 import {drawCustomGateCircuit} from "../../draw/gate/CustomGateCircuitDrawer.js"
@@ -351,14 +350,21 @@ let toJson_CircuitDefinition = (v, context) => {
     let result = {
         cols: v.trimEmptyColumnsAtEndIgnoringGateWidths().columns.
             map(e => toJson_GateColumn(e, context || v.customGateSet)).
-            map(c => seq(c).skipTailWhile(e => e === 1).toArray())
+            map(c => {
+                // Trailing 1s are the default gate weight, so the JSON leaves them out.
+                let end = c.length;
+                while (end > 0 && c[end - 1] === 1) {
+                    end -= 1;
+                }
+                return c.slice(0, end);
+            })
     };
     if (context === undefined && v.customGateSet.gates.length > 0) {
         result.gates = toJson_CustomGateSet(v.customGateSet);
     }
     if (v.customInitialValues.size > 0) {
         result.init = [];
-        let maxInit = seq(v.customInitialValues.keys()).max();
+        let maxInit = Math.max(...v.customInitialValues.keys());
         for (let i = 0; i <= maxInit; i++) {
             let s = v.customInitialValues.get(i);
             result.init.push(

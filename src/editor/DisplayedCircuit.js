@@ -163,13 +163,6 @@ class DisplayedCircuit {
     }
 
     /**
-     * @returns {!boolean}
-     */
-    isBeingEdited() {
-        return this._extraWireStartIndex !== undefined;
-    }
-
-    /**
      * @param {!boolean=true} forTooltip
      * @returns {!number}
      */
@@ -328,8 +321,8 @@ class DisplayedCircuit {
         };
         let isOverGateResizeTab = pos => isNotCoveredAt(pos) && resizeTabRect.containsPoint(pos);
 
-        let isResizeHighlighted = gate.canChangeInSize() && seq(focusPosPts).any(isOverGateResizeTab);
-        let isHighlighted = !isResizeHighlighted && seq(focusPosPts).any(isOverGate);
+        let isResizeHighlighted = gate.canChangeInSize() && focusPosPts.some(isOverGateResizeTab);
+        let isHighlighted = !isResizeHighlighted && focusPosPts.some(isOverGate);
         let isResizeShowing = gate.canChangeInSize() && (isResizeHighlighted || isHighlighted);
 
         return {isHighlighted, isResizeShowing, isResizeHighlighted};
@@ -512,10 +505,11 @@ class DisplayedCircuit {
             }
             return p[1];
         });
-        let circuitDiagramSubset = seq(lines).
-            skip(1).
-            stride(2).
-            map(line => seq(line).skip(1).stride(2).join("")).
+        // The diagram interleaves content rows and columns with spacer ones; keep the odd indices.
+        let odd = (_, i) => i % 2 === 1;
+        let circuitDiagramSubset = lines.
+            filter(odd).
+            map(line => [...line].filter(odd).join("")).
             join('\n');
         let top = 10;
         let circuit = new DisplayedCircuit(
@@ -526,9 +520,11 @@ class DisplayedCircuit {
             undefined);
         let pts = Seq.naturals().
             takeWhile(k => diagramText.indexOf(k) !== -1).
+            toArray().
             map(k => {
-                let pos = seq(lines).mapWithIndex((line, row) => ({row, col: line.indexOf(k)})).
-                    filter(e => e.col !== -1).
+                let pos = seq(lines.
+                    map((line, row) => ({row, col: line.indexOf(k)})).
+                    filter(e => e.col !== -1)).
                     single();
                 if (lines[pos.row][pos.col + 1] === '^') {
                     pos.row -= 1;
@@ -538,7 +534,7 @@ class DisplayedCircuit {
                     pos.col * Layout.COLUMN_SPACING / 2 + CIRCUIT_OP_LEFT_SPACING +
                         Layout.GATE_RADIUS - Layout.COLUMN_SPACING / 2 + Layout.UNIT * 0.2 + 0.5,
                     pos.row * Layout.WIRE_SPACING / 2 + 10.5);
-            }).toArray();
+            });
         return {circuit, pts};
     }
 }

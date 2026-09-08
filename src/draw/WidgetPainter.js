@@ -27,7 +27,6 @@ import { MathPainter } from "./MathPainter.js";
 
 import { Point } from "../geometry/Point.js";
 import { Rect } from "../geometry/Rect.js";
-import { Seq } from "../base/Seq.js";
 import { drawCircuitTooltip } from "../editor/DisplayedCircuit.js";
 import { Util } from "../base/Util.js";
 import { QubitMatrix } from "../engine/math/matrix/QubitMatrix.js";
@@ -42,44 +41,40 @@ class WidgetPainter {
   static describeGateTransformations(matrix, format) {
     let n = matrix.height();
     let b = Math.round(Math.log2(n));
-    return Seq.range(n)
-      .map((c) => {
-        let inputDescription = WidgetPainter.describeKet(
-          b,
-          c,
-          1,
-          Format.SIMPLIFIED,
-        );
-        let col = matrix.getColumn(c);
-        if (col.every((e) => e.isEqualTo(0))) {
-          return "discards " + inputDescription;
-        } else if (
-          Seq.range(n).every((r) => col[r].isEqualTo(r === c ? 1 : 0))
-        ) {
-          if (format !== Format.CONSISTENT) {
-            return "doesn't affect " + inputDescription;
-          }
-        } else if (Seq.range(n).every((r) => r === c || col[r].isEqualTo(0))) {
-          let degs = (col[c].ln().imag * 180) / Math.PI;
-          return (
-            "phases " +
-            inputDescription +
-            " by " +
-            format.formatFloat(degs) +
-            "°"
-          );
+    return Array.from({ length: n }, (_, c) => {
+      let inputDescription = WidgetPainter.describeKet(
+        b,
+        c,
+        1,
+        Format.SIMPLIFIED,
+      );
+      let col = matrix.getColumn(c);
+      if (col.every((e) => e.isEqualTo(0))) {
+        return "discards " + inputDescription;
+      } else if (col.every((e, r) => e.isEqualTo(r === c ? 1 : 0))) {
+        if (format !== Format.CONSISTENT) {
+          return "doesn't affect " + inputDescription;
         }
-        let outputDescription = new Seq(col)
-          .mapWithIndex((e, c) => WidgetPainter.describeKet(b, c, e, format))
-          .filter((e) => e !== "")
-          .join(" + ")
-          .split(" + -")
-          .join(" - ")
-          .split(" + +")
-          .join(" + ");
-        return "transforms " + inputDescription + " into " + outputDescription;
-      })
-      .toArray();
+      } else if (col.every((e, r) => r === c || e.isEqualTo(0))) {
+        let degs = (col[c].ln().imag * 180) / Math.PI;
+        return (
+          "phases " +
+          inputDescription +
+          " by " +
+          format.formatFloat(degs) +
+          "°"
+        );
+      }
+      let outputDescription = col
+        .map((e, c) => WidgetPainter.describeKet(b, c, e, format))
+        .filter((e) => e !== "")
+        .join(" + ")
+        .split(" + -")
+        .join(" - ")
+        .split(" + +")
+        .join(" + ");
+      return "transforms " + inputDescription + " into " + outputDescription;
+    });
   }
 
   /**
@@ -208,13 +203,13 @@ class WidgetPainter {
 
     let format =
       gate.stableDuration() < 0.2 ? Format.CONSISTENT : Format.SIMPLIFIED;
-    let rotDesc = new Seq([
+    let rotDesc = [
       `rotates: ${format.formatFloat((angle * 180) / Math.PI)}°`,
       `around: ${WidgetPainter.describeAxis(axis, format)}`,
       "",
       `global phase: exp(${format.formatFloat((phase * 180) / Math.PI)}°i)`,
       "",
-    ]).join("\n");
+    ].join("\n");
     pushRect(
       fitParagraph(
         painter,
@@ -432,10 +427,11 @@ class WidgetPainter {
    * @returns {!string}
    */
   static describeAxis(unitAxis, format) {
-    let max = new Seq(unitAxis).map(Math.abs).max();
-    return new Seq(unitAxis)
+    let max = Math.max(...unitAxis.map((e) => Math.abs(e)));
+    return unitAxis
       .map((e) => e / max)
-      .zip(["X", "Y", "Z"], (val, name) => {
+      .map((val, i) => {
+        let name = ["X", "Y", "Z"][i];
         if (val === 0) {
           return "";
         }

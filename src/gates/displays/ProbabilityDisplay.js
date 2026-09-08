@@ -24,7 +24,6 @@ import { GateShaders } from "../../engine/simulation/gpu/GateShaders.js";
 import { MathPainter } from "../../draw/MathPainter.js";
 import { Matrix } from "../../engine/math/matrix/Matrix.js";
 
-import { Seq } from "../../base/Seq.js";
 import { Shaders } from "../../engine/webgl/shader/Shaders.js";
 
 import { WglConfiguredShader } from "../../engine/webgl/shader/WglConfiguredShader.js";
@@ -123,9 +122,9 @@ function probabilityPixelsToColumnVector(pixels, span) {
  */
 function probabilityDataToJson(data) {
   return {
-    probabilities: Seq.range(data.height())
-      .map((k) => Complex.realPartOf(data.cell(0, k)))
-      .toArray(),
+    probabilities: Array.from({ length: data.height() }, (_, k) =>
+      Complex.realPartOf(data.cell(0, k)),
+    ),
   };
 }
 

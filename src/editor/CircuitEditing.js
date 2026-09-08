@@ -58,7 +58,7 @@ function previewDropMovedRow(circuit, hand) {
         return circuit;
     }
 
-    let heldRowHeight = seq(hand.heldRow.gates).map(g => g === undefined ? 1 : g.height).max(1);
+    let heldRowHeight = Math.max(1, ...hand.heldRow.gates.map(g => g === undefined ? 1 : g.height));
     handWire = Math.min(handWire, circuit.circuitDefinition.numWires - heldRowHeight);
 
     let newCols = [];
@@ -69,9 +69,9 @@ function previewDropMovedRow(circuit, hand) {
         newCols.push(new GateColumn(gates));
     }
 
-    let newInitialStates = seq(circuit.circuitDefinition.customInitialValues.entries()).
-        map(([k, v]) => [k + (k >= handWire ? 1 : 0), v]).
-        toMap(([k, _]) => k, ([_, v]) => v);
+    let newInitialStates = new Map(
+        [...circuit.circuitDefinition.customInitialValues.entries()].
+            map(([k, v]) => [k + (k >= handWire ? 1 : 0), v]));
     if (hand.heldRow.initialState !== undefined) {
         newInitialStates.set(handWire, hand.heldRow.initialState);
     }
@@ -170,12 +170,19 @@ function previewDropMovedGate(circuit, hand) {
     let i = modificationPoint.col;
     let isInserting = modificationPoint.isInsert;
     let row = Math.min(modificationPoint.row, Math.max(0, Simulation.MAX_WIRE_COUNT - addedGate.height));
-    let newCols = seq(circuit.circuitDefinition.columns).
-        padded(i, emptyCol).
-        ifThen(isInserting, s => s.withInsertedItem(i, emptyCol)).
-        padded(i + addedGate.width, emptyCol).
-        withTransformedItem(i, c => c.withGatesAdded(row, new GateColumn([addedGate]))).
-        toArray();
+    // Pad out to the drop column, open a slot if this is an insert, then pad out far enough
+    // for the gate's full width before folding it into the column it lands on.
+    let newCols = [...circuit.circuitDefinition.columns];
+    while (newCols.length < i) {
+        newCols.push(emptyCol);
+    }
+    if (isInserting) {
+        newCols.splice(i, 0, emptyCol);
+    }
+    while (newCols.length < i + addedGate.width) {
+        newCols.push(emptyCol);
+    }
+    newCols[i] = newCols[i].withGatesAdded(row, new GateColumn([addedGate]));
     let newWireCount = Math.max(
         circuit.geometry().extraWireStartIndex || 0,
         Math.max(
@@ -213,12 +220,11 @@ function previewResizedGate(circuit, hand) {
     let newGate = seq(gate.gateFamily).minBy(g => Math.abs(g.height - (row - hand.resizingGateSlot.y + 1)));
     let newWireCount = Math.min(Simulation.MAX_WIRE_COUNT,
         Math.max(circuit.circuitDefinition.numWires, newGate.height + hand.resizingGateSlot.y));
-    let newCols = seq(circuit.circuitDefinition.columns).
-        withTransformedItem(hand.resizingGateSlot.x,
-            colObj => new GateColumn(seq(colObj.gates).
-                withOverlayedItem(hand.resizingGateSlot.y, newGate).
-                toArray())).
-        toArray();
+    let resizedColumn = new GateColumn(
+        circuit.circuitDefinition.columns[hand.resizingGateSlot.x].gates.
+            with(hand.resizingGateSlot.y, newGate));
+    let newCols = circuit.circuitDefinition.columns.
+        with(hand.resizingGateSlot.x, resizedColumn);
 
     let newCircuitWithoutOverlapFix = circuit.circuitDefinition.withColumns(newCols).withWireCount(newWireCount);
     let newCircuitWithOverlapFix = newCircuitWithoutOverlapFix.withHeightOverlapsFixed();
@@ -372,10 +378,10 @@ function cutRow(circuit, row) {
         col_gates.push(undefined);
         cols.push(new GateColumn(col_gates));
     }
-    let newInitialStates = seq(circuit.circuitDefinition.customInitialValues.entries()).
-        filter(([k, _]) => k !== row).
-        map(([k, v]) => [k - (k > row ? 1 : 0), v]).
-        toMap(([k, _]) => k, ([_, v]) => v);
+    let newInitialStates = new Map(
+        [...circuit.circuitDefinition.customInitialValues.entries()].
+            filter(([k, _]) => k !== row).
+            map(([k, v]) => [k - (k > row ? 1 : 0), v]));
     return {
         newCircuit: circuit.circuitDefinition.withColumns(cols).withInitialStates(newInitialStates),
         rowGates: row_gates,
@@ -406,14 +412,13 @@ function tryGrabGate(circuit, hand, duplicate, alt) {
         gate = gate.alternate;
     }
 
-    let remainingGates = seq(circuit.circuitDefinition.columns[col].gates).toArray();
+    let remainingGates = [...circuit.circuitDefinition.columns[col].gates];
     if (!duplicate) {
         remainingGates[row] = undefined;
     }
 
-    let newCols = seq(circuit.circuitDefinition.columns).
-        withOverlayedItem(col, new GateColumn(remainingGates)).
-        toArray();
+    let newCols = circuit.circuitDefinition.columns.
+        with(col, new GateColumn(remainingGates));
     return {
         newCircuit: new DisplayedCircuit(
             circuit.top,

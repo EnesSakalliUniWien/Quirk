@@ -23,7 +23,6 @@ import {Format} from '../../base/Format.js';
 import {GateBuilder} from '../../circuit/model/Gate.js';
 import {GateColumn} from '../../circuit/model/GateColumn.js';
 import {Matrix} from '../../engine/math/matrix/Matrix.js';
-import {seq} from '../../base/Seq.js';
 import {Util} from '../../base/Util.js';
 import {MatrixDecomposition} from '../../engine/math/matrix/MatrixDecomposition.js';
 import {QubitMatrix} from '../../engine/math/matrix/QubitMatrix.js';
@@ -185,11 +184,10 @@ function removeBrokenGates(circuit) {
     let w = circuit.columns.length;
     let h = circuit.numWires;
     return circuit.withColumns(
-        seq(circuit.columns).mapWithIndex(
-            (col, c) => new GateColumn(seq(col.gates).mapWithIndex(
+        circuit.columns.map(
+            (col, c) => new GateColumn(col.gates.map(
                 (gate, r) => gate === undefined || c + gate.width > w || r + gate.height > h ? undefined : gate
-            ).toArray())
-        ).toArray());
+            ))));
 }
 
 /**

@@ -21,7 +21,6 @@ import { GateBuilder } from "../../circuit/model/Gate.js";
 import { GatePainting } from "../../draw/gate/GatePainting.js";
 import { Matrix } from "../../engine/math/matrix/Matrix.js";
 import { Rect } from "../../geometry/Rect.js";
-import { Seq } from "../../base/Seq.js";
 
 // Note: there is special code to handle swaps sprinkled everywhere, since it's the only gate with two paired sides.
 
@@ -59,10 +58,11 @@ let SwapGateHalf = new GateBuilder()
   })
   .setExtraDisableReasonFinder((args) => {
     let col = args.innerColumn;
-    let swapRows = Seq.range(col.gates.length).filter(
-      (row) => col.gates[row] === SwapGateHalf,
-    );
-    let n = swapRows.count();
+    let swapRows = Array.from(
+      { length: col.gates.length },
+      (_, row) => row,
+    ).filter((row) => col.gates[row] === SwapGateHalf);
+    let n = swapRows.length;
     if (n === 1) {
       return "need\nother\nswap";
     }
@@ -70,10 +70,10 @@ let SwapGateHalf = new GateBuilder()
       return "too\nmany\nswap";
     }
 
-    let affectsMeasured = swapRows.any(
+    let affectsMeasured = swapRows.some(
       (r) => (args.measuredMask & (1 << r)) !== 0,
     );
-    let affectsUnmeasured = swapRows.any(
+    let affectsUnmeasured = swapRows.some(
       (r) => (args.measuredMask & (1 << r)) === 0,
     );
     if (affectsMeasured && col.hasCoherentControl(args.measuredMask)) {

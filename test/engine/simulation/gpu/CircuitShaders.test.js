@@ -19,7 +19,6 @@ import {assertThatCircuitShaderActsLikeMatrix} from "../../../CircuitOperationTe
 import {CircuitShaders} from "../../../../src/engine/simulation/gpu/CircuitShaders.js"
 
 import {Controls} from "../../../../src/circuit/model/Controls.js"
-import {Seq} from "../../../../src/base/Seq.js"
 import {Shaders} from "../../../../src/engine/webgl/shader/Shaders.js"
 import {Matrix} from "../../../../src/engine/math/matrix/Matrix.js"
 import {Outputs, makePseudoShaderWithInputsAndOutputAndCode} from "../../../../src/engine/webgl/coder/ShaderCoders.js"
@@ -37,8 +36,8 @@ suite.testUsingWebGL("classicalState", () => {
 });
 
 suite.testUsingWebGL("linearOverlay", () => {
-    let fore = Shaders.vec4Data(new Float32Array(Seq.range(2*2*4).map(e => e + 900).toArray())).toVec4Texture(2);
-    let back = Shaders.vec4Data(new Float32Array(Seq.range(4*4*4).map(e => -e).toArray())).toVec4Texture(4);
+    let fore = Shaders.vec4Data(Float32Array.from({length: 2*2*4}, (_, e) => e + 900)).toVec4Texture(2);
+    let back = Shaders.vec4Data(Float32Array.from({length: 4*4*4}, (_, e) => -e)).toVec4Texture(4);
 
     assertThat(CircuitShaders.linearOverlay(0, fore, back).readVec4Outputs(4)).isEqualTo(new Float32Array([
         900, 901, 902, 903, 904, 905, 906, 907, 908, 909, 910, 911, 912, 913, 914, 915,
@@ -110,9 +109,7 @@ suite.testUsingWebGL("controlMask", () => {
 
 suite.testUsingWebGL("controlMask_largeReference", () => {
     let mask = new Controls(0b10111010101010111, 0b10011000001010001);
-    let expected = new Uint8Array(Seq.range(1 << 13).
-        map(i => mask.allowsState(i) ? 1 : 0).
-        toArray());
+    let expected = Uint8Array.from({length: 1 << 13}, (_, i) => mask.allowsState(i) ? 1 : 0);
     assertThat(CircuitShaders.controlMask(mask).readBoolOutputs(13)).isEqualTo(expected);
 });
 

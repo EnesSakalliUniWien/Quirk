@@ -15,7 +15,6 @@
  */
 
 import { DetailedError } from "../../../base/DetailedError.js";
-import { Seq } from "../../../base/Seq.js";
 import { Matrix } from "./Matrix.js";
 
 /**
@@ -284,9 +283,15 @@ class MatrixDecomposition {
 
     // Fix ordering, so that the singular values are ascending.
     let sBuf = S.rawBuffer();
-    let permutation = Seq.range(n)
-      .sortedBy((i) => -S.cell(i, i).norm2())
-      .toArray();
+    let singularity = (i) => -S.cell(i, i).norm2();
+    let permutation = Array.from({ length: n }, (_, i) => i).toSorted(
+      (a, b) =>
+        singularity(a) < singularity(b)
+          ? -1
+          : singularity(a) > singularity(b)
+            ? 1
+            : 0,
+    );
     for (let i = 0; i < n; i++) {
       let j = permutation.indexOf(i);
       if (i !== j) {

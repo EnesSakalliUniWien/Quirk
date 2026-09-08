@@ -112,19 +112,6 @@ class CircuitEvalContext {
 
     /**
      * @param {!string} letter
-     * @param {!int} value
-     * @returns {!CircuitEvalContext}
-     */
-    withInputSetToConstant(letter, value) {
-        let r = this._clone();
-        r.customContextFromGates = new Map(r.customContextFromGates);
-        r.customContextFromGates.delete(`Input Range ${letter}`);
-        r.customContextFromGates.set(`Input Default ${letter}`, value);
-        return r;
-    }
-
-    /**
-     * @param {!string} letter
      * @param {!string} other
      * @returns {!CircuitEvalContext}
      */

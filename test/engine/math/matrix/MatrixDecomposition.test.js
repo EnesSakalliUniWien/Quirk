@@ -18,7 +18,6 @@ import {Suite, assertThat, assertThrows} from "../../../TestUtil.js"
 import {Complex} from "../../../../src/engine/math/complex/Complex.js"
 import {Matrix} from "../../../../src/engine/math/matrix/Matrix.js"
 import {Format} from "../../../../src/base/Format.js"
-import {Seq} from "../../../../src/base/Seq.js"
 import {MatrixDecomposition} from "../../../../src/engine/math/matrix/MatrixDecomposition.js"
 import {isUpperTriangular, isLowerTriangular} from "../../../MatrixTestUtil.js"
 
@@ -43,7 +42,8 @@ const assertSvdDecompositionWorksFor = m => {
     assertThat(U.isUnitary(0.00001)).withInfo({m, U, S, V, test: "U isUnitary"}).isEqualTo(true);
     assertThat(V.isUnitary(0.00001)).withInfo({m, U, S, V, test: "V isUnitary"}).isEqualTo(true);
     assertThat(S.isDiagonal(0.00001)).withInfo({m, U, S, V, test: "S diagonal"}).isEqualTo(true);
-    assertThat(Seq.range(S.width()).every(i => Math.abs(S.cell(i, i).phase()) < 0.000001)).
+    assertThat(Array.from({length: S.width()}, (_, i) => i).
+        every(i => Math.abs(S.cell(i, i).phase()) < 0.000001)).
         withInfo({m, U, S, V, test: "S is positive"}).isEqualTo(true);
     assertThat(U.times(S).times(V)).withInfo({m, U, S, V}).isApproximatelyEqualTo(m, 0.001);
 };

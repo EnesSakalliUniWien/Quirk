@@ -30,7 +30,6 @@ import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js
 import {CircuitStats} from "../../../src/engine/simulation/CircuitStats.js"
 import {CircuitShaders} from "../../../src/engine/simulation/gpu/CircuitShaders.js"
 import {Serializer} from "../../../src/circuit/serialization/Serializer.js"
-import {seq} from "../../../src/base/Seq.js"
 import {Shaders} from "../../../src/engine/webgl/shader/Shaders.js"
 import {currentShaderCoder} from "../../../src/engine/webgl/coder/ShaderCoders.js"
 

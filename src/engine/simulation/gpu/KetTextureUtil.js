@@ -21,7 +21,6 @@ import {Matrix} from "../../math/matrix/Matrix.js"
 import {Shaders} from "../../webgl/shader/Shaders.js"
 import {Util} from "../../../base/Util.js"
 import {WglTexture} from "../../webgl/texture/WglTexture.js"
-import {seq, Seq} from "../../../base/Seq.js"
 import {
     currentShaderCoder,
     makePseudoShaderWithInputsAndOutputAndCode,
@@ -64,7 +63,7 @@ KetTextureUtil.tradeTextureForVec4Output = trader => {
 KetTextureUtil.mergedReadFloats = textures => {
     let len = tex => tex.width === 0 ? 0 : 1 << currentShaderCoder().vec4.arrayPowerSizeOfTexture(tex);
     let totalPowerSize = Math.round(Math.log2(Util.ceilingPowerOf2(
-        seq(textures).map(len).sum())));
+        textures.reduce((total, tex) => total + len(tex), 0))));
 
     let trader = new WglTextureTrader(Shaders.color(0, 0, 0, 0).toVec4Texture(totalPowerSize));
     let offset = 0;
@@ -179,7 +178,7 @@ function _sumDownVec4(trader, outCount) {
  */
 KetTextureUtil.pixelsToQubitDensityMatrices = buffer => {
     let qubitCount = buffer.length / 4;
-    return Seq.range(qubitCount).map(i => {
+    return Array.from({length: qubitCount}, (_, i) => {
         let a = buffer[i*4];
         let d = buffer[i*4 + 3];
         let unity = a + d;
@@ -190,7 +189,7 @@ KetTextureUtil.pixelsToQubitDensityMatrices = buffer => {
         let br = buffer[i*4 + 1] / unity;
         let bi = buffer[i*4 + 2] / unity;
         return new Matrix(2, 2, new Float32Array([a / unity, 0, br, bi, br, -bi, d / unity, 0]));
-    }).toArray();
+    });
 };
 
 /**

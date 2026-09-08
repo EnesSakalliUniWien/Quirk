@@ -25,7 +25,6 @@ import {GateColumn} from "../../../src/circuit/model/GateColumn.js"
 import {Gates} from "../../../src/gates/AllGates.js"
 import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
 import {Point} from "../../../src/geometry/Point.js"
-import {Seq, seq} from "../../../src/base/Seq.js"
 import {Serializer} from "../../../src/circuit/serialization/Serializer.js"
 import {Util} from "../../../src/base/Util.js"
 
@@ -408,7 +407,7 @@ suite.test("colIsMeasuredMask", () => {
             ['D', Gates.Detectors.ZDetector],
             ['R', Gates.Detectors.ZDetectControlClear],
             ...extraGates);
-        return assertThat(Seq.range(c.columns.length + 3).map(i => c.colIsMeasuredMask(i-1)).toArray());
+        return assertThat(Array.from({length: c.columns.length + 3}, (_, i) => c.colIsMeasuredMask(i-1)));
     };
 
     // Measurement measures
@@ -471,7 +470,7 @@ suite.test("colIsMeasuredMask", () => {
 suite.test("colDesiredSingleQubitStatsMask", () => {
     let assertAbout = (diagram, ...extraGates) => {
         let c = circuit(diagram, ...extraGates);
-        return assertThat(Seq.range(c.columns.length + 3).map(i => c.colDesiredSingleQubitStatsMask(i-1)).toArray());
+        return assertThat(Array.from({length: c.columns.length + 3}, (_, i) => c.colDesiredSingleQubitStatsMask(i-1)));
     };
 
     assertAbout('XYZH●○M%D?@s!-#~23t', ['?', Gates.Displays.DensityMatrixDisplay2]).
@@ -1437,19 +1436,21 @@ suite.test("controlLineRanges", () => {
 function assertControlLinesMatchDiagram(diagram, ...extraGates) {
     let lines = diagram.split('\n');
     let indentation = lines[2].search(/\S/);
-    let c = circuit(seq(lines).stride(2).join('\n'), ...extraGates);
-    let controlLines = seq(lines).
-        skip(1).
-        stride(2).
+    let even = (_, i) => i % 2 === 0;
+    let c = circuit(lines.filter(even).join('\n'), ...extraGates);
+    let controlLines = lines.
+        filter((_, i) => i % 2 === 1).
         map(e => e.substring(indentation)).
-        map(e => seq(e).
-            map(c => c === '┃' ? 3 :
-                     c === '║' ? 2 :
-                     c === '|' || c === '│' ? 1 :
-                     0).
-            padded(c.columns.length, 0).
-            toArray()).
-        toArray();
+        map(e => {
+            let codes = [...e].map(ch => ch === '┃' ? 3 :
+                                         ch === '║' ? 2 :
+                                         ch === '|' || ch === '│' ? 1 :
+                                         0);
+            while (codes.length < c.columns.length) {
+                codes.push(0);
+            }
+            return codes;
+        });
 
     for (let col = 0; col < c.columns.length; col++) {
         let diagramColControlLines = new Array(c.numWires - 1).fill(0);

@@ -18,7 +18,6 @@ import {Suite, assertThat, assertThrows} from "../../../TestUtil.js"
 import {Complex} from "../../../../src/engine/math/complex/Complex.js"
 import {Matrix} from "../../../../src/engine/math/matrix/Matrix.js"
 import {Format} from "../../../../src/base/Format.js"
-import {Seq} from "../../../../src/base/Seq.js"
 import {QubitMatrix} from "../../../../src/engine/math/matrix/QubitMatrix.js"
 import {fromAngleAxisPhaseRotation} from "../../../MatrixTestUtil.js"
 
@@ -123,7 +122,7 @@ suite.test("qubitOperationToAngleAxisRotation", () => {
 });
 
 suite.test("qubitOperationToAngleAxisRotation_vs_fromAngleAxisPhaseRotation_randomized", () => {
-    for (let _ of Seq.range(100)) {
+    for (let repeat = 0; repeat < 100; repeat++) {
         let phase = Math.random() * Math.PI * 2;
         let angle = Math.random() * Math.PI * 4;
         let a = Math.random() * Math.PI * 2;

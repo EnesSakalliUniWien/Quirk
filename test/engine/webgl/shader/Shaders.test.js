@@ -23,7 +23,6 @@ import {
 import {WglShader} from "../../../../src/engine/webgl/shader/WglShader.js"
 import {WglTexture} from "../../../../src/engine/webgl/texture/WglTexture.js"
 
-import {Seq} from "../../../../src/base/Seq.js"
 
 let suite = new Suite("Shaders");
 
@@ -80,14 +79,14 @@ suite.testUsingWebGLFloatTextures("data-floats", () => {
     ]);
     assertThat(Shaders.data(data2x2).readRawFloatOutputs(2)).isEqualTo(data2x2);
 
-    let data2x4 = new Float32Array(Seq.range(2*4*4).map(e => e*e + (e - Math.sqrt(2)) / 3).toArray());
+    let data2x4 = Float32Array.from({length: 2*4*4}, (_, e) => e*e + (e - Math.sqrt(2)) / 3);
     assertThat(Shaders.data(data2x4).readRawFloatOutputs(3)).isEqualTo(data2x4);
 
     assertThrows(() => Shaders.data(data2x4).readRawFloatOutputs(2));
 });
 
 suite.testUsingWebGL("data-bytes", () => {
-    let bytes4x4 = new Uint8Array(Seq.range(4*4*4).map(e => Math.floor(Math.random() * 256)).toArray());
+    let bytes4x4 = Uint8Array.from({length: 4*4*4}, () => Math.floor(Math.random() * 256));
     assertThat(Shaders.data(bytes4x4).readRawByteOutputs(4)).isEqualTo(bytes4x4);
 });
 

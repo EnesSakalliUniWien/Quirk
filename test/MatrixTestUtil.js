@@ -17,7 +17,6 @@
 // Matrix and Complex operations that only the tests need. They used to live on the production
 // classes; they build expected values the CPU way so the GPU simulation has something to agree with.
 
-import {Seq} from "../src/base/Seq.js"
 import {Util} from "../src/base/Util.js"
 import {Complex} from "../src/engine/math/complex/Complex.js"
 import {Matrix} from "../src/engine/math/matrix/Matrix.js"
@@ -145,12 +144,11 @@ function determinant(m) {
     if (n === 1) {
         return m.cell(0, 0);
     }
-    return Seq.range(n).
-        map(k => {
+    return Array.from({length: n}, (_, k) => {
             let cutColMatrix = Matrix.generate(n - 1, n - 1, (r, c) => m.cell(c + (c < k ? 0 : 1), r + 1));
             return determinant(cutColMatrix).times(m.cell(k, 0)).times(Math.pow(-1, k));
         }).
-        aggregate(Complex.ZERO, (a, e) => a.plus(e));
+        reduce((a, e) => a.plus(e), Complex.ZERO);
 }
 
 /**

@@ -22,7 +22,6 @@ import {CircuitShaders} from "../../src/engine/simulation/gpu/CircuitShaders.js"
 import {Controls} from "../../src/circuit/model/Controls.js"
 import {Matrix} from "../../src/engine/math/matrix/Matrix.js"
 import {Gate} from "../../src/circuit/model/Gate.js"
-import {seq} from "../../src/base/Seq.js"
 import {WglTextureTrader} from "../../src/engine/webgl/texture/WglTextureTrader.js"
 import {currentShaderCoder} from "../../src/engine/webgl/coder/ShaderCoders.js"
 import {
@@ -66,7 +65,7 @@ let reconstructMatrixFromGateCustomOperation = (gate, time) => {
     }
     control.deallocByDepositingInPool();
 
-    let raw = seq(cols).flatMap(e => e.rawBuffer()).toFloat32Array();
+    let raw = new Float32Array(cols.flatMap(e => [...e.rawBuffer()]));
     let flipped = new Matrix(n, n, raw);
     return flipped.transpose();
 };

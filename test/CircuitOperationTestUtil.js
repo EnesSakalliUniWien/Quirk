@@ -27,7 +27,6 @@ import {Gates} from "../src/gates/AllGates.js"
 import {Shaders} from "../src/engine/webgl/shader/Shaders.js"
 import {Matrix} from "../src/engine/math/matrix/Matrix.js"
 import {KetTextureUtil} from "../src/engine/simulation/gpu/KetTextureUtil.js"
-import {seq, Seq} from "../src/base/Seq.js"
 import {WglTextureTrader} from "../src/engine/webgl/texture/WglTextureTrader.js"
 import {applyToStateVectorAtQubitWithControls} from "./MatrixTestUtil.js"
 
@@ -45,9 +44,9 @@ function assertThatCircuitOutputsBasisKet(circuit, expected_output) {
     let stats = CircuitStats.fromCircuitAtTime(circuit, 0);
     assertThat(stats.finalState.hasNaN()).isEqualTo(false);
 
-    let actualOut = Seq.range(stats.finalState.height()).
-        filter(i => stats.finalState.cell(0, i).isEqualTo(1)).
-        first('no solo ket found');
+    let soloKets = Array.from({length: stats.finalState.height()}, (_, i) => i).
+        filter(i => stats.finalState.cell(0, i).isEqualTo(1));
+    let actualOut = soloKets.length === 0 ? 'no solo ket found' : soloKets[0];
     assertThat(actualOut).isEqualTo(expected_output);
 
     let b = stats.finalState.rawBuffer();
@@ -106,12 +105,12 @@ function assertThatGateActsLikePermutation(
 
     // Useful facts.
     let dstMask = ((1 << gate.height) - 1) << dstWire;
-    let inpMasks = seq(inpWires).zip(inputGates, (off, g) => ((1 << g.height) - 1) << off).toArray();
+    let inpMasks = inpWires.map((off, i) => ((1 << inputGates[i].height) - 1) << off);
 
     // Make permutation matrix.
     let fullPermutation = val => {
         let dst = (val & dstMask) >> dstWire;
-        let inps = seq(inpMasks).zip(inpWires, (m, w) => (val & m) >> w).toArray();
+        let inps = inpMasks.map((m, i) => (val & m) >> inpWires[i]);
         let out = permutationFunc(dst, ...inps);
         return (val & ~dstMask) | out;
     };
@@ -274,7 +273,9 @@ function assertThatCircuitUpdateActsLikePermutation(wireCount, updateAction, per
         let outVal = outVec.cell(0, j);
         if (!outVal.isApproximatelyEqualTo(inVal, 0.001)) {
             let actualIn = Math.floor(outVec.cell(0, j).real);
-            let actualOut = Seq.range(ampCount).filter(k => Math.floor(outVec.cell(0, k).real) === i).first('[NONE]');
+            let outMatches = Array.from({length: ampCount}, (_, k) => k).
+                filter(k => Math.floor(outVec.cell(0, k).real) === i);
+            let actualOut = outMatches.length === 0 ? '[NONE]' : outMatches[0];
             assertThat(outVal).
                 withInfo({i, j, actualIn, actualOut, permuteInfo}).
                 isApproximatelyEqualTo(inVal, 0.01);

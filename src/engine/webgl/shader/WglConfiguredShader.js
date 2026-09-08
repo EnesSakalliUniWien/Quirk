@@ -84,15 +84,6 @@ class WglConfiguredShader {
   }
 
   /**
-   * Renders into a new float texture of the given size, and returns the texture.
-   * @param {!int} sizePower
-   * @returns {!WglTexture}
-   */
-  toRawFloatTexture(sizePower) {
-    return this.renderToElseDealloc(WglTexturePool.takeRawFloatTex(sizePower));
-  }
-
-  /**
    * Renders the result into a float texture, reads the pixels, and returns the result.
    * This method is slow (because it uses readPixels) and mainly exists for easy testing.
    * @param {!int} sizePower

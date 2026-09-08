@@ -30,7 +30,6 @@ import {CircuitStats} from "../../../src/engine/simulation/CircuitStats.js"
 import {GateColumn} from "../../../src/circuit/model/GateColumn.js"
 import {Gates} from "../../../src/gates/AllGates.js"
 import {Outputs, makePseudoShaderWithInputsAndOutputAndCode} from "../../../src/engine/webgl/coder/ShaderCoders.js"
-import {Seq} from "../../../src/base/Seq.js"
 import {Util} from "../../../src/base/Util.js"
 import {WglArg} from "../../../src/engine/webgl/shader/WglArg.js"
 
@@ -48,10 +47,10 @@ suite.testUsingWebGL('MODULAR_INVERSE_SHADER_CODE', () => {
 
     let assertMatches = (modulus, rangePower) => {
         assertThat(testShader(WglArg.float('modulus', modulus)).readVecFloatOutputs(rangePower)).
-        isEqualTo(Seq.range(1<<rangePower).
-        map(e => Util.modular_multiplicative_inverse(e, modulus)).
-        map(e => e === undefined ? -1 : e).
-        toFloat32Array());
+        isEqualTo(Float32Array.from({length: 1<<rangePower}, (_, e) => {
+            let inv = Util.modular_multiplicative_inverse(e, modulus);
+            return inv === undefined ? -1 : inv;
+        }));
     };
 
     assertMatches(11, 4);
@@ -72,9 +71,7 @@ suite.testUsingWebGL('MODULAR_INVERSE_SHADER_CODE_big_mul_mod', () => {
         }`);
 
     assertThat(testShader(WglArg.float('modulus', 65363)).readVecFloatOutputs(12)).
-        isEqualTo(Seq.range(1<<12).
-        map(e => e * e * 105.0 % 65363).
-        toFloat32Array());
+        isEqualTo(Float32Array.from({length: 1<<12}, (_, e) => e * e * 105.0 % 65363));
 });
 
 suite.testUsingWebGL('POW_MOD_SHADER_CODE', () => {
@@ -93,10 +90,10 @@ suite.testUsingWebGL('POW_MOD_SHADER_CODE', () => {
         assertThat(testShader(WglArg.float('base', base),
                               WglArg.float('modulus', modulus),
                               WglArg.float('factor', factor)).readVecFloatOutputs(rangePower)).
-            isEqualTo(Seq.range(1<<rangePower).
-            map(e => modularPowerMultiply(1, base, e * factor, modulus)).
-            map(e => e === undefined ? -1 : e).
-            toFloat32Array());
+            isEqualTo(Float32Array.from({length: 1<<rangePower}, (_, e) => {
+                let p = modularPowerMultiply(1, base, e * factor, modulus);
+                return p === undefined ? -1 : p;
+            }));
     };
 
     assertMatches(3, 11, 4);

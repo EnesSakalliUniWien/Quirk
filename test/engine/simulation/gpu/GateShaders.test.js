@@ -19,14 +19,14 @@ import {GateShaders} from "../../../../src/engine/simulation/gpu/GateShaders.js"
 import {assertThatCircuitUpdateActsLikeMatrix} from "../../../CircuitOperationTestUtil.js"
 
 import {Complex} from "../../../../src/engine/math/complex/Complex.js"
-import {Seq} from "../../../../src/base/Seq.js"
 import {Shaders} from "../../../../src/engine/webgl/shader/Shaders.js"
 import {Matrix} from "../../../../src/engine/math/matrix/Matrix.js"
 
 let suite = new Suite("GateShaders");
 
 suite.testUsingWebGL('cycleAllBits', () => {
-    let inp = Shaders.vec2Data(Seq.range(16).flatMap(e => [e*4 + 1, e*4 + 2]).toFloat32Array()).toVec2Texture(4);
+    let inp = Shaders.vec2Data(new Float32Array(
+        Array.from({length: 16}, (_, e) => [e*4 + 1, e*4 + 2]).flat())).toVec2Texture(4);
     let actual = GateShaders.cycleAllBits(inp, -1).readVec2Outputs(4);
     assertThat(actual).isEqualTo(new Float32Array([
         1, 2,    9,10,  17,18,  25,26,

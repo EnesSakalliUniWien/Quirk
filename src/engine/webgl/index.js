@@ -24,10 +24,7 @@
  *
  * Import the owning file directly for a single symbol; import this index to refer to the namespace.
  */
-export {
-  detectWebGlNotSupported,
-  webGl2SupportProblem,
-} from "./context/issues.js";
+export { webGl2SupportProblem } from "./context/issues.js";
 export { initializedWglContext } from "./context/WglContext.js";
 export { WglArg } from "./shader/WglArg.js";
 export { WglShader } from "./shader/WglShader.js";

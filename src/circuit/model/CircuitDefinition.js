@@ -29,7 +29,6 @@ import {Gate} from "./Gate.js"
 import {GateColumn} from "./GateColumn.js"
 import {Gates, INITIAL_STATES_TO_GATES} from "../../gates/AllGates.js"
 import {Point} from "../../geometry/Point.js"
-import {seq, Seq} from "../../base/Seq.js"
 import {Util} from "../../base/Util.js"
 
 /**
@@ -132,18 +131,10 @@ class CircuitDefinition {
      * @returns {!int}
      */
     gateWeight() {
-        return seq(this.columns).
+        return this.columns.
             flatMap(e => e.gates).
             filter(e => e !== undefined).
-            map(e => e.knownCircuit === undefined ? 1 : e.knownCircuit.gateWeight()).
-            sum();
-    }
-
-    /**
-     * @returns {!boolean}
-     */
-    hasControls() {
-        return !this.columns.every(e => !e.hasControl(-1));
+            reduce((total, e) => total + (e.knownCircuit === undefined ? 1 : e.knownCircuit.gateWeight()), 0);
     }
 
     /**
@@ -187,33 +178,6 @@ class CircuitDefinition {
      */
     hasOnlyUnitaryGates() {
         return this.columns.every(e => e.indexOfNonUnitaryGate() === undefined);
-    }
-
-    /**
-     * @returns {!boolean}
-     */
-    hasNonControlGates() {
-        let colHasNonControl = col => !col.gates.every(e => e === undefined || e.isControl());
-        return !this.columns.every(e => !colHasNonControl(e));
-    }
-
-    /**
-     * @param {!int} max
-     * @returns {!int}
-     */
-    countGatesUpTo(max) {
-        let n = 0;
-        for (let c of this.columns) {
-            for (let g of c.gates) {
-                if (g !== undefined) {
-                    n++;
-                    if (n >= max) {
-                        return n;
-                    }
-                }
-            }
-        }
-        return n;
     }
 
     /**
@@ -292,7 +256,8 @@ class CircuitDefinition {
         }
         return other instanceof CircuitDefinition &&
             this.numWires === other.numWires &&
-            seq(this.columns).isEqualTo(seq(other.columns), Util.CUSTOM_IS_EQUAL_TO_EQUALITY) &&
+            this.columns.length === other.columns.length &&
+            this.columns.every((e, i) => Util.CUSTOM_IS_EQUAL_TO_EQUALITY(e, other.columns[i])) &&
             equate_Maps(this.customInitialValues, other.customInitialValues);
     }
 
@@ -305,14 +270,13 @@ class CircuitDefinition {
             wire(Math.floor(n - s.length)/2) +
             s +
             wire(Math.ceil(n - s.length)/2);
-        let colWidths = Seq.range(this.columns.length).
-            map(c => seq(this.columns[c].gates).map(e => e === undefined ? 0 : e.serializedId.length).max()).
-            toArray();
+        let colWidths = this.columns.map(
+            col => Math.max(...col.gates.map(e => e === undefined ? 0 : e.serializedId.length)));
         return `CircuitDefinition (${this.numWires} wires, ${this.columns.length} cols):\n\t` +
-            Seq.range(this.numWires).
-                map(r => wire(1) + Seq.range(this.columns.length).
-                    map(c => {
-                        let g = this.columns[c].gates[r];
+            Array.from({length: this.numWires},
+                (_, r) => wire(1) + this.columns.
+                    map((col, c) => {
+                        let g = col.gates[r];
                         let label = g === undefined ? "" : g.serializedId;
                         return wireAround(colWidths[c], label);
                     }).
@@ -327,8 +291,8 @@ class CircuitDefinition {
      * @returns {!CircuitDefinition}
      */
     static fromTextDiagram(gateMap, diagram) {
-        let lines = seq(diagram.split('\n')).map(e => e.trim()).filter(e => e !== '').toArray();
-        if (seq(lines.map(e => e.length)).distinct().count() > 1) {
+        let lines = diagram.split('\n').map(e => e.trim()).filter(e => e !== '');
+        if (new Set(lines.map(e => e.length)).size > 1) {
             throw new DetailedError("Uneven diagram", {diagram});
         }
 
@@ -346,8 +310,8 @@ class CircuitDefinition {
 
         return new CircuitDefinition(
             rowCount,
-            Seq.range(colCount).
-                map(col => new GateColumn(seq(lines).mapWithIndex((line, row) => {
+            Array.from({length: colCount},
+                (_, col) => new GateColumn(lines.map((line, row) => {
                     let char = line[col];
                     if (!gateMap.has(char)) {
                         throw new DetailedError("Unspecified gate", {char});
@@ -364,19 +328,18 @@ class CircuitDefinition {
                     }
 
                     throw new DetailedError("Not a gate", gateOrFamily);
-                }).toArray())).
-                toArray());
+                }))));
     }
 
     /**
      * @returns {Infinity|!number}
      */
     stableDuration() {
-        return seq(this.columns).
+        let durations = this.columns.
             flatMap(c => c.gates).
             filter(g => g !== undefined).
-            map(g => g.stableDuration()).
-            min(Infinity);
+            map(g => g.stableDuration());
+        return durations.length === 0 ? Infinity : Math.min(...durations);
     }
 
     /**
@@ -388,11 +351,10 @@ class CircuitDefinition {
      * @returns {!string}
      */
     readableHash() {
-        let allGates = seq(this.columns)
+        let allGates = this.columns
             .flatMap(e => e.gates)
             .filter(e => e !== undefined)
-            .map(e => e.symbol)
-            .toArray();
+            .map(e => e.symbol);
         if (allGates.length === 0) {
             return AppInfo.EMPTY_CIRCUIT_TITLE;
         }
@@ -459,7 +421,7 @@ class CircuitDefinition {
     withWidthOverlapsFixed() {
         let newCols = [];
         for (let col = 0; col < this.columns.length; col++) {
-            let paddingRequired = Seq.range(this.numWires).map(row => {
+            let paddings = Array.from({length: this.numWires}, (_, row) => {
                 let gate = this.columns[col].gates[row];
                 if (gate === undefined) {
                     return 0;
@@ -469,7 +431,8 @@ class CircuitDefinition {
                     return 0;
                 }
                 return gate.width - (f.col - col);
-            }).max(0);
+            });
+            let paddingRequired = paddings.length === 0 ? 0 : Math.max(...paddings);
 
             newCols.push(this.columns[col]);
             for (let i = 0; i < paddingRequired; i++) {
@@ -514,14 +477,12 @@ class CircuitDefinition {
                 continue;
             }
 
-            let keptGates = seq(this.columns[col].gates).
-                mapWithIndex((g, row) => pushedGateIndexes.has(row) ? undefined : g).
-                toArray();
-            let pushedGates = seq(this.columns[col].gates).
-                mapWithIndex((g, row) => g !== undefined && (g.isControl() || pushedGateIndexes.has(row)) ?
+            let keptGates = this.columns[col].gates.
+                map((g, row) => pushedGateIndexes.has(row) ? undefined : g);
+            let pushedGates = this.columns[col].gates.
+                map((g, row) => g !== undefined && (g.isControl() || pushedGateIndexes.has(row)) ?
                     g :
-                    undefined).
-                toArray();
+                    undefined);
 
             newCols.push(new GateColumn(keptGates));
             newCols.push(new GateColumn(pushedGates));
@@ -565,7 +526,7 @@ class CircuitDefinition {
         let used = this._usedColumns();
         return new CircuitDefinition(
             this.numWires,
-            seq(this.columns).filterWithIndex((e, i) => used.has(i)).toArray(),
+            this.columns.filter((e, i) => used.has(i)),
             this.outerRowOffset,
             this.outerContext,
             this.customGateSet,

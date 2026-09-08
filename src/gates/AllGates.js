@@ -79,7 +79,6 @@ import { ZeroGate } from "./misc/Joke_ZeroGate.js";
 import { SpacerGate } from "./misc/SpacerGate.js";
 import { SwapGateHalf } from "./misc/SwapGateHalf.js";
 
-import { seq } from "../base/Seq.js";
 
 let Gates = {};
 
@@ -215,7 +214,9 @@ Gates.KnownToSerializer = [
   ...PhaseGradientGates.all,
 ];
 
-let gatesById = seq(Gates.KnownToSerializer).keyedBy((g) => g.serializedId);
+let gatesById = new Map(
+  Gates.KnownToSerializer.map((g) => [g.serializedId, g]),
+);
 /**
  * @param {!String} id
  * @param {!CustomGateSet} customGateSet

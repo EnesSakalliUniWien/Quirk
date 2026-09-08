@@ -622,15 +622,6 @@ class GateBuilder {
     }
 
     /**
-     * @param {!function(!Gate) : !Gate} gateFunc
-     * @returns {!GateBuilder}
-     */
-    setOnClickGateFunc(gateFunc) {
-        this.gate.onClickGateFunc = gateFunc;
-        return this;
-    }
-
-    /**
      * Makes the gate's button open the in-app parameter dialog.
      * @param {!{title: !string, message: !string,
      *     applyText: !function(oldGate: !Gate, text: !string): !{gate: !Gate}|!{error: !string}}} paramDialog

@@ -43,9 +43,4 @@ function webGl2SupportProblem() {
   return undefined;
 }
 
-/** @returns {!boolean} */
-function detectWebGlNotSupported() {
-  return webGl2SupportProblem() !== undefined;
-}
-
-export { detectWebGlNotSupported, webGl2SupportProblem, sharedCanvas, sharedContext };
+export { webGl2SupportProblem, sharedCanvas, sharedContext };

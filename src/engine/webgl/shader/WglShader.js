@@ -15,7 +15,6 @@
  */
 
 import { DetailedError } from "../../../base/DetailedError.js";
-import { Seq } from "../../../base/Seq.js";
 import { WglArg } from "./WglArg.js";
 import { initializedWglContext } from "../context/WglContext.js";
 import { WglMortalValueSlot } from "../context/WglMortalValueSlot.js";
@@ -213,9 +212,11 @@ class WglCompiledShader {
     }
 
     /** @type {!Map.<!string, !WebGLUniformLocation>} */
-    this.uniformLocations = new Seq(uniformParameterNames).toMap(
-      (e) => e,
-      (e) => gl.getUniformLocation(program, e),
+    this.uniformLocations = new Map(
+      [...uniformParameterNames].map((e) => [
+        e,
+        gl.getUniformLocation(program, e),
+      ]),
     );
     /** @type {!int} */
     this.positionAttributeLocation = gl.getAttribLocation(program, "position");

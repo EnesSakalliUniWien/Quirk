@@ -25,7 +25,6 @@ import {
 // Both of these import WglTexture back. The cycle is safe: each side only uses the other inside
 // methods, never while the modules are being evaluated.
 import { WglTexturePool } from "./WglTexturePool.js";
-import { WglTextureTrader } from "./WglTextureTrader.js";
 
 /**
  * Stores pixel data for/from the gpu.
@@ -137,21 +136,6 @@ class WglTexture {
    */
   deallocByDepositingInPool(detailsShownWhenUsedAfterDone = undefined) {
     WglTexturePool.deposit(this, detailsShownWhenUsedAfterDone);
-  }
-
-  /**
-   * Applies a series of shaders to the texture through a trader, returning the final texture.
-   * @param {!function(!WglTextureTrader) : void} traderFunc
-   * @param {!boolean=} keepInput Determines if the receiving texture is deallocated by the trading process.
-   * @returns {!WglTexture}
-   */
-  tradeThrough(traderFunc, keepInput = false) {
-    let t = new WglTextureTrader(this);
-    if (keepInput) {
-      t.dontDeallocCurrentTexture();
-    }
-    traderFunc(t);
-    return t.currentTexture;
   }
 
   /**

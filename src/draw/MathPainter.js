@@ -23,7 +23,7 @@ import {fitText} from './pixi/TextLayout.js';
 
 import {Point} from '../geometry/Point.js';
 import {Rect} from '../geometry/Rect.js';
-import {seq, Seq} from '../base/Seq.js';
+import {seq} from '../base/Seq.js';
 
 import {CanvasTheme} from '../config/CanvasTheme.js';
 import {Typography} from '../config/Typography.js';
@@ -92,7 +92,7 @@ class MathPainter {
         rectangle(painter, drawArea, {stroke: {color: CanvasTheme.stroke.grid, width: 1}});
 
         // Tool tips.
-        if (seq(focusPoints).any(pt => drawArea.containsPoint(pt))) {
+        if (focusPoints.some(pt => drawArea.containsPoint(pt))) {
             rectangle(painter, drawArea, {stroke: {color: CanvasTheme.interaction.outline, width: 2}});
             MathPainter.paintDeferredValueTooltip(
                 painter,
@@ -386,7 +386,7 @@ class MathPainter {
             let p = projMatrix.times(col);
             return new Point(p.cell(0, 0).real, p.cell(0, 1).real)
         };
-        let axes = Seq.range(3).map(i => Matrix.generate(1, 3, (r, _) => r === i ? 1 : 0)).toArray();
+        let axes = Array.from({length: 3}, (_, i) => Matrix.generate(1, 3, (r, _) => r === i ? 1 : 0));
 
         // Draw sphere and axis lines (in not-quite-proper 3d).
         circle(painter, c, u, {fill: backgroundColor});
@@ -410,27 +410,24 @@ class MathPainter {
             axisVec,
             Matrix.col(0, 0, axis[2])
         ].map(projToPt);
-        strokePath(painter, (seq(guideDeltas).
-            reverse().
+        // Down one side of the rectangles and back up the other, closed by repeating the last point first.
+        let guidePath = guideDeltas.
+            toReversed().
             concat(guideDeltas.map(d => d.times(-1))).
-            map(d => c.plus(d)).
-            toArray()).length ? [(seq(guideDeltas).
-            reverse().
-            concat(guideDeltas.map(d => d.times(-1))).
-            map(d => c.plus(d)).
-            toArray()).at(-1), ...(seq(guideDeltas).
-            reverse().
-            concat(guideDeltas.map(d => d.times(-1))).
-            map(d => c.plus(d)).
-            toArray())] : [], CanvasTheme.text.muted, 1);
+            map(d => c.plus(d));
+        strokePath(
+            painter,
+            guidePath.length === 0 ? [] : [guidePath.at(-1), ...guidePath],
+            CanvasTheme.text.muted,
+            1);
         // Rotation axis.
         strokePath(painter, [c.plus(dAxis), c.plus(dAxis.times(-1))], CanvasTheme.text.primary, 2);
 
         // Find perpendicular axes, for drawing the rotation arrow circles.
         let norm = e => Math.sqrt(e.adjoint().times(e).cell(0, 0).real);
-        let perpVec1 = seq(axes).
-            mapWithIndex((a, i) => a.times([-3, -2, 1][i])). // Prioritize/orient axes to look good.
-            map(a => axisVec.cross3(a)).
+        let perpVec1 = seq(axes.
+            map((a, i) => a.times([-3, -2, 1][i])). // Prioritize/orient axes to look good.
+            map(a => axisVec.cross3(a))).
             maxBy(norm);
         let perpVec2 = axisVec.cross3(perpVec1);
         perpVec1 = perpVec1.times(0.15 / norm(perpVec1));
@@ -453,13 +450,13 @@ class MathPainter {
      */
     static _paintBlochSphereRotation_rotationGuideArrows(painter, center, angle, dAlong, dPerp1, dPerp2, fillColor) {
         // Compute the rotation arc.
-        let rotationGuideDeltas = Seq.range(Math.floor(Math.abs(angle) * 32)).
-            map(i => {
+        let rotationGuideDeltas = Array.from(
+            {length: Math.floor(Math.abs(angle) * 32)},
+            (_, i) => {
                 let θ = (angle < 0 ? Math.PI - i / 32 : i / 32);
                 return dPerp1.times(Math.cos(θ)).
                     plus(dPerp2.times(Math.sin(θ)));
-            }).
-            toArray();
+            });
 
         if (rotationGuideDeltas.length <= 1) {
             return;

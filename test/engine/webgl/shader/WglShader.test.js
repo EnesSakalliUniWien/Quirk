@@ -17,7 +17,6 @@
 import {Suite, assertThat} from "../../../TestUtil.js"
 import {WglShader} from "../../../../src/engine/webgl/shader/WglShader.js"
 import {WglTexture} from "../../../../src/engine/webgl/texture/WglTexture.js"
-import {Seq} from "../../../../src/base/Seq.js"
 import {initializedWglContext} from "../../../../src/engine/webgl/context/WglContext.js"
 
 let suite = new Suite("WglShader");
@@ -25,7 +24,7 @@ let suite = new Suite("WglShader");
 suite.testUsingWebGL("renderTo_large", () => {
     let tex = new WglTexture(256, 256, WebGL2RenderingContext.UNSIGNED_BYTE);
     new WglShader("void main(){fragColor=vec4(3.0,3.0,3.0,3.0)/255.0;}").withArgs().renderTo(tex);
-    let expected = new Uint8Array(Seq.repeat(3, 4 * tex.width * tex.height).toArray());
+    let expected = new Uint8Array(4 * tex.width * tex.height).fill(3);
     assertThat(tex.readPixels()).isEqualTo(expected);
 });
 
@@ -50,7 +49,7 @@ suite.testUsingWebGL("readPixels_bytes_all", () => {
     let tex = new WglTexture(8, 8, WebGL2RenderingContext.UNSIGNED_BYTE);
     shader.renderTo(tex);
     assertThat(tex.readPixels()).isEqualTo(new Uint8Array(
-        Seq.range(256).toArray()
+        Array.from({length: 256}, (_, i) => i)
     ));
     tex.ensureDeinitialized();
 });
