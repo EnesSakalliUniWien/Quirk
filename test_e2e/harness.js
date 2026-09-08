@@ -16,7 +16,7 @@
 
 // The end-to-end harness: the test registry, the built page, and the waits every spec shares.
 // Specs register with test(name, body) at import time; the runner in
-// ../PuppeteerRunEndToEndTests.js imports them and runs the registry.
+// ../scripts/run-e2e-tests.js imports them and runs the registry.
 
 import assert from 'node:assert/strict';
 import {CanvasTheme} from '../src/config/CanvasTheme.js';

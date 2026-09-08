@@ -5,9 +5,9 @@ request.
 
 Before opening the pull request, keep the checks green:
 
-- `npm test` — the browser unit suite.
-- `npm run test:e2e` — the end-to-end suite.
-- `npm run build` — the production build.
+- `npm run check` — builds each page and runs all three suites in turn. The individual steps are
+  `npm test` (browser unit suite), `npm run test:e2e` (end-to-end suite) and `npm run test:perf`
+  (performance checks); `npm run build` produces the production bundle on its own.
 
 # Source layout
 
@@ -34,7 +34,7 @@ Before opening the pull request, keep the checks green:
   it depends only on `src/base/`.
 - `src/base/`, `src/geometry/`, `src/browser/`, `src/config/` — dependency-light foundations:
   generic utilities, 2D points and rectangles, browser API wrappers, and shared constants.
-- `src/styles/` — all CSS, aggregated by `globals.css`; `src/lib/` — the shadcn `cn` helper.
+- `src/styles/` — all CSS, aggregated by `globals.css`.
 
 Dependencies flow downward: `main → app → (components, editor) → (circuit, gates, draw) →
 (engine, diagnostics, browser, config, geometry, base)`. Skipping levels downward is fine (`main`
@@ -44,7 +44,13 @@ carry their own drawers); do not add new upward imports beyond it.
 
 `test/` mirrors `src/` wherever unit tests exist and discovers suites by the
 `test/**/*.test.js` glob, so a test moved outside `test/` silently stops running. `test_perf/`
-and `test_e2e/` are flat, feature-named suites; `test_perf/` imports `src/` directly.
+and `test_e2e/` are flat, feature-named suites; `test_perf/` imports `src/` directly. The unit
+and performance suites each ship their own harness page beside them, `test/test.html` and
+`test_perf/test_perf.html`, which Vite builds as extra entry points.
+
+`scripts/` holds the Node tooling the npm scripts call: `run-browser-tests.js` drives either
+harness page under Puppeteer, `run-e2e-tests.js` runs the end-to-end registry, and
+`screenshot-circuit.js` renders the README screenshot. `server/` serves the built `out/`.
 
 All submissions are reviewed through GitHub pull requests. Consult
 [GitHub Help](https://help.github.com/articles/about-pull-requests/) for more information on

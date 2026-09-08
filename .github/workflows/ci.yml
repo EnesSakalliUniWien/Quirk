@@ -28,7 +28,7 @@ jobs:
     # Ubuntu 24.04 runners restrict unprivileged user namespaces, which Chrome's sandbox needs.
     - run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
     - run: npm run build
-    - run: node PuppeteerScreenshotCircuit.js
+    - run: node scripts/screenshot-circuit.js
     - uses: actions/upload-artifact@v4
       with:
         name: screenshot

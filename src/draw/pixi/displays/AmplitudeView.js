@@ -24,6 +24,7 @@ import {Format} from '../../../base/Format.js';
 import {MathPainter} from '../../MathPainter.js';
 import {Matrix} from '../../../engine/math/matrix/Matrix.js';
 import {Point} from '../../../geometry/Point.js';
+import {Rect} from '../../../geometry/Rect.js';
 import {Util} from '../../../base/Util.js';
 
 /**

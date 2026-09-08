@@ -18,13 +18,13 @@ import path from 'node:path';
 
 import puppeteer from 'puppeteer';
 
-import {startStaticServer} from './server/staticServer.js';
+import {startStaticServer} from '../server/staticServer.js';
 
 let browser;
 let serve;
 try {
-    const pageFile = process.argv[2] || 'test.html';
-    if (pageFile !== 'test.html' && pageFile !== 'test_perf.html') {
+    const pageFile = process.argv[2] || 'test/test.html';
+    if (pageFile !== 'test/test.html' && pageFile !== 'test_perf/test_perf.html') {
         throw new Error(`Unsupported test page: ${pageFile}`);
     }
 
@@ -34,11 +34,11 @@ try {
     page.on('console', message => console.log(message.text()));
     page.on('pageerror', error => {
         caughtPageError = true;
-        console.error("Page error bubbled into PuppeteerRunTests.js: " + error.message);
+        console.error("Page error bubbled into run-browser-tests.js: " + error.message);
     });
 
     // Served over http rather than file://, because browsers refuse module scripts from disk.
-    serve = await startStaticServer({root: path.join(import.meta.dirname, 'out')});
+    serve = await startStaticServer({root: path.join(import.meta.dirname, '..', 'out')});
     await page.goto(`${serve.origin}/${pageFile}`);
     await page.waitForSelector('#done', {timeout: 5 * 60 * 1000});
     const result = await page.evaluate(() => ({
@@ -52,7 +52,7 @@ try {
         process.exitCode = 1;
     }
 } catch (ex) {
-    console.error("Error bubbled up into PuppeteerRunTests.js: " + ex);
+    console.error("Error bubbled up into run-browser-tests.js: " + ex);
     process.exitCode = 1;
 } finally {
     if (browser !== undefined) {

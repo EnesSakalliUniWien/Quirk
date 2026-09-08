@@ -18,18 +18,18 @@ import path from 'node:path';
 
 import puppeteer from 'puppeteer';
 
-import {startStaticServer} from './server/staticServer.js';
+import {startStaticServer} from '../server/staticServer.js';
 
 try {
     // Served over http rather than file://, because browsers refuse module scripts from disk.
-    const serve = await startStaticServer({root: path.join(import.meta.dirname, 'out')});
+    const serve = await startStaticServer({root: path.join(import.meta.dirname, '..', 'out')});
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
     let caughtPageError = false;
     page.on('console', message => console.log(message.text()));
     page.on('pageerror', ({message}) => {
         caughtPageError = true;
-        console.error("Page error bubbled into PuppeteerScreenshotCircuit.js: " + message);
+        console.error("Page error bubbled into screenshot-circuit.js: " + message);
     });
     const circuitJson = '{"cols":[["H"],["Bloch"],["Amps1"],[],["Density"],["•","X"],["Chance2"]]}';
     await page.goto(`${serve.origin}/quirk.html#circuit=` + circuitJson);
@@ -38,6 +38,6 @@ try {
     await browser.close();
     await serve.close();
 } catch (ex) {
-    console.error("Error bubbled up into PuppeteerScreenshotCircuit.js: " + ex);
+    console.error("Error bubbled up into screenshot-circuit.js: " + ex);
     process.exit(1);
 }

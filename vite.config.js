@@ -5,7 +5,7 @@ import react from "@vitejs/plugin-react";
 import {defineConfig} from "vite";
 
 const projectRoot = import.meta.dirname;
-const pageForMode = {test: "test.html", perf: "test_perf.html"};
+const pageForMode = {test: "test/test.html", perf: "test_perf/test_perf.html"};
 
 export default defineConfig(({mode}) => {
     const input = pageForMode[mode] ?? "quirk.html";
