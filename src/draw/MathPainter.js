@@ -161,7 +161,6 @@ class MathPainter {
         }
     }
 
-    //noinspection JSUnusedLocalSymbols
     /**
      * @param {!GraphicsPath} trace
      * @param {!number} real

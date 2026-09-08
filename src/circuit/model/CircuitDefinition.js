@@ -695,7 +695,6 @@ class CircuitDefinition {
                 }
 
                 for (let {key, val} of g.customColumnContextProvider(outerRowOffset + row, g)) {
-                    //noinspection JSUnusedAssignment
                     ctx.set(key, val);
                     if (!g.isContextTemporary) {
                         stickyCtx.set(key, val);

@@ -113,9 +113,7 @@ suite.test("constructor_vs_isEqualTo", () => {
                                                               X+Y`);
     let d2 = CircuitDefinition.fromTextDiagram(COMMON_GATES, `++++
                                                               ZHHH`);
-    //noinspection JSCheckFunctionSignatures
     assertThrows(() => new DisplayedCircuit(23, "not a circuit", undefined, undefined, undefined));
-    //noinspection JSCheckFunctionSignatures
     assertThrows(() => new DisplayedCircuit("not a number", d1, undefined, undefined, undefined));
 
     let c1 = new DisplayedCircuit(45, d1, undefined, undefined, undefined);

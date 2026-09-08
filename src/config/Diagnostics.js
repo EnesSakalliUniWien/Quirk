@@ -19,9 +19,7 @@
  */
 class Diagnostics {}
 
-// Calling WebGLRenderingContext.getError forces a CPU/GPU sync. It's very expensive.
+// Calling gl.getError forces a CPU/GPU sync. It's very expensive.
 Diagnostics.CHECK_WEB_GL_ERRORS_EVEN_ON_HOT_PATHS = false;
-Diagnostics.IGNORED_WEBGL_INFO_TERMS = [];
-Diagnostics.SUPPRESSED_GLSL_WARNING_PATTERNS = [];
 
 export {Diagnostics}

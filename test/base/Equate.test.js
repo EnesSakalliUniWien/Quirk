@@ -29,14 +29,12 @@ class EmptyClass2 {
 }
 class PropClass {
     constructor(v) {
-        //noinspection JSUnusedGlobalSymbols
         this.v = v;
     }
 }
 class SomeIterable {
     constructor() {}
 
-    //noinspection JSMethodCanBeStatic,JSUnusedGlobalSymbols
     [Symbol.iterator]() { return [1, 2, 3][Symbol.iterator](); }
 }
 class One {

@@ -630,7 +630,6 @@ class Matrix {
    * @returns {!Matrix}
    */
   times(other) {
-    //noinspection JSCheckFunctionSignatures
     return other instanceof Matrix
       ? this._timesMatrix(other)
       : this._timesScalar(other);

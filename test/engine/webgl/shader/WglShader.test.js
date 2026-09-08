@@ -23,7 +23,7 @@ import {initializedWglContext} from "../../../../src/engine/webgl/context/WglCon
 let suite = new Suite("WglShader");
 
 suite.testUsingWebGL("renderTo_large", () => {
-    let tex = new WglTexture(256, 256, WebGLRenderingContext.UNSIGNED_BYTE);
+    let tex = new WglTexture(256, 256, WebGL2RenderingContext.UNSIGNED_BYTE);
     new WglShader("void main(){fragColor=vec4(3.0,3.0,3.0,3.0)/255.0;}").withArgs().renderTo(tex);
     let expected = new Uint8Array(Seq.repeat(3, 4 * tex.width * tex.height).toArray());
     assertThat(tex.readPixels()).isEqualTo(expected);
@@ -47,7 +47,7 @@ suite.testUsingWebGL("readPixels_bytes_all", () => {
                 (s+3.0)/255.0);
         }`).withArgs();
 
-    let tex = new WglTexture(8, 8, WebGLRenderingContext.UNSIGNED_BYTE);
+    let tex = new WglTexture(8, 8, WebGL2RenderingContext.UNSIGNED_BYTE);
     shader.renderTo(tex);
     assertThat(tex.readPixels()).isEqualTo(new Uint8Array(
         Seq.range(256).toArray()

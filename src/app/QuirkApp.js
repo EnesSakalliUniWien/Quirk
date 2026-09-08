@@ -55,10 +55,8 @@ function startQuirk() {
 
     const canvasDiv = document.getElementById("canvasDiv");
 
-    //noinspection JSValidateTypes
     /** @type {!HTMLCanvasElement} */
     const canvas = document.getElementById("drawCanvas");
-    //noinspection JSValidateTypes
     if (!canvas) {
         throw new Error("Couldn't find 'drawCanvas'");
     }

@@ -189,7 +189,6 @@ class DisplayedInspector {
     if (this === other) {
       return true;
     }
-    //noinspection JSUnresolvedVariable
     return (
       other instanceof DisplayedInspector &&
       this.drawArea.isEqualTo(other.drawArea) &&

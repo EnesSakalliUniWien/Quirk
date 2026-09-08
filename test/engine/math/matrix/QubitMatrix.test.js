@@ -123,7 +123,6 @@ suite.test("qubitOperationToAngleAxisRotation", () => {
 });
 
 suite.test("qubitOperationToAngleAxisRotation_vs_fromAngleAxisPhaseRotation_randomized", () => {
-    //noinspection JSUnusedLocalSymbols
     for (let _ of Seq.range(100)) {
         let phase = Math.random() * Math.PI * 2;
         let angle = Math.random() * Math.PI * 4;

@@ -48,7 +48,6 @@ function getKnownPerfTests() {
  * @param {!function(*):void} cleanup
  */
 function perfGoal(name, targetDuration, method, arg=undefined, cleanup=undefined) {
-    //noinspection JSUnusedGlobalSymbols
     _knownPerfTests.push({name, method: () => {
         let dt = _measureDuration(method, arg, targetDuration.duration_nanos);
         if (cleanup !== undefined) {

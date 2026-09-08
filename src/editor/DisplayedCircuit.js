@@ -481,7 +481,6 @@ class DisplayedCircuit {
 
         let [colWires, rowWires] = [Math.floor(numWire/2), Math.ceil(numWire/2)];
         let [colCount, rowCount] = [1 << colWires, 1 << rowWires];
-        //noinspection JSCheckFunctionSignatures
         return new Matrix(colCount, rowCount, buf);
     }
 

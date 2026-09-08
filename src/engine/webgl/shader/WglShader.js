@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { Diagnostics } from "../../../config/Diagnostics.js";
 import { DetailedError } from "../../../base/DetailedError.js";
 import { Seq } from "../../../base/Seq.js";
 import { WglArg } from "./WglArg.js";
@@ -191,11 +190,8 @@ class WglCompiledShader {
     // Note: MDN says the result of getProgramInfoLog is always a DOMString, but a user reported an
     // error where it returned null. So now we fallback to the empty string when getting a falsy value.
     let warnings = (gl.getProgramInfoLog(program) || "").trim();
-    if (
-      warnings !== "" &&
-      warnings !== "\0" && // [happened in Ubuntu with NVIDIA GK107GL]
-      Diagnostics.SUPPRESSED_GLSL_WARNING_PATTERNS.every((e) => !e.test(warnings))
-    ) {
+    if (warnings !== "" && warnings !== "\0") {
+      // The lone NUL happened in Ubuntu with an NVIDIA GK107GL.
       console.warn(
         "Shader compile caused warnings",
         "gl.getProgramInfoLog()",
@@ -278,13 +274,8 @@ class WglCompiledShader {
 
     let info = gl.getShaderInfoLog(shader) || "";
     if (info !== "") {
-      let ignored = Diagnostics.IGNORED_WEBGL_INFO_TERMS.some((term) =>
-        info.includes(term),
-      );
-      if (!ignored) {
-        console.warn("WebGLShader: gl.getShaderInfoLog() wasn't empty: " + info);
-        console.warn("Source code was: " + sourceCode);
-      }
+      console.warn("WebGLShader: gl.getShaderInfoLog() wasn't empty: " + info);
+      console.warn("Source code was: " + sourceCode);
     }
 
     if (

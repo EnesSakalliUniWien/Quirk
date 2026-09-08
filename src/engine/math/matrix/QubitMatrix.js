@@ -80,7 +80,6 @@ class QubitMatrix {
       -s * sinc(theta),
     ).times(s * 0.5);
 
-    //noinspection JSCheckFunctionSignatures
     let m = Matrix.identity(2).times(ci).minus(sigma_v.times(cv));
     let expectNiceValuesCorrection = (v) =>
       Format.simplifyByRounding(v, 0.0000000000001);
@@ -110,7 +109,6 @@ class QubitMatrix {
     }
 
     // Density matrix from bloch vector equation: M = 1/2 (I + vσ)
-    //noinspection JSUnusedLocalSymbols
     let [ar, ai, br, bi, cr, ci, dr, di] = densityMatrix.rawBuffer();
     let x = -cr - br;
     let y = bi - ci;

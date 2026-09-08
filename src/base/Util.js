@@ -79,7 +79,6 @@ class Util {
      */
     static notNull(v) {
         Util.need(v !== null, "notNull");
-        //noinspection JSValidateTypes
         return v;
     }
 
@@ -213,12 +212,10 @@ class Util {
         }
 
         for (let [k, g] of groupMap) {
-            //noinspection JSUnusedAssignment
             for (let e of g) {
                 if (!result.has(e)) {
                     result.set(e, []);
                 }
-                //noinspection JSUnusedAssignment
                 result.get(e).push(k);
             }
         }
@@ -408,7 +405,6 @@ class Util {
         let result = new Map();
         for (let map of maps) {
             for (let [key, val] of map.entries()) {
-                //noinspection JSUnusedAssignment
                 result.set(key, val);
             }
         }

@@ -207,7 +207,6 @@ class Seq {
   static naturals() {
     return Seq.fromGenerator(function* () {
       let i = 0;
-      //noinspection InfiniteLoopJS
       while (true) {
         yield i;
         i++;
@@ -950,7 +949,6 @@ class Seq {
    * @template T, A
    */
   last(emptyErrorAlternative = THROW_IF_EMPTY) {
-    //noinspection JSUnusedAssignment
     let result = EMPTY_SYGIL;
     for (let e of this._iterable) {
       result = e;
@@ -994,7 +992,6 @@ class Seq {
     }
 
     let n = 0;
-    //noinspection JSUnusedLocalSymbols
     for (let _ of this._iterable) {
       n++;
     }

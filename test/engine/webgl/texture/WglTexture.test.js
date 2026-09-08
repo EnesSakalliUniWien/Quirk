@@ -22,10 +22,10 @@ import {WglTexture} from "../../../../src/engine/webgl/texture/WglTexture.js"
 let suite = new Suite("WglTexture");
 
 suite.test("properties", () => {
-    let t = new WglTexture(8, 16, WebGLRenderingContext.UNSIGNED_BYTE);
+    let t = new WglTexture(8, 16, WebGL2RenderingContext.UNSIGNED_BYTE);
     assertThat(t.width).isEqualTo(8);
     assertThat(t.height).isEqualTo(16);
-    assertThat(t.pixelType).isEqualTo(WebGLRenderingContext.UNSIGNED_BYTE);
+    assertThat(t.pixelType).isEqualTo(WebGL2RenderingContext.UNSIGNED_BYTE);
     assertThat(t.sizePower()).isEqualTo(7);
     assertThat(t.toString()).isNotEqualTo(undefined);
 });
@@ -40,7 +40,7 @@ suite.testUsingWebGL("readPixels_bytes", () => {
             fragColor = vec4(xy / 255.0, v, 128.0/255.0);
         }`);
 
-    let texture = new WglTexture(w, h, WebGLRenderingContext.UNSIGNED_BYTE);
+    let texture = new WglTexture(w, h, WebGL2RenderingContext.UNSIGNED_BYTE);
 
     shader.withArgs(WglArg.float("v", 10/255)).renderTo(texture);
     assertThat(texture.readPixels()).isEqualTo(new Uint8Array([

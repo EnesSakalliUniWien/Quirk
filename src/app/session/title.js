@@ -22,7 +22,6 @@ import {fromJsonText_CircuitDefinition} from "../../circuit/serialization/Serial
  */
 function initTitleSync(revision) {
     const titleForState = jsonText => {
-        //noinspection UnusedCatchParameterJS,EmptyCatchBlockJS
         try {
             let circuitDef = fromJsonText_CircuitDefinition(jsonText);
             if (!circuitDef.isEmpty()) {

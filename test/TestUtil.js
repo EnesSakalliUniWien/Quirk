@@ -211,7 +211,6 @@ export class AssertionSubject {
         }
     }
 
-    //noinspection JSUnusedGlobalSymbols
     /**
      * @param {*} other
      */
@@ -302,44 +301,17 @@ export function assertThrows(func, extraArgCatcher) {
 
 /** @type {boolean|undefined} */
 let __webGLSupportPresent = undefined;
-/** @type {boolean|undefined} */
-let __onlyPartialWebGLSupportPresent = undefined;
 function isWebGLSupportPresent() {
     if (__webGLSupportPresent === undefined) {
         __webGLSupportPresent = false;
         if (window.WebGL2RenderingContext !== undefined) {
             let canvas = document.createElement('canvas');
             let ctx = canvas.getContext('webgl2');
-            if (ctx instanceof WebGL2RenderingContext && ctx.getExtension('EXT_color_buffer_float') !== null) {
-                __webGLSupportPresent = true;
-
-                let shader = ctx.createShader(WebGL2RenderingContext.VERTEX_SHADER);
-                ctx.shaderSource(shader, `#version 300 es
-                    precision highp float;
-                    precision highp int;
-                    in vec2 position;
-                    void main() {gl_Position = vec4(position, 0, 1);}`);
-                ctx.compileShader(shader);
-
-                // HACK: tests on travis-ci give this warning when compiling shaders, and then give
-                // bad test results. Checking for it is a workaround to make the build pass.
-                let term = "extension `GL_ARB_gpu_shader5' unsupported";
-                __onlyPartialWebGLSupportPresent = ctx.getShaderInfoLog(shader).indexOf(term) !== -1;
-                if (__onlyPartialWebGLSupportPresent) {
-                    Diagnostics.IGNORED_WEBGL_INFO_TERMS.push(term);
-                    console.log('Only partial WebGL support is present. Some tests may fail and be ignored.')
-                }
-            }
+            __webGLSupportPresent =
+                ctx instanceof WebGL2RenderingContext && ctx.getExtension('EXT_color_buffer_float') !== null;
         }
     }
     return __webGLSupportPresent;
-}
-
-/**
- * @returns {!boolean|undefined}
- */
-function isOnlyPartialWebGLSupportPresent() {
-    return isWebGLSupportPresent() && __onlyPartialWebGLSupportPresent;
 }
 
 let promiseImageDataFromSrc = src => {
@@ -422,11 +394,6 @@ export class Suite {
                 status.log.push(msg);
                 assertThat(undefined); // Cancel 'no assertion' warning.
                 return;
-            } else if (isOnlyPartialWebGLSupportPresent()) {
-                status.warn_only = true;
-                status.ignore_warn_only_on_success = true;
-                status.warn_failure_message = `Ignoring ${this.name}.${caseName} failure due to lack of WebGL support.`;
-                status.warn_show_error = true;
             }
 
             let preTexCount = WglTexturePool.getUnReturnedTextureCount();

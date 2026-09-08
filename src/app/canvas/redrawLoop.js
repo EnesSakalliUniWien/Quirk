@@ -72,7 +72,6 @@ function initRedrawLoop(canvas,
         let cycleRng;
         cycleRng = () => {
             target.cur = new RestartableRng();
-            //noinspection DynamicallyGeneratedCodeJS
             setTimeout(cycleRng, Simulation.SEMI_STABLE_RANDOM_VALUE_LIFETIME_MILLIS*0.99);
         };
         cycleRng();

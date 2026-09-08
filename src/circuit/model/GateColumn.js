@@ -167,7 +167,6 @@ class GateColumn {
         for (let i = 0; i < row; i++) {
             let g = this.gates[i];
             for (let {key: otherKey} of g === undefined ? [] : g.customColumnContextProvider(outerRow + i, g)) {
-                //noinspection JSUnusedAssignment
                 if (keys.has(otherKey)) {
                     return "already\ndefined";
                 }
@@ -303,7 +302,6 @@ class GateColumn {
     static _disabledReason_inputs_inside(args, rangeVals) {
         let row = args.outerRow;
         for (let {offset, length} of rangeVals) {
-            //noinspection JSUnusedAssignment
             if (offset + length > row && row + args.gate.height > offset) {
                 return "input\ninside";
             }
@@ -323,7 +321,6 @@ class GateColumn {
             let hasMeasuredOutputs = ((args.measuredMask >> row) & ((1 << args.gate.height) - 1)) !== 0;
             if (hasMeasuredOutputs) {
                 for (let {offset, length} of rangeVals) {
-                    //noinspection JSUnusedAssignment
                     if (((~args.measuredMask >> offset) & ((1 << length) - 1)) !== 0) {
                         return "no\nremix\n(sorry)";
                     }
@@ -384,7 +381,6 @@ class GateColumn {
             let g = this.gates[row];
             if (g !== undefined) {
                 for (let {key, val} of g.customColumnContextProvider(row + outerRowOffset, g)) {
-                    //noinspection JSUnusedAssignment
                     context.set(key, val);
                     if (!g.isContextTemporary) {
                         stickyCtx.set(key, val);

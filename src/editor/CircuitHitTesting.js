@@ -39,7 +39,6 @@ function wireIndexAt(circuit, y) {
   return Math.floor((y - circuit.top) / Layout.WIRE_SPACING);
 }
 
-//noinspection JSMethodCanBeStatic
 /**
  * @param {!DisplayedCircuit} circuit
  * @param {!number} x

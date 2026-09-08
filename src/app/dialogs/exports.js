@@ -76,7 +76,6 @@ function initExports(revision, mostRecentStats, overlayState) {
         const copyResultElement = /** @type {HTMLElement} */ document.getElementById('export-json-copy-result');
         setupButtonElementCopyToClipboard(copyButton, jsonTextElement, copyResultElement);
         revision.latestActiveCommit().subscribe(jsonText => {
-            //noinspection UnusedCatchParameterJS
             try {
                 let val = JSON.parse(jsonText);
                 jsonTextElement.innerText = JSON.stringify(val, null, '  ');

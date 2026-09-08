@@ -219,9 +219,9 @@ WglArg.INPUT_ACTION_MAP = new Map([
       }
       let gl = ctx.gl;
       gl.uniform1i(loc, unit);
-      gl.activeTexture(WebGLRenderingContext.TEXTURE0 + unit);
+      gl.activeTexture(WebGL2RenderingContext.TEXTURE0 + unit);
       gl.bindTexture(
-        WebGLRenderingContext.TEXTURE_2D,
+        WebGL2RenderingContext.TEXTURE_2D,
         texture.initializedTexture(),
       );
     },
@@ -238,8 +238,8 @@ WglArg.INPUT_ACTION_MAP = new Map([
       }
       let gl = ctx.gl;
       gl.uniform1i(loc, unit);
-      gl.activeTexture(WebGLRenderingContext.TEXTURE0 + unit);
-      gl.bindTexture(WebGLRenderingContext.TEXTURE_2D, texture);
+      gl.activeTexture(WebGL2RenderingContext.TEXTURE0 + unit);
+      gl.bindTexture(WebGL2RenderingContext.TEXTURE_2D, texture);
     },
   ],
 ]);

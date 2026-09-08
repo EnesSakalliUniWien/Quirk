@@ -111,7 +111,6 @@ let _cachedRowLabelDrawer = new BasisLabels(
     (painter, numWire) => {
         let [colWires, rowWires] = [Math.floor(numWire/2), Math.ceil(numWire/2)];
         let rowCount = 1 << rowWires;
-        //noinspection JSCheckFunctionSignatures
         _drawLabelsReasonablyFast(
             painter,
             drawingArea(painter).h / rowCount,
@@ -139,7 +138,6 @@ let _cachedColLabelDrawer = new BasisLabels(
 
         painter.position.set(colCount*dw, 0);
         painter.rotation = Math.PI/2;
-        //noinspection JSCheckFunctionSignatures
         _drawLabelsReasonablyFast(
             painter,
             dw,
@@ -259,7 +257,6 @@ function drawWires(circuit, painter, showLabels, hand) {
             let lastX = showLabels ? circuit.geometry().wireInitialStateRect(row).right() : 5;
             // Wires terminate at the superposition display instead of running to the canvas's right edge.
             let wireEndX = showLabels ? circuit.geometry().rectForSuperpositionDisplay().x - 4 : Infinity;
-            //noinspection ForLoopThatDoesntUseLoopVariableJS
             for (let col = 0; showLabels ? lastX < wireEndX : col <= circuit.circuitDefinition.columns.length; col++) {
                 let x = Math.min(circuit.opRect(col).center().x, wireEndX);
                 if (circuit.circuitDefinition.locIsMeasured(new Point(col, row))) {

@@ -19,7 +19,7 @@ import {Diagnostics} from "../../../config/Diagnostics.js"
 /**
  * Checks if the given code, returned by gl.getError, is an error or not.
  * Throws an error with a descriptive message if the code represents an error.
- * @param {!WebGLRenderingContext} gl
+ * @param {!WebGL2RenderingContext} gl
  * @param {!string} previousOperationDescription
  * @param {!boolean} isOnHotPath
  */
@@ -29,7 +29,7 @@ function checkGetErrorResult(gl, previousOperationDescription, isOnHotPath = fal
     }
 
     let code = gl.getError();
-    const GL = WebGLRenderingContext;
+    const GL = WebGL2RenderingContext;
     if (code === GL.NO_ERROR) {
         return;
     }
@@ -56,7 +56,7 @@ function checkGetErrorResult(gl, previousOperationDescription, isOnHotPath = fal
 /**
  * Checks if the given code, returned by gl.checkFramebufferStatus, is an error or not.
  * Throws an error with a descriptive message if the code represents an error.
- * @param {!WebGLRenderingContext} gl
+ * @param {!WebGL2RenderingContext} gl
  * @param {!boolean} isOnHotPath
  */
 function checkFrameBufferStatusResult(gl, isOnHotPath = false) {
@@ -64,7 +64,7 @@ function checkFrameBufferStatusResult(gl, isOnHotPath = false) {
         return;
     }
 
-    const GL = WebGLRenderingContext;
+    const GL = WebGL2RenderingContext;
     let code = gl.checkFramebufferStatus(GL.FRAMEBUFFER);
     if (code === GL.FRAMEBUFFER_COMPLETE) {
         return;

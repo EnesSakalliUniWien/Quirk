@@ -44,11 +44,8 @@ class Serializer {
      * @returns {*}
      */
     static toJson(value, context=undefined) {
-        //noinspection JSUnusedLocalSymbols
         for (let [type, toJ, _] of BINDINGS) {
-            //noinspection JSUnusedAssignment
             if (value instanceof type) {
-                //noinspection JSUnusedAssignment
                 return toJ(value, context);
             }
         }
@@ -62,11 +59,8 @@ class Serializer {
      * @returns {*}
      */
     static fromJson(expectedType, json, context=undefined) {
-        //noinspection JSUnusedLocalSymbols
         for (let [type, _, fromJ] of BINDINGS) {
-            //noinspection JSUnusedAssignment
             if (type === expectedType) {
-                //noinspection JSUnusedAssignment
                 return fromJ(json, context);
             }
         }

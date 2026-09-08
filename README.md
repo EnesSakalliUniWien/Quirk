@@ -30,6 +30,10 @@ Shadow-Quant assumes you already know background facts like "each wire represent
 
 - Can't recohere measured qubits (because measurement is implemented as a hack based on the [deferred measurement principle](https://en.wikipedia.org/wiki/Deferred_Measurement_Principle)).
 
+# Manual
+
+The [user manual](doc/README.md) lists every action, display and gate with screenshots.
+
 # Examples
 
 **The app**, with a small circuit using Bloch, amplitude, density, and chance displays:

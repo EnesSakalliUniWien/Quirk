@@ -47,7 +47,6 @@ function randomCustomGateId() {
  * @returns {!string}
  */
 function valueElsePlaceholder(textBox) {
-    //noinspection JSUnresolvedVariable
     return textBox.value === '' ? textBox.placeholder : textBox.value;
 }
 
@@ -133,7 +132,6 @@ function parseUserGateMatrix_noCorrection(text) {
     if (n > (1<<8)) {
         throw Error("Max custom matrix operation size is 4 qubits.")
     }
-    //noinspection JSCheckFunctionSignatures
     return Matrix.square(...parts, ...new Array(n - parts.length).fill(0));
 }
 

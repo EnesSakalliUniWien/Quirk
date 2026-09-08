@@ -195,7 +195,6 @@ Axis._TOKEN_MAP.set("z", new Axis(0, 0, 1));
 Axis._TOKEN_MAP.set("(", "(");
 Axis._TOKEN_MAP.set(")", ")");
 for (let { character, value } of UNICODE_FRACTIONS) {
-  //noinspection JSUnusedAssignment
   Axis._TOKEN_MAP.set(character, value);
 }
 Axis._TOKEN_MAP.set("sqrt", {

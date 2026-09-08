@@ -474,7 +474,6 @@ suite.test("colDesiredSingleQubitStatsMask", () => {
         return assertThat(Seq.range(c.columns.length + 3).map(i => c.colDesiredSingleQubitStatsMask(i-1)).toArray());
     };
 
-    //noinspection SpellCheckingInspection
     assertAbout('XYZH●○M%D?@s!-#~23t', ['?', Gates.Displays.DensityMatrixDisplay2]).
         isEqualTo([0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
     assertAbout('%D@').isEqualTo([0, 1, 1, 1, 0, 0]);

@@ -51,10 +51,10 @@ suite.testUsingWebGLFloatTextures("passthrough", () => {
         void main() {
             fragColor = vec4(gl_FragCoord.x-0.5, gl_FragCoord.y-0.5, 0.0, 0.0);
         }`).withArgs();
-    let input = new WglTexture(2, 4, WebGLRenderingContext.FLOAT);
+    let input = new WglTexture(2, 4, WebGL2RenderingContext.FLOAT);
     coords.renderTo(input);
 
-    let result = new WglTexture(2, 4, WebGLRenderingContext.FLOAT);
+    let result = new WglTexture(2, 4, WebGL2RenderingContext.FLOAT);
     Shaders.passthrough(input).renderTo(result);
     assertThat(result.readPixels()).isEqualTo(new Float32Array([
         0, 0, 0, 0,

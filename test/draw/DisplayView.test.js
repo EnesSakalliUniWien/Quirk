@@ -37,14 +37,12 @@ suite.test("paintableArea", () => {
     assertThat(drawingArea(new DisplayView(c))).isEqualTo(new Rect(0, 0, 23, 34));
 });
 
-//noinspection SpellCheckingInspection
 suite.canvasAppearanceTest("clear", 20, 20, canvas => {
     let painter = new DisplayView(canvas);
     rectangle(painter, drawingArea(painter), {fill: '#123456'});
 }, 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAHklEQVQ4jWMQMgn7T03MMGrgqIGjBo4aOGrgSDUQACM' +
 'egk9y1eLzAAAAAElFTkSuQmCC');
 
-//noinspection SpellCheckingInspection
 suite.canvasAppearanceTest("strokeRect", 40, 40, canvas => {
     let painter = new DisplayView(canvas);
     rectangle(painter, new Rect(5, 10, 15, 20), {stroke: {color: "blue", width: 4}});
@@ -89,7 +87,6 @@ suite.test("roundedRectFillAndClip", async () => {
     assertThat(clipPixel(2, 2)).isEqualTo([0, 0, 0, 0]);
 });
 
-//noinspection SpellCheckingInspection
 suite.canvasAppearanceTest("strokeCircle", 40, 40, canvas => {
     let painter = new DisplayView(canvas);
     circle(painter, new Point(5, 10), 15, {stroke: {color: "blue", width: 3}});
@@ -101,7 +98,6 @@ suite.canvasAppearanceTest("strokeCircle", 40, 40, canvas => {
 '/XM8TkD5I1rUVejDtWOSOVr1xVzfasr6yMjryeq32o88ZaV3LyaU2/i0may6IP4uNk0fR2l9uEiX3p7STSUTGOnp6renpOyMQCAQCgUDgH/ANRQswZ2g' +
 'MMfAAAAAASUVORK5CYII=');
 
-//noinspection SpellCheckingInspection
 suite.canvasAppearanceTest("fillCircle", 40, 40, canvas => {
     let painter = new DisplayView(canvas);
     circle(painter, new Point(5, 10), 15, {fill: "blue"});
@@ -111,7 +107,6 @@ suite.canvasAppearanceTest("fillCircle", 40, 40, canvas => {
 'pqo0vAk0CJTvA3J94/xCBwxkTyN8e+NY5hktmeFtgtDyFSybtcacAPo/OAwe0HPh/jxiJStvwJUnWTK26trtmdtMjUIqXtLFFbfzBavrJ/wt6vDLuYuB' +
 '3Bn/uIuAC1ANFGeEANAVtTqA28UX4BOUyhO0h86AXUB3Uj6cOKu++eZ7neZ7neXfaFuFxi8XufliHAAAAAElFTkSuQmCC');
 
-//noinspection SpellCheckingInspection
 suite.canvasAppearanceTest("printLine_simple", 40, 40, canvas => {
     let painter = new DisplayView(canvas);
     let r = new Rect(5, 5, 30, 30);
@@ -129,7 +124,6 @@ suite.canvasAppearanceTest("printLine_simple", 40, 40, canvas => {
 '7rOC8B4pqrhsoxyh6D5LV0gAAAABJRU5ErkJggg==',
     1000); // Text rendering differs quite a bit from system to system... hard to test it effectively.
 
-//noinspection SpellCheckingInspection
 suite.canvasAppearanceTest("printLine_aligned", 40, 40, canvas => {
     let painter = new DisplayView(canvas);
     rectangle(painter, drawingArea(painter), {fill: "gray"});
@@ -154,7 +148,6 @@ suite.canvasAppearanceTest("printLine_aligned", 40, 40, canvas => {
 'ALewkMHyWQamrYRhfyq/Wzh6Y864lJiButTi09nKoQosF8lXBHGNg8gSGympoAv/phTXXFGABpk4B/jQftjpRyNhAo6oAAAAASUVORK5CYII=',
     1000); // Text rendering differs quite a bit from system to system... hard to test it effectively.
 
-//noinspection SpellCheckingInspection
 suite.canvasAppearanceTest("strokePolygon", 40, 40, canvas => {
     let painter = new DisplayView(canvas);
     strokePath(painter, ([
@@ -196,7 +189,6 @@ suite.canvasAppearanceTest("strokePolygon", 40, 40, canvas => {
 '90EPQpHvyGTeJsptM1U1qyU0uL8A0oVa3kx2g/W5Xe9zungSdcztdAF0D3QCNRENpRjO2Nv4CO0/DOtNuBZYAAAAASUVORK5CYII=',
     400); // Polygon anti-aliasing differs across browser engines and versions.
 
-//noinspection SpellCheckingInspection
 suite.canvasAppearanceTest("fillPolygon", 40, 40, canvas => {
     let painter = new DisplayView(canvas);
     polygon(painter, [

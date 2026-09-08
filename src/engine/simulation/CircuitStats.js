@@ -376,9 +376,7 @@ class CircuitStats {
 
         let customStatsProcessed = new Map();
         for (let {col, row, out} of customStatsMap) {
-            //noinspection JSUnusedAssignment
             let func = circuitDefinition.gateInSlot(col, row).customStatPostProcesser || (e => e);
-            //noinspection JSUnusedAssignment
             customStatsProcessed.set(col+":"+row, func(pixelData.customStats[out], circuitDefinition, col, row));
         }
 

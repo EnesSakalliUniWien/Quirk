@@ -269,7 +269,6 @@ suite.test("breakLine", () => {
         "words"
     ]);
 
-    //noinspection SpellCheckingInspection
     assertThat(Util.breakLine("a long line can be broken between words", 6, e => e.length)).isEqualTo([
         "a long",
         "line",
@@ -280,7 +279,6 @@ suite.test("breakLine", () => {
         "words"
     ]);
 
-    //noinspection SpellCheckingInspection
     assertThat(Util.breakLine("a long line can be broken between words", 5, e => e.length)).isEqualTo([
         "a",
         "long",
