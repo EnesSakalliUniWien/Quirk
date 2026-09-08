@@ -55,7 +55,7 @@ export class TooltipLayer extends Container {
     }
 }
 
-export class TooltipView extends DisplayView {
+class TooltipView extends DisplayView {
     update({x, y, labelText, valueText, valueText2, backColor}) {
         const labelFont = {fontSize: 12, fontFamily: Typography.DEFAULT_FONT_FAMILY};
         const valueFont = {fontSize: 12, fontFamily: Typography.MONO_FONT_FAMILY, fontWeight: 'bold'};

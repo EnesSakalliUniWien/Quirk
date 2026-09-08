@@ -21,7 +21,7 @@
  * dock state.
  */
 
-import {appStore, observeAppStore} from "../state/appStore.js"
+import {appStore, observeAppStore} from "../../state/appStore.js"
 
 /** How close to an edge, in pixels, the pointer must be to activate a zone. */
 const SNAP_EDGE_PX = 40;
@@ -293,8 +293,6 @@ export {
     zoneForPointer,
     rectForZone,
     SNAP_EDGE_PX,
-    DRAG_THRESHOLD_PX,
-    MOBILE_BREAKPOINT_PX,
     dockModes,
     setDockMode,
     clearDockMode,

@@ -1,6 +1,5 @@
 import {resolve} from "node:path";
 
-import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import {defineConfig} from "vite";
 
@@ -11,7 +10,7 @@ export default defineConfig(({mode}) => {
     const input = pageForMode[mode] ?? "quirk.html";
     const isApp = input === "quirk.html";
     return {
-        plugins: [react(), tailwindcss()],
+        plugins: [react()],
         resolve: {
             alias: {
                 "@": resolve(projectRoot, "src")

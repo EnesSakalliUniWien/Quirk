@@ -1,38 +1,14 @@
-@custom-variant dark (&:is(.dark *));
-
-/* The app's own scale, declared through Tailwind's theme so it is one system rather than a
-   parallel set of variables. Every value is also available as a utility class. */
-@theme {
+/* The app's type scale and the base spacing unit the stylesheets multiply (0.25rem, the same
+   step Tailwind used, so nothing shifts). The fonts alias the explicit DOM fonts below. */
+:root {
+    --spacing: 0.25rem;
     --text-caption: 0.6875rem;
     --text-small: 0.8125rem;
     --text-body: 0.9375rem;
     --text-heading: 1.125rem;
     --text-title: 1.75rem;
-}
-
-/* Tailwind utilities use the explicit DOM colours and fonts below. */
-@theme inline {
     --font-sans: var(--app-font-sans);
     --font-mono: var(--app-font-mono);
-    --color-ring: var(--ring);
-    --color-input: var(--input);
-    --color-border: var(--border);
-    --color-destructive: var(--destructive);
-    --color-accent-foreground: var(--accent-foreground);
-    --color-accent: var(--accent);
-    --color-muted-foreground: var(--muted-foreground);
-    --color-muted: var(--muted);
-    --color-secondary-foreground: var(--secondary-foreground);
-    --color-secondary: var(--secondary);
-    --color-primary-foreground: var(--primary-foreground);
-    --color-primary: var(--primary);
-    --color-popover-foreground: var(--popover-foreground);
-    --color-popover: var(--popover);
-    --color-card-foreground: var(--card-foreground);
-    --color-card: var(--card);
-    --color-foreground: var(--foreground);
-    --color-background: var(--background);
-    --radius-lg: var(--radius);
 }
 
 /* Explicit DOM colours and fonts; available before JavaScript starts. */

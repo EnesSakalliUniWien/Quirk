@@ -18,7 +18,7 @@ import {CircuitStats} from "../engine/simulation/CircuitStats.js"
 import {DisplayedInspector} from "../editor/DisplayedInspector.js"
 import {Rect} from "../geometry/Rect.js"
 import {Revision} from "../base/Revision.js"
-import {fromJsonText_CircuitDefinition} from "../circuit/serialization/Serializer.js"
+import {fromJsonText_CircuitDefinition} from "../serialization/Serializer.js"
 import {Util} from "../base/Util.js"
 import {ObservableValue} from "../base/Obs.js"
 import {initExports} from "./dialogs/exports.js"
@@ -43,7 +43,7 @@ import {initGateParamDialog} from "./dialogs/gateParamDialog.js"
 import {initBlochSphereDialog} from "./dialogs/blochSphereDialog.js"
 import {noteCircuitEdited} from "../diagnostics/errorReporter.js"
 import {initDialogSnap, notifyDialogOpened} from "./dialogs/dialogSnap.js"
-import {appStore} from "./state/appStore.js"
+import {appStore} from "../state/appStore.js"
 
 /**
  * Starts Quirk after its document elements are available. Must be called exactly once.

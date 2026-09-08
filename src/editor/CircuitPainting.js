@@ -39,7 +39,8 @@ import {MathPainter} from '../draw/MathPainter.js';
 import {Point} from '../geometry/Point.js';
 import {Rect} from '../geometry/Rect.js';
 import {Util} from '../base/Util.js';
-import {CircuitGeometry, rectForResizeTab} from './CircuitGeometry.js';
+import {CircuitGeometry} from './CircuitGeometry.js';
+import {rectForResizeTab} from '../draw/gate/GateRects.js';
 import {paintBlochSphereDisplay} from '../gates/displays/BlochSphereDisplay.js';
 import {SUPERPOSITION_GRID_LABEL_SPAN, DISPLAY_CAPTION_WIDTH, DISPLAY_CAPTION_GAP, DISPLAY_WARNING_STRIP_HEIGHT} from './CircuitLayoutConstants.js';
 

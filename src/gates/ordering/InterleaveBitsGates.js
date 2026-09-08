@@ -148,6 +148,5 @@ InterleaveBitsGates.all = [
 export {
     InterleaveBitsGates,
     interleaveBit,
-    deinterleaveBit,
-    shaderFromBitPermutation
+    deinterleaveBit
 }

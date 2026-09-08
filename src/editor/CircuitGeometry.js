@@ -218,20 +218,3 @@ class CircuitGeometry {
 }
 
 export {CircuitGeometry}
-
-export function gateButtonRect(wholeRect) {
-    if (wholeRect.h > 50) {
-        return wholeRect.bottomHalf().skipTop(6).paddedBy(-7);
-    }
-    return wholeRect.bottomHalf().paddedBy(+2);
-}
-
-/**
- * The strip along a gate's bottom edge that drags to change its height.
- * @param {!Rect} gateRect
- * @returns {!Rect}
- */
-export function rectForResizeTab(gateRect) {
-    let overlap = Math.min(Layout.GATE_RADIUS, gateRect.h/4);
-    return new Rect(gateRect.x, gateRect.bottom() - overlap, gateRect.w, Layout.GATE_RADIUS * 2);
-}

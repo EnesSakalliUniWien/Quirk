@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {appStore, observeAppStore} from "./appStore.js"
+import {appStore, observeAppStore} from "../../state/appStore.js"
 
 /**
  * Tracks the one overlay that is currently active.

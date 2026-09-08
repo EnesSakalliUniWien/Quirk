@@ -401,6 +401,7 @@ function makeDetectControlClearGate(axis) {
         setStatPixelDataPostProcessor((pixels, circuit, row, col) => pixels[0] > 0);
     if (axis === 'Z') {
         builder.promiseEffectIsDiagonal();
+        builder.setMeasureEffect("collapse");
     }
     return builder.gate;
 }
@@ -431,6 +432,7 @@ function makeDetector(axis) {
         setStatPixelDataPostProcessor((pixels, circuit, row, col) => pixels[0] > 0);
     if (axis === 'Z') {
         builder.promiseEffectIsDiagonal();
+        builder.setMeasureEffect("collapse");
     }
     return builder.gate;
 }

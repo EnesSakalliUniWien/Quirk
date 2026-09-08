@@ -1,16 +1,15 @@
 # Application shell
 
 `src/app` wires the DOM, the circuit canvas and the engine together. Nothing here is imported by
-the engine or the gates. The React components in `src/components` read `state/appStore.js` for
+the engine or the gates. The React components in `src/components` read `src/state/appStore.js` for
 what to show and which model to call, and import the dialog wiring modules that belong to the
 panels they render. The toolbar and transport buttons are entirely React components.
 
 ```text
 app/
 ├── QuirkApp.js     the composition root: creates every model and calls every init* once
-├── state/          the app store and the DOM-free models the rest of the app subscribes to
-│   ├── appStore.js         the zustand store the React chrome reads: overlay, zoom, dock modes,
-│   │                       and the availability and playhead state mirrored from the models
+├── state/          the DOM-free models the rest of the app subscribes to (the zustand store
+│   │                   they are mirrored into lives in src/state/appStore.js)
 │   ├── CircuitActions.js   undo, redo and clearing over the circuit revision
 │   ├── OverlayState.js     which overlay is open
 │   ├── Playhead.js         where the transport controls are parked in the circuit

@@ -62,6 +62,7 @@ PostSelectionGates.PostSelectOff = new GateBuilder().
     setSerializedIdAndSymbol("|0⟩⟨0|").
     setTitle("Postselect Off").
     setBlurb("Keeps OFF states, discards/retries ON states.").
+    setMeasureEffect("collapse").
     setDrawer(POST_SELECT_DRAWER).
     setKnownEffectToMatrix(Matrix.square(1, 0, 0, 0)).
     gate;
@@ -72,6 +73,7 @@ PostSelectionGates.PostSelectOn = new GateBuilder().
     setSerializedIdAndSymbol("|1⟩⟨1|").
     setTitle("Postselect On").
     setBlurb("Keeps On states, discards/retries Off states.").
+    setMeasureEffect("collapse").
     setDrawer(POST_SELECT_DRAWER).
     setKnownEffectToMatrix(Matrix.square(0, 0, 0, 1)).
     gate;

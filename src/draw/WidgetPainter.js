@@ -27,7 +27,7 @@ import { MathPainter } from "./MathPainter.js";
 
 import { Point } from "../geometry/Point.js";
 import { Rect } from "../geometry/Rect.js";
-import { drawCircuitTooltip } from "../editor/DisplayedCircuit.js";
+import { paintCircuitPreview } from "./CircuitPreview.js";
 import { Util } from "../base/Util.js";
 import { QubitMatrix } from "../engine/math/matrix/QubitMatrix.js";
 
@@ -269,7 +269,7 @@ class WidgetPainter {
     );
 
     let circuitRect = new Rect(pad, nextY(), w, dispSize);
-    let { maxW, maxH } = drawCircuitTooltip(
+    let { maxW, maxH } = paintCircuitPreview(
       painter,
       nestedCircuit,
       circuitRect,

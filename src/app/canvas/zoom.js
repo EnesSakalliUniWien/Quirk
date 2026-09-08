@@ -15,7 +15,7 @@
  */
 
 import {Point} from "../../geometry/Point.js"
-import {appStore} from "../state/appStore.js"
+import {appStore} from "../../state/appStore.js"
 
 /**
  * The circuit's camera: a zoom factor plus the scroll container's offset. 1 is the natural

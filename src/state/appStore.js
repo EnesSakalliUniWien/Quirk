@@ -15,7 +15,7 @@
  */
 
 import {createStore} from "zustand/vanilla"
-import {Observable} from "../../base/Obs.js"
+import {Observable} from "../base/Obs.js"
 
 /**
  * The shell's UI state, in one zustand store that the React components read with `useStore` and

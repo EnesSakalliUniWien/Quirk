@@ -18,7 +18,7 @@ import {reportRecoveredError} from "../../diagnostics/errorReporter.js"
 import {CircuitDefinition} from "../../circuit/model/CircuitDefinition.js"
 import {AppInfo} from "../../config/AppInfo.js"
 import {HistoryPusher} from "../../browser/HistoryPusher.js"
-import {fromJsonText_CircuitDefinition, Serializer} from "../../circuit/serialization/Serializer.js"
+import {fromJsonText_CircuitDefinition, Serializer} from "../../serialization/Serializer.js"
 
 function urlWithCircuitHash(jsonText) {
     if (jsonText.indexOf('%') !== -1 || jsonText.indexOf('&') !== -1) {

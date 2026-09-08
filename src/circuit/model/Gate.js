@@ -55,11 +55,8 @@ class Gate {
 
         /** @type {undefined|!function(!GateDrawParams) : void} Draws the gate. A default is used when undefined. */
         this.customDrawer = undefined;
-        /** @type{undefined|!function(!Gate) : !Gate} */
-        this.onClickGateFunc = undefined;
         /**
-         * When set, clicking the gate's button opens the in-app parameter dialog instead of
-         * calling onClickGateFunc.
+         * When set, clicking the gate's button opens the in-app parameter dialog.
          * @type {undefined|!{title: !string, message: !string,
          *     applyText: !function(oldGate: !Gate, text: !string): !{gate: !Gate}|!{error: !string}}}
          */
@@ -147,6 +144,19 @@ class Gate {
          * @type {!boolean}
          */
         this.isControlWireSource = false;
+        /**
+         * How placing this gate changes which wires count as measured from then on: "measure"
+         * marks the wire measured, "collapse" leaves it holding a single known result (so later
+         * coherent operations are safe again). The circuit model reads this rather than
+         * recognising particular catalogue gates.
+         * @type {undefined|!string}
+         */
+        this.measureEffect = undefined;
+        /**
+         * One half of the swap gate: two in a column swap their wires, measured state included.
+         * @type {!boolean}
+         */
+        this.isSwapHalf = false;
         /**
          * A circuit that is equivalent to this gate.
          * If no shader or matrix is specified, the circuit will be recursed into to compute the gate.
@@ -296,7 +306,6 @@ class Gate {
         g.blurb = this.blurb;
         g.alternate = this.alternate;
         g.serializedId = this.serializedId;
-        g.onClickGateFunc = this.onClickGateFunc;
         g.paramDialog = this.paramDialog;
         g.tag = this.tag;
         g.param = this.param;
@@ -328,6 +337,8 @@ class Gate {
         g._controlBit = this._controlBit;
         g._isClassicalControl = this._isClassicalControl;
         g.isControlWireSource = this.isControlWireSource;
+        g.measureEffect = this.measureEffect;
+        g.isSwapHalf = this.isSwapHalf;
         g._isDefinitelyUnitary = this._isDefinitelyUnitary;
         g.knownPhaseTurnsFunc = this.knownPhaseTurnsFunc;
         g.knownPermutationFuncTakingInputs = this.knownPermutationFuncTakingInputs;
@@ -935,6 +946,25 @@ class GateBuilder {
      */
     markAsReachingOtherWires() {
         this.gate._showAsReachesOtherWires = true;
+        return this;
+    }
+
+    /**
+     * Declares how the gate changes the measured-wire bookkeeping: "measure" or "collapse".
+     * @param {!string} effect
+     * @returns {!GateBuilder}
+     */
+    setMeasureEffect(effect) {
+        this.gate.measureEffect = effect;
+        return this;
+    }
+
+    /**
+     * Marks the gate as one half of a swap: two in a column exchange their wires.
+     * @returns {!GateBuilder}
+     */
+    markAsSwapHalf() {
+        this.gate.isSwapHalf = true;
         return this;
     }
 

@@ -21,7 +21,7 @@ import { fitText } from "../pixi/TextLayout.js";
 import { Layout } from "../../config/Layout.js";
 import { CanvasTheme, gateStyle } from "../../config/CanvasTheme.js";
 import { Typography } from "../../config/Typography.js";
-import { gateButtonRect, rectForResizeTab } from "../../editor/CircuitGeometry.js";
+import { gateButtonRect, rectForResizeTab } from "./GateRects.js";
 
 /** @typedef {import('./GateDrawParams.js').GateDrawParams} GateDrawParams */
 

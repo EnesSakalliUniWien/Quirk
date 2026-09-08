@@ -1,8 +1,10 @@
 # Engine code
 
 Every calculation Quirk performs lives here, so the numeric core can be understood, tested and
-generalised in one place. The three sub-namespaces layer strictly: each depends only on the ones
-listed before it, on `src/base/` and on `src/config/`.
+generalised in one place. `math/` and `webgl/` are leaves: each depends only on the ones listed
+before it, on `src/base/` and on `src/config/`. `simulation/` is not a leaf - it evaluates the
+circuit model with the catalogue's gates, so it imports `src/circuit/`, `src/gates/` and
+`src/serialization/` and sits above them in the dependency order CONTRIBUTING gives.
 
 ```text
 engine/

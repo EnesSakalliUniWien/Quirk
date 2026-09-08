@@ -27,7 +27,7 @@ import { Hand } from "./Hand.js";
 import { CircuitGeometry } from "./CircuitGeometry.js";
 
 import { Rect } from "../geometry/Rect.js";
-import { Serializer } from "../circuit/serialization/Serializer.js";
+import { Serializer } from "../serialization/Serializer.js";
 
 class DisplayedInspector {
   /**

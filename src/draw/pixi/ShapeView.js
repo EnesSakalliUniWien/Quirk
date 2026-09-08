@@ -19,7 +19,7 @@ import {CanvasTheme} from '../../config/CanvasTheme.js';
 import {PathGeometry} from './PathGeometry.js';
 
 /** Fixed shapes keep their GraphicsContext until geometry or colours change. */
-export class ShapeView extends Graphics {
+class ShapeView extends Graphics {
     update(kind, coordinates, {fill, stroke} = {}) {
         const values = [kind, ...coordinates, fill, stroke?.color, stroke?.width];
         if (!this.values || values.length !== this.values.length || values.some((v, i) => !Object.is(v, this.values[i]))) {

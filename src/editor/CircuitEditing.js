@@ -16,7 +16,6 @@
 
 import {
     findGateOverlappingPos,
-    findGateWithButtonContaining,
     findModificationIndex,
     findOpHalfColumnAt,
     findWireWithInitialStateAreaContaining,
@@ -283,19 +282,8 @@ function tryClick(circuit, hand) {
         return circuit.withCircuit(circuit.circuitDefinition.withSwitchedInitialStateOn(clickedInitialStateWire))
     }
 
-    let found = findGateWithButtonContaining(circuit, hand.pos);
-    if (found === undefined || found.gate.onClickGateFunc === undefined) {
-        // Gates with a parameter dialog are handled by the pointer code before it tries a click.
-        return undefined;
-    }
-
-    let newGate = found.gate.onClickGateFunc(found.gate);
-    let cols = [...circuit.circuitDefinition.columns];
-    let col = cols[found.col];
-    let gates = [...col.gates];
-    gates.splice(found.row, 1, newGate);
-    cols.splice(found.col, 1, new GateColumn(gates));
-    return circuit.withCircuit(circuit.circuitDefinition.withColumns(cols));
+    // Gates with a parameter dialog are handled by the pointer code before it tries a click.
+    return undefined;
 }
 
 /**

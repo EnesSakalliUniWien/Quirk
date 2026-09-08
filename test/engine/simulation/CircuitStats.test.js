@@ -21,7 +21,7 @@ import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js
 import {GateColumn} from "../../../src/circuit/model/GateColumn.js"
 import {Gates} from "../../../src/gates/AllGates.js"
 import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
-import {Serializer} from "../../../src/circuit/serialization/Serializer.js"
+import {Serializer} from "../../../src/serialization/Serializer.js"
 import {QubitMatrix} from "../../../src/engine/math/matrix/QubitMatrix.js"
 
 let suite = new Suite("CircuitStats");

@@ -102,4 +102,4 @@ function paintSampleDisplay(args) {
     rectangle(args.painter, args.rect, {stroke: {color: CanvasTheme.stroke.grid, width: 1}});
 }
 
-export {sampleFromDistribution, paintSampleDisplay};
+export {paintSampleDisplay};

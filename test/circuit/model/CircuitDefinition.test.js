@@ -25,7 +25,7 @@ import {GateColumn} from "../../../src/circuit/model/GateColumn.js"
 import {Gates} from "../../../src/gates/AllGates.js"
 import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
 import {Point} from "../../../src/geometry/Point.js"
-import {Serializer} from "../../../src/circuit/serialization/Serializer.js"
+import {Serializer} from "../../../src/serialization/Serializer.js"
 import {Util} from "../../../src/base/Util.js"
 
 let suite = new Suite("CircuitDefinition");

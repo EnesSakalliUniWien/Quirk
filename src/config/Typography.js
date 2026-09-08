@@ -23,7 +23,7 @@ Typography.DEFAULT_FONT_SIZE = 12;
 Typography.DEFAULT_FONT_FAMILY = "'Geist Variable', sans-serif";
 Typography.MONO_FONT_FAMILY =
   'ui-monospace, "SFMono-Regular", Consolas, monospace';
-// Gate symbols are the tile's content, not a label, at the same medium weight the shadcn Button
+// Gate symbols are the tile's content, not a label, at the same medium weight the chrome's buttons
 // uses, so both control surfaces read alike.
 Typography.GATE_SYMBOL_FONT_SIZE = 16;
 Typography.GATE_SYMBOL_FONT_WEIGHT = 500;

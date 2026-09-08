@@ -13,7 +13,7 @@ import {useEffect, useRef} from "react";
 import {useStore} from "zustand";
 
 import {Button} from "@/components/ui/button";
-import {appStore} from "../../app/state/appStore.js";
+import {appStore} from "../../state/appStore.js";
 
 // Lucide draws at a 24px grid with a stroke of 2. These render at 16px, so the stroke is
 // scaled down to match, which is also what the inline SVGs in the menu use.
@@ -24,7 +24,6 @@ function ToolbarButton({id, icon: Icon, label, className, disabled, onClick}) {
         <Button
             id={id}
             size="icon"
-            variant="ghost"
             className={className}
             aria-label={label}
             title={label}
@@ -194,7 +193,7 @@ function AppToolbar() {
                 id="clear-all-button"
                 icon={Trash2Icon}
                 label="Clear All"
-                className="app-toolbar-danger text-destructive"
+                className="app-toolbar-danger"
                 disabled={!availability.canClearAll}
                 onClick={() => circuitActions.clearAll()} />
         </header>
@@ -218,4 +217,4 @@ function mountAppToolbar() {
     });
 }
 
-export {AppToolbar, mountAppToolbar};
+export {mountAppToolbar};

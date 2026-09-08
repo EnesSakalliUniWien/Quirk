@@ -175,6 +175,5 @@ export {
     ketShader,
     ketShaderPermute,
     ketShaderPhase,
-    ketInputGateShaderCode,
-    ketInputGateArgs
+    ketInputGateShaderCode
 }

@@ -13,34 +13,54 @@ Before opening the pull request, keep the checks green:
 
 - `src/main.js` — the page entry; everything else is reached from here.
 - `src/app/` — everything the shell owns: the composition root (`QuirkApp.js`) plus the
-  modules it wires together once at startup, grouped into `state/` (with the zustand app
-  store), `canvas/`, `dialogs/` and `session/`. See [the app directory guide](src/app/README.md).
+  modules it wires together once at startup, grouped into `state/` (the DOM-free models),
+  `canvas/`, `dialogs/` and `session/`. See [the app directory guide](src/app/README.md).
+- `src/state/` — `appStore.js`, the zustand store the React chrome reads and the shell writes:
+  the active overlay, zoom, dock modes, and the availability and playhead state mirrored from
+  the models. It depends only on `src/base/`, so both `app` and `components` import it downward.
 - `src/editor/` — the canvas circuit editor's model: the displayed circuit, its geometry,
   hit testing, painting, and drag state. Must never import from `src/app/` or
   `src/components/`, and stays DOM-free (no `document`/`window` access).
 - `src/components/` — the React chrome (toolbar, transport bar, dialogs, gate toolbox), its
-  shadcn primitives under `src/components/ui/`, and `toolbox.js`, the vanilla helper module the
-  gate toolbox drives.
-- `src/circuit/` — circuit models in `model/` and JSON conversion in `serialization/`.
-  See [the circuit directory guide](src/circuit/README.md) for individual file responsibilities.
+  `Button` and `ButtonGroup` primitives under `src/components/ui/` (styled by
+  `src/styles/controls.css`), and `toolbox.js`, the vanilla helper module the gate toolbox drives.
+- `src/circuit/` — the circuit model: `CircuitDefinition`, `GateColumn`, `Gate` and
+  `GateBuilder`, `Controls`, plus the two vocabularies the gate catalogue builds on
+  (`InitialStates.js`, `InputLetters.js`). It never imports the catalogue: where the model has
+  to know what a gate does to a wire it reads a flag the builder set (`measureEffect`,
+  `isSwapHalf`). See [the circuit directory guide](src/circuit/README.md).
+- `src/serialization/` — `Serializer.js`, JSON in and out for circuits, gates and matrices. It
+  needs the catalogue to resolve gate ids, so it sits above `circuit` and `gates`.
 - `src/gates/` — the gate catalogue, aggregated by `AllGates.js`; a gate missing from its
   lists silently stops serializing and disappears from the toolbox.
-- `src/draw/` — canvas painting primitives.
+- `src/draw/` — canvas painting primitives. Two seams let the editor hand renderers down
+  without `draw` importing it: `gate/CustomGateCircuitDrawer.js` and `CircuitPreview.js`.
 - `src/engine/` — every calculation: pure numerics in `math/`, the WebGL2 abstraction in `webgl/`
   (`webgl/context/issues.js` owns the one shared GL context), and circuit evaluation in `simulation/`
-  with its shader and texture utilities in `simulation/gpu/`. See
-  [the engine directory guide](src/engine/README.md).
+  with its shader and texture utilities in `simulation/gpu/`. `math/` and `webgl/` are leaves;
+  `simulation/` evaluates the circuit model with the catalogue's gates, so it sits above both.
+  See [the engine directory guide](src/engine/README.md).
 - `src/diagnostics/` — the error banner and global error hooks; anything may report into it,
   it depends only on `src/base/`.
 - `src/base/`, `src/geometry/`, `src/browser/`, `src/config/` — dependency-light foundations:
   generic utilities, 2D points and rectangles, browser API wrappers, and shared constants.
 - `src/styles/` — all CSS, aggregated by `globals.css`.
 
-Dependencies flow downward: `main → app → (components, editor) → (circuit, gates, draw) →
-(engine, diagnostics, browser, config, geometry, base)`. Skipping levels downward is fine (`main`
-also imports `components`, `diagnostics`, and `engine` directly). The
-`circuit`/`gates`/`draw`/`editor` cluster is mutually entangled for historical reasons (gates
-carry their own drawers); do not add new upward imports beyond it.
+Dependencies flow downward:
+
+    main → app → (components, editor) → serialization → engine/simulation → (gates, circuit) → draw
+         → (engine/math, engine/webgl, diagnostics, browser, config, geometry, base)
+
+`state` sits beside `components` (read by `app` and `components`, depending only on `base`).
+Skipping levels downward is fine (`main` also imports `components`, `diagnostics` and
+`engine/webgl` directly).
+
+Three pairs import each other, and they are the only upward edges in the tree:
+`gates ↔ engine/simulation` (gates build their shaders on the simulation's ket utilities; the
+simulation prepares initial states through the catalogue), `circuit ↔ engine/simulation` (the
+model delegates execution; the simulation reads the model), and `serialization ↔
+engine/simulation` (the serializer rebuilds circuit-backed gates through `CircuitComputeUtil`;
+`CircuitStats` serializes display data). Do not add new upward imports beyond these.
 
 `test/` mirrors `src/` wherever unit tests exist and discovers suites by the
 `test/**/*.test.js` glob, so a test moved outside `test/` silently stops running. `test_perf/`

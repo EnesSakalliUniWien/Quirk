@@ -78,6 +78,7 @@ import { NeGate } from "./misc/Joke_NeGate.js";
 import { ZeroGate } from "./misc/Joke_ZeroGate.js";
 import { SpacerGate } from "./misc/SpacerGate.js";
 import { SwapGateHalf } from "./misc/SwapGateHalf.js";
+import { INITIAL_STATE_KEYS } from "../circuit/model/InitialStates.js";
 
 
 let Gates = {};
@@ -228,13 +229,12 @@ Gates.findKnownGateById = (id, customGateSet) => {
     : customGateSet.findGateWithSerializedId(id);
 };
 
-/** @type {!Array<!{hint: !string, gates: !Array<undefined|!Gate>}>} */
+/** @type {!Array<!{hint: !string, gates: !Array<!Gate>}>} */
 Gates.TopToolboxGroups = [
   {
     hint: "Probes",
     gates: [
       MeasurementGate,
-      undefined,
       PostSelectionGates.PostSelectOff,
       PostSelectionGates.PostSelectOn,
       Controls.AntiControl,
@@ -244,8 +244,6 @@ Gates.TopToolboxGroups = [
   {
     hint: "Displays",
     gates: [
-      undefined,
-      undefined,
       DensityMatrixDisplayFamily.ofSize(1),
       BlochSphereDisplay,
       ProbabilityDisplayFamily.ofSize(1),
@@ -258,7 +256,6 @@ Gates.TopToolboxGroups = [
       HalfTurnGates.Z,
       SwapGateHalf,
       HalfTurnGates.Y,
-      undefined,
       HalfTurnGates.X,
       HalfTurnGates.H,
     ],
@@ -289,11 +286,8 @@ Gates.TopToolboxGroups = [
     hint: "Rotations",
     gates: [
       RotationGates.Rz,
-      undefined,
       RotationGates.Ry,
-      undefined,
       RotationGates.Rx,
-      undefined,
     ],
   },
   {
@@ -344,16 +338,13 @@ Gates.TopToolboxGroups = [
     hint: "Parity",
     gates: [
       Controls.ZParityControl,
-      undefined,
       Controls.YParityControl,
-      undefined,
       Controls.XParityControl,
-      undefined,
     ],
   },
 ];
 
-/** @type {!Array<!{hint: !string, gates: !Array<undefined|!Gate>}>} */
+/** @type {!Array<!{hint: !string, gates: !Array<!Gate>}>} */
 Gates.BottomToolboxGroups = [
   {
     hint: "X/Y Probes",
@@ -374,7 +365,6 @@ Gates.BottomToolboxGroups = [
       CountingGates.CountingFamily.ofSize(3),
       CountingGates.UncountingFamily.ofSize(3),
       ReverseBitsGateFamily.ofSize(2),
-      undefined,
       CycleBitsGates.CycleBitsFamily.ofSize(3),
       CycleBitsGates.ReverseCycleBitsFamily.ofSize(3),
       InterleaveBitsGates.InterleaveBitsGateFamily.ofSize(6),
@@ -386,8 +376,6 @@ Gates.BottomToolboxGroups = [
     gates: [
       FourierTransformGates.FourierTransformFamily.ofSize(2),
       FourierTransformGates.InverseFourierTransformFamily.ofSize(2),
-      undefined,
-      undefined,
       PhaseGradientGates.PhaseGradientFamily.ofSize(2),
       PhaseGradientGates.PhaseDegradientFamily.ofSize(2),
       PhaseGradientGates.DynamicPhaseGradientFamily.ofSize(2),
@@ -403,8 +391,6 @@ Gates.BottomToolboxGroups = [
       InputGates.SetB,
       InputGates.InputRFamily.ofSize(2),
       InputGates.SetR,
-      undefined,
-      undefined,
     ],
   },
   {
@@ -429,8 +415,6 @@ Gates.BottomToolboxGroups = [
       ComparisonGates.AGreaterThanOrEqualToB,
       ComparisonGates.AEqualToB,
       ComparisonGates.ANotEqualToB,
-      undefined,
-      undefined,
     ],
   },
   {
@@ -452,7 +436,6 @@ Gates.BottomToolboxGroups = [
       SpacerGate,
       ZeroGate,
       NeGate,
-      undefined,
       ImaginaryGate,
       AntiImaginaryGate,
       SqrtImaginaryGate,
@@ -462,13 +445,18 @@ Gates.BottomToolboxGroups = [
 ];
 
 /** @type {!Map.<undefined|!string, !Array.<!Gate>>} */
-const INITIAL_STATES_TO_GATES = new Map([
-  [undefined, []],
+/** How each initial state in INITIAL_STATE_KEYS is prepared on top of |0>. */
+const INITIAL_STATE_PREPARATIONS = new Map([
   ["1", [Gates.HalfTurns.X]],
   ["+", [Gates.HalfTurns.H]],
   ["-", [Gates.HalfTurns.H, Gates.HalfTurns.Z]],
   ["i", [Gates.HalfTurns.H, Gates.QuarterTurns.SqrtZForward]],
   ["-i", [Gates.HalfTurns.H, Gates.QuarterTurns.SqrtZBackward]],
 ]);
+
+/** @type {!Map.<undefined|!string, !Array.<!Gate>>} */
+const INITIAL_STATES_TO_GATES = new Map(
+  INITIAL_STATE_KEYS.map((key) => [key, INITIAL_STATE_PREPARATIONS.get(key) ?? []]),
+);
 
 export { Gates, INITIAL_STATES_TO_GATES };

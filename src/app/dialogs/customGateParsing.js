@@ -228,9 +228,7 @@ function parseUserGateFromCircuitRange(circuit, colRangeText, wireRangeText, nam
 export {
     randomCustomGateId,
     valueElsePlaceholder,
-    parseUserAngle,
     parseUserRotation,
     parseUserMatrix,
-    parseRange,
     parseUserGateFromCircuitRange,
 }

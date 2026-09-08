@@ -17,7 +17,6 @@
 import {DetailedError} from "../../base/DetailedError.js"
 import {Gate} from "./Gate.js"
 import {GateCheckArgs} from "./GateCheckArgs.js"
-import {Gates} from "../../gates/AllGates.js"
 import {Util} from "../../base/Util.js"
 
 /**
@@ -415,17 +414,14 @@ class GateColumn {
         }
 
         // The measurement gate measures.
-        if (gate === Gates.Special.Measurement) {
+        if (gate.measureEffect === "measure") {
             state.measureMask |= 1<<row;
             return;
         }
 
         // Post-selection gates un-measure (in that the simulator can then do coherent operations on the qubit
         // without getting the wrong answer, at least).
-        let hasSingleResult = gate === Gates.PostSelectionGates.PostSelectOn
-            || gate === Gates.PostSelectionGates.PostSelectOff
-            || gate === Gates.Detectors.ZDetector
-            || gate === Gates.Detectors.ZDetectControlClear;
+        let hasSingleResult = gate.measureEffect === "collapse";
         if (!this.hasControl(0, 1 << row) && hasSingleResult) {
             state.measureMask &= ~(1<<row);
             return;
@@ -443,7 +439,7 @@ class GateColumn {
      * @private
      */
     static _updateMeasureMask_swapGate(gate, state, row) {
-        if (gate !== Gates.Special.SwapHalf) {
+        if (!gate.isSwapHalf) {
             return;
         }
 

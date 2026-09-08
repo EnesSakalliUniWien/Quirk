@@ -28,7 +28,7 @@ import {Observable, ObservableValue} from '../../base/Obs.js';
 import {RenderSurface} from '../../draw/pixi/RenderSurface.js';
 import {Point} from '../../geometry/Point.js';
 import {Rect} from '../../geometry/Rect.js';
-import {fromJsonText_CircuitDefinition, Serializer} from '../../circuit/serialization/Serializer.js';
+import {fromJsonText_CircuitDefinition, Serializer} from '../../serialization/Serializer.js';
 import {textEditObservable} from '../../browser/EventUtil.js';
 import {
     randomCustomGateId,

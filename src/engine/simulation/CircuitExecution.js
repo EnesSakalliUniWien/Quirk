@@ -48,7 +48,7 @@ function applyMainOperationsInCol(circuit, colIndex, ctx) {
     }
 
     applyOpsInCol(circuit, colIndex, ctx, gate => {
-        if (gate.definitelyHasNoEffect() || gate === Gates.Special.SwapHalf) {
+        if (gate.definitelyHasNoEffect() || gate.isSwapHalf) {
             return undefined;
         }
 

@@ -3,7 +3,7 @@ import {flushSync} from "react-dom";
 import {createRoot} from "react-dom/client";
 import {useStore} from "zustand";
 
-import {appStore} from "../../app/state/appStore.js";
+import {appStore} from "../../state/appStore.js";
 
 import {BlochDialog} from "./bloch-dialog.jsx";
 import {ExportDialog} from "./export-dialog.jsx";
@@ -75,4 +75,4 @@ function mountAppDialogs(overlayState, onDialogOpened) {
     });
 }
 
-export {AppDialogs, mountAppDialogs};
+export {mountAppDialogs};

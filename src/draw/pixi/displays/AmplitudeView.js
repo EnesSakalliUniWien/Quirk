@@ -119,4 +119,4 @@ function paintErrorIfPresent(args, indicatorAlpha) {
     }
 }
 
-export {AMPLITUDE_DRAWER_FROM_CUSTOM_STATS, paintErrorIfPresent};
+export {AMPLITUDE_DRAWER_FROM_CUSTOM_STATS};

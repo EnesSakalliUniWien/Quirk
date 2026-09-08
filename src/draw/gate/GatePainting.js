@@ -35,7 +35,7 @@ import {
   paintCycleState,
   makeCycleDrawer,
 } from "./GateDrawers.js";
-import { rectForResizeTab } from "../../editor/CircuitGeometry.js";
+import { rectForResizeTab } from "./GateRects.js";
 
 /**
  * The gate painting namespace, kept so the gate modules and the serializer can keep spelling their

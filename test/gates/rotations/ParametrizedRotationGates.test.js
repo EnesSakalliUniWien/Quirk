@@ -23,7 +23,7 @@ import {Gates} from '../../../src/gates/AllGates.js';
 import {Matrix} from '../../../src/engine/math/matrix/Matrix.js';
 import {GatePainting} from '../../../src/draw/gate/GatePainting.js';
 import {DisplayView, scenePixels} from '../../draw/TestDisplayView.js';
-import {gateButtonRect} from '../../../src/editor/CircuitGeometry.js';
+import { gateButtonRect } from '../../../src/draw/gate/GateRects.js';
 import {Rect} from '../../../src/geometry/Rect.js';
 
 let suite = new Suite("ParametrizedRotationGates");

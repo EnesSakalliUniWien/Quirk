@@ -14,14 +14,14 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
-import { appStore } from "../../app/state/appStore.js";
+import { appStore } from "../../state/appStore.js";
 
 /** Matches the app toolbar, so the two strips read as one set of controls. */
 const ICON_STROKE_WIDTH = 1.5;
 
 function TransportButton({ id, icon: Icon, disabled, onClick, children }) {
   return (
-    <Button id={id} size="default" variant="ghost" disabled={disabled} onClick={onClick}>
+    <Button id={id} size="default" disabled={disabled} onClick={onClick}>
       <Icon data-icon="inline-start" strokeWidth={ICON_STROKE_WIDTH} />
       {children}
     </Button>
@@ -120,7 +120,6 @@ function TransportBar() {
         <Button
           id="playhead-play-button"
           size="default"
-          variant="ghost"
           disabled={!state.canPlay}
           aria-pressed={state.playing}
           onClick={() => playhead.togglePlay()}
@@ -187,4 +186,4 @@ function mountTransportBar() {
   });
 }
 
-export { TransportBar, mountTransportBar };
+export { mountTransportBar };

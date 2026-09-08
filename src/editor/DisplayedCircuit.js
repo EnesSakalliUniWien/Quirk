@@ -24,8 +24,10 @@ import {afterDropping, previewDrop, tryClick, tryGrab, withJustEnoughWires} from
 import {paintCircuit} from './CircuitPainting.js';
 
 import {CircuitDefinition} from '../circuit/model/CircuitDefinition.js';
-import {CircuitGeometry, rectForResizeTab} from './CircuitGeometry.js';
+import {CircuitGeometry} from './CircuitGeometry.js';
+import {rectForResizeTab} from '../draw/gate/GateRects.js';
 import {setCustomGateCircuitDrawer} from '../draw/gate/CustomGateCircuitDrawer.js';
+import {setCircuitPreviewPainter} from '../draw/CircuitPreview.js';
 import {CircuitStats} from '../engine/simulation/CircuitStats.js';
 import {Layout} from '../config/Layout.js';
 import {CanvasTheme} from '../config/CanvasTheme.js';
@@ -606,5 +608,6 @@ let GATE_CIRCUIT_DRAWER = args => {
 // Deposited rather than imported by the serializer, because this module (via CircuitStats)
 // imports the serializer right back.
 setCustomGateCircuitDrawer(GATE_CIRCUIT_DRAWER);
+setCircuitPreviewPainter(drawCircuitTooltip);
 
 export {DisplayedCircuit, drawCircuitTooltip}

@@ -50,6 +50,7 @@ let MeasurementGate = new GateBuilder().
     setSerializedIdAndSymbol("Measure").
     setTitle("Measurement Gate").
     setBlurb("Measures whether a qubit is ON or OFF, without conditioning on the result.").
+    setMeasureEffect("measure").
     promiseHasNoNetEffectOnStateVector().  // Because in the simulation we defer measurement by preventing operations.
     setDrawer(drawMeasurementGate).
     setExtraDisableReasonFinder(args => {

@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-import {Suite, assertThat, assertTrue} from "../../TestUtil.js"
-import {Serializer} from "../../../src/circuit/serialization/Serializer.js"
+import {Suite, assertThat, assertTrue} from "../TestUtil.js"
+import {Serializer} from "../../src/serialization/Serializer.js"
 
-import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js"
-import {setGateBuilderEffectToCircuit} from "../../../src/engine/simulation/CircuitComputeUtil.js"
-import {Complex} from "../../../src/engine/math/complex/Complex.js"
-import {CustomGateSet} from "../../../src/circuit/model/CustomGateSet.js"
-import {describe} from "../../../src/base/Describe.js"
-import {Gate, GateBuilder} from "../../../src/circuit/model/Gate.js"
-import {GateColumn} from "../../../src/circuit/model/GateColumn.js"
-import {Gates} from "../../../src/gates/AllGates.js"
-import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
-import {MysteryGateMaker} from "../../../src/gates/misc/Joke_MysteryGate.js"
-import {Util} from "../../../src/base/Util.js"
+import {CircuitDefinition} from "../../src/circuit/model/CircuitDefinition.js"
+import {setGateBuilderEffectToCircuit} from "../../src/engine/simulation/CircuitComputeUtil.js"
+import {Complex} from "../../src/engine/math/complex/Complex.js"
+import {CustomGateSet} from "../../src/circuit/model/CustomGateSet.js"
+import {describe} from "../../src/base/Describe.js"
+import {Gate, GateBuilder} from "../../src/circuit/model/Gate.js"
+import {GateColumn} from "../../src/circuit/model/GateColumn.js"
+import {Gates} from "../../src/gates/AllGates.js"
+import {Matrix} from "../../src/engine/math/matrix/Matrix.js"
+import {MysteryGateMaker} from "../../src/gates/misc/Joke_MysteryGate.js"
+import {Util} from "../../src/base/Util.js"
 
 let suite = new Suite("Serializer");
 
@@ -307,7 +307,6 @@ suite.test("parse_nested_circuits", () => {
 suite.test("known_gates_toolbox", () => {
     let allToolboxGates = [...Gates.TopToolboxGroups, ...Gates.BottomToolboxGroups].
         flatMap(e => e.gates).
-        filter(e => e !== undefined).
         flatMap(e => e.gateFamily);
 
     let knownIds = new Set(Gates.KnownToSerializer.map(e => e.serializedId));

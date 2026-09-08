@@ -14,24 +14,25 @@
  * limitations under the License.
  */
 
-import {CircuitDefinition} from "../model/CircuitDefinition.js"
-import {Complex} from "../../engine/math/complex/Complex.js"
-import {Simulation} from "../../config/Simulation.js"
-import {CustomGateSet} from "../model/CustomGateSet.js"
-import {describe} from "../../base/Describe.js"
-import {DetailedError} from "../../base/DetailedError.js"
-import {Format} from "../../base/Format.js"
-import {Gate, GateBuilder} from "../model/Gate.js"
-import {GateColumn} from "../model/GateColumn.js"
-import {Gates, INITIAL_STATES_TO_GATES} from "../../gates/AllGates.js"
-import {Matrix} from "../../engine/math/matrix/Matrix.js"
-import {Util} from "../../base/Util.js"
-import {reportRecoveredError} from "../../diagnostics/errorReporter.js"
-import {MysteryGateSymbol, MysteryGateMakerWithMatrix} from "../../gates/misc/Joke_MysteryGate.js"
-import {setGateBuilderEffectToCircuit} from "../../engine/simulation/CircuitComputeUtil.js"
-import {GatePainting} from "../../draw/gate/GatePainting.js"
-import {drawCustomGateCircuit} from "../../draw/gate/CustomGateCircuitDrawer.js"
-import {ComplexFormula} from "../../engine/math/formula/ComplexFormula.js"
+import {CircuitDefinition} from "../circuit/model/CircuitDefinition.js"
+import {Complex} from "../engine/math/complex/Complex.js"
+import {Simulation} from "../config/Simulation.js"
+import {CustomGateSet} from "../circuit/model/CustomGateSet.js"
+import {describe} from "../base/Describe.js"
+import {DetailedError} from "../base/DetailedError.js"
+import {Format} from "../base/Format.js"
+import {Gate, GateBuilder} from "../circuit/model/Gate.js"
+import {GateColumn} from "../circuit/model/GateColumn.js"
+import {Gates} from "../gates/AllGates.js"
+import {INITIAL_STATE_KEYS} from "../circuit/model/InitialStates.js"
+import {Matrix} from "../engine/math/matrix/Matrix.js"
+import {Util} from "../base/Util.js"
+import {reportRecoveredError} from "../diagnostics/errorReporter.js"
+import {MysteryGateSymbol, MysteryGateMakerWithMatrix} from "../gates/misc/Joke_MysteryGate.js"
+import {setGateBuilderEffectToCircuit} from "../engine/simulation/CircuitComputeUtil.js"
+import {GatePainting} from "../draw/gate/GatePainting.js"
+import {drawCustomGateCircuit} from "../draw/gate/CustomGateCircuitDrawer.js"
+import {ComplexFormula} from "../engine/math/formula/ComplexFormula.js"
 
 /**
  * Serializes supported values to/from json elements.
@@ -409,7 +410,7 @@ function _fromJson_InitialState(json) {
             // 0 is the default. Don't need to do anything.
         } else if (v === 1) {
             result.set(i, '1');
-        } else if (INITIAL_STATES_TO_GATES.has(v)) {
+        } else if (INITIAL_STATE_KEYS.includes(v)) {
             result.set(i, v);
         } else {
             throw new DetailedError('Unrecognized initial state key.', {v, json});

@@ -14,5 +14,6 @@
        sits flush against Clear Circuit or its neighbour. */
     .app-toolbar-danger {
         margin-left: auto;
+        color: var(--destructive);
     }
 }

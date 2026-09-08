@@ -208,7 +208,6 @@ function _paintSymbolHandleLines(painter, symbol, rect, ink) {
 }
 
 export {
-  gateSymbolFont,
   GATE_SYMBOL_FONT,
   splitGateSymbol,
   fitGateSymbol,

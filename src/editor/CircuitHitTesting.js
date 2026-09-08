@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-import { CircuitGeometry, gateButtonRect } from "./CircuitGeometry.js";
+import { CircuitGeometry } from "./CircuitGeometry.js";
+import { gateButtonRect } from "../draw/gate/GateRects.js";
 import { Layout } from "../config/Layout.js";
 import { Hand } from "./Hand.js";
 import { Point } from "../geometry/Point.js";
@@ -251,7 +252,7 @@ function findGateWithButtonContaining(circuit, pos) {
   }
 
   let gate = circuit.circuitDefinition.gateInSlot(foundPt.col, foundPt.row);
-  if (gate.onClickGateFunc === undefined && gate.paramDialog === undefined) {
+  if (gate.paramDialog === undefined) {
     return undefined;
   }
 
@@ -300,9 +301,7 @@ export {
   wireIndexAt,
   toColumnSpaceCoordinate,
   indexOfDisplayedRowAt,
-  indexOfDisplayedColumnAt,
   findOpHalfColumnAt,
-  findModificationIndex_helperColRow,
   findModificationIndex,
   findGateOverlappingPos,
   findGateWithButtonContaining,

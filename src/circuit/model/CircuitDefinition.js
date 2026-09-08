@@ -27,7 +27,8 @@ import {DetailedError} from "../../base/DetailedError.js"
 import {equate_Maps} from "../../base/Equate.js";
 import {Gate} from "./Gate.js"
 import {GateColumn} from "./GateColumn.js"
-import {Gates, INITIAL_STATES_TO_GATES} from "../../gates/AllGates.js"
+import {INITIAL_STATE_KEYS} from "./InitialStates.js"
+import {INPUT_LETTERS} from "./InputLetters.js"
 import {Point} from "../../geometry/Point.js"
 import {Util} from "../../base/Util.js"
 
@@ -145,8 +146,7 @@ class CircuitDefinition {
     withSwitchedInitialStateOn(wire, newStateIndex=undefined) {
         let m = new Map([...this.customInitialValues.entries()]);
         let v = m.get(wire);
-        let cycle = [...INITIAL_STATES_TO_GATES.keys()];
-        let newVal = cycle[(cycle.indexOf(v) + 1) % cycle.length];
+        let newVal = INITIAL_STATE_KEYS[(INITIAL_STATE_KEYS.indexOf(v) + 1) % INITIAL_STATE_KEYS.length];
         if (newStateIndex !== undefined) {
             newVal = newStateIndex;
         }
@@ -762,7 +762,7 @@ class CircuitDefinition {
         }
         let locs = [];
         for (let row = 0; row < this.numWires; row++) {
-            if (this.gateInSlot(col, row) === Gates.Special.SwapHalf) {
+            if (this.gateInSlot(col, row)?.isSwapHalf) {
                 if (this.gateAtLocIsDisabledReason(col, row) !== undefined) {
                     return undefined;
                 }
@@ -997,7 +997,7 @@ class CircuitDefinition {
         ];
 
         // Input->Output gate connections.
-        for (let letter of Gates.InputGates.Letters) {
+        for (let letter of INPUT_LETTERS) {
             let key = `Input Range ${letter}`;
             let altInKey = `Input Default ${letter}`;
             let altOutKey = `Input NO_DEFAULT Range ${letter}`;

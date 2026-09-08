@@ -2,7 +2,7 @@ import { DisplayView } from "./DisplayView.js";
 import { textLayoutVersion } from "./TextLayout.js";
 
 /** A gate occurrence owns its display objects, independently of neighbouring circuit slots. */
-export class GateView extends DisplayView {
+class GateView extends DisplayView {
   update(args, drawer) {
     const { rect, gate } = args;
     const inputs = [

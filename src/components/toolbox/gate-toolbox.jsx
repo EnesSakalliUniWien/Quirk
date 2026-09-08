@@ -1,7 +1,7 @@
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { useStore } from "zustand";
 
-import { appStore } from "../../app/state/appStore.js";
+import { appStore } from "../../state/appStore.js";
 import { createPortal, flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
 
@@ -79,8 +79,7 @@ function buildTileModels(customGateSet) {
   }
   let models = [];
   for (let group of groups) {
-    let gates = group.gates.filter((gate) => gate !== undefined);
-    gates.forEach((gate, index) =>
+    group.gates.forEach((gate, index) =>
       models.push({
         key: `${group.hint}:${index}`,
         hint: group.hint,
@@ -171,7 +170,6 @@ function MenuButton() {
     <Button
       id="menu-button"
       size="icon"
-      variant="ghost"
       className="sidebar-menu-button"
       aria-label="Menu"
       title="Menu"
@@ -497,4 +495,4 @@ function mountGateToolbox(deps) {
   });
 }
 
-export { GateToolbox, mountGateToolbox };
+export { mountGateToolbox };

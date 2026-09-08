@@ -24,7 +24,7 @@ import { DisplayView } from "../src/draw/pixi/DisplayView.js";
 import { RestartableRng } from "../src/base/RestartableRng.js";
 import { DisplayedCircuit } from "../src/editor/DisplayedCircuit.js";
 import { DisplayedInspector } from "../src/editor/DisplayedInspector.js";
-import { Serializer } from "../src/circuit/serialization/Serializer.js";
+import { Serializer } from "../src/serialization/Serializer.js";
 
 const scenes = new WeakMap();
 

@@ -51,4 +51,4 @@ function selectAndCopyToClipboard(element) {
     }
 }
 
-export {copyTextToClipboard, selectAndCopyToClipboard}
+export {copyTextToClipboard}

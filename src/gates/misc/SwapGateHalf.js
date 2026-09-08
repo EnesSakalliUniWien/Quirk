@@ -29,6 +29,7 @@ let SwapGateHalf = new GateBuilder()
   .setSerializedIdAndSymbol("Swap")
   .setTitle("Swap Gate [Half]")
   .setBlurb("Swaps the values of two qubits.\n(Place two in the same column.)")
+  .markAsSwapHalf()
   .setKnownEffectToMatrix(
     Matrix.square(1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1),
   )

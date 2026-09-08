@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-// The app toolbar: the shadcn buttons and the WAI-ARIA toolbar pattern.
+// The app toolbar: the button row and the WAI-ARIA toolbar pattern.
 
 import assert from 'node:assert/strict';
 import {test, withQuirkPage, waitForQuirk, waitForCircuit, waitForDialog, currentCircuit, exportedCircuit, urlForCircuit, TEST_TIMEOUT_MILLIS} from './harness.js';
 
-test('renders the circuit controls with shadcn buttons', async browser => {
+test('renders the circuit controls as a button toolbar', async browser => {
     await withQuirkPage(browser, {cols: [['H']]}, async page => {
         const toolbar = await page.$eval('#app-toolbar-root [role="toolbar"]', element => ({
             label: element.getAttribute('aria-label'),
@@ -70,8 +70,8 @@ test('renders the circuit controls with shadcn buttons', async browser => {
         assert.ok(clearGap.fromNeighbour >= 12,
             `Clear All must sit apart from its neighbour, gap was ${clearGap.fromNeighbour}px.`);
 
-        // The template's unlayered `font: inherit` must not outrank Tailwind's utilities layer,
-        // or the shadcn buttons silently lose their text-sm/font-medium type.
+        // The base layer's `font: inherit` reset must not outrank the components layer, or the
+        // buttons silently lose their 14px/500 type.
         const typography = await page.$$eval(
             '#app-toolbar-root [data-slot="button"]',
             els => els.map(el => {
