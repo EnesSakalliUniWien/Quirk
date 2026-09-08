@@ -56,11 +56,11 @@ class WglTextureTrader {
    * @returns {void}
    */
   shadeAndTrade(shaderFunc, newTexture = undefined) {
-    let src = this.currentTexture;
-    let deallocSrc = !this._dontDeallocFlag;
-    let dst = newTexture || WglTexturePool.takeSame(src);
+    const src = this.currentTexture;
+    const deallocSrc = !this._dontDeallocFlag;
+    const dst = newTexture || WglTexturePool.takeSame(src);
 
-    let configuredShader =
+    const configuredShader =
       shaderFunc instanceof WglConfiguredShader ? shaderFunc : shaderFunc(src);
     configuredShader.renderToElseDealloc(dst);
 

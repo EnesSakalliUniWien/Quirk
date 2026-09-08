@@ -28,23 +28,23 @@ import {DisplayView, scenePixels} from './TestDisplayView.js';
 import {Point} from '../../src/geometry/Point.js';
 import {Rect} from '../../src/geometry/Rect.js';
 
-let suite = new Suite("DisplayView");
+const suite = new Suite("DisplayView");
 
 suite.test("paintableArea", () => {
-    let c = /** @type !HTMLCanvasElement */ document.createElement("canvas");
+    const c = /** @type !HTMLCanvasElement */ document.createElement("canvas");
     c.width = 23;
     c.height = 34;
     assertThat(drawingArea(new DisplayView(c))).isEqualTo(new Rect(0, 0, 23, 34));
 });
 
 suite.canvasAppearanceTest("clear", 20, 20, canvas => {
-    let painter = new DisplayView(canvas);
+    const painter = new DisplayView(canvas);
     rectangle(painter, drawingArea(painter), {fill: '#123456'});
 }, 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAHklEQVQ4jWMQMgn7T03MMGrgqIGjBo4aOGrgSDUQACM' +
 'egk9y1eLzAAAAAElFTkSuQmCC');
 
 suite.canvasAppearanceTest("strokeRect", 40, 40, canvas => {
-    let painter = new DisplayView(canvas);
+    const painter = new DisplayView(canvas);
     rectangle(painter, new Rect(5, 10, 15, 20), {stroke: {color: "blue", width: 4}});
     rectangle(painter, new Rect(2.5, 3.5, 5, 17), {stroke: {color: "red", width: 1}});
     rectangle(painter, new Rect(20, 30, 5, 7), {stroke: {color: "red", width: 1}});
@@ -53,26 +53,26 @@ suite.canvasAppearanceTest("strokeRect", 40, 40, canvas => {
 'f6CSgV4UJcKQA3c5X+9AVewloF9zs/2Aa7gP137GCEm+UmAAAAABJRU5ErkJggg==');
 
 suite.test("roundedRectFillAndClip", async () => {
-    let fillCanvas = /** @type !HTMLCanvasElement */ document.createElement("canvas");
+    const fillCanvas = /** @type !HTMLCanvasElement */ document.createElement("canvas");
     fillCanvas.width = 24;
     fillCanvas.height = 24;
-    let fillPainter = new DisplayView(fillCanvas);
+    const fillPainter = new DisplayView(fillCanvas);
     rectangle(fillPainter, new Rect(2, 2, 20, 20), {fill: "red"}, 6);
 
-    let pixelAt = (imageData, x, y) => {
-        let i = (y * imageData.width + x) * 4;
+    const pixelAt = (imageData, x, y) => {
+        const i = (y * imageData.width + x) * 4;
         return Array.from(imageData.data.slice(i, i + 4));
     };
-    let fillData = await scenePixels(fillCanvas);
-    let fillPixel = (x, y) => pixelAt(fillData, x, y);
+    const fillData = await scenePixels(fillCanvas);
+    const fillPixel = (x, y) => pixelAt(fillData, x, y);
     assertThat(fillPixel(12, 12)).isEqualTo([255, 0, 0, 255]);
     assertThat(fillPixel(12, 2)).isEqualTo([255, 0, 0, 255]);
     assertThat(fillPixel(2, 2)).isEqualTo([0, 0, 0, 0]);
 
-    let clipCanvas = /** @type !HTMLCanvasElement */ document.createElement("canvas");
+    const clipCanvas = /** @type !HTMLCanvasElement */ document.createElement("canvas");
     clipCanvas.width = 24;
     clipCanvas.height = 24;
-    let clipPainter = new DisplayView(clipCanvas);
+    const clipPainter = new DisplayView(clipCanvas);
     const mask = rectangle(clipPainter, new Rect(2, 2, 20, 20), {fill: 'white'}, 6);
     clipPainter.group('clipped', painter => {
         painter.mask = mask;
@@ -81,14 +81,14 @@ suite.test("roundedRectFillAndClip", async () => {
         });
     });
 
-    let clipData = await scenePixels(clipCanvas);
-    let clipPixel = (x, y) => pixelAt(clipData, x, y);
+    const clipData = await scenePixels(clipCanvas);
+    const clipPixel = (x, y) => pixelAt(clipData, x, y);
     assertThat(clipPixel(12, 12)).isEqualTo([0, 0, 255, 255]);
     assertThat(clipPixel(2, 2)).isEqualTo([0, 0, 0, 0]);
 });
 
 suite.canvasAppearanceTest("strokeCircle", 40, 40, canvas => {
-    let painter = new DisplayView(canvas);
+    const painter = new DisplayView(canvas);
     circle(painter, new Point(5, 10), 15, {stroke: {color: "blue", width: 3}});
     circle(painter, new Point(20, 13), 5, {stroke: {color: "green", width: 1}});
 }, 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAABdklEQVRYhe2XMUtCURSAP2pqsSkoLJwC/0OzDS9rT2i' +
@@ -99,7 +99,7 @@ suite.canvasAppearanceTest("strokeCircle", 40, 40, canvas => {
 'MMfAAAAAASUVORK5CYII=');
 
 suite.canvasAppearanceTest("fillCircle", 40, 40, canvas => {
-    let painter = new DisplayView(canvas);
+    const painter = new DisplayView(canvas);
     circle(painter, new Point(5, 10), 15, {fill: "blue"});
     circle(painter, new Point(20, 13), 5, {fill: "green"});
 }, 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAA/0lEQVRYhe3WIWtCYRSH8ScsGMyXpYFZ65phLM4yLIp' +
@@ -108,10 +108,10 @@ suite.canvasAppearanceTest("fillCircle", 40, 40, canvas => {
 '3Bn/uIuAC1ANFGeEANAVtTqA28UX4BOUyhO0h86AXUB3Uj6cOKu++eZ7neZ7neXfaFuFxi8XufliHAAAAAElFTkSuQmCC');
 
 suite.canvasAppearanceTest("printLine_simple", 40, 40, canvas => {
-    let painter = new DisplayView(canvas);
-    let r = new Rect(5, 5, 30, 30);
+    const painter = new DisplayView(canvas);
+    const r = new Rect(5, 5, 30, 30);
     rectangle(painter, r, {stroke: {color: "green", width: 1}});
-    let used = fitLine(painter, "test", r, {
+    const used = fitLine(painter, "test", r, {
         horizontal: 0,
         fill: "black",
         maxFontSize: 12,
@@ -125,15 +125,15 @@ suite.canvasAppearanceTest("printLine_simple", 40, 40, canvas => {
     1000); // Text rendering differs quite a bit from system to system... hard to test it effectively.
 
 suite.canvasAppearanceTest("printLine_aligned", 40, 40, canvas => {
-    let painter = new DisplayView(canvas);
+    const painter = new DisplayView(canvas);
     rectangle(painter, drawingArea(painter), {fill: "gray"});
-    let used1 = fitLine(painter, "A", new Rect(0, 0, 40, 40).leftHalf(), {
+    const used1 = fitLine(painter, "A", new Rect(0, 0, 40, 40).leftHalf(), {
         horizontal: 0,
         fill: "red",
         maxFontSize: 24,
         fontFamily: "monospace"
     });
-    let used2 = fitLine(painter, "long", new Rect(0, 0, 40, 40).rightHalf(), {
+    const used2 = fitLine(painter, "long", new Rect(0, 0, 40, 40).rightHalf(), {
         horizontal: 1,
         fill: "green",
         maxFontSize: 24,
@@ -149,7 +149,7 @@ suite.canvasAppearanceTest("printLine_aligned", 40, 40, canvas => {
     1000); // Text rendering differs quite a bit from system to system... hard to test it effectively.
 
 suite.canvasAppearanceTest("strokePolygon", 40, 40, canvas => {
-    let painter = new DisplayView(canvas);
+    const painter = new DisplayView(canvas);
     strokePath(painter, ([
         new Point(2.5, 4.5),
         new Point(22.5, 4.5),
@@ -190,7 +190,7 @@ suite.canvasAppearanceTest("strokePolygon", 40, 40, canvas => {
     400); // Polygon anti-aliasing differs across browser engines and versions.
 
 suite.canvasAppearanceTest("fillPolygon", 40, 40, canvas => {
-    let painter = new DisplayView(canvas);
+    const painter = new DisplayView(canvas);
     polygon(painter, [
         new Point(2.5, 4.5),
         new Point(22.5, 4.5),
@@ -213,7 +213,7 @@ suite.test('retains gate objects across frames and disposes removed gates', asyn
     const canvas = document.createElement('canvas');
     canvas.width = 80; canvas.height = 40;
     const view = new DisplayView(canvas);
-    let gate = view.group('gate-0', child => rectangle(child, new Rect(2, 2, 20, 20), {fill: 'red'}));
+    const gate = view.group('gate-0', child => rectangle(child, new Rect(2, 2, 20, 20), {fill: 'red'}));
     const node = gate.children[0];
     assertThat([...(await scenePixels(canvas, 10, 10, 1, 1)).data]).isEqualTo([255, 0, 0, 255]);
     view.begin();

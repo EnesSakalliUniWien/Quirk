@@ -20,10 +20,10 @@ import {WidgetPainter} from "../../src/draw/WidgetPainter.js"
 import {Format} from "../../src/base/Format.js"
 import {Complex} from "../../src/engine/math/complex/Complex.js"
 
-let suite = new Suite("WidgetPainter");
+const suite = new Suite("WidgetPainter");
 
 suite.test("describeAxis", () => {
-    let s = Math.sqrt(2);
+    const s = Math.sqrt(2);
 
     assertThat(WidgetPainter.describeAxis([1, 0, 0], Format.SIMPLIFIED)).isEqualTo("X");
     assertThat(WidgetPainter.describeAxis([0, 1, 0], Format.SIMPLIFIED)).isEqualTo("Y");

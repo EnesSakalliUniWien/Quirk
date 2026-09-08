@@ -57,10 +57,10 @@ function splitGateSymbol(text) {
   let best = text.indexOf("(");
   if (best < 1) {
     // Otherwise the break nearest the middle, so neither line is a stub.
-    let middle = text.length / 2;
+    const middle = text.length / 2;
     best = -1;
     for (let i = 1; i < text.length; i++) {
-      let isBreak = text[i - 1] === "/" || text[i - 1] === " ";
+      const isBreak = text[i - 1] === "/" || text[i - 1] === " ";
       if (
         isBreak &&
         (best === -1 || Math.abs(i - middle) < Math.abs(best - middle))
@@ -81,7 +81,7 @@ function splitGateSymbol(text) {
  * @returns {!{font: !Object, lines: !Array.<!string>}}
  */
 function fitGateSymbol(text, maxWidth) {
-  for (let size of GATE_SYMBOL_FONT_SIZES) {
+  for (const size of GATE_SYMBOL_FONT_SIZES) {
     const font = gateSymbolFont(size);
     if (measureText(text, font).width <= maxWidth) {
       return { font, lines: [text] };
@@ -103,27 +103,27 @@ function paintGateSymbol(
   symbolOverride = undefined,
   allowExponent = true,
 ) {
-  let painter = args.painter;
+  const painter = args.painter;
   const ink = gateStyle(args.gate).text;
-  let rect = args.rect.paddedBy(-2);
+  const rect = args.rect.paddedBy(-2);
   if (symbolOverride === undefined) {
     symbolOverride = args.gate.symbol;
   }
-  let { symbol, offsetY } = _paintSymbolHandleLines(
+  const { symbol, offsetY } = _paintSymbolHandleLines(
     painter,
     symbolOverride,
     rect,
     ink,
   );
 
-  let splitIndex = allowExponent ? symbol.indexOf("^") : -1;
-  let parts =
+  const splitIndex = allowExponent ? symbol.indexOf("^") : -1;
+  const parts =
     splitIndex === -1
       ? [symbol]
-      : [symbol.substr(0, splitIndex), symbol.substr(splitIndex + 1)];
+      : [symbol.slice(0, Math.max(0, splitIndex)), symbol.slice(splitIndex + 1)];
   if (parts.length !== 2 || parts[0] === "" || parts[1] === "") {
-    let { font, lines: symbolLines } = fitGateSymbol(symbol, rect.w);
-    let lineHeight = rect.h / symbolLines.length;
+    const { font, lines: symbolLines } = fitGateSymbol(symbol, rect.w);
+    const lineHeight = rect.h / symbolLines.length;
     for (let i = 0; i < symbolLines.length; i++) {
       fitText(painter, symbolLines[i], {
         x: rect.x + rect.w / 2,
@@ -144,18 +144,18 @@ function paintGateSymbol(
   }
 
   let [baseText, expText] = parts;
-  let lines = baseText.split("\n");
+  const lines = baseText.split("\n");
   baseText = lines[0];
 
   // The same ramp as the plain branch, so a symbol with an exponent and one without come out at
   // the same size rather than as two typographic systems side by side.
-  let { font: symbolFont } = fitGateSymbol(baseText + expText, rect.w);
+  const { font: symbolFont } = fitGateSymbol(baseText + expText, rect.w);
 
-  let baseWidth = measureText(baseText, symbolFont).width;
-  let expWidth = measureText(expText, symbolFont).width;
-  let scaleDown =
+  const baseWidth = measureText(baseText, symbolFont).width;
+  const expWidth = measureText(expText, symbolFont).width;
+  const scaleDown =
     Math.min(rect.w, baseWidth + expWidth) / (baseWidth + expWidth);
-  let divider = rect.w / 2 + ((baseWidth - expWidth) * scaleDown) / 2;
+  const divider = rect.w / 2 + ((baseWidth - expWidth) * scaleDown) / 2;
   fitText(painter, baseText, {
     x: rect.x + divider,
     y: rect.y + rect.h / 2 + offsetY,
@@ -189,7 +189,7 @@ function paintGateSymbol(
  * @private
  */
 function _paintSymbolHandleLines(painter, symbol, rect, ink) {
-  let lines = symbol.split("\n");
+  const lines = symbol.split("\n");
 
   for (let i = 1; i < lines.length; i++) {
     fitText(painter, lines[i], {

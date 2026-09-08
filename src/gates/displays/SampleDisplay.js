@@ -25,7 +25,7 @@ import {
   probabilityDataToJson,
 } from "./ProbabilityDisplay.js";
 
-let SampleDisplayFamily = Gate.buildFamily(1, 16, (span, builder) =>
+const SampleDisplayFamily = Gate.buildFamily(1, 16, (span, builder) =>
   builder
     .setSerializedId("Sample" + span)
     .setSymbol("Sample")

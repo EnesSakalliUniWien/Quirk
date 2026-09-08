@@ -24,7 +24,7 @@ import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
 import {Serializer} from "../../../src/serialization/Serializer.js"
 import {QubitMatrix} from "../../../src/engine/math/matrix/QubitMatrix.js"
 
-let suite = new Suite("CircuitStats");
+const suite = new Suite("CircuitStats");
 
 const circuit = (diagram, ...extras) => CircuitDefinition.fromTextDiagram(new Map([
     ...extras,
@@ -47,64 +47,64 @@ const circuit = (diagram, ...extras) => CircuitDefinition.fromTextDiagram(new Ma
 ]), diagram);
 
 suite.testUsingWebGL("empty", () => {
-    let stats = CircuitStats.fromCircuitAtTime(CircuitDefinition.EMPTY.withWireCount(1), 0.1);
+    const stats = CircuitStats.fromCircuitAtTime(CircuitDefinition.EMPTY.withWireCount(1), 0.1);
     assertThat(stats.finalState).isApproximatelyEqualTo(Matrix.col(1, 0));
     assertThat(stats.qubitDensityMatrix(Infinity, 0)).isApproximatelyEqualTo(Matrix.square(1, 0, 0, 0));
 });
 
 suite.testUsingWebGL("smoke", () => {
-    let c = circuit(`--X-H---•⊕-
+    const c = circuit(`--X-H---•⊕-
                      --•-H---XX-
                      -H--M--@---`);
-    let stats = CircuitStats.fromCircuitAtTime(c, 0.1);
+    const stats = CircuitStats.fromCircuitAtTime(c, 0.1);
     assertTrue(stats.circuitDefinition.colHasControls(2));
     assertThat(stats.qubitDensityMatrix(7, 2)).isEqualTo(Matrix.square(0.5, 0, 0, 0.5));
 });
 
 function tryGateSequence(gates, maxHeight) {
-    let pad = new Array(maxHeight - 1).fill(undefined);
-    let cols = gates.
+    const pad = new Array(maxHeight - 1).fill(undefined);
+    const cols = gates.
         filter(e => e !== Gates.Special.Measurement && e !== Gates.ErrorInjection && e.height <= maxHeight).
         map(e => new GateColumn([e, ...pad]));
-    let c = new CircuitDefinition(maxHeight, cols);
-    let stats = CircuitStats.fromCircuitAtTime(c, 0.1);
+    const c = new CircuitDefinition(maxHeight, cols);
+    const stats = CircuitStats.fromCircuitAtTime(c, 0.1);
     assertThat(stats).isNotEqualTo(undefined);
 }
 
 // Try known gates, but in separate tests to avoid blowing the per-test time limit warning.
-let knownGateStripes = 32;
+const knownGateStripes = 32;
 for (let knownGateOffset = 0; knownGateOffset < knownGateStripes; knownGateOffset++) {
     suite.testUsingWebGL(`try-known-gates-in-sequence-${knownGateOffset+1}-of-${knownGateStripes}`, () => {
-        let stripe = Gates.KnownToSerializer.
+        const stripe = Gates.KnownToSerializer.
             filter((_, i) => i >= knownGateOffset && (i - knownGateOffset) % knownGateStripes === 0);
         tryGateSequence(stripe, 5);
     });
 }
 
 suite.testUsingWebGL("nested-addition-gate", () => {
-    let circuitDef = Serializer.fromJson(
+    const circuitDef = Serializer.fromJson(
         CircuitDefinition,
         {cols:[[1,"X"],[1,"~f2fa"]],gates:[{id:"~f2fa",circuit:{cols:[["+=A1","inputA1"]]}}]});
-    let stats = CircuitStats.fromCircuitAtTime(circuitDef, 0);
-    let off = Matrix.square(1, 0, 0, 0);
-    let on = Matrix.square(0, 0, 0, 1);
+    const stats = CircuitStats.fromCircuitAtTime(circuitDef, 0);
+    const off = Matrix.square(1, 0, 0, 0);
+    const on = Matrix.square(0, 0, 0, 1);
     assertThat(stats.qubitDensityMatrix(Infinity, 0)).isEqualTo(off);
     assertThat(stats.qubitDensityMatrix(Infinity, 1)).isEqualTo(on);
     assertThat(stats.qubitDensityMatrix(Infinity, 2)).isEqualTo(off);
 });
 
 suite.testUsingWebGL('controlled-displays', () => {
-    let c = circuit(`-H-•-@@-
+    const c = circuit(`-H-•-@@-
                      ---X-⊕•-`);
-    let stats = CircuitStats.fromCircuitAtTime(c, 0);
+    const stats = CircuitStats.fromCircuitAtTime(c, 0);
     assertThat(stats.qubitDensityMatrix(5, 0)).isApproximatelyEqualTo(Matrix.square(0.5, 0.5, 0.5, 0.5));
     assertThat(stats.qubitDensityMatrix(6, 0)).isApproximatelyEqualTo(Matrix.square(0, 0, 0, 1));
 });
 
 suite.testUsingWebGL('incoherent-amplitude-display', () => {
-    let c = circuit(`-H-•-a-
+    const c = circuit(`-H-•-a-
                      ---X---`, ['a', Gates.Displays.AmplitudeDisplayFamily.ofSize(1)]);
-    let stats = CircuitStats.fromCircuitAtTime(c, 0);
+    const stats = CircuitStats.fromCircuitAtTime(c, 0);
     assertThat(stats.qubitDensityMatrix(Infinity, 0)).isApproximatelyEqualTo(Matrix.square(0.5, 0, 0, 0.5));
     assertThat(stats.qubitDensityMatrix(Infinity, 1)).isApproximatelyEqualTo(Matrix.square(0.5, 0, 0, 0.5));
     assertThat(stats.customStatsForSlot(5, 0)).isApproximatelyEqualTo({
@@ -116,10 +116,10 @@ suite.testUsingWebGL('incoherent-amplitude-display', () => {
 });
 
 suite.testUsingWebGL('coherent-amplitude-display', () => {
-    let c = circuit(`-H-•-a/--
+    const c = circuit(`-H-•-a/--
                      ---X-//--
                      -H-------`, ['a', Gates.Displays.AmplitudeDisplayFamily]);
-    let stats = CircuitStats.fromCircuitAtTime(c, 0);
+    const stats = CircuitStats.fromCircuitAtTime(c, 0);
     assertThat(stats.qubitDensityMatrix(Infinity, 0)).isApproximatelyEqualTo(Matrix.square(0.5, 0, 0, 0.5));
     assertThat(stats.qubitDensityMatrix(Infinity, 1)).isApproximatelyEqualTo(Matrix.square(0.5, 0, 0, 0.5));
     assertThat(stats.qubitDensityMatrix(Infinity, 2)).isApproximatelyEqualTo(Matrix.square(0.5, 0.5, 0.5, 0.5));
@@ -132,9 +132,9 @@ suite.testUsingWebGL('coherent-amplitude-display', () => {
 });
 
 suite.testUsingWebGL('conditional-bloch-display', () => {
-    let c = circuit(`-H-@-
+    const c = circuit(`-H-@-
                      -H-•-`);
-    let stats = CircuitStats.fromCircuitAtTime(c, 0);
+    const stats = CircuitStats.fromCircuitAtTime(c, 0);
     assertThat(stats.qubitDensityMatrix(Infinity, 0)).isApproximatelyEqualTo(Matrix.square(0.5, 0.5, 0.5, 0.5));
     assertThat(stats.qubitDensityMatrix(Infinity, 1)).isApproximatelyEqualTo(Matrix.square(0.5, 0.5, 0.5, 0.5));
     assertThat(stats.qubitDensityMatrix(3, 0)).isApproximatelyEqualTo(Matrix.square(0.5, 0.5, 0.5, 0.5));
@@ -142,27 +142,27 @@ suite.testUsingWebGL('conditional-bloch-display', () => {
 });
 
 suite.testUsingWebGL('probability-display', () => {
-    let c = circuit(`-H-•-%-
+    const c = circuit(`-H-•-%-
                      ---X-/-`, ['%', Gates.Displays.ProbabilityDisplayFamily]);
-    let stats = CircuitStats.fromCircuitAtTime(c, 0);
+    const stats = CircuitStats.fromCircuitAtTime(c, 0);
     assertThat(stats.qubitDensityMatrix(Infinity, 0)).isApproximatelyEqualTo(Matrix.square(0.5, 0, 0, 0.5));
     assertThat(stats.customStatsForSlot(5, 0)).isApproximatelyEqualTo(
         Matrix.col(0.5, 0, 0, 0.5));
 });
 
 suite.testUsingWebGL('controlled-multi-probability-display', () => {
-    let c = circuit(`---◦-
+    const c = circuit(`---◦-
                      -H-%-
                      ---/-`, ['%', Gates.Displays.ProbabilityDisplayFamily]);
-    let stats = CircuitStats.fromCircuitAtTime(c, 0);
+    const stats = CircuitStats.fromCircuitAtTime(c, 0);
     assertThat(stats.customStatsForSlot(3, 1)).isApproximatelyEqualTo(
         Matrix.col(0.5, 0.5, 0, 0));
 });
 
 suite.testUsingWebGL('density-display', () => {
-    let c = circuit(`-d/-
+    const c = circuit(`-d/-
                      -//-`, ['d', Gates.Displays.DensityMatrixDisplayFamily]);
-    let stats = CircuitStats.fromCircuitAtTime(c, 0);
+    const stats = CircuitStats.fromCircuitAtTime(c, 0);
     assertThat(stats.customStatsForSlot(1, 0)).isApproximatelyEqualTo(
         Matrix.square(
             1, 0, 0, 0,
@@ -172,10 +172,10 @@ suite.testUsingWebGL('density-display', () => {
 });
 
 suite.testUsingWebGL('shifted-density-display', () => {
-    let c = circuit(`----
+    const c = circuit(`----
                      -d/-
                      -//-`, ['d', Gates.Displays.DensityMatrixDisplayFamily]);
-    let stats = CircuitStats.fromCircuitAtTime(c, 0);
+    const stats = CircuitStats.fromCircuitAtTime(c, 0);
     assertThat(stats.customStatsForSlot(1, 1)).isApproximatelyEqualTo(
         Matrix.square(
             1, 0, 0, 0,
@@ -185,7 +185,7 @@ suite.testUsingWebGL('shifted-density-display', () => {
 });
 
 suite.testUsingWebGL('16-qubit-hadamard-transform', () => {
-    let stats = CircuitStats.fromCircuitAtTime(circuit(`-H-
+    const stats = CircuitStats.fromCircuitAtTime(circuit(`-H-
                                                         -H-
                                                         -H-
                                                         -H-
@@ -203,7 +203,7 @@ suite.testUsingWebGL('16-qubit-hadamard-transform', () => {
                                                         -H-`), 0);
 
     // This is a lot of values to check. Don't pay the cost of wrapping in assertThat.
-    let buf = stats.finalState.rawBuffer();
+    const buf = stats.finalState.rawBuffer();
     for (let i = 0; i*2 < buf.length; i++) {
         if (buf[i*2 + 1] !== 0) {
             assertThat(buf[i * 2 + 1]).withInfo({i}).isEqualTo(0);
@@ -225,7 +225,7 @@ suite.testUsingWebGL('16-qubit-hadamard-transform', () => {
 });
 
 suite.testUsingWebGL('survival-rates', () => {
-    let stats = CircuitStats.fromCircuitAtTime(circuit(`-H-!-------
+    const stats = CircuitStats.fromCircuitAtTime(circuit(`-H-!-------
                                                         ---X-!-----
                                                         -------H-!-
                                                         -----------`), 0);
@@ -248,7 +248,7 @@ suite.testUsingWebGL('survival-rates', () => {
 });
 
 suite.testUsingWebGL('survival-rates-controlled-postselection', () => {
-    let stats = CircuitStats.fromCircuitAtTime(circuit(`---•-H-•-!---•-
+    const stats = CircuitStats.fromCircuitAtTime(circuit(`---•-H-•-!---•-
                                                         -X-!-X-X-•-X-!-`), 0);
     assertThat(stats.survivalRate(2)).isApproximatelyEqualTo(1);
     assertThat(stats.survivalRate(3)).isApproximatelyEqualTo(1);
@@ -266,7 +266,7 @@ suite.testUsingWebGL('survival-rates-controlled-postselection', () => {
 });
 
 suite.testUsingWebGL('dynamic-phase-gradient-keeps-qubits-coherent', () => {
-    let stats = CircuitStats.fromCircuitAtTime(
+    const stats = CircuitStats.fromCircuitAtTime(
         circuit(`-H-P-
                  -H-/-
                  -H-/-
@@ -287,15 +287,15 @@ suite.testUsingWebGL('dynamic-phase-gradient-keeps-qubits-coherent', () => {
 
     // Check coherence of each qubit.
     for (let i = 0; i < 16; i++) {
-        let [x, y, z] = QubitMatrix.densityMatrixToBlochVector(stats.qubitDensityMatrix(Infinity, i));
-        let r = x*x + y*y + z*z;
+        const [x, y, z] = QubitMatrix.densityMatrixToBlochVector(stats.qubitDensityMatrix(Infinity, i));
+        const r = x*x + y*y + z*z;
         assertThat(r).withInfo({i, x, y, z}).isApproximatelyEqualTo(1, 0.00001);
     }
 });
 
 suite.testUsingWebGL('classical-swap-with-quantum-control-does-not-fire', () => {
     // Swap should be disabled.
-    let c = circuit(`-M-X-S-
+    const c = circuit(`-M-X-S-
                      -M---S-
                      ---X-•-`, ['S', Gates.Special.SwapHalf]);
     assertThat(c.gateAtLocIsDisabledReason(5, 0)).isNotEqualTo(undefined);
@@ -303,7 +303,7 @@ suite.testUsingWebGL('classical-swap-with-quantum-control-does-not-fire', () => 
     assertThat(c.gateAtLocIsDisabledReason(5, 2)).isEqualTo(undefined);
 
     // And swap should not have fired.
-    let stats = CircuitStats.fromCircuitAtTime(c, 0);
+    const stats = CircuitStats.fromCircuitAtTime(c, 0);
     assertThat(stats.qubitDensityMatrix(Infinity, 0)).isEqualTo(Matrix.square(0, 0, 0, 1));
     assertThat(stats.qubitDensityMatrix(Infinity, 1)).isEqualTo(Matrix.square(1, 0, 0, 0));
     assertThat(stats.qubitDensityMatrix(Infinity, 2)).isEqualTo(Matrix.square(0, 0, 0, 1));
@@ -311,7 +311,7 @@ suite.testUsingWebGL('classical-swap-with-quantum-control-does-not-fire', () => 
 
 suite.testUsingWebGL('classical-swap-with-classical-control-does-fire', () => {
     // Swap should be disabled.
-    let c = circuit(`-M-X-S-
+    const c = circuit(`-M-X-S-
                      -M---S-
                      -M-X-•-`, ['S', Gates.Special.SwapHalf]);
     assertThat(c.gateAtLocIsDisabledReason(5, 0)).isEqualTo(undefined);
@@ -319,7 +319,7 @@ suite.testUsingWebGL('classical-swap-with-classical-control-does-fire', () => {
     assertThat(c.gateAtLocIsDisabledReason(5, 2)).isEqualTo(undefined);
 
     // And swap should not have fired.
-    let stats = CircuitStats.fromCircuitAtTime(c, 0);
+    const stats = CircuitStats.fromCircuitAtTime(c, 0);
     assertThat(stats.qubitDensityMatrix(Infinity, 0)).isEqualTo(Matrix.square(1, 0, 0, 0));
     assertThat(stats.qubitDensityMatrix(Infinity, 1)).isEqualTo(Matrix.square(0, 0, 0, 1));
     assertThat(stats.qubitDensityMatrix(Infinity, 2)).isEqualTo(Matrix.square(0, 0, 0, 1));
@@ -327,14 +327,14 @@ suite.testUsingWebGL('classical-swap-with-classical-control-does-fire', () => {
 
 suite.testUsingWebGL('classical-bit-rotate-with-quantum-control-does-not-fire', () => {
     // Bit rotation should be disabled.
-    let c = circuit(`-M-X-<-
+    const c = circuit(`-M-X-<-
                      -M---/-
                      ---X-•-`, ['<', Gates.CycleBitsGates.CycleBitsFamily]);
     assertThat(c.gateAtLocIsDisabledReason(5, 0)).isNotEqualTo(undefined);
     assertThat(c.gateAtLocIsDisabledReason(5, 2)).isEqualTo(undefined);
 
     // And bit rotation should not fire.
-    let stats = CircuitStats.fromCircuitAtTime(c, 0);
+    const stats = CircuitStats.fromCircuitAtTime(c, 0);
     assertThat(stats.qubitDensityMatrix(Infinity, 0)).isEqualTo(Matrix.square(0, 0, 0, 1));
     assertThat(stats.qubitDensityMatrix(Infinity, 1)).isEqualTo(Matrix.square(1, 0, 0, 0));
     assertThat(stats.qubitDensityMatrix(Infinity, 2)).isEqualTo(Matrix.square(0, 0, 0, 1));
@@ -342,25 +342,25 @@ suite.testUsingWebGL('classical-bit-rotate-with-quantum-control-does-not-fire', 
 
 suite.testUsingWebGL('classical-bit-rotate-with-classical-control-does-fire', () => {
     // Bit rotation should be disabled.
-    let c = circuit(`-M-X-<-
+    const c = circuit(`-M-X-<-
                      -M---/-
                      -M-X-•-`, ['<', Gates.CycleBitsGates.CycleBitsFamily]);
     assertThat(c.gateAtLocIsDisabledReason(5, 0)).isEqualTo(undefined);
     assertThat(c.gateAtLocIsDisabledReason(5, 2)).isEqualTo(undefined);
 
     // And bit rotation should not fire.
-    let stats = CircuitStats.fromCircuitAtTime(c, 0);
+    const stats = CircuitStats.fromCircuitAtTime(c, 0);
     assertThat(stats.qubitDensityMatrix(Infinity, 0)).isEqualTo(Matrix.square(1, 0, 0, 0));
     assertThat(stats.qubitDensityMatrix(Infinity, 1)).isEqualTo(Matrix.square(0, 0, 0, 1));
     assertThat(stats.qubitDensityMatrix(Infinity, 2)).isEqualTo(Matrix.square(0, 0, 0, 1));
 });
 
 suite.testUsingWebGL("initial_states", () => {
-    let circuit = Serializer.fromJson(CircuitDefinition, {
+    const circuit = Serializer.fromJson(CircuitDefinition, {
         init: [0, 1, '+', '-', 'i', '-i'],
         cols: [],
     });
-    let stats = CircuitStats.fromCircuitAtTime(circuit, 0);
+    const stats = CircuitStats.fromCircuitAtTime(circuit, 0);
     assertThat(QubitMatrix.densityMatrixToBlochVector(stats.qubitDensityMatrix(9, 0))).isApproximatelyEqualTo([0, 0, -1]);
     assertThat(QubitMatrix.densityMatrixToBlochVector(stats.qubitDensityMatrix(9, 1))).isApproximatelyEqualTo([0, 0, +1]);
     assertThat(QubitMatrix.densityMatrixToBlochVector(stats.qubitDensityMatrix(9, 2))).isApproximatelyEqualTo([-1, 0, 0]);
@@ -370,7 +370,7 @@ suite.testUsingWebGL("initial_states", () => {
 });
 
 suite.testUsingWebGL("distillation", () => {
-    let c = circuit(
+    const c = circuit(
         `
         -X-X--X-X--X-X--X-X-------X-X--X-X-------X-X------------HTH-0-
         -X-X--X-X--X-X-------X-X--X-X-------X-X-------X-X-------HTH-0-
@@ -384,7 +384,7 @@ suite.testUsingWebGL("distillation", () => {
         ['#', Gates.Controls.XControl],
         ['T', Gates.OtherZ.Z4]);
     for (let i = 0; i < 5; i++) {
-        let stats = CircuitStats.fromCircuitAtTime(c, 0);
+        const stats = CircuitStats.fromCircuitAtTime(c, 0);
         assertThat(QubitMatrix.densityMatrixToBlochVector(stats.qubitDensityMatrix(Infinity, 4))).isApproximatelyEqualTo(
             [0, Math.sqrt(0.5), -Math.sqrt(0.5)]);
         assertThat(stats.survivalRate(Infinity)).isApproximatelyEqualTo(1, 0.001);
@@ -392,7 +392,7 @@ suite.testUsingWebGL("distillation", () => {
 });
 
 suite.testUsingWebGL("toReadableJson", () => {
-    let c = circuit(
+    const c = circuit(
         `
         --%D
         H@/-
@@ -400,8 +400,8 @@ suite.testUsingWebGL("toReadableJson", () => {
         ['%', Gates.Displays.ProbabilityDisplayFamily],
         ['D', Gates.Detectors.ZDetector]
     );
-    let stats = CircuitStats.fromCircuitAtTime(c, 0.5);
-    let json = stats.toReadableJson();
+    const stats = CircuitStats.fromCircuitAtTime(c, 0.5);
+    const json = stats.toReadableJson();
     assertThat(json).isApproximatelyEqualTo({
         circuit: Serializer.toJson(c),
         output_amplitudes: [

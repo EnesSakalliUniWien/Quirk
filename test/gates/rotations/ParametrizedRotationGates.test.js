@@ -26,15 +26,15 @@ import {DisplayView, scenePixels} from '../../draw/TestDisplayView.js';
 import { gateButtonRect } from '../../../src/draw/gate/GateRects.js';
 import {Rect} from '../../../src/geometry/Rect.js';
 
-let suite = new Suite("ParametrizedRotationGates");
+const suite = new Suite("ParametrizedRotationGates");
 
 suite.test("formulaClock_doesNotCoverChangeButton", async () => {
-    for (let name of ['FormulaicRotationX', 'FormulaicRotationY', 'FormulaicRotationZ',
+    for (const name of ['FormulaicRotationX', 'FormulaicRotationY', 'FormulaicRotationZ',
         'FormulaicRotationRx', 'FormulaicRotationRy', 'FormulaicRotationRz']) {
-        for (let formula of ['t', '0.5']) {
-            let canvas = document.createElement('canvas');
-            let painter = new DisplayView(canvas);
-            let args = {
+        for (const formula of ['t', '0.5']) {
+            const canvas = document.createElement('canvas');
+            const painter = new DisplayView(canvas);
+            const args = {
                 painter,
                 rect: new Rect(20, 20, 80, 40),
                 gate: Gates.ParametrizedRotationGates[name].withParam(formula),
@@ -44,17 +44,17 @@ suite.test("formulaClock_doesNotCoverChangeButton", async () => {
                 focusPoints: []
             };
             args.gate.customDrawer(args);
-            let button = gateButtonRect(args.rect).paddedBy(-1);
-            let before = (await scenePixels(canvas, button.x, button.y, button.w, button.h)).data;
+            const button = gateButtonRect(args.rect).paddedBy(-1);
+            const before = (await scenePixels(canvas, button.x, button.y, button.w, button.h)).data;
             // Repainting the opaque button must not change any pixel in its interior.
             GatePainting.paintGateButton(args);
-            let after = (await scenePixels(canvas, button.x, button.y, button.w, button.h)).data;
+            const after = (await scenePixels(canvas, button.x, button.y, button.w, button.h)).data;
             assertThat(before).isEqualTo(after);
         }
     }
 });
 
-let evalTopQubit = diagram => CircuitStats.fromCircuitAtTime(CircuitDefinition.fromTextDiagram(new Map([
+const evalTopQubit = diagram => CircuitStats.fromCircuitAtTime(CircuitDefinition.fromTextDiagram(new Map([
     ['1', Gates.HalfTurns.X],
     ['H', Gates.HalfTurns.H],
     ['X', Gates.ParametrizedRotationGates.XToA],
@@ -69,7 +69,7 @@ let evalTopQubit = diagram => CircuitStats.fromCircuitAtTime(CircuitDefinition.f
 ]), diagram), 0).qubitDensityMatrix(Infinity, 0);
 
 function state(...row) {
-    let v = Matrix.fromRows([[...row]]);
+    const v = Matrix.fromRows([[...row]]);
     return v.adjoint().times(v).times(1/v.norm2());
 }
 
@@ -214,7 +214,7 @@ suite.testUsingWebGL('ZToMinusA', () => {
 });
 
 suite.testUsingWebGL('formulaic_formulas', () => {
-    let f = (text, t) => CircuitStats.fromCircuitAtTime(CircuitDefinition.fromTextDiagram(new Map([
+    const f = (text, t) => CircuitStats.fromCircuitAtTime(CircuitDefinition.fromTextDiagram(new Map([
         ['H', Gates.HalfTurns.H],
         ['t', Gates.ParametrizedRotationGates.FormulaicRotationZ.withParam(text)],
         ['-', undefined],
@@ -306,7 +306,7 @@ suite.testUsingWebGL('formulaic_matrices', () => {
 
 // Regression test for https://github.com/Strilanc/Quirk/issues/443
 suite.test('formulaic_t_matches_builtin_powering_gates', () => {
-    for (let time of [0, 1/8, 1/4, 1/2, 6/7]) {
+    for (const time of [0, 1/8, 1/4, 1/2, 6/7]) {
         assertThat(Gates.ParametrizedRotationGates.FormulaicRotationX.withParam('t').knownMatrixAt(time)).
             withInfo({time}).
             isApproximatelyEqualTo(Gates.Powering.XForward.knownMatrixAt(time), 0.0001);
@@ -321,7 +321,7 @@ suite.test('formulaic_t_matches_builtin_powering_gates', () => {
 
 // Regression test for https://github.com/Strilanc/Quirk/issues/449
 suite.test('invalid_formula_is_not_time_dependent', () => {
-    let g = Gates.ParametrizedRotationGates.FormulaicRotationX;
+    const g = Gates.ParametrizedRotationGates.FormulaicRotationX;
     assertThat(g.withParam('t').stableDuration()).isEqualTo(0);
     assertThat(g.withParam('pi/2').stableDuration()).isEqualTo(Infinity);
     assertThat(g.withParam('t + )').stableDuration()).isEqualTo(Infinity);

@@ -30,9 +30,9 @@ import {Util} from '../../../base/Util.js';
  * @private
  */
 function _paintMultiProbabilityDisplay_grid(args) {
-    let {painter, rect: {x, y, w, h}} = args;
-    let n = 1 << args.gate.height;
-    let d = h / n;
+    const {painter, rect: {x, y, w, h}} = args;
+    const n = 1 << args.gate.height;
+    const d = h / n;
     rectangle(painter, args.rect, {fill: CanvasTheme.probability.background});
 
     if (d < 1) {
@@ -44,7 +44,7 @@ function _paintMultiProbabilityDisplay_grid(args) {
         });
         return;
     }
-    let r = args.gate.height - 5;
+    const r = args.gate.height - 5;
     drawPath(painter, tracer => {
         for (let i = 1; i < n; i++) {
             PathGeometry.line(tracer, x, y + d * i, x + w, y + d * i);
@@ -54,17 +54,17 @@ function _paintMultiProbabilityDisplay_grid(args) {
 }
 
 function _paintMultiProbabilityDisplay_probabilityBars(args) {
-    let {painter, rect: {x, y, w, h}, customStats: probabilities} = args;
-    let n = 1 << args.gate.height;
-    let d = h / n;
-    let e = Math.max(d, 1);
+    const {painter, rect: {x, y, w, h}, customStats: probabilities} = args;
+    const n = 1 << args.gate.height;
+    const d = h / n;
+    const e = Math.max(d, 1);
 
     const path = painter.graphics();
     path.moveTo(x, y);
     for (let i = 0; i < n; i++) {
-        let p = probabilities.rawBuffer()[i * 2];
-        let px = x + w * p;
-        let py = y + d * i;
+        const p = probabilities.rawBuffer()[i * 2];
+        const px = x + w * p;
+        const py = y + d * i;
         path.lineTo(px, py);
         path.lineTo(px, py + e);
     }
@@ -76,18 +76,18 @@ function _paintMultiProbabilityDisplay_probabilityBars(args) {
 }
 
 function _paintMultiProbabilityDisplay_logarithmHints(args) {
-    let {painter, rect: {x, y, w, h}, customStats: probabilities} = args;
-    let n = 1 << args.gate.height;
-    let d = h / n;
-    let e = Math.max(d, 1);
+    const {painter, rect: {x, y, w, h}, customStats: probabilities} = args;
+    const n = 1 << args.gate.height;
+    const d = h / n;
+    const e = Math.max(d, 1);
 
     const path = painter.graphics();
     path.moveTo(x, y);
-    let s = 1 / (4 + Math.max(8, args.gate.height));
+    const s = 1 / (4 + Math.max(8, args.gate.height));
     for (let i = 0; i < n; i++) {
-        let p = probabilities.rawBuffer()[i * 2];
-        let px = x + w * Math.min(1, Math.max(0, 1 + Math.log(p) * s));
-        let py = y + d * i;
+        const p = probabilities.rawBuffer()[i * 2];
+        const px = x + w * Math.min(1, Math.max(0, 1 + Math.log(p) * s));
+        const py = y + d * i;
         path.lineTo(px, py);
         path.lineTo(px, py + e);
     }
@@ -98,14 +98,14 @@ function _paintMultiProbabilityDisplay_logarithmHints(args) {
 }
 
 function _paintMultiProbabilityDisplay_tooltips(args) {
-    let {painter, rect: {x, y, w, h}, customStats: probabilities} = args;
-    let n = 1 << args.gate.height;
-    let d = h / n;
+    const {painter, rect: {x, y, w, h}, customStats: probabilities} = args;
+    const n = 1 << args.gate.height;
+    const d = h / n;
 
-    for (let pt of args.focusPoints) {
-        let k = Math.floor((pt.y - y) / d);
+    for (const pt of args.focusPoints) {
+        const k = Math.floor((pt.y - y) / d);
         if (args.rect.containsPoint(pt) && k >= 0 && k < n) {
-            let p = probabilities === undefined ? NaN : probabilities.rawBuffer()[k * 2];
+            const p = probabilities === undefined ? NaN : probabilities.rawBuffer()[k * 2];
             rectangle(painter, new Rect(x, y + k * d, w, d), {stroke: {color: CanvasTheme.interaction.outline, width: 2}});
             MathPainter.paintDeferredValueTooltip(
                 painter,
@@ -119,11 +119,11 @@ function _paintMultiProbabilityDisplay_tooltips(args) {
 }
 
 function _paintMultiProbabilityDisplay_probabilityTexts(args) {
-    let {painter, rect: {x, y, w, h}, customStats: probabilities} = args;
-    let d = h / probabilities.height();
+    const {painter, rect: {x, y, w, h}, customStats: probabilities} = args;
+    const d = h / probabilities.height();
 
     for (let i = 0; i < probabilities.height(); i++) {
-        let p = probabilities.rawBuffer()[i * 2];
+        const p = probabilities.rawBuffer()[i * 2];
         fitText(painter, (p * 100).toFixed(1) + "%", {
             x: x + w - 2,
             y: y + d * (i + 0.5),
@@ -140,15 +140,15 @@ function _paintMultiProbabilityDisplay_probabilityTexts(args) {
 function paintMultiProbabilityDisplay(args) {
     _paintMultiProbabilityDisplay_grid(args);
 
-    let probabilities = args.customStats;
-    let noData = probabilities === undefined || probabilities.hasNaN();
+    const probabilities = args.customStats;
+    const noData = probabilities === undefined || probabilities.hasNaN();
     if (noData) {
         fitParagraph(args.painter, "NaN", args.rect, {
             alignment: new Point(0.5, 0.5),
             fill: CanvasTheme.error.text
         });
     } else {
-        let textFits = args.rect.h / probabilities.height() > 8;
+        const textFits = args.rect.h / probabilities.height() > 8;
         if (!textFits) {
             _paintMultiProbabilityDisplay_logarithmHints(args);
         }

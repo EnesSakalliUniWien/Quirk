@@ -130,7 +130,7 @@ class Revision {
    */
   cancelCommitBeingWorkedOn() {
     this.isWorkingOnCommit = false;
-    let result = this.history[this.index];
+    const result = this.history[this.index];
     this._changes.send(result);
     this._latestActiveCommit.set(result);
     return result;
@@ -167,7 +167,7 @@ class Revision {
       this.index -= 1;
     }
     this.isWorkingOnCommit = false;
-    let result = this.history[this.index];
+    const result = this.history[this.index];
     this._changes.send(result);
     this._latestActiveCommit.set(result);
     return result;
@@ -183,7 +183,7 @@ class Revision {
     }
     this.index += 1;
     this.isWorkingOnCommit = false;
-    let result = this.history[this.index];
+    const result = this.history[this.index];
     this._changes.send(result);
     this._latestActiveCommit.set(result);
     return result;

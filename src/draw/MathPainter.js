@@ -33,8 +33,8 @@ import {QubitMatrix} from '../engine/math/matrix/QubitMatrix.js';
 
 class MathPainter {
     static describeProbability(p, fractionalDigits) {
-        let v = p * 100;
-        let e = Math.pow(10, -fractionalDigits);
+        const v = p * 100;
+        const e = Math.pow(10, -fractionalDigits);
 
         if (v > 100 - e / 2) {
             return "On";
@@ -61,8 +61,8 @@ class MathPainter {
                                backgroundColor = CanvasTheme.probability.background,
                                fillColor = CanvasTheme.probability.fill) {
         rectangle(painter, drawArea, {fill: backgroundColor});
-        let cen = drawArea.center();
-        if (isNaN(probability)) {
+        const cen = drawArea.center();
+        if (Number.isNaN(probability)) {
             rectangle(painter, drawArea, {fill: CanvasTheme.error.background});
             fitText(painter, "NaN", {
                 x: cen.x,
@@ -120,16 +120,16 @@ class MathPainter {
             titleFunc,
             valueTextFunc1,
             valueTextFunc2 = () => undefined) {
-        let numCols = matrix.width();
-        let numRows = matrix.height();
-        let {x, y} = drawArea;
-        let diam = Math.min(drawArea.w / numCols, drawArea.h / numRows);
-        for (let pt of focusPoints) {
-            let c = Math.floor((pt.x - x) / diam);
-            let r = Math.floor((pt.y - y) / diam);
+        const numCols = matrix.width();
+        const numRows = matrix.height();
+        const {x, y} = drawArea;
+        const diam = Math.min(drawArea.w / numCols, drawArea.h / numRows);
+        for (const pt of focusPoints) {
+            const c = Math.floor((pt.x - x) / diam);
+            const r = Math.floor((pt.y - y) / diam);
             if (c >= 0 && c < matrix.width() && r >= 0 && r < matrix.height()) {
                 rectangle(painter, new Rect(x + diam*c, y + diam*r, diam, diam), {stroke: {color: CanvasTheme.interaction.outline, width: 2}});
-                let v = matrix.cell(c, r);
+                const v = matrix.cell(c, r);
                 MathPainter.paintDeferredValueTooltip(
                     painter,
                     x + diam*c + diam,
@@ -151,7 +151,7 @@ class MathPainter {
      * @private
      */
     static _traceAmplitudeProbabilitySquare(trace, real, imag, x, y, d) {
-        let p = real*real + imag*imag;
+        const p = real*real + imag*imag;
         if (p > 0.001) {
             trace.poly([
                 x, y + d * (1 - p),
@@ -171,7 +171,7 @@ class MathPainter {
      * @private
      */
     static _traceProbabilitySquare(trace, real, imag, x, y, d) {
-        let p = real;
+        const p = real;
         if (d*p > 0.1) {
             trace.poly([
                 x, y + d * (1 - p),
@@ -191,7 +191,7 @@ class MathPainter {
      * @private
      */
     static _traceAmplitudeProbabilityCircle(trace, real, imag, x, y, d) {
-        let mag = Math.sqrt(real*real + imag*imag);
+        const mag = Math.sqrt(real*real + imag*imag);
         if (d*mag > 0.5) {
             trace.circle(x+d/2, y+d/2, mag*d/2);
         }
@@ -207,7 +207,7 @@ class MathPainter {
      * @private
      */
     static _traceAmplitudeLogarithmCircle(trace, real, imag, x, y, d) {
-        let g = 1 + Math.log(real*real + imag*imag)/15;
+        const g = 1 + Math.log(real*real + imag*imag)/15;
         if (g > 0) {
             trace.circle(x+d/2, y+d/2, g*d/2);
         }
@@ -223,15 +223,15 @@ class MathPainter {
      * @private
      */
     static _traceAmplitudePhaseDirection(trace, real, imag, x, y, d) {
-        let mag = Math.sqrt(real*real + imag*imag);
+        const mag = Math.sqrt(real*real + imag*imag);
         if (mag === 0) return;
-        let g = 1 + Math.log(mag)/10;
-        let r = Math.max(1, g/mag)*Math.max(d/2, 5);
+        const g = 1 + Math.log(mag)/10;
+        const r = Math.max(1, g/mag)*Math.max(d/2, 5);
         if (r < 0.1) {
             return;
         }
-        let cx = x + d/2;
-        let cy = y + d/2;
+        const cx = x + d/2;
+        const cy = y + d/2;
         PathGeometry.line(trace, cx, cy, cx + real*r, cy - imag*r);
     }
 
@@ -256,20 +256,20 @@ class MathPainter {
                        backColor = CanvasTheme.probability.background,
                        phaseColorForDegrees = () => amplitudeCircleStrokeColor,
                        logCircleStrokeColor = CanvasTheme.stroke.faint) {
-        let numCols = matrix.width();
-        let numRows = matrix.height();
-        let buf = matrix.rawBuffer();
-        let diam = Math.min(drawArea.w / numCols, drawArea.h / numRows);
+        const numCols = matrix.width();
+        const numRows = matrix.height();
+        const buf = matrix.rawBuffer();
+        const diam = Math.min(drawArea.w / numCols, drawArea.h / numRows);
         drawArea = drawArea.withW(diam * numCols).withH(diam*numRows);
-        let {x, y} = drawArea;
-        let hasNaN = matrix.hasNaN();
+        const {x, y} = drawArea;
+        const hasNaN = matrix.hasNaN();
 
         rectangle(painter, drawArea, {fill: backColor});
 
-        let traceCellsWith = cellTraceFunc => trace => {
+        const traceCellsWith = cellTraceFunc => trace => {
             for (let row = 0; row < numRows; row++) {
                 for (let col = 0; col < numCols; col++) {
-                    let k = (row * numCols + col) * 2;
+                    const k = (row * numCols + col) * 2;
                     cellTraceFunc(
                         trace,
                         buf[k],
@@ -374,19 +374,19 @@ class MathPainter {
                                     drawArea,
                                     backgroundColor = CanvasTheme.probability.background,
                                     fillColor = CanvasTheme.probability.fill) {
-        let c = drawArea.center();
-        let u = Math.min(drawArea.w, drawArea.h) / 2;
-        let {dx, dy, dz} = MathPainter.coordinateSystem(u);
-        let projMatrix = Matrix.fromRows([
+        const c = drawArea.center();
+        const u = Math.min(drawArea.w, drawArea.h) / 2;
+        const {dx, dy, dz} = MathPainter.coordinateSystem(u);
+        const projMatrix = Matrix.fromRows([
             [-dx.x, -dx.y],
             [dy.x, dy.y],
             [-dz.x, -dz.y],
         ]).adjoint();
-        let projToPt = col => {
-            let p = projMatrix.times(col);
+        const projToPt = col => {
+            const p = projMatrix.times(col);
             return new Point(p.cell(0, 0).real, p.cell(0, 1).real)
         };
-        let axes = Array.from({length: 3}, (_, i) => Matrix.generate(1, 3, (r, _) => r === i ? 1 : 0));
+        const axes = Array.from({length: 3}, (_, i) => Matrix.generate(1, 3, (r, _) => r === i ? 1 : 0));
 
         // Draw sphere and axis lines (in not-quite-proper 3d).
         circle(painter, c, u, {fill: backgroundColor});
@@ -394,24 +394,24 @@ class MathPainter {
             trace.circle(c.x, c.y, u);
             trace.ellipse(c.x, c.y, u, u / 3);
             trace.ellipse(c.x, c.y, u / 3, u);
-            for (let a of axes) {
-                let d = projToPt(a);
+            for (const a of axes) {
+                const d = projToPt(a);
                 PathGeometry.line(trace, c.x - d.x, c.y - d.y, c.x + d.x, c.y + d.y);
             }
         }, [{stroke: {color: CanvasTheme.stroke.faint, width: 1}}]);
 
-        let {angle, axis} = QubitMatrix.operationToAngleAxisRotation(operation);
-        let axisVec = Matrix.col(...axis);
-        let dAxis = projToPt(axisVec);
+        const {angle, axis} = QubitMatrix.operationToAngleAxisRotation(operation);
+        const axisVec = Matrix.col(...axis);
+        const dAxis = projToPt(axisVec);
 
         // Disambiguating 3d guide lines for axis, forming vertical rectangles.
-        let guideDeltas = [
+        const guideDeltas = [
             Matrix.col(axis[0], axis[1], 0),
             axisVec,
             Matrix.col(0, 0, axis[2])
         ].map(projToPt);
         // Down one side of the rectangles and back up the other, closed by repeating the last point first.
-        let guidePath = guideDeltas.
+        const guidePath = guideDeltas.
             toReversed().
             concat(guideDeltas.map(d => d.times(-1))).
             map(d => c.plus(d));
@@ -424,7 +424,7 @@ class MathPainter {
         strokePath(painter, [c.plus(dAxis), c.plus(dAxis.times(-1))], CanvasTheme.text.primary, 2);
 
         // Find perpendicular axes, for drawing the rotation arrow circles.
-        let norm = e => Math.sqrt(e.adjoint().times(e).cell(0, 0).real);
+        const norm = e => Math.sqrt(e.adjoint().times(e).cell(0, 0).real);
         let perpVec1 = seq(axes.
             map((a, i) => a.times([-3, -2, 1][i])). // Prioritize/orient axes to look good.
             map(a => axisVec.cross3(a))).
@@ -432,8 +432,8 @@ class MathPainter {
         let perpVec2 = axisVec.cross3(perpVec1);
         perpVec1 = perpVec1.times(0.15 / norm(perpVec1));
         perpVec2 = perpVec2.times(0.15 / norm(perpVec2));
-        let dPerp1 = projToPt(perpVec1);
-        let dPerp2 = projToPt(perpVec2);
+        const dPerp1 = projToPt(perpVec1);
+        const dPerp2 = projToPt(perpVec2);
 
         MathPainter._paintBlochSphereRotation_rotationGuideArrows(painter, c, angle, dAxis, dPerp1, dPerp2, fillColor);
     }
@@ -450,10 +450,10 @@ class MathPainter {
      */
     static _paintBlochSphereRotation_rotationGuideArrows(painter, center, angle, dAlong, dPerp1, dPerp2, fillColor) {
         // Compute the rotation arc.
-        let rotationGuideDeltas = Array.from(
+        const rotationGuideDeltas = Array.from(
             {length: Math.floor(Math.abs(angle) * 32)},
             (_, i) => {
-                let θ = (angle < 0 ? Math.PI - i / 32 : i / 32);
+                const θ = (angle < 0 ? Math.PI - i / 32 : i / 32);
                 return dPerp1.times(Math.cos(θ)).
                     plus(dPerp2.times(Math.sin(θ)));
             });
@@ -463,17 +463,17 @@ class MathPainter {
         }
 
         // Draw the three rotation guides.
-        for (let offsetFactor of [-0.55, 0, 0.55]) {
-            let offsetCenter = center.plus(dAlong.times(offsetFactor));
-            let arcPts = rotationGuideDeltas.map(d => offsetCenter.plus(d));
-            let arrowHeadRoot = arcPts[arcPts.length - 1];
-            let arrowHeadDirection = arrowHeadRoot.plus(arcPts[arcPts.length - 2].times(-1));
-            let arrowHeadPts = [
+        for (const offsetFactor of [-0.55, 0, 0.55]) {
+            const offsetCenter = center.plus(dAlong.times(offsetFactor));
+            const arcPts = rotationGuideDeltas.map(d => offsetCenter.plus(d));
+            const arrowHeadRoot = arcPts.at(-1);
+            const arrowHeadDirection = arrowHeadRoot.plus(arcPts.at(-2).times(-1));
+            const arrowHeadPts = [
                 dAlong.times(0.15),
                 arrowHeadDirection.times(30),
                 dAlong.times(-0.15)
             ].map(d => arrowHeadRoot.plus(d));
-            let interleaved = [].concat.apply([], arrowHeadPts.map(e => [e.x, e.y]));
+            const interleaved = arrowHeadPts.flatMap(e => [e.x, e.y]);
 
             strokePath(painter, arcPts, CanvasTheme.stroke.bright, 1);
             drawPath(painter, tracer => tracer.poly(interleaved), [{fill: fillColor}, {stroke: {color: CanvasTheme.stroke.bright, width: 1}}]);

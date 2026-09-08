@@ -26,7 +26,7 @@ import {
   MODULAR_INVERSE_SHADER_CODE,
 } from "./ModularMultiplicationGates.js";
 
-let MultiplicationGates = {};
+const MultiplicationGates = {};
 
 const MULTIPLICATION_SHADER = ketShaderPermute(
   `
@@ -104,4 +104,4 @@ MultiplicationGates.all = [
   ...MultiplicationGates.TimesAInverseFamily.all,
 ];
 
-export { MultiplicationGates, MODULAR_INVERSE_SHADER_CODE };
+export { MultiplicationGates };

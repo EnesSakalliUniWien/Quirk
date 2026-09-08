@@ -41,7 +41,7 @@ class WglTexturePool {
       throw new DetailedError("Bad sizePower", { sizePower, pixelType });
     }
 
-    let pool =
+    const pool =
       pixelType === WebGL2RenderingContext.FLOAT ? FLOAT_POOL : BYTE_POOL;
     while (pool.length <= sizePower) {
       pool.push([]);
@@ -63,7 +63,7 @@ class WglTexturePool {
       return new WglTexture(0, 0, pixelType);
     }
 
-    let bucket = WglTexturePool._bucketFor(sizePower, pixelType);
+    const bucket = WglTexturePool._bucketFor(sizePower, pixelType);
     unreturnedTextureCount++;
     if (unreturnedTextureCount > LEAK_WARNING_THRESHOLD && !hasWarnedAboutLeak) {
       hasWarnedAboutLeak = true;
@@ -75,7 +75,7 @@ class WglTexturePool {
     if (bucket.length > 0) {
       return bucket.pop();
     }
-    let { w, h } = WglTexture.preferredWidthHeightForSizePower(sizePower);
+    const { w, h } = WglTexture.preferredWidthHeightForSizePower(sizePower);
     return new WglTexture(w, h, pixelType);
   }
 
@@ -96,7 +96,7 @@ class WglTexturePool {
       return;
     }
 
-    let bucket = WglTexturePool._bucketFor(texture.sizePower(), texture.pixelType);
+    const bucket = WglTexturePool._bucketFor(texture.sizePower(), texture.pixelType);
     unreturnedTextureCount--;
     if (unreturnedTextureCount <= LEAK_WARNING_THRESHOLD) {
       hasWarnedAboutLeak = false;
@@ -156,7 +156,7 @@ class WglTexturePool {
    * @returns {!WglTexture}
    */
   static takeVecFloatTex(sizePower) {
-    let coder = currentShaderCoder().float;
+    const coder = currentShaderCoder().float;
     return WglTexturePool.take(sizePower + coder.powerSizeOverhead, coder.pixelType);
   }
 
@@ -166,7 +166,7 @@ class WglTexturePool {
    * @returns {!WglTexture}
    */
   static takeVec2Tex(sizePower) {
-    let coder = currentShaderCoder().vec2;
+    const coder = currentShaderCoder().vec2;
     return WglTexturePool.take(sizePower + coder.powerSizeOverhead, coder.pixelType);
   }
 
@@ -176,7 +176,7 @@ class WglTexturePool {
    * @returns {!WglTexture}
    */
   static takeVec4Tex(sizePower) {
-    let coder = currentShaderCoder().vec4;
+    const coder = currentShaderCoder().vec4;
     return WglTexturePool.take(sizePower + coder.powerSizeOverhead, coder.pixelType);
   }
 }

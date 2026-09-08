@@ -19,7 +19,7 @@ import {GatePainting} from "../../draw/gate/GatePainting.js"
 import {XExp, YExp, ZExp} from "./ExponentiatingGates.js"
 import {parseTimeFormula, makeUpdateFormulaFunc} from "./FormulaGateUtil.js"
 
-let RotationGates = {};
+const RotationGates = {};
 
 /**
  * @param {undefined|!string|!number} param

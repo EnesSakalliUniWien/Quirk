@@ -41,15 +41,15 @@ if (USE_SIMPLE_VALUES) {
  * @param {!int} expected_output
  */
 function assertThatCircuitOutputsBasisKet(circuit, expected_output) {
-    let stats = CircuitStats.fromCircuitAtTime(circuit, 0);
+    const stats = CircuitStats.fromCircuitAtTime(circuit, 0);
     assertThat(stats.finalState.hasNaN()).isEqualTo(false);
 
-    let soloKets = Array.from({length: stats.finalState.height()}, (_, i) => i).
+    const soloKets = Array.from({length: stats.finalState.height()}, (_, i) => i).
         filter(i => stats.finalState.cell(0, i).isEqualTo(1));
-    let actualOut = soloKets.length === 0 ? 'no solo ket found' : soloKets[0];
+    const actualOut = soloKets.length === 0 ? 'no solo ket found' : soloKets[0];
     assertThat(actualOut).isEqualTo(expected_output);
 
-    let b = stats.finalState.rawBuffer();
+    const b = stats.finalState.rawBuffer();
     for (let i = 0; i < b.length; i++) {
         if (i !== expected_output * 2) {
             assertThat(b[i]).withInfo({i}).isEqualTo(0);
@@ -82,8 +82,8 @@ function assertThatGateActsLikePermutation(
         permutationFunc,
         inputSpans=[],
         ignoreTargetEndsUpDisabled=false) {
-    let inputGates = [];
-    for (let [key, inputGate] of [['Input Range A', Gates.InputGates.InputAFamily],
+    const inputGates = [];
+    for (const [key, inputGate] of [['Input Range A', Gates.InputGates.InputAFamily],
                                   ['Input Range B', Gates.InputGates.InputBFamily],
                                   ['Input Range R', Gates.InputGates.InputRFamily]]) {
         if (gate.getUnmetContextKeys().has(key)) {
@@ -92,9 +92,9 @@ function assertThatGateActsLikePermutation(
     }
     inputSpans = inputSpans.slice(0, inputGates.length);
 
-    let dstWire = 0;
+    const dstWire = 0;
     let wireCount = dstWire + gate.height;
-    let inpWires = new Array(inputGates.length);
+    const inpWires = new Array(inputGates.length);
     for (let i = 0; i < inputGates.length; i++) {
         if (Math.random() < 0.2) {
             wireCount += 1;
@@ -104,24 +104,24 @@ function assertThatGateActsLikePermutation(
     }
 
     // Useful facts.
-    let dstMask = ((1 << gate.height) - 1) << dstWire;
-    let inpMasks = inpWires.map((off, i) => ((1 << inputGates[i].height) - 1) << off);
+    const dstMask = ((1 << gate.height) - 1) << dstWire;
+    const inpMasks = inpWires.map((off, i) => ((1 << inputGates[i].height) - 1) << off);
 
     // Make permutation matrix.
-    let fullPermutation = val => {
-        let dst = (val & dstMask) >> dstWire;
-        let inps = inpMasks.map((m, i) => (val & m) >> inpWires[i]);
-        let out = permutationFunc(dst, ...inps);
+    const fullPermutation = val => {
+        const dst = (val & dstMask) >> dstWire;
+        const inps = inpMasks.map((m, i) => (val & m) >> inpWires[i]);
+        const out = permutationFunc(dst, ...inps);
         return (val & ~dstMask) | out;
     };
 
     // Make circuit.
-    let col = new Array(wireCount).fill(undefined);
+    const col = new Array(wireCount).fill(undefined);
     for (let i = 0; i < inputSpans.length; i++) {
         col[inpWires[i]] = inputGates[i];
     }
     col[dstWire] = gate;
-    let circuit = new CircuitDefinition(wireCount, [new GateColumn(col)]);
+    const circuit = new CircuitDefinition(wireCount, [new GateColumn(col)]);
 
     if (circuit.gateAtLocIsDisabledReason(0, 0) !== undefined) {
         if (ignoreTargetEndsUpDisabled) {
@@ -130,7 +130,7 @@ function assertThatGateActsLikePermutation(
         assertThat(circuit.gateAtLocIsDisabledReason(0, 0)).withInfo({gate}).isEqualTo(undefined);
     }
 
-    let updateAction = ctx => advanceStateWithCircuit(ctx, circuit, false);
+    const updateAction = ctx => advanceStateWithCircuit(ctx, circuit, false);
     assertThatCircuitUpdateActsLikePermutation(
         wireCount,
         updateAction,
@@ -149,12 +149,12 @@ function assertThatGateActsLikePermutation(
  * @param {!number|undefined=} forcedTime
  */
 function assertThatGateActsLikePhaser(gate, phaserFunc, forcedTime=undefined) {
-    let wireCount = gate.height;
-    let col = new Array(wireCount).fill(undefined);
+    const wireCount = gate.height;
+    const col = new Array(wireCount).fill(undefined);
     col[0] = gate;
-    let circuit = new CircuitDefinition(wireCount, [new GateColumn(col)]);
-    let matrix = Matrix.generateDiagonal(1 << wireCount, k => Complex.polar(1, phaserFunc(k)*Math.PI*2));
-    let updateAction = ctx => advanceStateWithCircuit(ctx, circuit, false);
+    const circuit = new CircuitDefinition(wireCount, [new GateColumn(col)]);
+    const matrix = Matrix.generateDiagonal(1 << wireCount, k => Complex.polar(1, phaserFunc(k)*Math.PI*2));
+    const updateAction = ctx => advanceStateWithCircuit(ctx, circuit, false);
     assertThatCircuitMutationActsLikeMatrix_single(updateAction, matrix, forcedTime);
 }
 
@@ -176,7 +176,7 @@ function assertThatCircuitUpdateActsLikeMatrix(updateAction, matrix, repeats=5, 
  * @param {!number|undefined=} forcedTime
  */
 function assertThatCircuitMutationActsLikeMatrix_single(updateAction, matrix, forcedTime=undefined) {
-    let qubitSpan = Math.round(Math.log2(matrix.height()));
+    const qubitSpan = Math.round(Math.log2(matrix.height()));
     let extraWires = Math.floor(Math.random()*5);
     let time = Math.random();
     let qubitIndex = Math.floor(Math.random() * extraWires);
@@ -188,7 +188,7 @@ function assertThatCircuitMutationActsLikeMatrix_single(updateAction, matrix, fo
     if (forcedTime !== undefined) {
         time = forcedTime;
     }
-    let wireCount = qubitSpan + extraWires;
+    const wireCount = qubitSpan + extraWires;
     let controls = Controls.NONE;
     for (let i = 0; i < extraWires; i++) {
         if (Math.random() < 0.5) {
@@ -196,15 +196,15 @@ function assertThatCircuitMutationActsLikeMatrix_single(updateAction, matrix, fo
         }
     }
 
-    let ampCount = 1 << wireCount;
-    let inVec = Matrix.generate(1, ampCount, () => USE_SIMPLE_VALUES ?
+    const ampCount = 1 << wireCount;
+    const inVec = Matrix.generate(1, ampCount, () => USE_SIMPLE_VALUES ?
         (Math.random() < 0.5 ? 1 : 0) :
         new Complex(Math.random()*10 - 5, Math.random()*10 - 5));
 
-    let tex = Shaders.vec2Data(inVec.rawBuffer()).toVec2Texture(wireCount);
-    let trader = new WglTextureTrader(tex);
-    let controlsTexture = CircuitShaders.controlMask(controls).toBoolTexture(wireCount);
-    let ctx = new CircuitEvalContext(
+    const tex = Shaders.vec2Data(inVec.rawBuffer()).toVec2Texture(wireCount);
+    const trader = new WglTextureTrader(tex);
+    const controlsTexture = CircuitShaders.controlMask(controls).toBoolTexture(wireCount);
+    const ctx = new CircuitEvalContext(
         time,
         qubitIndex,
         wireCount,
@@ -216,10 +216,10 @@ function assertThatCircuitMutationActsLikeMatrix_single(updateAction, matrix, fo
     updateAction(ctx);
 
     controlsTexture.deallocByDepositingInPool();
-    let outData = KetTextureUtil.tradeTextureForVec2Output(trader);
-    let outVec = new Matrix(1, ampCount, outData);
+    const outData = KetTextureUtil.tradeTextureForVec2Output(trader);
+    const outVec = new Matrix(1, ampCount, outData);
 
-    let expectedOutVec = applyToStateVectorAtQubitWithControls(matrix, inVec, qubitIndex, controls);
+    const expectedOutVec = applyToStateVectorAtQubitWithControls(matrix, inVec, qubitIndex, controls);
 
     assertThat(outVec).withInfo({matrix, inVec, ctx}).isApproximatelyEqualTo(expectedOutVec, 0.005);
 }
@@ -245,14 +245,14 @@ function assertThatCircuitShaderActsLikePermutation(wireCount, shaderMaker, perm
  * @param {*} permuteInfo Debug info included when the assertion fails.
  */
 function assertThatCircuitUpdateActsLikePermutation(wireCount, updateAction, permutation, permuteInfo=undefined) {
-    let time = Math.random();
+    const time = Math.random();
 
-    let ampCount = 1 << wireCount;
-    let inVec = Matrix.generate(1, ampCount, r => new Complex(r + Math.random(), Math.random()*1000));
-    let tex = Shaders.vec2Data(inVec.rawBuffer()).toVec2Texture(wireCount);
-    let trader = new WglTextureTrader(tex);
-    let controlsTexture = CircuitShaders.controlMask(Controls.NONE).toBoolTexture(wireCount);
-    let ctx = new CircuitEvalContext(
+    const ampCount = 1 << wireCount;
+    const inVec = Matrix.generate(1, ampCount, r => new Complex(r + Math.random(), Math.random()*1000));
+    const tex = Shaders.vec2Data(inVec.rawBuffer()).toVec2Texture(wireCount);
+    const trader = new WglTextureTrader(tex);
+    const controlsTexture = CircuitShaders.controlMask(Controls.NONE).toBoolTexture(wireCount);
+    const ctx = new CircuitEvalContext(
         time,
         0,
         wireCount,
@@ -264,18 +264,18 @@ function assertThatCircuitUpdateActsLikePermutation(wireCount, updateAction, per
     updateAction(ctx);
 
     controlsTexture.deallocByDepositingInPool();
-    let outData = KetTextureUtil.tradeTextureForVec2Output(trader);
-    let outVec = new Matrix(1, ampCount, outData);
+    const outData = KetTextureUtil.tradeTextureForVec2Output(trader);
+    const outVec = new Matrix(1, ampCount, outData);
 
     for (let i = 0; i < ampCount; i++) {
-        let j = permutation(i);
-        let inVal = inVec.cell(0, i);
-        let outVal = outVec.cell(0, j);
+        const j = permutation(i);
+        const inVal = inVec.cell(0, i);
+        const outVal = outVec.cell(0, j);
         if (!outVal.isApproximatelyEqualTo(inVal, 0.001)) {
-            let actualIn = Math.floor(outVec.cell(0, j).real);
-            let outMatches = Array.from({length: ampCount}, (_, k) => k).
+            const actualIn = Math.floor(outVec.cell(0, j).real);
+            const outMatches = Array.from({length: ampCount}, (_, k) => k).
                 filter(k => Math.floor(outVec.cell(0, k).real) === i);
-            let actualOut = outMatches.length === 0 ? '[NONE]' : outMatches[0];
+            const actualOut = outMatches.length === 0 ? '[NONE]' : outMatches[0];
             assertThat(outVal).
                 withInfo({i, j, actualIn, actualOut, permuteInfo}).
                 isApproximatelyEqualTo(inVal, 0.01);
@@ -291,7 +291,6 @@ export {
     assertThatCircuitShaderActsLikeMatrix,
     assertThatGateActsLikePermutation,
     assertThatCircuitOutputsBasisKet,
-    assertThatCircuitUpdateActsLikePermutation,
     assertThatCircuitShaderActsLikePermutation,
     assertThatGateActsLikePhaser,
 }

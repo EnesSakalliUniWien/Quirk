@@ -19,11 +19,11 @@ import {WglArg} from "../../../../src/engine/webgl/shader/WglArg.js"
 import {WglShader} from "../../../../src/engine/webgl/shader/WglShader.js"
 import {WglTexture} from "../../../../src/engine/webgl/texture/WglTexture.js"
 
-let suite = new Suite("WglArg");
+const suite = new Suite("WglArg");
 
 suite.testUsingWebGLFloatTextures("bool", () => {
-    let texture = new WglTexture(1, 1);
-    let shader = new WglShader(`
+    const texture = new WglTexture(1, 1);
+    const shader = new WglShader(`
         uniform bool arg;
         void main() {
             fragColor = vec4(arg ? 1.0 : -1.0, 0.0, 0.0, 0.0);
@@ -41,8 +41,8 @@ suite.testUsingWebGLFloatTextures("bool", () => {
 });
 
 suite.testUsingWebGLFloatTextures("float", () => {
-    let texture = new WglTexture(1, 1);
-    let shader = new WglShader(`
+    const texture = new WglTexture(1, 1);
+    const shader = new WglShader(`
         uniform float arg;
         void main() {
             fragColor = vec4(arg, 0.0, 0.0, 0.0);
@@ -60,8 +60,8 @@ suite.testUsingWebGLFloatTextures("float", () => {
 });
 
 suite.testUsingWebGLFloatTextures("int", () => {
-    let texture = new WglTexture(1, 1);
-    let shader = new WglShader(`
+    const texture = new WglTexture(1, 1);
+    const shader = new WglShader(`
         uniform int arg;
         void main() {
             fragColor = vec4(float(arg), 0.0, 0.0, 0.0);
@@ -79,8 +79,8 @@ suite.testUsingWebGLFloatTextures("int", () => {
 });
 
 suite.testUsingWebGLFloatTextures("vec2", () => {
-    let texture = new WglTexture(1, 1);
-    let shader = new WglShader(`
+    const texture = new WglTexture(1, 1);
+    const shader = new WglShader(`
         uniform vec2 arg;
         void main() {
             fragColor = vec4(arg.x, arg.y, 0.0, 0.0);
@@ -98,8 +98,8 @@ suite.testUsingWebGLFloatTextures("vec2", () => {
 });
 
 suite.testUsingWebGLFloatTextures("vec4", () => {
-    let texture = new WglTexture(1, 1);
-    let shader = new WglShader(`
+    const texture = new WglTexture(1, 1);
+    const shader = new WglShader(`
         uniform vec4 arg;
         void main() {
             fragColor = vec4(arg.r, arg.g, arg.b, arg.a);
@@ -117,8 +117,8 @@ suite.testUsingWebGLFloatTextures("vec4", () => {
 });
 
 suite.testUsingWebGLFloatTextures("mat4", () => {
-    let texture = new WglTexture(4, 1);
-    let shader = new WglShader(`
+    const texture = new WglTexture(4, 1);
+    const shader = new WglShader(`
         uniform mat4 arg;
         void main() {
             if (gl_FragCoord.x == 0.5) {
@@ -132,16 +132,16 @@ suite.testUsingWebGLFloatTextures("mat4", () => {
             }
         }`);
 
-    let vals = new Float32Array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]);
+    const vals = new Float32Array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]);
     shader.withArgs(WglArg.mat4("arg", vals)).renderTo(texture);
     assertThat(texture.readPixels()).isEqualTo(vals);
 });
 
 suite.testUsingWebGLFloatTextures("texture", () => {
-    let srcTexture = new WglTexture(1, 1);
+    const srcTexture = new WglTexture(1, 1);
     new WglShader("void main(){fragColor=vec4(1, 2, 3, 5);}").withArgs().renderTo(srcTexture);
-    let texture = new WglTexture(1, 1);
-    let shader = new WglShader(`
+    const texture = new WglTexture(1, 1);
+    const shader = new WglShader(`
         uniform sampler2D arg;
         void main() {
             fragColor = texture(arg, vec2(0.5, 0.5));
@@ -154,8 +154,8 @@ suite.testUsingWebGLFloatTextures("texture", () => {
 });
 
 suite.testUsingWebGLFloatTextures("float_array", () => {
-    let texture = new WglTexture(1, 1);
-    let shader = new WglShader(`
+    const texture = new WglTexture(1, 1);
+    const shader = new WglShader(`
         uniform float arg[2];
         void main() {
             fragColor = vec4(arg[0], arg[1], 0.0, 0.0);
@@ -168,8 +168,8 @@ suite.testUsingWebGLFloatTextures("float_array", () => {
 });
 
 suite.testUsingWebGLFloatTextures("vec2_array", () => {
-    let texture = new WglTexture(1, 1);
-    let shader = new WglShader(`
+    const texture = new WglTexture(1, 1);
+    const shader = new WglShader(`
         uniform vec2 arg[2];
         void main() {
             fragColor = vec4(arg[0], arg[1]);
@@ -182,8 +182,8 @@ suite.testUsingWebGLFloatTextures("vec2_array", () => {
 });
 
 suite.testUsingWebGLFloatTextures("vec4_array", () => {
-    let texture = new WglTexture(1, 1);
-    let shader = new WglShader(`
+    const texture = new WglTexture(1, 1);
+    const shader = new WglShader(`
         uniform vec4 arg[1];
         void main() {
             fragColor = arg[0];
@@ -196,8 +196,8 @@ suite.testUsingWebGLFloatTextures("vec4_array", () => {
 });
 
 suite.testUsingWebGLFloatTextures("mat4_array", () => {
-    let texture = new WglTexture(1, 1);
-    let shader = new WglShader(`
+    const texture = new WglTexture(1, 1);
+    const shader = new WglShader(`
         uniform mat4 arg[2];
         void main() {
             fragColor = arg[0][1];

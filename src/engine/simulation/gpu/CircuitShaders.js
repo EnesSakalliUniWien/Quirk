@@ -20,7 +20,7 @@ import {ketArgs, ketShaderPermute} from "./KetShaderUtil.js"
 import {Shaders} from "../../webgl/shader/Shaders.js"
 import {Util} from "../../../base/Util.js"
 import {WglArg} from "../../webgl/shader/WglArg.js"
-import {WglConfiguredShader} from "../../webgl/shader/WglConfiguredShader.js"
+/** @typedef {import("../../webgl/shader/WglConfiguredShader.js").WglConfiguredShader} WglConfiguredShader */
 import {
     currentShaderCoder,
     makePseudoShaderWithInputsAndOutputAndCode,
@@ -179,7 +179,7 @@ CircuitShaders.qubitDensities = (inputTexture, keptBitMask = undefined) => {
     if (keptBitMask === undefined) {
         keptBitMask = (1 << currentShaderCoder().vec2.arrayPowerSizeOfTexture(inputTexture)) - 1;
     }
-    let keptCount = Util.ceilingPowerOf2(Util.numberOfSetBits(keptBitMask));
+    const keptCount = Util.ceilingPowerOf2(Util.numberOfSetBits(keptBitMask));
 
     return QUBIT_DENSITIES_SHADER(
         inputTexture,

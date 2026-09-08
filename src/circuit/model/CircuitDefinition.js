@@ -80,7 +80,7 @@ class CircuitDefinition {
         this.isNested = isNested;
         /** @type {!Map.<!int, !string>} */
         this.customInitialValues = new Map();
-        for (let [k, v] of customInitialValues.entries()) {
+        for (const [k, v] of customInitialValues.entries()) {
             if (!Number.isInteger(k) || k < 0) {
                 throw new DetailedError('Initial state key out of range.', {customInitialValues, numWires});
             }
@@ -102,8 +102,8 @@ class CircuitDefinition {
         this._measureMasks = [0];
         let mask = 0;
         let prevStickyCtx = new Map();
-        for (let col of columns) {
-            let {allReasons: rowReasons, stickyCtx} = col.perRowDisabledReasons(
+        for (const col of columns) {
+            const {allReasons: rowReasons, stickyCtx} = col.perRowDisabledReasons(
                 mask,
                 outerRowOffset,
                 outerContext,
@@ -144,8 +144,8 @@ class CircuitDefinition {
      * @returns {!CircuitDefinition}
      */
     withSwitchedInitialStateOn(wire, newStateIndex=undefined) {
-        let m = new Map([...this.customInitialValues.entries()]);
-        let v = m.get(wire);
+        const m = new Map([...this.customInitialValues.entries()]);
+        const v = m.get(wire);
         let newVal = INITIAL_STATE_KEYS[(INITIAL_STATE_KEYS.indexOf(v) + 1) % INITIAL_STATE_KEYS.length];
         if (newStateIndex !== undefined) {
             newVal = newStateIndex;
@@ -184,13 +184,13 @@ class CircuitDefinition {
      * @returns {!Set.<!String>}
      */
     getUnmetContextKeys() {
-        let result = new Set();
+        const result = new Set();
         for (let c = 0; c < this.columns.length; c++) {
-            let col = this.columns[c];
-            let ctx = this.colCustomContextFromGates(c, 0);
-            for (let gate of col.gates) {
-                for (let key of gate === undefined ? [] : gate.getUnmetContextKeys()) {
-                    let altKey = key.
+            const col = this.columns[c];
+            const ctx = this.colCustomContextFromGates(c, 0);
+            for (const gate of col.gates) {
+                for (const key of gate === undefined ? [] : gate.getUnmetContextKeys()) {
+                    const altKey = key.
                         replace('Input Range ', 'Input Default ').
                         replace('Input NO_DEFAULT Range ', 'Input Range ');
                     if (!ctx.has(key) && !ctx.has(altKey)) {
@@ -223,10 +223,10 @@ class CircuitDefinition {
      * @private
      */
     _computeGateSlotCoverMap() {
-        let result = new Map();
+        const result = new Map();
         for (let col = 0; col < this.columns.length; col++) {
             for (let row = 0; row < this.numWires; row++) {
-                let gate = this.columns[col].gates[row];
+                const gate = this.columns[col].gates[row];
                 if (gate !== undefined) {
                     for (let i = 0; i < gate.width; i++) {
                         for (let j = 0; j < gate.height; j++) {
@@ -265,19 +265,19 @@ class CircuitDefinition {
      * @returns {!string}
      */
     toString() {
-        let wire = n => "─".repeat(n);
-        let wireAround = (n, s) =>
+        const wire = n => "─".repeat(n);
+        const wireAround = (n, s) =>
             wire(Math.floor(n - s.length)/2) +
             s +
             wire(Math.ceil(n - s.length)/2);
-        let colWidths = this.columns.map(
+        const colWidths = this.columns.map(
             col => Math.max(...col.gates.map(e => e === undefined ? 0 : e.serializedId.length)));
         return `CircuitDefinition (${this.numWires} wires, ${this.columns.length} cols):\n\t` +
             Array.from({length: this.numWires},
                 (_, r) => wire(1) + this.columns.
                     map((col, c) => {
-                        let g = col.gates[r];
-                        let label = g === undefined ? "" : g.serializedId;
+                        const g = col.gates[r];
+                        const label = g === undefined ? "" : g.serializedId;
                         return wireAround(colWidths[c], label);
                     }).
                     join(wire(1)) + wire(1)).
@@ -291,15 +291,15 @@ class CircuitDefinition {
      * @returns {!CircuitDefinition}
      */
     static fromTextDiagram(gateMap, diagram) {
-        let lines = diagram.split('\n').map(e => e.trim()).filter(e => e !== '');
+        const lines = diagram.split('\n').map(e => e.trim()).filter(e => e !== '');
         if (new Set(lines.map(e => e.length)).size > 1) {
             throw new DetailedError("Uneven diagram", {diagram});
         }
 
-        let rowCount = lines.length;
-        let colCount = lines.length > 0 ? lines[0].length : 0;
+        const rowCount = lines.length;
+        const colCount = lines.length > 0 ? lines[0].length : 0;
 
-        let spanAt = (col, row) => {
+        const spanAt = (col, row) => {
             for (let d = 1; row + d < lines.length; d++) {
                 if (gateMap.get(lines[row + d][col]) !== null) {
                     return d;
@@ -312,15 +312,15 @@ class CircuitDefinition {
             rowCount,
             Array.from({length: colCount},
                 (_, col) => new GateColumn(lines.map((line, row) => {
-                    let char = line[col];
+                    const char = line[col];
                     if (!gateMap.has(char)) {
                         throw new DetailedError("Unspecified gate", {char});
                     }
-                    let gateOrFamily = gateMap.get(char);
+                    const gateOrFamily = gateMap.get(char);
                     if (gateOrFamily === null || gateOrFamily === undefined) {
                         return undefined;
                     }
-                    if (gateOrFamily.hasOwnProperty('ofSize')) {
+                    if (Object.hasOwn(gateOrFamily, 'ofSize')) {
                         return gateOrFamily.ofSize(spanAt(col, row));
                     }
                     if (gateOrFamily instanceof Gate) {
@@ -335,7 +335,7 @@ class CircuitDefinition {
      * @returns {Infinity|!number}
      */
     stableDuration() {
-        let durations = this.columns.
+        const durations = this.columns.
             flatMap(c => c.gates).
             filter(g => g !== undefined).
             map(g => g.stableDuration());
@@ -351,18 +351,18 @@ class CircuitDefinition {
      * @returns {!string}
      */
     readableHash() {
-        let allGates = this.columns
+        const allGates = this.columns
             .flatMap(e => e.gates)
             .filter(e => e !== undefined)
             .map(e => e.symbol);
         if (allGates.length === 0) {
             return AppInfo.EMPTY_CIRCUIT_TITLE;
         }
-        let allGatesString = `${this.numWires} wires, ${allGates.length} ops, ${allGates.join("").split("^").join("")}`;
+        const allGatesString = `${this.numWires} wires, ${allGates.length} ops, ${allGates.join("").split("^").join("")}`;
         if (allGatesString.length <= 40) {
             return allGatesString;
         }
-        return allGatesString.substring(0, 40) + `…`;
+        return allGatesString.slice(0, 40) + `…`;
     }
 
     /**
@@ -385,7 +385,7 @@ class CircuitDefinition {
      * @private
      */
     _usedColumns() {
-        let usedCols = new Set();
+        const usedCols = new Set();
         for (let col = 0; col < this.columns.length; col++) {
             for (let i = 0; i < this.columns[col].maximumGateWidth(); i++) {
                 usedCols.add(col+i);
@@ -405,7 +405,7 @@ class CircuitDefinition {
     _findWidthWiseOverlapInRect(col, row, width, height) {
         for (let i = 1; i < width && col + i < this.columns.length; i++) {
             for (let j = 0; j < height; j++) {
-                let otherGate = this.findGateCoveringSlot(col+i, row+j);
+                const otherGate = this.findGateCoveringSlot(col+i, row+j);
                 if (otherGate === undefined || otherGate.col === col) {
                     continue;
                 }
@@ -419,20 +419,20 @@ class CircuitDefinition {
      * @returns {!CircuitDefinition}
      */
     withWidthOverlapsFixed() {
-        let newCols = [];
+        const newCols = [];
         for (let col = 0; col < this.columns.length; col++) {
-            let paddings = Array.from({length: this.numWires}, (_, row) => {
-                let gate = this.columns[col].gates[row];
+            const paddings = Array.from({length: this.numWires}, (_, row) => {
+                const gate = this.columns[col].gates[row];
                 if (gate === undefined) {
                     return 0;
                 }
-                let f = this._findWidthWiseOverlapInRect(col, row, gate.width, gate.height);
+                const f = this._findWidthWiseOverlapInRect(col, row, gate.width, gate.height);
                 if (f === undefined) {
                     return 0;
                 }
                 return gate.width - (f.col - col);
             });
-            let paddingRequired = paddings.length === 0 ? 0 : Math.max(...paddings);
+            const paddingRequired = paddings.length === 0 ? 0 : Math.max(...paddings);
 
             newCols.push(this.columns[col]);
             for (let i = 0; i < paddingRequired; i++) {
@@ -449,11 +449,11 @@ class CircuitDefinition {
      * @private
      */
     _findHeightWiseOverlapsInCol(col) {
-        let pushedGates = new Set();
+        const pushedGates = new Set();
         let h = 0;
         for (let row = 0; row < this.numWires; row++) {
             h -= 1;
-            let gate = this.gateInSlot(col, row);
+            const gate = this.gateInSlot(col, row);
             if (gate !== undefined) {
                 if (h > 0) {
                     pushedGates.add(row);
@@ -469,17 +469,17 @@ class CircuitDefinition {
      * @returns {!CircuitDefinition}
      */
     withHeightOverlapsFixed(recurseLimit=5) {
-        let newCols = [];
+        const newCols = [];
         for (let col = 0; col < this.columns.length; col++) {
-            let pushedGateIndexes = this._findHeightWiseOverlapsInCol(col);
+            const pushedGateIndexes = this._findHeightWiseOverlapsInCol(col);
             if (pushedGateIndexes.size === 0) {
                 newCols.push(this.columns[col]);
                 continue;
             }
 
-            let keptGates = this.columns[col].gates.
+            const keptGates = this.columns[col].gates.
                 map((g, row) => pushedGateIndexes.has(row) ? undefined : g);
-            let pushedGates = this.columns[col].gates.
+            const pushedGates = this.columns[col].gates.
                 map((g, row) => g !== undefined && (g.isControl() || pushedGateIndexes.has(row)) ?
                     g :
                     undefined);
@@ -523,7 +523,7 @@ class CircuitDefinition {
      * @returns {!CircuitDefinition}
      */
     withUncoveredColumnsRemoved() {
-        let used = this._usedColumns();
+        const used = this._usedColumns();
         return new CircuitDefinition(
             this.numWires,
             this.columns.filter((e, i) => used.has(i)),
@@ -561,10 +561,10 @@ class CircuitDefinition {
      */
     minimumRequiredWireCount() {
         let best = 1;
-        for (let c of this.columns) {
+        for (const c of this.columns) {
             best = Math.max(best, c.minimumRequiredWireCount());
         }
-        for (let usedWire of this.customInitialValues.keys()) {
+        for (const usedWire of this.customInitialValues.keys()) {
             best = Math.max(best, usedWire + 1);
         }
         return best;
@@ -608,7 +608,7 @@ class CircuitDefinition {
         if (col < 0 || col >= this.columns.length) {
             return 0;
         }
-        let c = this.columns[col];
+        const c = this.columns[col];
         let total = 0;
         for (let row = 0; row < c.gates.length; row++) {
             if (c.gates[row] !== undefined &&
@@ -630,7 +630,7 @@ class CircuitDefinition {
         if (col < 0 || col >= this.columns.length) {
             return new Map();
         }
-        let key = "" + outerRowOffset;
+        const key = "" + outerRowOffset;
         let result = this._cachedColumnContexts.get(key);
         if (result === undefined) {
             result = this._uncached_customContextFromGates(outerRowOffset);
@@ -644,18 +644,18 @@ class CircuitDefinition {
      * @returns {!Array.<!Map.<!string, *>>}
      */
     _uncached_customContextFromGates(outerRowOffset) {
-        let results = [];
-        let stickyCtx = new Map();
+        const results = [];
+        const stickyCtx = new Map();
         for (let col = 0; col < this.columns.length; col++) {
-            let ctx = new Map(stickyCtx);
-            let c = this.columns[col];
+            const ctx = new Map(stickyCtx);
+            const c = this.columns[col];
             for (let row = 0; row < c.gates.length; row++) {
-                let g = c.gates[row];
+                const g = c.gates[row];
                 if (g === undefined || this.gateAtLocIsDisabledReason(col, row) !== undefined) {
                     continue;
                 }
 
-                for (let {key, val} of g.customColumnContextProvider(outerRowOffset + row, g)) {
+                for (const {key, val} of g.customColumnContextProvider(outerRowOffset + row, g)) {
                     ctx.set(key, val);
                     if (!g.isContextTemporary) {
                         stickyCtx.set(key, val);
@@ -672,7 +672,7 @@ class CircuitDefinition {
      * @returns {boolean}
      */
     locIsMeasured(pt) {
-        let row = pt.y;
+        const row = pt.y;
         if (row < 0 || row >= this.numWires) {
             return false;
         }
@@ -684,13 +684,13 @@ class CircuitDefinition {
      * @returns {undefined|boolean}
      */
     locClassifyMeasuredIncludingGateExtension(pt) {
-        let row = pt.y;
+        const row = pt.y;
         if (row < 0 || row >= this.numWires) {
             return false;
         }
-        let gate = this.columns[pt.x].gates[row];
-        let h = gate === undefined ? 1 : gate.height;
-        let r = (this.colIsMeasuredMask(pt.x) >> row) & ((1 << h) - 1);
+        const gate = this.columns[pt.x].gates[row];
+        const h = gate === undefined ? 1 : gate.height;
+        const r = (this.colIsMeasuredMask(pt.x) >> row) & ((1 << h) - 1);
         return r === 0 ? false : r === (1 << h) - 1 ? true : undefined;
     }
 
@@ -705,7 +705,7 @@ class CircuitDefinition {
         if (col < 0 || col >= this.columns.length || row < 0 || row >= this.numWires) {
             return undefined;
         }
-        let gate = this.columns[col].gates[row];
+        const gate = this.columns[col].gates[row];
         return gate === undefined ? undefined : gate;
     }
 
@@ -716,7 +716,7 @@ class CircuitDefinition {
      * @returns {undefined|!{col: !int, row: !int, gate: !Gate}}
      */
     findGateCoveringSlot(col, row) {
-        let key = col+":"+row;
+        const key = col+":"+row;
         if (!this._gateSlotCoverMap.has(key)) {
             return undefined;
         }
@@ -728,7 +728,7 @@ class CircuitDefinition {
      * @returns {!boolean}
      */
     locIsControlWireStarter(pt) {
-        let gate = this.gateInSlot(pt.x, pt.y);
+        const gate = this.gateInSlot(pt.x, pt.y);
         return gate !== undefined && gate.isControlWireSource;
     }
 
@@ -760,7 +760,7 @@ class CircuitDefinition {
         if (col < 0 || col >= this.columns.length) {
             return undefined;
         }
-        let locs = [];
+        const locs = [];
         for (let row = 0; row < this.numWires; row++) {
             if (this.gateInSlot(col, row)?.isSwapHalf) {
                 if (this.gateAtLocIsDisabledReason(col, row) !== undefined) {
@@ -781,7 +781,7 @@ class CircuitDefinition {
      * @returns {!boolean}
      */
     locProvidesStat(pt, key) {
-        let g = this.gateInSlot(pt.x, pt.y);
+        const g = this.gateInSlot(pt.x, pt.y);
         return g !== undefined && !g.customColumnContextProvider(0, g).every(e => e.key !== key);
     }
 
@@ -791,7 +791,7 @@ class CircuitDefinition {
      * @returns {!boolean}
      */
     locNeedsStat(pt, key) {
-        let g = this.gateInSlot(pt.x, pt.y);
+        const g = this.gateInSlot(pt.x, pt.y);
         return g !== undefined && g.getUnmetContextKeys().has(key);
     }
 
@@ -800,7 +800,7 @@ class CircuitDefinition {
      * @returns {!boolean}
      */
     locHasControllableGate(pt) {
-        let g = this.gateInSlot(pt.x, pt.y);
+        const g = this.gateInSlot(pt.x, pt.y);
         return g !== undefined && g.interestedInControls;
     }
 
@@ -846,14 +846,14 @@ class CircuitDefinition {
         if (col < 0 || col >= this.columns.length) {
             return Controls.NONE;
         }
-        let column = this.columns[col];
+        const column = this.columns[col];
         let includeMask = 0;
         let desireMask = 0;
         let parityMask = 0;
         for (let i = 0; i < column.gates.length; i++) {
-            let gate = column.gates[i];
+            const gate = column.gates[i];
             if (gate !== undefined && this.gateAtLocIsDisabledReason(col, i) === undefined) {
-                let bit = gate.controlBit();
+                const bit = gate.controlBit();
                 if (bit === 'parity') {
                     parityMask |= 1 << i;
                 } else if (bit !== undefined) {
@@ -865,7 +865,7 @@ class CircuitDefinition {
             }
         }
         if (parityMask !== 0) {
-            let parityBit = parityMask & ~(parityMask - 1);
+            const parityBit = parityMask & ~(parityMask - 1);
             desireMask |= parityBit;
             includeMask |= parityBit;
         }
@@ -928,8 +928,8 @@ class CircuitDefinition {
             return [];
         }
 
-        let col = this.columns[colIndex];
-        let result = [];
+        const col = this.columns[colIndex];
+        const result = [];
         for (let row = 0; row < col.gates.length; row++) {
             if (col.gates[row] !== undefined &&
                     col.gates[row].customStatTexturesMaker !== undefined &&
@@ -948,7 +948,7 @@ class CircuitDefinition {
      */
     isSlotRectCoveredByGateInSameColumn(col, row, height) {
         for (let j = 0; j < height; j++) {
-            let f = this.findGateCoveringSlot(col, row+j);
+            const f = this.findGateCoveringSlot(col, row+j);
             if (f !== undefined && f.col === col) {
                 return true;
             }
@@ -976,33 +976,33 @@ class CircuitDefinition {
      * @returns {!Array.<!{first: !int, last: !int, measured: !boolean}>}
      */
     controlLinesRanges(columnIndex) {
-        let col = this.columns[columnIndex];
-        let n = col.gates.length;
+        const col = this.columns[columnIndex];
+        const n = col.gates.length;
 
-        let swapRows = this.colGetEnabledSwapGate(columnIndex);
+        const swapRows = this.colGetEnabledSwapGate(columnIndex);
 
-        let pt = i => new Point(columnIndex, i);
-        let hasControllable = i => this.locHasControllableGate(pt(i));
-        let hasCoherentControl = i => this.locStartsSingleControlWire(pt(i));
-        let hasMeasuredControl = i => this.locStartsDoubleControlWire(pt(i));
-        let hasSwap = i => swapRows !== undefined && swapRows.indexOf(i) !== -1;
-        let coversCoherentWire = i => this.locClassifyMeasuredIncludingGateExtension(pt(i)) !== true;
-        let coversMeasuredWire = i => this.locClassifyMeasuredIncludingGateExtension(pt(i)) !== false;
+        const pt = i => new Point(columnIndex, i);
+        const hasControllable = i => this.locHasControllableGate(pt(i));
+        const hasCoherentControl = i => this.locStartsSingleControlWire(pt(i));
+        const hasMeasuredControl = i => this.locStartsDoubleControlWire(pt(i));
+        const hasSwap = i => swapRows !== undefined && swapRows.includes(i);
+        const coversCoherentWire = i => this.locClassifyMeasuredIncludingGateExtension(pt(i)) !== true;
+        const coversMeasuredWire = i => this.locClassifyMeasuredIncludingGateExtension(pt(i)) !== false;
 
         // Control connections.
-        let result = [
+        const result = [
             srcDstMatchInRange(n, hasSwap, hasSwap, false),
             srcDstMatchInRange(n, hasControllable, hasCoherentControl, false),
             srcDstMatchInRange(n, hasControllable, hasMeasuredControl, true),
         ];
 
         // Input->Output gate connections.
-        for (let letter of INPUT_LETTERS) {
-            let key = `Input Range ${letter}`;
-            let altInKey = `Input Default ${letter}`;
-            let altOutKey = `Input NO_DEFAULT Range ${letter}`;
-            let isInput = i => this.locProvidesStat(pt(i), key) || this.locProvidesStat(pt(i), altInKey);
-            let isOutput = i => this.locNeedsStat(pt(i), key) || this.locNeedsStat(pt(i), altOutKey);
+        for (const letter of INPUT_LETTERS) {
+            const key = `Input Range ${letter}`;
+            const altInKey = `Input Default ${letter}`;
+            const altOutKey = `Input NO_DEFAULT Range ${letter}`;
+            const isInput = i => this.locProvidesStat(pt(i), key) || this.locProvidesStat(pt(i), altInKey);
+            const isOutput = i => this.locNeedsStat(pt(i), key) || this.locNeedsStat(pt(i), altOutKey);
             result.push(
                 srcDstMatchInRange(n, i => isInput(i) && coversCoherentWire(i), isOutput, false),
                 srcDstMatchInRange(n, i => isInput(i) && coversMeasuredWire(i), isOutput, true)
@@ -1023,8 +1023,8 @@ class CircuitDefinition {
  * @private
  */
 function srcDstMatchInRange(rangeLen, srcPredicate, dstPredicate, measured) {
-    let [src1, src2] = firstLastMatchInRange(rangeLen, srcPredicate);
-    let [dst1, dst2] = firstLastMatchInRange(rangeLen, dstPredicate);
+    const [src1, src2] = firstLastMatchInRange(rangeLen, srcPredicate);
+    const [dst1, dst2] = firstLastMatchInRange(rangeLen, dstPredicate);
     if (dst1 === undefined || src1 === undefined) {
         return undefined;
     }

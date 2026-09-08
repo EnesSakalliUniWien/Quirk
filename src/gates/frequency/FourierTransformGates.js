@@ -45,7 +45,7 @@ const FOURIER_TRANSFORM_MATRIX_MAKER = span =>
 const INVERSE_FOURIER_TRANSFORM_MATRIX_MAKER = span =>
     FOURIER_TRANSFORM_MATRIX_MAKER(span).adjoint();
 
-let FourierTransformGates = {};
+const FourierTransformGates = {};
 
 /**
  * @param {!CircuitEvalContext} ctx

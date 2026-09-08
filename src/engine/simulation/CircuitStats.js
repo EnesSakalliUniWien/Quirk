@@ -100,12 +100,12 @@ class CircuitStats {
             if (wireIndex >= this.circuitDefinition.numWires && this.qubitDensityMatrix(colIndex, 0).hasNaN()) {
                 return Matrix.zero(2, 2).times(NaN);
             }
-            let buf = new Float32Array(8);
+            const buf = new Float32Array(8);
             buf[0] = 1;
             return new Matrix(2, 2, buf);
         }
 
-        let col = Math.min(colIndex, this._qubitDensities.length - 1);
+        const col = Math.min(colIndex, this._qubitDensities.length - 1);
         if (col < 0 || wireIndex >= this._qubitDensities[col].length) {
             return Matrix.zero(2, 2).times(NaN);
         }
@@ -118,7 +118,7 @@ class CircuitStats {
      * @returns {!object}
      */
     toReadableJson(includeOutputAmplitudes=true) {
-        let result = {
+        const result = {
             time_parameter: this.time,
             circuit: Serializer.toJson(this.circuitDefinition),
             chance_of_surviving_to_each_column: this._survivalRates,
@@ -134,12 +134,12 @@ class CircuitStats {
     }
 
     _customStatsToReadableJson() {
-        let result = [];
+        const result = [];
         for (let [key, data] of this._customStatsProcessed.entries()) {
             let [col, row] = key.split(':');
             row = parseInt(row);
             col = parseInt(col);
-            let gate = this.circuitDefinition.columns[col].gates[row];
+            const gate = this.circuitDefinition.columns[col].gates[row];
             if (gate.processedStatsToJsonFunc !== undefined) {
                 data = gate.processedStatsToJsonFunc(data);
             }
@@ -177,7 +177,7 @@ class CircuitStats {
      * @returns {undefined|*}
      */
     customStatsForSlot(col, row) {
-        let key = col+":"+row;
+        const key = col+":"+row;
         return this._customStatsProcessed.has(key) ? this._customStatsProcessed.get(key) : undefined;
     }
 
@@ -251,12 +251,12 @@ class CircuitStats {
             return densityMatrix;
         }
 
-        let buf = new Float32Array(densityMatrix.rawBuffer());
-        let n = densityMatrix.width();
+        const buf = new Float32Array(densityMatrix.rawBuffer());
+        const n = densityMatrix.width();
         for (let row = 0; row < n; row++) {
             for (let col = 0; col < n; col++) {
                 if (((row ^ col) & isMeasuredMask) !== 0) {
-                    let k = (row*n + col)*2;
+                    const k = (row*n + col)*2;
                     buf[k] = 0;
                     buf[k+1] = 0;
                 }
@@ -274,9 +274,9 @@ class CircuitStats {
      * @returns {!Array.<!Matrix>}
      */
     static scatterAndDecohereDensities(rawMatrices, numWires, qubitSpan, isMeasuredMask, hasDisplayMask) {
-        let nanMatrix = Matrix.zero(1 << qubitSpan, 1 << qubitSpan).times(NaN);
+        const nanMatrix = Matrix.zero(1 << qubitSpan, 1 << qubitSpan).times(NaN);
         let used = 0;
-        let result = [];
+        const result = [];
         for (let row = 0; row < numWires - qubitSpan + 1; row++) {
             if ((hasDisplayMask & (1 << row)) === 0) {
                 result.push(nanMatrix);
@@ -296,9 +296,9 @@ class CircuitStats {
      * @private
      */
     static _extractColumnQubitStatsFromPixelDatas(circuitDefinition, colQubitDensitiesPixelData) {
-        let qubitDensityGrid = [];
+        const qubitDensityGrid = [];
         for (let col = 0; col < colQubitDensitiesPixelData.length; col++) {
-            let dataHasStatsMask = col === circuitDefinition.columns.length ?
+            const dataHasStatsMask = col === circuitDefinition.columns.length ?
                 -1 : // All wires have an output display in the after-last column.
                 circuitDefinition.colDesiredSingleQubitStatsMask(col);
             qubitDensityGrid.push(CircuitStats.scatterAndDecohereDensities(
@@ -319,7 +319,7 @@ class CircuitStats {
      */
     static _extractColumnSurvivalRateStatsFromPixelDatas(normsPixelData) {
         let curSurvivalRate = 1;
-        let survivalRates = [];
+        const survivalRates = [];
         for (let col = 0; col < normsPixelData.length; col++) {
             if (normsPixelData[col].length > 0) {
                 curSurvivalRate = normsPixelData[col][0];
@@ -339,9 +339,9 @@ class CircuitStats {
         const numWires = circuitDefinition.numWires;
 
         // Advance state while collecting stats into textures.
-        let stateTrader = new WglTextureTrader(CircuitShaders.classicalState(0).toVec2Texture(numWires));
-        let controlTex = CircuitShaders.controlMask(Controls.NONE).toBoolTexture(numWires);
-        let {colQubitDensities, colNorms, customStats, customStatsMap} = advanceStateWithCircuit(
+        const stateTrader = new WglTextureTrader(CircuitShaders.classicalState(0).toVec2Texture(numWires));
+        const controlTex = CircuitShaders.controlMask(Controls.NONE).toBoolTexture(numWires);
+        const {colQubitDensities, colNorms, customStats, customStatsMap} = advanceStateWithCircuit(
             new CircuitEvalContext(
                 time,
                 0,
@@ -359,24 +359,24 @@ class CircuitStats {
         }
 
         // Read all texture data.
-        let pixelData = Util.objectifyArrayFunc(KetTextureUtil.mergedReadFloats)({
+        const pixelData = Util.objectifyArrayFunc(KetTextureUtil.mergedReadFloats)({
             output: stateTrader.currentTexture,
             colQubitDensities,
             colNorms,
             customStats});
 
         // -- INTERPRET --
-        let qubitDensities =
+        const qubitDensities =
             CircuitStats._extractColumnQubitStatsFromPixelDatas(circuitDefinition, pixelData.colQubitDensities);
-        let survivalRates =
+        const survivalRates =
             CircuitStats._extractColumnSurvivalRateStatsFromPixelDatas(pixelData.colNorms);
-        let outputSuperposition = KetTextureUtil.pixelsToAmplitudes(
+        const outputSuperposition = KetTextureUtil.pixelsToAmplitudes(
             pixelData.output,
-            survivalRates.length === 0 ? 1 : survivalRates[survivalRates.length - 1]);
+            survivalRates.length === 0 ? 1 : survivalRates.at(-1));
 
-        let customStatsProcessed = new Map();
-        for (let {col, row, out} of customStatsMap) {
-            let func = circuitDefinition.gateInSlot(col, row).customStatPostProcesser || (e => e);
+        const customStatsProcessed = new Map();
+        for (const {col, row, out} of customStatsMap) {
+            const func = circuitDefinition.gateInSlot(col, row).customStatPostProcesser || (e => e);
             customStatsProcessed.set(col+":"+row, func(pixelData.customStats[out], circuitDefinition, col, row));
         }
 

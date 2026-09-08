@@ -22,10 +22,10 @@ import {
 } from "../../../../src/engine/webgl/coder/ShaderCoders.js"
 import {WglTexturePool} from "../../../../src/engine/webgl/texture/WglTexturePool.js"
 
-let suite = new Suite("WglTexturePool");
+const suite = new Suite("WglTexturePool");
 
 suite.testUsingWebGL("takeBoolTex", () => {
-    let t = WglTexturePool.takeBoolTex(2);
+    const t = WglTexturePool.takeBoolTex(2);
     makePseudoShaderWithInputsAndOutputAndCode(
         [],
         Outputs.bool(),
@@ -42,7 +42,7 @@ suite.testUsingWebGL("takeBoolTex", () => {
 });
 
 suite.testUsingWebGLFloatTextures("takeVec2Tex", () => {
-    let t = WglTexturePool.takeVec2Tex(2);
+    const t = WglTexturePool.takeVec2Tex(2);
     makePseudoShaderWithInputsAndOutputAndCode(
         [],
         Outputs.vec2(),
@@ -59,7 +59,7 @@ suite.testUsingWebGLFloatTextures("takeVec2Tex", () => {
 });
 
 suite.testUsingWebGLFloatTextures("takeVec4Tex", () => {
-    let t = WglTexturePool.takeVec4Tex(2);
+    const t = WglTexturePool.takeVec4Tex(2);
     makePseudoShaderWithInputsAndOutputAndCode(
         [],
         Outputs.vec4(),

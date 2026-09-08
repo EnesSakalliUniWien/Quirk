@@ -24,7 +24,7 @@ import {WglShader} from "../../../../src/engine/webgl/shader/WglShader.js"
 import {WglTexture} from "../../../../src/engine/webgl/texture/WglTexture.js"
 
 
-let suite = new Suite("Shaders");
+const suite = new Suite("Shaders");
 
 suite.testUsingWebGLFloatTextures("color", () => {
     assertThat(Shaders.color(2, 3, -5, 7.5).readRawFloatOutputs(2)).isEqualTo(new Float32Array([
@@ -46,14 +46,14 @@ suite.testUsingWebGLFloatTextures("color", () => {
 });
 
 suite.testUsingWebGLFloatTextures("passthrough", () => {
-    let coords = new WglShader(`
+    const coords = new WglShader(`
         void main() {
             fragColor = vec4(gl_FragCoord.x-0.5, gl_FragCoord.y-0.5, 0.0, 0.0);
         }`).withArgs();
-    let input = new WglTexture(2, 4, WebGL2RenderingContext.FLOAT);
+    const input = new WglTexture(2, 4, WebGL2RenderingContext.FLOAT);
     coords.renderTo(input);
 
-    let result = new WglTexture(2, 4, WebGL2RenderingContext.FLOAT);
+    const result = new WglTexture(2, 4, WebGL2RenderingContext.FLOAT);
     Shaders.passthrough(input).renderTo(result);
     assertThat(result.readPixels()).isEqualTo(new Float32Array([
         0, 0, 0, 0,
@@ -71,7 +71,7 @@ suite.testUsingWebGLFloatTextures("passthrough", () => {
 });
 
 suite.testUsingWebGLFloatTextures("data-floats", () => {
-    let data2x2 = new Float32Array([
+    const data2x2 = new Float32Array([
         0, 0.003, 42, -5,
         Math.PI, Math.E, Math.sqrt(2), 0.1,
         1, 0.5, -1, -2,
@@ -79,19 +79,19 @@ suite.testUsingWebGLFloatTextures("data-floats", () => {
     ]);
     assertThat(Shaders.data(data2x2).readRawFloatOutputs(2)).isEqualTo(data2x2);
 
-    let data2x4 = Float32Array.from({length: 2*4*4}, (_, e) => e*e + (e - Math.sqrt(2)) / 3);
+    const data2x4 = Float32Array.from({length: 2*4*4}, (_, e) => e*e + (e - Math.sqrt(2)) / 3);
     assertThat(Shaders.data(data2x4).readRawFloatOutputs(3)).isEqualTo(data2x4);
 
     assertThrows(() => Shaders.data(data2x4).readRawFloatOutputs(2));
 });
 
 suite.testUsingWebGL("data-bytes", () => {
-    let bytes4x4 = Uint8Array.from({length: 4*4*4}, () => Math.floor(Math.random() * 256));
+    const bytes4x4 = Uint8Array.from({length: 4*4*4}, () => Math.floor(Math.random() * 256));
     assertThat(Shaders.data(bytes4x4).readRawByteOutputs(4)).isEqualTo(bytes4x4);
 });
 
 suite.testUsingWebGL("sumFold", () => {
-    let raws = makePseudoShaderWithInputsAndOutputAndCode([], Outputs.float(), `
+    const raws = makePseudoShaderWithInputsAndOutputAndCode([], Outputs.float(), `
         float outputFor(float k) {
             return k*k;
         }
@@ -110,7 +110,7 @@ suite.testUsingWebGL("sumFold", () => {
     ]));
     raws.deallocByDepositingInPool();
 
-    let coords = makePseudoShaderWithInputsAndOutputAndCode([], Outputs.vec2(), `
+    const coords = makePseudoShaderWithInputsAndOutputAndCode([], Outputs.vec2(), `
         vec2 outputFor(float k) {
             return vec2(mod(k, 2.0), floor(k/2.0));
         }
@@ -129,7 +129,7 @@ suite.testUsingWebGL("sumFold", () => {
     ]));
     coords.deallocByDepositingInPool();
 
-    let solid = makePseudoShaderWithInputsAndOutputAndCode([], Outputs.vec4(), `
+    const solid = makePseudoShaderWithInputsAndOutputAndCode([], Outputs.vec4(), `
         vec4 outputFor(float k) {
             return vec4(2.0, 3.0, 5.0, 7.0);
         }

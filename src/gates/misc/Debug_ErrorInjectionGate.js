@@ -19,7 +19,7 @@ import { DetailedError } from "../../base/DetailedError.js";
 import { GateBuilder } from "../../circuit/model/Gate.js";
 import { GatePainting } from "../../draw/gate/GatePainting.js";
 
-let ErrorInjectionGate = new GateBuilder()
+const ErrorInjectionGate = new GateBuilder()
   .setSerializedId("__error__")
   .setSymbol("ERR!")
   .setTitle("Error Injection Gate")

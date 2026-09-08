@@ -22,7 +22,7 @@ import {
   ketInputGateShaderCode,
 } from "../../engine/simulation/gpu/KetShaderUtil.js";
 
-let XorGates = {};
+const XorGates = {};
 
 const XOR_SHADER = ketShaderPermute(
   ketInputGateShaderCode("A"),

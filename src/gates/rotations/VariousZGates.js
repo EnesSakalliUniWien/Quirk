@@ -15,10 +15,9 @@
  */
 
 import {Gate} from "../../circuit/model/Gate.js"
-import {Matrix} from "../../engine/math/matrix/Matrix.js"
 import {QubitMatrix} from "../../engine/math/matrix/QubitMatrix.js"
 
-let VariousZGates = {};
+const VariousZGates = {};
 
 VariousZGates.Z3 = Gate.fromKnownMatrix(
     "Z^⅓",

@@ -20,22 +20,7 @@ import assert from "node:assert/strict";
 import { CanvasTheme, gateStyle } from "../src/config/CanvasTheme.js";
 import { Layout } from "../src/config/Layout.js";
 import { Typography } from "../src/config/Typography.js";
-import {
-  circuitMetrics,
-  test,
-  withQuirkPage,
-  waitForQuirk,
-  waitForCircuit,
-  waitForDialog,
-  currentCircuit,
-  exportedCircuit,
-  urlForCircuit,
-  TEST_TIMEOUT_MILLIS,
-  canvasLayout,
-  assertCircuitLayout,
-  circuitTopForWires,
-  waitForCanvasViewport,
-} from "./harness.js";
+import {circuitMetrics, test, withQuirkPage, waitForCircuit, currentCircuit, exportedCircuit, TEST_TIMEOUT_MILLIS, canvasLayout, assertCircuitLayout, circuitTopForWires, waitForCanvasViewport} from "./harness.js";
 
 test("paints canvas colours directly while DOM controls use stylesheet colours", async (browser) => {
   await withQuirkPage(browser, { cols: [["H"], ["Bloch"]] }, async (page) => {
@@ -77,7 +62,7 @@ test("paints canvas colours directly while DOM controls use stylesheet colours",
       CanvasTheme.surface.background
         .slice(1)
         .match(/../g)
-        .map((v) => parseInt(v, 16)),
+        .map((v) => Number.parseInt(v, 16)),
     );
     // Legacy CSS variables and element backgrounds must not control painted canvas pixels.
     await page.evaluate(() => {
@@ -118,7 +103,7 @@ test("IQP-dark chips share the canvas assignment and Register clicks survive zoo
           `rgb(${hex
             .slice(1)
             .match(/../g)
-            .map((v) => parseInt(v, 16))
+            .map((v) => Number.parseInt(v, 16))
             .join(", ")})`;
         const style = gateStyle({ serializedId: id });
         assert.deepEqual(colors, [rgb(style.fill), rgb(style.text)]);

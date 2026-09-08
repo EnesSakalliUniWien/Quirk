@@ -29,12 +29,12 @@ import {Matrix} from "../../src/engine/math/matrix/Matrix.js"
 import {MysteryGateMaker} from "../../src/gates/misc/Joke_MysteryGate.js"
 import {Util} from "../../src/base/Util.js"
 
-let suite = new Suite("Serializer");
+const suite = new Suite("Serializer");
 
-let assertRoundTrip = (t, v, s, equater=undefined) => {
+const assertRoundTrip = (t, v, s, equater=undefined) => {
     try {
-        let from = Serializer.fromJson(t, s);
-        let to = Serializer.toJson(v);
+        const from = Serializer.fromJson(t, s);
+        const to = Serializer.toJson(v);
         if (equater === undefined) {
             assertThat(from).isEqualTo(v);
             assertThat(to).isEqualTo(s);
@@ -66,51 +66,51 @@ suite.test("roundTrip_Matrix", () => {
 
 suite.test("roundTrip_Gate", () => {
     assertRoundTrip(Gate, Gates.HalfTurns.X, "X", Util.STRICT_EQUALITY);
-    for (let g of Gates.KnownToSerializer) {
+    for (const g of Gates.KnownToSerializer) {
         assertRoundTrip(Gate, g, g.serializedId, Util.STRICT_EQUALITY);
     }
 
-    let f = MysteryGateMaker();
-    let f2 = Serializer.fromJson(Gate, Serializer.toJson(f));
+    const f = MysteryGateMaker();
+    const f2 = Serializer.fromJson(Gate, Serializer.toJson(f));
     assertThat(f.name).isEqualTo(f2.name);
     assertThat(f.blurb).isEqualTo(f2.blurb);
     assertThat(f.knownMatrixAt(0)).isEqualTo(f2.knownMatrixAt(0));
     assertThat(f.serializedId).isEqualTo(f2.serializedId);
 
-    let g = Gate.fromKnownMatrix(
+    const g = Gate.fromKnownMatrix(
         "custom_id",
         Matrix.square(Complex.I, -1, 2, 3),
         "custom_name",
         "custom_blurb");
-    let v = Serializer.toJson(g);
-    let g2 = Serializer.fromJson(Gate, v);
+    const v = Serializer.toJson(g);
+    const g2 = Serializer.fromJson(Gate, v);
     assertThat(v).isEqualTo({id: "custom_id", matrix: "{{i,-1},{2,3}}"});
     assertThat(g.knownMatrixAt(0)).isEqualTo(g2.knownMatrixAt(0));
     assertThat(g.symbol).isEqualTo(g2.symbol);
 });
 
 suite.test("roundTrip_CircuitDefinitionWithCustomGate", () => {
-    let customGate = new GateBuilder().
+    const customGate = new GateBuilder().
         setSerializedId("~test").
         setSymbol('sym').
         setTitle('nam').
         setBlurb('blur').
         setKnownEffectToMatrix(Matrix.square(2, 3, 5, 7)).
         gate;
-    let circuit = new CircuitDefinition(
+    const circuit = new CircuitDefinition(
         2,
         [new GateColumn([undefined, customGate])],
         undefined,
         undefined,
         new CustomGateSet(customGate));
 
-    let json = Serializer.toJson(circuit);
+    const json = Serializer.toJson(circuit);
     assertThat(json).isEqualTo({
         cols: [[1, '~test']],
         gates: [{id: '~test', name: 'sym', matrix: '{{2,3},{5,7}}'}]
     });
 
-    let circuit2 = Serializer.fromJson(CircuitDefinition, json);
+    const circuit2 = Serializer.fromJson(CircuitDefinition, json);
     assertThat(circuit2.columns.length).isEqualTo(1);
     assertThat(circuit2.columns[0].gates.length).isEqualTo(2);
     assertThat(circuit2.columns[0].gates[0]).isEqualTo(undefined);
@@ -122,32 +122,32 @@ suite.test("roundTrip_CircuitDefinitionWithCustomGate", () => {
 });
 
 suite.test("roundTrip_CircuitDefinitionWithDependentCustomGates", () => {
-    let customGate = new GateBuilder().
+    const customGate = new GateBuilder().
         setSerializedId("~test").
         setSymbol('sym').
         setTitle('nam').
         setBlurb('blur').
         setKnownEffectToMatrix(Matrix.square(2, 3, 5, 7)).
         gate;
-    let circuitForGate = new CircuitDefinition(
+    const circuitForGate = new CircuitDefinition(
         2,
         [new GateColumn([customGate, customGate])],
         undefined,
         undefined,
         new CustomGateSet(customGate));
-    let circuitGate = setGateBuilderEffectToCircuit(new GateBuilder(), circuitForGate).
+    const circuitGate = setGateBuilderEffectToCircuit(new GateBuilder(), circuitForGate).
         setSerializedId("~wombo").
         setSymbol('combo').
         gate;
 
-    let circuit = new CircuitDefinition(
+    const circuit = new CircuitDefinition(
         3,
         [new GateColumn([customGate, circuitGate, undefined])],
         undefined,
         undefined,
         new CustomGateSet(customGate, circuitGate));
 
-    let json = Serializer.toJson(circuit);
+    const json = Serializer.toJson(circuit);
     assertThat(json).isEqualTo({
         cols: [['~test', '~wombo']], gates: [
             {id: '~test', name: 'sym', matrix: '{{2,3},{5,7}}'},
@@ -262,16 +262,16 @@ const IDS_THAT_SHOULD_BE_KNOWN = [
 ];
 
 suite.test("known_gates_backwards_compatible", () => {
-    let knownIds = new Set(Gates.KnownToSerializer.map(e => e.serializedId));
+    const knownIds = new Set(Gates.KnownToSerializer.map(e => e.serializedId));
     knownIds.add(MysteryGateMaker().serializedId);
-    for (let id of IDS_THAT_SHOULD_BE_KNOWN) {
+    for (const id of IDS_THAT_SHOULD_BE_KNOWN) {
         assertThat(knownIds.has(id)).withInfo(id).isEqualTo(true);
     }
 });
 
 suite.test("known_gates_forward_compatible", meta => {
-    let shouldBeKnownIds = new Set(IDS_THAT_SHOULD_BE_KNOWN);
-    for (let id of Gates.KnownToSerializer.map(e => e.serializedId)) {
+    const shouldBeKnownIds = new Set(IDS_THAT_SHOULD_BE_KNOWN);
+    for (const id of Gates.KnownToSerializer.map(e => e.serializedId)) {
         if (id.startsWith("__unstable__")) {
             continue;
         }
@@ -282,7 +282,7 @@ suite.test("known_gates_forward_compatible", meta => {
 });
 
 suite.test("parse_nested_circuits", () => {
-    let json = {
+    const json = {
         cols:[["H"],["•","X"],["~oc3t"],["~qoc2"]],
         gates:[
             {
@@ -299,19 +299,19 @@ suite.test("parse_nested_circuits", () => {
         ]
     };
 
-    let circuitDef = Serializer.fromJson(CircuitDefinition, json);
-    let reJson = Serializer.toJson(circuitDef);
+    const circuitDef = Serializer.fromJson(CircuitDefinition, json);
+    const reJson = Serializer.toJson(circuitDef);
     assertThat(JSON.stringify(reJson)).isEqualTo(JSON.stringify(json));
 });
 
 suite.test("known_gates_toolbox", () => {
-    let allToolboxGates = [...Gates.TopToolboxGroups, ...Gates.BottomToolboxGroups].
+    const allToolboxGates = [...Gates.TopToolboxGroups, ...Gates.BottomToolboxGroups].
         flatMap(e => e.gates).
         flatMap(e => e.gateFamily);
 
-    let knownIds = new Set(Gates.KnownToSerializer.map(e => e.serializedId));
+    const knownIds = new Set(Gates.KnownToSerializer.map(e => e.serializedId));
     knownIds.add(MysteryGateMaker().serializedId);
-    for (let gate of allToolboxGates) {
+    for (const gate of allToolboxGates) {
         assertThat(knownIds.has(gate.serializedId)).withInfo(gate).isEqualTo(true);
     }
 

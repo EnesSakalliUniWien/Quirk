@@ -16,11 +16,11 @@
 
 import {DetailedError} from "../../../base/DetailedError.js"
 import {ketArgs, ketShader} from "./KetShaderUtil.js"
-import {Matrix} from "../../math/matrix/Matrix.js"
+/** @typedef {import("../../math/matrix/Matrix.js").Matrix} Matrix */
 import {Shaders} from "../../webgl/shader/Shaders.js"
 import {Util} from "../../../base/Util.js"
 import {WglArg} from "../../webgl/shader/WglArg.js"
-import {WglConfiguredShader} from "../../webgl/shader/WglConfiguredShader.js"
+/** @typedef {import("../../webgl/shader/WglConfiguredShader.js").WglConfiguredShader} WglConfiguredShader */
 import {
     Inputs,
     Outputs,
@@ -43,7 +43,7 @@ function _applySingleQubitOperationFunc(ctx, matrix) {
     if (matrix.width() !== 2 || matrix.height() !== 2) {
         throw new DetailedError("Not a single-qubit operation.", {matrix});
     }
-    let [ar, ai, br, bi, cr, ci, dr, di] = matrix.rawBuffer();
+    const [ar, ai, br, bi, cr, ci, dr, di] = matrix.rawBuffer();
     ctx.applyOperation(CUSTOM_SINGLE_QUBIT_OPERATION_SHADER.withArgs(
         ...ketArgs(ctx),
         WglArg.vec2("a", ar, ai),
@@ -110,7 +110,7 @@ GateShaders.applyMatrixOperation = (ctx, matrix) => {
         _applySingleQubitOperationFunc(ctx, matrix);
         return;
     }
-    let sizePower = Math.round(Math.log2(matrix.width()));
+    const sizePower = Math.round(Math.log2(matrix.width()));
 
     // Small matrix (fits in uniforms).
     if (sizePower <= 3) {
@@ -122,7 +122,7 @@ GateShaders.applyMatrixOperation = (ctx, matrix) => {
 
     // Big matrix (requires a texture).
     if (sizePower <= 4) {
-        let tex = Shaders.data(currentShaderCoder().vec2.dataToPixels(matrix.rawBuffer())).toVec2Texture(sizePower * 2);
+        const tex = Shaders.data(currentShaderCoder().vec2.dataToPixels(matrix.rawBuffer())).toVec2Texture(sizePower * 2);
         try {
             ctx.applyOperation(matrix_operation_shaders[sizePower].withArgs(
                 tex,
@@ -142,7 +142,7 @@ GateShaders.applyMatrixOperation = (ctx, matrix) => {
  * @returns {!WglConfiguredShader}
  */
 GateShaders.cycleAllBits = (inputTexture, shiftAmount) => {
-    let size = currentShaderCoder().vec2.arrayPowerSizeOfTexture(inputTexture);
+    const size = currentShaderCoder().vec2.arrayPowerSizeOfTexture(inputTexture);
     return CYCLE_ALL_SHADER_VEC2(
         inputTexture,
         WglArg.float("shiftAmount", 1 << Util.properMod(-shiftAmount, size)));
@@ -166,7 +166,7 @@ const CYCLE_ALL_SHADER_VEC2 = makePseudoShaderWithInputsAndOutputAndCode(
  * @returns {!WglConfiguredShader}
  */
 GateShaders.cycleAllBitsFloat = (inputTexture, shiftAmount) => {
-    let size = currentShaderCoder().float.arrayPowerSizeOfTexture(inputTexture);
+    const size = currentShaderCoder().float.arrayPowerSizeOfTexture(inputTexture);
     return CYCLE_ALL_SHADER_FLOAT(
         inputTexture,
         WglArg.float("shiftAmount", 1 << Util.properMod(-shiftAmount, size)));

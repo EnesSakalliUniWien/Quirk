@@ -79,7 +79,7 @@ class Controls {
             return "No Controls";
         }
 
-        let range = Seq.naturals().
+        const range = Seq.naturals().
             takeWhile(i => (1<<i) <= (this.inclusionMask | this.parityMask)).
             toArray();
         let result = "Controls: ...__" + range.

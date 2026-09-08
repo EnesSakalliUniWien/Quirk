@@ -49,8 +49,8 @@ class ComplexFormula {
    * @returns {!Map.<!string, *>}
    */
   static tokenMap({ angleUnit = ComplexFormula.DEGREES, variables = {} } = {}) {
-    let map = new Map(ComplexFormula._cachedTokenMap(angleUnit).entries());
-    for (let name of Object.keys(variables)) {
+    const map = new Map(ComplexFormula._cachedTokenMap(angleUnit).entries());
+    for (const name of Object.keys(variables)) {
       map.set(name, variables[name]);
     }
     return map;
@@ -72,7 +72,7 @@ class ComplexFormula {
       } else {
         throw new DetailedError("Unrecognized angle unit.", { angleUnit });
       }
-      for (let [k, v] of ComplexFormula._sharedTokens().entries()) {
+      for (const [k, v] of ComplexFormula._sharedTokens().entries()) {
         map.set(k, v);
       }
       ComplexFormula._CACHE.set(angleUnit, map);
@@ -112,14 +112,14 @@ class ComplexFormula {
    * @private
    */
   static _sharedTokens() {
-    let unary = ComplexFormula._unary;
-    let map = new Map();
+    const unary = ComplexFormula._unary;
+    const map = new Map();
     map.set("i", Complex.I);
     map.set("e", Complex.from(Math.E));
     map.set("pi", Complex.from(Math.PI));
     map.set("(", "(");
     map.set(")", ")");
-    for (let { character, value } of UNICODE_FRACTIONS) {
+    for (const { character, value } of UNICODE_FRACTIONS) {
       map.set(character, value);
     }
     map.set(
@@ -166,9 +166,9 @@ class ComplexFormula {
    * @private
    */
   static _degreeTokens() {
-    let unary = ComplexFormula._unary;
-    let realOnly = ComplexFormula._realOnly;
-    let map = new Map();
+    const unary = ComplexFormula._unary;
+    const realOnly = ComplexFormula._realOnly;
+    const map = new Map();
     map.set(
       "cos",
       unary((e) => new Complex(Math.PI / 180, 0).times(e).cos()),
@@ -196,9 +196,9 @@ class ComplexFormula {
    * @private
    */
   static _radianTokens() {
-    let unary = ComplexFormula._unary;
-    let realOnly = ComplexFormula._realOnly;
-    let map = new Map();
+    const unary = ComplexFormula._unary;
+    const realOnly = ComplexFormula._realOnly;
+    const map = new Map();
     map.set(
       "cos",
       unary((e) => Complex.from(e).cos()),

@@ -20,7 +20,7 @@ import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js
 import {CircuitStats} from "../../../src/engine/simulation/CircuitStats.js";
 import {Matrix} from "../../../src/engine/math/matrix/Matrix.js";
 
-let suite = new Suite("Detector");
+const suite = new Suite("Detector");
 
 const circuit = (diagram, ...extras) => CircuitDefinition.fromTextDiagram(new Map([
     ...extras,
@@ -33,7 +33,7 @@ const circuit = (diagram, ...extras) => CircuitDefinition.fromTextDiagram(new Ma
 ]), diagram);
 
 suite.testUsingWebGL("guaranteed-clicks", () => {
-    let c = CircuitStats.fromCircuitAtTime(circuit(`
+    const c = CircuitStats.fromCircuitAtTime(circuit(`
         -X-D-
         ---D-
     `), 0);
@@ -42,23 +42,23 @@ suite.testUsingWebGL("guaranteed-clicks", () => {
 });
 
 suite.testUsingWebGL("collapse-clicks", () => {
-    let c = CircuitStats.fromCircuitAtTime(circuit(`
+    const c = CircuitStats.fromCircuitAtTime(circuit(`
         -H-D-
         -H-D-
     `), 0);
-    let a = c.customStatsForSlot(3, 0);
-    let b = c.customStatsForSlot(3, 1);
+    const a = c.customStatsForSlot(3, 0);
+    const b = c.customStatsForSlot(3, 1);
     assertThat(c.qubitDensityMatrix(Infinity, 0).cell(0, 0)).isEqualTo(a ? 0 : 1);
     assertThat(c.qubitDensityMatrix(Infinity, 1).cell(0, 0)).isEqualTo(b ? 0 : 1);
 });
 
 suite.testUsingWebGL("guaranteed-agreement", () => {
-    let c = CircuitStats.fromCircuitAtTime(circuit(`
+    const c = CircuitStats.fromCircuitAtTime(circuit(`
         -H-●-D-
         ---X-D-
     `), 0);
-    let a = c.customStatsForSlot(5, 0);
-    let b = c.customStatsForSlot(5, 1);
+    const a = c.customStatsForSlot(5, 0);
+    const b = c.customStatsForSlot(5, 1);
     assertThat(a).isEqualTo(b);
     // And it collapsed the state.
     assertThat(c.qubitDensityMatrix(Infinity, 0).cell(0, 0)).isEqualTo(a ? 0 : 1);
@@ -66,7 +66,7 @@ suite.testUsingWebGL("guaranteed-agreement", () => {
 });
 
 suite.testUsingWebGL("guaranteed-control-clicks", () => {
-    let c = CircuitStats.fromCircuitAtTime(circuit(`
+    const c = CircuitStats.fromCircuitAtTime(circuit(`
         ---●---
         -X-D-D-
         -X---●-
@@ -77,15 +77,15 @@ suite.testUsingWebGL("guaranteed-control-clicks", () => {
 
 suite.testUsingWebGL("collapsed-control-clicks", () => {
     for (let i = 0; i < 10; i++) {
-        let c = CircuitStats.fromCircuitAtTime(circuit(`
+        const c = CircuitStats.fromCircuitAtTime(circuit(`
         -H-●-
         -H-D-
     `), 0);
-        let a = c.customStatsForSlot(3, 1);
+        const a = c.customStatsForSlot(3, 1);
         if (a) {
             assertThat(c.finalState).isApproximatelyEqualTo(Matrix.col(0, 0, 0, 1));
         } else {
-            let s = Math.sqrt(1 / 3);
+            const s = Math.sqrt(1 / 3);
             assertThat(c.finalState).isApproximatelyEqualTo(Matrix.col(s, s, s, 0));
         }
     }
@@ -93,18 +93,18 @@ suite.testUsingWebGL("collapsed-control-clicks", () => {
 
 suite.testUsingWebGL("renormalizes", () => {
     // Doesn't decrease survival probability.
-    let c = circuit(
+    const c = circuit(
         '-]-D-]-D-]-D-]-',
         [']', Gates.Detectors.XDetector],
         ['0', Gates.PostSelectionGates.PostSelectOff]);
-    let stats = CircuitStats.fromCircuitAtTime(c, 0);
+    const stats = CircuitStats.fromCircuitAtTime(c, 0);
     assertThat(stats.survivalRate(Infinity)).isApproximatelyEqualTo(1, 0.001);
 
     // Renormalization doesn't increase survival probability.
-    let c2 = circuit(
+    const c2 = circuit(
         '-]-0-D-]-D-]-D-]-',
         [']', Gates.Detectors.XDetector],
         ['0', Gates.PostSelectionGates.PostSelectOff]);
-    let stats2 = CircuitStats.fromCircuitAtTime(c2, 0);
+    const stats2 = CircuitStats.fromCircuitAtTime(c2, 0);
     assertThat(stats2.survivalRate(Infinity)).isApproximatelyEqualTo(0.5, 0.001);
 });

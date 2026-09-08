@@ -28,14 +28,14 @@ import {offsetShader} from '../arithmetic/IncrementGates.js';
 import {makeCycleBitsPermutation, cycleBitsShader} from './CycleBitsGates.js';
 import {QubitMatrix} from '../../engine/math/matrix/QubitMatrix.js';
 
-let CountingGates = {};
+const CountingGates = {};
 
 const staircaseCurve = steps => {
     steps = Math.min(128, steps);
-    let curve = [];
+    const curve = [];
     for (let i = 0; i < steps; i++) {
-        let x = i/steps;
-        let y = i/(steps-1);
+        const x = i/steps;
+        const y = i/(steps-1);
         if (steps < 128) {
             curve.push(new Point(x, y));
         }
@@ -44,10 +44,10 @@ const staircaseCurve = steps => {
     return curve;
 };
 
-let STAIRCASE_DRAWER = (timeOffset, steps, flip=false) => args => {
+const STAIRCASE_DRAWER = (timeOffset, steps, flip=false) => args => {
     GatePainting.MAKE_HIGHLIGHTED_DRAWER(CanvasTheme.gate.time)(args);
 
-    let t = (args.stats.time + timeOffset) % 1;
+    const t = (args.stats.time + timeOffset) % 1;
     let yOn = args.rect.y + 3;
     let yNeutral = args.rect.bottom();
     let yOff = args.rect.bottom() - 3;
@@ -55,12 +55,12 @@ let STAIRCASE_DRAWER = (timeOffset, steps, flip=false) => args => {
         [yOn, yOff] = [yOff, yOn];
         yNeutral = args.rect.y;
     }
-    let xi = args.rect.x;
-    let xf = args.rect.right();
+    const xi = args.rect.x;
+    const xf = args.rect.right();
 
-    let xt = p => Math.min(Math.max(xi + (xf - xi)*p, xi), xf);
-    let yt = p => yOff + (yOn - yOff)*p;
-    let curve = [];
+    const xt = p => Math.min(Math.max(xi + (xf - xi)*p, xi), xf);
+    const yt = p => yOff + (yOn - yOff)*p;
+    const curve = [];
     curve.push(new Point(xi, yNeutral));
     curve.push(...staircaseCurve(steps).map(p => new Point(xt(p.x - t), yt(p.y))));
     curve.push(...staircaseCurve(steps).map(p => new Point(xt(p.x + 1 - t), yt(p.y))));
@@ -96,7 +96,7 @@ let STAIRCASE_DRAWER = (timeOffset, steps, flip=false) => args => {
  * @returns {!int}
  */
 function offsetPermutation(time, factor, span, state) {
-    let offset = Math.floor(time * (1 << span)) * factor;
+    const offset = Math.floor(time * (1 << span)) * factor;
     return (state + offset) & ((1 << span) - 1);
 }
 
@@ -108,7 +108,7 @@ function offsetPermutation(time, factor, span, state) {
  * @returns {!int}
  */
 function bitOffsetPermutation(time, factor, span, state) {
-    let offset = Math.floor(time*span) * factor;
+    const offset = Math.floor(time*span) * factor;
     return makeCycleBitsPermutation(offset, span)(state)
 }
 

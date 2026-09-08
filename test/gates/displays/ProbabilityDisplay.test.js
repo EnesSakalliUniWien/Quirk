@@ -21,10 +21,10 @@ import {CircuitShaders} from "../../../src/engine/simulation/gpu/CircuitShaders.
 import {Controls} from "../../../src/circuit/model/Controls.js"
 import {Shaders} from "../../../src/engine/webgl/shader/Shaders.js"
 
-let suite = new Suite("ProbabilityDisplay");
+const suite = new Suite("ProbabilityDisplay");
 
 suite.testUsingWebGL("amplitudesToProbabilities", () => {
-    let inp = Shaders.vec2Data(new Float32Array([
+    const inp = Shaders.vec2Data(new Float32Array([
         2, 3,
         4, 5,
         6, 7,
@@ -35,7 +35,7 @@ suite.testUsingWebGL("amplitudesToProbabilities", () => {
         1/16, 0
     ])).toVec2Texture(3);
 
-    let con = CircuitShaders.controlMask(Controls.NONE).toBoolTexture(3);
+    const con = CircuitShaders.controlMask(Controls.NONE).toBoolTexture(3);
     assertThat(amplitudesToProbabilities(inp, con).readVecFloatOutputs(3)).isApproximatelyEqualTo(new Float32Array([
         4+9,
         16+25,

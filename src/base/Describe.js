@@ -50,7 +50,7 @@ function try_describe_collection(value, recursionLimit) {
   return undefined;
 }
 function describe_fallback(value, recursionLimit) {
-  let defaultString = String(value);
+  const defaultString = String(value);
   if (defaultString !== BAD_TO_STRING_RESULT) {
     return defaultString;
   }
@@ -78,14 +78,14 @@ function describe(value, recursionLimit = DEFAULT_RECURSION_LIMIT) {
  * @returns {!string}
  */
 function describe_Map(map, limit) {
-  let entries = [];
-  for (let [k, v] of map.entries()) {
+  const entries = [];
+  for (const [k, v] of map.entries()) {
     if (entries.length > COLLECTION_CUTOFF) {
       entries.push("[...]");
       break;
     }
-    let keyDesc = describe(k, limit - 1);
-    let valDesc = describe(v, limit - 1);
+    const keyDesc = describe(k, limit - 1);
+    const valDesc = describe(v, limit - 1);
     entries.push(`${keyDesc}: ${valDesc}`);
   }
   return `Map{${entries.join(", ")}}`;
@@ -97,8 +97,8 @@ function describe_Map(map, limit) {
  * @returns {!string}
  */
 function describe_Set(set, limit) {
-  let entries = [];
-  for (let e of set) {
+  const entries = [];
+  for (const e of set) {
     if (entries.length > COLLECTION_CUTOFF) {
       entries.push("[...]");
       break;
@@ -114,15 +114,15 @@ function describe_Set(set, limit) {
  * @returns {!string}
  */
 function describe_Iterable(seq, limit) {
-  let entries = [];
-  for (let e of seq) {
+  const entries = [];
+  for (const e of seq) {
     if (entries.length > COLLECTION_CUTOFF) {
       entries.push("[...]");
       break;
     }
     entries.push(describe(e, limit - 1));
   }
-  let prefix = Array.isArray(seq) ? "" : seq.constructor.name;
+  const prefix = Array.isArray(seq) ? "" : seq.constructor.name;
   return `${prefix}[${entries.join(", ")}]`;
 }
 
@@ -132,23 +132,23 @@ function describe_Iterable(seq, limit) {
  * @returns {!string}
  */
 function describe_Object(value, limit) {
-  let entries = [];
-  for (let k in value) {
-    if (!value.hasOwnProperty(k)) {
+  const entries = [];
+  for (const k in value) {
+    if (!Object.hasOwn(value, k)) {
       continue;
     }
     if (entries.length > COLLECTION_CUTOFF) {
       entries.push("[...]");
       break;
     }
-    let v = value[k];
-    let keyDesc = describe(k, limit - 1);
-    let valDesc = describe(v, limit - 1);
+    const v = value[k];
+    const keyDesc = describe(k, limit - 1);
+    const valDesc = describe(v, limit - 1);
     entries.push(`${keyDesc}: ${valDesc}`);
   }
 
-  let typeName = value.constructor.name;
-  let prefix = typeName === {}.constructor.name ? "" : `(Type: ${typeName})`;
+  const typeName = value.constructor.name;
+  const prefix = typeName === {}.constructor.name ? "" : `(Type: ${typeName})`;
   return `${prefix}{${entries.join(", ")}}`;
 }
 

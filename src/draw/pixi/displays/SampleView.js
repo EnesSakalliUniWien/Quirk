@@ -31,12 +31,12 @@ import {Util} from '../../../base/Util.js';
  * @returns {!{i: !number, p: !number}}
  */
 function sampleFromDistribution(args) {
-    let probabilities = args.customStats;
-    let buf = probabilities.rawBuffer();
+    const probabilities = args.customStats;
+    const buf = probabilities.rawBuffer();
     let r = args.painter.rng.random();
-    let n = probabilities.height();
+    const n = probabilities.height();
     for (let i = 0; ; i++) {
-        let p = buf[i*2];
+        const p = buf[i*2];
         r -= p;
         if (i === n-1 || r < 0.00001) {
             return {i, p};
@@ -48,13 +48,13 @@ function sampleFromDistribution(args) {
  * @param {!GateDrawParams} args
  */
 function _paintSampleDisplay_result(args) {
-    let {painter, rect: {x, y, w, h}} = args;
-    let d = Layout.WIRE_SPACING;
-    let startY = y + h/2 - d*args.gate.height/2;
+    const {painter, rect: {x, y, w, h}} = args;
+    const d = Layout.WIRE_SPACING;
+    const startY = y + h/2 - d*args.gate.height/2;
 
-    let {i: sample, p} = sampleFromDistribution(args);
+    const {i: sample, p} = sampleFromDistribution(args);
     for (let i = 0; i < args.gate.height; i++) {
-        let bit = ((sample >> i) & 1) !== 0;
+        const bit = ((sample >> i) & 1) !== 0;
         if (bit) {
             rectangle(painter, new Rect(x, startY+d*i+5, w, d-10), {fill: CanvasTheme.operation.fill});
         }
@@ -70,8 +70,8 @@ function _paintSampleDisplay_result(args) {
         });
     }
 
-    for (let pt of args.focusPoints) {
-        let k = Math.floor((pt.y - y) * 2 / d) /2;
+    for (const pt of args.focusPoints) {
+        const k = Math.floor((pt.y - y) * 2 / d) /2;
         if (args.rect.containsPoint(pt)) {
             MathPainter.paintDeferredValueTooltip(
                 painter,
@@ -88,8 +88,8 @@ function _paintSampleDisplay_result(args) {
 function paintSampleDisplay(args) {
     rectangle(args.painter, args.rect, {fill: CanvasTheme.operation.background});
 
-    let probabilities = args.customStats;
-    let noData = probabilities === undefined || probabilities.hasNaN();
+    const probabilities = args.customStats;
+    const noData = probabilities === undefined || probabilities.hasNaN();
     if (noData) {
         fitParagraph(args.painter, "NaN", args.rect, {
             alignment: new Point(0.5, 0.5),

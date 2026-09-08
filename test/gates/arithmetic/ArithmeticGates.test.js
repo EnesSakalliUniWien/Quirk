@@ -27,7 +27,7 @@ import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js
 import {GateColumn} from "../../../src/circuit/model/GateColumn.js"
 import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
 
-let suite = new Suite("ArithmeticGates");
+const suite = new Suite("ArithmeticGates");
 
 suite.testUsingWebGL('plus_A', () => {
     assertThatCircuitUpdateActsLikeMatrix(
@@ -37,8 +37,8 @@ suite.testUsingWebGL('plus_A', () => {
                 ArithmeticGates.PlusAFamily.ofSize(2), undefined, InputGates.InputAFamily.ofSize(2), undefined])]),
             false),
         Matrix.generateTransition(16, i => {
-            let a = (i >> 2) & 3;
-            let t = i & 3;
+            const a = (i >> 2) & 3;
+            const t = i & 3;
             return (a<<2) | (t+a)&3;
         }));
 });
@@ -51,8 +51,8 @@ suite.testUsingWebGL('minus_A', () => {
                 InputGates.InputAFamily.ofSize(2), undefined, ArithmeticGates.MinusAFamily.ofSize(2), undefined])]),
             false),
         Matrix.generateTransition(16, i => {
-            let a = i & 3;
-            let t = (i >> 2) & 3;
+            const a = i & 3;
+            const t = (i >> 2) & 3;
             return a | (((t-a)&3)<<2);
         }));
 });

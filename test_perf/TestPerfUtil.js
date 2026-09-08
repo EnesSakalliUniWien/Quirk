@@ -14,20 +14,6 @@
  * limitations under the License.
  */
 
-function nanos(nanoseconds) {
-    return {
-        duration_nanos: nanoseconds,
-        description: nanoseconds + " ns"
-    };
-}
-
-function micros(microseconds) {
-    return {
-        duration_nanos: microseconds * 1.0e3,
-        description: microseconds + " us"
-    };
-}
-
 function millis(milliseconds) {
     return {
         duration_nanos: milliseconds * 1.0e6,
@@ -35,7 +21,7 @@ function millis(milliseconds) {
     };
 }
 
-let _knownPerfTests = [];
+const _knownPerfTests = [];
 function getKnownPerfTests() {
     return _knownPerfTests;
 }
@@ -49,13 +35,13 @@ function getKnownPerfTests() {
  */
 function perfGoal(name, targetDuration, method, arg=undefined, cleanup=undefined) {
     _knownPerfTests.push({name, method: () => {
-        let dt = _measureDuration(method, arg, targetDuration.duration_nanos);
+        const dt = _measureDuration(method, arg, targetDuration.duration_nanos);
         if (cleanup !== undefined) {
             cleanup(arg);
         }
-        let p = dt.duration_nanos / targetDuration.duration_nanos;
-        let pass = dt.duration_nanos <= targetDuration.duration_nanos;
-        let info = `${_proportionDesc(p)} of goal [${_pad(targetDuration.description, 6)}] for ${name}`;
+        const p = dt.duration_nanos / targetDuration.duration_nanos;
+        const pass = dt.duration_nanos <= targetDuration.duration_nanos;
+        const info = `${_proportionDesc(p)} of goal [${_pad(targetDuration.description, 6)}] for ${name}`;
         if (pass) {
             console.log(info);
         } else {
@@ -66,7 +52,7 @@ function perfGoal(name, targetDuration, method, arg=undefined, cleanup=undefined
 }
 
 function _pad(obj, length) {
-    let v = `${obj}`;
+    const v = `${obj}`;
     return ' '.repeat(Math.max(0, length - v.length)) + v;
 }
 
@@ -78,24 +64,24 @@ function _proportionBar(proportion, length=20) {
     if (proportion > 1) {
         return '!'.repeat(length);
     }
-    let n = Math.round(proportion * length);
+    const n = Math.round(proportion * length);
     return '#'.repeat(n) + ' '.repeat(length - n);
 }
 
 function _measureDuration(method, arg, expected_nanos_hint) {
-    let ms = 1.0e6;
-    let repeats = expected_nanos_hint < 5 * ms ? 100 :
+    const ms = 1.0e6;
+    const repeats = expected_nanos_hint < 5 * ms ? 100 :
         expected_nanos_hint < 30 * ms ? 50 :
         10;
     // Dry run to get any one-time initialization done.
     method(arg);
 
-    let t0 = window.performance.now();
+    const t0 = window.performance.now();
     for (let i = 0; i < repeats; i++) {
         method(arg);
     }
-    let t1 = window.performance.now();
+    const t1 = window.performance.now();
     return {duration_nanos: (t1 - t0) / repeats * ms};
 }
 
-export {getKnownPerfTests, perfGoal, nanos, micros, millis}
+export {getKnownPerfTests, perfGoal, millis}

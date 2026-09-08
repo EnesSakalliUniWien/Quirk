@@ -33,10 +33,10 @@ import {Outputs, makePseudoShaderWithInputsAndOutputAndCode} from "../../../src/
 import {Util} from "../../../src/base/Util.js"
 import {WglArg} from "../../../src/engine/webgl/shader/WglArg.js"
 
-let suite = new Suite("ModularMultiplicationGates");
+const suite = new Suite("ModularMultiplicationGates");
 
 suite.testUsingWebGL('MODULAR_INVERSE_SHADER_CODE', () => {
-    let testShader = makePseudoShaderWithInputsAndOutputAndCode(
+    const testShader = makePseudoShaderWithInputsAndOutputAndCode(
         [],
         Outputs.float(),
         MODULAR_INVERSE_SHADER_CODE + `
@@ -45,10 +45,10 @@ suite.testUsingWebGL('MODULAR_INVERSE_SHADER_CODE', () => {
             return modular_multiplicative_inverse(k, modulus);
         }`);
 
-    let assertMatches = (modulus, rangePower) => {
+    const assertMatches = (modulus, rangePower) => {
         assertThat(testShader(WglArg.float('modulus', modulus)).readVecFloatOutputs(rangePower)).
         isEqualTo(Float32Array.from({length: 1<<rangePower}, (_, e) => {
-            let inv = Util.modular_multiplicative_inverse(e, modulus);
+            const inv = Util.modular_multiplicative_inverse(e, modulus);
             return inv === undefined ? -1 : inv;
         }));
     };
@@ -61,7 +61,7 @@ suite.testUsingWebGL('MODULAR_INVERSE_SHADER_CODE', () => {
 });
 
 suite.testUsingWebGL('MODULAR_INVERSE_SHADER_CODE_big_mul_mod', () => {
-    let testShader = makePseudoShaderWithInputsAndOutputAndCode(
+    const testShader = makePseudoShaderWithInputsAndOutputAndCode(
         [],
         Outputs.float(),
         MODULAR_INVERSE_SHADER_CODE + `
@@ -75,7 +75,7 @@ suite.testUsingWebGL('MODULAR_INVERSE_SHADER_CODE_big_mul_mod', () => {
 });
 
 suite.testUsingWebGL('POW_MOD_SHADER_CODE', () => {
-    let testShader = makePseudoShaderWithInputsAndOutputAndCode(
+    const testShader = makePseudoShaderWithInputsAndOutputAndCode(
         [],
         Outputs.float(),
         POW_MOD_SHADER_CODE + `
@@ -86,12 +86,12 @@ suite.testUsingWebGL('POW_MOD_SHADER_CODE', () => {
             return pow_mod(base, k * factor, modulus);
         }`);
 
-    let assertMatches = (base, modulus, rangePower, factor=1) => {
+    const assertMatches = (base, modulus, rangePower, factor=1) => {
         assertThat(testShader(WglArg.float('base', base),
                               WglArg.float('modulus', modulus),
                               WglArg.float('factor', factor)).readVecFloatOutputs(rangePower)).
             isEqualTo(Float32Array.from({length: 1<<rangePower}, (_, e) => {
-                let p = modularPowerMultiply(1, base, e * factor, modulus);
+                const p = modularPowerMultiply(1, base, e * factor, modulus);
                 return p === undefined ? -1 : p;
             }));
     };
@@ -112,7 +112,7 @@ suite.test("modularPowerMultiply", () => {
 });
 
 suite.test("modularMultiply_pow2", () => {
-    let checkThat = (...args) => assertThat(modularMultiply(...args));
+    const checkThat = (...args) => assertThat(modularMultiply(...args));
 
     checkThat(1, 0, 1<<3).isEqualTo(1);
 
@@ -150,7 +150,7 @@ suite.test("modularMultiply_pow2", () => {
 });
 
 suite.test("modularUnmultiply_pow2", () => {
-    let checkThat = (...args) => assertThat(modularUnmultiply(...args));
+    const checkThat = (...args) => assertThat(modularUnmultiply(...args));
 
     checkThat(1, 0, 1<<3).isEqualTo(1);
 
@@ -186,11 +186,11 @@ suite.test("modularUnmultiply_pow2", () => {
 
 suite.test("modularMultiply_vs_Unmultiply_fuzz", () => {
     for (let repeat = 0; repeat < 100; repeat++) {
-        let mod = Math.floor(Math.random() * (1<<12)) + 1;
-        let val = Math.floor(Math.random() * mod);
-        let factor = Math.floor(Math.random() * mod);
-        let image = modularMultiply(val, factor, mod);
-        let actual = modularUnmultiply(image, factor, mod);
+        const mod = Math.floor(Math.random() * (1<<12)) + 1;
+        const val = Math.floor(Math.random() * mod);
+        const factor = Math.floor(Math.random() * mod);
+        const image = modularMultiply(val, factor, mod);
+        const actual = modularUnmultiply(image, factor, mod);
         assertThat(actual).withInfo({mod, val, factor, image}).isEqualTo(val);
     }
 });
@@ -220,7 +220,7 @@ suite.testUsingWebGL('times_a_mod_b_inverse_gate', () => {
 });
 
 suite.testUsingWebGL('TimesBToTheAModRFamily', () => {
-    let circuit = new CircuitDefinition(8, [
+    const circuit = new CircuitDefinition(8, [
         new GateColumn([
             undefined,
             Gates.HalfTurns.X,
@@ -242,12 +242,12 @@ suite.testUsingWebGL('TimesBToTheAModRFamily', () => {
             undefined,
         ]),
     ]);
-    let stats = CircuitStats.fromCircuitAtTime(circuit, 0);
+    const stats = CircuitStats.fromCircuitAtTime(circuit, 0);
     assertThat([...stats.finalState.rawBuffer()].indexOf(1) / 2).isEqualTo(126);
 });
 
 suite.testUsingWebGL('TimesInverseBToTheAModRFamily', () => {
-    let circuit = new CircuitDefinition(8, [
+    const circuit = new CircuitDefinition(8, [
         new GateColumn([
             Gates.HalfTurns.X,
             Gates.HalfTurns.X,
@@ -269,7 +269,7 @@ suite.testUsingWebGL('TimesInverseBToTheAModRFamily', () => {
             undefined,
         ]),
     ]);
-    let stats = CircuitStats.fromCircuitAtTime(circuit, 0);
+    const stats = CircuitStats.fromCircuitAtTime(circuit, 0);
     assertThat([...stats.finalState.rawBuffer()].indexOf(1) / 2).isEqualTo(245);
 });
 

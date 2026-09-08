@@ -59,8 +59,8 @@ class DisplayedInspector {
     // The circuit band sits vertically centered in the area, and pins to the top margin when
     // the area is too short to center within. The band height ignores the top, so this
     // converges in one pass.
-    let bandHeight = this.displayedCircuit.desiredHeight();
-    let top = Math.max(
+    const bandHeight = this.displayedCircuit.desiredHeight();
+    const top = Math.max(
       Layout.CIRCUIT_TOP_MARGIN,
       Math.floor((drawArea.h - bandHeight) / 2),
     );
@@ -111,8 +111,8 @@ class DisplayedInspector {
       return;
     }
 
-    let gate = this.hand.heldGate;
-    let pos = this.hand.pos.minus(this.hand.holdOffset);
+    const gate = this.hand.heldGate;
+    const pos = this.hand.pos.minus(this.hand.holdOffset);
     let rect = new Rect(
       Math.round(pos.x - 0.5) + 0.5,
       Math.round(pos.y - 0.5) + 0.5,
@@ -122,7 +122,7 @@ class DisplayedInspector {
     if (gate.serializedId === "Bloch") {
       rect = CircuitGeometry.blochDisplayRect(rect);
     }
-    let drawer = gate.customDrawer || GatePainting.DEFAULT_DRAWER;
+    const drawer = gate.customDrawer || GatePainting.DEFAULT_DRAWER;
     drawer(GateDrawParams.held(painter, this.hand, rect, gate, stats));
   }
 
@@ -133,13 +133,13 @@ class DisplayedInspector {
     if (this.hand.pos === undefined) {
       return undefined;
     }
-    let butBos = this.displayedCircuit.findGateWithButtonContaining(
+    const butBos = this.displayedCircuit.findGateWithButtonContaining(
       this.hand.pos,
     );
     if (butBos !== undefined) {
       return `gate-button-${butBos.col}:${butBos.row}`;
     }
-    let initPos = this.displayedCircuit.findWireWithInitialStateAreaContaining(
+    const initPos = this.displayedCircuit.findWireWithInitialStateAreaContaining(
       this.hand.pos,
     );
     if (initPos !== undefined) {
@@ -152,7 +152,7 @@ class DisplayedInspector {
    * @returns {undefined|!DisplayedInspector}
    */
   tryClick() {
-    let newDisplayedCircuit = this.displayedCircuit.tryClick(this.hand);
+    const newDisplayedCircuit = this.displayedCircuit.tryClick(this.hand);
     return newDisplayedCircuit === undefined
       ? undefined
       : this.withDisplayedCircuit(newDisplayedCircuit);
@@ -174,7 +174,7 @@ class DisplayedInspector {
     let hand = this.hand;
     let circuit = this.displayedCircuit;
 
-    let obj = circuit.tryGrab(hand, duplicate, wholeCol, ignoreResizeTabs, alt);
+    const obj = circuit.tryGrab(hand, duplicate, wholeCol, ignoreResizeTabs, alt);
     hand = obj.newHand;
     circuit = obj.newCircuit;
 
@@ -234,10 +234,10 @@ class DisplayedInspector {
       return this;
     }
 
-    let hand = this.hand;
-    let circuitWidget = this.displayedCircuit;
-    let previewCircuit = circuitWidget.previewDrop(hand);
-    let previewHand = previewCircuit === circuitWidget ? hand : hand.withDrop();
+    const hand = this.hand;
+    const circuitWidget = this.displayedCircuit;
+    const previewCircuit = circuitWidget.previewDrop(hand);
+    const previewHand = previewCircuit === circuitWidget ? hand : hand.withDrop();
     return this.withHand(previewHand).withDisplayedCircuit(previewCircuit);
   }
 

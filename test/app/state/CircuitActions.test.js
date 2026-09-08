@@ -19,22 +19,22 @@ import {Revision} from "../../../src/base/Revision.js"
 import {CircuitActions} from "../../../src/app/state/CircuitActions.js"
 import {OverlayState} from "../../../src/app/state/OverlayState.js"
 
-let suite = new Suite("CircuitActions");
+const suite = new Suite("CircuitActions");
 
 const EMPTY_STATE = '{"cols":[]}';
 const CIRCUIT_STATE = '{"cols":[["H"]]}';
 const CUSTOM_GATE_STATE = '{"cols":[["H"]],"gates":[{"id":"~test"}]}';
 
 function closedOverlays() {
-    let overlays = new OverlayState();
+    const overlays = new OverlayState();
     overlays.close();
     return overlays;
 }
 
 suite.test("availability follows revision history and overlays", () => {
-    let revision = Revision.startingAt(EMPTY_STATE);
-    let overlays = closedOverlays();
-    let actions = new CircuitActions(revision, overlays);
+    const revision = Revision.startingAt(EMPTY_STATE);
+    const overlays = closedOverlays();
+    const actions = new CircuitActions(revision, overlays);
 
     assertThat(actions.availability().snapshot()).isEqualTo([{
         canUndo: false,
@@ -61,9 +61,9 @@ suite.test("availability follows revision history and overlays", () => {
 });
 
 suite.test("undo and redo move through the revision", () => {
-    let revision = Revision.startingAt(EMPTY_STATE);
+    const revision = Revision.startingAt(EMPTY_STATE);
     revision.commit(CIRCUIT_STATE);
-    let actions = new CircuitActions(revision, closedOverlays());
+    const actions = new CircuitActions(revision, closedOverlays());
 
     assertThat(actions.undo()).isEqualTo(EMPTY_STATE);
     assertThat(revision.peekActiveCommit()).isEqualTo(EMPTY_STATE);
@@ -72,8 +72,8 @@ suite.test("undo and redo move through the revision", () => {
 });
 
 suite.test("clearCircuit preserves custom gates and clearAll removes them", () => {
-    let revision = Revision.startingAt(CUSTOM_GATE_STATE);
-    let actions = new CircuitActions(revision, closedOverlays());
+    const revision = Revision.startingAt(CUSTOM_GATE_STATE);
+    const actions = new CircuitActions(revision, closedOverlays());
 
     actions.clearCircuit();
     assertThat(revision.peekActiveCommit()).isEqualTo('{"cols":[],"gates":[{"id":"~test"}]}');

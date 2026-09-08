@@ -14,6 +14,8 @@ jobs:
     - run: npm ci
     # Ubuntu 24.04 runners restrict unprivileged user namespaces, which Chrome's sandbox needs.
     - run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+    - run: npm run lint
+    - run: npm run knip
     - run: npm test
     - run: npm run test:e2e
   screenshot-circuit:

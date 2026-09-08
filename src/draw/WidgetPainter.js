@@ -39,16 +39,16 @@ class WidgetPainter {
    * @private
    */
   static describeGateTransformations(matrix, format) {
-    let n = matrix.height();
-    let b = Math.round(Math.log2(n));
+    const n = matrix.height();
+    const b = Math.round(Math.log2(n));
     return Array.from({ length: n }, (_, c) => {
-      let inputDescription = WidgetPainter.describeKet(
+      const inputDescription = WidgetPainter.describeKet(
         b,
         c,
         1,
         Format.SIMPLIFIED,
       );
-      let col = matrix.getColumn(c);
+      const col = matrix.getColumn(c);
       if (col.every((e) => e.isEqualTo(0))) {
         return "discards " + inputDescription;
       } else if (col.every((e, r) => e.isEqualTo(r === c ? 1 : 0))) {
@@ -56,7 +56,7 @@ class WidgetPainter {
           return "doesn't affect " + inputDescription;
         }
       } else if (col.every((e, r) => r === c || e.isEqualTo(0))) {
-        let degs = (col[c].ln().imag * 180) / Math.PI;
+        const degs = (col[c].ln().imag * 180) / Math.PI;
         return (
           "phases " +
           inputDescription +
@@ -65,7 +65,7 @@ class WidgetPainter {
           "°"
         );
       }
-      let outputDescription = col
+      const outputDescription = col
         .map((e, c) => WidgetPainter.describeKet(b, c, e, format))
         .filter((e) => e !== "")
         .join(" + ")
@@ -111,8 +111,8 @@ class WidgetPainter {
       }),
       0,
     );
-    let matrixRect = new Rect(pad, nextY(), dispSize, dispSize);
-    let matrixDescRect = new Rect(0, matrixRect.y, w - pad, dispSize).skipLeft(
+    const matrixRect = new Rect(pad, nextY(), dispSize, dispSize);
+    const matrixDescRect = new Rect(0, matrixRect.y, w - pad, dispSize).skipLeft(
       matrixRect.right() + pad,
     );
     MathPainter.paintMatrix(
@@ -127,12 +127,12 @@ class WidgetPainter {
       CanvasTheme.transparent,
     );
     pushRect(matrixRect);
-    let n = matrix.height();
+    const n = matrix.height();
     if (n <= 4) {
-      let format =
+      const format =
         gate.stableDuration() < 0.2 ? Format.CONSISTENT : Format.SIMPLIFIED;
-      let matDescs = WidgetPainter.describeGateTransformations(matrix, format);
-      let rowHeight = matrixDescRect.h / n;
+      const matDescs = WidgetPainter.describeGateTransformations(matrix, format);
+      const rowHeight = matrixDescRect.h / n;
       for (let r = 0; r < n; r++) {
         pushRect(
           fitParagraph(
@@ -188,10 +188,10 @@ class WidgetPainter {
       }),
       0,
     );
-    let { angle, axis, phase } =
+    const { angle, axis, phase } =
       QubitMatrix.operationToAngleAxisRotation(matrix);
 
-    let blochRect = new Rect(pad, nextY(), dispSize, dispSize);
+    const blochRect = new Rect(pad, nextY(), dispSize, dispSize);
     MathPainter.paintBlochSphereRotation(
       painter,
       matrix,
@@ -201,9 +201,9 @@ class WidgetPainter {
     );
     pushRect(blochRect);
 
-    let format =
+    const format =
       gate.stableDuration() < 0.2 ? Format.CONSISTENT : Format.SIMPLIFIED;
-    let rotDesc = [
+    const rotDesc = [
       `rotates: ${format.formatFloat((angle * 180) / Math.PI)}°`,
       `around: ${WidgetPainter.describeAxis(axis, format)}`,
       "",
@@ -251,7 +251,7 @@ class WidgetPainter {
       return;
     }
 
-    let weight = nestedCircuit.gateWeight();
+    const weight = nestedCircuit.gateWeight();
 
     pushRect(new Rect(0, nextY(), 1, 0), pad * 2);
     pushRect(
@@ -268,8 +268,8 @@ class WidgetPainter {
       0,
     );
 
-    let circuitRect = new Rect(pad, nextY(), w, dispSize);
-    let { maxW, maxH } = paintCircuitPreview(
+    const circuitRect = new Rect(pad, nextY(), w, dispSize);
+    const { maxW, maxH } = paintCircuitPreview(
       painter,
       nestedCircuit,
       circuitRect,
@@ -290,7 +290,7 @@ class WidgetPainter {
   static paintGateTooltipHelper(painter, w, gate, time) {
     const [pad, dispSize] = [4, 65];
     let [maxX, maxY] = [0, pad];
-    let pushRect = (rect, actualPad = pad) => {
+    const pushRect = (rect, actualPad = pad) => {
       maxY = Math.max(maxY, rect.bottom() + actualPad);
       maxX = Math.max(maxX, rect.right() + actualPad);
     };
@@ -312,7 +312,7 @@ class WidgetPainter {
       );
     }
 
-    let matrix = gate.knownMatrixAt(time);
+    const matrix = gate.knownMatrixAt(time);
     if (gate.definitelyHasNoEffect()) {
       return { maxX, maxY };
     }
@@ -363,19 +363,19 @@ class WidgetPainter {
     return painter.group("gate-tooltip", (painter) => {
       painter.position.set(area.x, area.y);
       area = area.withX(0).withY(0);
-      let scale = Math.min(area.w / 500, area.h / 300);
+      const scale = Math.min(area.w / 500, area.h / 300);
       if (mayNeedToScale && scale < 1) {
         painter.scale.set(scale, scale);
         area = area.withH(area.h / scale).withW(area.w / scale);
       }
-      let w = area.w;
-      let { maxX, maxY } = WidgetPainter.paintGateTooltipHelper(
+      const w = area.w;
+      const { maxX, maxY } = WidgetPainter.paintGateTooltipHelper(
         painter,
         w,
         gate,
         time,
       );
-      let r = new Rect(0, 0, maxX, maxY);
+      const r = new Rect(0, 0, maxX, maxY);
       rectangle(painter, r, {
         fill: CanvasTheme.tooltip.background,
       });
@@ -405,7 +405,7 @@ class WidgetPainter {
     if (factor.isEqualTo(0)) {
       return "";
     }
-    let scaleFactorDesc = factor.isEqualTo(1)
+    const scaleFactorDesc = factor.isEqualTo(1)
       ? ""
       : factor.isEqualTo(-1)
         ? "-"
@@ -418,7 +418,7 @@ class WidgetPainter {
               ? factor.toString(format)
               : "(" + factor.toString(format) + ")·";
 
-    let bitDesc = Util.bin(bitMask, bitCount);
+    const bitDesc = Util.bin(bitMask, bitCount);
     return scaleFactorDesc + "|" + bitDesc + "⟩";
   }
   /**
@@ -427,11 +427,11 @@ class WidgetPainter {
    * @returns {!string}
    */
   static describeAxis(unitAxis, format) {
-    let max = Math.max(...unitAxis.map((e) => Math.abs(e)));
+    const max = Math.max(...unitAxis.map((e) => Math.abs(e)));
     return unitAxis
       .map((e) => e / max)
       .map((val, i) => {
-        let name = ["X", "Y", "Z"][i];
+        const name = ["X", "Y", "Z"][i];
         if (val === 0) {
           return "";
         }

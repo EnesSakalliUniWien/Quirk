@@ -20,9 +20,9 @@ import {
   ketShaderPermute,
   ketInputGateShaderCode,
 } from "../../engine/simulation/gpu/KetShaderUtil.js";
-import { WglConfiguredShader } from "../../engine/webgl/shader/WglConfiguredShader.js";
+/** @typedef {import("../../engine/webgl/shader/WglConfiguredShader.js").WglConfiguredShader} WglConfiguredShader */
 
-let ComparisonGates = {};
+const ComparisonGates = {};
 
 /**
  * @param {!string} compareCode

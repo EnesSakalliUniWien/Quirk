@@ -50,8 +50,8 @@ function listNameOf(gate) {
  * @returns {!{base: !string, sup: !string}}
  */
 function chipPartsOf(gate) {
-  let text = gate.symbol !== "" ? gate.symbol : listNameOf(gate).charAt(0);
-  let caret = text.indexOf("^");
+  const text = gate.symbol !== "" ? gate.symbol : listNameOf(gate).charAt(0);
+  const caret = text.indexOf("^");
   if (caret <= 0 || caret === text.length - 1) {
     return { base: text, sup: "" };
   }
@@ -89,13 +89,13 @@ class GateTooltip {
    * @returns {void}
    */
   show(anchor, gate, time) {
-    let measurer = new DisplayView(
+    const measurer = new DisplayView(
       this._measuringCanvas,
       new RestartableRng(),
       1,
     );
     measurer.alpha = 0;
-    let { maxW, maxH } = WidgetPainter.paintGateTooltip(
+    const { maxW, maxH } = WidgetPainter.paintGateTooltip(
       measurer,
       TOOLTIP_MEASURING_AREA,
       gate,
@@ -105,15 +105,15 @@ class GateTooltip {
     measurer.tooltips?.flush();
     measurer.destroy();
 
-    let needsScaling =
+    const needsScaling =
       maxW >= TOOLTIP_MEASURING_AREA.w || maxH >= TOOLTIP_MEASURING_AREA.h;
-    let ratio = _pixelRatio();
+    const ratio = _pixelRatio();
     this._canvas.width = Math.round(maxW * ratio);
     this._canvas.height = Math.round(maxH * ratio);
     this._canvas.style.width = `${maxW}px`;
     this._canvas.style.height = `${maxH}px`;
 
-    let painter = RenderSurface.forCanvas(this._canvas).beginFrame(
+    const painter = RenderSurface.forCanvas(this._canvas).beginFrame(
       new RestartableRng(),
       ratio,
     );
@@ -127,12 +127,12 @@ class GateTooltip {
     painter.tooltips?.flush();
 
     // Fixed positioning, because the toolbox scrolls and the tooltip must not scroll with it.
-    let bounds = anchor.getBoundingClientRect();
-    let left = Math.min(
+    const bounds = anchor.getBoundingClientRect();
+    const left = Math.min(
       bounds.right + TOOLTIP_MARGIN,
       window.innerWidth - maxW - TOOLTIP_MARGIN,
     );
-    let top = Math.min(
+    const top = Math.min(
       bounds.top - TOOLTIP_MARGIN,
       window.innerHeight - maxH - TOOLTIP_MARGIN,
     );

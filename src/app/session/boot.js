@@ -32,7 +32,7 @@ function hasSeenWelcome(storage) {
     // can't remember should still get the welcome rather than an error.
     try {
         return storage.getItem(SEEN_WELCOME_STORAGE_KEY) === 'true';
-    } catch (ex) {
+    } catch {
         return false;
     }
 }
@@ -44,7 +44,7 @@ function hasSeenWelcome(storage) {
 function noteWelcomeSeen(storage) {
     try {
         storage.setItem(SEEN_WELCOME_STORAGE_KEY, 'true');
-    } catch (ex) {
+    } catch {
         // Nothing to do: the welcome simply shows again next time.
     }
 }
@@ -89,7 +89,7 @@ function scheduleBoot(displayed, overlayState, redrawLoop, storage = window.loca
         redrawLoop.start();
         document.getElementById("loading-div").style.display = 'none';
         document.getElementById("close-menu-button").style.display = 'block';
-        let circuitIsEmpty = displayed.get().displayedCircuit.circuitDefinition.isEmpty();
+        const circuitIsEmpty = displayed.get().displayedCircuit.circuitDefinition.isEmpty();
         if (!shouldShowWelcome(circuitIsEmpty, storage)) {
             overlayState.close();
         }

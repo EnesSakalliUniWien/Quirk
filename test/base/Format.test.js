@@ -17,7 +17,7 @@
 import {Suite, assertThat, assertThrows} from "../TestUtil.js"
 import {Format} from "../../src/base/Format.js"
 
-let suite = new Suite("Format");
+const suite = new Suite("Format");
 
 suite.test("formatFloat", () => {
     assertThat(Format.CONSISTENT.formatFloat(0)).isEqualTo("0.00");

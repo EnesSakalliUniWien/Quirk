@@ -17,7 +17,7 @@
 import {Suite, assertThat, assertThrows, assertTrue, assertFalse} from "../TestUtil.js"
 import {Util} from "../../src/base/Util.js"
 
-let suite = new Suite("Util");
+const suite = new Suite("Util");
 
 suite.test("need", () => {
     assertThrows(() => Util.need(false));
@@ -196,7 +196,7 @@ suite.test("reverseGroupMap", () => {
 });
 
 suite.test("binarySearchForTransitionFromTrueToFalse", () => {
-    let r = ["axe", "cat", "def", "g"];
+    const r = ["axe", "cat", "def", "g"];
     assertThat(Util.binarySearchForTransitionFromTrueToFalse(r.length, i => r[i] < "a")).isEqualTo(0);
     assertThat(Util.binarySearchForTransitionFromTrueToFalse(r.length, i => r[i] < "b")).isEqualTo(1);
     assertThat(Util.binarySearchForTransitionFromTrueToFalse(r.length, i => r[i] < "d")).isEqualTo(2);
@@ -339,8 +339,8 @@ suite.test("recomposedObjectValues", () => {
 });
 
 suite.test("snappedCosSin", () => {
-    let r = Math.PI/4;
-    let s = Math.sqrt(0.5);
+    const r = Math.PI/4;
+    const s = Math.sqrt(0.5);
 
     assertThat(Util.snappedCosSin(0.123)).isEqualTo([Math.cos(0.123), Math.sin(0.123)]);
 

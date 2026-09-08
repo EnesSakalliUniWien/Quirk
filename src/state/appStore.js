@@ -65,7 +65,7 @@ function observeAppStore(selector) {
     return new Observable(observer => {
         observer(selector(appStore.getState()));
         return appStore.subscribe((state, previous) => {
-            let next = selector(state);
+            const next = selector(state);
             if (next !== selector(previous)) {
                 observer(next);
             }

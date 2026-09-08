@@ -24,7 +24,6 @@ import {
     POINTWISE_CMUL_CONJ_SHADER,
 } from "../../../src/gates/displays/AmplitudeDisplay.js"
 
-import {Complex} from "../../../src/engine/math/complex/Complex.js"
 import {Controls} from "../../../src/circuit/model/Controls.js"
 import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js"
 import {CircuitStats} from "../../../src/engine/simulation/CircuitStats.js"
@@ -33,10 +32,10 @@ import {Serializer} from "../../../src/serialization/Serializer.js"
 import {Shaders} from "../../../src/engine/webgl/shader/Shaders.js"
 import {currentShaderCoder} from "../../../src/engine/webgl/coder/ShaderCoders.js"
 
-let suite = new Suite("AmplitudeDisplay");
+const suite = new Suite("AmplitudeDisplay");
 
 suite.testUsingWebGL("AMPS_TO_SQUARED_MAGS_SHADER", () => {
-    let input = Shaders.vec2Data(new Float32Array([
+    const input = Shaders.vec2Data(new Float32Array([
         1,0,
         3,4,
         -1,1,
@@ -52,7 +51,7 @@ suite.testUsingWebGL("AMPS_TO_SQUARED_MAGS_SHADER", () => {
 });
 
 suite.testUsingWebGL("MAGS_TO_INDEXED_MAGS_SHADER", () => {
-    let input = Shaders.floatData(new Float32Array([
+    const input = Shaders.floatData(new Float32Array([
         2,
         3,
         5,
@@ -68,7 +67,7 @@ suite.testUsingWebGL("MAGS_TO_INDEXED_MAGS_SHADER", () => {
 });
 
 suite.testUsingWebGL("FOLD_MAX_INDEXED_MAG_SHADER", () => {
-    let input = Shaders.vec2Data(new Float32Array([
+    const input = Shaders.vec2Data(new Float32Array([
         0, 4.2,
         8, 2.1,
         13, 1.5,
@@ -82,13 +81,13 @@ suite.testUsingWebGL("FOLD_MAX_INDEXED_MAG_SHADER", () => {
 });
 
 suite.testUsingWebGL("LOOKUP_KET_AT_INDEXED_MAG_SHADER", () => {
-    let input = Shaders.vec2Data(new Float32Array([
+    const input = Shaders.vec2Data(new Float32Array([
         0, 1, 2, 3, 4, 5, 6, 7,
         2, 3, 5, 7, 11, 13, 17, 19,
         0, 1, 4, 9, 16, 25, 36, 49,
         1, 2, 4, 8, 16, 32, 64, 128,
     ])).toVec2Texture(4);
-    let index = Shaders.vec2Data(new Float32Array([
+    const index = Shaders.vec2Data(new Float32Array([
         1, 5000.3,
     ])).toVec2Texture(0);
     assertThat(LOOKUP_KET_AT_INDEXED_MAG_SHADER(input, index).readVec2Outputs(2)).isApproximatelyEqualTo(new Float32Array([
@@ -99,10 +98,10 @@ suite.testUsingWebGL("LOOKUP_KET_AT_INDEXED_MAG_SHADER", () => {
 });
 
 suite.testUsingWebGL("POINTWISE_CMUL_CONJ_SHADER", () => {
-    let small_input = Shaders.vec2Data(new Float32Array([
+    const small_input = Shaders.vec2Data(new Float32Array([
         1, 2,
     ])).toVec2Texture(0);
-    let large_input = Shaders.vec2Data(new Float32Array([
+    const large_input = Shaders.vec2Data(new Float32Array([
         0, 1, 2, 3, 4, 5, 6, 7,
         2, 3, 5, 7, 11, 13, 17, 19,
         0, 1, 4, 9, 16, 25, 36, 49,
@@ -119,13 +118,13 @@ suite.testUsingWebGL("POINTWISE_CMUL_CONJ_SHADER", () => {
 });
 
 suite.testUsingWebGL("makeAmplitudeSpanPipeline_coherent", () => {
-    let inp = Shaders.vec2Data(new Float32Array([0.6,0.8, 0,0, 0,0, 0,0])).
+    const inp = Shaders.vec2Data(new Float32Array([0.6,0.8, 0,0, 0,0, 0,0])).
         toVec2Texture(2);
-    let controlTex = CircuitShaders.controlMask(Controls.NONE).toBoolTexture(2);
-    let [ketData, qualityData, incoherentKetData] = amplitudeDisplayStatTextures(inp, Controls.NONE, controlTex, 0, 2);
-    let ket = currentShaderCoder().vec4.pixelsToData(ketData.readPixels());
-    let quality = currentShaderCoder().float.pixelsToData(qualityData.readPixels());
-    let incoherentKet = currentShaderCoder().vec4.pixelsToData(incoherentKetData.readPixels());
+    const controlTex = CircuitShaders.controlMask(Controls.NONE).toBoolTexture(2);
+    const [ketData, qualityData, incoherentKetData] = amplitudeDisplayStatTextures(inp, Controls.NONE, controlTex, 0, 2);
+    const ket = currentShaderCoder().vec4.pixelsToData(ketData.readPixels());
+    const quality = currentShaderCoder().float.pixelsToData(qualityData.readPixels());
+    const incoherentKet = currentShaderCoder().vec4.pixelsToData(incoherentKetData.readPixels());
     assertThat(ket).isApproximatelyEqualTo(new Float32Array([
         0.6,0.8,
         0,0,
@@ -148,10 +147,10 @@ suite.testUsingWebGL("makeAmplitudeSpanPipeline_coherent", () => {
 });
 
 suite.testUsingWebGL("AmplitudesDisplayWithOtherQubit_Minus", () => {
-    let stats = CircuitStats.fromCircuitAtTime(
+    const stats = CircuitStats.fromCircuitAtTime(
         Serializer.fromJson(CircuitDefinition, {cols:[["Amps2"]],init:[0,0,"-"]}),
         0);
-    let out = stats.toReadableJson();
+    const out = stats.toReadableJson();
     assertThat(out.displays[0].data.ket).isApproximatelyEqualTo([
         {r: 1, i: 0},
         {r: 0, i: 0},
@@ -162,10 +161,10 @@ suite.testUsingWebGL("AmplitudesDisplayWithOtherQubit_Minus", () => {
 });
 
 suite.testUsingWebGL("AmplitudesDisplayWithOtherQubit_i", () => {
-    let stats = CircuitStats.fromCircuitAtTime(
+    const stats = CircuitStats.fromCircuitAtTime(
         Serializer.fromJson(CircuitDefinition, {cols:[["Amps2"]],init:[0,0,"i"]}),
         0);
-    let out = stats.toReadableJson();
+    const out = stats.toReadableJson();
     assertThat(out.displays[0].data.ket).isApproximatelyEqualTo([
         {r: 1, i: 0},
         {r: 0, i: 0},
@@ -176,10 +175,10 @@ suite.testUsingWebGL("AmplitudesDisplayWithOtherQubit_i", () => {
 });
 
 suite.testUsingWebGL("AmplitudesDisplayWithOtherQubit_postselect", () => {
-    let stats = CircuitStats.fromCircuitAtTime(
+    const stats = CircuitStats.fromCircuitAtTime(
         Serializer.fromJson(CircuitDefinition, {cols:[["Amps2",1,"|0⟩⟨0|"]],init:[0,0,"+"]}),
         0);
-    let out = stats.toReadableJson();
+    const out = stats.toReadableJson();
     assertThat(out.displays[0].data.ket).isApproximatelyEqualTo([
         {r: 1, i: 0},
         {r: 0, i: 0},
@@ -190,10 +189,10 @@ suite.testUsingWebGL("AmplitudesDisplayWithOtherQubit_postselect", () => {
 });
 
 suite.testUsingWebGL("AmplitudesDisplayWithOtherQubit_own_i", () => {
-    let stats = CircuitStats.fromCircuitAtTime(
+    const stats = CircuitStats.fromCircuitAtTime(
         Serializer.fromJson(CircuitDefinition, {cols:[["Amps2"]],init:["i",0,1]}),
         0);
-    let out = stats.toReadableJson();
+    const out = stats.toReadableJson();
     assertThat(out.displays[0].data.ket).isApproximatelyEqualTo([
         {r: Math.sqrt(0.5), i: 0},
         {r: 0, i: Math.sqrt(0.5)},
@@ -204,10 +203,10 @@ suite.testUsingWebGL("AmplitudesDisplayWithOtherQubit_own_i", () => {
 });
 
 suite.testUsingWebGL("AmplitudesDisplayIncoherent_sqrt_x", () => {
-    let stats = CircuitStats.fromCircuitAtTime(
+    const stats = CircuitStats.fromCircuitAtTime(
         Serializer.fromJson(CircuitDefinition, {cols:[[1,"•","X^½"], ["Amps2"]],init:[0,"+",1]}),
         0);
-    let out = stats.toReadableJson();
+    const out = stats.toReadableJson();
     assertThat(out.displays[0].data.incoherentKet).isApproximatelyEqualTo([
         Math.sqrt(0.5),
         0,
@@ -218,10 +217,10 @@ suite.testUsingWebGL("AmplitudesDisplayIncoherent_sqrt_x", () => {
 });
 
 suite.testUsingWebGL("AmplitudesDisplayIncoherent_hadamard", () => {
-    let stats = CircuitStats.fromCircuitAtTime(
+    const stats = CircuitStats.fromCircuitAtTime(
         Serializer.fromJson(CircuitDefinition, {cols:[[1,"•","H"], ["Amps2"]],init:[0,"+",1]}),
         0);
-    let out = stats.toReadableJson();
+    const out = stats.toReadableJson();
     assertThat(out.displays[0].data.incoherentKet).isApproximatelyEqualTo([
         Math.sqrt(0.5),
         0,
@@ -232,10 +231,10 @@ suite.testUsingWebGL("AmplitudesDisplayIncoherent_hadamard", () => {
 });
 
 suite.testUsingWebGL("AmplitudesDisplayIncoherent_conditioned", () => {
-    let stats = CircuitStats.fromCircuitAtTime(
+    const stats = CircuitStats.fromCircuitAtTime(
         Serializer.fromJson(CircuitDefinition, {"cols":[[1,"•","Z"],["•","Amps1"]],"init":["+","+","+"]}),
         0);
-    let out = stats.toReadableJson();
+    const out = stats.toReadableJson();
     assertThat(out.displays[0].data.incoherentKet).isApproximatelyEqualTo([
         Math.sqrt(0.5),
         Math.sqrt(0.5),

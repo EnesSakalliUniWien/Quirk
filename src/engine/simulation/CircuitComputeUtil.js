@@ -16,11 +16,9 @@
 
 import { CircuitEvalContext } from "./CircuitEvalContext.js";
 import { CircuitShaders } from "./gpu/CircuitShaders.js";
-import { DetailedError } from "../../base/DetailedError.js";
 import { KetTextureUtil } from "./gpu/KetTextureUtil.js";
 import { Controls } from "../../circuit/model/Controls.js";
-import { GateBuilder } from "../../circuit/model/Gate.js";
-import { Gates } from "../../gates/AllGates.js";
+/** @typedef {import("../../circuit/model/Gate.js").GateBuilder} GateBuilder */
 import { Util } from "../../base/Util.js";
 
 /**
@@ -42,13 +40,13 @@ function setGateBuilderEffectToCircuit(builder, circuitDefinition) {
     )
     .setKnownEffectToCircuit(circuitDefinition)
     .setExtraDisableReasonFinder((args) => {
-      let def = circuitDefinition.withDisabledReasonsForEmbeddedContext(
+      const def = circuitDefinition.withDisabledReasonsForEmbeddedContext(
         args.outerRow,
         args.context,
       );
       for (let row = 0; row < def.numWires; row++) {
         for (let col = 0; col < def.columns.length; col++) {
-          let r = def.gateAtLocIsDisabledReason(col, row);
+          const r = def.gateAtLocIsDisabledReason(col, row);
           if (r !== undefined) {
             return r;
           }
@@ -74,20 +72,20 @@ function setGateBuilderEffectToCircuit(builder, circuitDefinition) {
  */
 function advanceStateWithCircuit(ctx, circuitDefinition, collectStats) {
   // Prep stats collection.
-  let colQubitDensities = [];
-  let customStats = [];
-  let colNorms = [];
-  let customStatsMap = [];
-  let statsCallback = (col) => (statArgs) => {
+  const colQubitDensities = [];
+  const customStats = [];
+  const colNorms = [];
+  const customStatsMap = [];
+  const statsCallback = (col) => (statArgs) => {
     if (!collectStats) {
       return;
     }
 
-    let { qubitDensities, norm, customGateStats } =
+    const { qubitDensities, norm, customGateStats } =
       _extractStateStatsNeededByCircuitColumn(statArgs, circuitDefinition, col);
     colQubitDensities.push(qubitDensities);
     colNorms.push(norm);
-    for (let { row, stat } of customGateStats) {
+    for (const { row, stat } of customGateStats) {
       customStatsMap.push({ col, row, out: customStats.length });
       customStats.push(stat);
     }
@@ -137,9 +135,9 @@ function advanceStateWithCircuit(ctx, circuitDefinition, collectStats) {
  */
 function _extractStateStatsNeededByCircuitColumn(ctx, circuitDefinition, col) {
   // Compute custom stats used by display gates.
-  let customGateStats = [];
-  for (let row of circuitDefinition.customStatRowsInCol(col)) {
-    let statCtx = new CircuitEvalContext(
+  const customGateStats = [];
+  for (const row of circuitDefinition.customStatRowsInCol(col)) {
+    const statCtx = new CircuitEvalContext(
       ctx.time,
       row,
       circuitDefinition.numWires,
@@ -152,7 +150,7 @@ function _extractStateStatsNeededByCircuitColumn(ctx, circuitDefinition, col) {
         circuitDefinition.colCustomContextFromGates(col, row),
       ),
     );
-    let stat =
+    const stat =
       circuitDefinition.columns[col].gates[row].customStatTexturesMaker(
         statCtx,
       );
@@ -160,16 +158,16 @@ function _extractStateStatsNeededByCircuitColumn(ctx, circuitDefinition, col) {
   }
 
   // Compute individual qubit densities, where needed.
-  let qubitDensities = KetTextureUtil.superpositionToQubitDensities(
+  const qubitDensities = KetTextureUtil.superpositionToQubitDensities(
     ctx.stateTrader.currentTexture,
     ctx.controls,
     circuitDefinition.colDesiredSingleQubitStatsMask(col),
   );
 
   // Compute survival rate.
-  let normMayHaveChanged =
+  const normMayHaveChanged =
     circuitDefinition.columns[col].indexOfNonUnitaryGate() !== undefined;
-  let norm = KetTextureUtil.superpositionToNorm(
+  const norm = KetTextureUtil.superpositionToNorm(
     ctx.stateTrader.currentTexture,
     normMayHaveChanged,
   );
@@ -194,20 +192,20 @@ function _advanceStateWithCircuitDefinitionColumn(
   col,
   statsCallback,
 ) {
-  let controls = ctx.controls.and(
+  const controls = ctx.controls.and(
     circuitDefinition.colControls(col).shift(ctx.row),
   );
-  let controlTex = CircuitShaders.controlMask(controls).toBoolTexture(
+  const controlTex = CircuitShaders.controlMask(controls).toBoolTexture(
     ctx.wireCount,
   );
 
-  let colContext = Util.mergeMaps(
+  const colContext = Util.mergeMaps(
     ctx.customContextFromGates,
     circuitDefinition.colCustomContextFromGates(col, ctx.row),
   );
 
-  let trader = ctx.stateTrader;
-  let aroundCtx = new CircuitEvalContext(
+  const trader = ctx.stateTrader;
+  const aroundCtx = new CircuitEvalContext(
     ctx.time,
     ctx.row,
     ctx.wireCount,
@@ -217,7 +215,7 @@ function _advanceStateWithCircuitDefinitionColumn(
     trader,
     colContext,
   );
-  let mainCtx = new CircuitEvalContext(
+  const mainCtx = new CircuitEvalContext(
     ctx.time,
     ctx.row,
     ctx.wireCount,

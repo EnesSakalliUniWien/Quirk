@@ -37,19 +37,19 @@ class FormulaParser {
     );
 
     // Cut off trailing operation, so parse fails less often as users are typing.
-    if (tokens.length > 0 && tokens[tokens.length - 1].priority !== undefined) {
+    if (tokens.length > 0 && tokens.at(-1).priority !== undefined) {
       tokens = tokens.slice(0, tokens.length - 1);
     }
 
-    let ops = [];
-    let vals = [];
+    const ops = [];
+    const vals = [];
 
     // Hack: use the 'priority' field as a signal of 'is an operation'
-    let isValidEndToken = (token) =>
+    const isValidEndToken = (token) =>
       token !== "(" && token.priority === undefined;
-    let isValidEndState = () => vals.length === 1 && ops.length === 0;
+    const isValidEndState = () => vals.length === 1 && ops.length === 0;
 
-    let apply = (op) => {
+    const apply = (op) => {
       if (op === "(") {
         throw new DetailedError("Bad expression: unmatched '('", { text });
       }
@@ -58,17 +58,17 @@ class FormulaParser {
           text,
         });
       }
-      let b = vals.pop();
-      let a = vals.pop();
+      const b = vals.pop();
+      const a = vals.pop();
       vals.push(op.f(a, b));
     };
 
-    let closeParen = () => {
+    const closeParen = () => {
       while (true) {
         if (ops.length === 0) {
           throw new DetailedError("Bad expression: unmatched ')'", { text });
         }
-        let op = ops.pop();
+        const op = ops.pop();
         if (op === "(") {
           break;
         }
@@ -76,13 +76,13 @@ class FormulaParser {
       }
     };
 
-    let burnOps = (w) => {
+    const burnOps = (w) => {
       while (
         ops.length > 0 &&
         vals.length >= 2 &&
-        vals[vals.length - 1] !== undefined
+        vals.at(-1) !== undefined
       ) {
-        let top = ops[ops.length - 1];
+        const top = ops.at(-1);
         if (top.w === undefined || top.w < w) {
           break;
         }
@@ -90,9 +90,9 @@ class FormulaParser {
       }
     };
 
-    let feedOp = (couldBeBinary, token) => {
+    const feedOp = (couldBeBinary, token) => {
       // Implied multiplication?
-      let mul = tokenMap.get("*");
+      const mul = tokenMap.get("*");
       if (couldBeBinary && token.binary_action === undefined && token !== ")") {
         burnOps(mul.priority);
         ops.push({ f: mul.binary_action, w: mul.priority });
@@ -113,7 +113,7 @@ class FormulaParser {
     };
 
     let wasValidEndToken = false;
-    for (let token of tokens) {
+    for (const token of tokens) {
       feedOp(wasValidEndToken, token);
       wasValidEndToken = isValidEndToken(token);
 
@@ -141,7 +141,7 @@ class FormulaParser {
    * @private
    */
   static _tokenize(text) {
-    let tokens = text
+    const tokens = text
       .toLowerCase()
       .split(/\s/)
       .flatMap((part) =>
@@ -150,7 +150,7 @@ class FormulaParser {
             if (e.trim() === "") {
               return " ";
             }
-            if (e.match(/[\.0-9]/)) {
+            if (e.match(/[.0-9]/)) {
               return "#";
             }
             if (e.match(/[_a-z]/)) {
@@ -179,7 +179,7 @@ class FormulaParser {
       i !== -1;
       i = tokens.indexOf("e", i + 1)
     ) {
-      let s = i - 1;
+      const s = i - 1;
       let e = i + 1;
       if (!tokens[s].match(/[0-9]/)) {
         continue;
@@ -206,7 +206,7 @@ class FormulaParser {
    */
   static _translateToken(token, tokenMap) {
     if (token.match(/[0-9]+(\.[0-9]+)?/)) {
-      return parseFloat(token);
+      return Number.parseFloat(token);
     }
 
     if (tokenMap.has(token)) {

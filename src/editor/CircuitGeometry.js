@@ -63,10 +63,10 @@ class CircuitGeometry {
      * @returns {!int}
      */
     groundedWireCount() {
-        let pseudoCount =
+        const pseudoCount =
             this.extraWireStartIndex !== undefined && this.extraWireStartIndex !== Simulation.MAX_WIRE_COUNT ? 1 : 0;
 
-        let n = Math.max(Simulation.MIN_WIRE_COUNT, this.circuitDefinition.numWires) - pseudoCount;
+        const n = Math.max(Simulation.MIN_WIRE_COUNT, this.circuitDefinition.numWires) - pseudoCount;
         return Math.max(n, this.circuitDefinition.minimumRequiredWireCount());
     }
 
@@ -108,8 +108,8 @@ class CircuitGeometry {
         }
         // The superposition grid's bottom edge lines up with the last wire's gate rect; the labels
         // and warnings drawn under it need the bottom margin.
-        let n = this.groundedWireCount();
-        let gridBottom = (n - 1) * Layout.WIRE_SPACING + Layout.WIRE_SPACING / 2 + Layout.GATE_RADIUS;
+        const n = this.groundedWireCount();
+        const gridBottom = (n - 1) * Layout.WIRE_SPACING + Layout.WIRE_SPACING / 2 + Layout.GATE_RADIUS;
         return gridBottom + CIRCUIT_BOTTOM_MARGIN;
     }
 
@@ -154,8 +154,8 @@ class CircuitGeometry {
      * @returns {Rect!}
      */
     opRect(operationIndex) {
-        let opWidth = Layout.GATE_RADIUS * 2;
-        let opSeparation = opWidth + CIRCUIT_OP_HORIZONTAL_SPACING;
+        const opWidth = Layout.GATE_RADIUS * 2;
+        const opSeparation = opWidth + CIRCUIT_OP_HORIZONTAL_SPACING;
         let tweak = 0;
         if (this.compressedColumnIndex !== undefined && operationIndex === this.compressedColumnIndex) {
             tweak = opSeparation / 2;
@@ -179,9 +179,9 @@ class CircuitGeometry {
      * @returns {!Rect}
      */
     gateRect(wireIndex, operationIndex, width=1, height=1) {
-        let op = this.opRect(operationIndex);
-        let wire = this.wireRect(wireIndex);
-        let r = new Rect(
+        const op = this.opRect(operationIndex);
+        const wire = this.wireRect(wireIndex);
+        const r = new Rect(
             op.center().x - Layout.GATE_RADIUS,
             wire.center().y - Layout.GATE_RADIUS,
             2*Layout.GATE_RADIUS + (width-1)*Layout.COLUMN_SPACING,
@@ -192,13 +192,13 @@ class CircuitGeometry {
 
     /** The Bloch display reserves space around the sphere for axes and below it for the readout. */
     static blochDisplayRect(gateRect) {
-        let c = gateRect.center();
-        let half = Layout.BLOCH_RADIUS + Layout.BLOCH_LABEL_MARGIN;
+        const c = gateRect.center();
+        const half = Layout.BLOCH_RADIUS + Layout.BLOCH_LABEL_MARGIN;
         return new Rect(c.x - half, c.y - half, 2 * half, 2 * half + Layout.BLOCH_READOUT_HEIGHT);
     }
 
     gateDrawRect(row, col, gate) {
-        let rect = this.gateRect(row, col, gate.width, gate.height);
+        const rect = this.gateRect(row, col, gate.width, gate.height);
         return gate.serializedId === 'Bloch' ? CircuitGeometry.blochDisplayRect(rect) : rect;
     }
 
@@ -206,13 +206,13 @@ class CircuitGeometry {
      * @returns {!Rect} Where the output superposition grid is drawn.
      */
     rectForSuperpositionDisplay() {
-        let col = this.clampedCircuitColCount() + EXTRA_COLS_FOR_SINGLE_QUBIT_DISPLAYS + 1;
-        let numWire = this.importantWireCount();
-        let [colWires, rowWires] = [Math.floor(numWire/2), Math.ceil(numWire/2)];
-        let [colCount, rowCount] = [1 << colWires, 1 << rowWires];
-        let topRect = this.gateRect(0, col);
-        let bottomRect = this.gateRect(numWire-1, col);
-        let gridRect = new Rect(topRect.x, topRect.y, 0, bottomRect.bottom() - topRect.y);
+        const col = this.clampedCircuitColCount() + EXTRA_COLS_FOR_SINGLE_QUBIT_DISPLAYS + 1;
+        const numWire = this.importantWireCount();
+        const [colWires, rowWires] = [Math.floor(numWire/2), Math.ceil(numWire/2)];
+        const [colCount, rowCount] = [1 << colWires, 1 << rowWires];
+        const topRect = this.gateRect(0, col);
+        const bottomRect = this.gateRect(numWire-1, col);
+        const gridRect = new Rect(topRect.x, topRect.y, 0, bottomRect.bottom() - topRect.y);
         return gridRect.withW(gridRect.h * (colCount/rowCount));
     }
 }

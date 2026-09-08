@@ -201,7 +201,7 @@ WglArg.INPUT_ACTION_MAP = new Map([
   [
     WglArg.WGL_TEXTURE_TYPE,
     (ctx, loc, texture, coop) => {
-      let unit = coop.coopTextureUnit++;
+      const unit = coop.coopTextureUnit++;
       if (unit >= ctx.maxTextureUnits) {
         throw new Error(
           `Uniform texture argument uses texture unit ${unit} but max ` +
@@ -217,7 +217,7 @@ WglArg.INPUT_ACTION_MAP = new Map([
             `texture diameter is ${ctx.maxTextureSize}.`,
         );
       }
-      let gl = ctx.gl;
+      const gl = ctx.gl;
       gl.uniform1i(loc, unit);
       gl.activeTexture(WebGL2RenderingContext.TEXTURE0 + unit);
       gl.bindTexture(
@@ -229,14 +229,14 @@ WglArg.INPUT_ACTION_MAP = new Map([
   [
     WglArg.WEB_GL_TEXTURE_TYPE,
     (ctx, loc, texture, coop) => {
-      let unit = coop.coopTextureUnit++;
+      const unit = coop.coopTextureUnit++;
       if (unit >= ctx.maxTextureUnits) {
         throw new Error(
           `Uniform texture argument uses texture unit ${unit} but max ` +
             `is ${ctx.maxTextureUnits}.`,
         );
       }
-      let gl = ctx.gl;
+      const gl = ctx.gl;
       gl.uniform1i(loc, unit);
       gl.activeTexture(WebGL2RenderingContext.TEXTURE0 + unit);
       gl.bindTexture(WebGL2RenderingContext.TEXTURE_2D, texture);

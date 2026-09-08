@@ -26,7 +26,7 @@ import { Matrix } from "../../engine/math/matrix/Matrix.js";
 
 import { Shaders } from "../../engine/webgl/shader/Shaders.js";
 
-import { WglConfiguredShader } from "../../engine/webgl/shader/WglConfiguredShader.js";
+/** @typedef {import("../../engine/webgl/shader/WglConfiguredShader.js").WglConfiguredShader} WglConfiguredShader */
 import {
   Inputs,
   Outputs,
@@ -51,7 +51,7 @@ function probabilityStatTexture(
   rangeOffset,
   rangeLength,
 ) {
-  let trader = new WglTextureTrader(ketTexture);
+  const trader = new WglTextureTrader(ketTexture);
   trader.dontDeallocCurrentTexture();
   let n = currentShaderCoder().vec2.arrayPowerSizeOfTexture(ketTexture);
 
@@ -79,7 +79,7 @@ function probabilityStatTexture(
  * @param {!WglTexture} controlTex
  * @returns {!WglConfiguredShader}
  */
-let amplitudesToProbabilities = (inputTexture, controlTex) =>
+const amplitudesToProbabilities = (inputTexture, controlTex) =>
   AMPLITUDES_TO_PROBABILITIES_SHADER(inputTexture, controlTex);
 const AMPLITUDES_TO_PROBABILITIES_SHADER =
   makePseudoShaderWithInputsAndOutputAndCode(
@@ -98,17 +98,17 @@ const AMPLITUDES_TO_PROBABILITIES_SHADER =
  * @returns {!Matrix}
  */
 function probabilityPixelsToColumnVector(pixels, span) {
-  let n = 1 << span;
+  const n = 1 << span;
   // CAUTION: pixels may be longer than n due to the length rounding up to a multiple of 4.
 
   let unity = 0;
   for (let i = 0; i < n; i++) {
     unity += pixels[i];
   }
-  if (isNaN(unity) || unity < 0.000001) {
+  if (Number.isNaN(unity) || unity < 0.000001) {
     return Matrix.zero(1, n).times(NaN);
   }
-  let buf = new Float32Array(n * 2);
+  const buf = new Float32Array(n * 2);
   for (let i = 0; i < n; i++) {
     buf[i * 2] = pixels[i] / unity;
   }
@@ -179,7 +179,7 @@ function singleChangeGateMaker(builder) {
     .markAsDrawerNeedsSingleQubitDensityStats()
     .setDrawer(
       GatePainting.makeDisplayDrawer((args) => {
-        let { row, col } = args.positionInCircuit;
+        const { row, col } = args.positionInCircuit;
         MathPainter.paintProbabilityBox(
           args.painter,
           args.stats.controlledWireProbabilityJustAfter(row, col),
@@ -190,7 +190,7 @@ function singleChangeGateMaker(builder) {
     );
 }
 
-let ProbabilityDisplayFamily = Gate.buildFamily(1, 16, (span, builder) =>
+const ProbabilityDisplayFamily = Gate.buildFamily(1, 16, (span, builder) =>
   span === 1
     ? singleChangeGateMaker(builder)
     : multiChanceGateMaker(span, builder),

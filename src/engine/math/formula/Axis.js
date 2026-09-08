@@ -38,7 +38,7 @@ class Axis {
    * @returns {!Axis}
    */
   static parse(text) {
-    let result = FormulaParser.parse(text, Axis._TOKEN_MAP);
+    const result = FormulaParser.parse(text, Axis._TOKEN_MAP);
     if (!(result instanceof Axis)) {
       throw new DetailedError("Not an axis.", { text, result });
     }
@@ -89,8 +89,8 @@ class Axis {
    * @returns {!number|!Axis}
    */
   static op(a, b, numNum, axisNum, numAxis, axisAxis) {
-    let ca = Axis.classify(a);
-    let cb = Axis.classify(b);
+    const ca = Axis.classify(a);
+    const cb = Axis.classify(b);
     if (ca && cb) {
       return axisAxis(a, b);
     }
@@ -194,7 +194,7 @@ Axis._TOKEN_MAP.set("y", new Axis(0, 1, 0));
 Axis._TOKEN_MAP.set("z", new Axis(0, 0, 1));
 Axis._TOKEN_MAP.set("(", "(");
 Axis._TOKEN_MAP.set(")", ")");
-for (let { character, value } of UNICODE_FRACTIONS) {
+for (const { character, value } of UNICODE_FRACTIONS) {
   Axis._TOKEN_MAP.set(character, value);
 }
 Axis._TOKEN_MAP.set("sqrt", {

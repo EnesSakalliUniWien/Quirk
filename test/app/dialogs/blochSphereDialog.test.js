@@ -18,33 +18,33 @@ import {Suite, assertThat, assertTrue} from "../../TestUtil.js"
 import {blochCoordinates, blochAngles, pureStateText, projectPoint} from "../../../src/app/dialogs/blochSphereDialog.js"
 import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
 
-let suite = new Suite("blochSphereDialog");
+const suite = new Suite("blochSphereDialog");
 
 suite.test("maps the basis states to the conventional poles", () => {
-    let ground = blochCoordinates(Matrix.square(1, 0, 0, 0));
+    const ground = blochCoordinates(Matrix.square(1, 0, 0, 0));
     assertThat(ground.x).isApproximatelyEqualTo(0);
     assertThat(ground.y).isApproximatelyEqualTo(0);
     assertThat(ground.z).isApproximatelyEqualTo(1);
 
-    let excited = blochCoordinates(Matrix.square(0, 0, 0, 1));
+    const excited = blochCoordinates(Matrix.square(0, 0, 0, 1));
     assertThat(excited.z).isApproximatelyEqualTo(-1);
 
-    let plus = blochCoordinates(Matrix.square(0.5, 0.5, 0.5, 0.5));
+    const plus = blochCoordinates(Matrix.square(0.5, 0.5, 0.5, 0.5));
     assertThat(plus.x).isApproximatelyEqualTo(1);
     assertThat(plus.y).isApproximatelyEqualTo(0);
     assertThat(plus.z).isApproximatelyEqualTo(0);
 });
 
 suite.test("reads the angles off the vector", () => {
-    let ground = blochAngles({x: 0, y: 0, z: 1});
+    const ground = blochAngles({x: 0, y: 0, z: 1});
     assertThat(ground.r).isApproximatelyEqualTo(1);
     assertThat(ground.theta).isApproximatelyEqualTo(0);
 
-    let plus = blochAngles({x: 1, y: 0, z: 0});
+    const plus = blochAngles({x: 1, y: 0, z: 0});
     assertThat(plus.theta).isApproximatelyEqualTo(Math.PI / 2);
     assertThat(plus.phi).isApproximatelyEqualTo(0);
 
-    let mixed = blochAngles({x: 0, y: 0, z: 0});
+    const mixed = blochAngles({x: 0, y: 0, z: 0});
     assertThat(mixed.r).isApproximatelyEqualTo(0);
     assertThat(mixed.theta).isApproximatelyEqualTo(0);
 });
@@ -57,16 +57,16 @@ suite.test("prints the pure state's amplitudes", () => {
 
 suite.test("projects along the untilted view's axes", () => {
     // At yaw 0 and pitch 0: y is screen-right, z is screen-up, x points at the viewer.
-    let px = projectPoint(1, 0, 0, 0, 0);
+    const px = projectPoint(1, 0, 0, 0, 0);
     assertThat(px.sx).isApproximatelyEqualTo(0);
     assertThat(px.sy).isApproximatelyEqualTo(0);
     assertThat(px.depth).isApproximatelyEqualTo(1);
 
-    let py = projectPoint(0, 1, 0, 0, 0);
+    const py = projectPoint(0, 1, 0, 0, 0);
     assertThat(py.sx).isApproximatelyEqualTo(1);
     assertThat(py.depth).isApproximatelyEqualTo(0);
 
-    let pz = projectPoint(0, 0, 1, 0, 0);
+    const pz = projectPoint(0, 0, 1, 0, 0);
     assertThat(pz.sy).isApproximatelyEqualTo(1);
     assertThat(pz.depth).isApproximatelyEqualTo(0);
 });

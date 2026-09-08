@@ -22,7 +22,7 @@ import {Point} from "../geometry/Point.js"
  * @returns {!Point}
  */
 function eventPosRelativeTo(ev, element) {
-    let b = element.getBoundingClientRect();
+    const b = element.getBoundingClientRect();
     return new Point(ev.clientX - b.left, ev.clientY - b.top);
 }
 
@@ -45,7 +45,7 @@ function isPrimaryPress(ev) {
 function tryCapture(element, pointerId) {
     try {
         element.setPointerCapture(pointerId);
-    } catch (_) {
+    } catch {
         // Nothing to do.
     }
 }

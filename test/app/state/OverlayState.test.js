@@ -17,16 +17,16 @@
 import {Suite, assertThat} from "../../TestUtil.js"
 import {OverlayState} from "../../../src/app/state/OverlayState.js"
 
-let suite = new Suite("OverlayState");
+const suite = new Suite("OverlayState");
 
 suite.test("starts with the menu active", () => {
-    let overlays = new OverlayState();
+    const overlays = new OverlayState();
 
     assertThat(overlays.active().snapshot()).isEqualTo(["menu"]);
 });
 
 suite.test("open replaces the active overlay", () => {
-    let overlays = new OverlayState();
+    const overlays = new OverlayState();
 
     overlays.open("export");
     overlays.open("forge");
@@ -35,7 +35,7 @@ suite.test("open replaces the active overlay", () => {
 });
 
 suite.test("close clears the active overlay", () => {
-    let overlays = new OverlayState();
+    const overlays = new OverlayState();
 
     overlays.close();
 
@@ -43,8 +43,8 @@ suite.test("close clears the active overlay", () => {
 });
 
 suite.test("active emits only changes", () => {
-    let overlays = new OverlayState();
-    let seen = [];
+    const overlays = new OverlayState();
+    const seen = [];
     overlays.active().subscribe(active => seen.push(active));
 
     overlays.open("menu");

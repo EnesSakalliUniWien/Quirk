@@ -6,7 +6,7 @@ import {DisplayView, scenePixels} from '../TestDisplayView.js';
 import {Rect} from '../../../src/geometry/Rect.js';
 import {Gates} from '../../../src/gates/AllGates.js';
 
-let suite = new Suite("GatePainting");
+const suite = new Suite("GatePainting");
 
 suite.test("IQP-dark gate backgrounds and ink reach the painter and survive hover", async () => {
     for (const gate of [Gates.HalfTurns.H, Gates.HalfTurns.Y, Gates.HalfTurns.Z,
@@ -18,7 +18,7 @@ suite.test("IQP-dark gate backgrounds and ink reach the painter and survive hove
             (gate.customDrawer || GatePainting.DEFAULT_DRAWER)(args);
             const pixel = [...(await scenePixels(painter.canvas, 14, 14, 1, 1)).data];
             const style = gateStyle(gate);
-            assertThat(pixel).isEqualTo([...style.fill.slice(1).match(/../g).map(v => parseInt(v, 16)), 255]);
+            assertThat(pixel).isEqualTo([...style.fill.slice(1).match(/../g).map(v => Number.parseInt(v, 16)), 255]);
             const data = (await scenePixels(painter.canvas, 18, 18, 24, 24)).data;
             let darkInk = 0;
             for (let i = 0; i < data.length; i += 4) {
@@ -30,9 +30,9 @@ suite.test("IQP-dark gate backgrounds and ink reach the painter and survive hove
 });
 
 suite.test("displayResizeTab_drawsOnceAboveContent", () => {
-    for (let highlighted of [false, true]) {
-        let painter = new DisplayView(document.createElement('canvas'));
-        let args = {
+    for (const highlighted of [false, true]) {
+        const painter = new DisplayView(document.createElement('canvas'));
+        const args = {
             painter,
             rect: new Rect(10, 10, 80, 80),
             positionInCircuit: {row: 0, col: 0},

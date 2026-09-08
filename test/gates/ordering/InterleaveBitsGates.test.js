@@ -21,7 +21,7 @@ import {
     deinterleaveBit,
 } from "../../../src/gates/ordering/InterleaveBitsGates.js"
 
-let suite = new Suite("InterleaveBitsGates");
+const suite = new Suite("InterleaveBitsGates");
 
 suite.test('interleaveBit', () => {
     assertThat(interleaveBit(0, 1)).isEqualTo(0);
@@ -83,18 +83,18 @@ suite.test('deinterleaveBit', () => {
 
 suite.test('interleave_vs_deinterleave_bit', () => {
     for (let i = 0; i < 100; i++) {
-        let n = Math.floor(Math.random() * 100 + 10);
-        let b = Math.floor(Math.random() * n);
-        let j = interleaveBit(b, n);
+        const n = Math.floor(Math.random() * 100 + 10);
+        const b = Math.floor(Math.random() * n);
+        const j = interleaveBit(b, n);
         assertThat(deinterleaveBit(j, n)).withInfo({n, b, j}).isEqualTo(b);
     }
 });
 
 suite.test('interleave_vs_deinterleave_bit', () => {
     for (let i = 0; i < 100; i++) {
-        let n = Math.floor(Math.random() * 100 + 10);
-        let b = Math.floor(Math.random() * n);
-        let j = interleaveBit(b, n);
+        const n = Math.floor(Math.random() * 100 + 10);
+        const b = Math.floor(Math.random() * n);
+        const j = interleaveBit(b, n);
         assertThat(deinterleaveBit(j, n)).withInfo({n, b, j}).isEqualTo(b);
     }
 });

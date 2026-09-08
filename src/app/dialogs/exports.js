@@ -63,7 +63,7 @@ function initExports(revision, mostRecentStats, overlayState) {
         const copyResultElement = /** @type {HTMLElement} */ document.getElementById('export-link-copy-result');
         setupButtonElementCopyToClipboard(copyButton, linkElement, copyResultElement);
         revision.latestActiveCommit().subscribe(jsonText => {
-            let escapedUrlHash = "#" + AppInfo.URL_CIRCUIT_PARAM_KEY + "=" + encodeURIComponent(jsonText);
+            const escapedUrlHash = "#" + AppInfo.URL_CIRCUIT_PARAM_KEY + "=" + encodeURIComponent(jsonText);
             linkElement.href = escapedUrlHash;
             linkElement.innerText = document.location.href.split("#")[0] + escapedUrlHash;
         });
@@ -77,9 +77,9 @@ function initExports(revision, mostRecentStats, overlayState) {
         setupButtonElementCopyToClipboard(copyButton, jsonTextElement, copyResultElement);
         revision.latestActiveCommit().subscribe(jsonText => {
             try {
-                let val = JSON.parse(jsonText);
+                const val = JSON.parse(jsonText);
                 jsonTextElement.innerText = JSON.stringify(val, null, '  ');
-            } catch (_) {
+            } catch {
                 jsonTextElement.innerText = jsonText;
             }
         });
@@ -99,8 +99,8 @@ function initExports(revision, mostRecentStats, overlayState) {
             outputTextElement,
             copyResultElement,
             () => {
-                let raw = JSON.stringify(mostRecentStats.get().toReadableJson(!excludeAmps.checked), null, ' ');
-                return raw.replace(/{\s*"r": /g, '{"r":').replace(/,\s*"i":\s*([-e\d\.]+)\s*}/g, ',"i":$1}');
+                const raw = JSON.stringify(mostRecentStats.get().toReadableJson(!excludeAmps.checked), null, ' ');
+                return raw.replace(/{\s*"r": /g, '{"r":').replace(/,\s*"i":\s*([-e\d.]+)\s*}/g, ',"i":$1}');
             });
     })();
 }

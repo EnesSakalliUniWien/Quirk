@@ -19,10 +19,10 @@ import {Complex} from "../../../../src/engine/math/complex/Complex.js"
 
 import {Format} from "../../../../src/base/Format.js"
 
-let suite = new Suite("Complex");
+const suite = new Suite("Complex");
 
 suite.test("isEqualTo", () => {
-    let c = new Complex(5, 7);
+    const c = new Complex(5, 7);
     assertThat(c).isEqualTo(c);
     assertThat(c).isNotEqualTo(null);
     assertThat(c).isNotEqualTo("");
@@ -60,7 +60,7 @@ suite.test("polar", () => {
 });
 
 suite.test("isApproximatelyEqualTo", () => {
-    let c = new Complex(5, 7);
+    const c = new Complex(5, 7);
     assertThat(c).isApproximatelyEqualTo(c, 0);
     assertThat(c).isApproximatelyEqualTo(c, 1);
     assertThat(c).isNotApproximatelyEqualTo(new Complex(5, 6), 0.5);
@@ -237,9 +237,9 @@ suite.test("dividedBy", () => {
 });
 
 suite.test("exp", () => {
-    let π = Math.PI;
-    let i = Complex.I;
-    let s = Math.sqrt(0.5);
+    const π = Math.PI;
+    const i = Complex.I;
+    const s = Math.sqrt(0.5);
 
     assertThat(Complex.ZERO.exp()).isEqualTo(1);
     assertThat(Complex.ONE.exp()).isApproximatelyEqualTo(Math.E);
@@ -257,7 +257,7 @@ suite.test("exp", () => {
 });
 
 suite.test("ln", () => {
-    let π = Math.PI;
+    const π = Math.PI;
 
     assertThat(Complex.ONE.ln()).isEqualTo(0);
     assertThat(new Complex(Math.E, 0).ln()).isApproximatelyEqualTo(1);
@@ -277,10 +277,10 @@ suite.test("neg", () => {
 });
 
 suite.test("raisedTo", () => {
-    let π = Math.PI;
-    let i = Complex.I;
-    let e = new Complex(Math.E, 0);
-    let s = Math.sqrt(0.5);
+    const π = Math.PI;
+    const i = Complex.I;
+    const e = new Complex(Math.E, 0);
+    const s = Math.sqrt(0.5);
 
     // Unit circle axes.
     assertThat(e.raisedTo(i.times(-π/2))).isEqualTo(i.neg());

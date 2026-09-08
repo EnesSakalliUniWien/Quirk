@@ -31,9 +31,9 @@ function initMenu(revision, overlayState) {
     const closeMenuButton = /** @type {!HTMLButtonElement} */ document.getElementById('close-menu-button');
     closeMenuButton.addEventListener('click', () => overlayState.close());
 
-    for (let {anchorId, circuit} of EXAMPLE_CIRCUITS) {
-        let a = /** @type {!HTMLAnchorElement} */ document.getElementById(anchorId);
-        let text = JSON.stringify(circuit);
+    for (const {anchorId, circuit} of EXAMPLE_CIRCUITS) {
+        const a = /** @type {!HTMLAnchorElement} */ document.getElementById(anchorId);
+        const text = JSON.stringify(circuit);
         a.href = "#circuit=" + text;
         a.onclick = ev => {
             // Let the browser handle modified and non-left clicks, so opening the link in a new tab still works.

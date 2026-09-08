@@ -22,10 +22,10 @@ import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
 import {Serializer} from "../../../src/serialization/Serializer.js"
 import {Gate} from "../../../src/circuit/model/Gate.js"
 
-let suite = new Suite("RotationGates");
+const suite = new Suite("RotationGates");
 
 suite.test("rx_matrix_matches_angle", () => {
-    let rx = angle => Gates.RotationGates.Rx.withParam(angle).knownMatrixAt(0.1);
+    const rx = angle => Gates.RotationGates.Rx.withParam(angle).knownMatrixAt(0.1);
 
     assertThat(rx('0')).isApproximatelyEqualTo(Matrix.identity(2));
     assertThat(rx('pi')).isApproximatelyEqualTo(
@@ -37,7 +37,7 @@ suite.test("rx_matrix_matches_angle", () => {
 });
 
 suite.test("ry_matrix_matches_angle", () => {
-    let ry = angle => Gates.RotationGates.Ry.withParam(angle).knownMatrixAt(0.1);
+    const ry = angle => Gates.RotationGates.Ry.withParam(angle).knownMatrixAt(0.1);
 
     assertThat(ry('0')).isApproximatelyEqualTo(Matrix.identity(2));
     assertThat(ry('pi')).isApproximatelyEqualTo(Matrix.square(0, -1, 1, 0));
@@ -46,7 +46,7 @@ suite.test("ry_matrix_matches_angle", () => {
 });
 
 suite.test("rz_matrix_matches_angle", () => {
-    let rz = angle => Gates.RotationGates.Rz.withParam(angle).knownMatrixAt(0.1);
+    const rz = angle => Gates.RotationGates.Rz.withParam(angle).knownMatrixAt(0.1);
 
     assertThat(rz('0')).isApproximatelyEqualTo(Matrix.identity(2));
     assertThat(rz('pi')).isApproximatelyEqualTo(
@@ -57,7 +57,7 @@ suite.test("rz_matrix_matches_angle", () => {
 });
 
 suite.test("angle_change_is_stable_and_negatable", () => {
-    let rx = Gates.RotationGates.Rx.withParam('pi/4');
+    const rx = Gates.RotationGates.Rx.withParam('pi/4');
     assertThat(rx.stableDuration()).isEqualTo(Infinity);
     assertThat(rx.alternate.param).isEqualTo('-(pi/4)');
     assertThat(rx.alternate.alternate.param).isEqualTo('pi/4');
@@ -66,9 +66,9 @@ suite.test("angle_change_is_stable_and_negatable", () => {
 });
 
 suite.test("serializes_angle_roundtrip", () => {
-    for (let gate of Gates.RotationGates.all) {
-        let adjusted = gate.withParam('3pi/4');
-        let restored = Serializer.fromJson(Gate, Serializer.toJson(adjusted));
+    for (const gate of Gates.RotationGates.all) {
+        const adjusted = gate.withParam('3pi/4');
+        const restored = Serializer.fromJson(Gate, Serializer.toJson(adjusted));
         assertThat(restored.serializedId).isEqualTo(gate.serializedId);
         assertThat(restored.param).isEqualTo('3pi/4');
         assertThat(restored.knownMatrixAt(0.1)).isApproximatelyEqualTo(adjusted.knownMatrixAt(0.1));

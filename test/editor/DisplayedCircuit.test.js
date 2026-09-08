@@ -59,7 +59,7 @@ const COMMON_GATES = new Map([
     ['/', null]
 ]);
 
-let circuit = (diagramText, ...extraGateEntries) => CircuitDefinition.fromTextDiagram(
+const circuit = (diagramText, ...extraGateEntries) => CircuitDefinition.fromTextDiagram(
     new Map([
         ...COMMON_GATES.entries(),
         ...extraGateEntries
@@ -71,7 +71,7 @@ let circuit = (diagramText, ...extraGateEntries) => CircuitDefinition.fromTextDi
  * @param {!Array<*>} extraGateEntries
  * @returns {!{circuit: !DisplayedCircuit, pts: !Array.<!Point>}}
  */
-let displayedCircuit = (diagramText, ...extraGateEntries) => DisplayedCircuit.fromTextDiagram(
+const displayedCircuit = (diagramText, ...extraGateEntries) => DisplayedCircuit.fromTextDiagram(
     new Map([
         ...COMMON_GATES.entries(),
         ...extraGateEntries
@@ -90,34 +90,34 @@ let displayedCircuit = (diagramText, ...extraGateEntries) => DisplayedCircuit.fr
  *   afterDropAndTidy: !DisplayedCircuit,
  * }}
  */
-let simulateDrag = (diagramText, options={}, ...extraGateEntries) => {
-    let duplicate = options.duplicate || false;
-    let wholeColumn = options.wholeColumn || false;
+const simulateDrag = (diagramText, options={}, ...extraGateEntries) => {
+    const duplicate = options.duplicate || false;
+    const wholeColumn = options.wholeColumn || false;
 
-    let {circuit: beforeGrab, pts} = displayedCircuit(diagramText, ...extraGateEntries);
-    let {newCircuit: afterGrab, newHand: fullHand} =
+    const {circuit: beforeGrab, pts} = displayedCircuit(diagramText, ...extraGateEntries);
+    const {newCircuit: afterGrab, newHand: fullHand} =
         beforeGrab.tryGrab(Hand.EMPTY.withPos(pts[0]), duplicate, wholeColumn);
-    let hovers = [];
-    for (let pt of pts) {
+    const hovers = [];
+    for (const pt of pts) {
         hovers.push(afterGrab.previewDrop(fullHand.withPos(pt)));
     }
-    let afterDrop = afterGrab.afterDropping(fullHand.withPos(pts[pts.length - 1]));
-    let afterDropAndTidy = afterDrop.afterTidyingUp();
+    const afterDrop = afterGrab.afterDropping(fullHand.withPos(pts.at(-1)));
+    const afterDropAndTidy = afterDrop.afterTidyingUp();
     return {beforeGrab, afterGrab, hovers, afterDrop, afterDropAndTidy};
 };
 
-let suite = new Suite("DisplayedCircuit");
+const suite = new Suite("DisplayedCircuit");
 
 suite.test("constructor_vs_isEqualTo", () => {
-    let d1 = CircuitDefinition.fromTextDiagram(COMMON_GATES, `+H+
+    const d1 = CircuitDefinition.fromTextDiagram(COMMON_GATES, `+H+
                                                               X+Y`);
-    let d2 = CircuitDefinition.fromTextDiagram(COMMON_GATES, `++++
+    const d2 = CircuitDefinition.fromTextDiagram(COMMON_GATES, `++++
                                                               ZHHH`);
     assertThrows(() => new DisplayedCircuit(23, "not a circuit", undefined, undefined, undefined));
     assertThrows(() => new DisplayedCircuit("not a number", d1, undefined, undefined, undefined));
 
-    let c1 = new DisplayedCircuit(45, d1, undefined, undefined, undefined);
-    let c2 = new DisplayedCircuit(67, d2, 1, {col: 1, row: 1, resizeStyle: true}, 1);
+    const c1 = new DisplayedCircuit(45, d1, undefined, undefined, undefined);
+    const c2 = new DisplayedCircuit(67, d2, 1, {col: 1, row: 1, resizeStyle: true}, 1);
     assertThat(c1.top).isEqualTo(45);
     assertThat(c1.circuitDefinition).isEqualTo(d1);
 
@@ -198,7 +198,7 @@ suite.test("bootstrap_diagram", () => {
 });
 
 suite.test("indexOfDisplayedRowAt", () => {
-    let {circuit, pts} = displayedCircuit(`|0
+    const {circuit, pts} = displayedCircuit(`|0
                                            |1+-+-
                                            |   2
                                            |-+3+-
@@ -215,7 +215,7 @@ suite.test("indexOfDisplayedRowAt", () => {
 });
 
 suite.testUsingWebGL("drawCircuitCompletes_QuantumTeleportation", () => {
-    let teleportCircuit = CircuitDefinition.fromTextDiagram(
+    const teleportCircuit = CircuitDefinition.fromTextDiagram(
         new Map([
             ['X', Gates.HalfTurns.X],
             ['Z', Gates.HalfTurns.Z],
@@ -231,24 +231,24 @@ suite.testUsingWebGL("drawCircuitCompletes_QuantumTeleportation", () => {
         `------t@--•-H-M===•===
          -H-•------X---M=•=|===
          ---X------------X-Z-@-`);
-    let stats = CircuitStats.fromCircuitAtTime(teleportCircuit, 0.1);
-    let displayed = DisplayedCircuit.empty(0).withCircuit(teleportCircuit);
-    let canvas = /** @type {HTMLCanvasElement} */ document.createElement("canvas");
+    const stats = CircuitStats.fromCircuitAtTime(teleportCircuit, 0.1);
+    const displayed = DisplayedCircuit.empty(0).withCircuit(teleportCircuit);
+    const canvas = /** @type {HTMLCanvasElement} */ document.createElement("canvas");
     canvas.width = 1000;
     canvas.height = 1000;
-    let painter = new DisplayView(canvas, new RestartableRng());
+    const painter = new DisplayView(canvas, new RestartableRng());
 
     // We're just checking that this runs to completion without throwing an exception.
     displayed.paint(painter, Hand.EMPTY, stats);
 
     // And now a superfluous check to avoid the 'no assertions' warning.
-    let inputState = stats.qubitDensityMatrix(7, 0);
-    let outputState = stats.qubitDensityMatrix(Infinity, 2);
+    const inputState = stats.qubitDensityMatrix(7, 0);
+    const outputState = stats.qubitDensityMatrix(Infinity, 2);
     assertThat(outputState).isApproximatelyEqualTo(inputState);
 });
 
 suite.test("dragXIntoCNot", () => {
-    let drag = simulateDrag(`|
+    const drag = simulateDrag(`|
                              |-H-•-X-
                              |    0^
                              |-+3421-
@@ -276,17 +276,17 @@ suite.test("dragXIntoCNot", () => {
 });
 
 suite.test("resizeQft", () => {
-    let beforeGrab = DisplayedCircuit.empty(10).withCircuit(circuit(`Q
+    const beforeGrab = DisplayedCircuit.empty(10).withCircuit(circuit(`Q
         /
         -
         -`));
-    let tab = GatePainting.rectForResizeTab(beforeGrab.gateRect(0, 0, 1, 2));
-    let start = tab.center();
-    let {newCircuit: afterGrab, newHand} = beforeGrab.tryGrab(Hand.EMPTY.withPos(start));
-    let points = [start, start.plus(new Point(0, -Layout.WIRE_SPACING)),
+    const tab = GatePainting.rectForResizeTab(beforeGrab.gateRect(0, 0, 1, 2));
+    const start = tab.center();
+    const {newCircuit: afterGrab, newHand} = beforeGrab.tryGrab(Hand.EMPTY.withPos(start));
+    const points = [start, start.plus(new Point(0, -Layout.WIRE_SPACING)),
         start.plus(new Point(0, 2 * Layout.WIRE_SPACING))];
-    let afterDrop = afterGrab.afterDropping(newHand.withPos(points[2]));
-    let drag = {beforeGrab, afterGrab, afterDrop,
+    const afterDrop = afterGrab.afterDropping(newHand.withPos(points[2]));
+    const drag = {beforeGrab, afterGrab, afterDrop,
         hovers: points.map(pt => afterGrab.previewDrop(newHand.withPos(pt))),
         afterDropAndTidy: afterDrop.afterTidyingUp()};
 
@@ -322,7 +322,7 @@ suite.test("resizeQft", () => {
 });
 
 suite.test("dragQft", () => {
-    let drag = simulateDrag(`|
+    const drag = simulateDrag(`|
                              |-Q-
                              | 0
                              |-/-

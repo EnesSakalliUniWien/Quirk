@@ -28,7 +28,7 @@ import {Point} from "../../../src/geometry/Point.js"
 import {Serializer} from "../../../src/serialization/Serializer.js"
 import {Util} from "../../../src/base/Util.js"
 
-let suite = new Suite("CircuitDefinition");
+const suite = new Suite("CircuitDefinition");
 
 const X = Gates.HalfTurns.X;
 const Y = Gates.HalfTurns.Y;
@@ -90,22 +90,22 @@ function circuitDefinitionToGate(circ) {
 }
 
 suite.test("isEqualTo", () => {
-    let c1 = new CircuitDefinition(2, [
+    const c1 = new CircuitDefinition(2, [
         new GateColumn([_, H]),
         new GateColumn([X, C])
     ]);
-    let c2 = new CircuitDefinition(2, [
+    const c2 = new CircuitDefinition(2, [
         new GateColumn([_, H]),
         new GateColumn([X, C])
     ]);
-    let d1 = new CircuitDefinition(2, [
+    const d1 = new CircuitDefinition(2, [
         new GateColumn([_, X]),
         new GateColumn([X, C])
     ]);
-    let d2 = new CircuitDefinition(2, [
+    const d2 = new CircuitDefinition(2, [
         new GateColumn([_, H])
     ]);
-    let d3 = new CircuitDefinition(3, [
+    const d3 = new CircuitDefinition(3, [
         new GateColumn([_, X, _]),
         new GateColumn([X, C, _])
     ]);
@@ -142,8 +142,8 @@ suite.test("fromTextDiagram", () => {
         -Z
         `)).isEqualTo(new CircuitDefinition(3, [new GateColumn([_, _, _]), new GateColumn([C, _, Z])]));
 
-    let qftFamily = Gates.FourierTransformGates.FourierTransformFamily;
-    let qftMap = new Map([['Q', qftFamily], ['-', undefined], ['/', null]]);
+    const qftFamily = Gates.FourierTransformGates.FourierTransformFamily;
+    const qftMap = new Map([['Q', qftFamily], ['-', undefined], ['/', null]]);
     assertThat(CircuitDefinition.fromTextDiagram(qftMap, `Q`)).
         isEqualTo(new CircuitDefinition(1, [new GateColumn([qftFamily.ofSize(1)])]));
     assertThat(CircuitDefinition.fromTextDiagram(qftMap, `Q
@@ -401,8 +401,8 @@ suite.test("minimumRequiredColCount", () => {
 });
 
 suite.test("colIsMeasuredMask", () => {
-    let assertAbout = (diagram, ...extraGates) => {
-        let c = circuit(
+    const assertAbout = (diagram, ...extraGates) => {
+        const c = circuit(
             diagram,
             ['D', Gates.Detectors.ZDetector],
             ['R', Gates.Detectors.ZDetectControlClear],
@@ -468,8 +468,8 @@ suite.test("colIsMeasuredMask", () => {
 });
 
 suite.test("colDesiredSingleQubitStatsMask", () => {
-    let assertAbout = (diagram, ...extraGates) => {
-        let c = circuit(diagram, ...extraGates);
+    const assertAbout = (diagram, ...extraGates) => {
+        const c = circuit(diagram, ...extraGates);
         return assertThat(Array.from({length: c.columns.length + 3}, (_, i) => c.colDesiredSingleQubitStatsMask(i-1)));
     };
 
@@ -483,7 +483,7 @@ suite.test("colDesiredSingleQubitStatsMask", () => {
 });
 
 suite.test("nonUnitaryGates", () => {
-    let c = circuit(`-M-●-
+    const c = circuit(`-M-●-
                      --!--
                      ---X-`);
     assertFalse(c.hasOnlyUnitaryGates());
@@ -495,7 +495,7 @@ suite.test("nonUnitaryGates", () => {
 });
 
 suite.test("locIsMeasured", () => {
-    let c = circuit(`-M---
+    const c = circuit(`-M---
                      ---M-
                      --M--`);
     assertFalse(c.locIsMeasured(new Point(100, 100)));
@@ -514,7 +514,7 @@ suite.test("locIsMeasured", () => {
 });
 
 suite.test("gateInSlot", () => {
-    let c = circuit(`ZXY--
+    const c = circuit(`ZXY--
                      -#/%-
                      -//●-`);
 
@@ -538,7 +538,7 @@ suite.test("gateInSlot", () => {
 });
 
 suite.test("findGateCoveringSlot", () => {
-    let c = circuit(`ZXY--
+    const c = circuit(`ZXY--
                      -#/%-
                      -//●-`);
 
@@ -567,7 +567,7 @@ suite.test("findGateCoveringSlot", () => {
 });
 
 suite.test("colControls", () => {
-    let c = circuit(`-●-○-⊖⊗⊕-M-⊕⊗⊖-○-●-`);
+    const c = circuit(`-●-○-⊖⊗⊕-M-⊕⊗⊖-○-●-`);
     assertThat(c.colControls(-1)).isEqualTo(Controls.NONE);
     assertThat(c.colControls(0)).isEqualTo(Controls.NONE);
     assertThat(c.colControls(1)).isEqualTo(Controls.bit(0, true));
@@ -583,7 +583,7 @@ suite.test("colControls", () => {
     assertThat(c.colControls(17)).isEqualTo(Controls.bit(0, true));
     assertThat(c.colControls(102)).isEqualTo(Controls.NONE);
 
-    let c2 = circuit(`--●○○-P-
+    const c2 = circuit(`--●○○-P-
                       -X○●s-P-
                       ---s●-X-`, ['P', Gates.Controls.ZParityControl]);
     assertThat(c2.colControls(0)).isEqualTo(Controls.NONE);
@@ -597,7 +597,7 @@ suite.test("colControls", () => {
 });
 
 suite.test("locIsControlWireStarter", () => {
-    let c = circuit(`Z●Y--
+    const c = circuit(`Z●Y--
                      -#/%○
                      -/○●-`);
 
@@ -626,7 +626,7 @@ suite.test("locIsControlWireStarter", () => {
 });
 
 suite.test("locStartsSingleControlWire", () => {
-    let c = circuit(`-M-●-
+    const c = circuit(`-M-●-
                      -M-○-
                      ---●-
                      ---○-
@@ -648,7 +648,7 @@ suite.test("locStartsSingleControlWire", () => {
 });
 
 suite.test("locStartsDoubleControlWire", () => {
-    let c = circuit(`-M-●-
+    const c = circuit(`-M-●-
                      -M-○-
                      ---●-
                      ---○-
@@ -670,7 +670,7 @@ suite.test("locStartsDoubleControlWire", () => {
 });
 
 suite.test("colGetEnabledSwapGate", () => {
-    let c = circuit(`-s-●-s-●-●
+    const c = circuit(`-s-●-s-●-●
                      --ss---sMs
                      --X-ss-s-s
                      ----s-----
@@ -692,7 +692,7 @@ suite.test("colGetEnabledSwapGate", () => {
 });
 
 suite.test("locHasControllableGate", () => {
-    let c = circuit(`●H-M-H-X-----
+    const c = circuit(`●H-M-H-X-----
                      -%-.--s------
                      ------s-s----`);
 
@@ -725,7 +725,7 @@ suite.test("locHasControllableGate", () => {
 });
 
 suite.test("colHasControls", () => {
-    let c = circuit(`-●-●----
+    const c = circuit(`-●-●----
                      M-○-X-●-
                      ---○----`);
 
@@ -743,7 +743,7 @@ suite.test("colHasControls", () => {
 });
 
 suite.test("colHasSingleWireControl", () => {
-    let c = circuit(`-●-●----
+    const c = circuit(`-●-●----
                      M-○-X-●-
                      ---○----`);
 
@@ -761,7 +761,7 @@ suite.test("colHasSingleWireControl", () => {
 });
 
 suite.test("colHasDoubleWireControl", () => {
-    let c = circuit(`-●-●----
+    const c = circuit(`-●-●----
                      M-○-X-●-
                      ---○----`);
 
@@ -779,9 +779,9 @@ suite.test("colHasDoubleWireControl", () => {
 });
 
 suite.test("gateAtLocIsDisabledReason", () => {
-    let bad = (col, row, diagram, ...extraGates) =>
+    const bad = (col, row, diagram, ...extraGates) =>
         assertThat(circuit(diagram, ...extraGates).gateAtLocIsDisabledReason(col, row)).withInfo({diagram}).isNotEqualTo(undefined);
-    let good = (col, row, diagram, ...extraGates) =>
+    const good = (col, row, diagram, ...extraGates) =>
         assertThat(circuit(diagram, ...extraGates).gateAtLocIsDisabledReason(col, row)).withInfo({diagram}).isEqualTo(undefined);
 
     good(-100, 0, `-`);
@@ -975,9 +975,9 @@ suite.test("gateAtLocIsDisabledReason", () => {
 suite.test("gateAtLocIsDisabledReason_controls", () => {
     assertThat(circuit(`-●-○-⊖-⊕-M-⊕-⊖-○-●-`)).isNotEqualTo(undefined);
 
-    let bad = (col, row, diagram) =>
+    const bad = (col, row, diagram) =>
         assertThat(circuit(diagram).gateAtLocIsDisabledReason(col, row)).isNotEqualTo(undefined);
-    let good = (col, row, diagram) =>
+    const good = (col, row, diagram) =>
         assertThat(circuit(diagram).gateAtLocIsDisabledReason(col, row)).isEqualTo(undefined);
 
     good(1, 1, `---
@@ -1020,9 +1020,9 @@ suite.test("gateAtLocIsDisabledReason_tagCollision", () => {
      * @param {!string} diagram
      * @param {![!string, !Gate]} extraGates
      */
-    let bad = (col, row, diagram, ...extraGates) =>
+    const bad = (col, row, diagram, ...extraGates) =>
         assertThat(circuit(diagram, ...extraGates).gateAtLocIsDisabledReason(col, row)).isNotEqualTo(undefined);
-    let good = (col, row, diagram, ...extraGates) =>
+    const good = (col, row, diagram, ...extraGates) =>
         assertThat(circuit(diagram, ...extraGates).gateAtLocIsDisabledReason(col, row)).isEqualTo(undefined);
 
     good(1, 1, `---
@@ -1055,18 +1055,18 @@ suite.test("gateAtLocIsDisabledReason_tagCollision", () => {
 });
 
 suite.test("gateAtLocIsDisabledReason_needInput", () => {
-    let ownExtraGates = [
+    const ownExtraGates = [
         ['*', Gates.MultiplyAccumulateGates.MultiplyAddInputsFamily],
         ['⩲', Gates.Arithmetic.PlusAFamily],
         ['⨧', Gates.Arithmetic.PlusAFamily.ofSize(2)],
         ['?', Gates.InputGates.InputAFamily.ofSize(2)]
     ];
-    let bad = (col, row, diagram, ...extraGates) =>
+    const bad = (col, row, diagram, ...extraGates) =>
         assertThat(circuit(
             diagram,
             ...ownExtraGates,
             ...extraGates).gateAtLocIsDisabledReason(col, row)).isNotEqualTo(undefined);
-    let good = (col, row, diagram, ...extraGates) =>
+    const good = (col, row, diagram, ...extraGates) =>
         assertThat(circuit(
             diagram,
             ...ownExtraGates,
@@ -1124,18 +1124,18 @@ suite.test("gateAtLocIsDisabledReason_needInput", () => {
 });
 
 suite.test("gateAtLocIsDisabledReason_tagWithWrongCoherence", () => {
-    let ownExtraGates = [
+    const ownExtraGates = [
         ['*', Gates.MultiplyAccumulateGates.MultiplyAddInputsFamily],
         ['⩲', Gates.Arithmetic.PlusAFamily],
         ['⨧', Gates.Arithmetic.PlusAFamily.ofSize(2)],
         ['?', Gates.InputGates.InputAFamily.ofSize(2)]
     ];
-    let bad = (col, row, diagram, ...extraGates) =>
+    const bad = (col, row, diagram, ...extraGates) =>
         assertThat(circuit(
             diagram,
             ...ownExtraGates,
             ...extraGates).gateAtLocIsDisabledReason(col, row)).isNotEqualTo(undefined);
-    let good = (col, row, diagram, ...extraGates) =>
+    const good = (col, row, diagram, ...extraGates) =>
         assertThat(circuit(
             diagram,
             ...ownExtraGates,
@@ -1227,13 +1227,13 @@ suite.test("gateAtLocIsDisabledReason_tagWithWrongCoherence", () => {
 });
 
 suite.test("getUnmetContextKeys", () => {
-    let ownExtraGates = [
+    const ownExtraGates = [
         ['⩲', Gates.Arithmetic.PlusAFamily],
         ['*', Gates.MultiplyAccumulateGates.MultiplyAddInputsFamily],
         ['x', Gates.ParametrizedRotationGates.XToA],
         ['a', Gates.InputGates.SetA]
     ];
-    let query = (diagram, ...extraGates) => circuit(
+    const query = (diagram, ...extraGates) => circuit(
         diagram,
         ...ownExtraGates,
         ...extraGates).getUnmetContextKeys();
@@ -1271,9 +1271,9 @@ suite.test("getUnmetContextKeys", () => {
 });
 
 suite.test("gateAtLocIsDisabledReason_multiwireOperations", () => {
-    let bad = (col, row, diagram, ...extraGates) =>
+    const bad = (col, row, diagram, ...extraGates) =>
         assertThat(circuit(diagram, ...extraGates).gateAtLocIsDisabledReason(col, row)).isNotEqualTo(undefined);
-    let good = (col, row, diagram, ...extraGates) =>
+    const good = (col, row, diagram, ...extraGates) =>
         assertThat(circuit(diagram, ...extraGates).gateAtLocIsDisabledReason(col, row)).isEqualTo(undefined);
 
     bad(1, 1, `---
@@ -1326,7 +1326,7 @@ suite.test("withSwitchedInitialStateOn", () => {
 });
 
 suite.test("colCustomContextFromGates", () => {
-    let c = circuit(`-A-B-
+    const c = circuit(`-A-B-
                      -A-A-
                      --X--`);
     assertThat(c.colCustomContextFromGates(-10, 0)).isEqualTo(new Map());
@@ -1398,7 +1398,7 @@ suite.test("controlLineRanges", () => {
                                     -●-P---●-M=●=●=A=A=`, ['P', Gates.Arithmetic.PlusAFamily]);
 
     // Custom circuit gate containing outputs.
-    let N = circuitDefinitionToGate(circuit(`-P-`, ['P', Gates.Arithmetic.PlusAFamily]));
+    const N = circuitDefinitionToGate(circuit(`-P-`, ['P', Gates.Arithmetic.PlusAFamily]));
     assertControlLinesMatchDiagram(`-A-A-A---A-N-
                                        | |   | ┃
                                     ---N-N---N-A-
@@ -1406,7 +1406,7 @@ suite.test("controlLineRanges", () => {
                                     -●---●-M=●=●=`, ['N', N]);
 
     // Custom circuit gate containing inputs.
-    let I = circuitDefinitionToGate(circuit(`-A-`));
+    const I = circuitDefinitionToGate(circuit(`-A-`));
     assertControlLinesMatchDiagram(`-I-I-I---I-P-
                                      |   |   ║ ║
                                     -+-P-P---P-I-
@@ -1414,12 +1414,12 @@ suite.test("controlLineRanges", () => {
                                     -●---●-M=●=●=`, ['P', Gates.Arithmetic.PlusAFamily], ['I', I]);
 
     // Custom matrix operations.
-    let customIdentityGate = Serializer.fromJson(Gate, {
+    const customIdentityGate = Serializer.fromJson(Gate, {
         id: "~stay",
         name: "id",
         matrix: "{{1,0},{0,1}}"
     });
-    let customOtherGate = Serializer.fromJson(Gate, {
+    const customOtherGate = Serializer.fromJson(Gate, {
         id: "~jump",
         name: "id",
         matrix: "{{1,0},{0,i}}"
@@ -1434,15 +1434,15 @@ suite.test("controlLineRanges", () => {
  * @param {...[!string, !Gate]} extraGates
  */
 function assertControlLinesMatchDiagram(diagram, ...extraGates) {
-    let lines = diagram.split('\n');
-    let indentation = lines[2].search(/\S/);
-    let even = (_, i) => i % 2 === 0;
-    let c = circuit(lines.filter(even).join('\n'), ...extraGates);
-    let controlLines = lines.
+    const lines = diagram.split('\n');
+    const indentation = lines[2].search(/\S/);
+    const even = (_, i) => i % 2 === 0;
+    const c = circuit(lines.filter(even).join('\n'), ...extraGates);
+    const controlLines = lines.
         filter((_, i) => i % 2 === 1).
-        map(e => e.substring(indentation)).
+        map(e => e.slice(Math.max(0, indentation))).
         map(e => {
-            let codes = [...e].map(ch => ch === '┃' ? 3 :
+            const codes = [...e].map(ch => ch === '┃' ? 3 :
                                          ch === '║' ? 2 :
                                          ch === '|' || ch === '│' ? 1 :
                                          0);
@@ -1453,8 +1453,8 @@ function assertControlLinesMatchDiagram(diagram, ...extraGates) {
         });
 
     for (let col = 0; col < c.columns.length; col++) {
-        let diagramColControlLines = new Array(c.numWires - 1).fill(0);
-        for (let {first, last, measured} of c.controlLinesRanges(col)) {
+        const diagramColControlLines = new Array(c.numWires - 1).fill(0);
+        for (const {first, last, measured} of c.controlLinesRanges(col)) {
             for (let i = first; i < last; i++) {
                 diagramColControlLines[i] |= measured ? 2 : 1;
             }

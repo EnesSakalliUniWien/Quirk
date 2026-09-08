@@ -24,12 +24,12 @@ import {Rect} from '../../../geometry/Rect.js';
 import {Point} from '../../../geometry/Point.js';
 
 function projectPoint(x, y, z, yaw, pitch) {
-    let cy = Math.cos(yaw);
-    let sy = Math.sin(yaw);
-    let right = -x * sy + y * cy;
-    let toward = x * cy + y * sy;
-    let cp = Math.cos(pitch);
-    let sp = Math.sin(pitch);
+    const cy = Math.cos(yaw);
+    const sy = Math.sin(yaw);
+    const right = -x * sy + y * cy;
+    const toward = x * cy + y * sy;
+    const cp = Math.cos(pitch);
+    const sp = Math.sin(pitch);
     return {
         sx: right,
         sy: z * cp + toward * sp,

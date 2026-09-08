@@ -162,7 +162,7 @@ function outputArgsFor(texture) {
  * @returns {!ShaderPart}
  */
 function boolInputPartGetter(name) {
-  let pre = `_gen_${name}`;
+  const pre = `_gen_${name}`;
   return new ShaderPart(
     `
         ///////////// boolInput(${name}) ////////////

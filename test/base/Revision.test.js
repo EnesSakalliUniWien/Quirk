@@ -17,7 +17,7 @@
 import {Suite, assertThat, assertThrows, assertTrue, assertFalse} from "../TestUtil.js"
 import {Revision} from "../../src/base/Revision.js"
 
-let suite = new Suite("Revision");
+const suite = new Suite("Revision");
 
 suite.test("constructor_isEqualTo", () => {
     assertThrows(() => new Revision([], 0, false));
@@ -25,7 +25,7 @@ suite.test("constructor_isEqualTo", () => {
     assertThrows(() => new Revision(["a"], 1, false));
     assertThrows(() => new Revision(["a", "b"], 2, false));
 
-    let r = new Revision(["a", "b", "c"], 1, true);
+    const r = new Revision(["a", "b", "c"], 1, true);
     assertThat(r).isEqualTo(new Revision(["a", "b", "c"], 1, true));
     assertThat(r).isNotEqualTo(new Revision(["a", "b"], 1, true));
     assertThat(r).isNotEqualTo(new Revision(["a", "b", "d"], 1, true));
@@ -34,7 +34,7 @@ suite.test("constructor_isEqualTo", () => {
     assertThat(r).isNotEqualTo(undefined);
     assertThat(r).isNotEqualTo(5);
 
-    let groups = [
+    const groups = [
         [
             new Revision(["a"], 0, false),
             new Revision(["a"], 0, false)
@@ -56,10 +56,10 @@ suite.test("constructor_isEqualTo", () => {
             new Revision(["b", "a"], 1, false)
         ]
     ];
-    for (let g1 of groups) {
-        for (let g2 of groups) {
-            for (let e1 of g1) {
-                for (let e2 of g2) {
+    for (const g1 of groups) {
+        for (const g2 of groups) {
+            for (const e1 of g1) {
+                for (const e2 of g2) {
                     if (g1 === g2) {
                         assertThat(e1).isEqualTo(e2);
                     } else {
@@ -245,9 +245,9 @@ suite.test("commit", () => {
 });
 
 suite.test("changes", () => {
-    let r = Revision.startingAt('abc');
-    let a = [];
-    let s = r.changes().subscribe(e => a.push(e));
+    const r = Revision.startingAt('abc');
+    const a = [];
+    const s = r.changes().subscribe(e => a.push(e));
     assertThat(a).isEqualTo([]);
     r.commit('123');
     assertThat(a).isEqualTo(['123']);
@@ -271,9 +271,9 @@ suite.test("changes", () => {
 });
 
 suite.test("latestActiveCommit", () => {
-    let r = Revision.startingAt('abc');
-    let a = [];
-    let s = r.latestActiveCommit().subscribe(e => a.push(e));
+    const r = Revision.startingAt('abc');
+    const a = [];
+    const s = r.latestActiveCommit().subscribe(e => a.push(e));
     assertThat(a).isEqualTo(['abc']);
     r.commit('123');
     assertThat(a).isEqualTo(['abc', '123']);

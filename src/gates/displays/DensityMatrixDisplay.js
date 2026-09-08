@@ -15,7 +15,8 @@
  */
 
 import {CircuitShaders} from "../../engine/simulation/gpu/CircuitShaders.js"
-import {Gate, GateBuilder} from "../../circuit/model/Gate.js"
+/** @typedef {import("../../circuit/model/Gate.js").GateBuilder} GateBuilder */
+import {Gate} from "../../circuit/model/Gate.js"
 import {GatePainting} from "../../draw/gate/GatePainting.js"
 import {GateShaders} from "../../engine/simulation/gpu/GateShaders.js"
 import {paintDensityMatrix} from "../../draw/pixi/displays/DensityMatrixView.js"
@@ -23,7 +24,7 @@ import {Matrix} from "../../engine/math/matrix/Matrix.js"
 import {Shaders} from "../../engine/webgl/shader/Shaders.js"
 import {Util} from "../../base/Util.js"
 import {WglArg} from "../../engine/webgl/shader/WglArg.js"
-import {WglConfiguredShader} from "../../engine/webgl/shader/WglConfiguredShader.js"
+/** @typedef {import("../../engine/webgl/shader/WglConfiguredShader.js").WglConfiguredShader} WglConfiguredShader */
 import {
     Inputs,
     Outputs,
@@ -42,13 +43,13 @@ import {WglTextureTrader} from "../../engine/webgl/texture/WglTextureTrader.js"
  * @returns {!WglTexture}
  */
 function densityDisplayStatTexture(inp, qubitCount, controls, rangeOffset, rangeLength) {
-    let trader = new WglTextureTrader(inp);
+    const trader = new WglTextureTrader(inp);
     trader.dontDeallocCurrentTexture();
 
     // Put into normal form by throwing away areas not satisfying the controls and cycling the offset away.
-    let startingQubits = currentShaderCoder().vec2.arrayPowerSizeOfTexture(inp);
-    let lostQubits = Util.numberOfSetBits(controls.inclusionMask);
-    let lostHeadQubits = Util.numberOfSetBits(controls.inclusionMask & ((1<<rangeOffset)-1));
+    const startingQubits = currentShaderCoder().vec2.arrayPowerSizeOfTexture(inp);
+    const lostQubits = Util.numberOfSetBits(controls.inclusionMask);
+    const lostHeadQubits = Util.numberOfSetBits(controls.inclusionMask & ((1<<rangeOffset)-1));
     trader.shadeAndTrade(
             ket => CircuitShaders.controlSelect(controls, ket),
         WglTexturePool.takeVec2Tex(startingQubits - lostQubits));
@@ -75,7 +76,7 @@ function densityDisplayStatTexture(inp, qubitCount, controls, rangeOffset, range
  * @param {!int} qubitSpan
  * @returns {!WglConfiguredShader}
  */
-let amplitudesToCouplings = (inputTexture, qubitSpan) => AMPLITUDES_TO_DENSITIES_SHADER(
+const amplitudesToCouplings = (inputTexture, qubitSpan) => AMPLITUDES_TO_DENSITIES_SHADER(
     inputTexture,
     WglArg.float('qubitSpan', 1 << qubitSpan));
 const AMPLITUDES_TO_DENSITIES_SHADER = makePseudoShaderWithInputsAndOutputAndCode(
@@ -109,12 +110,12 @@ function decohereMeasuredBitsInDensityMatrix(densityMatrix, isMeasuredMask) {
         return densityMatrix;
     }
 
-    let buf = new Float32Array(densityMatrix.rawBuffer());
-    let n = densityMatrix.width();
+    const buf = new Float32Array(densityMatrix.rawBuffer());
+    const n = densityMatrix.width();
     for (let row = 0; row < n; row++) {
         for (let col = 0; col < n; col++) {
             if (((row ^ col) & isMeasuredMask) !== 0) {
-                let k = (row*n + col)*2;
+                const k = (row*n + col)*2;
                 buf[k] = 0;
                 buf[k+1] = 0;
             }
@@ -132,20 +133,20 @@ function decohereMeasuredBitsInDensityMatrix(densityMatrix, isMeasuredMask) {
  * @returns {!Matrix}
  */
 function densityPixelsToMatrix(pixels, circuitDefinition, col, row) {
-    let n = pixels.length >> 1;
-    let d = Math.round(Math.sqrt(n));
+    const n = pixels.length >> 1;
+    const d = Math.round(Math.sqrt(n));
     let unity = 0;
     for (let i = 0; i < d; i++) {
         unity += pixels[2*i*(d+1)];
     }
-    if (isNaN(unity) || unity < 0.000001) {
+    if (Number.isNaN(unity) || unity < 0.000001) {
         return Matrix.zero(d, d).times(NaN);
     }
     for (let i = 0; i < pixels.length; i++) {
         pixels[i] /= unity;
     }
 
-    let isMeasuredMask = circuitDefinition.colIsMeasuredMask(col) >> row;
+    const isMeasuredMask = circuitDefinition.colIsMeasuredMask(col) >> row;
     return decohereMeasuredBitsInDensityMatrix(new Matrix(d, d, pixels), isMeasuredMask).transpose();
 }
 
@@ -172,8 +173,8 @@ function singleDensityMatrixDisplayMaker(builder) {
         setSerializedId("Density").
         markAsDrawerNeedsSingleQubitDensityStats().
         setDrawer(GatePainting.makeDisplayDrawer(args => {
-            let {col, row} = args.positionInCircuit;
-            let ρ = args.stats.qubitDensityMatrix(col, row).transpose();
+            const {col, row} = args.positionInCircuit;
+            const ρ = args.stats.qubitDensityMatrix(col, row).transpose();
             paintDensityMatrix(args.painter, ρ, args.rect, args.focusPoints);
         }));
 }
@@ -200,12 +201,12 @@ function largeDensityMatrixDisplayMaker(span, builder) {
  * @param {!GateDrawParams} args
  */
 const DENSITY_MATRIX_DRAWER_FROM_CUSTOM_STATS = GatePainting.makeDisplayDrawer(args => {
-    let n = args.gate.height;
-    let ρ = args.customStats || Matrix.zero(1<<n, 1<<n).times(NaN);
+    const n = args.gate.height;
+    const ρ = args.customStats || Matrix.zero(1<<n, 1<<n).times(NaN);
     paintDensityMatrix(args.painter, ρ, args.rect, args.focusPoints);
 });
 
-let DensityMatrixDisplayFamily = Gate.buildFamily(1, 8, (span, builder) =>
+const DensityMatrixDisplayFamily = Gate.buildFamily(1, 8, (span, builder) =>
     span === 1 ?
         singleDensityMatrixDisplayMaker(builder) :
         largeDensityMatrixDisplayMaker(span, builder));

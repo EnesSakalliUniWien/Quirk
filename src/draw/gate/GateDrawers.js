@@ -53,7 +53,7 @@ const LABEL_DRAWER = args => {
         return;
     }
 
-    let cut = Math.max(0, args.rect.h - Layout.GATE_RADIUS*2)/2;
+    const cut = Math.max(0, args.rect.h - Layout.GATE_RADIUS*2)/2;
     rectangle(args.painter, args.rect.skipTop(cut).skipBottom(cut), {fill: CanvasTheme.surface.gate});
 
     paintGateSymbol(args);
@@ -79,14 +79,14 @@ const LOCATION_INDEPENDENT_GATE_DRAWER = makeLocationIndependentGateDrawer(Canva
  * @returns {!function(!GateDrawParams)}
  */
 const SECTIONED_DRAWER_MAKER = (labels, dividers) => args => {
-    let backColor = args.isHighlighted ? CanvasTheme.gate.hover : CanvasTheme.surface.gate;
+    const backColor = args.isHighlighted ? CanvasTheme.gate.hover : CanvasTheme.surface.gate;
     rectangle(args.painter, args.rect, {fill: backColor});
     let p = 0;
     for (let i = 0; i < labels.length; i++) {
         let p2;
         if (i < labels.length - 1) {
             p2 = p + dividers[i];
-            let cy = args.rect.y + args.rect.h*p2;
+            const cy = args.rect.y + args.rect.h*p2;
             strokePath(args.painter, [new Point(args.rect.x, cy), new Point(args.rect.right(), cy)],
                 CanvasTheme.stroke.faint, 1);
         } else {
@@ -134,7 +134,7 @@ const makeDisplayDrawer = statePainter => args => {
  * @param {!GateDrawParams} args
  */
 const MATRIX_DRAWER = args => {
-    let m = args.gate.knownMatrixAt(args.stats.time);
+    const m = args.gate.knownMatrixAt(args.stats.time);
     if (m === undefined) {
         DEFAULT_DRAWER(args);
         return;
@@ -168,9 +168,9 @@ const MATRIX_DRAWER = args => {
  * @param {!number=} zeroAngle
  */
 function paintCycleState(args, angle, xScale = 1, yScale = 1, zeroAngle = 0) {
-    let t = Util.properMod(-angle, 2 * Math.PI);
-    let c = args.rect.center();
-    let r = 16;
+    const t = Util.properMod(-angle, 2 * Math.PI);
+    const c = args.rect.center();
+    const r = 16;
 
     args.painter.group('cycle-' + args.painter.order, painter => {
         painter.position.set(c.x, c.y);

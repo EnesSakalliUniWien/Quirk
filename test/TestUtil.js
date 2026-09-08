@@ -51,8 +51,8 @@ export function fail(message) {
  */
 function sanityCheck(subject) {
     if (subject instanceof Map) {
-        for (let k in subject) {
-            if (subject.hasOwnProperty(k)) {
+        for (const k in subject) {
+            if (Object.hasOwn(subject, k)) {
                 throw new Error(`Map has property 'map[${k}]' instead of entry 'map.get(${k})'. Probably a mistake.`)
             }
         }
@@ -75,7 +75,7 @@ function isApproximatelyEqualToHelper(subject, other, epsilon) {
         return subject.isApproximatelyEqualTo(other, epsilon);
     } else if (typeof subject === 'number') {
         return subject === other ||
-            (isNaN(subject) && isNaN(other)) ||
+            (Number.isNaN(subject) && Number.isNaN(other)) ||
             (typeof other === 'number' && Math.abs(subject - other) < epsilon);
     } else if (isArrayIsh(subject)) {
         if (!isArrayIsh(other) || other.length !== subject.length) {
@@ -105,23 +105,23 @@ function isApproximatelyEqualToHelper(subject, other, epsilon) {
  * @private
  */
 function isApproximatelyEqualToHelperDestructured(subject, other, epsilon) {
-    let keys = [];
-    for (let subjectKey in subject) {
-        if (subject.hasOwnProperty(subjectKey)) {
+    const keys = [];
+    for (const subjectKey in subject) {
+        if (Object.hasOwn(subject, subjectKey)) {
             keys.push(subjectKey);
         }
     }
-    for (let otherKey in other) {
-        if (other.hasOwnProperty(otherKey) && !subject.hasOwnProperty(otherKey)) {
+    for (const otherKey in other) {
+        if (Object.hasOwn(other, otherKey) && !Object.hasOwn(subject, otherKey)) {
             return false;
         }
     }
 
-    return keys.every(key => other.hasOwnProperty(key) &&
+    return keys.every(key => Object.hasOwn(other, key) &&
         isApproximatelyEqualToHelper(subject[key], other[key], epsilon));
 }
 
-export class AssertionSubject {
+class AssertionSubject {
     /**
      * @param {*} subject
      * @param {*} id
@@ -160,8 +160,8 @@ export class AssertionSubject {
      * @private
      */
     _fail(message) {
-        let idMessage = this.id === undefined ? message : `${message} (${this.id})`;
-        let infoMessage = this.info === undefined ? idMessage : `${idMessage} (info: ${describe(this.info)})`;
+        const idMessage = this.id === undefined ? message : `${message} (${this.id})`;
+        const infoMessage = this.info === undefined ? idMessage : `${idMessage} (info: ${describe(this.info)})`;
         fail(infoMessage);
     }
 
@@ -169,8 +169,8 @@ export class AssertionSubject {
      * @private
      */
     _failExpected(relation, expected) {
-        let act = describe(this.subject);
-        let exp = describe(expected);
+        const act = describe(this.subject);
+        const exp = describe(expected);
         if (act.length + exp.length < 50) {
             this._fail(`Got <${act}> but expected it ${relation} <${exp}>.`);
         } else {
@@ -182,8 +182,8 @@ export class AssertionSubject {
      * @param {*} items
      */
     iteratesAs(...items) {
-        let actualItems = [];
-        for (let item of this.subject) {
+        const actualItems = [];
+        for (const item of this.subject) {
             if (actualItems.length > items.length * 2 + 100) {
                 actualItems.push("{...}");
                 break;
@@ -305,8 +305,8 @@ function isWebGLSupportPresent() {
     if (__webGLSupportPresent === undefined) {
         __webGLSupportPresent = false;
         if (window.WebGL2RenderingContext !== undefined) {
-            let canvas = document.createElement('canvas');
-            let ctx = canvas.getContext('webgl2');
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('webgl2');
             __webGLSupportPresent =
                 ctx instanceof WebGL2RenderingContext && ctx.getExtension('EXT_color_buffer_float') !== null;
         }
@@ -314,26 +314,26 @@ function isWebGLSupportPresent() {
     return __webGLSupportPresent;
 }
 
-let promiseImageDataFromSrc = src => {
-    let img = document.createElement('img');
+const promiseImageDataFromSrc = src => {
+    const img = document.createElement('img');
     img.src = src;
     return new Promise(resolve => { img.onload = resolve; }).then(() => {
-        let canvas = document.createElement('canvas');
+        const canvas = document.createElement('canvas');
         canvas.width = img.width;
         canvas.height = img.height;
-        let ctx = canvas.getContext("2d");
+        const ctx = canvas.getContext("2d");
         ctx.drawImage(img, 0, 0);
         return ctx.getImageData(0, 0, canvas.width, canvas.height);
     });
 };
 
-let meanSquaredError = (data1, data2) => {
+const meanSquaredError = (data1, data2) => {
     if (data1.length !== data2.length) {
         return false;
     }
     let err = 0;
     for (let i = 0; i < data1.length; i++) {
-        let e = data1[i] - data2[i];
+        const e = data1[i] - data2[i];
         err += e*e;
     }
     return err / data1.length;
@@ -373,7 +373,7 @@ export class Suite {
     test(name, method, later=false) {
         (later ? this.later_tests : this.tests).push([name, status => {
             assertionSubjectIndexForNextTest = 1;
-            let result = method(status);
+            const result = method(status);
             if (result === undefined && assertionSubjectIndexForNextTest === 1) {
                 console.warn(`No assertions in test '${name}' of suite '${this.name}'.`);
             }
@@ -387,18 +387,18 @@ export class Suite {
      */
     testUsingWebGL(name, method) {
         this.test(name, status => {
-            let caseName = name;
+            const caseName = name;
             if (!isWebGLSupportPresent()) {
-                let msg = `Skipping ${this.name}.${caseName} due to lack of WebGL support.`;
+                const msg = `Skipping ${this.name}.${caseName} due to lack of WebGL support.`;
                 console.warn(msg);
                 status.log.push(msg);
                 assertThat(undefined); // Cancel 'no assertion' warning.
                 return;
             }
 
-            let preTexCount = WglTexturePool.getUnReturnedTextureCount();
+            const preTexCount = WglTexturePool.getUnReturnedTextureCount();
             method(status);
-            let gain = WglTexturePool.getUnReturnedTextureCount() - preTexCount;
+            const gain = WglTexturePool.getUnReturnedTextureCount() - preTexCount;
             if (gain > 0) {
                 throw new DetailedError("Unreturned textures.", {unreturned_increase: gain});
             }
@@ -430,19 +430,19 @@ export class Suite {
      */
     canvasAppearanceTest(name, width, height, method, expectedSrc, tolerance = 256) {
         this.test(name, async status => {
-            let actualCanvas = /** @type {!HTMLCanvasElement} */ document.createElement("canvas");
+            const actualCanvas = /** @type {!HTMLCanvasElement} */ document.createElement("canvas");
             actualCanvas.width = width;
             actualCanvas.height = height;
             await method(actualCanvas, status);
-            let actualData = await scenePixels(actualCanvas);
+            const actualData = await scenePixels(actualCanvas);
 
             return promiseImageDataFromSrc(expectedSrc).then(expectedData => {
-                let mse = meanSquaredError(actualData.data, expectedData.data);
+                const mse = meanSquaredError(actualData.data, expectedData.data);
                 if (expectedData.width !== actualData.width ||
                     expectedData.height !== actualData.height ||
                     mse > tolerance) {
 
-                    let actualSrc = actualCanvas.toDataURL("image/png");
+                    const actualSrc = actualCanvas.toDataURL("image/png");
                     fail(`Drawn image <\n\n${actualSrc}\n\n> differed with MSE=${mse} from <\n${expectedSrc}\n>.`);
                 }
 

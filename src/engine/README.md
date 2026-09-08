@@ -8,7 +8,6 @@ circuit model with the catalogue's gates, so it imports `src/circuit/`, `src/gat
 
 ```text
 engine/
-├── index.js        the engine namespace: re-exports the entry points below
 ├── math/           pure numerics: complex numbers, formulas, matrices (see math/README.md)
 ├── webgl/          the WebGL backend: context/, shader/, texture/, coder/ (see webgl/README.md)
 └── simulation/     circuit simulation on the backend

@@ -18,7 +18,7 @@ import {Suite, assertThat, assertThrows} from "../../../TestUtil.js"
 import {SHADER_CODER_FLOATS} from "../../../../src/engine/webgl/coder/FloatsShaderCoder.js"
 import {Shaders} from "../../../../src/engine/webgl/shader/Shaders.js"
 
-let suite = new Suite("FloatsShaderCoder");
+const suite = new Suite("FloatsShaderCoder");
 
 suite.testUsingWebGLFloatTextures("packed", () => {
     assertThat(SHADER_CODER_FLOATS.float.dataToPixels(new Float32Array([1, 2, 3, 4]))).isEqualTo(new Float32Array([
@@ -40,7 +40,7 @@ suite.testUsingWebGLFloatTextures("packed", () => {
 
 suite.testUsingWebGLFloatTextures("input_wrongType", () => {
     assertThrows(() => {
-        let tex = Shaders.data(new Uint8Array([0, 0, 0, 0])).toRawByteTexture(0);
+        const tex = Shaders.data(new Uint8Array([0, 0, 0, 0])).toRawByteTexture(0);
         try {
             SHADER_CODER_FLOATS.float.inputPartGetter('a').argsFor(tex);
         } finally {
@@ -49,7 +49,7 @@ suite.testUsingWebGLFloatTextures("input_wrongType", () => {
     });
 
     assertThrows(() => {
-        let tex = Shaders.data(new Uint8Array([0, 0, 0, 0])).toRawByteTexture(0);
+        const tex = Shaders.data(new Uint8Array([0, 0, 0, 0])).toRawByteTexture(0);
         try {
             SHADER_CODER_FLOATS.vec2.inputPartGetter('a').argsFor(tex);
         } finally {
@@ -58,7 +58,7 @@ suite.testUsingWebGLFloatTextures("input_wrongType", () => {
     });
 
     assertThrows(() => {
-        let tex = Shaders.data(new Uint8Array([0, 0, 0, 0])).toRawByteTexture(0);
+        const tex = Shaders.data(new Uint8Array([0, 0, 0, 0])).toRawByteTexture(0);
         try {
             SHADER_CODER_FLOATS.vec4.inputPartGetter('a').argsFor(tex);
         } finally {

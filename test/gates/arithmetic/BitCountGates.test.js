@@ -24,9 +24,9 @@ import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js
 import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
 import {Util} from "../../../src/base/Util.js"
 
-let suite = new Suite("BitCountGates");
+const suite = new Suite("BitCountGates");
 
-let GATE_SET = new Map([
+const GATE_SET = new Map([
     ['A', InputGates.InputAFamily],
     ['-', undefined],
     ['/', null],
@@ -46,7 +46,7 @@ suite.testUsingWebGL('PlusBitCountA', () => {
                  -/-`),
             false),
         Matrix.generateTransition(1<<5, i => {
-            let a = i & 7;
+            const a = i & 7;
             let t = (i >> 3) & 3;
             t += Util.numberOfSetBits(a);
             t &= 3;
@@ -66,7 +66,7 @@ suite.testUsingWebGL('MinusBitCountA', () => {
                  -/-`),
             false),
         Matrix.generateTransition(1<<5, i => {
-            let a = i & 7;
+            const a = i & 7;
             let t = (i >> 3) & 3;
             t -= Util.numberOfSetBits(a);
             t &= 3;

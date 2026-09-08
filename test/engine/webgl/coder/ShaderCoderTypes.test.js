@@ -20,18 +20,18 @@ import {BOOL_TYPE_CODER} from "../../../../src/engine/webgl/coder/ShaderCoderTyp
 import {combinedShaderPartsWithCode, shaderWithOutputPartAndArgs} from "../../../../src/engine/webgl/coder/ShaderCoders.js"
 import {Shaders} from "../../../../src/engine/webgl/shader/Shaders.js"
 
-let suite = new Suite("ShaderCoderTypes");
+const suite = new Suite("ShaderCoderTypes");
 
 suite.testUsingWebGLFloatTextures("boolInputs", () => {
-    let inp = BOOL_TYPE_CODER.inputPartGetter('a');
-    let shader = combinedShaderPartsWithCode([inp], `
+    const inp = BOOL_TYPE_CODER.inputPartGetter('a');
+    const shader = combinedShaderPartsWithCode([inp], `
         void main() {
             vec2 xy = gl_FragCoord.xy - vec2(0.5, 0.5);
             float k = xy.y * 4.0 + xy.x;
             fragColor = vec4(read_a(k), k, 0.0, 0.0);
         }`);
 
-    let tex = Shaders.data(new Uint8Array([255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 0, 0, 0])).toRawByteTexture(2);
+    const tex = Shaders.data(new Uint8Array([255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 0, 0, 0])).toRawByteTexture(2);
     assertThat(shader.withArgs(...inp.argsFor(tex)).readRawFloatOutputs(2)).isEqualTo(new Float32Array([
         1, 0, 0, 0,
         0, 1, 0, 0,
@@ -42,8 +42,8 @@ suite.testUsingWebGLFloatTextures("boolInputs", () => {
 });
 
 suite.testUsingWebGL("boolOutputs", () => {
-    let output = BOOL_TYPE_CODER.outputPart;
-    let shader = combinedShaderPartsWithCode([output], `
+    const output = BOOL_TYPE_CODER.outputPart;
+    const shader = combinedShaderPartsWithCode([output], `
         bool outputFor(float k) {
             return floor(mod(k + 0.5, 3.0)) == 1.0;
         }`);

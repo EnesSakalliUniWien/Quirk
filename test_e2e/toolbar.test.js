@@ -17,7 +17,7 @@
 // The app toolbar: the button row and the WAI-ARIA toolbar pattern.
 
 import assert from 'node:assert/strict';
-import {test, withQuirkPage, waitForQuirk, waitForCircuit, waitForDialog, currentCircuit, exportedCircuit, urlForCircuit, TEST_TIMEOUT_MILLIS} from './harness.js';
+import {test, withQuirkPage} from './harness.js';
 
 test('renders the circuit controls as a button toolbar', async browser => {
     await withQuirkPage(browser, {cols: [['H']]}, async page => {
@@ -95,7 +95,7 @@ test('renders the circuit controls as a button toolbar', async browser => {
             order.push(document.activeElement.id);
             press('Home');
             order.push(document.activeElement.id);
-            return {stopsOnLoad, order, lastEnabledId: enabled[enabled.length - 1].id,
+            return {stopsOnLoad, order, lastEnabledId: enabled.at(-1).id,
                     firstEnabledId: enabled[0].id};
         });
         assert.equal(roving.stopsOnLoad, 1, 'The toolbar must be a single tab stop.');

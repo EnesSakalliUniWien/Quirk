@@ -26,7 +26,7 @@ class CircuitActions {
      */
     constructor(revision, overlayState) {
         this._revision = revision;
-        let obsIsAnyOverlayShowing = overlayState.active().map(active => active !== undefined).whenDifferent();
+        const obsIsAnyOverlayShowing = overlayState.active().map(active => active !== undefined).whenDifferent();
         this._availability = revision.latestActiveCommit().zipLatest(
             obsIsAnyOverlayShowing,
             (state, overlayShowing) => ({
@@ -86,7 +86,7 @@ class CircuitActions {
  * @returns {!string}
  */
 function _emptyCircuitState(state) {
-    let value = JSON.parse(state);
+    const value = JSON.parse(state);
     value.cols = [];
     return JSON.stringify(value);
 }

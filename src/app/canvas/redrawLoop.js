@@ -69,8 +69,7 @@ function initRedrawLoop(canvas,
     // restarting it each frame, keeps them stable enough to read while still visibly noisy.
     const semiStableRng = (() => {
         const target = {cur: new RestartableRng()};
-        let cycleRng;
-        cycleRng = () => {
+                const cycleRng = () => {
             target.cur = new RestartableRng();
             setTimeout(cycleRng, Simulation.SEMI_STABLE_RANDOM_VALUE_LIFETIME_MILLIS*0.99);
         };
@@ -79,7 +78,6 @@ function initRedrawLoop(canvas,
     })();
 
     /** @type {!CooldownThrottle} */
-    let redrawThrottle;
     const scrollBlocker = new TouchScrollBlocker(canvasDiv);
     const redrawNow = () => {
         if (!hasStarted) {
@@ -90,13 +88,13 @@ function initRedrawLoop(canvas,
         if (displayed.get().hand.isHoldingSomething() && !shown.hand.isHoldingSomething()) {
             shown = shown.withHand(shown.hand.withHeldGateColumn(new GateColumn([]), new Point(0, 0)))
         }
-        let circuitDefinition = shown.displayedCircuit.circuitDefinition;
-        let stats = simulator.simulate(circuitDefinition);
+        const circuitDefinition = shown.displayedCircuit.circuitDefinition;
+        const stats = simulator.simulate(circuitDefinition);
         mostRecentStats.set(stats);
 
         // The canvas keeps showing the whole circuit; the playhead only says which column comes
         // next, and what the state looks like up to there.
-        let playheadStep = Math.min(playhead.step(), circuitDefinition.columns.length);
+        const playheadStep = Math.min(playhead.step(), circuitDefinition.columns.length);
         playheadStats.set({
             stats: playheadStep >= circuitDefinition.columns.length ?
                 stats :
@@ -104,24 +102,24 @@ function initRedrawLoop(canvas,
             wireCount: shown.displayedCircuit.importantWireCount()
         });
 
-        let size = desiredCanvasSizeFor(shown);
-        let pixelRatio = window.devicePixelRatio || 1;
-        let zoom = circuitZoom();
+        const size = desiredCanvasSizeFor(shown);
+        const pixelRatio = window.devicePixelRatio || 1;
+        const zoom = circuitZoom();
 
         // The canvas is a fixed viewport pinned to the container's visible corner: its CSS size
         // is the container's (an integer), and its backing store is that times the device pixel
         // ratio, so nothing is ever rescaled by a fractional pixel. The spacer under it carries
         // the content's extent, which is what actually scrolls.
-        let cssW = canvasDiv.clientWidth;
-        let cssH = canvasDiv.clientHeight;
-        let backingW = Math.round(cssW * pixelRatio);
-        let backingH = Math.round(cssH * pixelRatio);
+        const cssW = canvasDiv.clientWidth;
+        const cssH = canvasDiv.clientHeight;
+        const backingW = Math.round(cssW * pixelRatio);
+        const backingH = Math.round(cssH * pixelRatio);
         if (canvas.width !== backingW || canvas.height !== backingH) {
             canvas.width = backingW;
             canvas.height = backingH;
         }
-        let cssWidthStyle = cssW + 'px';
-        let cssHeightStyle = cssH + 'px';
+        const cssWidthStyle = cssW + 'px';
+        const cssHeightStyle = cssH + 'px';
         if (canvas.style.width !== cssWidthStyle || canvas.style.height !== cssHeightStyle) {
             canvas.style.width = cssWidthStyle;
             canvas.style.height = cssHeightStyle;
@@ -147,13 +145,13 @@ function initRedrawLoop(canvas,
             painter.interaction.cursor);
         canvas.style.cursor = painter.interaction.cursor || 'auto';
 
-        let dt = displayed.get().stableDuration();
+        const dt = displayed.get().stableDuration();
         if (dt < Infinity) {
             window.requestAnimationFrame(() => redrawThrottle.trigger());
         }
     };
 
-    redrawThrottle = new CooldownThrottle(redrawNow, Layout.REDRAW_COOLDOWN_MILLIS, 0.1, true);
+    const redrawThrottle = new CooldownThrottle(redrawNow, Layout.REDRAW_COOLDOWN_MILLIS, 0.1, true);
     window.addEventListener('resize', () => redrawThrottle.trigger(), false);
     // The container can resize without the window (the sidebar folding, the state table growing),
     // and the fixed viewport must follow it.
@@ -174,10 +172,10 @@ function initRedrawLoop(canvas,
     onCircuitZoomChanged(() => {
         // Keep the scene point at the viewport's center fixed while the zoom changes around it.
         // The spacer is rescaled first so the new scroll position isn't clamped to the old extent.
-        let factor = circuitZoom() / lastZoom;
+        const factor = circuitZoom() / lastZoom;
         lastZoom = circuitZoom();
-        spacer.style.width = (parseFloat(spacer.style.width) || 0) * factor + 'px';
-        spacer.style.height = (parseFloat(spacer.style.height) || 0) * factor + 'px';
+        spacer.style.width = (Number.parseFloat(spacer.style.width) || 0) * factor + 'px';
+        spacer.style.height = (Number.parseFloat(spacer.style.height) || 0) * factor + 'px';
         canvasDiv.scrollLeft = (canvasDiv.scrollLeft + canvasDiv.clientWidth / 2) * factor -
             canvasDiv.clientWidth / 2;
         canvasDiv.scrollTop = (canvasDiv.scrollTop + canvasDiv.clientHeight / 2) * factor -

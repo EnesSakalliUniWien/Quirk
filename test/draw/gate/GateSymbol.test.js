@@ -18,7 +18,7 @@ import {assertThat, Suite} from '../../TestUtil.js';
 import {fitGateSymbol, splitGateSymbol} from '../../../src/draw/gate/GateSymbol.js';
 import {Typography} from '../../../src/config/Typography.js';
 
-let suite = new Suite("GateSymbol");
+const suite = new Suite("GateSymbol");
 
 suite.test("splitGateSymbol_breaksAtArgumentOrNearestMiddle", () => {
     assertThat(splitGateSymbol("Rx(f(t))")).isEqualTo(["Rx", "(f(t))"]);
@@ -27,11 +27,11 @@ suite.test("splitGateSymbol_breaksAtArgumentOrNearestMiddle", () => {
 });
 
 suite.test("fitGateSymbol_stepsDownTheRampBeforeWrapping", () => {
-    let wide = fitGateSymbol("Z", 40);
+    const wide = fitGateSymbol("Z", 40);
     assertThat(wide.lines).isEqualTo(["Z"]);
     assertThat(wide.font.fontSize).isEqualTo(Typography.GATE_SYMBOL_FONT_SIZE);
 
-    let narrow = fitGateSymbol("Rz(f(t))", 20);
+    const narrow = fitGateSymbol("Rz(f(t))", 20);
     assertThat(narrow.lines).isEqualTo(["Rz", "(f(t))"]);
     assertThat(narrow.font.fontSize).isEqualTo(Typography.GATE_SYMBOL_MIN_FONT_SIZE);
 });

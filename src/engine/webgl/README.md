@@ -7,7 +7,6 @@ responsibility; a WebGPU backend would sit beside this directory with the same f
 
 ```text
 webgl/
-├── index.js                      the webgl namespace
 ├── context/                      the one shared GL context
 │   ├── issues.js                 creates the shared canvas and context, explains missing support
 │   ├── WglContext.js             wraps WebGL2RenderingContext with limits and lifetime tracking

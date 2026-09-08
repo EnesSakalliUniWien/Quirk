@@ -20,7 +20,7 @@ import {CircuitStats} from "../../../src/engine/simulation/CircuitStats.js"
 import {Gates} from "../../../src/gates/AllGates.js"
 import {stateTableRows} from "../../../src/app/dialogs/stateTable.js"
 
-let suite = new Suite("stateTable");
+const suite = new Suite("stateTable");
 
 const circuit = diagram => CircuitDefinition.fromTextDiagram(new Map([
     ['H', Gates.HalfTurns.H],
@@ -30,10 +30,10 @@ const circuit = diagram => CircuitDefinition.fromTextDiagram(new Map([
 ]), diagram);
 
 suite.test("lists the nonzero amplitudes of the output state", () => {
-    let stats = CircuitStats.fromCircuitAtTime(circuit(`H-
+    const stats = CircuitStats.fromCircuitAtTime(circuit(`H-
                                                         -X`), 0);
 
-    let {amplitudeCount, nonzeroCount, rows} = stateTableRows(stats, 2);
+    const {amplitudeCount, nonzeroCount, rows} = stateTableRows(stats, 2);
 
     assertThat(amplitudeCount).isEqualTo(4);
     assertThat(nonzeroCount).isEqualTo(2);
@@ -44,10 +44,10 @@ suite.test("lists the nonzero amplitudes of the output state", () => {
 });
 
 suite.test("reports the phase of each amplitude in degrees", () => {
-    let stats = CircuitStats.fromCircuitAtTime(circuit(`HZ
+    const stats = CircuitStats.fromCircuitAtTime(circuit(`HZ
                                                         -X`), 0);
 
-    let rows = stateTableRows(stats, 2).rows;
+    const rows = stateTableRows(stats, 2).rows;
 
     assertThat(rows.map(e => e.ket)).isEqualTo(['10', '11']);
     assertThat(rows.map(e => e.real)).isApproximatelyEqualTo([Math.sqrt(0.5), -Math.sqrt(0.5)], 0.001);
@@ -55,10 +55,10 @@ suite.test("reports the phase of each amplitude in degrees", () => {
 });
 
 suite.test("caps the rows without hiding how many there are", () => {
-    let stats = CircuitStats.fromCircuitAtTime(circuit(`H-
+    const stats = CircuitStats.fromCircuitAtTime(circuit(`H-
                                                         -H`), 0);
 
-    let {nonzeroCount, rows} = stateTableRows(stats, 2, 3);
+    const {nonzeroCount, rows} = stateTableRows(stats, 2, 3);
 
     assertThat(nonzeroCount).isEqualTo(4);
     assertThat(rows.length).isEqualTo(3);
@@ -66,10 +66,10 @@ suite.test("caps the rows without hiding how many there are", () => {
 });
 
 suite.test("a circuit that failed to simulate has no nonzero amplitudes", () => {
-    let stats = CircuitStats.withNanDataFromCircuitAtTime(circuit(`H-
+    const stats = CircuitStats.withNanDataFromCircuitAtTime(circuit(`H-
                                                                    -X`), 0);
 
-    let {amplitudeCount, nonzeroCount, rows} = stateTableRows(stats, 2);
+    const {amplitudeCount, nonzeroCount, rows} = stateTableRows(stats, 2);
 
     assertThat(amplitudeCount).isEqualTo(4);
     assertThat(nonzeroCount).isEqualTo(0);
@@ -78,10 +78,10 @@ suite.test("a circuit that failed to simulate has no nonzero amplitudes", () => 
 
 suite.test("pads out wires the simulator dropped because no gate touched them", () => {
     // Only wire 0 carries a gate, so the simulator returns a one-qubit state for a two-wire circuit.
-    let stats = CircuitStats.fromCircuitAtTime(circuit(`X-
+    const stats = CircuitStats.fromCircuitAtTime(circuit(`X-
                                                         --`), 0);
 
-    let {amplitudeCount, nonzeroCount, rows} = stateTableRows(stats, 2);
+    const {amplitudeCount, nonzeroCount, rows} = stateTableRows(stats, 2);
 
     assertThat(amplitudeCount).isEqualTo(4);
     assertThat(nonzeroCount).isEqualTo(1);

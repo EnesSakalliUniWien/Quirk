@@ -32,9 +32,9 @@ perfGoal(
   "Update inspector circuit",
   millis(4),
   ([oldInspector, newCircuit]) => {
-    let json = JSON.stringify(Serializer.toJson(newCircuit));
-    let empty = Serializer.fromJson(CircuitDefinition, { cols: [] });
-    let parsed = Serializer.fromJson(CircuitDefinition, JSON.parse(json));
+    const json = JSON.stringify(Serializer.toJson(newCircuit));
+    const empty = Serializer.fromJson(CircuitDefinition, { cols: [] });
+    const parsed = Serializer.fromJson(CircuitDefinition, JSON.parse(json));
     return oldInspector
       .withCircuitDefinition(parsed)
       .withCircuitDefinition(empty);
@@ -78,7 +78,7 @@ perfGoal(
     },
   ]) => {
     let inspector = DisplayedInspector.empty(new Rect(0, 0, 1000, 1000));
-    let dy = inspector.displayedCircuit.top - circuit.top;
+    const dy = inspector.displayedCircuit.top - circuit.top;
     inspector = inspector
       .withDisplayedCircuit(
         inspector.displayedCircuit.withCircuit(circuit.circuitDefinition),
@@ -90,7 +90,7 @@ perfGoal(
       .afterDropping();
     canvas.width = inspector.desiredWidth();
     canvas.height = inspector.desiredHeight();
-    let stats = CircuitStats.fromCircuitAtTime(
+    const stats = CircuitStats.fromCircuitAtTime(
       inspector.displayedCircuit.circuitDefinition,
       0,
     );
@@ -108,7 +108,7 @@ perfGoal(
   },
   [
     (() => {
-      let c = document.createElement("canvas");
+      const c = document.createElement("canvas");
       document.body.appendChild(c);
       return c;
     })(),

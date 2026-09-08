@@ -25,7 +25,7 @@ import { modulusTooBigChecker } from "./ModularIncrementGates.js";
 import { Util } from "../../base/Util.js";
 import { WglArg } from "../../engine/webgl/shader/WglArg.js";
 
-let ModularMultiplyAccumulateGates = {};
+const ModularMultiplyAccumulateGates = {};
 
 const MODULAR_MULTIPLY_ACCUMULATE_SHADER = ketShaderPermute(
   `

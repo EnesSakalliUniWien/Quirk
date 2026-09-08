@@ -24,9 +24,9 @@ import {GateBuilder} from '../../circuit/model/Gate.js';
 import {GatePainting} from '../../draw/gate/GatePainting.js';
 import {Matrix} from '../../engine/math/matrix/Matrix.js';
 
-let PostSelectionGates = {};
+const PostSelectionGates = {};
 
-let POST_SELECT_DRAWER = args => {
+const POST_SELECT_DRAWER = args => {
     if (args.isHighlighted) {
         GatePainting.DEFAULT_DRAWER(args);
     } else {
@@ -34,7 +34,7 @@ let POST_SELECT_DRAWER = args => {
         GatePainting.paintGateSymbol(args);
     }
 
-    let {x, y, w, h} = args.rect;
+    const {x, y, w, h} = args.rect;
     fitText(args.painter, "post-", {
         x: x + w / 2,
         y,

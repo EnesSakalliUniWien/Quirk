@@ -23,7 +23,7 @@ import {
 import { Util } from "../../base/Util.js";
 import { WglArg } from "../../engine/webgl/shader/WglArg.js";
 
-let ModularIncrementGates = {};
+const ModularIncrementGates = {};
 
 /**
  * @param {!string} inputKey
@@ -31,11 +31,11 @@ let ModularIncrementGates = {};
  * @param {!string=} modName
  * @returns {!function(!GateCheckArgs) : (undefined|!string)}
  */
-let modulusTooBigChecker =
+const modulusTooBigChecker =
   (inputKey, span, modName = "mod") =>
   (args) => {
-    let r = args.context.get("Input Range " + inputKey);
-    let d = args.context.get("Input Default " + inputKey);
+    const r = args.context.get("Input Range " + inputKey);
+    const d = args.context.get("Input Default " + inputKey);
     if (r !== undefined && r.length > span) {
       return `${modName}\ntoo\nbig`;
     }

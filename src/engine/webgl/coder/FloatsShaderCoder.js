@@ -32,15 +32,15 @@ import { WglArg } from "../shader/WglArg.js";
  * @returns {!ShaderPart}
  */
 function makeFloatCoderInput(vecSize, name) {
-  let type = ["float", "vec2", "vec3", "vec4"][vecSize - 1];
-  let pre = `_gen_${name}`;
+  const type = ["float", "vec2", "vec3", "vec4"][vecSize - 1];
+  const pre = `_gen_${name}`;
   return new ShaderPart(
     `
         ///////////// makeFloatCoderInput(${vecSize}, ${name}) ////////////
         uniform sampler2D ${pre}_tex;
 
         ${type} read_${name}(float k) {
-            return texelFetch(${pre}_tex, _gen_texelFor(${pre}_tex, k), 0).${"xyzw".substring(0, vecSize)};
+            return texelFetch(${pre}_tex, _gen_texelFor(${pre}_tex, k), 0).${"xyzw".slice(0, Math.max(0, vecSize))};
         }
 
         float len_${name}() {
@@ -65,8 +65,8 @@ function makeFloatCoderInput(vecSize, name) {
  * @returns {!ShaderPart}
  */
 function makeFloatCoderOutput(vecSize) {
-  let type = ["float", "vec2", "vec3", "vec4"][vecSize - 1];
-  let vIntoVec4 = [
+  const type = ["float", "vec2", "vec3", "vec4"][vecSize - 1];
+  const vIntoVec4 = [
     "vec4(v, 0.0, 0.0, 0.0)",
     "vec4(v.x, v.y, 0.0, 0.0)",
     "vec4(v.x, v.y, v.z, 0.0)",
@@ -91,7 +91,7 @@ function makeFloatCoderOutput(vecSize) {
  * @returns {!Float32Array}
  */
 function spreadFloatVec1(vec1Data) {
-  let result = new Float32Array(vec1Data.length << 2);
+  const result = new Float32Array(vec1Data.length << 2);
   for (let i = 0; i < vec1Data.length; i++) {
     result[4 * i] = vec1Data[i];
   }
@@ -103,7 +103,7 @@ function spreadFloatVec1(vec1Data) {
  * @returns {!Float32Array}
  */
 function spreadFloatVec2(vec2Data) {
-  let result = new Float32Array(vec2Data.length << 1);
+  const result = new Float32Array(vec2Data.length << 1);
   for (let i = 0; i * 2 < vec2Data.length; i++) {
     result[4 * i] = vec2Data[2 * i];
     result[4 * i + 1] = vec2Data[2 * i + 1];
@@ -116,7 +116,7 @@ function spreadFloatVec2(vec2Data) {
  * @returns {!Float32Array}
  */
 function unspreadFloatVec1(pixelData) {
-  let result = new Float32Array(pixelData.length >> 2);
+  const result = new Float32Array(pixelData.length >> 2);
   for (let i = 0; i < result.length; i++) {
     result[i] = pixelData[4 * i];
   }
@@ -128,7 +128,7 @@ function unspreadFloatVec1(pixelData) {
  * @returns {!Float32Array}
  */
 function unspreadFloatVec2(pixelData) {
-  let result = new Float32Array(pixelData.length >> 1);
+  const result = new Float32Array(pixelData.length >> 1);
   for (let i = 0; i * 2 < result.length; i++) {
     result[2 * i] = pixelData[4 * i];
     result[2 * i + 1] = pixelData[4 * i + 1];

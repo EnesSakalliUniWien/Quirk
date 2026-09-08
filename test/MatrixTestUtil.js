@@ -28,8 +28,8 @@ import {QubitMatrix} from "../src/engine/math/matrix/QubitMatrix.js"
  * @returns {!Array.<!Complex>}
  */
 function sqrts(z) {
-    let [r, i] = [z.real, z.imag];
-    let m = Math.sqrt(Math.sqrt(r * r + i * i));
+    const [r, i] = [z.real, z.imag];
+    const m = Math.sqrt(Math.sqrt(r * r + i * i));
     if (m === 0) {
         return [Complex.ZERO];
     }
@@ -37,8 +37,8 @@ function sqrts(z) {
         return [new Complex(0, m), new Complex(0, -m)];
     }
 
-    let a = z.phase() / 2;
-    let c = Complex.polar(m, a);
+    const a = z.phase() / 2;
+    const c = Complex.polar(m, a);
     return [c, c.times(-1)];
 }
 
@@ -64,9 +64,9 @@ function rootsOfQuadratic(a, b, c) {
         throw Error("Degenerate");
     }
 
-    let difs = sqrts(b.times(b).minus(a.times(c).times(4)));
-    let mid = b.times(-1);
-    let denom = a.times(2);
+    const difs = sqrts(b.times(b).minus(a.times(c).times(4)));
+    const mid = b.times(-1);
+    const denom = a.times(2);
     return difs.map(d => mid.minus(d).dividedBy(denom));
 }
 
@@ -87,8 +87,8 @@ function eigenDecomposition(m) {
     if (m.width() !== 2 || m.height() !== 2) {
         throw new Error("Not implemented: non-2x2 eigen decomposition");
     }
-    let [a, b, c, d] = cells2x2(m);
-    let vals = rootsOfQuadratic(Complex.ONE, a.plus(d).times(-1), a.times(d).minus(b.times(c)));
+    const [a, b, c, d] = cells2x2(m);
+    const vals = rootsOfQuadratic(Complex.ONE, a.plus(d).times(-1), a.times(d).minus(b.times(c)));
     if (vals.length === 0) {
         throw new Error("Degenerate");
     }
@@ -108,7 +108,7 @@ function eigenDecomposition(m) {
             y = y.dividedBy(x);
             x = Complex.ONE;
         }
-        let n = Math.sqrt(x.norm2() + y.norm2());
+        const n = Math.sqrt(x.norm2() + y.norm2());
         if (n === 0) {
             throw new Error("Unexpected degenerate");
         }
@@ -125,9 +125,9 @@ function eigenDecomposition(m) {
  */
 function liftApply(m, complexFunction) {
     let t = m.times(0);
-    for (let {val, vec} of eigenDecomposition(m)) {
-        let fVal = complexFunction(val);
-        let part = vec.times(vec.adjoint());
+    for (const {val, vec} of eigenDecomposition(m)) {
+        const fVal = complexFunction(val);
+        const part = vec.times(vec.adjoint());
         t = t.plus(part.times(fVal));
     }
     return t;
@@ -140,12 +140,12 @@ function liftApply(m, complexFunction) {
  */
 function determinant(m) {
     Util.need(m.width() === m.height(), "Must be square");
-    let n = m.width();
+    const n = m.width();
     if (n === 1) {
         return m.cell(0, 0);
     }
     return Array.from({length: n}, (_, k) => {
-            let cutColMatrix = Matrix.generate(n - 1, n - 1, (r, c) => m.cell(c + (c < k ? 0 : 1), r + 1));
+            const cutColMatrix = Matrix.generate(n - 1, n - 1, (r, c) => m.cell(c + (c < k ? 0 : 1), r + 1));
             return determinant(cutColMatrix).times(m.cell(k, 0)).times(Math.pow(-1, k));
         }).
         reduce((a, e) => a.plus(e), Complex.ZERO);
@@ -158,26 +158,26 @@ function determinant(m) {
  * @returns {!Matrix}
  */
 function tensorProduct(m1, m2) {
-    let w1 = m1.width();
-    let h1 = m1.height();
-    let w2 = m2.width();
-    let h2 = m2.height();
-    let w = w1 * w2;
-    let h = h1 * h2;
-    let buf1 = m1.rawBuffer();
-    let buf2 = m2.rawBuffer();
-    let newBuffer = new Float64Array(w * h * 2);
+    const w1 = m1.width();
+    const h1 = m1.height();
+    const w2 = m2.width();
+    const h2 = m2.height();
+    const w = w1 * w2;
+    const h = h1 * h2;
+    const buf1 = m1.rawBuffer();
+    const buf2 = m2.rawBuffer();
+    const newBuffer = new Float64Array(w * h * 2);
     for (let r1 = 0; r1 < h1; r1++) {
         for (let r2 = 0; r2 < h2; r2++) {
             for (let c1 = 0; c1 < w1; c1++) {
                 for (let c2 = 0; c2 < w2; c2++) {
-                    let k1 = (r1 * w1 + c1) * 2;
-                    let k2 = (r2 * w2 + c2) * 2;
-                    let k3 = ((r1 * h2 + r2) * w + (c1 * w2 + c2)) * 2;
-                    let cr1 = buf1[k1];
-                    let ci1 = buf1[k1 + 1];
-                    let cr2 = buf2[k2];
-                    let ci2 = buf2[k2 + 1];
+                    const k1 = (r1 * w1 + c1) * 2;
+                    const k2 = (r2 * w2 + c2) * 2;
+                    const k3 = ((r1 * h2 + r2) * w + (c1 * w2 + c2)) * 2;
+                    const cr1 = buf1[k1];
+                    const ci1 = buf1[k1 + 1];
+                    const cr2 = buf2[k2];
+                    const ci2 = buf2[k2 + 1];
                     newBuffer[k3] = cr1 * cr2 - ci1 * ci2;
                     newBuffer[k3 + 1] = cr1 * ci2 + ci1 * cr2;
                 }
@@ -196,18 +196,18 @@ function tensorProduct(m1, m2) {
  * @returns {!Matrix}
  */
 function expandedForQubitInRegister(operation, targetQubitOffset, registerSize, controls) {
-    let used = Math.round(Math.log2(operation.width()));
-    let expanded = tensorProduct(
+    const used = Math.round(Math.log2(operation.width()));
+    const expanded = tensorProduct(
         tensorProduct(Matrix.identity(1 << (registerSize - targetQubitOffset - used)), operation),
         Matrix.identity(1 << targetQubitOffset));
-    let w = expanded.width();
-    let h = expanded.height();
-    let buf = expanded.rawBuffer().slice();
+    const w = expanded.width();
+    const h = expanded.height();
+    const buf = expanded.rawBuffer().slice();
 
     for (let c = 0; c < w; c++) {
         for (let r = 0; r < h; r++) {
             if (!controls.allowsState(c) || !controls.allowsState(r)) {
-                let k = 2 * (c + r * w);
+                const k = 2 * (c + r * w);
                 buf[k] = c === r ? 1 : 0;
                 buf[k + 1] = 0;
             }
@@ -225,12 +225,12 @@ function expandedForQubitInRegister(operation, targetQubitOffset, registerSize, 
  * @returns {!Matrix}
  */
 function applyToStateVectorAtQubitWithControls(operation, stateVector, qubitIndex, controls) {
-    let stateBuf = stateVector.rawBuffer();
-    let chunkSize = operation.width() * 2;
-    let chunkBuf = stateBuf.slice(0, chunkSize);
-    let strideLength = 2 << qubitIndex;
-    let strideChunkSize = (strideLength * chunkSize) >> 1;
-    let resultBuf = stateBuf.slice();
+    const stateBuf = stateVector.rawBuffer();
+    const chunkSize = operation.width() * 2;
+    const chunkBuf = stateBuf.slice(0, chunkSize);
+    const strideLength = 2 << qubitIndex;
+    const strideChunkSize = (strideLength * chunkSize) >> 1;
+    const resultBuf = stateBuf.slice();
     for (let strideChunkStart = 0; strideChunkStart < resultBuf.length; strideChunkStart += strideChunkSize) {
         for (let strideOffset = 0; strideOffset < strideLength; strideOffset += 2) {
             if (!controls.allowsState((strideChunkStart | strideOffset) >> 1)) {
@@ -245,7 +245,7 @@ function applyToStateVectorAtQubitWithControls(operation, stateVector, qubitInde
                 k += strideLength;
             }
 
-            let transformedChunk = operation.times(new Matrix(1, chunkBuf.length >> 1, chunkBuf)).rawBuffer();
+            const transformedChunk = operation.times(new Matrix(1, chunkBuf.length >> 1, chunkBuf)).rawBuffer();
 
             // Scatter outputs.
             k = strideChunkStart + strideOffset;
@@ -267,13 +267,13 @@ function applyToStateVectorAtQubitWithControls(operation, stateVector, qubitInde
  * @returns {!Matrix}
  */
 function fromAngleAxisPhaseRotation(angle, axis, phase) {
-    let [x, y, z] = axis;
+    const [x, y, z] = axis;
     Util.need(Math.abs(x * x + y * y + z * z - 1) < 0.000001, "Not a unit axis.");
 
-    let vσ = QubitMatrix.PAULI_X.times(x).
+    const vσ = QubitMatrix.PAULI_X.times(x).
         plus(QubitMatrix.PAULI_Y.times(y)).
         plus(QubitMatrix.PAULI_Z.times(z));
-    let [cos, sin] = Util.snappedCosSin(-angle / 2);
+    const [cos, sin] = Util.snappedCosSin(-angle / 2);
     return Matrix.identity(2).times(cos).
         plus(vσ.times(new Complex(0, sin))).
         times(Complex.polar(1, phase));
@@ -285,14 +285,14 @@ function fromAngleAxisPhaseRotation(angle, axis, phase) {
  * @returns {!boolean}
  */
 function isUpperTriangular(m, epsilon = 0) {
-    let w = m.width();
-    let buf = m.rawBuffer();
+    const w = m.width();
+    const buf = m.rawBuffer();
     for (let r = 0; r < m.height(); r++) {
         for (let c = 0; c < r && c < w; c++) {
-            let k = (r * w + c) * 2;
-            let v1 = buf[k];
-            let v2 = buf[k + 1];
-            if (isNaN(v1) || isNaN(v2) || v1 * v1 + v2 * v2 > epsilon * epsilon) {
+            const k = (r * w + c) * 2;
+            const v1 = buf[k];
+            const v2 = buf[k + 1];
+            if (Number.isNaN(v1) || Number.isNaN(v2) || v1 * v1 + v2 * v2 > epsilon * epsilon) {
                 return false;
             }
         }
@@ -306,14 +306,14 @@ function isUpperTriangular(m, epsilon = 0) {
  * @returns {!boolean}
  */
 function isLowerTriangular(m, epsilon = 0) {
-    let w = m.width();
-    let buf = m.rawBuffer();
+    const w = m.width();
+    const buf = m.rawBuffer();
     for (let r = 0; r < m.height(); r++) {
         for (let c = r + 1; c < w; c++) {
-            let k = (r * w + c) * 2;
-            let v1 = buf[k];
-            let v2 = buf[k + 1];
-            if (isNaN(v1) || isNaN(v2) || v1 * v1 + v2 * v2 > epsilon * epsilon) {
+            const k = (r * w + c) * 2;
+            const v1 = buf[k];
+            const v2 = buf[k + 1];
+            if (Number.isNaN(v1) || Number.isNaN(v2) || v1 * v1 + v2 * v2 > epsilon * epsilon) {
                 return false;
             }
         }
@@ -322,9 +322,6 @@ function isLowerTriangular(m, epsilon = 0) {
 }
 
 export {
-    sqrts,
-    rootsOfQuadratic,
-    eigenDecomposition,
     liftApply,
     determinant,
     tensorProduct,

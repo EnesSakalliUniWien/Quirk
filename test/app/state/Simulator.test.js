@@ -20,7 +20,7 @@ import {Gates} from "../../../src/gates/AllGates.js"
 import {Simulation} from "../../../src/config/Simulation.js"
 import {Simulator} from "../../../src/app/state/Simulator.js"
 
-let suite = new Suite("Simulator");
+const suite = new Suite("Simulator");
 
 /**
  * A clock the test winds by hand.
@@ -42,8 +42,8 @@ const circuit = diagram => CircuitDefinition.fromTextDiagram(new Map([
 ]), diagram);
 
 suite.test("cycleTime follows the injected clock and wraps at a full cycle", () => {
-    let clock = manualClock();
-    let sim = new Simulator(clock.now);
+    const clock = manualClock();
+    const sim = new Simulator(clock.now);
 
     assertThat(sim.cycleTime()).isEqualTo(0);
 
@@ -59,15 +59,15 @@ suite.test("cycleTime follows the injected clock and wraps at a full cycle", () 
 });
 
 suite.test("simulate reuses the computed stats while the circuit is unchanged", () => {
-    let clock = manualClock();
-    let sim = new Simulator(clock.now);
+    const clock = manualClock();
+    const sim = new Simulator(clock.now);
     // Both wires carry a gate, so withMinimumWireCount is an identity and a repeat is a cache hit.
-    let c = circuit(`H-
+    const c = circuit(`H-
                      -X`).withMinimumWireCount();
 
-    let first = sim.simulate(c);
+    const first = sim.simulate(c);
     clock.advance(Simulation.CYCLE_DURATION_MS / 8);
-    let second = sim.simulate(c);
+    const second = sim.simulate(c);
 
     // A cache hit hands back the same underlying state, re-stamped with the current time.
     assertTrue(second.finalState === first.finalState);
@@ -75,40 +75,40 @@ suite.test("simulate reuses the computed stats while the circuit is unchanged", 
 });
 
 suite.test("simulate recomputes a time-dependent circuit every call", () => {
-    let clock = manualClock();
-    let sim = new Simulator(clock.now);
-    let c = circuit(`t-
+    const clock = manualClock();
+    const sim = new Simulator(clock.now);
+    const c = circuit(`t-
                      --`);
 
-    let first = sim.simulate(c);
+    const first = sim.simulate(c);
     clock.advance(Simulation.CYCLE_DURATION_MS / 8);
-    let second = sim.simulate(c);
+    const second = sim.simulate(c);
 
     assertFalse(second.finalState === first.finalState);
 });
 
 suite.test("simulateAtStep runs the truncated circuit without evicting the whole-circuit cache", () => {
-    let clock = manualClock();
-    let sim = new Simulator(clock.now);
-    let c = circuit(`HX
+    const clock = manualClock();
+    const sim = new Simulator(clock.now);
+    const c = circuit(`HX
                      --`).withMinimumWireCount();
 
-    let whole = sim.simulate(c);
-    let atStep = sim.simulateAtStep(c, 1, 0);
+    const whole = sim.simulate(c);
+    const atStep = sim.simulateAtStep(c, 1, 0);
     assertThat(atStep.circuitDefinition.columns.length).isEqualTo(1);
 
     // The playhead's stats live in their own cache, so the full circuit is still a cache hit.
-    let wholeAgain = sim.simulate(c);
+    const wholeAgain = sim.simulate(c);
     assertTrue(wholeAgain.finalState === whole.finalState);
 
     // And the truncated circuit is a cache hit of its own.
-    let atStepAgain = sim.simulateAtStep(c, 1, 0);
+    const atStepAgain = sim.simulateAtStep(c, 1, 0);
     assertTrue(atStepAgain.finalState === atStep.finalState);
 });
 
 suite.test("simulateAtStep clamps a negative step to the empty circuit", () => {
-    let sim = new Simulator(manualClock().now);
-    let c = circuit(`HX
+    const sim = new Simulator(manualClock().now);
+    const c = circuit(`HX
                      --`);
 
     assertThat(sim.simulateAtStep(c, -1, 0).circuitDefinition.columns.length).isEqualTo(0);

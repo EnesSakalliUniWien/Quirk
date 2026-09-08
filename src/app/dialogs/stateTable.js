@@ -58,15 +58,15 @@ const STATE_TABLE_COOLDOWN_MILLIS = 100;
  * }}
  */
 function stateTableRows(stats, wireCount, maxRows=MAX_ROWS) {
-    let buf = stats.finalState.rawBuffer();
-    let amplitudeCount = 1 << wireCount;
+    const buf = stats.finalState.rawBuffer();
+    const amplitudeCount = 1 << wireCount;
 
-    let rows = [];
+    const rows = [];
     let nonzeroCount = 0;
     for (let i = 0; i < amplitudeCount; i++) {
-        let real = i*2 < buf.length ? buf[i*2] : 0;
-        let imag = i*2 + 1 < buf.length ? buf[i*2 + 1] : 0;
-        let probability = real*real + imag*imag;
+        const real = i*2 < buf.length ? buf[i*2] : 0;
+        const imag = i*2 + 1 < buf.length ? buf[i*2 + 1] : 0;
+        const probability = real*real + imag*imag;
         if (!(probability > NEGLIGIBLE_PROBABILITY)) {
             continue;
         }
@@ -158,8 +158,8 @@ function initStateTable(obsPlayheadStats) {
         if (latest === undefined) {
             return;
         }
-        let wireCount = latest.wireCount;
-        let {amplitudeCount, nonzeroCount, rows} = stateTableRows(latest.stats, wireCount);
+        const wireCount = latest.wireCount;
+        const {amplitudeCount, nonzeroCount, rows} = stateTableRows(latest.stats, wireCount);
 
         summaryElement.textContent =
             `${wireCount} qubit${wireCount === 1 ? '' : 's'} · ` +
@@ -174,12 +174,12 @@ function initStateTable(obsPlayheadStats) {
             pool.push(_appendRow(tbody));
         }
         for (let i = 0; i < pool.length; i++) {
-            let cells = pool[i];
+            const cells = pool[i];
             if (i >= rows.length) {
                 cells.row.style.display = 'none';
                 continue;
             }
-            let {ket, probability, real, imag, phaseDegrees} = rows[i];
+            const {ket, probability, real, imag, phaseDegrees} = rows[i];
             cells.row.style.display = '';
             cells.ket.textContent = `|${ket}⟩`;
             cells.bar.style.width = `${Math.min(100, probability * 100)}%`;

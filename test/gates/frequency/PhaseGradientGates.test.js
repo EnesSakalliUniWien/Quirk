@@ -26,7 +26,7 @@ import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
 import {ketArgs} from "../../../src/engine/simulation/gpu/KetShaderUtil.js"
 import {WglArg} from "../../../src/engine/webgl/shader/WglArg.js"
 
-let suite = new Suite("PhaseGradientGates");
+const suite = new Suite("PhaseGradientGates");
 
 suite.testUsingWebGL('PHASE_GRADIENT_SHADER', () => {
     assertThatCircuitShaderActsLikeMatrix(

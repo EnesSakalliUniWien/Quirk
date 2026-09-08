@@ -31,19 +31,19 @@ import {Util} from '../../../base/Util.js';
  * @type {!function(!GateDrawParams)}
  */
 const AMPLITUDE_DRAWER_FROM_CUSTOM_STATS = GatePainting.makeDisplayDrawer(args => {
-    let n = args.gate.height;
-    let {quality, ket, phaseLockIndex, incoherentKet} = args.customStats || {
+    const n = args.gate.height;
+    const {quality, ket, phaseLockIndex, incoherentKet} = args.customStats || {
         ket: (n === 1 ? Matrix.zero(2, 1) : Matrix.zero(1 << Math.floor(n / 2), 1 << Math.ceil(n / 2))).times(NaN),
         quality: 1,
         phaseLockIndex: 0,
         incoherentKet: undefined
     };
 
-    let isIncoherent = quality < 0.99;
-    let matrix = isIncoherent ? incoherentKet : ket;
-    let dw = args.rect.w - args.rect.h*ket.width()/ket.height();
-    let drawRect = args.rect.skipLeft(dw/2).skipRight(dw/2);
-    let indicatorAlpha = Math.min(1, Math.max(0, (quality - 0.9999) / 0.0001));
+    const isIncoherent = quality < 0.99;
+    const matrix = isIncoherent ? incoherentKet : ket;
+    const dw = args.rect.w - args.rect.h*ket.width()/ket.height();
+    const drawRect = args.rect.skipLeft(dw/2).skipRight(dw/2);
+    const indicatorAlpha = Math.min(1, Math.max(0, (quality - 0.9999) / 0.0001));
     MathPainter.paintMatrix(
         args.painter,
         matrix,
@@ -54,7 +54,7 @@ const AMPLITUDE_DRAWER_FROM_CUSTOM_STATS = GatePainting.makeDisplayDrawer(args =
         CanvasTheme.amplitude.background,
         phase => indicatorAlpha > 0 ? phaseColor(phase, indicatorAlpha) : undefined);
 
-    let forceSign = v => (v >= 0 ? '+' : '') + v.toFixed(2);
+    const forceSign = v => (v >= 0 ? '+' : '') + v.toFixed(2);
     if (isIncoherent) {
         MathPainter.paintMatrixTooltip(args.painter, matrix, drawRect, args.focusPoints,
             (c, r) => `Chance of |${Util.bin(r*matrix.width() + c, args.gate.height)}⟩ (decimal ${r*matrix.width() + c}) [amplitude not defined]`,
@@ -66,12 +66,12 @@ const AMPLITUDE_DRAWER_FROM_CUSTOM_STATS = GatePainting.makeDisplayDrawer(args =
             (c, r, v) => 'val:' + v.toString(new Format(false, 0, 5, ", ")),
             (c, r, v) => `mag²:${(v.norm2()*100).toFixed(4)}%, phase:${forceSign(v.phase() * 180 / Math.PI)}°`);
         if (phaseLockIndex !== undefined && indicatorAlpha > 0) {
-            let cw = drawRect.w/matrix.width();
-            let rh = drawRect.h/matrix.height();
-            let c = phaseLockIndex % matrix.width();
-            let r = Math.floor(phaseLockIndex / matrix.width());
-            let cx = drawRect.x + cw*(c+0.5);
-            let cy = drawRect.y + rh*(r+0.5);
+            const cw = drawRect.w/matrix.width();
+            const rh = drawRect.h/matrix.height();
+            const c = phaseLockIndex % matrix.width();
+            const r = Math.floor(phaseLockIndex / matrix.width());
+            const cx = drawRect.x + cw*(c+0.5);
+            const cy = drawRect.y + rh*(r+0.5);
             strokePath(args.painter, [new Point(cx, cy), new Point(cx + cw/2, cy)], CanvasTheme.amplitude.reference, 2);
             fitText(args.painter, 'fixed', {
                 x: cx + 0.5*cw,
@@ -97,10 +97,9 @@ const AMPLITUDE_DRAWER_FROM_CUSTOM_STATS = GatePainting.makeDisplayDrawer(args =
 function paintErrorIfPresent(args, indicatorAlpha) {
     /** @type {undefined|!string} */
     let err = undefined;
-    let {col, row} = args.positionInCircuit;
-    let measured = ((args.stats.circuitDefinition.colIsMeasuredMask(col) >> row) & ((1 << args.gate.height) - 1)) !== 0;
+    const {col, row} = args.positionInCircuit;
+    const measured = ((args.stats.circuitDefinition.colIsMeasuredMask(col) >> row) & ((1 << args.gate.height) - 1)) !== 0;
     if (measured) {
-        indicatorAlpha = 0;
         err = args.gate.width <= 2 ? '(w/ measure defer)' : '(assuming measurement deferred)';
     } else if (indicatorAlpha < 0.999) {
         err = 'incoherent';

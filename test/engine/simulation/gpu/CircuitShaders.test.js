@@ -23,7 +23,7 @@ import {Shaders} from "../../../../src/engine/webgl/shader/Shaders.js"
 import {Matrix} from "../../../../src/engine/math/matrix/Matrix.js"
 import {Outputs, makePseudoShaderWithInputsAndOutputAndCode} from "../../../../src/engine/webgl/coder/ShaderCoders.js"
 
-let suite = new Suite("CircuitShaders");
+const suite = new Suite("CircuitShaders");
 
 suite.testUsingWebGL("classicalState", () => {
     assertThat(CircuitShaders.classicalState(0).readVec2OutputsAsKet(2)).isEqualTo(Matrix.col(1, 0, 0, 0));
@@ -36,8 +36,8 @@ suite.testUsingWebGL("classicalState", () => {
 });
 
 suite.testUsingWebGL("linearOverlay", () => {
-    let fore = Shaders.vec4Data(Float32Array.from({length: 2*2*4}, (_, e) => e + 900)).toVec4Texture(2);
-    let back = Shaders.vec4Data(Float32Array.from({length: 4*4*4}, (_, e) => -e)).toVec4Texture(4);
+    const fore = Shaders.vec4Data(Float32Array.from({length: 2*2*4}, (_, e) => e + 900)).toVec4Texture(2);
+    const back = Shaders.vec4Data(Float32Array.from({length: 4*4*4}, (_, e) => -e)).toVec4Texture(4);
 
     assertThat(CircuitShaders.linearOverlay(0, fore, back).readVec4Outputs(4)).isEqualTo(new Float32Array([
         900, 901, 902, 903, 904, 905, 906, 907, 908, 909, 910, 911, 912, 913, 914, 915,
@@ -108,13 +108,13 @@ suite.testUsingWebGL("controlMask", () => {
 });
 
 suite.testUsingWebGL("controlMask_largeReference", () => {
-    let mask = new Controls(0b10111010101010111, 0b10011000001010001);
-    let expected = Uint8Array.from({length: 1 << 13}, (_, i) => mask.allowsState(i) ? 1 : 0);
+    const mask = new Controls(0b10111010101010111, 0b10011000001010001);
+    const expected = Uint8Array.from({length: 1 << 13}, (_, i) => mask.allowsState(i) ? 1 : 0);
     assertThat(CircuitShaders.controlMask(mask).readBoolOutputs(13)).isEqualTo(expected);
 });
 
 suite.testUsingWebGL("controlSelect_simple", () => {
-    let coords = makePseudoShaderWithInputsAndOutputAndCode([], Outputs.vec2(), `
+    const coords = makePseudoShaderWithInputsAndOutputAndCode([], Outputs.vec2(), `
         vec2 outputFor(float k) {
             return vec2(mod(k, 4.0), floor(k/4.0));
         }
@@ -180,7 +180,7 @@ suite.testUsingWebGL("controlSelect_simple", () => {
 });
 
 suite.testUsingWebGL("controlSelect_multiple", () => {
-    let coords = makePseudoShaderWithInputsAndOutputAndCode([], Outputs.vec2(), `
+    const coords = makePseudoShaderWithInputsAndOutputAndCode([], Outputs.vec2(), `
         vec2 outputFor(float k) {
             return vec2(mod(k, 4.0), floor(k/4.0));
         }
@@ -216,13 +216,13 @@ suite.testUsingWebGL("controlSelect_multiple", () => {
 });
 
 suite.testUsingWebGL("qubitDensities", () => {
-    let s = Math.sqrt(0.5);
-    let q = 0.25;
-    let h = 0.5;
-    let _ = 0;
+    const s = Math.sqrt(0.5);
+    const q = 0.25;
+    const h = 0.5;
+    const _ = 0;
 
-    let assertAmpsToDensities = (amps, dens) => {
-        let tex = Shaders.vec2Data(new Float32Array(amps)).toVec2Texture(1);
+    const assertAmpsToDensities = (amps, dens) => {
+        const tex = Shaders.vec2Data(new Float32Array(amps)).toVec2Texture(1);
         assertThat(CircuitShaders.qubitDensities(tex).readVec4Outputs(0)).
             isApproximatelyEqualTo(new Float32Array(dens));
         tex.deallocByDepositingInPool();
@@ -255,7 +255,7 @@ suite.testUsingWebGL("qubitDensities", () => {
         [0.4,_, _,0.6],
         [0.16,0,0.24,0.36]);
 
-    let allQubitsZero = Shaders.vec2Data(new Float32Array([
+    const allQubitsZero = Shaders.vec2Data(new Float32Array([
         1,_, _,_, _,_, _,_,
         _,_, _,_, _,_, _,_,
         _,_, _,_, _,_, _,_,
@@ -273,7 +273,7 @@ suite.testUsingWebGL("qubitDensities", () => {
     ]));
     allQubitsZero.deallocByDepositingInPool();
 
-    let ent = Shaders.vec2Data(new Float32Array([
+    const ent = Shaders.vec2Data(new Float32Array([
         s,_, _,_, _,_, _,_,
         _,_, _,_, _,_, _,_,
         _,_, _,_, _,_, _,_,
@@ -302,7 +302,7 @@ suite.testUsingWebGL("qubitDensities", () => {
     ent.deallocByDepositingInPool();
 
     // 0, 0+1, 0+i1, 1
-    let mix = Shaders.vec2Data(new Float32Array([
+    const mix = Shaders.vec2Data(new Float32Array([
         _,_, _,_, _,_, _,_,
         _,_, _,_, _,_, _,_,
         h,_, _,_, h,_, _,_,

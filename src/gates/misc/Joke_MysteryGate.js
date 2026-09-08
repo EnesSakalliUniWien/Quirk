@@ -20,9 +20,9 @@ import { GatePainting } from "../../draw/gate/GatePainting.js";
 import { Matrix } from "../../engine/math/matrix/Matrix.js";
 import { MatrixDecomposition } from "../../engine/math/matrix/MatrixDecomposition.js";
 
-let MysteryGateSymbol = "?";
+const MysteryGateSymbol = "?";
 
-let MysteryGateMakerWithMatrix = (matrix) =>
+const MysteryGateMakerWithMatrix = (matrix) =>
   new GateBuilder()
     .setSerializedIdAndSymbol(MysteryGateSymbol)
     .setTitle("Mystery Gate")
@@ -30,7 +30,7 @@ let MysteryGateMakerWithMatrix = (matrix) =>
     .setDrawer(GatePainting.MATRIX_DRAWER)
     .setKnownEffectToMatrix(matrix).gate;
 
-let MysteryGateMaker = () =>
+const MysteryGateMaker = () =>
   MysteryGateMakerWithMatrix(
     MatrixDecomposition.closestUnitary(Matrix.square(
       new Complex(Math.random() - 0.5, Math.random() - 0.5),

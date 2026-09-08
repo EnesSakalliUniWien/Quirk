@@ -16,7 +16,6 @@
 
 import {GateBuilder} from "../../circuit/model/Gate.js"
 import {GatePainting} from "../../draw/gate/GatePainting.js"
-import {Matrix} from "../../engine/math/matrix/Matrix.js"
 import {ketArgs, ketShader, ketShaderPhase, ketInputGateShaderCode} from "../../engine/simulation/gpu/KetShaderUtil.js"
 import {WglArg} from "../../engine/webgl/shader/WglArg.js"
 import {Util} from "../../base/Util.js";
@@ -24,7 +23,7 @@ import {XExp, YExp, ZExp} from "./ExponentiatingGates.js";
 import {parseTimeFormula, makeUpdateFormulaFunc, TIME_PROBE_VALUES} from "./FormulaGateUtil.js";
 import {QubitMatrix} from "../../engine/math/matrix/QubitMatrix.js"
 
-let ParametrizedRotationGates = {};
+const ParametrizedRotationGates = {};
 
 /**
  * @param {!string} pattern
@@ -33,17 +32,17 @@ let ParametrizedRotationGates = {};
  * @returns {!function(args: !GateDrawParams)}
  */
 function configurableRotationDrawer(pattern, xyz, tScale) {
-    let xScale = [1, 0.5, -1][xyz];
-    let yScale = [1, 1, -0.5][xyz];
+    const xScale = [1, 0.5, -1][xyz];
+    const yScale = [1, 1, -0.5][xyz];
     return args => {
         GatePainting.paintBackground(args);
         GatePainting.paintOutline(args);
-        let text = pattern.split('f(t)').join(args.gate.param);
-        GatePainting.paintGateSymbol(args, text, pattern.indexOf('^') !== -1);
+        const text = pattern.split('f(t)').join(args.gate.param);
+        GatePainting.paintGateSymbol(args, text, pattern.includes('^'));
 
-        let isStable = args.gate.stableDuration() === Infinity;
+        const isStable = args.gate.stableDuration() === Infinity;
         if (!isStable) {
-            let rads = tScale * parseTimeFormula(args.gate.param, args.stats.time*2, false) || 0;
+            const rads = tScale * parseTimeFormula(args.gate.param, args.stats.time*2, false) || 0;
             GatePainting.paintCycleState(args, rads, xScale, yScale);
         }
         GatePainting.paintGateButton(args);
@@ -54,9 +53,9 @@ function configurableRotationDrawer(pattern, xyz, tScale) {
  * @param {!GateDrawParams} args
  */
 function exponent_to_A_len_painter(args) {
-    let v = args.getGateContext('Input Range A');
-    let denom_exponent = v === undefined ? 'ⁿ' : Util.digits_to_superscript_digits('' + v.length);
-    let symbol = args.gate.symbol.replace('ⁿ', denom_exponent);
+    const v = args.getGateContext('Input Range A');
+    const denom_exponent = v === undefined ? 'ⁿ' : Util.digits_to_superscript_digits('' + v.length);
+    const symbol = args.gate.symbol.replace('ⁿ', denom_exponent);
     GatePainting.paintBackground(args);
     GatePainting.paintOutline(args);
     GatePainting.paintGateSymbol(args, symbol);
@@ -205,7 +204,7 @@ function badFormulaDetector(args) {
     if (typeof args.gate.param === 'number') {
         return args.gate.param;
     } else if (typeof args.gate.param === 'string') {
-        for (let t of TIME_PROBE_VALUES) {
+        for (const t of TIME_PROBE_VALUES) {
             if (parseTimeFormula(args.gate.param, t, false) === undefined) {
                 return 'bad\nformula';
             }
@@ -246,7 +245,7 @@ ParametrizedRotationGates.FormulaicRotationX = new GateBuilder().
     setExtraDisableReasonFinder(badFormulaDetector).
     setParamDialog(angleFormulaDialog("X gate's exponent")).
     setEffectToTimeVaryingMatrix((t, formula) => {
-        let exponent = parseTimeFormula(formula, t*2, true) || 0;
+        const exponent = parseTimeFormula(formula, t*2, true) || 0;
         return QubitMatrix.fromPauliRotation(exponent/2, 0, 0);
     }).
     setWithParamPropertyRecomputeFunc(updateUsingFormula).
@@ -262,7 +261,7 @@ ParametrizedRotationGates.FormulaicRotationY = new GateBuilder().
     setExtraDisableReasonFinder(badFormulaDetector).
     setParamDialog(angleFormulaDialog("Y gate's exponent")).
     setEffectToTimeVaryingMatrix((t, formula) => {
-        let exponent = parseTimeFormula(formula, t*2, true) || 0;
+        const exponent = parseTimeFormula(formula, t*2, true) || 0;
         return QubitMatrix.fromPauliRotation(0, exponent/2, 0);
     }).
     setWithParamPropertyRecomputeFunc(updateUsingFormula).
@@ -278,7 +277,7 @@ ParametrizedRotationGates.FormulaicRotationZ = new GateBuilder().
     setExtraDisableReasonFinder(badFormulaDetector).
     setParamDialog(angleFormulaDialog("Z gate's exponent")).
     setEffectToTimeVaryingMatrix((t, formula) => {
-        let exponent = parseTimeFormula(formula, t*2, true) || 0;
+        const exponent = parseTimeFormula(formula, t*2, true) || 0;
         return QubitMatrix.fromPauliRotation(0, 0, exponent/2);
     }).
     setWithParamPropertyRecomputeFunc(updateUsingFormula).

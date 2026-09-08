@@ -33,7 +33,7 @@ function equate(subject, other) {
   }
 
   // Custom equality.
-  let customEquality = tryEquate_custom(subject, other);
+  const customEquality = tryEquate_custom(subject, other);
   if (customEquality !== undefined) {
     return customEquality;
   }
@@ -73,7 +73,7 @@ const GENERIC_ARRAY_TYPES = [
  * @returns {!boolean}
  */
 function isExactlyNaN(v) {
-  return typeof v === "number" && isNaN(v);
+  return typeof v === "number" && Number.isNaN(v);
 }
 
 /**
@@ -84,13 +84,13 @@ function isExactlyNaN(v) {
 function tryEquate_custom(subject, other) {
   if (
     !isAtomic(subject) &&
-    subject.constructor.prototype.hasOwnProperty("isEqualTo")
+    Object.hasOwn(subject.constructor.prototype, "isEqualTo")
   ) {
     return subject.isEqualTo(other);
   }
   if (
     !isAtomic(other) &&
-    other.constructor.prototype.hasOwnProperty("isEqualTo")
+    Object.hasOwn(other.constructor.prototype, "isEqualTo")
   ) {
     return other.isEqualTo(subject);
   }
@@ -154,9 +154,9 @@ function equate_Indexables(subject, other) {
  * @returns {!boolean}
  */
 function equate_Iterables(subject, other) {
-  let otherIter = other[Symbol.iterator]();
-  for (let subjectItem of subject) {
-    let otherItemDone = otherIter.next();
+  const otherIter = other[Symbol.iterator]();
+  for (const subjectItem of subject) {
+    const otherItemDone = otherIter.next();
     if (otherItemDone.done || !equate(subjectItem, otherItemDone.value)) {
       return false;
     }
@@ -173,11 +173,11 @@ function equate_Maps(subject, other) {
   if (subject.size !== other.size) {
     return false;
   }
-  for (let [k, v] of subject) {
+  for (const [k, v] of subject) {
     if (!other.has(k)) {
       return false;
     }
-    let otherV = other.get(k);
+    const otherV = other.get(k);
     if (!equate(v, otherV)) {
       return false;
     }
@@ -194,7 +194,7 @@ function equate_Sets(subject, other) {
   if (subject.size !== other.size) {
     return false;
   }
-  for (let k of subject) {
+  for (const k of subject) {
     if (!other.has(k)) {
       return false;
     }
@@ -207,9 +207,9 @@ function equate_Sets(subject, other) {
  * @returns {!Set}
  */
 function objectKeys(obj) {
-  let result = new Set();
-  for (let k in obj) {
-    if (obj.hasOwnProperty(k)) {
+  const result = new Set();
+  for (const k in obj) {
+    if (Object.hasOwn(obj, k)) {
       result.add(k);
     }
   }
@@ -222,12 +222,12 @@ function objectKeys(obj) {
  * @returns {!boolean}
  */
 function equate_Objects(subject, other) {
-  let keys = objectKeys(subject);
+  const keys = objectKeys(subject);
   if (!equate_Sets(keys, objectKeys(other))) {
     return false;
   }
 
-  for (let k of keys) {
+  for (const k of keys) {
     if (k === Symbol.iterator) {
       continue;
     }
@@ -236,8 +236,8 @@ function equate_Objects(subject, other) {
     }
   }
 
-  let hasSubjectIter = subject[Symbol.iterator] !== undefined;
-  let hasOtherIter = other[Symbol.iterator] !== undefined;
+  const hasSubjectIter = subject[Symbol.iterator] !== undefined;
+  const hasOtherIter = other[Symbol.iterator] !== undefined;
   if (hasSubjectIter !== hasOtherIter) {
     return false;
   }

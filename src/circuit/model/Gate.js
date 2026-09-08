@@ -15,7 +15,7 @@
  */
 
 import {DetailedError} from "../../base/DetailedError.js"
-import {GateDrawParams} from "../../draw/gate/GateDrawParams.js"
+/** @typedef {import("../../draw/gate/GateDrawParams.js").GateDrawParams} GateDrawParams */
 import {Complex} from "../../engine/math/complex/Complex.js"
 import {Matrix} from "../../engine/math/matrix/Matrix.js"
 
@@ -299,7 +299,7 @@ class Gate {
      * @returns {!Gate}
      */
     _copy() {
-        let g = new Gate();
+        const g = new Gate();
         g.symbol = this.symbol;
         g.name = this.name;
         g.listName = this.listName;
@@ -354,7 +354,7 @@ class Gate {
      * @returns {!Gate}
      */
     withParam(value) {
-        let g = this._copy();
+        const g = this._copy();
         g.param = value;
         g._withParamRecomputeFunc(g);
         return g;
@@ -368,17 +368,17 @@ class Gate {
      * @returns {!{all: !Array.<!Gate>, ofSize: !function(!int) : !Gate}}
      */
     static buildFamily(minSize, maxSize, gateBuildFunc) {
-        let gates = [];
+        const gates = [];
         for (let span = minSize; span <= maxSize; span++) {
-            let builder = new GateBuilder();
+            const builder = new GateBuilder();
             builder.setHeight(span);
             gateBuildFunc(span, builder);
             builder.gate.gateFamily = gates;
             gates.push(builder.gate);
         }
 
-        let ofSize = h => {
-            for (let g of gates) {
+        const ofSize = h => {
+            for (const g of gates) {
                 if (g.height === h) {
                     return g;
                 }
@@ -394,9 +394,9 @@ class Gate {
      * @returns {!Set.<!String>}
      */
     getUnmetContextKeys() {
-        let result = new Set(this._requiredContextKeys);
+        const result = new Set(this._requiredContextKeys);
         if (this.knownCircuit !== undefined) {
-            for (let key of this.knownCircuit.getUnmetContextKeys()) {
+            for (const key of this.knownCircuit.getUnmetContextKeys()) {
                 result.add(key);
             }
         }
@@ -706,7 +706,7 @@ class GateBuilder {
      * @returns {!GateBuilder}
      */
     setKnownEffectToTimeVaryingPermutation(timeVaryingPermutationFunc) {
-        let g = this.gate;
+        const g = this.gate;
         g._stableDuration = 0;
         g._knownMatrixFunc = t => Matrix.generateTransition(1 << g.height, i => timeVaryingPermutationFunc(t, i));
         g._hasNoEffect = false;
@@ -731,7 +731,7 @@ class GateBuilder {
      * @returns {!GateBuilder}
      */
     setKnownEffectToParametrizedPermutation(permutationFunc) {
-        let g = this.gate;
+        const g = this.gate;
         g.knownPermutationFuncTakingInputs = permutationFunc;
         g._knownMatrixFunc = undefined;
         g._stableDuration = Infinity;
@@ -1029,10 +1029,10 @@ class GateBuilder {
      */
     setSetupCleanupEffectToUpdateFunc(beforeColumnUpdateFunc, afterColumnUpdateFunc) {
         if (beforeColumnUpdateFunc !== undefined && typeof beforeColumnUpdateFunc !== "function") {
-            throw new DetailedError("Bad beforeColumnUpdateFunc", {customOperation});
+            throw new DetailedError("Bad beforeColumnUpdateFunc", {beforeColumnUpdateFunc});
         }
         if (afterColumnUpdateFunc !== undefined && typeof afterColumnUpdateFunc !== "function") {
-            throw new DetailedError("Bad afterColumnUpdateFunc", {customOperation});
+            throw new DetailedError("Bad afterColumnUpdateFunc", {afterColumnUpdateFunc});
         }
         this.gate.customBeforeOperation = beforeColumnUpdateFunc;
         this.gate.customAfterOperation = afterColumnUpdateFunc;
@@ -1099,8 +1099,8 @@ class GateBuilder {
  * @returns {!Array.<!int>}
  */
 function permutationGrouping(knownBitPermutationFunc, height) {
-    let seen = new Set();
-    let result = [];
+    const seen = new Set();
+    const result = [];
     for (let i = 0; i < height; i++) {
         let mask = 0;
         let j = i;

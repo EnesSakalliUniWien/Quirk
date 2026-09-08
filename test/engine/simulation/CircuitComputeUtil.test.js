@@ -26,7 +26,7 @@ import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
 import {expandedForQubitInRegister} from "../../MatrixTestUtil.js"
 import {QubitMatrix} from "../../../src/engine/math/matrix/QubitMatrix.js"
 
-let suite = new Suite("CircuitComputeUtil");
+const suite = new Suite("CircuitComputeUtil");
 
 /**
  * @param {!String} diagram
@@ -55,66 +55,66 @@ function circuitDefinitionToGate(circ) {
 }
 
 suite.testUsingWebGL("nestedControls", () => {
-    let cnot = circuitDefinitionToGate(circuit(`-•-
+    const cnot = circuitDefinitionToGate(circuit(`-•-
                                                 -X-`));
-    let ccnot_circuit = circuit(`-•-
+    const ccnot_circuit = circuit(`-•-
                                  -?-
                                  -/-`, ['?', cnot]);
-    let ccnot_matrix = expandedForQubitInRegister(QubitMatrix.PAULI_X, 2, 3, new Controls(3, 3));
+    const ccnot_matrix = expandedForQubitInRegister(QubitMatrix.PAULI_X, 2, 3, new Controls(3, 3));
     assertThatCircuitUpdateActsLikeMatrix(
         ctx => advanceStateWithCircuit(ctx, ccnot_circuit, false),
         ccnot_matrix);
 });
 
 suite.testUsingWebGL("multiNestedControls", () => {
-    let notc = circuitDefinitionToGate(circuit(`-X-
+    const notc = circuitDefinitionToGate(circuit(`-X-
                                                 -•-`));
-    let i_notcc = circuitDefinitionToGate(circuit(`---
+    const i_notcc = circuitDefinitionToGate(circuit(`---
                                                    -?-
                                                    -/-
                                                    -•-`, ['?', notc]));
-    let shifted_notccc_circuit = circuit(`---
+    const shifted_notccc_circuit = circuit(`---
                                           -?-
                                           -/-
                                           -/-
                                           -/-
                                           -•-`, ['?', i_notcc]);
-    let shifted_notccc_matrix = expandedForQubitInRegister(QubitMatrix.PAULI_X, 2, 6, new Controls(7<<3, 7<<3));
+    const shifted_notccc_matrix = expandedForQubitInRegister(QubitMatrix.PAULI_X, 2, 6, new Controls(7<<3, 7<<3));
     assertThatCircuitUpdateActsLikeMatrix(
         ctx => advanceStateWithCircuit(ctx, shifted_notccc_circuit, false),
         shifted_notccc_matrix);
 });
 
 suite.testUsingWebGL("innerAndOuterInputs", () => {
-    let plus_a_times = circuitDefinitionToGate(circuit(`-*-
+    const plus_a_times = circuitDefinitionToGate(circuit(`-*-
                                                         -a-`));
-    let notcc_circuit = circuit(`-?-
+    const notcc_circuit = circuit(`-?-
                                  -/-
                                  -b-`, ['?', plus_a_times]);
-    let notcc_matrix = expandedForQubitInRegister(QubitMatrix.PAULI_X, 0, 3, new Controls(6, 6));
+    const notcc_matrix = expandedForQubitInRegister(QubitMatrix.PAULI_X, 0, 3, new Controls(6, 6));
     assertThatCircuitUpdateActsLikeMatrix(
         ctx => advanceStateWithCircuit(ctx, notcc_circuit, false),
         notcc_matrix);
 });
 
 suite.testUsingWebGL("doublyNestedInputs", () => {
-    let plus_a_times = circuitDefinitionToGate(circuit(`-*-
+    const plus_a_times = circuitDefinitionToGate(circuit(`-*-
                                                         -a-`));
-    let plus_a_times_b = circuitDefinitionToGate(circuit(`-?-
+    const plus_a_times_b = circuitDefinitionToGate(circuit(`-?-
                                                           -/-
                                                           -b-`, ['?', plus_a_times]));
-    let shifted_notcc_circuit = circuit(`---
+    const shifted_notcc_circuit = circuit(`---
                                          -?-
                                          -/-
                                          -/-`, ['?', plus_a_times_b]);
-    let shifted_notcc_matrix = expandedForQubitInRegister(QubitMatrix.PAULI_X, 1, 4, new Controls(12, 12));
+    const shifted_notcc_matrix = expandedForQubitInRegister(QubitMatrix.PAULI_X, 1, 4, new Controls(12, 12));
     assertThatCircuitUpdateActsLikeMatrix(
         ctx => advanceStateWithCircuit(ctx, shifted_notcc_circuit, false),
         shifted_notcc_matrix);
 });
 
 suite.testUsingWebGL("rawAddition", () => {
-    let adder = circuit(`-+-
+    const adder = circuit(`-+-
                          -/-
                          -/-
                          -/-
@@ -122,9 +122,9 @@ suite.testUsingWebGL("rawAddition", () => {
                          -/-`,
         ['A', Gates.InputGates.InputAFamily.ofSize(2)],
         ['+', Gates.Arithmetic.PlusAFamily.ofSize(4)]);
-    let matrix = Matrix.generateTransition(1 << 6, e => {
+    const matrix = Matrix.generateTransition(1 << 6, e => {
         let a = e & 15;
-        let b = (e >> 4) & 3;
+        const b = (e >> 4) & 3;
         a += b;
         a &= 15;
         return a | (b << 4);
@@ -136,7 +136,7 @@ suite.testUsingWebGL("rawAddition", () => {
 
 
 suite.testUsingWebGL('swap', () => {
-    let circ = circuit(`-S-
+    const circ = circuit(`-S-
                         -S-`, ['S', Gates.Special.SwapHalf]);
     assertThatCircuitUpdateActsLikeMatrix(
         ctx => advanceStateWithCircuit(ctx, circ, false),

@@ -20,7 +20,7 @@ import {cycleBitsShader} from "../../../src/gates/ordering/CycleBitsGates.js"
 
 import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
 
-let suite = new Suite("CycleBitsGates");
+const suite = new Suite("CycleBitsGates");
 
 suite.testUsingWebGL('cycleBitsShader', () => {
     assertThatCircuitShaderActsLikeMatrix(

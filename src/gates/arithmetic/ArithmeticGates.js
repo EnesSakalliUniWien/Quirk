@@ -23,12 +23,12 @@ import {
 } from "../../engine/simulation/gpu/KetShaderUtil.js";
 import { WglArg } from "../../engine/webgl/shader/WglArg.js";
 
-let ArithmeticGates = {};
+const ArithmeticGates = {};
 
 const chunkedScaledAdditionPermutationMaker = (span, factor) => (e) => {
-  let sa = Math.floor(span / 2);
-  let sb = Math.ceil(span / 2);
-  let a = e & ((1 << sa) - 1);
+  const sa = Math.floor(span / 2);
+  const sb = Math.ceil(span / 2);
+  const a = e & ((1 << sa) - 1);
   let b = e >> sa;
   b += a * factor;
   b &= (1 << sb) - 1;

@@ -38,18 +38,18 @@ function wireY(args, offset) {
  */
 function eraseWiresForPermutation(args) {
     for (let i = 0; i < args.gate.height; i++) {
-        let y = wireY(args, i);
-        let p = new Point(args.rect.x, y);
-        let c = new Point(args.rect.x + Layout.GATE_RADIUS, y);
-        let q = new Point(args.rect.right(), y);
-        let loc = new Point(args.positionInCircuit.col, args.positionInCircuit.row + i);
-        let isMeasured1 = args.stats.circuitDefinition.locIsMeasured(loc);
-        let isMeasured2 = args.stats.circuitDefinition.locIsMeasured(loc.offsetBy(1, 0));
+        const y = wireY(args, i);
+        const p = new Point(args.rect.x, y);
+        const c = new Point(args.rect.x + Layout.GATE_RADIUS, y);
+        const q = new Point(args.rect.right(), y);
+        const loc = new Point(args.positionInCircuit.col, args.positionInCircuit.row + i);
+        const isMeasured1 = args.stats.circuitDefinition.locIsMeasured(loc);
+        const isMeasured2 = args.stats.circuitDefinition.locIsMeasured(loc.offsetBy(1, 0));
 
-        for (let dy of isMeasured1 ? [-1, +1] : [0]) {
+        for (const dy of isMeasured1 ? [-1, +1] : [0]) {
             strokePath(args.painter, [p.offsetBy(0, dy), c.offsetBy(1, dy)], CanvasTheme.surface.background, 1);
         }
-        for (let dy of isMeasured2 ? [-1, +1] : [0]) {
+        for (const dy of isMeasured2 ? [-1, +1] : [0]) {
             strokePath(args.painter, [c.offsetBy(-1, dy), q.offsetBy(0, dy)], CanvasTheme.surface.background, 1);
         }
     }
@@ -76,17 +76,17 @@ const PERMUTATION_DRAWER = args => {
     }
 
     // Draw wires.
-    let x1 = args.rect.x;
-    let x2 = args.rect.right();
+    const x1 = args.rect.x;
+    const x2 = args.rect.right();
     for (let i = 0; i < args.gate.height; i++) {
-        let j = args.gate.knownBitPermutationFunc(i);
+        const j = args.gate.knownBitPermutationFunc(i);
 
-        let pt = new Point(args.positionInCircuit.col, args.positionInCircuit.row + i);
-        let isMeasured = args.stats.circuitDefinition.locIsMeasured(pt);
-        let y1 = wireY(args, i);
-        let y2 = wireY(args, j);
+        const pt = new Point(args.positionInCircuit.col, args.positionInCircuit.row + i);
+        const isMeasured = args.stats.circuitDefinition.locIsMeasured(pt);
+        const y1 = wireY(args, i);
+        const y2 = wireY(args, j);
         const path = args.painter.graphics();
-        for (let [dx, dy] of isMeasured ? [[j > i ? +1 : -1, -1], [0, +1]] : [[0, 0]]) {
+        for (const [dx, dy] of isMeasured ? [[j > i ? +1 : -1, -1], [0, +1]] : [[0, 0]]) {
             path.moveTo(Math.min(x1, x1 + dx), y1 + dy);
             path.lineTo(x1 + dx, y1 + dy);
             path.lineTo(x2 + dx, y2 + dy);

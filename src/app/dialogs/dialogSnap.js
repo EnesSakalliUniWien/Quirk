@@ -66,7 +66,7 @@ function zoneForPointer(x, y, safeRect) {
  * @returns {!{x: !number, y: !number, w: !number, h: !number}}
  */
 function rectForZone(zone, safeRect) {
-    let half = Math.floor(safeRect.w / 2);
+    const half = Math.floor(safeRect.w / 2);
     switch (zone) {
         case 'left': return {x: safeRect.x, y: safeRect.y, w: half, h: safeRect.h};
         case 'right': return {x: safeRect.x + half, y: safeRect.y, w: safeRect.w - half, h: safeRect.h};
@@ -80,8 +80,8 @@ const _dockModes = new Map();
 
 /** Publishes the dock map to the app store, where the dialog components read it. */
 function _emitDockModes() {
-    let snapshot = {};
-    for (let [name, zone] of _dockModes.entries()) {
+    const snapshot = {};
+    for (const [name, zone] of _dockModes.entries()) {
         snapshot[name] = zone;
     }
     appStore.getState().setDockModes(snapshot);
@@ -178,7 +178,7 @@ function notifyDialogOpened(name, popupElement) {
         resetDockModes();
         return;
     }
-    let zone = _dockModes.get(name);
+    const zone = _dockModes.get(name);
     if (zone !== undefined) {
         _applyRect(popupElement, rectForZone(zone, _safeRect()));
     }
@@ -188,15 +188,15 @@ function _onPointerDown(ev) {
     if (ev.button !== 0 || window.innerWidth <= MOBILE_BREAKPOINT_PX) {
         return;
     }
-    let handle = ev.target.closest('[data-snap-handle]');
+    const handle = ev.target.closest('[data-snap-handle]');
     if (handle === null || ev.target.closest('button, a, input, select, textarea') !== null) {
         return;
     }
-    let popup = handle.closest('.dialog-layout');
+    const popup = handle.closest('.dialog-layout');
     if (popup === null || !_NAME_BY_DIV_ID.has(popup.id)) {
         return;
     }
-    let bounds = popup.getBoundingClientRect();
+    const bounds = popup.getBoundingClientRect();
     _drag = {
         name: _NAME_BY_DIV_ID.get(popup.id),
         popup,
@@ -212,8 +212,8 @@ function _onPointerDown(ev) {
 }
 
 function _onPointerMove(ev) {
-    let dx = ev.clientX - _drag.startX;
-    let dy = ev.clientY - _drag.startY;
+    const dx = ev.clientX - _drag.startX;
+    const dy = ev.clientY - _drag.startY;
     if (!_drag.moved) {
         if (Math.hypot(dx, dy) < DRAG_THRESHOLD_PX) {
             return;
@@ -231,11 +231,11 @@ function _onPointerMove(ev) {
     _drag.popup.style.transform = 'none';
 
     _drag.zone = zoneForPointer(ev.clientX, ev.clientY, _safeRect());
-    let ghost = _ghostElement();
+    const ghost = _ghostElement();
     if (_drag.zone === undefined) {
         ghost.hidden = true;
     } else {
-        let rect = rectForZone(_drag.zone, _safeRect());
+        const rect = rectForZone(_drag.zone, _safeRect());
         ghost.style.left = rect.x + 'px';
         ghost.style.top = rect.y + 'px';
         ghost.style.width = rect.w + 'px';
@@ -260,9 +260,9 @@ function _reclampDocked() {
         resetDockModes();
         return;
     }
-    for (let [divId, name] of _NAME_BY_DIV_ID.entries()) {
-        let zone = _dockModes.get(name);
-        let popup = document.getElementById(divId);
+    for (const [divId, name] of _NAME_BY_DIV_ID.entries()) {
+        const zone = _dockModes.get(name);
+        const popup = document.getElementById(divId);
         if (zone !== undefined && popup !== null) {
             _applyRect(popup, rectForZone(zone, _safeRect()));
         }

@@ -55,14 +55,14 @@ function paintResizeTab(args) {
     return;
   }
 
-  let d = Layout.GATE_RADIUS;
-  let rect = rectForResizeTab(args.rect);
-  let trimRect = rect.skipLeft(2).skipRight(2);
-  let { x: cx, y: cy } = trimRect.center();
-  let backColor = args.isResizeHighlighted
+  const d = Layout.GATE_RADIUS;
+  const rect = rectForResizeTab(args.rect);
+  const trimRect = rect.skipLeft(2).skipRight(2);
+  const { x: cx, y: cy } = trimRect.center();
+  const backColor = args.isResizeHighlighted
     ? CanvasTheme.gate.hover
     : CanvasTheme.surface.gate;
-  let foreColor = args.isResizeHighlighted
+  const foreColor = args.isResizeHighlighted
     ? CanvasTheme.text.default
     : CanvasTheme.text.muted;
   args.painter.group("resize-tab-" + args.painter.order, (painter) => {
@@ -85,16 +85,16 @@ function paintResizeTab(args) {
   drawPath(
     args.painter,
     (tracer) => {
-      let arrowDirs = [
+      const arrowDirs = [
         args.gate.canIncreaseInSize() ? +1 : -1,
         args.gate.canDecreaseInSize() ? -1 : +1,
       ];
-      let arrowOffsets = [+1, -1];
-      for (let sx of [-1, +1]) {
+      const arrowOffsets = [+1, -1];
+      for (const sx of [-1, +1]) {
         for (let k = 0; k < 2; k++) {
-          let by = cy + (d * arrowOffsets[k] * 5) / 8;
-          let y1 = by + (d * arrowDirs[k]) / 8;
-          let y2 = by - (d * arrowDirs[k]) / 8;
+          const by = cy + (d * arrowOffsets[k] * 5) / 8;
+          const y1 = by + (d * arrowDirs[k]) / 8;
+          const y2 = by - (d * arrowDirs[k]) / 8;
           PathGeometry.line(tracer, cx, y1, cx + d * sx * 0.3, y2);
         }
       }
@@ -108,14 +108,14 @@ function paintResizeTab(args) {
  * @param {!GraphicsPath} tracer
  */
 function traceLocationIndependentOutline(args, tracer) {
-  let [x1, x2, y1, y2] = [
+  const [x1, x2, y1, y2] = [
     args.rect.x,
     args.rect.right(),
     args.rect.y,
     args.rect.bottom(),
   ];
-  let diameter = Math.min(args.rect.h, args.rect.w, Layout.GATE_RADIUS * 2);
-  let clip = diameter / (2 + Math.sqrt(2));
+  const diameter = Math.min(args.rect.h, args.rect.w, Layout.GATE_RADIUS * 2);
+  const clip = diameter / (2 + Math.sqrt(2));
   tracer.poly([
     x1,
     y1 + clip,
@@ -147,7 +147,7 @@ function paintLocationIndependentFrame(
   args,
   normalFillColor = CanvasTheme.surface.gate,
 ) {
-  let backColor = args.isHighlighted ? CanvasTheme.gate.hover : normalFillColor;
+  const backColor = args.isHighlighted ? CanvasTheme.gate.hover : normalFillColor;
   drawPath(
     args.painter,
     (tracer) => traceLocationIndependentOutline(args, tracer),
@@ -166,8 +166,8 @@ function paintGateButton(args) {
     return;
   }
 
-  let buttonRect = gateButtonRect(args.rect);
-  let buttonFocus = args.focusPoints.some((pt) => buttonRect.containsPoint(pt));
+  const buttonRect = gateButtonRect(args.rect);
+  const buttonFocus = args.focusPoints.some((pt) => buttonRect.containsPoint(pt));
   rectangle(args.painter, buttonRect, {
     fill: buttonFocus
       ? CanvasTheme.interaction.buttonFocus

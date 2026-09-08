@@ -54,8 +54,8 @@ function valueElsePlaceholder(textBox) {
  * @returns {!number}
  */
 function parseUserAngle(text) {
-    let c = ComplexFormula.parse(text);
-    if (c.imag !== 0 || isNaN(c.imag)) {
+    const c = ComplexFormula.parse(text);
+    if (c.imag !== 0 || Number.isNaN(c.imag)) {
         throw new Error("You just had to make it complicated, didn't you?");
     }
     return c.real * Math.PI / 180;
@@ -76,19 +76,19 @@ function decreasePrecisionAndSerializedSize(matrix) {
  * @returns {!Matrix}
  */
 function parseUserRotation(angleText, phaseText, axisText) {
-    let w = parseUserAngle(angleText);
-    let phase = parseUserAngle(phaseText);
+    const w = parseUserAngle(angleText);
+    const phase = parseUserAngle(phaseText);
     let {x, y, z} = Axis.parse(axisText);
 
-    let len = Math.sqrt(x*x + y*y + z*z);
+    const len = Math.sqrt(x*x + y*y + z*z);
     x /= len;
     y /= len;
     z /= len;
 
-    let [I, X, Y, Z] = [Matrix.identity(2), QubitMatrix.PAULI_X, QubitMatrix.PAULI_Y, QubitMatrix.PAULI_Z];
-    let axisMatrix = X.times(x).plus(Y.times(y)).plus(Z.times(z));
+    const [I, X, Y, Z] = [Matrix.identity(2), QubitMatrix.PAULI_X, QubitMatrix.PAULI_Y, QubitMatrix.PAULI_Z];
+    const axisMatrix = X.times(x).plus(Y.times(y)).plus(Z.times(z));
 
-    let result = I.times(Math.cos(w/2)).
+    const result = I.times(Math.cos(w/2)).
         plus(axisMatrix.times(Complex.I.neg()).times(Math.sin(w/2))).
         times(Complex.polar(1, phase));
     if (result.hasNaN()) {
@@ -104,8 +104,8 @@ function parseUserRotation(angleText, phaseText, axisText) {
  */
 function parseUserGateMatrix_noCorrection(text) {
     // If brackets are present, use the normal parse method that enforces grouping.
-    if (text.match(/[\{}\[\]]/)) {
-        return Matrix.parse(text.split(/[\{\[]/).join('{').split(/[}\]]/).join('}'));
+    if (text.match(/[{}[\]]/)) {
+        return Matrix.parse(text.split(/[{[]/).join('{').split(/[}\]]/).join('}'));
     }
 
     // Newlines introduce a break if one isn't already present at that location and we aren't at the end.
@@ -113,10 +113,10 @@ function parseUserGateMatrix_noCorrection(text) {
     text = text.trim();
     // Ignore trailing comma.
     if (text.endsWith(',')) {
-        text = text.substring(0, text.length - 1);
+        text = text.slice(0, Math.max(0, text.length - 1));
     }
 
-    let parts = text.split(',').map(e => e === '' ? 0 : ComplexFormula.parse(e));
+    const parts = text.split(',').map(e => e === '' ? 0 : ComplexFormula.parse(e));
 
     // Expand singleton cell into a 2x2 global phase operation.
     if (parts.length === 1) {
@@ -157,22 +157,22 @@ function parseUserMatrix(text, ensureUnitary) {
  * @returns {{start: !int, end: !int}}
  */
 function parseRange(text, maxLen) {
-    let parts = text.split(":").map(e => e.trim());
+    const parts = text.split(":").map(e => e.trim());
     if (parts.length > 2) {
         throw new Error("Too many colons.");
     }
-    let infinities = [undefined, "", "∞"];
-    let min = parseInt(parts[0] || "1");
-    let max = infinities.indexOf(parts[1]) !== -1 ? Infinity : parseInt(parts[1]);
-    if (isNaN(min)) {
+    const infinities = [undefined, "", "∞"];
+    const min = parseInt(parts[0] || "1");
+    const max = infinities.includes(parts[1]) ? Infinity : parseInt(parts[1]);
+    if (Number.isNaN(min)) {
         throw new Error("Not a number: " + parts[0]);
     }
-    if (isNaN(max)) {
+    if (Number.isNaN(max)) {
         throw new Error("Not a number: " + parts[1]);
     }
 
-    let start = Math.min(maxLen, Math.max(0, min - 1));
-    let end = Math.min(maxLen, Math.max(start, max));
+    const start = Math.min(maxLen, Math.max(0, min - 1));
+    const end = Math.min(maxLen, Math.max(start, max));
     return {start, end};
 }
 
@@ -181,8 +181,8 @@ function parseRange(text, maxLen) {
  * @returns {!CircuitDefinition}
  */
 function removeBrokenGates(circuit) {
-    let w = circuit.columns.length;
-    let h = circuit.numWires;
+    const w = circuit.columns.length;
+    const h = circuit.numWires;
     return circuit.withColumns(
         circuit.columns.map(
             (col, c) => new GateColumn(col.gates.map(
@@ -198,13 +198,13 @@ function removeBrokenGates(circuit) {
  * @returns {!Gate}
  */
 function parseUserGateFromCircuitRange(circuit, colRangeText, wireRangeText, nameText) {
-    let colRange = parseRange(colRangeText, circuit.columns.length);
-    let rowRange = parseRange(wireRangeText, circuit.numWires);
+    const colRange = parseRange(colRangeText, circuit.columns.length);
+    const rowRange = parseRange(wireRangeText, circuit.numWires);
     if (rowRange.end === rowRange.start) {
         throw new Error("Empty wire range.")
     }
 
-    let cols = circuit.columns.
+    const cols = circuit.columns.
         slice(colRange.start, colRange.end).
         map(col => new GateColumn(col.gates.slice(rowRange.start, rowRange.end)));
     let gateCircuit = new CircuitDefinition(rowRange.end - rowRange.start, cols);
@@ -214,8 +214,8 @@ function parseUserGateFromCircuitRange(circuit, colRangeText, wireRangeText, nam
         throw new Error("No gates in included range.");
     }
 
-    let symbol = nameText;
-    let id = randomCustomGateId();
+    const symbol = nameText;
+    const id = randomCustomGateId();
 
     return setGateBuilderEffectToCircuit(new GateBuilder(), gateCircuit).
         setSerializedId(id).

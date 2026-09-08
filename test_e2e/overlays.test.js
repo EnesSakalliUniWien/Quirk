@@ -17,7 +17,7 @@
 // The menu, export, and gate forge dialogs.
 
 import assert from 'node:assert/strict';
-import {circuitMetrics, test, withQuirkPage, waitForQuirk, waitForCircuit, waitForDialog, currentCircuit, exportedCircuit, urlForCircuit, TEST_TIMEOUT_MILLIS, circuitTopForWires, waitForCanvasViewport} from './harness.js';
+import {circuitMetrics, test, withQuirkPage, waitForCircuit, waitForDialog, TEST_TIMEOUT_MILLIS, circuitTopForWires, waitForCanvasViewport} from './harness.js';
 
 test('opens a Bloch sphere from its enlarged edge at different zoom levels', async browser => {
     await withQuirkPage(browser, {cols: [['H'], ['Bloch']]}, async page => {

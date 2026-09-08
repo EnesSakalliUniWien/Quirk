@@ -23,7 +23,7 @@ import {Gate, GateBuilder} from '../../circuit/model/Gate.js';
 import {GatePainting} from '../../draw/gate/GatePainting.js';
 import {reverseShaderForSize} from '../ordering/ReverseBitsGate.js';
 
-let InputGates = {};
+const InputGates = {};
 
 /**
  * @param {!GateDrawParams} args
@@ -35,7 +35,7 @@ function drawInputGate(args, key, reverse) {
     rectangle(args.painter, args.rect, {stroke: {color: CanvasTheme.stroke.guide, width: 1}});
     GatePainting.paintResizeTab(args);
 
-    let {x, y} = args.rect.center();
+    const {x, y} = args.rect.center();
     fitText(args.painter, 'input', {
         x,
         y: y-2,
@@ -58,7 +58,7 @@ function drawInputGate(args, key, reverse) {
     });
 }
 
-let makeInputGate = (key, reverse) => Gate.buildFamily(1, 16, (span, builder) => builder.
+const makeInputGate = (key, reverse) => Gate.buildFamily(1, 16, (span, builder) => builder.
     setSerializedId((reverse ? 'rev' : '') + `input${key}${span}`).
     setSymbol((reverse ? 'rev ' : '') + `input ${key}`).
     setTitle(`Input Gate [${key}]` + (reverse ? ' [reversed]' : '')).
@@ -77,7 +77,7 @@ let makeInputGate = (key, reverse) => Gate.buildFamily(1, 16, (span, builder) =>
         }
     }]));
 
-let makeSetInputGate = key => new GateBuilder().
+const makeSetInputGate = key => new GateBuilder().
     setSerializedIdAndSymbol(`set${key}`).
     setTitle(`Set Default ${key}`).
     setBlurb(`Sets a default value for input ${key}, for when an inline input isn't given.`).
@@ -104,7 +104,7 @@ let makeSetInputGate = key => new GateBuilder().
             if (text.trim() === '') {
                 return {gate: oldGate};
             }
-            let val = parseInt(text);
+            const val = parseInt(text);
             if (!Number.isInteger(val) || val < 0 || val >= 1<<16) {
                 return {error: `'${text}' isn't an integer between 0 and 65535.`};
             }
@@ -112,7 +112,7 @@ let makeSetInputGate = key => new GateBuilder().
         }
     }).
     setExtraDisableReasonFinder(args => {
-        let p = args.gate.param;
+        const p = args.gate.param;
         if (!Number.isInteger(p) || p < 0 || p > 1<<16) {
             return 'bad\nvalue';
         }

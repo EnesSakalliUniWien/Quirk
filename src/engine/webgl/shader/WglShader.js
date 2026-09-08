@@ -31,16 +31,16 @@ import { WglConfiguredShader } from "./WglConfiguredShader.js";
 const ENSURE_ATTRIBUTES_BOUND_SLOT = new WglMortalValueSlot(
   () => {
     const GL = WebGL2RenderingContext;
-    let gl = initializedWglContext().gl;
+    const gl = initializedWglContext().gl;
 
-    let positionBuffer = gl.createBuffer();
-    let positions = new Float32Array([-1, +1, +1, +1, -1, -1, +1, -1]);
+    const positionBuffer = gl.createBuffer();
+    const positions = new Float32Array([-1, +1, +1, +1, -1, -1, +1, -1]);
     gl.bindBuffer(GL.ARRAY_BUFFER, positionBuffer);
     gl.bufferData(GL.ARRAY_BUFFER, positions, GL.STATIC_DRAW);
     // Note: ARRAY_BUFFER should not be rebound anywhere else.
 
-    let indexBuffer = gl.createBuffer();
-    let indices = new Uint16Array([0, 2, 1, 2, 3, 1]);
+    const indexBuffer = gl.createBuffer();
+    const indices = new Uint16Array([0, 2, 1, 2, 3, 1]);
     gl.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, indexBuffer);
     gl.bufferData(GL.ELEMENT_ARRAY_BUFFER, indices, GL.STATIC_DRAW);
     // Note: ELEMENT_ARRAY_BUFFER should not be rebound anywhere else.
@@ -48,7 +48,7 @@ const ENSURE_ATTRIBUTES_BOUND_SLOT = new WglMortalValueSlot(
     return { positionBuffer, indexBuffer };
   },
   ({ positionBuffer, indexBuffer }) => {
-    let gl = initializedWglContext().gl;
+    const gl = initializedWglContext().gl;
     gl.deleteBuffer(positionBuffer);
     gl.deleteBuffer(indexBuffer);
   },
@@ -84,7 +84,7 @@ class WglShader {
    */
   constructor(fragmentShaderSourceGenerator) {
     if (typeof fragmentShaderSourceGenerator === "string") {
-      let fixedSource = fragmentShaderSourceGenerator;
+      const fixedSource = fragmentShaderSourceGenerator;
       fragmentShaderSourceGenerator = () => fixedSource;
     }
 
@@ -106,7 +106,7 @@ class WglShader {
   withArgs(...uniformArguments) {
     // Learn the parameter names.
     if (this._compiledShaderSlot === undefined) {
-      let parameterNames = uniformArguments.map((e) => e.name);
+      const parameterNames = uniformArguments.map((e) => e.name);
       this._compiledShaderSlot = new WglMortalValueSlot(
         () =>
           new WglCompiledShader(
@@ -123,8 +123,8 @@ class WglShader {
       }
 
       const GL = WebGL2RenderingContext;
-      let ctx = initializedWglContext();
-      let gl = ctx.gl;
+      const ctx = initializedWglContext();
+      const gl = ctx.gl;
 
       ENSURE_ATTRIBUTES_BOUND_SLOT.ensureInitialized(ctx.lifetimeCounter);
 
@@ -166,19 +166,19 @@ class WglCompiledShader {
    */
   constructor(fragmentShaderSource, uniformParameterNames) {
     const GL = WebGL2RenderingContext;
-    let gl = initializedWglContext().gl;
-    let glVertexShader = WglCompiledShader.compileShader(
+    const gl = initializedWglContext().gl;
+    const glVertexShader = WglCompiledShader.compileShader(
       gl,
       GL.VERTEX_SHADER,
       VERTEX_SHADER_SOURCE,
     );
-    let glFragmentShader = WglCompiledShader.compileShader(
+    const glFragmentShader = WglCompiledShader.compileShader(
       gl,
       GL.FRAGMENT_SHADER,
       FRAGMENT_SHADER_PRELUDE + fragmentShaderSource,
     );
 
-    let program = gl.createProgram();
+    const program = gl.createProgram();
     gl.attachShader(program, glVertexShader);
     gl.attachShader(program, glFragmentShader);
     gl.linkProgram(program);
@@ -188,7 +188,7 @@ class WglCompiledShader {
 
     // Note: MDN says the result of getProgramInfoLog is always a DOMString, but a user reported an
     // error where it returned null. So now we fallback to the empty string when getting a falsy value.
-    let warnings = (gl.getProgramInfoLog(program) || "").trim();
+    const warnings = (gl.getProgramInfoLog(program) || "").trim();
     if (warnings !== "" && warnings !== "\0") {
       // The lone NUL happened in Ubuntu with an NVIDIA GK107GL.
       console.warn(
@@ -199,8 +199,8 @@ class WglCompiledShader {
     }
 
     if (gl.getProgramParameter(program, GL.LINK_STATUS) === false) {
-      let validateStatus = gl.getProgramParameter(program, GL.VALIDATE_STATUS);
-      let error = gl.getError();
+      const validateStatus = gl.getProgramParameter(program, GL.VALIDATE_STATUS);
+      const error = gl.getError();
       gl.deleteProgram(program);
       throw new Error(
         "Failed to link shader program." +
@@ -229,13 +229,13 @@ class WglCompiledShader {
    * @return {void}
    */
   useWithArgs(uniformArgs) {
-    let ctx = initializedWglContext();
-    let gl = ctx.gl;
+    const ctx = initializedWglContext();
+    const gl = ctx.gl;
     gl.useProgram(this.program);
 
-    let coop = { coopTextureUnit: 0 };
-    for (let arg of uniformArgs) {
-      let location = this.uniformLocations.get(arg.name);
+    const coop = { coopTextureUnit: 0 };
+    for (const arg of uniformArgs) {
+      const location = this.uniformLocations.get(arg.name);
       if (location === undefined) {
         throw new DetailedError("Unexpected uniform argument", {
           arg,
@@ -257,7 +257,7 @@ class WglCompiledShader {
   }
 
   free() {
-    let gl = initializedWglContext().gl;
+    const gl = initializedWglContext().gl;
     gl.deleteProgram(this.program);
   }
 
@@ -268,12 +268,12 @@ class WglCompiledShader {
    * @returns {!WebGLShader}
    */
   static compileShader(gl, shaderType, sourceCode) {
-    let shader = gl.createShader(shaderType);
+    const shader = gl.createShader(shaderType);
 
     gl.shaderSource(shader, sourceCode);
     gl.compileShader(shader);
 
-    let info = gl.getShaderInfoLog(shader) || "";
+    const info = gl.getShaderInfoLog(shader) || "";
     if (info !== "") {
       console.warn("WebGLShader: gl.getShaderInfoLog() wasn't empty: " + info);
       console.warn("Source code was: " + sourceCode);

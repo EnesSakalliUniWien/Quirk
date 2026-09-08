@@ -43,7 +43,7 @@ import {HalfTurnGates} from '../rotations/HalfTurnGates.js';
  * @returns {!WglTexture}
  */
 function controlMaskTex(ctx, controls) {
-    let powerSize = currentShaderCoder().vec2.arrayPowerSizeOfTexture(ctx.stateTrader.currentTexture);
+    const powerSize = currentShaderCoder().vec2.arrayPowerSizeOfTexture(ctx.stateTrader.currentTexture);
     return CircuitShaders.controlMask(controls).toBoolTexture(powerSize);
 }
 
@@ -55,10 +55,10 @@ function controlMaskTex(ctx, controls) {
  * @returns {!WglTexture}
  */
 function textureWithTotalWeightMatchingGivenControls(ketTexture, controlMaskTex, forStats=false) {
-    let powerSize = currentShaderCoder().vec2.arrayPowerSizeOfTexture(ketTexture);
+    const powerSize = currentShaderCoder().vec2.arrayPowerSizeOfTexture(ketTexture);
 
     // Convert the matching amplitudes to probabilities (and the non-matching ones to 0).
-    let trader = new WglTextureTrader(ketTexture);
+    const trader = new WglTextureTrader(ketTexture);
     trader.dontDeallocCurrentTexture();
     trader.shadeAndTrade(
         tex => amplitudesToProbabilities(tex, controlMaskTex),
@@ -80,7 +80,7 @@ function textureWithTotalWeightMatchingGivenControls(ketTexture, controlMaskTex,
  * @returns {!WglTexture}
  */
 function detectorStatTexture(ctx) {
-    let mask = controlMaskTex(ctx, ctx.controls.and(Controls.bit(ctx.row, true)));
+    const mask = controlMaskTex(ctx, ctx.controls.and(Controls.bit(ctx.row, true)));
     try {
         return textureWithTotalWeightMatchingGivenControls(ctx.stateTrader.currentTexture, mask, true);
     } finally {
@@ -91,7 +91,7 @@ function detectorStatTexture(ctx) {
 /**
  * Discards states that don't meet the detection result.
  */
-let detectorShader = makePseudoShaderWithInputsAndOutputAndCode(
+const detectorShader = makePseudoShaderWithInputsAndOutputAndCode(
     [
         Inputs.float('total_weight'),
         Inputs.float('detection_weight'),
@@ -144,10 +144,10 @@ function switchToBasis(ctx, axis, inverse) {
  * @param {!CircuitEvalContext} ctx
  */
 function sampleMeasure(ctx) {
-    let maskAll = controlMaskTex(ctx, Controls.NONE);
-    let maskMatch = controlMaskTex(ctx, ctx.controls.and(Controls.bit(ctx.row, true)));
-    let weightAll = textureWithTotalWeightMatchingGivenControls(ctx.stateTrader.currentTexture, maskAll);
-    let weightMatch = textureWithTotalWeightMatchingGivenControls(ctx.stateTrader.currentTexture, maskMatch);
+    const maskAll = controlMaskTex(ctx, Controls.NONE);
+    const maskMatch = controlMaskTex(ctx, ctx.controls.and(Controls.bit(ctx.row, true)));
+    const weightAll = textureWithTotalWeightMatchingGivenControls(ctx.stateTrader.currentTexture, maskAll);
+    const weightMatch = textureWithTotalWeightMatchingGivenControls(ctx.stateTrader.currentTexture, maskMatch);
 
     ctx.applyOperation(detectorShader(
         weightAll,
@@ -190,7 +190,7 @@ function drawHighlight(args) {
 function drawWedge(args, axis) {
     // Draw semi-circle wedge.
     const τ = Math.PI * 2;
-    let r = Math.min(args.rect.h / 2, args.rect.w) - 1;
+    const r = Math.min(args.rect.h / 2, args.rect.w) - 1;
     let {x, y} = args.rect.center();
     x -= r*0.5;
     x += 0.5;
@@ -211,11 +211,11 @@ function drawWedge(args, axis) {
  */
 function drawClick(args, axis) {
     // Draw tilted "*click*" text.
-    let clicked = args.customStats;
+    const clicked = args.customStats;
     if (!clicked) {
         return;
 }
-    let r = Math.min(args.rect.h / 2, args.rect.w);
+    const r = Math.min(args.rect.h / 2, args.rect.w);
     args.painter.group('click-label-' + args.painter.order, painter => {
         painter.position.set(args.rect.center().x, args.rect.center().y);
         painter.rotation = axis === undefined ? Math.PI / 3 : Math.PI / 4;
@@ -264,7 +264,7 @@ function drawClick(args, axis) {
  */
 function drawControlBulb(args, axis) {
     redrawControlWires(args);
-    let p = args.rect.center();
+    const p = args.rect.center();
     switch (axis) {
         case 'X':
             circle(args.painter, p, 5, {fill: CanvasTheme.surface.gate});
@@ -272,13 +272,14 @@ function drawControlBulb(args, axis) {
             strokePath(args.painter, [p.offsetBy(0, -5), p.offsetBy(0, +5)], CanvasTheme.text.primary, 1);
             strokePath(args.painter, [p.offsetBy(-5, 0), p.offsetBy(+5, 0)], CanvasTheme.text.primary, 1);
             break;
-        case 'Y':
+        case 'Y': {
             circle(args.painter, p, 5, {fill: CanvasTheme.surface.gate});
             circle(args.painter, p, 5, {stroke: {color: CanvasTheme.text.primary, width: 1}});
-            let r = 5*Math.sqrt(0.5)*1.1;
+            const r = 5*Math.sqrt(0.5)*1.1;
             strokePath(args.painter, [p.offsetBy(+r, -r), p.offsetBy(-r, +r)], CanvasTheme.text.primary, 1);
             strokePath(args.painter, [p.offsetBy(-r, -r), p.offsetBy(+r, +r)], CanvasTheme.text.primary, 1);
             break;
+        }
         case 'Z':
             circle(args.painter, p, 5, {fill: CanvasTheme.text.primary});
             break;
@@ -292,12 +293,12 @@ function drawControlBulb(args, axis) {
  * @param {!string} axis
  */
 function drawDetectClearReset(args, axis) {
-    let fullRect = args.rect;
-    let detectorRect = fullRect.leftHalf();
-    let resetRect = fullRect.rightHalf();
+    const fullRect = args.rect;
+    const detectorRect = fullRect.leftHalf();
+    const resetRect = fullRect.rightHalf();
 
     // Draw background.
-    let clearWireRect = fullRect.rightHalf();
+    const clearWireRect = fullRect.rightHalf();
     clearWireRect.y += clearWireRect.h / 2 - 2;
     clearWireRect.h = 5;
     rectangle(args.painter, clearWireRect, {fill: CanvasTheme.surface.background});
@@ -328,23 +329,23 @@ function redrawControlWires(args) {
     if (args.positionInCircuit === undefined || args.isHighlighted) {
         return;
     }
-    let painter = args.painter;
-    let columnIndex = args.positionInCircuit.col;
-    let x = Math.round(args.rect.center().x - 0.5) + 0.5;
+    const painter = args.painter;
+    const columnIndex = args.positionInCircuit.col;
+    const x = Math.round(args.rect.center().x - 0.5) + 0.5;
 
     // Dashed line indicates effects from non-unitary gates may affect, or appear to affect, other wires.
-    let circuit = args.stats.circuitDefinition;
+    const circuit = args.stats.circuitDefinition;
     if (circuit.columns[columnIndex].hasGatesWithGlobalEffects()) {
         painter.group('global-control-' + painter.order, painter => {
             strokePath(painter, [new Point(x, args.rect.y), new Point(x, args.rect.bottom())], CanvasTheme.text.primary, 1, [1, 4]);
         });
     }
 
-    let row = args.positionInCircuit.row;
-    for (let {first, last, measured} of circuit.controlLinesRanges(columnIndex)) {
+    const row = args.positionInCircuit.row;
+    for (const {first, last, measured} of circuit.controlLinesRanges(columnIndex)) {
         if (first <= row && row <= last) {
-            let y1 = first === row ? args.rect.center().y : args.rect.y;
-            let y2 = last === row ? args.rect.center().y : args.rect.bottom();
+            const y1 = first === row ? args.rect.center().y : args.rect.y;
+            const y2 = last === row ? args.rect.center().y : args.rect.bottom();
             if (measured) {
                 strokePath(painter, [new Point(x + 1, y1), new Point(x + 1, y2)], CanvasTheme.text.primary, 1);
                 strokePath(painter, [new Point(x - 1, y1), new Point(x - 1, y2)], CanvasTheme.text.primary, 1);
@@ -362,8 +363,8 @@ function redrawControlWires(args) {
  */
 function withClearedControls(func) {
     return ctx => {
-        let controls = ctx.controls;
-        let texture = ctx.controlsTexture;
+        const controls = ctx.controls;
+        const texture = ctx.controlsTexture;
         try {
             ctx.controls = Controls.NONE;
             ctx.controlsTexture = controlMaskTex(ctx, ctx.controls);
@@ -381,7 +382,7 @@ function withClearedControls(func) {
  * @returns {!Gate}
  */
 function makeDetectControlClearGate(axis) {
-    let builder = new GateBuilder().
+    const builder = new GateBuilder().
         setSerializedIdAndSymbol(`${axis}DetectControlReset`).
         setTitle(`${axis} Detect-Control-Reset`).
         setBlurb(`Does a sampled ${axis}-axis measurement.\nControls operations with the result.\nResets the target to |0⟩.`).
@@ -411,12 +412,12 @@ function makeDetectControlClearGate(axis) {
  * @returns {!Gate}
  */
 function makeDetector(axis) {
-    let state = new Map([
+    const state = new Map([
         ['X', '|0⟩-|1⟩'],
         ['Y', '|0⟩-i|1⟩'],
         ['Z', '|1⟩'],
     ]).get(axis);
-    let builder = new GateBuilder().
+    const builder = new GateBuilder().
         setSerializedIdAndSymbol(`${axis}Detector`).
         setTitle(`${axis} Axis Detector`).
         setBlurb(
@@ -437,7 +438,7 @@ function makeDetector(axis) {
     return builder.gate;
 }
 
-let Detectors = {};
+const Detectors = {};
 
 Detectors.XDetector = makeDetector('X');
 Detectors.YDetector = makeDetector('Y');

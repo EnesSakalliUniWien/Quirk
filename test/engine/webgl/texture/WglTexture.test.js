@@ -19,10 +19,10 @@ import {WglArg} from "../../../../src/engine/webgl/shader/WglArg.js"
 import {WglShader} from "../../../../src/engine/webgl/shader/WglShader.js"
 import {WglTexture} from "../../../../src/engine/webgl/texture/WglTexture.js"
 
-let suite = new Suite("WglTexture");
+const suite = new Suite("WglTexture");
 
 suite.test("properties", () => {
-    let t = new WglTexture(8, 16, WebGL2RenderingContext.UNSIGNED_BYTE);
+    const t = new WglTexture(8, 16, WebGL2RenderingContext.UNSIGNED_BYTE);
     assertThat(t.width).isEqualTo(8);
     assertThat(t.height).isEqualTo(16);
     assertThat(t.pixelType).isEqualTo(WebGL2RenderingContext.UNSIGNED_BYTE);
@@ -31,16 +31,16 @@ suite.test("properties", () => {
 });
 
 suite.testUsingWebGL("readPixels_bytes", () => {
-    let w = 2;
-    let h = 2;
-    let shader = new WglShader(`
+    const w = 2;
+    const h = 2;
+    const shader = new WglShader(`
         uniform float v;
         void main() {
             vec2 xy = gl_FragCoord.xy - vec2(0.5, 0.5);
             fragColor = vec4(xy / 255.0, v, 128.0/255.0);
         }`);
 
-    let texture = new WglTexture(w, h, WebGL2RenderingContext.UNSIGNED_BYTE);
+    const texture = new WglTexture(w, h, WebGL2RenderingContext.UNSIGNED_BYTE);
 
     shader.withArgs(WglArg.float("v", 10/255)).renderTo(texture);
     assertThat(texture.readPixels()).isEqualTo(new Uint8Array([
@@ -52,15 +52,15 @@ suite.testUsingWebGL("readPixels_bytes", () => {
 });
 
 suite.testUsingWebGLFloatTextures("readPixels_floats", () => {
-    let w = 2;
-    let h = 2;
-    let shader = new WglShader(`
+    const w = 2;
+    const h = 2;
+    const shader = new WglShader(`
         uniform float v;
         void main() {
             fragColor = vec4(gl_FragCoord.xy, v, 254.5);
         }`);
 
-    let texture = new WglTexture(w, h);
+    const texture = new WglTexture(w, h);
 
     shader.withArgs(WglArg.float("v", 192.25)).renderTo(texture);
     assertThat(texture.readPixels()).isEqualTo(new Float32Array([

@@ -67,7 +67,7 @@ class CircuitEvalContext {
      * @return {void}
      */
     applyOperation(operation) {
-        let configuredShader = operation instanceof WglConfiguredShader ? operation : operation(this);
+        const configuredShader = operation instanceof WglConfiguredShader ? operation : operation(this);
         this.stateTrader.shadeAndTrade(configuredShader);
     }
 
@@ -92,7 +92,7 @@ class CircuitEvalContext {
      * @returns {!CircuitEvalContext}
      */
     withRow(row) {
-        let r = this._clone();
+        const r = this._clone();
         r.row = row;
         return r;
     }
@@ -104,7 +104,7 @@ class CircuitEvalContext {
      * @returns {!CircuitEvalContext}
      */
     withInputSetToRange(letter, offset, length) {
-        let r = this._clone();
+        const r = this._clone();
         r.customContextFromGates = new Map(r.customContextFromGates);
         r.customContextFromGates.set(`Input Range ${letter}`, {offset, length});
         return r;
@@ -116,12 +116,12 @@ class CircuitEvalContext {
      * @returns {!CircuitEvalContext}
      */
     withInputSetToOtherInput(letter, other) {
-        let r = this._clone();
+        const r = this._clone();
 
         r.customContextFromGates = new Map(r.customContextFromGates);
 
-        for (let key of ['Range', 'Default']) {
-            let otherVal = r.customContextFromGates.get(`Input ${key} ${other}`);
+        for (const key of ['Range', 'Default']) {
+            const otherVal = r.customContextFromGates.get(`Input ${key} ${other}`);
             if (otherVal !== undefined) {
                 r.customContextFromGates.set(`Input ${key} ${letter}`, otherVal);
             } else {

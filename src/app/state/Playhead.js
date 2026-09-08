@@ -125,7 +125,7 @@ class Playhead {
         if (!Number.isFinite(step)) {
             return;
         }
-        let clamped = Math.min(Math.max(0, Math.round(step)), this._columnCount);
+        const clamped = Math.min(Math.max(0, Math.round(step)), this._columnCount);
         if (clamped === this._step) {
             return;
         }

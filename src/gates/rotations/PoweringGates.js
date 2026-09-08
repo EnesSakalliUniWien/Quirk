@@ -18,22 +18,22 @@ import {GateBuilder} from "../../circuit/model/Gate.js"
 import {GatePainting} from "../../draw/gate/GatePainting.js"
 import {Matrix} from "../../engine/math/matrix/Matrix.js"
 
-let PoweringGates = {};
+const PoweringGates = {};
 
 const τ = Math.PI * 2;
 const XPow = t => {
-    let c = Math.cos(τ * t) / 2;
-    let s = Math.sin(τ * t) / 2;
+    const c = Math.cos(τ * t) / 2;
+    const s = Math.sin(τ * t) / 2;
     return new Matrix(2, 2, new Float32Array([0.5+c, s, 0.5-c, -s, 0.5-c, -s, 0.5+c, s]));
 };
 const YPow = t => {
-    let c = Math.cos(τ * t) / 2;
-    let s = Math.sin(τ * t) / 2;
+    const c = Math.cos(τ * t) / 2;
+    const s = Math.sin(τ * t) / 2;
     return new Matrix(2, 2, new Float32Array([0.5+c, s, -s, c-0.5, s, 0.5-c, 0.5+c, s]));
 };
 const ZPow = t => {
-    let c = Math.cos(τ * t);
-    let s = Math.sin(τ * t);
+    const c = Math.cos(τ * t);
+    const s = Math.sin(τ * t);
     return new Matrix(2, 2, new Float32Array([1, 0, 0, 0, 0, 0, c, s]));
 };
 

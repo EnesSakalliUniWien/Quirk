@@ -74,29 +74,29 @@ function initMinimap(container, canvasDiv, displayed) {
         const wireEndX = geometry.rectForSuperpositionDisplay().x - 4;
 
         for (let row = 0; row < wireCount; row++) {
-            let y = geometry.wireRect(row).center().y;
+            const y = geometry.wireRect(row).center().y;
             strokePath(view, [new Point(0, y), new Point(wireEndX, y)], CanvasTheme.stroke.faint, 1 / scale);
         }
 
         // Gates as blocks.
         for (let col = 0; col < circuitDefinition.columns.length; col++) {
-            let gates = circuitDefinition.columns[col].gates;
+            const gates = circuitDefinition.columns[col].gates;
             for (let row = 0; row < gates.length; row++) {
-                let gate = gates[row];
+                const gate = gates[row];
                 if (gate === undefined || gate === null) {
                     continue;
                 }
-                let r = geometry.gateRect(row, col, gate.width, gate.height);
+                const r = geometry.gateRect(row, col, gate.width, gate.height);
                 rectangle(view, r, {fill: CanvasTheme.stroke.guide});
             }
         }
 
         // The output display block.
-        let grid = geometry.rectForSuperpositionDisplay();
+        const grid = geometry.rectForSuperpositionDisplay();
         rectangle(view, grid, {stroke: {color: CanvasTheme.stroke.guide, width: 1}});
 
         // The visible part.
-        let viewX = canvasDiv.scrollLeft / circuitZoom();
+        const viewX = canvasDiv.scrollLeft / circuitZoom();
         rectangle(view, new Rect(viewX, 0, visibleWidth, contentHeight), {stroke: {color: CanvasTheme.interaction.outline, width: 1.5 / scale}});
     };
 
@@ -105,7 +105,7 @@ function initMinimap(container, canvasDiv, displayed) {
         const contentWidth = displayed.get().desiredWidth();
         const scale = b.width / contentWidth;
         const visibleWidth = canvasDiv.clientWidth / circuitZoom();
-        let centerX = (ev.clientX - b.left) / scale;
+        const centerX = (ev.clientX - b.left) / scale;
         canvasDiv.scrollLeft = (centerX - visibleWidth / 2) * circuitZoom();
     };
     // Pointer events rather than mouse events, so dragging the viewport box also works by touch.

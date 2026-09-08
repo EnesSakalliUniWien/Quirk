@@ -16,7 +16,7 @@
 
 import { getKnownPerfTests } from "./TestPerfUtil.js";
 
-let execIntoPromise = (method) => {
+const execIntoPromise = (method) => {
   try {
     return Promise.resolve(method());
   } catch (ex) {
@@ -24,8 +24,8 @@ let execIntoPromise = (method) => {
   }
 };
 
-let promiseRunPerfTest = ({ name, method }) => {
-  let result = {
+const promiseRunPerfTest = ({ name, method }) => {
+  const result = {
     description: name,
     suite: ["(Perf Tests)"],
     success: false,
@@ -33,7 +33,7 @@ let promiseRunPerfTest = ({ name, method }) => {
     time: undefined,
   };
 
-  let t0 = performance.now();
+  const t0 = performance.now();
   return execIntoPromise(method)
     .then(
       ({ pass, info }) => {
@@ -57,11 +57,11 @@ let promiseRunPerfTest = ({ name, method }) => {
 };
 
 __testRunner__.start = () => {
-  let known = getKnownPerfTests();
+  const known = getKnownPerfTests();
   __testRunner__.info({ total: known.length });
 
   let chain = Promise.resolve();
-  for (let test of known) {
+  for (const test of known) {
     chain = chain.then(
       () =>
         new Promise((resolver) =>

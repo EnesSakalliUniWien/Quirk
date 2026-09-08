@@ -40,7 +40,7 @@ function circuitZoom() {
  * @param {!number} z
  */
 function setCircuitZoom(z) {
-    let clamped = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, z));
+    const clamped = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, z));
     if (clamped === circuitZoom()) {
         return;
     }
@@ -75,9 +75,9 @@ function attachCircuitScrollSource(element) {
  * @returns {!Point}
  */
 function pointIntoCircuitCoords(pt) {
-    let sx = _scrollSource === undefined ? 0 : _scrollSource.scrollLeft;
-    let sy = _scrollSource === undefined ? 0 : _scrollSource.scrollTop;
-    let zoom = circuitZoom();
+    const sx = _scrollSource === undefined ? 0 : _scrollSource.scrollLeft;
+    const sy = _scrollSource === undefined ? 0 : _scrollSource.scrollTop;
+    const zoom = circuitZoom();
     return new Point((pt.x + sx) / zoom, (pt.y + sy) / zoom);
 }
 

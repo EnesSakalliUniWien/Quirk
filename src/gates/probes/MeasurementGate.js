@@ -30,12 +30,12 @@ function drawMeasurementGate(args) {
     GatePainting.paintOutline(args);
 
     const τ = Math.PI * 2;
-    let r = args.rect.w*0.4;
+    const r = args.rect.w*0.4;
     let {x, y} = args.rect.center();
     y += r*0.6;
-    let a = -τ/6;
-    let [c, s] = [Math.cos(a)*r*1.5, Math.sin(a)*r*1.5];
-    let [p, q] = [x + c, y + s];
+    const a = -τ/6;
+    const [c, s] = [Math.cos(a)*r*1.5, Math.sin(a)*r*1.5];
+    const [p, q] = [x + c, y + s];
 
     // Draw the dial and shaft.
     drawPath(args.painter, trace => {
@@ -46,7 +46,7 @@ function drawMeasurementGate(args) {
     drawPath(args.painter, trace => PathGeometry.arrowHead(trace, p, q, r*0.3, a, τ/4), [{fill: style.text}]);
 }
 
-let MeasurementGate = new GateBuilder().
+const MeasurementGate = new GateBuilder().
     setSerializedIdAndSymbol("Measure").
     setTitle("Measurement Gate").
     setBlurb("Measures whether a qubit is ON or OFF, without conditioning on the result.").
@@ -57,7 +57,7 @@ let MeasurementGate = new GateBuilder().
         if (args.isNested) {
             return "can't\nnest\nmeasure\n(sorry)";
         }
-        let isMeasured = (args.measuredMask & (1<<args.outerRow)) !== 0;
+        const isMeasured = (args.measuredMask & (1<<args.outerRow)) !== 0;
         if (args.innerColumn.hasControl() && !isMeasured) {
             return "can't\ncontrol\n(sorry)";
         }

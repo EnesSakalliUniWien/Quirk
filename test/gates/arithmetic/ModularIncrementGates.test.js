@@ -22,10 +22,10 @@ import {ModularAdditionGates} from "../../../src/gates/arithmetic/ModularAdditio
 import {InputGates} from "../../../src/gates/inputs/InputGates.js"
 import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js"
 
-let suite = new Suite("ModularIncrementGates");
+const suite = new Suite("ModularIncrementGates");
 
 suite.testUsingWebGL('mod_too_big_disable', () => {
-    let circuit = diagram => CircuitDefinition.fromTextDiagram(new Map([
+    const circuit = diagram => CircuitDefinition.fromTextDiagram(new Map([
         ['A', InputGates.InputAFamily],
         ['B', InputGates.InputBFamily],
         ['R', InputGates.InputRFamily],
@@ -39,9 +39,9 @@ suite.testUsingWebGL('mod_too_big_disable', () => {
         ['-', undefined],
         ['/', null],
     ]), diagram);
-    let bad = (col, row, diagram) =>
+    const bad = (col, row, diagram) =>
         assertThat(circuit(diagram).gateAtLocIsDisabledReason(col, row)).isNotEqualTo(undefined);
-    let good = (col, row, diagram) =>
+    const good = (col, row, diagram) =>
         assertThat(circuit(diagram).gateAtLocIsDisabledReason(col, row)).isEqualTo(undefined);
 
     bad(1, 2, `-R-

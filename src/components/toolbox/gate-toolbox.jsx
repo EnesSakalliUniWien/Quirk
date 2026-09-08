@@ -77,8 +77,8 @@ function buildTileModels(customGateSet) {
   if (customGateSet !== undefined && customGateSet.gates.length > 0) {
     groups = [...groups, { hint: "Custom Gates", gates: customGateSet.gates }];
   }
-  let models = [];
-  for (let group of groups) {
+  const models = [];
+  for (const group of groups) {
     group.gates.forEach((gate, index) =>
       models.push({
         key: `${group.hint}:${index}`,

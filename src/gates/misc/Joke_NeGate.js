@@ -28,7 +28,7 @@ const NeGate = new GateBuilder().
     setBlurb("Negates all amplitudes.").
     setDrawer(args => {
         GatePainting.paintLocationIndependentFrame(args);
-        let {x, y} = args.rect.center();
+        const {x, y} = args.rect.center();
         strokePath(args.painter, [new Point(x - 6, y), new Point(x + 6, y)], CanvasTheme.text.primary, 2);
     }).
     setKnownEffectToMatrix(Matrix.square(-1, 0, 0, -1)).

@@ -38,7 +38,7 @@ class RestartableRng {
    * @returns {!RestartableRng}
    */
   restarted() {
-    let result = new RestartableRng();
+    const result = new RestartableRng();
     result._cache = this._cache;
     return result;
   }
@@ -47,7 +47,7 @@ class RestartableRng {
    * @returns {!number} A random number uniformly sampled from [0, 1).
    */
   random() {
-    let p = this._next++;
+    const p = this._next++;
     if (p >= this._cache.length) {
       this._cache.push(Math.random());
     }

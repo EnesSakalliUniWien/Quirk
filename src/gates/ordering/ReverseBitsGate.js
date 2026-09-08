@@ -18,7 +18,7 @@ import {Simulation} from "../../config/Simulation.js"
 import {Gate} from "../../circuit/model/Gate.js"
 import {ketArgs, ketShaderPermute} from "../../engine/simulation/gpu/KetShaderUtil.js"
 
-let _generateReverseShaderForSize = span => span < 2 ? undefined : ketShaderPermute(
+const _generateReverseShaderForSize = span => span < 2 ? undefined : ketShaderPermute(
     '',
     `
         float rev = 0.0;
@@ -31,7 +31,7 @@ let _generateReverseShaderForSize = span => span < 2 ? undefined : ketShaderPerm
     `,
     span);
 
-let reverseShaders = Array.from(
+const reverseShaders = Array.from(
     {length: Simulation.MAX_WIRE_COUNT + 1},
     (_, i) => _generateReverseShaderForSize(i));
 
@@ -39,9 +39,9 @@ let reverseShaders = Array.from(
  * @param {!int} span
  * @returns {!function(!CircuitEvalContext) : !WglConfiguredShader}
  */
-let reverseShaderForSize = span => ctx => reverseShaders[span].withArgs(...ketArgs(ctx, span));
+const reverseShaderForSize = span => ctx => reverseShaders[span].withArgs(...ketArgs(ctx, span));
 
-let ReverseBitsGateFamily = Gate.buildFamily(2, 16, (span, builder) => builder.
+const ReverseBitsGateFamily = Gate.buildFamily(2, 16, (span, builder) => builder.
     setSerializedId("rev" + span).
     setSymbol("Reverse").
     setTitle("Reverse Order").

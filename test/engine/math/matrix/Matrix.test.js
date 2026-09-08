@@ -18,15 +18,14 @@ import {Suite, assertThat, assertTrue, assertFalse} from "../../../TestUtil.js"
 import {Matrix} from "../../../../src/engine/math/matrix/Matrix.js"
 
 import {Complex} from "../../../../src/engine/math/complex/Complex.js"
-import {Controls} from "../../../../src/circuit/model/Controls.js"
 import {Format} from "../../../../src/base/Format.js"
 import {tensorProduct} from "../../../MatrixTestUtil.js"
 import {QubitMatrix} from "../../../../src/engine/math/matrix/QubitMatrix.js"
 
-let suite = new Suite("Matrix");
+const suite = new Suite("Matrix");
 
 suite.test("isEqualTo", () => {
-    let m = Matrix.fromRows([[new Complex(2, 3), new Complex(5, 7)], [new Complex(11, 13), new Complex(17, 19)]]);
+    const m = Matrix.fromRows([[new Complex(2, 3), new Complex(5, 7)], [new Complex(11, 13), new Complex(17, 19)]]);
     assertThat(m).isEqualTo(m);
     assertThat(m).isNotEqualTo(null);
     assertThat(m).isNotEqualTo("");
@@ -44,8 +43,8 @@ suite.test("isEqualTo", () => {
     assertThat(m).isNotEqualTo(
         Matrix.fromRows([[new Complex(2, 3), new Complex(5, 7)], [new Complex(11, 13), new Complex(-17, 19)]]));
 
-    let col = Matrix.fromRows([[new Complex(2, 3), new Complex(5, 7)]]);
-    let row = Matrix.fromRows([[new Complex(2, 3)], [new Complex(5, 7)]]);
+    const col = Matrix.fromRows([[new Complex(2, 3), new Complex(5, 7)]]);
+    const row = Matrix.fromRows([[new Complex(2, 3)], [new Complex(5, 7)]]);
     assertThat(col).isEqualTo(col);
     assertThat(row).isEqualTo(row);
     assertThat(row).isNotEqualTo(col);
@@ -143,14 +142,14 @@ suite.test("zero", () => {
 });
 
 suite.test("getColumn", () => {
-    let m = Matrix.square(2, 3, 5, 7);
+    const m = Matrix.square(2, 3, 5, 7);
     assertThat(m.getColumn(0)).isEqualTo([2, 5]);
     assertThat(m.getColumn(1)).isEqualTo([3, 7]);
     assertThat(Matrix.col(1, 2, 3).getColumn(0)).isEqualTo([1, 2, 3]);
 });
 
 suite.test("square", () => {
-    let m = Matrix.square(1, new Complex(2, 3), -5.5, 0);
+    const m = Matrix.square(1, new Complex(2, 3), -5.5, 0);
     assertThat(m.rows()).isEqualTo([[1, new Complex(2, 3)], [-5.5, 0]]);
 
     assertThat(Matrix.fromRows([[1]]).rows()).isEqualTo([[1]]);
@@ -194,7 +193,7 @@ suite.test("isUnitary", () => {
 });
 
 suite.test("isApproximatelyHermitian", () => {
-    let i = Complex.I;
+    const i = Complex.I;
 
     assertFalse(Matrix.fromRows([[1, 1]]).isApproximatelyHermitian(999));
     assertFalse(Matrix.col(1, 1).isApproximatelyHermitian(999));
@@ -225,7 +224,7 @@ suite.test("isApproximatelyHermitian", () => {
 });
 
 suite.test("isIdentity", () => {
-    let i = Complex.I;
+    const i = Complex.I;
 
     assertFalse(Matrix.fromRows([[NaN]]).isIdentity());
     assertFalse(Matrix.fromRows([[-1]]).isIdentity());
@@ -255,7 +254,7 @@ suite.test("isIdentity", () => {
 });
 
 suite.test("isScaler", () => {
-    let i = Complex.I;
+    const i = Complex.I;
 
     assertFalse(Matrix.fromRows([[NaN]]).isScaler());
     assertTrue(Matrix.fromRows([[-1]]).isScaler());
@@ -289,7 +288,7 @@ suite.test("isScaler", () => {
 });
 
 suite.test("isPhasedPermutation", () => {
-    let i = Complex.I;
+    const i = Complex.I;
 
     assertTrue(Matrix.fromRows([[-1]]).isPhasedPermutation());
     assertTrue(Matrix.fromRows([[0]]).isPhasedPermutation());
@@ -327,19 +326,19 @@ suite.test("isPhasedPermutation", () => {
 });
 
 suite.test("adjoint", () => {
-    let v = Matrix.square(new Complex(2, 3), new Complex(5, 7),
+    const v = Matrix.square(new Complex(2, 3), new Complex(5, 7),
                           new Complex(11, 13), new Complex(17, 19));
-    let a = Matrix.square(new Complex(2, -3), new Complex(11, -13),
+    const a = Matrix.square(new Complex(2, -3), new Complex(11, -13),
                           new Complex(5, -7), new Complex(17, -19));
     assertThat(v.adjoint()).isEqualTo(a);
     assertThat(Matrix.col(1, 2, Complex.I).adjoint()).isEqualTo(Matrix.fromRows([[1, 2, Complex.I.neg()]]));
 });
 
 suite.test("transpose", () => {
-    let v = Matrix.square(
+    const v = Matrix.square(
         new Complex(2, 3), new Complex(5, 7),
         new Complex(11, 13), new Complex(17, 19));
-    let a = Matrix.square(
+    const a = Matrix.square(
         new Complex(2, 3), new Complex(11, 13),
         new Complex(5, 7), new Complex(17, 19));
     assertThat(v.transpose()).isEqualTo(a);
@@ -347,9 +346,9 @@ suite.test("transpose", () => {
 });
 
 suite.test("times_scalar", () => {
-    let v = Matrix.square(new Complex(2, 3), new Complex(5, 7),
+    const v = Matrix.square(new Complex(2, 3), new Complex(5, 7),
                           new Complex(11, 13), new Complex(17, 19));
-    let a = Matrix.square(new Complex(-2, -3), new Complex(-5, -7),
+    const a = Matrix.square(new Complex(-2, -3), new Complex(-5, -7),
                           new Complex(-11, -13), new Complex(-17, -19));
     assertThat(v.times(-1)).isEqualTo(a);
     assertThat(v.times(0)).isEqualTo(Matrix.square(0, 0, 0, 0));
@@ -373,7 +372,7 @@ suite.test("times_matrix", () => {
     assertThat(Matrix.square(2, 3, 5, 7).times(Matrix.square(11, 13, 17, 19)))
         .isEqualTo(Matrix.square(73, 83, 174, 198));
 
-    let x = Matrix.square(new Complex(0.5, -0.5), new Complex(0.5, 0.5),
+    const x = Matrix.square(new Complex(0.5, -0.5), new Complex(0.5, 0.5),
                           new Complex(0.5, 0.5), new Complex(0.5, -0.5));
     assertThat(x.times(x.adjoint())).isEqualTo(Matrix.identity(2));
     assertThat(QubitMatrix.PAULI_X.times(QubitMatrix.PAULI_Y).times(QubitMatrix.PAULI_Z).times(new Complex(0, -1)))
@@ -382,8 +381,8 @@ suite.test("times_matrix", () => {
 
 suite.test("times_ColRow", () => {
     // When one is a column vector and the other is a row vector...
-    let r = Matrix.fromRows([[2, 3, 5]]);
-    let c = Matrix.col(11, 13, 17);
+    const r = Matrix.fromRows([[2, 3, 5]]);
+    const c = Matrix.col(11, 13, 17);
 
     // Inner product
     assertThat(r.times(c).toString()).isEqualTo("{{146}}");
@@ -418,8 +417,8 @@ suite.test("identity", () => {
 });
 
 suite.test("rotation", () => {
-    let s = Math.sqrt(0.5);
-    let t = Math.PI * 2;
+    const s = Math.sqrt(0.5);
+    const t = Math.PI * 2;
     assertThat(Matrix.rotation(0)).isApproximatelyEqualTo(Matrix.square(1, 0, 0, 1));
     assertThat(Matrix.rotation(t / 8)).isApproximatelyEqualTo(Matrix.square(s, -s, s, s));
     assertThat(Matrix.rotation(t * 2 / 8)).isApproximatelyEqualTo(Matrix.square(0, -1, 1, 0));
@@ -446,8 +445,8 @@ suite.test("trace", () => {
 });
 
 suite.test("cross3", () => {
-    let [x, y, z] = [Matrix.col(1, 0, 0), Matrix.col(0, 1, 0), Matrix.col(0, 0, 1)];
-    let zero = Matrix.col(0, 0, 0);
+    const [x, y, z] = [Matrix.col(1, 0, 0), Matrix.col(0, 1, 0), Matrix.col(0, 0, 1)];
+    const zero = Matrix.col(0, 0, 0);
 
     assertThat(zero.cross3(zero)).isEqualTo(zero);
     assertThat(x.cross3(zero)).isEqualTo(zero);

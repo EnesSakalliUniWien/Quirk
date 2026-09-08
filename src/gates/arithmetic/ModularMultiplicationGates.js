@@ -26,7 +26,7 @@ import { BIG_MUL_MOD_SHADER_CODE } from "./MultiplyAccumulateGates.js";
 import { Util } from "../../base/Util.js";
 import { WglArg } from "../../engine/webgl/shader/WglArg.js";
 
-let ModularMultiplicationGates = {};
+const ModularMultiplicationGates = {};
 
 const MODULAR_INVERSE_SHADER_CODE = `
     vec2 _mod_mul_step(vec2 v, float q) {
@@ -123,7 +123,7 @@ function modularUnmultiply(val, factor, modulus) {
     return val;
   }
 
-  let inverse_factor = Util.modular_multiplicative_inverse(factor, modulus);
+  const inverse_factor = Util.modular_multiplicative_inverse(factor, modulus);
   if (inverse_factor === undefined) {
     return val;
   }
@@ -142,7 +142,7 @@ function modularPowerMultiply(val, base, exponent, modulus) {
     return val;
   }
   base = Util.properMod(base, modulus);
-  let inverse = Util.modular_multiplicative_inverse(base, modulus);
+  const inverse = Util.modular_multiplicative_inverse(base, modulus);
   if (inverse === undefined) {
     return val;
   }

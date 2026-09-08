@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Rect} from "../geometry/Rect.js"
+/** @typedef {import("../geometry/Rect.js").Rect} Rect */
 
 class TouchScrollBlocker {
     /**
@@ -46,7 +46,7 @@ class TouchScrollBlocker {
      */
     setBlockers(desiredBlockers, overrideCursorStyle) {
         while (this._curBlockers.length < desiredBlockers.length) {
-            let blockerDiv = document.createElement('div');
+            const blockerDiv = document.createElement('div');
             blockerDiv.style.touchAction = 'none';
             blockerDiv.style.position = 'absolute';
             blockerDiv.style.opacity = 0.0001;
@@ -56,10 +56,10 @@ class TouchScrollBlocker {
 
         // Positioning.
         for (let i = 0; i < desiredBlockers.length; i++) {
-            let desiredArea = desiredBlockers[i].rect;
-            let desiredCursor = overrideCursorStyle || desiredBlockers[i].cursor || 'auto';
-            let cur = this._curBlockers[i];
-            let style = cur.div.style;
+            const desiredArea = desiredBlockers[i].rect;
+            const desiredCursor = overrideCursorStyle || desiredBlockers[i].cursor || 'auto';
+            const cur = this._curBlockers[i];
+            const style = cur.div.style;
 
             if (!desiredArea.isEqualTo(cur.area)) {
                 cur.area = desiredArea;

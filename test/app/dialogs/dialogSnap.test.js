@@ -26,7 +26,7 @@ import {
     dockModes,
 } from "../../../src/app/dialogs/dialogSnap.js"
 
-let suite = new Suite("dialogSnap");
+const suite = new Suite("dialogSnap");
 
 const SAFE = safeRectFor(1200, 800, 100);
 
@@ -62,8 +62,8 @@ suite.test("rectForZone splits the safe area", () => {
 
 suite.test("dock modes are remembered per dialog and observable", () => {
     resetDockModes();
-    let seen = [];
-    let unsub = dockModes().subscribe(modes => seen.push(modes));
+    const seen = [];
+    const unsub = dockModes().subscribe(modes => seen.push(modes));
 
     setDockMode('bloch', 'right');
     setDockMode('menu', 'max');
@@ -82,8 +82,8 @@ suite.test("dock modes are remembered per dialog and observable", () => {
 
 suite.test("resetDockModes does not emit when already empty", () => {
     resetDockModes();
-    let seen = [];
-    let unsub = dockModes().subscribe(modes => seen.push(modes));
+    const seen = [];
+    const unsub = dockModes().subscribe(modes => seen.push(modes));
 
     resetDockModes();
     resetDockModes();

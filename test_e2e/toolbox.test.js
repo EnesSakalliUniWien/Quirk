@@ -17,7 +17,7 @@
 // The gate toolbox: search, tooltips, and the responsive reflow.
 
 import assert from 'node:assert/strict';
-import {test, withQuirkPage, waitForCircuit, waitForDialog, currentCircuit, exportedCircuit, urlForCircuit, TEST_TIMEOUT_MILLIS, canvasLayout, assertCircuitLayout, waitForCanvasViewport} from './harness.js';
+import {test, withQuirkPage, waitForCircuit, TEST_TIMEOUT_MILLIS, canvasLayout, assertCircuitLayout, waitForCanvasViewport} from './harness.js';
 
 test('searches the gate toolbox and documents a gate on hover', async browser => {
     await withQuirkPage(browser, {cols: [['H']]}, async page => {

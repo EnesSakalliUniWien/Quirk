@@ -44,7 +44,7 @@ const PHASE_GRADIENT_SHADER = ketShaderPhase(
         return angle_mul(factor, out_id);
     `);
 
-let PhaseGradientGates = {};
+const PhaseGradientGates = {};
 
 PhaseGradientGates.PhaseGradientFamily = Gate.buildFamily(1, 16, (span, builder) => builder.
     setSerializedId("PhaseGradient" + span).

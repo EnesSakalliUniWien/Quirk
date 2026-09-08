@@ -58,7 +58,7 @@ class Rect {
       return false;
     }
     /** @type {Rect!} */
-    let other = obj;
+    const other = obj;
     return (
       other.x === this.x &&
       other.y === this.y &&
@@ -77,7 +77,7 @@ class Rect {
       return false;
     }
     /** @type {Rect!} */
-    let other = obj;
+    const other = obj;
     return (
       Math.abs(other.x - this.x) <= epsilon &&
       Math.abs(other.y - this.y) <= epsilon &&
@@ -190,7 +190,7 @@ class Rect {
    * @returns !Rect
    */
   skipLeft(lostWidth) {
-    let d = Math.min(lostWidth, this.w);
+    const d = Math.min(lostWidth, this.w);
     return new Rect(this.x + d, this.y, this.w - d, this.h);
   }
 
@@ -202,7 +202,7 @@ class Rect {
    * @returns !Rect
    */
   skipRight(lostWidth) {
-    let d = Math.min(lostWidth, this.w);
+    const d = Math.min(lostWidth, this.w);
     return new Rect(this.x, this.y, this.w - d, this.h);
   }
 
@@ -214,7 +214,7 @@ class Rect {
    * @returns !Rect
    */
   skipTop(lostHeight) {
-    let d = Math.min(lostHeight, this.h);
+    const d = Math.min(lostHeight, this.h);
     return new Rect(this.x, this.y + d, this.w, this.h - d);
   }
 
@@ -226,7 +226,7 @@ class Rect {
    * @returns !Rect
    */
   skipBottom(lostHeight) {
-    let d = Math.min(lostHeight, this.h);
+    const d = Math.min(lostHeight, this.h);
     return new Rect(this.x, this.y, this.w, this.h - d);
   }
 
@@ -238,7 +238,7 @@ class Rect {
    * @returns !Rect
    */
   takeLeft(keptWidth) {
-    let d = Math.max(keptWidth, 0);
+    const d = Math.max(keptWidth, 0);
     return new Rect(this.x, this.y, d, this.h);
   }
 
@@ -250,7 +250,7 @@ class Rect {
    * @returns !Rect
    */
   takeTop(keptHeight) {
-    let d = Math.max(keptHeight, 0);
+    const d = Math.max(keptHeight, 0);
     return new Rect(this.x, this.y, this.w, d);
   }
 
@@ -262,7 +262,7 @@ class Rect {
    * @returns !Rect
    */
   takeBottom(keptHeight) {
-    let d = Math.max(keptHeight, 0);
+    const d = Math.max(keptHeight, 0);
     return new Rect(this.x, this.y + this.h - d, this.w, d);
   }
 
@@ -282,9 +282,9 @@ class Rect {
    * @returns {!Rect}
    */
   scaledOutwardBy(factor) {
-    let c = this.center();
-    let w2 = this.w * factor;
-    let h2 = this.h * factor;
+    const c = this.center();
+    const w2 = this.w * factor;
+    const h2 = this.h * factor;
     return new Rect(c.x - w2 / 2, c.y - h2 / 2, w2, h2);
   }
 
@@ -373,13 +373,13 @@ class Rect {
    * @returns {!Rect}
    */
   snapInside(boundingRect) {
-    let w = Math.min(boundingRect.w, this.w);
-    let h = Math.min(boundingRect.h, this.h);
-    let x = Math.max(
+    const w = Math.min(boundingRect.w, this.w);
+    const h = Math.min(boundingRect.h, this.h);
+    const x = Math.max(
       Math.min(this.x, boundingRect.right() - w),
       boundingRect.x,
     );
-    let y = Math.max(
+    const y = Math.max(
       Math.min(this.y, boundingRect.bottom() - h),
       boundingRect.y,
     );

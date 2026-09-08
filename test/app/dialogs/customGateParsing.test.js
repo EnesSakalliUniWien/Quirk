@@ -20,7 +20,7 @@ import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
 import {parseUserMatrix, parseUserRotation} from "../../../src/app/dialogs/customGateParsing.js"
 import {QubitMatrix} from "../../../src/engine/math/matrix/QubitMatrix.js"
 
-let suite = new Suite("customGateParsing");
+const suite = new Suite("customGateParsing");
 
 suite.test("parseUserMatrix", () => {
     assertThrows(() => parseUserMatrix("bad", false));
@@ -36,8 +36,8 @@ suite.test("parseUserMatrix", () => {
     assertThat(parseUserMatrix("0,0,0,0,0", false)).isEqualTo(Matrix.zero(4, 4));
     assertThat(parseUserMatrix("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0", false)).isEqualTo(Matrix.zero(8, 8));
 
-    let s = Math.sqrt(0.5);
-    let si = new Complex(0, s);
+    const s = Math.sqrt(0.5);
+    const si = new Complex(0, s);
     assertThat(parseUserMatrix("0", true)).isApproximatelyEqualTo(Matrix.square(1, 0, 0, 1));
     assertThat(parseUserMatrix("1", true)).isApproximatelyEqualTo(Matrix.square(1, 0, 0, 1));
     assertThat(parseUserMatrix("2", true)).isApproximatelyEqualTo(Matrix.square(1, 0, 0, 1));
@@ -51,8 +51,8 @@ suite.test("parseUserMatrix", () => {
 });
 
 suite.test("parseUserRotation", () => {
-    let s = Math.sqrt(0.5);
-    let si = new Complex(0, s);
+    const s = Math.sqrt(0.5);
+    const si = new Complex(0, s);
     assertThat(parseUserRotation("180", "90", "X")).isEqualTo(QubitMatrix.PAULI_X);
     assertThat(parseUserRotation("180", "90", "Y")).isEqualTo(QubitMatrix.PAULI_Y);
     assertThat(parseUserRotation("180", "90", "Z")).isEqualTo(QubitMatrix.PAULI_Z);

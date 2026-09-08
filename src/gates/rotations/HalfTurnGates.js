@@ -19,7 +19,6 @@ import { circle, strokePath } from "../../draw/pixi/ShapeView.js";
 
 import { GateBuilder } from "../../circuit/model/Gate.js";
 import { GatePainting } from "../../draw/gate/GatePainting.js";
-import { Matrix } from "../../engine/math/matrix/Matrix.js";
 import { Point } from "../../geometry/Point.js";
 import {
   ketArgs,
@@ -31,7 +30,7 @@ import { QubitMatrix } from "../../engine/math/matrix/QubitMatrix.js";
 /**
  * Gates that correspond to 180 degree rotations around the Bloch sphere, so they're their own inverses.
  */
-let HalfTurnGates = {};
+const HalfTurnGates = {};
 
 /**
  * The X gate is drawn as a crossed circle when it has controls.
@@ -49,7 +48,7 @@ function NOT_DRAWER(args) {
     GatePainting.paintOutline(args);
   }
 
-  let drawArea = args.rect.scaledOutwardBy(0.6);
+  const drawArea = args.rect.scaledOutwardBy(0.6);
   const style = gateStyle(args.gate);
   circle(args.painter, drawArea.center(), drawArea.w / 2, { fill: style.fill });
   circle(args.painter, drawArea.center(), drawArea.w / 2, {
@@ -57,12 +56,12 @@ function NOT_DRAWER(args) {
   });
 
   // Vertical stroke(s).
-  let hasSingleWireControl =
+  const hasSingleWireControl =
     args.positionInCircuit !== undefined &&
     args.stats.circuitDefinition.colHasSingleWireControl(
       args.positionInCircuit.col,
     );
-  let hasDoubleWireControl =
+  const hasDoubleWireControl =
     args.positionInCircuit !== undefined &&
     args.stats.circuitDefinition.colHasDoubleWireControl(
       args.positionInCircuit.col,
@@ -97,7 +96,7 @@ function NOT_DRAWER(args) {
   }
 
   // Horizontal stroke(s).
-  let isMeasured =
+  const isMeasured =
     args.positionInCircuit !== undefined &&
     args.stats.circuitDefinition.locIsMeasured(
       new Point(args.positionInCircuit.col, args.positionInCircuit.row),
@@ -131,7 +130,7 @@ function NOT_DRAWER(args) {
   }
 }
 
-let xShader = ketShaderPermute("", "return 1.0-out_id;", 1);
+const xShader = ketShaderPermute("", "return 1.0-out_id;", 1);
 /** @type {!Gate} */
 HalfTurnGates.X = new GateBuilder()
   .setSerializedIdAndSymbol("X")
@@ -141,7 +140,7 @@ HalfTurnGates.X = new GateBuilder()
   .setActualEffectToShaderProvider((ctx) => xShader.withArgs(...ketArgs(ctx)))
   .setKnownEffectToMatrix(QubitMatrix.PAULI_X).gate;
 
-let yShader = ketShader(
+const yShader = ketShader(
   "",
   "vec2 v = inp(1.0-out_id); return (out_id*2.0 - 1.0)*vec2(-v.y, v.x);",
   1,
@@ -154,7 +153,7 @@ HalfTurnGates.Y = new GateBuilder()
   .setActualEffectToShaderProvider((ctx) => yShader.withArgs(...ketArgs(ctx)))
   .setKnownEffectToMatrix(QubitMatrix.PAULI_Y).gate;
 
-let zShader = ketShader("", "return amp*(1.0 - out_id*2.0);", 1);
+const zShader = ketShader("", "return amp*(1.0 - out_id*2.0);", 1);
 /** @type {!Gate} */
 HalfTurnGates.Z = new GateBuilder()
   .setSerializedIdAndSymbol("Z")
@@ -163,7 +162,7 @@ HalfTurnGates.Z = new GateBuilder()
   .setActualEffectToShaderProvider((ctx) => zShader.withArgs(...ketArgs(ctx)))
   .setKnownEffectToMatrix(QubitMatrix.PAULI_Z).gate;
 
-let hShader = ketShader(
+const hShader = ketShader(
   "",
   "return 0.7071067811865476*(amp*(1.0-2.0*out_id) + inp(1.0-out_id));",
   1,

@@ -30,27 +30,27 @@ import {
 } from "../../CircuitOperationTestUtil.js";
 import {determinant} from "../../MatrixTestUtil.js"
 
-let suite = new Suite("Gates.Controls");
+const suite = new Suite("Gates.Controls");
 
 function assertControlOverlapState(control, expectedOverlap, state) {
-    let [a, b] = state;
+    const [a, b] = state;
     let u = Matrix.square(a, Complex.from(b).conjugate().neg(),
                           b, Complex.from(a).conjugate());
     u = u.times(1/Math.sqrt(determinant(u).abs()));
     assertThat(u.isUnitary(0.00001)).withInfo({state, u}).isEqualTo(true);
 
-    let circuit = new CircuitDefinition(2, [
+    const circuit = new CircuitDefinition(2, [
         new GateColumn([Gate.fromKnownMatrix('****', u, '', ''), undefined]),
         new GateColumn([control, Gates.HalfTurns.X]),
     ]);
-    let stats = CircuitStats.fromCircuitAtTime(circuit, 0);
-    let overlap = stats.controlledWireProbabilityJustAfter(1, Infinity);
+    const stats = CircuitStats.fromCircuitAtTime(circuit, 0);
+    const overlap = stats.controlledWireProbabilityJustAfter(1, Infinity);
     assertThat(overlap).isApproximatelyEqualTo(expectedOverlap)
 }
 
 suite.testUsingWebGL('control', () => {
-    let i = Complex.I;
-    let c = Gates.Controls.Control;
+    const i = Complex.I;
+    const c = Gates.Controls.Control;
     assertControlOverlapState(c, 0, [1, 0]);
     assertControlOverlapState(c, 1, [0, 1]);
     assertControlOverlapState(c, 0.5, [1, 1]);
@@ -60,8 +60,8 @@ suite.testUsingWebGL('control', () => {
 });
 
 suite.testUsingWebGL('anti-control', () => {
-    let i = Complex.I;
-    let c = Gates.Controls.AntiControl;
+    const i = Complex.I;
+    const c = Gates.Controls.AntiControl;
     assertControlOverlapState(c, 1, [1, 0]);
     assertControlOverlapState(c, 0, [0, 1]);
     assertControlOverlapState(c, 0.5, [1, 1]);
@@ -71,8 +71,8 @@ suite.testUsingWebGL('anti-control', () => {
 });
 
 suite.testUsingWebGL('X-anti-control', () => {
-    let i = Complex.I;
-    let c = Gates.Controls.XAntiControl;
+    const i = Complex.I;
+    const c = Gates.Controls.XAntiControl;
     assertControlOverlapState(c, 0.5, [1, 0]);
     assertControlOverlapState(c, 0.5, [0, 1]);
     assertControlOverlapState(c, 1, [1, 1]);
@@ -82,8 +82,8 @@ suite.testUsingWebGL('X-anti-control', () => {
 });
 
 suite.testUsingWebGL('X-control', () => {
-    let i = Complex.I;
-    let c = Gates.Controls.XControl;
+    const i = Complex.I;
+    const c = Gates.Controls.XControl;
     assertControlOverlapState(c, 0.5, [1, 0]);
     assertControlOverlapState(c, 0.5, [0, 1]);
     assertControlOverlapState(c, 0, [1, 1]);
@@ -93,8 +93,8 @@ suite.testUsingWebGL('X-control', () => {
 });
 
 suite.testUsingWebGL('Y-anti-control', () => {
-    let i = Complex.I;
-    let c = Gates.Controls.YAntiControl;
+    const i = Complex.I;
+    const c = Gates.Controls.YAntiControl;
     assertControlOverlapState(c, 0.5, [1, 0]);
     assertControlOverlapState(c, 0.5, [0, 1]);
     assertControlOverlapState(c, 0.5, [1, 1]);
@@ -104,8 +104,8 @@ suite.testUsingWebGL('Y-anti-control', () => {
 });
 
 suite.testUsingWebGL('Y-control', () => {
-    let i = Complex.I;
-    let c = Gates.Controls.YControl;
+    const i = Complex.I;
+    const c = Gates.Controls.YControl;
     assertControlOverlapState(c, 0.5, [1, 0]);
     assertControlOverlapState(c, 0.5, [0, 1]);
     assertControlOverlapState(c, 0.5, [1, 1]);
@@ -195,7 +195,7 @@ suite.testUsingWebGL('X-parity', () => {
 });
 
 suite.test('xyParityControlsDisabledByMeasurement', () => {
-    let c = CircuitDefinition.fromTextDiagram(
+    const c = CircuitDefinition.fromTextDiagram(
         new Map([
             ['M', Gates.Special.Measurement],
             ['H', Gates.HalfTurns.H],

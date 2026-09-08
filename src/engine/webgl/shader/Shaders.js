@@ -78,7 +78,7 @@ const PASSTHROUGH_SHADER = new WglShader(`
  */
 Shaders.data = (rgbaData) =>
   new WglConfiguredShader((destinationTexture) => {
-    let [w, h] = [destinationTexture.width, destinationTexture.height];
+    const [w, h] = [destinationTexture.width, destinationTexture.height];
     if (rgbaData.length !== w * h * 4) {
       throw new DetailedError("rgbaData.length isn't w * h * 4", {
         w,
@@ -89,9 +89,9 @@ Shaders.data = (rgbaData) =>
     }
 
     const GL = WebGL2RenderingContext;
-    let gl = initializedWglContext().gl;
-    let isBytes = rgbaData instanceof Uint8Array;
-    let dataTexture = gl.createTexture();
+    const gl = initializedWglContext().gl;
+    const isBytes = rgbaData instanceof Uint8Array;
+    const dataTexture = gl.createTexture();
     try {
       gl.bindTexture(GL.TEXTURE_2D, dataTexture);
       gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MAG_FILTER, GL.NEAREST);

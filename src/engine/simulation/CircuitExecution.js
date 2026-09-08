@@ -17,7 +17,7 @@
 import {CircuitShaders} from "./gpu/CircuitShaders.js"
 import {DetailedError} from "../../base/DetailedError.js"
 import {GateShaders} from "./gpu/GateShaders.js"
-import {Gates, INITIAL_STATES_TO_GATES} from "../../gates/AllGates.js"
+import {INITIAL_STATES_TO_GATES} from "../../gates/AllGates.js"
 
 /**
  * @param {!CircuitDefinition} circuit
@@ -26,11 +26,11 @@ import {Gates, INITIAL_STATES_TO_GATES} from "../../gates/AllGates.js"
  */
 function applyInitialStateOperations(circuit, ctx) {
     for (let wire = 0; wire < circuit.numWires; wire++) {
-        let state = circuit.customInitialValues.get(wire);
+        const state = circuit.customInitialValues.get(wire);
         if (!INITIAL_STATES_TO_GATES.has(state)) {
             throw new DetailedError('Unrecognized initial state.', {state});
         }
-        for (let gate of INITIAL_STATES_TO_GATES.get(state)) {
+        for (const gate of INITIAL_STATES_TO_GATES.get(state)) {
             GateShaders.applyMatrixOperation(ctx.withRow(ctx.row + wire), gate.knownMatrixAt(ctx.time))
         }
     }
@@ -59,9 +59,9 @@ function applyMainOperationsInCol(circuit, colIndex, ctx) {
         return ctx => GateShaders.applyMatrixOperation(ctx, gate.knownMatrixAt(ctx.time));
     });
 
-    let swapRows = circuit.colGetEnabledSwapGate(colIndex);
+    const swapRows = circuit.colGetEnabledSwapGate(colIndex);
     if (swapRows !== undefined) {
-        let [i, j] = swapRows;
+        const [i, j] = swapRows;
         ctx.applyOperation(CircuitShaders.swap(ctx.withRow(i + ctx.row), j + ctx.row));
     }
 }
@@ -96,15 +96,15 @@ function applyOpsInCol(circuit, colIndex, ctx, opGetter) {
     if (colIndex < 0 || colIndex >= circuit.columns.length) {
         return;
     }
-    let col = circuit.columns[colIndex];
+    const col = circuit.columns[colIndex];
 
     for (let row = 0; row < circuit.numWires; row++) {
-        let gate = col.gates[row];
+        const gate = col.gates[row];
         if (gate === undefined || circuit.gateAtLocIsDisabledReason(colIndex, row) !== undefined) {
             continue;
         }
 
-        let op = opGetter(gate);
+        const op = opGetter(gate);
         if (op !== undefined) {
             op(ctx.withRow(ctx.row + row));
         }

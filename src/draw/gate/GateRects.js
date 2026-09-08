@@ -35,7 +35,7 @@ function gateButtonRect(wholeRect) {
  * @returns {!Rect}
  */
 function rectForResizeTab(gateRect) {
-  let overlap = Math.min(Layout.GATE_RADIUS, gateRect.h / 4);
+  const overlap = Math.min(Layout.GATE_RADIUS, gateRect.h / 4);
   return new Rect(
     gateRect.x,
     gateRect.bottom() - overlap,

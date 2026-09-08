@@ -145,9 +145,9 @@ class WglTexture {
    * @returns {!WglTexture}
    */
   invalidateButMoveToNewInstance(details) {
-    let result = new WglTexture(this.width, this.height, this.pixelType);
+    const result = new WglTexture(this.width, this.height, this.pixelType);
     result._textureAndFrameBufferSlot = this._textureAndFrameBufferSlot;
-    let invalidated = () => {
+    const invalidated = () => {
       throw new DetailedError(
         "WglTexture's value accessed after invalidation.",
         details,
@@ -187,7 +187,7 @@ class WglTexture {
    * @private
    */
   static _deinitialize({ texture, framebuffer }) {
-    let gl = initializedWglContext().gl;
+    const gl = initializedWglContext().gl;
     gl.deleteTexture(texture);
     gl.deleteFramebuffer(framebuffer);
   }
@@ -202,9 +202,9 @@ class WglTexture {
    */
   _textureAndFramebufferInitializer() {
     const GL = WebGL2RenderingContext;
-    let gl = initializedWglContext().gl;
+    const gl = initializedWglContext().gl;
 
-    let result = {
+    const result = {
       texture: gl.createTexture(),
       framebuffer: gl.createFramebuffer(),
     };
@@ -275,8 +275,8 @@ class WglTexture {
       return outputBuffer;
     }
 
-    let isOnHotPath = !checkErrors;
-    let gl = initializedWglContext().gl;
+    const isOnHotPath = !checkErrors;
+    const gl = initializedWglContext().gl;
     gl.bindFramebuffer(GL.FRAMEBUFFER, this.initializedFramebuffer());
     checkGetErrorResult(gl, "framebufferTexture2D", isOnHotPath);
     checkFrameBufferStatusResult(gl, isOnHotPath);

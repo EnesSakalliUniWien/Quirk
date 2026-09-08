@@ -46,7 +46,7 @@ class Point {
       return false;
     }
     /** @type {!Point} */
-    let other = obj;
+    const other = obj;
     return other.x === this.x && other.y === this.y;
   }
 
@@ -100,8 +100,8 @@ class Point {
    * @returns {!number}
    */
   distanceTo(other) {
-    let dx = this.x - other.x;
-    let dy = this.y - other.y;
+    const dx = this.x - other.x;
+    const dy = this.y - other.y;
     return Math.sqrt(dx * dx + dy * dy);
   }
 }

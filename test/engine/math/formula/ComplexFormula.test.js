@@ -18,7 +18,7 @@ import {Suite, assertThat, assertThrows, assertTrue, assertFalse} from "../../..
 import {Complex} from "../../../../src/engine/math/complex/Complex.js"
 import {ComplexFormula} from "../../../../src/engine/math/formula/ComplexFormula.js"
 
-let suite = new Suite("ComplexFormula");
+const suite = new Suite("ComplexFormula");
 
 suite.test("parse_raw", () => {
     assertThrows(() => ComplexFormula.parse(""));
@@ -100,7 +100,7 @@ suite.test("variables", () => {
     assertThat(ComplexFormula.parse("t*i", {variables: {t: new Complex(0, 1)}})).isEqualTo(-1);
 
     // A fresh token map each time, so callers can extend it without leaking into the shared one.
-    let tokens = ComplexFormula.tokenMap({angleUnit: ComplexFormula.RADIANS});
+    const tokens = ComplexFormula.tokenMap({angleUnit: ComplexFormula.RADIANS});
     tokens.set("z", 7);
     assertThrows(() => ComplexFormula.parse("z", {angleUnit: ComplexFormula.RADIANS}));
     assertTrue(ComplexFormula.tokenMap({angleUnit: ComplexFormula.RADIANS}).has("tan"));

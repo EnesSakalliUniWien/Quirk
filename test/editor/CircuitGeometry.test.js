@@ -26,7 +26,7 @@ import {findGateOverlappingPos, findWireWithInitialStateAreaContaining} from "..
 import {Typography} from "../../src/config/Typography.js"
 import {Hand} from "../../src/editor/Hand.js"
 
-let suite = new Suite("CircuitGeometry");
+const suite = new Suite("CircuitGeometry");
 
 suite.test("Register labels fit, ket hits stay within their control, and insertion clears the gutter", () => {
     const displayed = DisplayedCircuit.empty(0).withCircuit(new CircuitDefinition(Simulation.MAX_WIRE_COUNT, []));
@@ -51,25 +51,25 @@ suite.test("Register labels fit, ket hits stay within their control, and inserti
 });
 
 suite.test("Bloch bounds fit their row and column and include the enlarged click area", () => {
-    let definition = CircuitDefinition.fromTextDiagram(new Map([['B', Gates.Displays.BlochSphereDisplay]]), 'BB\nBB');
-    let displayed = DisplayedCircuit.empty(0).withCircuit(definition);
-    let g = displayed.geometry();
-    let gate = Gates.Displays.BlochSphereDisplay;
-    let rect = g.gateDrawRect(0, 0, gate);
+    const definition = CircuitDefinition.fromTextDiagram(new Map([['B', Gates.Displays.BlochSphereDisplay]]), 'BB\nBB');
+    const displayed = DisplayedCircuit.empty(0).withCircuit(definition);
+    const g = displayed.geometry();
+    const gate = Gates.Displays.BlochSphereDisplay;
+    const rect = g.gateDrawRect(0, 0, gate);
     assertTrue(rect.w > g.gateRect(0, 0).w);
     assertTrue(rect.right() < g.gateDrawRect(0, 1, gate).x);
     assertTrue(rect.bottom() < g.gateDrawRect(1, 0, gate).y);
     assertTrue(rect.y >= g.wireRect(0).y && rect.bottom() <= g.wireRect(0).bottom());
-    let edge = new Point(rect.x + 1, rect.center().y);
+    const edge = new Point(rect.x + 1, rect.center().y);
     assertThat(displayed.findBlochSphereContaining(edge)).isEqualTo({row: 0, col: 0});
-    let found = findGateOverlappingPos(displayed, edge);
+    const found = findGateOverlappingPos(displayed, edge);
     // Drag offsets remain relative to the logical slot, even when grabbed outside that slot.
     assertThat(found.offset).isEqualTo(edge.minus(g.gateRect(0, 0).topLeft()));
 });
 
 suite.test("multi-column and multi-wire gates use their respective spacing", () => {
-    let g = plainGeometry();
-    let rect = g.gateRect(0, 0, 2, 2);
+    const g = plainGeometry();
+    const rect = g.gateRect(0, 0, 2, 2);
     assertThat(rect.w).isEqualTo(2 * Layout.GATE_RADIUS + Layout.COLUMN_SPACING);
     assertThat(rect.h).isEqualTo(2 * Layout.GATE_RADIUS + Layout.WIRE_SPACING);
 });
@@ -83,7 +83,7 @@ const plainGeometry = (top=10) => new CircuitGeometry(top, circuit(`H-
                                                                     --`), undefined, undefined, 0);
 
 suite.test("wires stack down from the top at the wire spacing", () => {
-    let g = plainGeometry(10);
+    const g = plainGeometry(10);
 
     assertThat(g.wireRect(0).y).isEqualTo(10);
     assertThat(g.wireRect(2).y).isEqualTo(10 + 2 * Layout.WIRE_SPACING);
@@ -91,10 +91,10 @@ suite.test("wires stack down from the top at the wire spacing", () => {
 });
 
 suite.test("a gate rect is centered on its column and wire", () => {
-    let g = plainGeometry();
-    let gate = g.gateRect(1, 2);
-    let op = g.opRect(2);
-    let wire = g.wireRect(1);
+    const g = plainGeometry();
+    const gate = g.gateRect(1, 2);
+    const op = g.opRect(2);
+    const wire = g.wireRect(1);
 
     assertThat(gate.center().x).isApproximatelyEqualTo(op.center().x, 1);
     assertThat(gate.center().y).isApproximatelyEqualTo(wire.center().y, 1);
@@ -102,8 +102,8 @@ suite.test("a gate rect is centered on its column and wire", () => {
 });
 
 suite.test("a compressed column pinches itself and shifts everything after it", () => {
-    let plain = plainGeometry();
-    let pinched = new CircuitGeometry(10, circuit(`H-
+    const plain = plainGeometry();
+    const pinched = new CircuitGeometry(10, circuit(`H-
                                                     --`), 1, undefined, 0);
 
     // Columns before the pinch stay put; the pinched column loses half a slot; later ones a whole one.
@@ -114,10 +114,10 @@ suite.test("a compressed column pinches itself and shifts everything after it", 
 });
 
 suite.test("the display shift moves only the output display columns", () => {
-    let g0 = plainGeometry();
-    let shifted = new CircuitGeometry(10, circuit(`H-
+    const g0 = plainGeometry();
+    const shifted = new CircuitGeometry(10, circuit(`H-
                                                     --`), undefined, undefined, 300);
-    let lastCircuitCol = g0.clampedCircuitColCount();
+    const lastCircuitCol = g0.clampedCircuitColCount();
 
     assertThat(shifted.opRect(0).x).isEqualTo(g0.opRect(0).x);
     assertThat(shifted.opRect(lastCircuitCol).x).isEqualTo(g0.opRect(lastCircuitCol).x);
@@ -128,21 +128,21 @@ suite.test("the display shift moves only the output display columns", () => {
 
 suite.test("a temporary drag wire is not counted as grounded", () => {
     // Three wires, because at the two-wire minimum the clamp hides the discount being tested.
-    let threeWires = `H-
+    const threeWires = `H-
                       --
                       --`;
-    let noExtra = new CircuitGeometry(0, circuit(threeWires), undefined, undefined, 0);
-    let withExtra = new CircuitGeometry(0, circuit(threeWires), undefined, 2, 0);
+    const noExtra = new CircuitGeometry(0, circuit(threeWires), undefined, undefined, 0);
+    const withExtra = new CircuitGeometry(0, circuit(threeWires), undefined, 2, 0);
     // At the wire limit there is no temporary wire to discount.
-    let atLimit = new CircuitGeometry(0, circuit(threeWires), undefined, Simulation.MAX_WIRE_COUNT, 0);
+    const atLimit = new CircuitGeometry(0, circuit(threeWires), undefined, Simulation.MAX_WIRE_COUNT, 0);
 
     assertThat(withExtra.groundedWireCount()).isEqualTo(noExtra.groundedWireCount() - 1);
     assertThat(atLimit.importantWireCount()).isEqualTo(withExtra.importantWireCount() + 1);
 });
 
 suite.test("the desired size contains every drawn rect", () => {
-    let g = plainGeometry(0);
-    let grid = g.rectForSuperpositionDisplay();
+    const g = plainGeometry(0);
+    const grid = g.rectForSuperpositionDisplay();
 
     assertTrue(g.desiredWidth() > grid.right());
     assertTrue(g.desiredHeight() >= g.wireRect(g.groundedWireCount() - 1).bottom() - g.top);

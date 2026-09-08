@@ -23,11 +23,12 @@ import {fromJsonText_CircuitDefinition} from "../../serialization/Serializer.js"
 function initTitleSync(revision) {
     const titleForState = jsonText => {
         try {
-            let circuitDef = fromJsonText_CircuitDefinition(jsonText);
+            const circuitDef = fromJsonText_CircuitDefinition(jsonText);
             if (!circuitDef.isEmpty()) {
                 return `Shadow-Quant: ${circuitDef.readableHash()}`;
             }
-        } catch (_) {
+        } catch {
+            // A circuit that fails to parse gets the empty-circuit title.
         }
         return AppInfo.EMPTY_CIRCUIT_TITLE;
     };

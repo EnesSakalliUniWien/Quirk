@@ -19,19 +19,19 @@ import {ObservableValue} from "../../../src/base/Obs.js"
 import {OverlayState} from "../../../src/app/state/OverlayState.js"
 import {Playhead} from "../../../src/app/state/Playhead.js"
 
-let suite = new Suite("Playhead");
+const suite = new Suite("Playhead");
 
 /**
  * Stands in for setInterval, so tests advance playback by hand instead of by waiting.
  */
 function fakeClock() {
-    let callbacks = [];
+    const callbacks = [];
     return {
         setInterval: callback => callbacks.push(callback),
         clearInterval: id => { callbacks[id - 1] = undefined; },
         pendingCount: () => callbacks.filter(e => e !== undefined).length,
         tick: () => {
-            for (let callback of [...callbacks]) {
+            for (const callback of [...callbacks]) {
                 if (callback !== undefined) {
                     callback();
                 }
@@ -41,16 +41,16 @@ function fakeClock() {
 }
 
 function playheadOver(columnCount) {
-    let columns = new ObservableValue(columnCount);
-    let overlays = new OverlayState();
+    const columns = new ObservableValue(columnCount);
+    const overlays = new OverlayState();
     overlays.close();
-    let clock = fakeClock();
-    let playhead = new Playhead(columns.observable(), overlays, clock.setInterval, clock.clearInterval);
+    const clock = fakeClock();
+    const playhead = new Playhead(columns.observable(), overlays, clock.setInterval, clock.clearInterval);
     return {playhead, columns, overlays, clock};
 }
 
 suite.test("starts before the first column", () => {
-    let {playhead} = playheadOver(3);
+    const {playhead} = playheadOver(3);
 
     assertThat(playhead.step()).isEqualTo(0);
     assertThat(playhead.state().snapshot()).isEqualTo([{
@@ -64,7 +64,7 @@ suite.test("starts before the first column", () => {
 });
 
 suite.test("next and previous move a column at a time, and clamp", () => {
-    let {playhead} = playheadOver(2);
+    const {playhead} = playheadOver(2);
 
     playhead.previous();
     assertThat(playhead.step()).isEqualTo(0);
@@ -79,7 +79,7 @@ suite.test("next and previous move a column at a time, and clamp", () => {
 });
 
 suite.test("end runs to the last column and reset returns to the first", () => {
-    let {playhead} = playheadOver(4);
+    const {playhead} = playheadOver(4);
 
     playhead.end();
     assertThat(playhead.step()).isEqualTo(4);
@@ -91,7 +91,7 @@ suite.test("end runs to the last column and reset returns to the first", () => {
 });
 
 suite.test("seek rounds and clamps", () => {
-    let {playhead} = playheadOver(3);
+    const {playhead} = playheadOver(3);
 
     playhead.seek(1.6);
     assertThat(playhead.step()).isEqualTo(2);
@@ -107,7 +107,7 @@ suite.test("seek rounds and clamps", () => {
 });
 
 suite.test("playing advances a column per tick and stops at the end", () => {
-    let {playhead, clock} = playheadOver(2);
+    const {playhead, clock} = playheadOver(2);
 
     playhead.togglePlay();
     assertThat(playhead.state().snapshot()[0].playing).isEqualTo(true);
@@ -122,7 +122,7 @@ suite.test("playing advances a column per tick and stops at the end", () => {
 });
 
 suite.test("playing from the end starts over", () => {
-    let {playhead} = playheadOver(2);
+    const {playhead} = playheadOver(2);
 
     playhead.end();
     playhead.togglePlay();
@@ -132,7 +132,7 @@ suite.test("playing from the end starts over", () => {
 });
 
 suite.test("moving the playhead by hand stops playback", () => {
-    let {playhead, clock} = playheadOver(4);
+    const {playhead, clock} = playheadOver(4);
 
     playhead.togglePlay();
     playhead.next();
@@ -143,7 +143,7 @@ suite.test("moving the playhead by hand stops playback", () => {
 });
 
 suite.test("an overlay blocks the controls and stops playback", () => {
-    let {playhead, overlays} = playheadOver(3);
+    const {playhead, overlays} = playheadOver(3);
     playhead.togglePlay();
 
     overlays.open("menu");
@@ -159,7 +159,7 @@ suite.test("an overlay blocks the controls and stops playback", () => {
 });
 
 suite.test("an empty circuit has nothing to play", () => {
-    let {playhead, clock} = playheadOver(0);
+    const {playhead, clock} = playheadOver(0);
 
     playhead.togglePlay();
 
@@ -169,7 +169,7 @@ suite.test("an empty circuit has nothing to play", () => {
 });
 
 suite.test("shortening the circuit pulls the playhead back to the new end", () => {
-    let {playhead, columns} = playheadOver(5);
+    const {playhead, columns} = playheadOver(5);
     playhead.end();
 
     columns.set(2);

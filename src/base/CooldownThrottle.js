@@ -56,7 +56,7 @@ class CooldownThrottle {
 
   _triggerIdle() {
     // Still cooling down?
-    let remainingCooldownDuration =
+    const remainingCooldownDuration =
       this.cooldownDuration - (performance.now() - this._cooldownStartTime);
     if (remainingCooldownDuration > 0) {
       this._forceIdleTriggerAfter(remainingCooldownDuration);
@@ -65,11 +65,11 @@ class CooldownThrottle {
 
     // Go go go!
     this._state = "running";
-    let t0 = performance.now();
+    const t0 = performance.now();
     try {
       this.action();
     } finally {
-      let dt = performance.now() - t0;
+      const dt = performance.now() - t0;
       this._cooldownStartTime =
         performance.now() + dt * this.slowActionCooldownPumpupFactor;
       // Were there any triggers while we were running?
@@ -114,9 +114,8 @@ class CooldownThrottle {
     // setTimeout seems to refuse to run while I'm scrolling with my mouse wheel on chrome in windows.
     // So, for stuff that really has to come back in that case, we also support requestAnimationFrame looping.
     if (this._waitWithRequestAnimationFrame) {
-      let iter;
-      let start = performance.now();
-      iter = () => {
+      const start = performance.now();
+      const iter = () => {
         if (performance.now() < start + duration) {
           requestAnimationFrame(iter);
           return;

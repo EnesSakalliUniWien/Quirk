@@ -17,7 +17,7 @@
 import {Suite, assertThat} from "../TestUtil.js"
 import {describe} from "../../src/base/Describe.js"
 
-let suite = new Suite("Describe");
+const suite = new Suite("Describe");
 
 class DescribableClass {
     constructor() { this.x = 1; }
@@ -72,28 +72,28 @@ suite.test("simple", () => {
 });
 
 suite.test("recursion", () => {
-    let a = [];
+    const a = [];
     a.push(a);
     assertThat(describe(a, 2)).isEqualTo(
         "[[!recursion-limit!]]");
     assertThat(describe(a, 10)).isEqualTo(
         "[[[[[[[[[[!recursion-limit!]]]]]]]]]]");
 
-    let m = new Map();
+    const m = new Map();
     m.set(1, m);
     assertThat(describe(m, 2)).isEqualTo(
         "Map{1: Map{1: !recursion-limit!}}");
     assertThat(describe(m, 10)).isEqualTo(
         "Map{1: Map{1: Map{1: Map{1: Map{1: Map{1: Map{1: Map{1: Map{1: Map{1: !recursion-limit!}}}}}}}}}}");
 
-    let s = new Set();
+    const s = new Set();
     s.add(s);
     assertThat(describe(s, 2)).isEqualTo(
         "Set{Set{!recursion-limit!}}");
     assertThat(describe(s, 10)).isEqualTo(
         "Set{Set{Set{Set{Set{Set{Set{Set{Set{Set{!recursion-limit!}}}}}}}}}}");
 
-    let o = {};
+    const o = {};
     o[2] = o;
     assertThat(describe(o, 2)).isEqualTo(
         '{"2": {"2": !recursion-limit!}}');

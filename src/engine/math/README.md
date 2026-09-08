@@ -2,22 +2,17 @@
 
 Pure numeric code with no dependency on the circuit, editor or drawing layers. The three
 sub-namespaces layer strictly, each depending only on the ones listed before it and on `src/base/`.
-Every module holds exactly one class. Every directory has an `index.js` that re-exports its classes as the namespace; import the
-owning file directly for a single symbol.
+Every module holds exactly one class; import the owning file directly.
 
 ```text
 math/
-├── index.js                     the math namespace: re-exports the three below
 ├── complex/
-│   ├── index.js
 │   └── Complex.js               the complex number value type
 ├── formula/
-│   ├── index.js
 │   ├── FormulaParser.js         the tokenizer and infix parser shared by every formula
 │   ├── ComplexFormula.js        ComplexFormula.parse and its token maps, with an explicit angle unit
 │   └── Axis.js                  user-entered rotation axes like "X+2*Y-Z"
 └── matrix/
-    ├── index.js
     ├── Matrix.js                storage, construction, equality, arithmetic, predicates, text I/O
     ├── MatrixDecomposition.js   QR, LQ and singular value decompositions, and closestUnitary
     ├── QubitMatrix.js           Pauli and Hadamard matrices, rotation and Bloch vector conversions

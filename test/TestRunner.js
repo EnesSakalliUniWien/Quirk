@@ -21,7 +21,7 @@ const TEST_SUITE_NAME_FILTER = /** @type {!RegExp|undefined} */ undefined;
 const TEST_NAME_FILTER = /** @type {!RegExp|undefined} */ undefined;
 const TEST_REPETITIONS = 1;
 
-let tryPromiseRun = method => {
+const tryPromiseRun = method => {
     try {
         return Promise.resolve(method());
     } catch (ex) {
@@ -36,7 +36,7 @@ let tryPromiseRun = method => {
  * @param {!int} reps
  * @returns {!Promise}
  */
-let promiseRepeatTest = (suite, name, method, reps) => {
+const promiseRepeatTest = (suite, name, method, reps) => {
     let root = promiseRunTest(suite, name, method);
     for (let k = 1; k < reps; k++) {
         root = root.then(e => e.success ? promiseRunTest(suite, name, method) : e);
@@ -50,25 +50,25 @@ let promiseRepeatTest = (suite, name, method, reps) => {
  * @param {!function(status: *): (!Promise|*)} method
  * @returns {!Promise}
  */
-let promiseRunTest = (suite, name, method) => {
-    let result = {
+const promiseRunTest = (suite, name, method) => {
+    const result = {
         description: name,
         suite: [suite.name],
         success: false,
         log: [],
         time: undefined
     };
-    let status = {warn_only: false, log: result.log};
+    const status = {warn_only: false, log: result.log};
 
     let t0;
     let t1;
-    let promise = tryPromiseRun(() => {
+    const promise = tryPromiseRun(() => {
         t0 = performance.now();
-        let result = method(status);
+        const result = method(status);
         t1 = performance.now(); // Hack: only measures the synchronous time.
         return result;
     });
-    let finish = () => {
+    const finish = () => {
         result.time = t1 - t0;
         if (result.time > 5000) {
             console.warn(`${suite.name}.${name} took ${Math.ceil(result.time)}ms to run.`)
@@ -84,7 +84,7 @@ let promiseRunTest = (suite, name, method) => {
         }
         return finish();
     }, ex => {
-        let msg = String(ex);
+        const msg = String(ex);
         result.log.push(msg);
         if (ex.details !== undefined) {
             result.log.push(ex.details);
@@ -92,19 +92,19 @@ let promiseRunTest = (suite, name, method) => {
         if (ex.stack !== undefined) {
             let stackMsg = String(ex.stack);
             if (stackMsg.startsWith(msg)) {
-                stackMsg = stackMsg.substring(msg.length);
+                stackMsg = stackMsg.slice(msg.length);
             }
             result.log.push(stackMsg);
         }
         if (status.warn_only) {
-            let msg = status.warn_failure_message !== undefined ?
+            const msg = status.warn_failure_message !== undefined ?
                 status.warn_failure_message :
                 `${suite.name}.${name} FAILED, but is set to warn_only (${status.warn_only})`;
             console.warn(msg);
 
             if (status.warn_show_error) {
-                for (let logMsg of result.log) {
-                    for (let line of logMsg.split('\n')) {
+                for (const logMsg of result.log) {
+                    for (const line of logMsg.split('\n')) {
                         console.warn('(ignored) ' + line);
                     }
                 }
@@ -121,11 +121,11 @@ __testRunner__.start = () => {
         console.warn("    SUITE=" + TEST_SUITE_NAME_FILTER);
         console.warn("    TEST=" + TEST_NAME_FILTER);
     }
-    let keptSuites = Suite.suites.
+    const keptSuites = Suite.suites.
         filter(e => TEST_SUITE_NAME_FILTER === undefined || TEST_SUITE_NAME_FILTER.test(e.name));
 
     let total = 0;
-    for (let suite of keptSuites) {
+    for (const suite of keptSuites) {
         total += suite.testsMatching(TEST_NAME_FILTER, false).length
             + suite.testsMatching(TEST_NAME_FILTER, true).length;
         if (suite.tests.length + suite.later_tests.length === 0) {
@@ -136,10 +136,10 @@ __testRunner__.start = () => {
 
     let chain = Promise.resolve();
 
-    for (let later of [false, true]) {
-        for (let suite of keptSuites) {
+    for (const later of [false, true]) {
+        for (const suite of keptSuites) {
             chain = chain.then(() => new Promise(resolver => setTimeout(() => {
-                let suiteResult = Promise.all(
+                const suiteResult = Promise.all(
                     suite.testsMatching(TEST_NAME_FILTER, later).
                         map(e => promiseRepeatTest(suite, e[0], e[1], TEST_REPETITIONS)));
                 suiteResult.catch(() => console.error(`${suite.name} suite failed`));

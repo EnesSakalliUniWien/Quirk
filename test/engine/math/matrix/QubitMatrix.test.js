@@ -17,11 +17,10 @@
 import {Suite, assertThat, assertThrows} from "../../../TestUtil.js"
 import {Complex} from "../../../../src/engine/math/complex/Complex.js"
 import {Matrix} from "../../../../src/engine/math/matrix/Matrix.js"
-import {Format} from "../../../../src/base/Format.js"
 import {QubitMatrix} from "../../../../src/engine/math/matrix/QubitMatrix.js"
 import {fromAngleAxisPhaseRotation} from "../../../MatrixTestUtil.js"
 
-let suite = new Suite("QubitMatrix");
+const suite = new Suite("QubitMatrix");
 
 suite.test("fromPauliRotation", () => {
     // No turn gives no-op
@@ -57,8 +56,8 @@ suite.test("fromPauliRotation", () => {
         isApproximatelyEqualTo(Matrix.identity(2));
 
     // Doubling rotation is like squaring
-    let s1 = QubitMatrix.fromPauliRotation(0.1, 0.15, 0.25);
-    let s2 = QubitMatrix.fromPauliRotation(0.2, 0.3, 0.5);
+    const s1 = QubitMatrix.fromPauliRotation(0.1, 0.15, 0.25);
+    const s2 = QubitMatrix.fromPauliRotation(0.2, 0.3, 0.5);
     assertThat(s1.times(s1)).isApproximatelyEqualTo(s2);
 });
 
@@ -75,9 +74,9 @@ suite.test("qubitDensityMatrixToBlochVector", () => {
         isEqualTo([0, 0, 0]);
 
     // Pure states as vectors along each axis.
-    let f = (...m) => Matrix.col(...m).times(Matrix.col(...m).adjoint());
-    let i = Complex.I;
-    let mi = i.times(-1);
+    const f = (...m) => Matrix.col(...m).times(Matrix.col(...m).adjoint());
+    const i = Complex.I;
+    const mi = i.times(-1);
     assertThat(QubitMatrix.densityMatrixToBlochVector(f(1, 0))).isEqualTo([0, 0, -1]);
     assertThat(QubitMatrix.densityMatrixToBlochVector(f(0, 1))).isEqualTo([0, 0, 1]);
     assertThat(QubitMatrix.densityMatrixToBlochVector(f(1, 1).times(0.5))).isEqualTo([-1, 0, 0]);
@@ -90,11 +89,11 @@ suite.test("qubitOperationToAngleAxisRotation", () => {
     assertThrows(() => QubitMatrix.operationToAngleAxisRotation(Matrix.fromRows([[1]])));
     assertThrows(() => QubitMatrix.operationToAngleAxisRotation(Matrix.square(1, 2, 3, 4)));
 
-    let [w, x, y, z] = [Matrix.identity(2), QubitMatrix.PAULI_X, QubitMatrix.PAULI_Y, QubitMatrix.PAULI_Z];
-    let π = Math.PI;
-    let i = Complex.I;
-    let mi = i.neg();
-    let s = Math.sqrt(0.5);
+    const [w, x, y, z] = [Matrix.identity(2), QubitMatrix.PAULI_X, QubitMatrix.PAULI_Y, QubitMatrix.PAULI_Z];
+    const π = Math.PI;
+    const i = Complex.I;
+    const mi = i.neg();
+    const s = Math.sqrt(0.5);
 
     assertThat(QubitMatrix.operationToAngleAxisRotation(w)).isEqualTo({angle: 0, axis: [1, 0, 0], phase: 0});
     assertThat(QubitMatrix.operationToAngleAxisRotation(x)).isEqualTo({angle: π, axis: [1, 0, 0], phase: π/2});
@@ -123,18 +122,18 @@ suite.test("qubitOperationToAngleAxisRotation", () => {
 
 suite.test("qubitOperationToAngleAxisRotation_vs_fromAngleAxisPhaseRotation_randomized", () => {
     for (let repeat = 0; repeat < 100; repeat++) {
-        let phase = Math.random() * Math.PI * 2;
-        let angle = Math.random() * Math.PI * 4;
-        let a = Math.random() * Math.PI * 2;
-        let b = Math.acos(Math.random() * 2 - 1);
-        let axis = [
+        const phase = Math.random() * Math.PI * 2;
+        const angle = Math.random() * Math.PI * 4;
+        const a = Math.random() * Math.PI * 2;
+        const b = Math.acos(Math.random() * 2 - 1);
+        const axis = [
             Math.cos(a)*Math.sin(b),
             Math.sin(a)*Math.sin(b),
             Math.cos(b)
         ];
-        let U = fromAngleAxisPhaseRotation(angle, axis, phase);
-        let {angle: angle2, axis: axis2, phase: phase2} = QubitMatrix.operationToAngleAxisRotation(U);
-        let U2 = fromAngleAxisPhaseRotation(angle2, axis2, phase2);
+        const U = fromAngleAxisPhaseRotation(angle, axis, phase);
+        const {angle: angle2, axis: axis2, phase: phase2} = QubitMatrix.operationToAngleAxisRotation(U);
+        const U2 = fromAngleAxisPhaseRotation(angle2, axis2, phase2);
         assertThat(U2).withInfo({angle, axis, phase}).isApproximatelyEqualTo(U);
     }
 });

@@ -19,7 +19,6 @@ import {CircuitDefinition} from "../src/circuit/model/CircuitDefinition.js"
 import {CircuitStats} from "../src/engine/simulation/CircuitStats.js"
 import {Gate} from "../src/circuit/model/Gate.js"
 import {Gates} from "../src/gates/AllGates.js"
-import {Matrix} from "../src/engine/math/matrix/Matrix.js"
 import {QubitMatrix} from "../src/engine/math/matrix/QubitMatrix.js"
 
 const diagram = (diagram, ...extras) => CircuitDefinition.fromTextDiagram(new Map([

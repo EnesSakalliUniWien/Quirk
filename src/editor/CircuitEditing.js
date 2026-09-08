@@ -57,24 +57,24 @@ function previewDropMovedRow(circuit, hand) {
         return circuit;
     }
 
-    let heldRowHeight = Math.max(1, ...hand.heldRow.gates.map(g => g === undefined ? 1 : g.height));
+    const heldRowHeight = Math.max(1, ...hand.heldRow.gates.map(g => g === undefined ? 1 : g.height));
     handWire = Math.min(handWire, circuit.circuitDefinition.numWires - heldRowHeight);
 
-    let newCols = [];
+    const newCols = [];
     for (let c = 0; c < circuit.circuitDefinition.columns.length; c++) {
-        let gates = [...circuit.circuitDefinition.columns[c].gates];
+        const gates = [...circuit.circuitDefinition.columns[c].gates];
         gates.splice(handWire, 0, hand.heldRow.gates[c]);
         gates.pop();
         newCols.push(new GateColumn(gates));
     }
 
-    let newInitialStates = new Map(
+    const newInitialStates = new Map(
         [...circuit.circuitDefinition.customInitialValues.entries()].
             map(([k, v]) => [k + (k >= handWire ? 1 : 0), v]));
     if (hand.heldRow.initialState !== undefined) {
         newInitialStates.set(handWire, hand.heldRow.initialState);
     }
-    let newCircuitDef = circuit.circuitDefinition.withColumns(newCols).withInitialStates(newInitialStates);
+    const newCircuitDef = circuit.circuitDefinition.withColumns(newCols).withInitialStates(newInitialStates);
 
     return circuit.withCircuit(newCircuitDef).
         _withHighlightedSlot({row: handWire, col: undefined, resizeStyle: false});
@@ -89,7 +89,7 @@ function previewDropMovedGateColumn(circuit, hand) {
     if (hand.pos === undefined) {
         return circuit;
     }
-    let handWire = wireIndexAt(circuit, hand.pos.y);
+    const handWire = wireIndexAt(circuit, hand.pos.y);
     if (handWire < 0 || handWire >= Simulation.MAX_WIRE_COUNT || hand.pos.x <= 1) {
         // Dragged the gate column out of the circuit.
         return circuit;
@@ -97,19 +97,19 @@ function previewDropMovedGateColumn(circuit, hand) {
 
 
     let halfCol = findOpHalfColumnAt(circuit, new Point(hand.pos.x, circuit.top));
-    let mustInsert = halfCol % 1 === 0 &&
+    const mustInsert = halfCol % 1 === 0 &&
         circuit.circuitDefinition.columns[halfCol] !== undefined &&
         !circuit.circuitDefinition.columns[halfCol].isEmpty();
     if (mustInsert) {
-        let isAfter = hand.pos.x > circuit.opRect(halfCol).center().x;
+        const isAfter = hand.pos.x > circuit.opRect(halfCol).center().x;
         halfCol += isAfter ? 0.5 : -0.5;
     }
 
-    let col = Math.ceil(halfCol);
-    let isInsert = halfCol % 1 !== 0;
+    const col = Math.ceil(halfCol);
+    const isInsert = halfCol % 1 !== 0;
 
-    let rowShift = Math.round((hand.pos.y - hand.holdOffset.y - circuit.top) / Layout.WIRE_SPACING);
-    let newCircuitDef = shiftAndSpliceColumn(circuit, rowShift, [...hand.heldColumn.gates], col, isInsert);
+    const rowShift = Math.round((hand.pos.y - hand.holdOffset.y - circuit.top) / Layout.WIRE_SPACING);
+    const newCircuitDef = shiftAndSpliceColumn(circuit, rowShift, [...hand.heldColumn.gates], col, isInsert);
 
     return circuit.withCircuit(newCircuitDef).
         _withHighlightedSlot({row: undefined, col, resizeStyle: false}).
@@ -133,8 +133,8 @@ function shiftAndSpliceColumn(circuit, rowShift, gatesOfCol, insertCol, isInsert
         rowShift -= 1;
     }
 
-    let expandedCircuit = circuit.circuitDefinition.withWireCount(gatesOfCol.length);
-    let newCols = [...expandedCircuit.columns];
+    const expandedCircuit = circuit.circuitDefinition.withWireCount(gatesOfCol.length);
+    const newCols = [...expandedCircuit.columns];
 
     // Move displays rightward.
     while (newCols.length < insertCol) {
@@ -151,27 +151,27 @@ function shiftAndSpliceColumn(circuit, rowShift, gatesOfCol, insertCol, isInsert
  * @returns {!DisplayedCircuit}
  */
 function previewDropMovedGate(circuit, hand) {
-    let modificationPoint = findModificationIndex(circuit, hand);
+    const modificationPoint = findModificationIndex(circuit, hand);
     if (modificationPoint === undefined) {
         return circuit;
     }
 
     // Use the grab offset instead of the gate height so that tall gates are 'sticky' when dragging downward: they
     // aren't removed until the hand actually leaves the circuit area.
-    let handRowOffset = Math.floor(hand.holdOffset.y/Layout.WIRE_SPACING);
+    const handRowOffset = Math.floor(hand.holdOffset.y/Layout.WIRE_SPACING);
     if (modificationPoint.row + handRowOffset >= circuit.circuitDefinition.numWires) {
         return circuit;
     }
 
-    let addedGate = hand.heldGate;
+    const addedGate = hand.heldGate;
 
-    let emptyCol = GateColumn.empty(circuit.circuitDefinition.numWires);
-    let i = modificationPoint.col;
-    let isInserting = modificationPoint.isInsert;
-    let row = Math.min(modificationPoint.row, Math.max(0, Simulation.MAX_WIRE_COUNT - addedGate.height));
+    const emptyCol = GateColumn.empty(circuit.circuitDefinition.numWires);
+    const i = modificationPoint.col;
+    const isInserting = modificationPoint.isInsert;
+    const row = Math.min(modificationPoint.row, Math.max(0, Simulation.MAX_WIRE_COUNT - addedGate.height));
     // Pad out to the drop column, open a slot if this is an insert, then pad out far enough
     // for the gate's full width before folding it into the column it lands on.
-    let newCols = [...circuit.circuitDefinition.columns];
+    const newCols = [...circuit.circuitDefinition.columns];
     while (newCols.length < i) {
         newCols.push(emptyCol);
     }
@@ -182,7 +182,7 @@ function previewDropMovedGate(circuit, hand) {
         newCols.push(emptyCol);
     }
     newCols[i] = newCols[i].withGatesAdded(row, new GateColumn([addedGate]));
-    let newWireCount = Math.max(
+    const newWireCount = Math.max(
         circuit.geometry().extraWireStartIndex || 0,
         Math.max(
             circuit.circuitDefinition.numWires,
@@ -191,7 +191,7 @@ function previewDropMovedGate(circuit, hand) {
         return circuit;
     }
 
-    let newCircuitDef = circuit.circuitDefinition.
+    const newCircuitDef = circuit.circuitDefinition.
         withColumns(newCols).
         withWireCount(newWireCount);
     return circuit.withCircuit(newCircuitDef).
@@ -209,25 +209,25 @@ function previewResizedGate(circuit, hand) {
     if (hand.resizingGateSlot === undefined || hand.pos === undefined) {
         return circuit;
     }
-    let gate = circuit.circuitDefinition.gateInSlot(hand.resizingGateSlot.x, hand.resizingGateSlot.y);
+    const gate = circuit.circuitDefinition.gateInSlot(hand.resizingGateSlot.x, hand.resizingGateSlot.y);
     if (gate === undefined) {
         return circuit;
     }
-    let row = Math.min(
+    const row = Math.min(
         wireIndexAt(circuit, hand.pos.y - hand.holdOffset.y),
         Simulation.MAX_WIRE_COUNT - 1);
-    let newGate = seq(gate.gateFamily).minBy(g => Math.abs(g.height - (row - hand.resizingGateSlot.y + 1)));
-    let newWireCount = Math.min(Simulation.MAX_WIRE_COUNT,
+    const newGate = seq(gate.gateFamily).minBy(g => Math.abs(g.height - (row - hand.resizingGateSlot.y + 1)));
+    const newWireCount = Math.min(Simulation.MAX_WIRE_COUNT,
         Math.max(circuit.circuitDefinition.numWires, newGate.height + hand.resizingGateSlot.y));
-    let resizedColumn = new GateColumn(
+    const resizedColumn = new GateColumn(
         circuit.circuitDefinition.columns[hand.resizingGateSlot.x].gates.
             with(hand.resizingGateSlot.y, newGate));
-    let newCols = circuit.circuitDefinition.columns.
+    const newCols = circuit.circuitDefinition.columns.
         with(hand.resizingGateSlot.x, resizedColumn);
 
-    let newCircuitWithoutOverlapFix = circuit.circuitDefinition.withColumns(newCols).withWireCount(newWireCount);
-    let newCircuitWithOverlapFix = newCircuitWithoutOverlapFix.withHeightOverlapsFixed();
-    let newCircuit = newCircuitWithOverlapFix.withTrailingSpacersIncluded();
+    const newCircuitWithoutOverlapFix = circuit.circuitDefinition.withColumns(newCols).withWireCount(newWireCount);
+    const newCircuitWithOverlapFix = newCircuitWithoutOverlapFix.withHeightOverlapsFixed();
+    const newCircuit = newCircuitWithOverlapFix.withTrailingSpacersIncluded();
     return circuit.withCircuit(newCircuit).
         _withHighlightedSlot(circuit._highlightedSlot).
         _withCompressedColumnIndex(newCircuitWithoutOverlapFix.isEqualTo(newCircuitWithOverlapFix) ?
@@ -252,9 +252,9 @@ function afterDropping(circuit, hand) {
  * @returns {!DisplayedCircuit}
  */
 function withJustEnoughWires(circuit, hand, extraWireCount) {
-    let neededWireCountForPlacement = hand.heldGate !== undefined ? hand.heldGate.height : 0;
-    let desiredWireCount = circuit.circuitDefinition.minimumRequiredWireCount();
-    let clampedWireCount = Math.min(
+    const neededWireCountForPlacement = hand.heldGate !== undefined ? hand.heldGate.height : 0;
+    const desiredWireCount = circuit.circuitDefinition.minimumRequiredWireCount();
+    const clampedWireCount = Math.min(
         Simulation.MAX_WIRE_COUNT,
         Math.max(
             Math.min(1, neededWireCountForPlacement),
@@ -277,7 +277,7 @@ function tryClick(circuit, hand) {
         return undefined;
     }
 
-    let clickedInitialStateWire = findWireWithInitialStateAreaContaining(circuit, hand.pos);
+    const clickedInitialStateWire = findWireWithInitialStateAreaContaining(circuit, hand.pos);
     if (clickedInitialStateWire !== undefined) {
         return circuit.withCircuit(circuit.circuitDefinition.withSwitchedInitialStateOn(clickedInitialStateWire))
     }
@@ -297,7 +297,7 @@ function tryClick(circuit, hand) {
  */
 function tryGrab(circuit, hand, duplicate=false, wholeColumn=false, ignoreResizeTabs=false, alt=false) {
     if (wholeColumn) {
-        let grabRowResult = tryGrabRow(circuit, hand, alt);
+        const grabRowResult = tryGrabRow(circuit, hand, alt);
         if (grabRowResult !== undefined) {
             return grabRowResult;
         }
@@ -307,7 +307,7 @@ function tryGrab(circuit, hand, duplicate=false, wholeColumn=false, ignoreResize
     let newHand = hand;
     let newCircuit = circuit;
     if (!ignoreResizeTabs) {
-        let resizing = tryGrabResizeTab(circuit, hand);
+        const resizing = tryGrabResizeTab(circuit, hand);
         if (resizing !== undefined) {
             newHand = resizing.newHand;
             newCircuit = resizing.newCircuit;
@@ -329,19 +329,19 @@ function tryGrabRow(circuit, hand, alt) {
     }
 
     // Which wire is it? Is it one that's actually in the circuit?
-    let wire = wireIndexAt(circuit, hand.pos.y);
+    const wire = wireIndexAt(circuit, hand.pos.y);
     if (wire < 0 || wire >= circuit.circuitDefinition.numWires) {
         return undefined;
     }
 
     // Is it inside the intended click area, instead of just off to the side?
-    let r = wireInitialStateClickableRect(circuit, wire);
+    const r = wireInitialStateClickableRect(circuit, wire);
     if (!r.containsPoint(hand.pos)) {
         return undefined;
     }
 
     let {newCircuit, initialState, rowGates} = cutRow(circuit, wire);
-    let holdOffset = new Point(0, hand.pos.y - r.y);
+    const holdOffset = new Point(0, hand.pos.y - r.y);
     if (alt) {
         rowGates = rowGates.map(e => e === undefined ? e : e.alternate);
     }
@@ -357,16 +357,16 @@ function tryGrabRow(circuit, hand, alt) {
  * @returns {!{newCircuit: !CircuitDefinition, rowGates: !Array.<undefined|!Gate>, initialState: *}}
  */
 function cutRow(circuit, row) {
-    let row_gates = [];
-    let cols = [];
+    const row_gates = [];
+    const cols = [];
     for (let i = 0; i < circuit.circuitDefinition.columns.length; i++) {
-        let col_gates = [...circuit.circuitDefinition.columns[i].gates];
+        const col_gates = [...circuit.circuitDefinition.columns[i].gates];
         row_gates.push(col_gates[row]);
         col_gates.splice(row, 1);
         col_gates.push(undefined);
         cols.push(new GateColumn(col_gates));
     }
-    let newInitialStates = new Map(
+    const newInitialStates = new Map(
         [...circuit.circuitDefinition.customInitialValues.entries()].
             filter(([k, _]) => k !== row).
             map(([k, v]) => [k - (k > row ? 1 : 0), v]));
@@ -389,23 +389,23 @@ function tryGrabGate(circuit, hand, duplicate, alt) {
         return undefined;
     }
 
-    let foundPt = findGateOverlappingPos(circuit, hand.pos);
+    const foundPt = findGateOverlappingPos(circuit, hand.pos);
     if (foundPt === undefined) {
         return undefined;
     }
 
-    let {col, row, offset} = foundPt;
+    const {col, row, offset} = foundPt;
     let gate = circuit.circuitDefinition.columns[col].gates[row];
     if (alt) {
         gate = gate.alternate;
     }
 
-    let remainingGates = [...circuit.circuitDefinition.columns[col].gates];
+    const remainingGates = [...circuit.circuitDefinition.columns[col].gates];
     if (!duplicate) {
         remainingGates[row] = undefined;
     }
 
-    let newCols = circuit.circuitDefinition.columns.
+    const newCols = circuit.circuitDefinition.columns.
         with(col, new GateColumn(remainingGates));
     return {
         newCircuit: new DisplayedCircuit(
@@ -430,14 +430,14 @@ function tryGrabResizeTab(circuit, hand) {
 
     for (let col = 0; col < circuit.circuitDefinition.columns.length; col++) {
         for (let row = 0; row < circuit.circuitDefinition.numWires; row++) {
-            let gate = circuit.circuitDefinition.columns[col].gates[row];
+            const gate = circuit.circuitDefinition.columns[col].gates[row];
             if (gate === undefined) {
                 continue;
             }
-            let {isResizeHighlighted} =
+            const {isResizeHighlighted} =
                 circuit._highlightStatusAt(col, row, hand.hoverPoints());
             if (isResizeHighlighted) {
-                let offset = hand.pos.minus(circuit.gateRect(row + gate.height - 1, col, 1, 1).center());
+                const offset = hand.pos.minus(circuit.gateRect(row + gate.height - 1, col, 1, 1).center());
                 return {
                     newCircuit: circuit._withHighlightedSlot({col, row, resizeStyle: true}),
                     newHand: hand.withResizeSlot(new Point(col, row), offset)
@@ -460,17 +460,17 @@ function tryGrabWholeColumn(circuit, hand, duplicate, alt) {
         return undefined;
     }
 
-    let col = Math.round(toColumnSpaceCoordinate(circuit, hand.pos.x));
+    const col = Math.round(toColumnSpaceCoordinate(circuit, hand.pos.x));
     if (col < 0 || col >= circuit.circuitDefinition.columns.length || circuit.circuitDefinition.columns[col].isEmpty()) {
         return undefined;
     }
 
-    let newCols = [...circuit.circuitDefinition.columns];
+    const newCols = [...circuit.circuitDefinition.columns];
     if (!duplicate) {
         newCols.splice(col, 1, GateColumn.empty(circuit.circuitDefinition.numWires));
     }
 
-    let holdOffset = new Point(0, wireIndexAt(circuit, hand.pos.y) * Layout.WIRE_SPACING + Layout.WIRE_SPACING/2);
+    const holdOffset = new Point(0, wireIndexAt(circuit, hand.pos.y) * Layout.WIRE_SPACING + Layout.WIRE_SPACING/2);
     let grabbedGates = circuit.circuitDefinition.columns[col];
     if (alt) {
         grabbedGates = new GateColumn(grabbedGates.gates.map(e => e === undefined ? e : e.alternate));

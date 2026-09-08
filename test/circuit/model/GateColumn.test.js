@@ -19,7 +19,7 @@ import {GateColumn} from "../../../src/circuit/model/GateColumn.js"
 
 import {Gates} from "../../../src/gates/AllGates.js"
 
-let suite = new Suite("GateColumn");
+const suite = new Suite("GateColumn");
 
 suite.test("isEqualTo", () => {
     // Trivial case:
@@ -27,7 +27,7 @@ suite.test("isEqualTo", () => {
     assertThat(GateColumn.empty(2)).isNotEqualTo(GateColumn.empty(1));
 
     // Equivalence groups:
-    let groups = [
+    const groups = [
         [GateColumn.empty(0), GateColumn.empty(0), new GateColumn([]), new GateColumn([])],
         [GateColumn.empty(1), GateColumn.empty(1), new GateColumn([undefined]), new GateColumn([undefined])],
         [GateColumn.empty(2), GateColumn.empty(2), new GateColumn([undefined, undefined]),
@@ -37,10 +37,10 @@ suite.test("isEqualTo", () => {
         [new GateColumn([Gates.HalfTurns.X, undefined]), new GateColumn([Gates.HalfTurns.X, undefined])],
         [new GateColumn([undefined, Gates.HalfTurns.X]), new GateColumn([undefined, Gates.HalfTurns.X])]
     ];
-    for (let g1 of groups) {
-        for (let g2 of groups) {
-            for (let e1 of g1) {
-                for (let e2 of g2) {
+    for (const g1 of groups) {
+        for (const g2 of groups) {
+            for (const e1 of g1) {
+                for (const e2 of g2) {
                     if (g1 === g2) {
                         assertThat(e1).isEqualTo(e2);
                         assertTrue(e1.isEqualTo(e2));

@@ -18,7 +18,7 @@ import {Gate} from "../../circuit/model/Gate.js"
 import {ketArgs, ketShaderPermute} from "../../engine/simulation/gpu/KetShaderUtil.js"
 import {WglArg} from "../../engine/webgl/shader/WglArg.js"
 
-let IncrementGates = {};
+const IncrementGates = {};
 
 const offsetShader = ketShaderPermute(
     'uniform float amount;',

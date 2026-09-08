@@ -21,7 +21,7 @@ import { GateBuilder } from "../../circuit/model/Gate.js";
 import { GatePainting } from "../../draw/gate/GatePainting.js";
 import { Rect } from "../../geometry/Rect.js";
 
-let SpacerGate = new GateBuilder()
+const SpacerGate = new GateBuilder()
   .setSerializedIdAndSymbol("…")
   .setTitle("Spacer")
   .setBlurb("A gate with no effect.")
@@ -34,8 +34,8 @@ let SpacerGate = new GateBuilder()
       GatePainting.paintOutline(args);
     } else {
       // Whitespace for the ellipsis.
-      let { x, y } = args.rect.center();
-      let r = new Rect(x - 14, y - 2, 28, 4);
+      const { x, y } = args.rect.center();
+      const r = new Rect(x - 14, y - 2, 28, 4);
       rectangle(args.painter, r, { fill: CanvasTheme.surface.background });
     }
     circle(args.painter, args.rect.center().offsetBy(7, 0), 2, {

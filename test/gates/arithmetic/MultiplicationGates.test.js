@@ -20,7 +20,7 @@ import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js
 import {modularMultiply, modularUnmultiply} from "../../../src/gates/arithmetic/ModularMultiplicationGates.js"
 import {assertThatGateActsLikePermutation, assertThatCircuitOutputsBasisKet} from "../../CircuitOperationTestUtil.js"
 
-let suite = new Suite("MultiplicationGates");
+const suite = new Suite("MultiplicationGates");
 
 suite.testUsingWebGL('multiplication_gate', () => {
     assertThatGateActsLikePermutation(
@@ -47,7 +47,7 @@ suite.testUsingWebGL('inverse_multiplication_gate', () => {
 });
 
 suite.testUsingWebGL('times_big_A', () => {
-    let circuit = CircuitDefinition.fromTextDiagram(new Map([
+    const circuit = CircuitDefinition.fromTextDiagram(new Map([
         ['a', Gates.InputGates.SetA.withParam(16385)],
         ['*', Gates.MultiplicationGates.TimesAFamily],
         ['X', Gates.HalfTurns.X],

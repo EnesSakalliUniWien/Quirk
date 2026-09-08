@@ -17,7 +17,7 @@
 import {Suite, assertThat} from "../TestUtil.js"
 import {DetailedError} from "../../src/base/DetailedError.js"
 
-let suite = new Suite("DetailedError");
+const suite = new Suite("DetailedError");
 
 class ReentrantDescription {
     toString() {

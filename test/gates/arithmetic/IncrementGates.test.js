@@ -24,7 +24,7 @@ import {
 import {ketArgs} from "../../../src/engine/simulation/gpu/KetShaderUtil.js"
 import {WglArg} from "../../../src/engine/webgl/shader/WglArg.js"
 
-let suite = new Suite("ArithmeticGates");
+const suite = new Suite("ArithmeticGates");
 
 suite.testUsingWebGL('offsetShader', () => {
     assertThatCircuitShaderActsLikePermutation(

@@ -21,6 +21,7 @@ import {fitText} from '../TextLayout.js';
 /** @typedef {import('../DisplayView.js').DisplayView} DisplayView */
 
 import {CanvasTheme} from '../../../config/CanvasTheme.js';
+import {Typography} from '../../../config/Typography.js';
 
 import {Format} from '../../../base/Format.js';
 import {Util} from '../../../base/Util.js';
@@ -40,18 +41,18 @@ export function paintDensityMatrix(painter,
                               focusPoints = [],
                               backgroundColor = CanvasTheme.probability.background,
                               fillColor = CanvasTheme.probability.fill) {
-        let numCols = matrix.width();
-        let numRows = matrix.height();
-        let buf = matrix.rawBuffer();
-        let diam = Math.min(drawArea.w / numCols, drawArea.h / numRows);
-        let x = drawArea.x;
-        let y = drawArea.y;
-        let hasNaN = matrix.hasNaN();
+        const numCols = matrix.width();
+        const numRows = matrix.height();
+        const buf = matrix.rawBuffer();
+        const diam = Math.min(drawArea.w / numCols, drawArea.h / numRows);
+        const x = drawArea.x;
+        const y = drawArea.y;
+        const hasNaN = matrix.hasNaN();
 
-        let traceCouplingsWith = cellTraceFunc => trace => {
+        const traceCouplingsWith = cellTraceFunc => trace => {
             for (let row = 0; row < numRows; row++) {
                 for (let col = 0; col < numCols; col++) {
-                    let k = (row * numCols + col) * 2;
+                    const k = (row * numCols + col) * 2;
                     cellTraceFunc(
                         trace,
                         buf[k],
@@ -63,9 +64,9 @@ export function paintDensityMatrix(painter,
             }
         };
 
-        let traceDiagonalWith = cellTraceFunc => trace => {
+        const traceDiagonalWith = cellTraceFunc => trace => {
             for (let col = 0; col < numRows; col++) {
-                let k = col * (numCols + 1) * 2;
+                const k = col * (numCols + 1) * 2;
                 cellTraceFunc(
                     trace,
                     buf[k],
@@ -89,7 +90,7 @@ export function paintDensityMatrix(painter,
         }
 
         // Dividers.
-        let d = drawArea.w/numCols;
+        const d = drawArea.w/numCols;
         if (d > 2) {
             drawPath(painter, trace => PathGeometry.grid(trace, x, y, drawArea.w, drawArea.h, numCols, numRows), [{stroke: {color: CanvasTheme.amplitude.phaseHalo, width: 3}}, {stroke: {color: CanvasTheme.stroke.grid, width: Math.min(1, 2/Math.log(numCols))}}]);
         } else {
@@ -114,7 +115,7 @@ export function paintDensityMatrix(painter,
             });
         }
 
-        let n = Math.round(Math.log2(numRows));
+        const n = Math.round(Math.log2(numRows));
         MathPainter.paintMatrixTooltip(painter, matrix, drawArea, focusPoints,
             (c, r) => c === r ?
                 `Probability of |${Util.bin(c, n)}⟩ (decimal ${c})` :

@@ -37,7 +37,7 @@ const PURE_STATE_THRESHOLD = 0.999;
  * @returns {!{x: !number, y: !number, z: !number}}
  */
 function blochCoordinates(densityMatrix) {
-    let [ix, iy, iz] = QubitMatrix.densityMatrixToBlochVector(densityMatrix);
+    const [ix, iy, iz] = QubitMatrix.densityMatrixToBlochVector(densityMatrix);
     return {x: -ix, y: iy, z: -iz};
 }
 
@@ -48,9 +48,9 @@ function blochCoordinates(densityMatrix) {
  *     phi the azimuth from |+⟩, both in radians.
  */
 function blochAngles(vec) {
-    let r = Math.sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z);
-    let theta = r < 1e-8 ? 0 : Math.acos(Math.max(-1, Math.min(1, vec.z / r)));
-    let phi = Math.atan2(vec.y, vec.x);
+    const r = Math.sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z);
+    const theta = r < 1e-8 ? 0 : Math.acos(Math.max(-1, Math.min(1, vec.z / r)));
+    const phi = Math.atan2(vec.y, vec.x);
     return {r, theta, phi};
 }
 
@@ -61,10 +61,10 @@ function blochAngles(vec) {
  * @returns {!string}
  */
 function pureStateText(theta, phi) {
-    let a = Math.cos(theta / 2);
-    let br = Math.sin(theta / 2) * Math.cos(phi);
-    let bi = Math.sin(theta / 2) * Math.sin(phi);
-    let sign = v => (v >= 0 ? '+' : '-') + Math.abs(v).toFixed(3);
+    const a = Math.cos(theta / 2);
+    const br = Math.sin(theta / 2) * Math.cos(phi);
+    const bi = Math.sin(theta / 2) * Math.sin(phi);
+    const sign = v => (v >= 0 ? '+' : '-') + Math.abs(v).toFixed(3);
     return `${a.toFixed(3)} |0⟩ + (${sign(br)}${sign(bi)}i) |1⟩`;
 }
 
@@ -93,10 +93,10 @@ function initBlochSphereDialog(displayed, mostRecentStats, overlayState) {
     let pitch = DEFAULT_PITCH;
 
     const densityMatrixOfPending = () => {
-        let circuitDefinition = displayed.get().displayedCircuit.circuitDefinition;
-        let stats = mostRecentStats.get();
+        const circuitDefinition = displayed.get().displayedCircuit.circuitDefinition;
+        const stats = mostRecentStats.get();
         if (pending.col !== undefined) {
-            let gate = circuitDefinition.gateInSlot(pending.col, pending.row);
+            const gate = circuitDefinition.gateInSlot(pending.col, pending.row);
             if (gate === undefined || gate.serializedId !== 'Bloch') {
                 return undefined;
             }
@@ -114,7 +114,7 @@ function initBlochSphereDialog(displayed, mostRecentStats, overlayState) {
         }
         // The sphere the dialog was opened for can vanish underneath it (an undo, a URL change);
         // showing some other slot's state would be worse than closing.
-        let densityMatrix = densityMatrixOfPending();
+        const densityMatrix = densityMatrixOfPending();
         if (densityMatrix === undefined) {
             overlayState.close();
             return;
@@ -125,18 +125,18 @@ function initBlochSphereDialog(displayed, mostRecentStats, overlayState) {
 
         if (densityMatrix.hasNaN()) {
             drawBlochScene(canvas, undefined, yaw, pitch);
-            for (let e of [stateElement, xElement, yElement, zElement, thetaElement, phiElement, purityElement]) {
+            for (const e of [stateElement, xElement, yElement, zElement, thetaElement, phiElement, purityElement]) {
                 e.textContent = 'n/a';
             }
             return;
         }
 
-        let vec = blochCoordinates(densityMatrix);
-        let {r, theta, phi} = blochAngles(vec);
+        const vec = blochCoordinates(densityMatrix);
+        const {r, theta, phi} = blochAngles(vec);
         drawBlochScene(canvas, vec, yaw, pitch);
 
-        let sign = v => (v >= 0 ? '+' : '-') + Math.abs(v).toFixed(3);
-        let deg = v => (v * 180 / Math.PI).toFixed(1) + '°';
+        const sign = v => (v >= 0 ? '+' : '-') + Math.abs(v).toFixed(3);
+        const deg = v => (v * 180 / Math.PI).toFixed(1) + '°';
         stateElement.textContent = r > PURE_STATE_THRESHOLD ?
             pureStateText(theta, phi) :
             'mixed — |r| < 1 (entangled or decohered)';
@@ -160,7 +160,7 @@ function initBlochSphereDialog(displayed, mostRecentStats, overlayState) {
         if (!canvas.hasPointerCapture(ev.pointerId)) {
             return;
         }
-        let cssSize = Math.max(1, canvas.clientWidth);
+        const cssSize = Math.max(1, canvas.clientWidth);
         yaw -= ev.movementX * Math.PI / cssSize;
         pitch += ev.movementY * Math.PI / cssSize;
         pitch = Math.max(Math.PI * -0.49, Math.min(Math.PI * 0.49, pitch));

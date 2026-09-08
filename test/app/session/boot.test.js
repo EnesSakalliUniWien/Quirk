@@ -17,13 +17,13 @@
 import {Suite, assertTrue, assertFalse} from "../../TestUtil.js"
 import {shouldShowWelcome, SEEN_WELCOME_STORAGE_KEY} from "../../../src/app/session/boot.js"
 
-let suite = new Suite("boot");
+const suite = new Suite("boot");
 
 /**
  * @returns {!Storage} Enough of the Storage interface for the welcome flag.
  */
 function fakeStorage() {
-    let items = new Map();
+    const items = new Map();
     return {
         getItem: key => items.has(key) ? items.get(key) : null,
         setItem: (key, value) => items.set(key, String(value))
@@ -31,7 +31,7 @@ function fakeStorage() {
 }
 
 suite.test("shows the welcome exactly once for an empty circuit", () => {
-    let storage = fakeStorage();
+    const storage = fakeStorage();
 
     assertTrue(shouldShowWelcome(true, storage));
     assertFalse(shouldShowWelcome(true, storage));
@@ -39,7 +39,7 @@ suite.test("shows the welcome exactly once for an empty circuit", () => {
 });
 
 suite.test("a load that carries a circuit never greets, and doesn't spend the greeting", () => {
-    let storage = fakeStorage();
+    const storage = fakeStorage();
 
     assertFalse(shouldShowWelcome(false, storage));
     // The greeting is still owed to the first empty-circuit load.
@@ -47,7 +47,7 @@ suite.test("a load that carries a circuit never greets, and doesn't spend the gr
 });
 
 suite.test("a storage that throws still gets the welcome instead of an error", () => {
-    let storage = {
+    const storage = {
         getItem: () => { throw new Error("blocked"); },
         setItem: () => { throw new Error("blocked"); }
     };
@@ -58,7 +58,7 @@ suite.test("a storage that throws still gets the welcome instead of an error", (
 });
 
 suite.test("respects a flag written by an earlier session", () => {
-    let storage = fakeStorage();
+    const storage = fakeStorage();
     storage.setItem(SEEN_WELCOME_STORAGE_KEY, 'true');
 
     assertFalse(shouldShowWelcome(true, storage));

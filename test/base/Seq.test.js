@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import {Suite, assertThat, assertThrows, assertTrue, assertFalse} from "../TestUtil.js"
+import {Suite, assertThat, assertThrows, assertTrue} from "../TestUtil.js"
 import {seq, Seq} from "../../src/base/Seq.js"
 
-let suite = new Suite("Seq");
+const suite = new Suite("Seq");
 
 suite.test("constructor_Array", () => {
     assertThat(new Seq([])).iteratesAs();
@@ -29,7 +29,7 @@ suite.test("constructor_Array", () => {
 });
 
 suite.test("constructor_OtherArrays", () => {
-    let candidates = [
+    const candidates = [
         new Float32Array([1, 2, 3]),
         new Int16Array([-1, 2, 3]),
         new Int32Array([1, -2, 3]),
@@ -41,18 +41,18 @@ suite.test("constructor_OtherArrays", () => {
         ["a", "b", 3]
     ];
 
-    for (let candidate of candidates) {
+    for (const candidate of candidates) {
         for (let runs = 0; runs < 2; runs++) {
-            let seq1 = new Seq(candidate);
-            let seq2 = seq(candidate);
+            const seq1 = new Seq(candidate);
+            const seq2 = seq(candidate);
             let n = 0;
-            for (let e of seq1) {
+            for (const e of seq1) {
                 assertThat(e).isEqualTo(candidate[n]);
                 n++;
             }
             assertThat(n).isEqualTo(candidate.length);
             let n2 = 0;
-            for (let e of seq2) {
+            for (const e of seq2) {
                 assertThat(e).isEqualTo(candidate[n2]);
                 n2++;
             }
@@ -62,7 +62,7 @@ suite.test("constructor_OtherArrays", () => {
 });
 
 suite.test("constructor_RawGeneratorSinglePass", () => {
-    let s = seq(function*() {
+    const s = seq(function*() {
         yield 1;
         yield 2;
     }());
@@ -72,7 +72,7 @@ suite.test("constructor_RawGeneratorSinglePass", () => {
 });
 
 suite.test("fromGenerator_MultipleUses", () => {
-    let s = Seq.fromGenerator(function*() {
+    const s = Seq.fromGenerator(function*() {
         yield 1;
         yield 2;
     });
@@ -83,18 +83,18 @@ suite.test("fromGenerator_MultipleUses", () => {
 });
 
 suite.test("toArray", () => {
-    let a0 = Seq.fromGenerator(function*() {}).toArray();
+    const a0 = Seq.fromGenerator(function*() {}).toArray();
     assertTrue(Array.isArray(a0));
     assertThat(a0).isEqualTo([]);
 
-    let a2 = Seq.fromGenerator(function*() { yield 1; yield "a"; }).toArray();
+    const a2 = Seq.fromGenerator(function*() { yield 1; yield "a"; }).toArray();
     assertTrue(Array.isArray(a2));
     assertThat(a2).isEqualTo([1, "a"]);
 });
 
 suite.test("naturals", () => {
     let n = 0;
-    for (let i of Seq.naturals()) {
+    for (const i of Seq.naturals()) {
         assertThat(i).isEqualTo(n);
         n++;
         if (n > 1000) {

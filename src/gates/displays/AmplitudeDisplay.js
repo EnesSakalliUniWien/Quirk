@@ -52,25 +52,25 @@ function amplitudeDisplayStatTextures(
   rangeOffset,
   rangeLength,
 ) {
-  let incoherentKet = probabilityStatTexture(
+  const incoherentKet = probabilityStatTexture(
     stateKet,
     controlsTexture,
     rangeOffset,
     rangeLength,
   );
 
-  let trader = new WglTextureTrader(stateKet);
+  const trader = new WglTextureTrader(stateKet);
   trader.dontDeallocCurrentTexture();
 
   // Put into normal form by throwing away areas not satisfying the controls and cycling the offset away.
-  let startingQubits =
+  const startingQubits =
     currentShaderCoder().vec2.arrayPowerSizeOfTexture(stateKet);
-  let lostQubits = Util.numberOfSetBits(controls.inclusionMask);
-  let lostHeadQubits = Util.numberOfSetBits(
+  const lostQubits = Util.numberOfSetBits(controls.inclusionMask);
+  const lostHeadQubits = Util.numberOfSetBits(
     controls.inclusionMask & ((1 << rangeOffset) - 1),
   );
-  let involvedQubits = startingQubits - lostQubits;
-  let broadcastQubits = involvedQubits - rangeLength;
+  const involvedQubits = startingQubits - lostQubits;
+  const broadcastQubits = involvedQubits - rangeLength;
 
   // Get relevant case vectors.
   trader.shadeAndTrade(
@@ -80,7 +80,7 @@ function amplitudeDisplayStatTextures(
   trader.shadeAndTrade((tex) =>
     GateShaders.cycleAllBits(tex, lostHeadQubits - rangeOffset),
   );
-  let ketJustAfterCycle = trader.dontDeallocCurrentTexture();
+  const ketJustAfterCycle = trader.dontDeallocCurrentTexture();
 
   // Compute magnitude of each case's vector.
   trader.shadeAndTrade(
@@ -106,7 +106,7 @@ function amplitudeDisplayStatTextures(
       LOOKUP_KET_AT_INDEXED_MAG_SHADER(ketJustAfterCycle, indexed_mag),
     WglTexturePool.takeVec2Tex(rangeLength),
   );
-  let rawKet = trader.dontDeallocCurrentTexture();
+  const rawKet = trader.dontDeallocCurrentTexture();
 
   // Compute the dot product of the largest vector against every other vector.
   trader.shadeAndTrade(
@@ -132,13 +132,13 @@ function amplitudeDisplayStatTextures(
   if (currentShaderCoder().float.needRearrangingToBeInVec4Format) {
     trader.shadeHalveAndTrade(Shaders.packFloatIntoVec4);
   }
-  let denormalizedQuality = trader.currentTexture;
+  const denormalizedQuality = trader.currentTexture;
 
   trader.currentTexture = rawKet;
   if (currentShaderCoder().vec2.needRearrangingToBeInVec4Format) {
     trader.shadeHalveAndTrade(Shaders.packVec2IntoVec4);
   }
-  let ket = trader.currentTexture;
+  const ket = trader.currentTexture;
 
   return [ket, denormalizedQuality, incoherentKet];
 }
@@ -150,18 +150,18 @@ function amplitudeDisplayStatTextures(
  * @returns {!{quality: !number, ket: !Matrix, phaseLockIndex: !int,incoherentKet: !Matrix}}
  */
 function processOutputs(span, pixelGroups, circuitDefinition) {
-  let [ketPixels, qualityPixels, rawIncoherentKetPixels] = pixelGroups;
-  let denormalizedQuality = qualityPixels[0];
-  let n = 1 << span;
-  let w = n === 2 ? 2 : 1 << Math.floor(Math.round(Math.log2(n)) / 2);
-  let h = n / w;
+  const [ketPixels, qualityPixels, rawIncoherentKetPixels] = pixelGroups;
+  const denormalizedQuality = qualityPixels[0];
+  const n = 1 << span;
+  const w = n === 2 ? 2 : 1 << Math.floor(Math.round(Math.log2(n)) / 2);
+  const h = n / w;
 
   // Rescale quantities.
   let unity = 0;
-  for (let e of ketPixels) {
+  for (const e of ketPixels) {
     unity += e * e;
   }
-  let incoherentKetPixels = new Float32Array(w * h * 2);
+  const incoherentKetPixels = new Float32Array(w * h * 2);
   let incoherentUnity = 0;
   for (let i = 0; i < n; i++) {
     incoherentUnity += rawIncoherentKetPixels[i];
@@ -171,7 +171,7 @@ function processOutputs(span, pixelGroups, circuitDefinition) {
       rawIncoherentKetPixels[i] / incoherentUnity,
     );
   }
-  if (isNaN(incoherentUnity) || incoherentUnity < 0.000001) {
+  if (Number.isNaN(incoherentUnity) || incoherentUnity < 0.000001) {
     return {
       quality: 0.0,
       ket: Matrix.zero(w, h).times(NaN),
@@ -179,24 +179,24 @@ function processOutputs(span, pixelGroups, circuitDefinition) {
       incoherentKet: Matrix.zero(w, h).times(NaN),
     };
   }
-  let quality = denormalizedQuality / unity / incoherentUnity;
+  const quality = denormalizedQuality / unity / incoherentUnity;
 
-  let phaseIndex =
+  const phaseIndex =
     span === circuitDefinition.numWires
       ? undefined
       : _processOutputs_pickPhaseLockIndex(ketPixels);
-  let phase =
+  const phase =
     phaseIndex === undefined
       ? 0
       : Math.atan2(ketPixels[phaseIndex * 2 + 1], ketPixels[phaseIndex * 2]);
-  let c = Math.cos(phase);
-  let s = -Math.sin(phase);
+  const c = Math.cos(phase);
+  const s = -Math.sin(phase);
 
-  let buf = new Float32Array(n * 2);
-  let sqrtUnity = Math.sqrt(unity);
+  const buf = new Float32Array(n * 2);
+  const sqrtUnity = Math.sqrt(unity);
   for (let i = 0; i < n; i++) {
-    let real = ketPixels[i * 2] / sqrtUnity;
-    let imag = ketPixels[i * 2 + 1] / sqrtUnity;
+    const real = ketPixels[i * 2] / sqrtUnity;
+    const imag = ketPixels[i * 2 + 1] / sqrtUnity;
     buf[i * 2] = real * c + imag * -s;
     buf[i * 2 + 1] = real * s + imag * c;
   }
@@ -217,9 +217,9 @@ function _processOutputs_pickPhaseLockIndex(ketPixels) {
   let result = 0;
   let best = 0;
   for (let k = 0; k < ketPixels.length; k += 2) {
-    let r = ketPixels[k];
-    let i = ketPixels[k + 1];
-    let m = r * r + i * i;
+    const r = ketPixels[k];
+    const i = ketPixels[k + 1];
+    const m = r * r + i * i;
     if (m > best * 10000) {
       best = m;
       result = k >> 1;
@@ -283,8 +283,8 @@ const POINTWISE_CMUL_CONJ_SHADER = makePseudoShaderWithInputsAndOutputAndCode(
  * @param {!{quality: !number, ket: !Matrix, phaseLockIndex: !int,incoherentKet: !Matrix}} customStats
  */
 function customStatsToJsonData(customStats) {
-  let { quality, ket, phaseLockIndex, incoherentKet } = customStats;
-  let n = ket.width() * ket.height();
+  const { quality, ket, phaseLockIndex, incoherentKet } = customStats;
+  const n = ket.width() * ket.height();
   return {
     coherence_measure: quality,
     superposition_phase_locked_state_index:
@@ -298,7 +298,7 @@ function customStatsToJsonData(customStats) {
   };
 }
 
-let AmplitudeDisplayFamily = Gate.buildFamily(1, 16, (span, builder) =>
+const AmplitudeDisplayFamily = Gate.buildFamily(1, 16, (span, builder) =>
   builder
     .setSerializedId("Amps" + span)
     .setSymbol("Amps")

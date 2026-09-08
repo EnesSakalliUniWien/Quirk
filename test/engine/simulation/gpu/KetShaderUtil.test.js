@@ -21,10 +21,10 @@ import {Complex} from "../../../../src/engine/math/complex/Complex.js"
 import {Matrix} from "../../../../src/engine/math/matrix/Matrix.js"
 import {WglArg} from "../../../../src/engine/webgl/shader/WglArg.js"
 
-let suite = new Suite("KetShaderUtil");
+const suite = new Suite("KetShaderUtil");
 
 suite.testUsingWebGL("ketShader", () => {
-    let shader = ketShader(
+    const shader = ketShader(
         'uniform vec2 a, b, c, d;',
         'return cmul(inp(0.0), a+(c-a)*out_id) + cmul(inp(1.0), b+(d-b)*out_id);',
         1);
@@ -39,7 +39,7 @@ suite.testUsingWebGL("ketShader", () => {
 });
 
 suite.testUsingWebGL("ketShaderPermute", () => {
-    let shader = ketShaderPermute(
+    const shader = ketShaderPermute(
         '',
         'return mod(out_id + 1.0, 4.0);',
         2);
@@ -49,7 +49,7 @@ suite.testUsingWebGL("ketShaderPermute", () => {
 });
 
 suite.testUsingWebGL("ketShaderPhase", () => {
-    let shader = ketShaderPhase(
+    const shader = ketShaderPhase(
         '',
         'return out_id/10.0;',
         3);

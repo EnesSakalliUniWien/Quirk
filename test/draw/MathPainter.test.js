@@ -23,7 +23,7 @@ import {Rect} from '../../src/geometry/Rect.js';
 import {Matrix} from '../../src/engine/math/matrix/Matrix.js';
 import {CanvasTheme, phaseColor} from '../../src/config/CanvasTheme.js';
 
-let suite = new Suite("MathPainter");
+const suite = new Suite("MathPainter");
 
 suite.test("probabilityLabels_haveAnOpaquePlateForEveryFillLevel", () => {
     for (const probability of [0, 0.25, 0.5, 0.75, 1]) {
@@ -59,14 +59,14 @@ suite.test("phaseMapping_ignoresZeroEntriesAndCanSuppressUndefinedLocalPhase", (
 });
 
 suite.test("valueTooltip_staysInsideZoomedScrolledViewport", () => {
-    for (let dpr of [1, 2]) {
-        for (let zoom of [0.5, 1, 1.5, 2]) {
-            for (let scroll of [0, 180]) {
-                for (let corner of [[0, 0], [320, 0], [0, 240], [320, 240]]) {
-                    let canvas = document.createElement('canvas');
+    for (const dpr of [1, 2]) {
+        for (const zoom of [0.5, 1, 1.5, 2]) {
+            for (const scroll of [0, 180]) {
+                for (const corner of [[0, 0], [320, 0], [0, 240], [320, 240]]) {
+                    const canvas = document.createElement('canvas');
                     canvas.width = 320 * dpr;
                     canvas.height = 240 * dpr;
-                    let painter = new DisplayView(canvas, undefined, dpr * zoom);
+                    const painter = new DisplayView(canvas, undefined, dpr * zoom);
                     painter.position.set(-scroll / zoom, -scroll / zoom);
                     const stage = new Container();
                     stage.scale.set(dpr * zoom);
@@ -79,7 +79,7 @@ suite.test("valueTooltip_staysInsideZoomedScrolledViewport", () => {
                     const tooltip = painter.tooltips.children[0];
                     const a = tooltip.toGlobal(tooltip.bounds.topLeft());
                     const b = tooltip.toGlobal(tooltip.bounds.bottomRight());
-                    let halfStroke = dpr * zoom / 2;
+                    const halfStroke = dpr * zoom / 2;
                     assertThat(a.x - halfStroke >= 0 && a.y - halfStroke >= 0 &&
                         b.x + halfStroke <= canvas.width && b.y + halfStroke <= canvas.height).isEqualTo(true);
                 }

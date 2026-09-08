@@ -24,19 +24,19 @@ import {
 } from "../../engine/simulation/gpu/KetShaderUtil.js";
 import { WglArg } from "../../engine/webgl/shader/WglArg.js";
 
-let MultiplyAccumulateGates = {};
+const MultiplyAccumulateGates = {};
 
-let sectionSizes = (totalSize) => {
-  let c = Math.ceil(totalSize / 2);
-  let b = Math.ceil((totalSize - c) / 2);
-  let a = Math.max(totalSize - c - b, 1);
+const sectionSizes = (totalSize) => {
+  const c = Math.ceil(totalSize / 2);
+  const b = Math.ceil((totalSize - c) / 2);
+  const a = Math.max(totalSize - c - b, 1);
   return [a, b, totalSize - a - b];
 };
 
 const makeScaledMultiplyAddPermutation = (span, scaleFactor) => (e) => {
-  let [sa, sb, sc] = sectionSizes(span);
-  let a = e & ((1 << sa) - 1);
-  let b = (e >> sa) & ((1 << sb) - 1);
+  const [sa, sb, sc] = sectionSizes(span);
+  const a = e & ((1 << sa) - 1);
+  const b = (e >> sa) & ((1 << sb) - 1);
   let c = e >> (sa + sb);
   c += a * b * scaleFactor;
   c &= (1 << sc) - 1;
@@ -92,7 +92,7 @@ MultiplyAccumulateGates.Legacy_MultiplyAddFamily = Gate.buildFamily(
         ),
       )
       .setActualEffectToUpdateFunc((ctx) => {
-        let [a, b, c] = sectionSizes(span);
+        const [a, b, c] = sectionSizes(span);
         return MultiplyAccumulateGates.MultiplyAddInputsFamily.ofSize(
           c,
         ).customOperation(
@@ -124,7 +124,7 @@ MultiplyAccumulateGates.Legacy_MultiplySubtractFamily = Gate.buildFamily(
         ),
       )
       .setActualEffectToUpdateFunc((ctx) => {
-        let [a, b, c] = sectionSizes(span);
+        const [a, b, c] = sectionSizes(span);
         return MultiplyAccumulateGates.MultiplySubtractInputsFamily.ofSize(
           c,
         ).customOperation(

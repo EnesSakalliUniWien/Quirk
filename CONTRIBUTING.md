@@ -5,9 +5,16 @@ request.
 
 Before opening the pull request, keep the checks green:
 
-- `npm run check` — builds each page and runs all three suites in turn. The individual steps are
-  `npm test` (browser unit suite), `npm run test:e2e` (end-to-end suite) and `npm run test:perf`
-  (performance checks); `npm run build` produces the production bundle on its own.
+- `npm run check` — lints, runs knip, then builds each page and runs all three suites in turn.
+  The individual steps are `npm run lint` (ESLint: `no-undef`, `eqeqeq`, `prefer-const` and a
+  short list of `unicorn` rules for hand-rolled forms of things the platform now has), `npm run
+  knip` (unused files, exports and dependencies), `npm test` (browser unit suite), `npm run
+  test:e2e` (end-to-end suite) and `npm run test:perf` (performance checks); `npm run build`
+  produces the production bundle on its own. Both static checks must be clean; CI runs them first.
+- `npm run typecheck` — advisory only. TypeScript checks the JSDoc annotations with `checkJs` and
+  implicit `any` allowed; the codebase predates the checker and reports around four thousand
+  findings, most of them the Closure-era `int` type and `!Type` names TypeScript cannot resolve.
+  Run it on a file you are working in; do not expect it to pass.
 
 # Source layout
 

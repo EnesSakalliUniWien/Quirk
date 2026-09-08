@@ -17,10 +17,10 @@
 import {Suite, assertThat, assertThrows, assertTrue, assertFalse} from "../../../TestUtil.js"
 import {Axis} from "../../../../src/engine/math/formula/Axis.js"
 
-let suite = new Suite("Axis");
+const suite = new Suite("Axis");
 
 suite.test("isEqualTo", () => {
-    let groups = [
+    const groups = [
         [new Axis(0, 0, 0), new Axis(0, 0, 0)],
         [new Axis(1, 0, 0), new Axis(1, 0, 0)],
         [new Axis(0, 1, 0), new Axis(0, 1, 0)],
@@ -29,10 +29,10 @@ suite.test("isEqualTo", () => {
         [new Axis(4, 5, 6)]
     ];
 
-    for (let g1 of groups) {
-        for (let g2 of groups) {
-            for (let e1 of g1) {
-                for (let e2 of g2) {
+    for (const g1 of groups) {
+        for (const g2 of groups) {
+            for (const e1 of g1) {
+                for (const e2 of g2) {
                     if (g1 === g2) {
                         assertThat(e1).isEqualTo(e2);
                         assertTrue(e1.isEqualTo(e2));

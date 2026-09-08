@@ -17,10 +17,10 @@
 import {assertTrue, assertFalse, assertThat, assertThrows, Suite} from "../../TestUtil.js"
 import {Controls} from "../../../src/circuit/model/Controls.js"
 
-let suite = new Suite("Controls");
+const suite = new Suite("Controls");
 
 suite.test("isEqualTo", () => {
-    let s = new Controls(0xF, 0xE);
+    const s = new Controls(0xF, 0xE);
     assertTrue(s.isEqualTo(s));
     assertFalse(s.isEqualTo(""));
     assertFalse(s.isEqualTo(null));
@@ -39,7 +39,7 @@ suite.test("allowsState", () => {
     assertTrue(Controls.NONE.allowsState(0));
     assertTrue(Controls.NONE.allowsState(1));
 
-    let m = new Controls(0x5, 0x1);
+    const m = new Controls(0x5, 0x1);
     assertFalse(m.allowsState(0));
     assertTrue(m.allowsState(1));
     assertFalse(m.allowsState(2));
@@ -56,7 +56,7 @@ suite.test("desiredValueFor", () => {
     assertThat(Controls.NONE.desiredValueFor(0)).isEqualTo(undefined);
     assertThat(Controls.NONE.desiredValueFor(1)).isEqualTo(undefined);
 
-    let m = new Controls(0x5, 0x1);
+    const m = new Controls(0x5, 0x1);
     assertThat(m.desiredValueFor(0)).isEqualTo(true);
     assertThat(m.desiredValueFor(1)).isEqualTo(undefined);
     assertThat(m.desiredValueFor(2)).isEqualTo(false);
@@ -74,7 +74,7 @@ suite.test("and", () => {
     assertThat(Controls.NONE.and(Controls.NONE)).isEqualTo(Controls.NONE);
     assertThat(Controls.NONE.desiredValueFor(1)).isEqualTo(undefined);
 
-    let m = new Controls(0x5, 0x1);
+    const m = new Controls(0x5, 0x1);
     assertThat(Controls.bit(0, true).and(Controls.bit(2, false))).isEqualTo(m);
     assertThat(Controls.bit(2, false).and(Controls.bit(0, true))).isEqualTo(m);
     assertThat(Controls.NONE.and(m)).isEqualTo(m);

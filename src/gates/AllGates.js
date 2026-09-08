@@ -81,7 +81,7 @@ import { SwapGateHalf } from "./misc/SwapGateHalf.js";
 import { INITIAL_STATE_KEYS } from "../circuit/model/InitialStates.js";
 
 
-let Gates = {};
+const Gates = {};
 
 /** Gates that have special behavior requiring custom code / logic to handle. */
 Gates.Special = {
@@ -215,7 +215,7 @@ Gates.KnownToSerializer = [
   ...PhaseGradientGates.all,
 ];
 
-let gatesById = new Map(
+const gatesById = new Map(
   Gates.KnownToSerializer.map((g) => [g.serializedId, g]),
 );
 /**

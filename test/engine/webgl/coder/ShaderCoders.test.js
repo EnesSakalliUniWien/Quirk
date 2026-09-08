@@ -19,14 +19,14 @@ import {combinedShaderPartsWithCode, shaderWithOutputPartAndArgs} from "../../..
 import {currentShaderCoder} from "../../../../src/engine/webgl/coder/ShaderCoders.js"
 import {Shaders} from "../../../../src/engine/webgl/shader/Shaders.js"
 
-let suite = new Suite("ShaderCoders");
+const suite = new Suite("ShaderCoders");
 
 /**
  * @param {!int} length
  * @returns {!Float32Array}
  */
 function randomFloat32Array(length) {
-    let floats = new Float32Array(length);
+    const floats = new Float32Array(length);
     for (let i = 0; i < floats.length; i++) {
         floats[i] = (Math.random() - 0.5)*Math.pow(2, 16) +
             (Math.random() - 0.5) +
@@ -36,17 +36,17 @@ function randomFloat32Array(length) {
 }
 
 suite.testUsingWebGLFloatTextures("packUnpack", () => {
-    let data = randomFloat32Array(64);
-    for (let coder of [currentShaderCoder().float, currentShaderCoder().vec2, currentShaderCoder().vec4]) {
-        let packed = coder.dataToPixels(data);
-        let unpacked = coder.pixelsToData(packed);
+    const data = randomFloat32Array(64);
+    for (const coder of [currentShaderCoder().float, currentShaderCoder().vec2, currentShaderCoder().vec4]) {
+        const packed = coder.dataToPixels(data);
+        const unpacked = coder.pixelsToData(packed);
         assertThat(unpacked).isEqualTo(data);
     }
 });
 
 suite.testUsingWebGLFloatTextures("floatInput", () => {
-    let param = currentShaderCoder().float.inputPartGetter('fancy');
-    let shader = combinedShaderPartsWithCode([param], `
+    const param = currentShaderCoder().float.inputPartGetter('fancy');
+    const shader = combinedShaderPartsWithCode([param], `
         void main() {
             vec2 xy = gl_FragCoord.xy - vec2(0.5, 0.5);
             float k = xy.y * 4.0 + xy.x;
@@ -57,16 +57,16 @@ suite.testUsingWebGLFloatTextures("floatInput", () => {
                 read_fancy(k * 4.0 + 3.0));
         }`);
 
-    let floats = randomFloat32Array(64);
-    let spread = currentShaderCoder().float.dataToPixels(floats);
+    const floats = randomFloat32Array(64);
+    const spread = currentShaderCoder().float.dataToPixels(floats);
 
-    let texSquare = Shaders.data(spread).toVecFloatTexture(6);
+    const texSquare = Shaders.data(spread).toVecFloatTexture(6);
     assertThat(shader.withArgs(...param.argsFor(texSquare)).readRawFloatOutputs(4)).isEqualTo(floats);
     texSquare.deallocByDepositingInPool();
 });
 suite.testUsingWebGLFloatTextures("vec2Input", () => {
-    let param = currentShaderCoder().vec2.inputPartGetter('fancy');
-    let shader = combinedShaderPartsWithCode([param], `
+    const param = currentShaderCoder().vec2.inputPartGetter('fancy');
+    const shader = combinedShaderPartsWithCode([param], `
         void main() {
             vec2 xy = gl_FragCoord.xy - vec2(0.5, 0.5);
             float k = xy.y * 4.0 + xy.x;
@@ -75,34 +75,34 @@ suite.testUsingWebGLFloatTextures("vec2Input", () => {
             fragColor = vec4(a1, a2);
         }`);
 
-    let floats = randomFloat32Array(64);
-    let spread = currentShaderCoder().vec2.dataToPixels(floats);
+    const floats = randomFloat32Array(64);
+    const spread = currentShaderCoder().vec2.dataToPixels(floats);
 
-    let texSquare = Shaders.data(spread).toVec2Texture(5);
+    const texSquare = Shaders.data(spread).toVec2Texture(5);
     assertThat(shader.withArgs(...param.argsFor(texSquare)).readRawFloatOutputs(4)).isEqualTo(floats);
     texSquare.deallocByDepositingInPool();
 });
 
 suite.testUsingWebGLFloatTextures("vec4Input", () => {
-    let param = currentShaderCoder().vec4.inputPartGetter('test_input');
-    let shader = combinedShaderPartsWithCode([param], `
+    const param = currentShaderCoder().vec4.inputPartGetter('test_input');
+    const shader = combinedShaderPartsWithCode([param], `
         void main() {
             vec2 xy = gl_FragCoord.xy - vec2(0.5, 0.5);
             float k = xy.y * 4.0 + xy.x;
             fragColor = read_test_input(k);
         }`);
 
-    let floats = randomFloat32Array(64);
-    let spread = currentShaderCoder().vec4.dataToPixels(floats);
+    const floats = randomFloat32Array(64);
+    const spread = currentShaderCoder().vec4.dataToPixels(floats);
 
-    let texSquare = Shaders.data(spread).toVec4Texture(4);
+    const texSquare = Shaders.data(spread).toVec4Texture(4);
     assertThat(shader.withArgs(...param.argsFor(texSquare)).readRawFloatOutputs(4)).isEqualTo(floats);
     texSquare.deallocByDepositingInPool();
 });
 
 suite.testUsingWebGL("floatOutput", () => {
-    let output = currentShaderCoder().float.outputPart;
-    let shader = combinedShaderPartsWithCode([output], `
+    const output = currentShaderCoder().float.outputPart;
+    const shader = combinedShaderPartsWithCode([output], `
         float outputFor(float k) {
             return k + 0.75;
         }`);
@@ -113,8 +113,8 @@ suite.testUsingWebGL("floatOutput", () => {
 });
 
 suite.testUsingWebGL("vec2Output", () => {
-    let output = currentShaderCoder().vec2.outputPart;
-    let shader = combinedShaderPartsWithCode([output], `
+    const output = currentShaderCoder().vec2.outputPart;
+    const shader = combinedShaderPartsWithCode([output], `
         vec2 outputFor(float k) {
             return vec2(k, k + 0.5);
         }`);
@@ -133,8 +133,8 @@ suite.testUsingWebGL("vec2Output", () => {
 });
 
 suite.testUsingWebGL("vec4Output", () => {
-    let output = currentShaderCoder().vec4.outputPart;
-    let shader = combinedShaderPartsWithCode([output], `
+    const output = currentShaderCoder().vec4.outputPart;
+    const shader = combinedShaderPartsWithCode([output], `
         vec4 outputFor(float k) {
             return vec4(k, k + 0.25, k + 0.5, k + 0.75);
         }`);

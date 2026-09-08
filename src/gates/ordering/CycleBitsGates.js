@@ -27,7 +27,7 @@ import {Point} from '../../geometry/Point.js';
 import {Util} from '../../base/Util.js';
 import {WglArg} from '../../engine/webgl/shader/WglArg.js';
 
-let CycleBitsGates = {};
+const CycleBitsGates = {};
 
 /**
  * @param {!CircuitEvalContext} ctx
@@ -35,7 +35,7 @@ let CycleBitsGates = {};
  * @param {!int} shiftAmount
  * @returns {!WglConfiguredShader}
  */
-let cycleBitsShader = (ctx, qubitSpan, shiftAmount) =>
+const cycleBitsShader = (ctx, qubitSpan, shiftAmount) =>
     CYCLE_SHADER.withArgs(
         ...ketArgs(ctx, qubitSpan),
         WglArg.float("amount", 1 << Util.properMod(-shiftAmount, qubitSpan)));
@@ -49,7 +49,7 @@ const makeCycleBitsPermutation = (shift, span) => e => {
 };
 const makeCycleBitsMatrix = (shift, span) => Matrix.generateTransition(1<<span, makeCycleBitsPermutation(shift, span));
 
-let cyclePainter = reverse => args => {
+const cyclePainter = reverse => args => {
     if (args.positionInCircuit !== undefined) {
         PERMUTATION_DRAWER(args);
         return;
@@ -59,15 +59,15 @@ let cyclePainter = reverse => args => {
     paintOutline(args);
     paintResizeTab(args);
 
-    let x1 = args.rect.x + 6;
-    let x2 = args.rect.right() - 6;
-    let y = args.rect.center().y - Layout.GATE_RADIUS + 6;
-    let dh = (Layout.GATE_RADIUS - 6)*2 / 2;
+    const x1 = args.rect.x + 6;
+    const x2 = args.rect.right() - 6;
+    const y = args.rect.center().y - Layout.GATE_RADIUS + 6;
+    const dh = (Layout.GATE_RADIUS - 6)*2 / 2;
 
     for (let i = 0; i < 3; i++) {
-        let j = (i + (reverse ? 2 : 1)) % 3;
-        let y1 = y + i*dh;
-        let y2 = y + j*dh;
+        const j = (i + (reverse ? 2 : 1)) % 3;
+        const y1 = y + i*dh;
+        const y2 = y + j*dh;
         strokePath(args.painter, [
             new Point(x1, y1),
             new Point(x1 + 8, y1),

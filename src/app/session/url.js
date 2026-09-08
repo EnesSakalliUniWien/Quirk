@@ -21,7 +21,7 @@ import {HistoryPusher} from "../../browser/HistoryPusher.js"
 import {fromJsonText_CircuitDefinition, Serializer} from "../../serialization/Serializer.js"
 
 function urlWithCircuitHash(jsonText) {
-    if (jsonText.indexOf('%') !== -1 || jsonText.indexOf('&') !== -1) {
+    if (jsonText.includes('%') || jsonText.includes('&')) {
         jsonText = encodeURIComponent(jsonText);
     }
     return "#" + AppInfo.URL_CIRCUIT_PARAM_KEY + "=" + jsonText;
@@ -33,16 +33,16 @@ function urlWithCircuitHash(jsonText) {
 function initUrlCircuitSync(revision) {
     // Pull initial circuit out of URL '#x=y' arguments.
     const getHashParameters = () => {
-        let hashText = document.location.hash.substr(1);
-        let paramsMap = new Map();
+        const hashText = document.location.hash.slice(1);
+        const paramsMap = new Map();
         if (hashText !== "") {
-            for (let keyVal of hashText.split("&")) {
-                let eq = keyVal.indexOf("=");
+            for (const keyVal of hashText.split("&")) {
+                const eq = keyVal.indexOf("=");
                 if (eq === -1) {
                     continue;
                 }
-                let key = keyVal.substring(0, eq);
-                let val = decodeURIComponent(keyVal.substring(eq + 1));
+                const key = keyVal.slice(0, Math.max(0, eq));
+                const val = decodeURIComponent(keyVal.slice(Math.max(0, eq + 1)));
                 paramsMap.set(key, val);
             }
         }
@@ -53,21 +53,21 @@ function initUrlCircuitSync(revision) {
     const loadCircuitFromUrl = () => {
         try {
             historyPusher.currentStateIsMemorableButUnknown();
-            let params = getHashParameters();
+            const params = getHashParameters();
             if (!params.has(AppInfo.URL_CIRCUIT_PARAM_KEY)) {
-                let def = JSON.stringify(Serializer.toJson(CircuitDefinition.EMPTY));
+                const def = JSON.stringify(Serializer.toJson(CircuitDefinition.EMPTY));
                 params.set(AppInfo.URL_CIRCUIT_PARAM_KEY, def);
             }
 
-            let jsonText = params.get(AppInfo.URL_CIRCUIT_PARAM_KEY);
+            const jsonText = params.get(AppInfo.URL_CIRCUIT_PARAM_KEY);
             historyPusher.currentStateIsMemorableAndEqualTo(jsonText);
-            let circuitDef = fromJsonText_CircuitDefinition(jsonText);
-            let cleanedJson = JSON.stringify(Serializer.toJson(circuitDef));
+            const circuitDef = fromJsonText_CircuitDefinition(jsonText);
+            const cleanedJson = JSON.stringify(Serializer.toJson(circuitDef));
             revision.clear(cleanedJson);
             if (circuitDef.isEmpty() && params.size === 1) {
                 historyPusher.currentStateIsNotMemorable();
             } else {
-                let urlHash = urlWithCircuitHash(jsonText);
+                const urlHash = urlWithCircuitHash(jsonText);
                 historyPusher.stateChange(jsonText, urlHash);
             }
         } catch (ex) {

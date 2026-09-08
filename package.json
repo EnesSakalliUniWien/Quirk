@@ -12,8 +12,14 @@
     "url": "https://github.com/EnesSakalliUniWien/Quirk/issues"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@vitejs/plugin-react": "^6.1.0",
+    "eslint": "^10.10.0",
+    "eslint-plugin-unicorn": "^74.0.0",
+    "globals": "^17.12.0",
+    "knip": "^6.34.0",
     "puppeteer": "25.8.0",
+    "typescript": "^7.0.2",
     "vite": "8.2.2"
   },
   "scripts": {
@@ -22,7 +28,10 @@
     "preview": "vite preview --open /quirk.html",
     "start": "node server/index.js",
     "serve": "npm run build && npm start",
-    "check": "npm run test && npm run test:e2e && npm run test:perf",
+    "check": "npm run lint && npm run knip && npm run test && npm run test:e2e && npm run test:perf",
+    "lint": "eslint .",
+    "typecheck": "tsc -p jsconfig.json",
+    "knip": "knip",
     "test:build": "vite build --mode test",
     "test": "npm run test:build && node scripts/run-browser-tests.js test/test.html",
     "test:e2e": "npm run build && node scripts/run-e2e-tests.js",

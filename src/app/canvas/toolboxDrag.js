@@ -52,7 +52,7 @@ function initToolboxDrag(canvas, revision, displayed, syncArea) {
             withHeldGate(gate, new Point(Layout.GATE_RADIUS, Layout.GATE_RADIUS));
 
         revision.startedWorkingOnCommit();
-        let grabbed = handAt(pointer);
+        const grabbed = handAt(pointer);
         displayed.set(syncArea(displayed.get().withHand(grabbed)).withJustEnoughWires(grabbed, 1));
 
         const onMove = source => {
@@ -60,8 +60,8 @@ function initToolboxDrag(canvas, revision, displayed, syncArea) {
         };
         const onDrop = source => {
             stopDrag();
-            let dropped = syncArea(displayed.get().withHand(handAt(source))).afterDropping().afterTidyingUp();
-            let clearHand = dropped.hand.withPos(undefined);
+            const dropped = syncArea(displayed.get().withHand(handAt(source))).afterDropping().afterTidyingUp();
+            const clearHand = dropped.hand.withPos(undefined);
             revision.commit(dropped.withJustEnoughWires(clearHand, 0).snapshot());
         };
 
@@ -92,16 +92,16 @@ function initToolboxDrag(canvas, revision, displayed, syncArea) {
  */
 function initToolboxKeyboardPlace(revision, displayed, syncArea) {
     return gate => {
-        let cur = syncArea(displayed.get());
-        let endColumn = cur.displayedCircuit.circuitDefinition.columns.length;
-        let pt = cur.displayedCircuit.gateRect(0, endColumn).center();
-        let held = cur.hand.
+        const cur = syncArea(displayed.get());
+        const endColumn = cur.displayedCircuit.circuitDefinition.columns.length;
+        const pt = cur.displayedCircuit.gateRect(0, endColumn).center();
+        const held = cur.hand.
             withPos(pt).
             withHeldGate(gate, new Point(Layout.GATE_RADIUS, Layout.GATE_RADIUS));
-        let dropped = syncArea(cur.withHand(held).withJustEnoughWires(held, 1)).
+        const dropped = syncArea(cur.withHand(held).withJustEnoughWires(held, 1)).
             afterDropping().
             afterTidyingUp();
-        let clearHand = dropped.hand.withPos(undefined);
+        const clearHand = dropped.hand.withPos(undefined);
         revision.commit(dropped.withJustEnoughWires(clearHand, 0).snapshot());
     };
 }

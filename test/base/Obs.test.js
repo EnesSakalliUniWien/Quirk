@@ -17,11 +17,11 @@
 import {Suite, assertThat} from "../TestUtil.js"
 import {Observable, ObservableValue, ObservableSource} from "../../src/base/Obs.js"
 
-let suite = new Suite("Obs");
+const suite = new Suite("Obs");
 
-let record = observable => {
-    let out = [];
-    let stop = observable.subscribe(e => out.push(e));
+const record = observable => {
+    const out = [];
+    const stop = observable.subscribe(e => out.push(e));
     return {out, stop};
 };
 
@@ -44,10 +44,10 @@ suite.test("Observable.filter", () => {
 });
 
 suite.test("Observable.zipLatest", () => {
-    let v1 = new ObservableSource();
-    let v2 = new ObservableSource();
-    let seen = [];
-    let unreg = v1.observable().zipLatest(v2.observable(), (e1, e2) => e1 + e2).subscribe(e => seen.push(e));
+    const v1 = new ObservableSource();
+    const v2 = new ObservableSource();
+    const seen = [];
+    const unreg = v1.observable().zipLatest(v2.observable(), (e1, e2) => e1 + e2).subscribe(e => seen.push(e));
 
     assertThat(seen).isEqualTo([]);
     v1.send(1);
@@ -68,12 +68,12 @@ suite.test("Observable.zipLatest", () => {
 });
 
 suite.test("Observable.flattenLatest", () => {
-    let c = new ObservableSource();
-    let v1 = new ObservableSource();
-    let v2 = new ObservableSource();
-    let v3 = new ObservableSource();
-    let seen = [];
-    let unreg = c.observable().flattenLatest().subscribe(e => seen.push(e));
+    const c = new ObservableSource();
+    const v1 = new ObservableSource();
+    const v2 = new ObservableSource();
+    const v3 = new ObservableSource();
+    const seen = [];
+    const unreg = c.observable().flattenLatest().subscribe(e => seen.push(e));
 
     assertThat(seen).isEqualTo([]);
     c.send(v1.observable());
@@ -124,10 +124,10 @@ suite.test("Observable.flatten", () => {
         Observable.of(4, 5, 6),
         Observable.of(7, 8)).flatten().snapshot()).isEqualTo([1, 2, 3, 4, 5, 6, 7, 8]);
 
-    let v1 = new ObservableSource();
-    let v2 = new ObservableSource();
-    let c = new ObservableSource();
-    let {out, stop} = record(c.observable().flatten());
+    const v1 = new ObservableSource();
+    const v2 = new ObservableSource();
+    const c = new ObservableSource();
+    const {out, stop} = record(c.observable().flatten());
     assertThat(out).isEqualTo([]);
     c.send(v1.observable());
     assertThat(out).isEqualTo([]);
@@ -147,15 +147,15 @@ suite.test("Observable.flatten", () => {
 });
 
 suite.test("ObservableValue_setVsGet", () => {
-    let v = new ObservableValue('a');
+    const v = new ObservableValue('a');
     assertThat(v.get()).isEqualTo('a');
     v.set('b');
     assertThat(v.get()).isEqualTo('b');
 });
 
 suite.test("ObservableValue_observable", () => {
-    let v = new ObservableValue('a');
-    let {out, stop} = record(v.observable());
+    const v = new ObservableValue('a');
+    const {out, stop} = record(v.observable());
     assertThat(out).isEqualTo(['a']);
     v.set('b');
     assertThat(out).isEqualTo(['a', 'b']);
@@ -167,9 +167,9 @@ suite.test("ObservableValue_observable", () => {
 });
 
 suite.test("ObservableValue_observable_multiple", () => {
-    let v = new ObservableValue('a');
-    let {out: out1, stop: stop1} = record(v.observable());
-    let {out: out2, stop: stop2} = record(v.observable());
+    const v = new ObservableValue('a');
+    const {out: out1, stop: stop1} = record(v.observable());
+    const {out: out2, stop: stop2} = record(v.observable());
     assertThat(out1).isEqualTo(['a']);
     assertThat(out2).isEqualTo(['a']);
     stop2();
@@ -184,8 +184,8 @@ suite.test("ObservableValue_observable_multiple", () => {
 });
 
 suite.test("ObservableSource_observable", () => {
-    let v = new ObservableSource();
-    let {out, stop} = record(v.observable());
+    const v = new ObservableSource();
+    const {out, stop} = record(v.observable());
     assertThat(out).isEqualTo([]);
     v.send('b');
     assertThat(out).isEqualTo(['b']);
@@ -197,9 +197,9 @@ suite.test("ObservableSource_observable", () => {
 });
 
 suite.test("ObservableSource_observable_multiple", () => {
-    let v = new ObservableSource();
-    let {out: out1, stop: stop1} = record(v.observable());
-    let {out: out2, stop: stop2} = record(v.observable());
+    const v = new ObservableSource();
+    const {out: out1, stop: stop1} = record(v.observable());
+    const {out: out2, stop: stop2} = record(v.observable());
     assertThat(out1).isEqualTo([]);
     assertThat(out2).isEqualTo([]);
     v.send('a');
@@ -217,8 +217,8 @@ suite.test("ObservableSource_observable_multiple", () => {
 });
 
 suite.test("peek", () => {
-    let a = [];
-    let v = new ObservableSource();
+    const a = [];
+    const v = new ObservableSource();
     v.observable().peek(e => a.push(e)).subscribe(() => {});
     assertThat(a).isEqualTo([]);
     v.send(2);

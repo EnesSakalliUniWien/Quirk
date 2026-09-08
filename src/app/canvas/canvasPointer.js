@@ -45,29 +45,29 @@ function initCanvasPointer(canvas, canvasDiv, revision, displayed, syncArea, ope
     canvasDiv.addEventListener('click', ev => {
         // Relative to the canvas, not canvasDiv: the canvas is pinned to the scroll container's
         // visible corner, and the conversion adds the scroll back.
-        let pt = circuitPosOf(ev);
-        let curInspector = displayed.get();
+        const pt = circuitPosOf(ev);
+        const curInspector = displayed.get();
         if (curInspector.tryGetHandOverButtonKey() !== clickDownGateButtonKey) {
             return;
         }
-        let syncedInspector = syncArea(curInspector.withHand(curInspector.hand.withPos(pt)));
-        let buttonGate = syncedInspector.displayedCircuit.findGateWithButtonContaining(pt);
+        const syncedInspector = syncArea(curInspector.withHand(curInspector.hand.withPos(pt)));
+        const buttonGate = syncedInspector.displayedCircuit.findGateWithButtonContaining(pt);
         if (buttonGate !== undefined && buttonGate.gate.paramDialog !== undefined) {
             openGateParamEditor(buttonGate);
             return;
         }
         // A stationary click on a Bloch sphere opens the enlarged view; the distance check keeps
         // a drag that happens to end on a sphere from opening it.
-        let wasStationary = gestureDownPos !== undefined &&
+        const wasStationary = gestureDownPos !== undefined &&
             Math.hypot(pt.x - gestureDownPos.x, pt.y - gestureDownPos.y) < 6;
         if (wasStationary) {
-            let bloch = syncedInspector.displayedCircuit.findBlochSphereContaining(pt);
+            const bloch = syncedInspector.displayedCircuit.findBlochSphereContaining(pt);
             if (bloch !== undefined) {
                 openBlochSphereView(bloch);
                 return;
             }
         }
-        let clicked = syncedInspector.tryClick();
+        const clicked = syncedInspector.tryClick();
         if (clicked !== undefined) {
             revision.commit(clicked.afterTidyingUp().snapshot());
         }
@@ -80,8 +80,8 @@ function initCanvasPointer(canvas, canvasDiv, revision, displayed, syncArea, ope
          * @param {!PointerEvent} ev
          */
         onGrab: (pt, ev) => {
-            let oldInspector = displayed.get();
-            let newHand = oldInspector.hand.withPos(intoCircuit(pt));
+            const oldInspector = displayed.get();
+            const newHand = oldInspector.hand.withPos(intoCircuit(pt));
             gestureDownPos = newHand.pos;
             let newInspector = syncArea(oldInspector.withHand(newHand));
             clickDownGateButtonKey = (
@@ -122,8 +122,8 @@ function initCanvasPointer(canvas, canvasDiv, revision, displayed, syncArea, ope
                 return;
             }
 
-            let newHand = displayed.get().hand.withPos(intoCircuit(pt));
-            let newInspector = displayed.get().withHand(newHand);
+            const newHand = displayed.get().hand.withPos(intoCircuit(pt));
+            const newInspector = displayed.get().withHand(newHand);
             displayed.set(newInspector);
             ev.preventDefault();
         },
@@ -137,10 +137,10 @@ function initCanvasPointer(canvas, canvasDiv, revision, displayed, syncArea, ope
                 return;
             }
 
-            let newHand = displayed.get().hand.withPos(intoCircuit(pt));
-            let newInspector = syncArea(displayed.get()).withHand(newHand).afterDropping().afterTidyingUp();
-            let clearHand = newInspector.hand.withPos(undefined);
-            let clearInspector = newInspector.withJustEnoughWires(clearHand, 0);
+            const newHand = displayed.get().hand.withPos(intoCircuit(pt));
+            const newInspector = syncArea(displayed.get()).withHand(newHand).afterDropping().afterTidyingUp();
+            const clearHand = newInspector.hand.withPos(undefined);
+            const clearInspector = newInspector.withJustEnoughWires(clearHand, 0);
             revision.commit(clearInspector.snapshot());
             ev.preventDefault();
         },
@@ -151,13 +151,13 @@ function initCanvasPointer(canvas, canvasDiv, revision, displayed, syncArea, ope
         if (ev.pointerType !== 'mouse' || ev.button !== 1) {
             return;
         }
-        let cur = syncArea(displayed.get());
-        let initOver = cur.tryGetHandOverButtonKey();
-        let newHand = cur.hand.withPos(circuitPosOf(ev));
+        const cur = syncArea(displayed.get());
+        const initOver = cur.tryGetHandOverButtonKey();
+        const newHand = cur.hand.withPos(circuitPosOf(ev));
         let newInspector;
         if (initOver !== undefined && initOver.startsWith('wire-init-')) {
-            let newCircuit = cur.displayedCircuit.circuitDefinition.withSwitchedInitialStateOn(
-                parseInt(initOver.substr(10)), 0);
+            const newCircuit = cur.displayedCircuit.circuitDefinition.withSwitchedInitialStateOn(
+                parseInt(initOver.slice(10)), 0);
             newInspector = cur.withCircuitDefinition(newCircuit).withHand(newHand).afterTidyingUp();
         } else {
             newInspector = cur.
@@ -177,15 +177,15 @@ function initCanvasPointer(canvas, canvasDiv, revision, displayed, syncArea, ope
     // has no hover, so touch moves outside a drag are left alone.
     canvasDiv.addEventListener('pointermove', ev => {
         if (ev.pointerType === 'mouse' && !displayed.get().hand.isBusy()) {
-            let newHand = displayed.get().hand.withPos(circuitPosOf(ev));
-            let newInspector = displayed.get().withHand(newHand);
+            const newHand = displayed.get().hand.withPos(circuitPosOf(ev));
+            const newInspector = displayed.get().withHand(newHand);
             displayed.set(newInspector);
         }
     });
     canvasDiv.addEventListener('pointerleave', ev => {
         if (ev.pointerType === 'mouse' && !displayed.get().hand.isBusy()) {
-            let newHand = displayed.get().hand.withPos(undefined);
-            let newInspector = displayed.get().withHand(newHand);
+            const newHand = displayed.get().hand.withPos(undefined);
+            const newInspector = displayed.get().withHand(newHand);
             displayed.set(newInspector);
         }
     });

@@ -41,9 +41,9 @@ async function copyTextToClipboard(text, fallbackElement = undefined) {
  * @throws
  */
 function selectAndCopyToClipboard(element) {
-    let range = document.createRange();
+    const range = document.createRange();
     range.selectNodeContents(element);
-    let selection = window.getSelection();
+    const selection = window.getSelection();
     selection.removeAllRanges();
     selection.addRange(range);
     if (!document.execCommand('copy')) {

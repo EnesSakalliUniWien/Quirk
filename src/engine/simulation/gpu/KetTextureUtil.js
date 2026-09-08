@@ -51,7 +51,7 @@ KetTextureUtil.tradeTextureForVec2Output = trader => {
  * @returns {!Float32Array}
  */
 KetTextureUtil.tradeTextureForVec4Output = trader => {
-    let result = currentShaderCoder().vec4.pixelsToData(trader.currentTexture.readPixels());
+    const result = currentShaderCoder().vec4.pixelsToData(trader.currentTexture.readPixels());
     trader.currentTexture.deallocByDepositingInPool("tradeTextureForVec4Output");
     return result;
 };
@@ -61,25 +61,25 @@ KetTextureUtil.tradeTextureForVec4Output = trader => {
  * @returns {!Array.<!Float32Array>}
  */
 KetTextureUtil.mergedReadFloats = textures => {
-    let len = tex => tex.width === 0 ? 0 : 1 << currentShaderCoder().vec4.arrayPowerSizeOfTexture(tex);
-    let totalPowerSize = Math.round(Math.log2(Util.ceilingPowerOf2(
+    const len = tex => tex.width === 0 ? 0 : 1 << currentShaderCoder().vec4.arrayPowerSizeOfTexture(tex);
+    const totalPowerSize = Math.round(Math.log2(Util.ceilingPowerOf2(
         textures.reduce((total, tex) => total + len(tex), 0))));
 
-    let trader = new WglTextureTrader(Shaders.color(0, 0, 0, 0).toVec4Texture(totalPowerSize));
+    const trader = new WglTextureTrader(Shaders.color(0, 0, 0, 0).toVec4Texture(totalPowerSize));
     let offset = 0;
-    for (let tex of textures) {
+    for (const tex of textures) {
         if (tex.width > 0) {
             trader.shadeAndTrade(acc => CircuitShaders.linearOverlay(offset, tex, acc));
         }
         offset += len(tex);
     }
 
-    let combinedPixels = KetTextureUtil.tradeTextureForVec4Output(trader);
+    const combinedPixels = KetTextureUtil.tradeTextureForVec4Output(trader);
 
-    let result = [];
+    const result = [];
     let pixelOffset = 0;
-    for (let tex of textures) {
-        let pixelLen = len(tex) << 2;
+    for (const tex of textures) {
+        const pixelLen = len(tex) << 2;
         result.push(combinedPixels.subarray(pixelOffset, pixelOffset + pixelLen));
         pixelOffset += pixelLen;
         tex.deallocByDepositingInPool();
@@ -98,9 +98,9 @@ KetTextureUtil.pixelsToAmplitudes = (pixels, unity) => {
         unity = NaN;
     }
 
-    let d = Math.sqrt(unity);
-    let n = pixels.length >> 1;
-    let buf = new Float32Array(n * 2);
+    const d = Math.sqrt(unity);
+    const n = pixels.length >> 1;
+    const buf = new Float32Array(n * 2);
     for (let i = 0; i < pixels.length; i++) {
         buf[i] = pixels[i] / d;
     }
@@ -117,11 +117,11 @@ KetTextureUtil.superpositionToQubitDensities = (stateTex, controls, keptBitMask)
     if (keptBitMask === 0) {
         return new WglTexture(0, 0, currentShaderCoder().vec4.pixelType);
     }
-    let hasControls = !controls.isEqualTo(Controls.NONE);
-    let trader = new WglTextureTrader(stateTex);
+    const hasControls = !controls.isEqualTo(Controls.NONE);
+    const trader = new WglTextureTrader(stateTex);
     trader.dontDeallocCurrentTexture();
     if (hasControls) {
-        let n = currentShaderCoder().vec2.arrayPowerSizeOfTexture(stateTex) - controls.includedBitCount();
+        const n = currentShaderCoder().vec2.arrayPowerSizeOfTexture(stateTex) - controls.includedBitCount();
         trader.shadeAndTrade(t => CircuitShaders.controlSelect(controls, t), WglTexturePool.takeVec2Tex(n));
     }
 
@@ -135,7 +135,7 @@ KetTextureUtil.superpositionToQubitDensities = (stateTex, controls, keptBitMask)
     }
 
     _superpositionTexToUnsummedQubitDensitiesTex(trader, keptBitMask);
-    let keptQubitCount = Util.numberOfSetBits(keptBitMask);
+    const keptQubitCount = Util.numberOfSetBits(keptBitMask);
     _sumDownVec4(trader, keptQubitCount);
 
     return trader.currentTexture;
@@ -149,8 +149,8 @@ function _superpositionTexToUnsummedQubitDensitiesTex(trader, keptBitMask) {
     if (keptBitMask === 0) {
         throw new DetailedError("keptBitMask === 0", {trader, keptBitMask});
     }
-    let startingQubitCount = currentShaderCoder().vec2.arrayPowerSizeOfTexture(trader.currentTexture);
-    let remainingQubitCount = Util.numberOfSetBits(keptBitMask);
+    const startingQubitCount = currentShaderCoder().vec2.arrayPowerSizeOfTexture(trader.currentTexture);
+    const remainingQubitCount = Util.numberOfSetBits(keptBitMask);
     trader.shadeAndTrade(
         tex => CircuitShaders.qubitDensities(tex, keptBitMask),
         WglTexturePool.takeVec4Tex(startingQubitCount - 1 + Util.ceilLg2(remainingQubitCount)));
@@ -163,7 +163,7 @@ function _superpositionTexToUnsummedQubitDensitiesTex(trader, keptBitMask) {
  */
 function _sumDownVec4(trader, outCount) {
     // When the number of kept qubits isn't a power of 2, we have some extra junk results interleaved to ignore.
-    let outputSizePower = Util.ceilLg2(outCount);
+    const outputSizePower = Util.ceilLg2(outCount);
     let curSizePower = currentShaderCoder().vec4.arrayPowerSizeOfTexture(trader.currentTexture);
 
     while (curSizePower > outputSizePower) {
@@ -177,17 +177,17 @@ function _sumDownVec4(trader, outCount) {
  * @returns {!Array.<!Matrix>}
  */
 KetTextureUtil.pixelsToQubitDensityMatrices = buffer => {
-    let qubitCount = buffer.length / 4;
+    const qubitCount = buffer.length / 4;
     return Array.from({length: qubitCount}, (_, i) => {
-        let a = buffer[i*4];
-        let d = buffer[i*4 + 3];
-        let unity = a + d;
-        if (unity < 0.0000001 || isNaN(unity)) {
+        const a = buffer[i*4];
+        const d = buffer[i*4 + 3];
+        const unity = a + d;
+        if (unity < 0.0000001 || Number.isNaN(unity)) {
             return new Matrix(2, 2, new Float32Array([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]));
         }
 
-        let br = buffer[i*4 + 1] / unity;
-        let bi = buffer[i*4 + 2] / unity;
+        const br = buffer[i*4 + 1] / unity;
+        const bi = buffer[i*4 + 2] / unity;
         return new Matrix(2, 2, new Float32Array([a / unity, 0, br, bi, br, -bi, d / unity, 0]));
     });
 };
@@ -213,7 +213,7 @@ KetTextureUtil.superpositionToNorm = (stateTex, mayHaveChanged) => {
     if (!mayHaveChanged) {
         return new WglTexture(0, 0, currentShaderCoder().vec4.pixelType);
     }
-    let trader = new WglTextureTrader(stateTex);
+    const trader = new WglTextureTrader(stateTex);
     trader.dontDeallocCurrentTexture();
     let n = currentShaderCoder().vec2.arrayPowerSizeOfTexture(stateTex);
 

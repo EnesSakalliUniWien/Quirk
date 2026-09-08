@@ -1,16 +1,19 @@
 {
     "compilerOptions": {
-        "baseUrl": ".",
-        "checkJs": false,
+        "allowJs": true,
+        "checkJs": true,
         "jsx": "react-jsx",
         "module": "esnext",
         "moduleResolution": "bundler",
-        "target": "esnext",
+        "noEmit": true,
+        "noImplicitAny": false,
         "paths": {
             "@/*": [
                 "./src/*"
             ]
-        }
+        },
+        "skipLibCheck": true,
+        "target": "esnext"
     },
     "include": [
         "src"

@@ -71,7 +71,7 @@ class Matrix {
         height: this._height,
       });
     }
-    let i = (this._width * row + col) * 2;
+    const i = (this._width * row + col) * 2;
     return new Complex(this._buffer[i], this._buffer[i + 1]);
   }
 
@@ -107,19 +107,19 @@ class Matrix {
       "array rows",
       rows,
     );
-    Util.need(rows.length > 0, "non-zero height", arguments);
+    Util.need(rows.length > 0, "non-zero height", {rows});
 
-    let h = rows.length;
-    let widths = new Set(rows.map((e) => e.length));
-    let w = widths.size === 1 ? [...widths][0] : null;
+    const h = rows.length;
+    const widths = new Set(rows.map((e) => e.length));
+    const w = widths.size === 1 ? [...widths][0] : null;
     if (w === null) {
       throw new DetailedError("Inconsistent row widths.", { rows });
     }
 
-    let buffer = new Float64Array(w * h * 2);
+    const buffer = new Float64Array(w * h * 2);
     let i = 0;
-    for (let row of rows) {
-      for (let cell of row) {
+    for (const row of rows) {
+      for (const cell of row) {
         buffer[i] = Complex.realPartOf(cell);
         buffer[i + 1] = Complex.imagPartOf(cell);
         i += 2;
@@ -143,7 +143,7 @@ class Matrix {
     }
 
     /** @type {!Matrix} */
-    let other = obj;
+    const other = obj;
     return (
       this._width === other._width &&
       this._height === other._height &&
@@ -173,7 +173,7 @@ class Matrix {
    * @returns {!string}
    */
   toString(format = Format.EXACT) {
-    let data = this.rows()
+    const data = this.rows()
       .map((row) =>
         row.map((e) => e.toString(format)).join(format.itemSeparator),
       )
@@ -191,8 +191,8 @@ class Matrix {
 
     if (
       text.length < 4 ||
-      text.substr(0, 2) !== "{{" ||
-      text.substr(text.length - 2, 2) !== "}}"
+      text.slice(0, 2) !== "{{" ||
+      text.slice(-2) !== "}}"
     ) {
       throw new Error("Not surrounded by {{}}.");
     }
@@ -200,7 +200,7 @@ class Matrix {
     // Some kind of recursive descent parser would be a better idea, but here we are.
     return Matrix.fromRows(
       text
-        .substr(2, text.length - 4)
+        .slice(2, text.length - 2)
         .split("},{")
         .map((row) => row.split(",").map((cell) => ComplexFormula.parse(cell))),
     );
@@ -214,11 +214,11 @@ class Matrix {
    * @returns {!Matrix}
    */
   static generate(width, height, coefficientRowColGenerator) {
-    let buf = new Float64Array(width * height * 2);
+    const buf = new Float64Array(width * height * 2);
     for (let r = 0; r < height; r++) {
       for (let c = 0; c < width; c++) {
-        let k = (r * width + c) * 2;
-        let v = coefficientRowColGenerator(r, c);
+        const k = (r * width + c) * 2;
+        const v = coefficientRowColGenerator(r, c);
         buf[k] = Complex.realPartOf(v);
         buf[k + 1] = Complex.imagPartOf(v);
       }
@@ -233,10 +233,10 @@ class Matrix {
    * @returns {!Matrix}
    */
   static generateDiagonal(size, coefficientFunc) {
-    let buf = new Float64Array(size * size * 2);
+    const buf = new Float64Array(size * size * 2);
     for (let i = 0; i < size; i++) {
-      let k = i * (size + 1) * 2;
-      let v = coefficientFunc(i);
+      const k = i * (size + 1) * 2;
+      const v = coefficientFunc(i);
       buf[k] = Complex.realPartOf(v);
       buf[k + 1] = Complex.imagPartOf(v);
     }
@@ -250,10 +250,10 @@ class Matrix {
    * @returns {!Matrix}
    */
   static generateTransition(size, transitionFunc) {
-    let buf = new Float64Array(size * size * 2);
+    const buf = new Float64Array(size * size * 2);
     for (let c = 0; c < size; c++) {
-      let r = transitionFunc(c);
-      let k = (r * size + c) * 2;
+      const r = transitionFunc(c);
+      const k = (r * size + c) * 2;
       buf[k] = 1;
     }
     return new Matrix(size, size, buf);
@@ -276,8 +276,8 @@ class Matrix {
    * @returns {!Matrix}
    */
   static square(...coefs) {
-    Util.need(Array.isArray(coefs), "Array.isArray(coefs)", arguments);
-    let n = Math.round(Math.sqrt(coefs.length));
+    Util.need(Array.isArray(coefs), "Array.isArray(coefs)", {coefs});
+    const n = Math.round(Math.sqrt(coefs.length));
     Util.need(
       n * n === coefs.length,
       "Matrix.square: non-square number of arguments",
@@ -291,7 +291,7 @@ class Matrix {
    * @returns {!Matrix}
    */
   static col(...coefs) {
-    Util.need(Array.isArray(coefs), "Array.isArray(coefs)", arguments);
+    Util.need(Array.isArray(coefs), "Array.isArray(coefs)", {coefs});
     return Matrix.generate(1, coefs.length, (r) => coefs[r]);
   }
 
@@ -317,7 +317,7 @@ class Matrix {
    * @returns {!boolean}
    */
   isUnitary(epsilon) {
-    let n = this.width();
+    const n = this.width();
     if (this.height() !== n) {
       return false;
     }
@@ -337,19 +337,19 @@ class Matrix {
       return false;
     }
 
-    let n = this._width;
-    let colCounts = new Uint32Array(n);
-    let rowCounts = new Uint32Array(n);
+    const n = this._width;
+    const colCounts = new Uint32Array(n);
+    const rowCounts = new Uint32Array(n);
 
     // Count number of non-zero elements in each row and column.
     for (let col = 0; col < n; col++) {
       for (let row = 0; row < n; row++) {
-        let i = (row * n + col) * 2;
-        let m = Math.max(
+        const i = (row * n + col) * 2;
+        const m = Math.max(
           Math.abs(this._buffer[i]),
           Math.abs(this._buffer[i + 1]),
         );
-        if (isNaN(m) || m > epsilon) {
+        if (Number.isNaN(m) || m > epsilon) {
           colCounts[col] += 1;
           rowCounts[row] += 1;
         }
@@ -371,8 +371,8 @@ class Matrix {
     }
     for (let c = 0; c < this._width; c++) {
       for (let r = 0; r < this._height; r++) {
-        let i = (this._width * r + c) * 2;
-        let j = (this._width * c + r) * 2;
+        const i = (this._width * r + c) * 2;
+        const j = (this._width * c + r) * 2;
         if (Math.abs(this._buffer[i] - this._buffer[j]) > epsilon) {
           return false;
         }
@@ -395,9 +395,9 @@ class Matrix {
     }
     for (let c = 0; c < this._width; c++) {
       for (let r = 0; r < this._height; r++) {
-        let i = (this._width * r + c) * 2;
-        let dr = Math.abs(this._buffer[i] - (r === c ? 1 : 0));
-        let di = Math.abs(this._buffer[i + 1]);
+        const i = (this._width * r + c) * 2;
+        const dr = Math.abs(this._buffer[i] - (r === c ? 1 : 0));
+        const di = Math.abs(this._buffer[i + 1]);
         if (Math.max(dr, di) > epsilon) {
           return false;
         }
@@ -415,13 +415,13 @@ class Matrix {
     if (this._width !== this._height) {
       return false;
     }
-    let sr = this._buffer[0];
-    let si = this._buffer[1];
+    const sr = this._buffer[0];
+    const si = this._buffer[1];
     for (let c = 0; c < this._width; c++) {
       for (let r = 0; r < this._height; r++) {
-        let i = (this._width * r + c) * 2;
-        let dr = Math.abs(this._buffer[i] - (r === c ? sr : 0));
-        let di = Math.abs(this._buffer[i + 1] - (r === c ? si : 0));
+        const i = (this._width * r + c) * 2;
+        const dr = Math.abs(this._buffer[i] - (r === c ? sr : 0));
+        const di = Math.abs(this._buffer[i + 1] - (r === c ? si : 0));
         if (Math.max(dr, di) > epsilon) {
           return false;
         }
@@ -436,7 +436,7 @@ class Matrix {
    */
   hasNaN() {
     for (let i = 0; i < this._buffer.length; i++) {
-      if (isNaN(this._buffer[i])) {
+      if (Number.isNaN(this._buffer[i])) {
         return true;
       }
     }
@@ -454,11 +454,11 @@ class Matrix {
         if (r === c) {
           continue;
         }
-        let k = (this._width * r + c) * 2;
-        let dr = Math.abs(this._buffer[k]);
-        let di = Math.abs(this._buffer[k + 1]);
-        let d = Math.max(dr, di);
-        if (isNaN(d) || d > epsilon) {
+        const k = (this._width * r + c) * 2;
+        const dr = Math.abs(this._buffer[k]);
+        const di = Math.abs(this._buffer[k + 1]);
+        const d = Math.max(dr, di);
+        if (Number.isNaN(d) || d > epsilon) {
           return false;
         }
       }
@@ -471,13 +471,13 @@ class Matrix {
    * @returns {!Matrix}
    */
   adjoint() {
-    let w = this._height;
-    let h = this._width;
-    let newBuf = new Float64Array(w * h * 2);
+    const w = this._height;
+    const h = this._width;
+    const newBuf = new Float64Array(w * h * 2);
     for (let r = 0; r < h; r++) {
       for (let c = 0; c < w; c++) {
-        let kIn = (c * this._width + r) * 2;
-        let kOut = (r * w + c) * 2;
+        const kIn = (c * this._width + r) * 2;
+        const kOut = (r * w + c) * 2;
         newBuf[kOut] = this._buffer[kIn];
         newBuf[kOut + 1] = -this._buffer[kIn + 1];
       }
@@ -489,13 +489,13 @@ class Matrix {
    * @returns {!Matrix} The transpose of the receiving matrix.
    */
   transpose() {
-    let w = this._height;
-    let h = this._width;
-    let newBuf = new Float64Array(w * h * 2);
+    const w = this._height;
+    const h = this._width;
+    const newBuf = new Float64Array(w * h * 2);
     for (let r = 0; r < h; r++) {
       for (let c = 0; c < w; c++) {
-        let kIn = (c * this._width + r) * 2;
-        let kOut = (r * w + c) * 2;
+        const kIn = (c * this._width + r) * 2;
+        const kOut = (r * w + c) * 2;
         newBuf[kOut] = this._buffer[kIn];
         newBuf[kOut + 1] = this._buffer[kIn + 1];
       }
@@ -511,7 +511,7 @@ class Matrix {
   trace() {
     let total_r = 0;
     let total_i = 0;
-    let d = this._width * 2 + 2;
+    const d = this._width * 2 + 2;
     for (let i = 0; i < this._buffer.length; i += d) {
       total_r += this._buffer[i];
       total_i += this._buffer[i + 1];
@@ -526,12 +526,12 @@ class Matrix {
    * @private
    */
   _timesScalar(v) {
-    let newBuffer = new Float64Array(this._buffer.length);
-    let sr = Complex.realPartOf(v);
-    let si = Complex.imagPartOf(v);
+    const newBuffer = new Float64Array(this._buffer.length);
+    const sr = Complex.realPartOf(v);
+    const si = Complex.imagPartOf(v);
     for (let i = 0; i < newBuffer.length; i += 2) {
-      let vr = this._buffer[i];
-      let vi = this._buffer[i + 1];
+      const vr = this._buffer[i];
+      const vi = this._buffer[i + 1];
       newBuffer[i] = vr * sr - vi * si;
       newBuffer[i + 1] = vr * si + vi * sr;
     }
@@ -544,14 +544,14 @@ class Matrix {
    * @returns {!Matrix}
    */
   plus(other) {
-    let { _width: w, _height: h, _buffer: b1 } = this;
-    let b2 = other._buffer;
+    const { _width: w, _height: h, _buffer: b1 } = this;
+    const b2 = other._buffer;
     Util.need(
       other._width === w && other._height === h,
       "Matrix.plus: compatible sizes",
     );
 
-    let newBuffer = new Float64Array(this._buffer.length);
+    const newBuffer = new Float64Array(this._buffer.length);
     for (let i = 0; i < newBuffer.length; i++) {
       newBuffer[i] = b1[i] + b2[i];
     }
@@ -564,14 +564,14 @@ class Matrix {
    * @returns {!Matrix}
    */
   minus(other) {
-    let { _width: w, _height: h, _buffer: b1 } = this;
-    let b2 = other._buffer;
+    const { _width: w, _height: h, _buffer: b1 } = this;
+    const b2 = other._buffer;
     Util.need(
       other._width === w && other._height === h,
       "Matrix.minus: compatible sizes",
     );
 
-    let newBuffer = new Float64Array(this._buffer.length);
+    const newBuffer = new Float64Array(this._buffer.length);
     for (let i = 0; i < newBuffer.length; i++) {
       newBuffer[i] = b1[i] - b2[i];
     }
@@ -588,22 +588,22 @@ class Matrix {
     if (this._width !== other._height) {
       throw new DetailedError("Incompatible sizes.", { this: this, other });
     }
-    let w = other._width;
-    let h = this._height;
-    let n = this._width;
-    let newBuffer = new Float64Array(w * h * 2);
+    const w = other._width;
+    const h = this._height;
+    const n = this._width;
+    const newBuffer = new Float64Array(w * h * 2);
     for (let r = 0; r < h; r++) {
       for (let c = 0; c < w; c++) {
-        let k3 = (r * w + c) * 2;
+        const k3 = (r * w + c) * 2;
         for (let k = 0; k < n; k++) {
-          let k1 = (r * n + k) * 2;
-          let k2 = (k * w + c) * 2;
-          let r1 = this._buffer[k1];
-          let i1 = this._buffer[k1 + 1];
-          let r2 = other._buffer[k2];
-          let i2 = other._buffer[k2 + 1];
-          let r3 = r1 * r2 - i1 * i2;
-          let i3 = r1 * i2 + r2 * i1;
+          const k1 = (r * n + k) * 2;
+          const k2 = (k * w + c) * 2;
+          const r1 = this._buffer[k1];
+          const i1 = this._buffer[k1 + 1];
+          const r2 = other._buffer[k2];
+          const i2 = other._buffer[k2 + 1];
+          const r3 = r1 * r2 - i1 * i2;
+          const i3 = r1 * i2 + r2 * i1;
           newBuffer[k3] += r3;
           newBuffer[k3 + 1] += i3;
         }
@@ -629,7 +629,7 @@ class Matrix {
    */
   norm2() {
     let t = 0;
-    for (let e of this._buffer) {
+    for (const e of this._buffer) {
       t += e * e;
     }
     return t;
@@ -641,7 +641,7 @@ class Matrix {
    * @returns {!Matrix}
    */
   transformRealAndImagComponentsWith(func) {
-    let buf = this._buffer.slice();
+    const buf = this._buffer.slice();
     for (let i = 0; i < buf.length; i++) {
       buf[i] = func(buf[i]);
     }
@@ -657,7 +657,7 @@ class Matrix {
     if (!Number.isInteger(size) || size <= 0) {
       throw new DetailedError("Bad size", { size });
     }
-    let buf = new Float64Array(size * size * 2);
+    const buf = new Float64Array(size * size * 2);
     for (let k = 0; k < size; k++) {
       buf[k * (size + 1) * 2] = 1;
     }
@@ -670,8 +670,8 @@ class Matrix {
    * @returns {!Matrix} A real matrix.
    */
   static rotation(theta) {
-    let c = Math.cos(theta);
-    let s = Math.sin(theta);
+    const c = Math.cos(theta);
+    const s = Math.sin(theta);
     return Matrix.square(c, -s, s, c);
   }
 
@@ -690,9 +690,9 @@ class Matrix {
       "Other's not a 3d column vector.",
     );
     return Matrix.generate(1, 3, (r) => {
-      let [i, j] = [(r + 1) % 3, (r + 2) % 3];
-      let a = this.cell(0, i).times(other.cell(0, j));
-      let b = this.cell(0, j).times(other.cell(0, i));
+      const [i, j] = [(r + 1) % 3, (r + 2) % 3];
+      const a = this.cell(0, i).times(other.cell(0, j));
+      const b = this.cell(0, j).times(other.cell(0, i));
       return a.minus(b);
     });
   }
@@ -706,7 +706,7 @@ class Matrix {
       colIndex >= 0 && colIndex <= this.width(),
       "colIndex >= 0 && colIndex <= this.width()",
     );
-    let col = [];
+    const col = [];
     for (let r = 0; r < this._height; r++) {
       col.push(this.cell(colIndex, r));
     }

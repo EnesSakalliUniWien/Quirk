@@ -18,7 +18,7 @@
 
 import assert from 'node:assert/strict';
 import {CanvasTheme} from '../src/config/CanvasTheme.js';
-import {circuitMetrics, test, withQuirkPage, waitForQuirk, waitForCircuit, waitForDialog, currentCircuit, exportedCircuit, urlForCircuit, TEST_TIMEOUT_MILLIS, waitForCanvasViewport} from './harness.js';
+import {circuitMetrics, test, withQuirkPage, TEST_TIMEOUT_MILLIS, waitForCanvasViewport} from './harness.js';
 
 async function playheadBandPixels(page, columnLeft) {
     await waitForCanvasViewport(page);
@@ -113,7 +113,7 @@ test('steps the circuit with the transport controls and reports the state at the
         // The Hadamard has run: an even superposition of the first wire, and the band has moved on.
         await page.click('#playhead-next-button');
         await waitForPlayhead(page, 'gate 1 / 2', ['|00\u27E9', '|01\u27E9']);
-        let afterHadamard = await stateTableRows(page);
+        const afterHadamard = await stateTableRows(page);
         assert.deepEqual(afterHadamard.map(e => e.probability), [0.5, 0.5]);
         assert.deepEqual(afterHadamard.map(e => e.phase), [0, 0]);
         assert.ok(await playheadBandPixels(page, SECOND_COLUMN_LEFT) > BANDED_PIXELS,

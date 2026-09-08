@@ -23,16 +23,16 @@ import {
     dismissErrorBanner,
 } from "../../src/diagnostics/errorReporter.js"
 
-let suite = new Suite("errorReporter");
+const suite = new Suite("errorReporter");
 
 /**
  * Runs a body with the reporter installed on a scratch host, then uninstalls no matter what, so
  * the shared test page never keeps a global error handler that would swallow later failures.
  */
 function withInstalledReporter(body) {
-    let host = document.createElement('div');
+    const host = document.createElement('div');
     document.body.appendChild(host);
-    let uninstall = installErrorReporter(host);
+    const uninstall = installErrorReporter(host);
     try {
         body(host);
     } finally {
@@ -46,7 +46,7 @@ const messageIn = host => host.querySelector('.error-banner-message');
 const countIn = host => host.querySelector('.error-banner-count');
 
 suite.test("rethrows_the_exact_error_when_not_installed", () => {
-    let error = new Error("test-only failure");
+    const error = new Error("test-only failure");
     try {
         reportRecoveredError("Defaulted to nothing.", {}, error);
         assertTrue(false);
@@ -127,7 +127,7 @@ suite.test("banners_an_unhandled_rejection_and_suppresses_the_default_log", () =
     withInstalledReporter(host => {
         // A synthetic event; the promise field is an already-settled placeholder so the test
         // doesn't create a second, real unhandled rejection.
-        let ev = new PromiseRejectionEvent('unhandledrejection', {
+        const ev = new PromiseRejectionEvent('unhandledrejection', {
             promise: Promise.resolve(),
             reason: new Error("late failure"),
             cancelable: true,

@@ -29,26 +29,26 @@ import {
     assertThatGateActsLikePhaser
 } from "../CircuitOperationTestUtil.js"
 
-let suite = new Suite("AllGates");
+const suite = new Suite("AllGates");
 
 /**
  * @param {!Gate} gate
  * @param {!number} time
  * @returns {undefined|!Matrix}
  */
-let reconstructMatrixFromGateCustomOperation = (gate, time) => {
+const reconstructMatrixFromGateCustomOperation = (gate, time) => {
     if (gate.customOperation === undefined) {
         return undefined;
     }
 
-    let bit = 0;
-    let numQubits = gate.height;
-    let n = 1 << numQubits;
-    let control = CircuitShaders.controlMask(Controls.NONE).toBoolTexture(numQubits);
-    let cols = [];
+    const bit = 0;
+    const numQubits = gate.height;
+    const n = 1 << numQubits;
+    const control = CircuitShaders.controlMask(Controls.NONE).toBoolTexture(numQubits);
+    const cols = [];
     for (let i = 0; i < n; i++) {
-        let trader = new WglTextureTrader(CircuitShaders.classicalState(i).toVec2Texture(numQubits));
-        let ctx = new CircuitEvalContext(
+        const trader = new WglTextureTrader(CircuitShaders.classicalState(i).toVec2Texture(numQubits));
+        const ctx = new CircuitEvalContext(
             time,
             bit,
             numQubits,
@@ -58,15 +58,15 @@ let reconstructMatrixFromGateCustomOperation = (gate, time) => {
             trader,
             new Map());
         gate.customOperation(ctx);
-        let buf = currentShaderCoder().vec2.pixelsToData(trader.currentTexture.readPixels());
-        let col = new Matrix(1, 1 << numQubits, buf);
+        const buf = currentShaderCoder().vec2.pixelsToData(trader.currentTexture.readPixels());
+        const col = new Matrix(1, 1 << numQubits, buf);
         trader.currentTexture.deallocByDepositingInPool();
         cols.push(col);
     }
     control.deallocByDepositingInPool();
 
-    let raw = new Float32Array(cols.flatMap(e => [...e.rawBuffer()]));
-    let flipped = new Matrix(n, n, raw);
+    const raw = new Float32Array(cols.flatMap(e => [...e.rawBuffer()]));
+    const flipped = new Matrix(n, n, raw);
     return flipped.transpose();
 };
 
@@ -74,7 +74,7 @@ let reconstructMatrixFromGateCustomOperation = (gate, time) => {
  * @param {!Gate} gate
  * @returns {!Matrix}
  */
-let reconstructMatrixFromKnownBitPermutation = gate => {
+const reconstructMatrixFromKnownBitPermutation = gate => {
     return Matrix.generateTransition(1<<gate.height, input => {
         let out = 0;
         for (let i = 0; i < gate.height; i++) {
@@ -87,24 +87,24 @@ let reconstructMatrixFromKnownBitPermutation = gate => {
 };
 
 suite.test("allGatesAreGates", () => {
-    for (let gate of Gates.KnownToSerializer) {
+    for (const gate of Gates.KnownToSerializer) {
         assertThat(gate instanceof Gate).withInfo({gate, type: typeof gate}).isEqualTo(true);
     }
 });
 
 suite.testUsingWebGL("customShaderMatchesKnownMatrix", () => {
-    let time = 6/7;
-    for (let gate of Gates.KnownToSerializer) {
+    const time = 6/7;
+    for (const gate of Gates.KnownToSerializer) {
         if (gate.height > 4) {
             continue;
         }
 
-        let matrix = gate.knownMatrixAt(time);
+        const matrix = gate.knownMatrixAt(time);
         if (matrix === undefined) {
             continue;
         }
 
-        let reconstructed = reconstructMatrixFromGateCustomOperation(gate, time);
+        const reconstructed = reconstructMatrixFromGateCustomOperation(gate, time);
         if (reconstructed === undefined) {
             continue;
         }
@@ -114,20 +114,20 @@ suite.testUsingWebGL("customShaderMatchesKnownMatrix", () => {
 });
 
 suite.testUsingWebGL("knownBitPermutationMatchesKnowMatrixAndCustomShader", () => {
-    let time = 6/7;
-    for (let gate of Gates.KnownToSerializer) {
+    const time = 6/7;
+    for (const gate of Gates.KnownToSerializer) {
         if (gate.height > 6 || gate.knownBitPermutationFunc === undefined) {
             continue;
         }
 
-        let permuteBitsMatrix = reconstructMatrixFromKnownBitPermutation(gate);
+        const permuteBitsMatrix = reconstructMatrixFromKnownBitPermutation(gate);
 
-        let knownMatrix = gate.knownMatrixAt(time);
+        const knownMatrix = gate.knownMatrixAt(time);
         if (knownMatrix !== undefined) {
             assertThat(knownMatrix).withInfo(gate).isEqualTo(permuteBitsMatrix);
         }
 
-        let shaderMatrix = reconstructMatrixFromGateCustomOperation(gate, time);
+        const shaderMatrix = reconstructMatrixFromGateCustomOperation(gate, time);
         if (shaderMatrix !== undefined) {
             assertThat(shaderMatrix).withInfo(gate).isEqualTo(permuteBitsMatrix);
         }
@@ -135,7 +135,7 @@ suite.testUsingWebGL("knownBitPermutationMatchesKnowMatrixAndCustomShader", () =
 });
 
 suite.testUsingWebGL("gatesActLikeTheirKnownPermutation", () => {
-    for (let gate of Gates.KnownToSerializer) {
+    for (const gate of Gates.KnownToSerializer) {
         if (gate.knownPermutationFuncTakingInputs !== undefined && gate.height <= 3) {
             assertThatGateActsLikePermutation(gate, gate.knownPermutationFuncTakingInputs, [2, 2, 2], true);
         }
@@ -143,7 +143,7 @@ suite.testUsingWebGL("gatesActLikeTheirKnownPermutation", () => {
 });
 
 suite.testUsingWebGL("gatesActLikeTheirKnownPhasingFunction", () => {
-    for (let gate of Gates.KnownToSerializer) {
+    for (const gate of Gates.KnownToSerializer) {
         if (gate.knownPhaseTurnsFunc !== undefined && gate.height <= 3) {
             assertThatGateActsLikePhaser(gate, gate.knownPhaseTurnsFunc);
         }
@@ -151,7 +151,7 @@ suite.testUsingWebGL("gatesActLikeTheirKnownPhasingFunction", () => {
 });
 
 suite.test("knownNonUnitaryGates", () => {
-    let nonUnitaryGates = new Set(Gates.KnownToSerializer.
+    const nonUnitaryGates = new Set(Gates.KnownToSerializer.
         filter(g => !g.isDefinitelyUnitary()).
         map(g => g.serializedId));
     assertThat(nonUnitaryGates).isEqualTo(new Set([
@@ -177,7 +177,7 @@ suite.test("knownNonUnitaryGates", () => {
 });
 
 suite.test("knownDoNothingGateFamilies", () => {
-    let doNothingFamilies = new Set(Gates.KnownToSerializer.
+    const doNothingFamilies = new Set(Gates.KnownToSerializer.
         filter(g => g.definitelyHasNoEffect()).
         map(g => g.gateFamily[0].serializedId));
     assertThat(doNothingFamilies).isEqualTo(new Set([
@@ -207,7 +207,7 @@ suite.test("knownDoNothingGateFamilies", () => {
 });
 
 suite.test("knownDynamicGateFamilies", () => {
-    let dynamicFamilies = new Set(Gates.KnownToSerializer.
+    const dynamicFamilies = new Set(Gates.KnownToSerializer.
         filter(g => g.stableDuration() !== Infinity).
         map(g => g.gateFamily[0].serializedId));
     assertThat(dynamicFamilies).isEqualTo(new Set([

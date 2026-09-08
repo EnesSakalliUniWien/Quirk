@@ -19,31 +19,31 @@ import {Layout} from "../../src/config/Layout.js"
 import {DisplayedInspector} from "../../src/editor/DisplayedInspector.js"
 import {Rect} from "../../src/geometry/Rect.js"
 
-let suite = new Suite("DisplayedInspector");
+const suite = new Suite("DisplayedInspector");
 
 suite.test("centersTheCircuitVerticallyInATallArea", () => {
-    let inspector = DisplayedInspector.empty(new Rect(0, 0, 1000, 800));
+    const inspector = DisplayedInspector.empty(new Rect(0, 0, 1000, 800));
 
-    let band = inspector.displayedCircuit.desiredHeight();
+    const band = inspector.displayedCircuit.desiredHeight();
     assertThat(inspector.displayedCircuit.top).isEqualTo(Math.floor((800 - band) / 2));
 });
 
 suite.test("pinsTheCircuitToTheTopMarginWhenTheAreaIsShort", () => {
-    let inspector = DisplayedInspector.empty(new Rect(0, 0, 1000, 100));
+    const inspector = DisplayedInspector.empty(new Rect(0, 0, 1000, 100));
 
     assertThat(inspector.displayedCircuit.top).isEqualTo(Layout.CIRCUIT_TOP_MARGIN);
 });
 
 suite.test("wantsTheCircuitBandPlusSymmetricMargins", () => {
-    let inspector = DisplayedInspector.empty(new Rect(0, 0, 1000, 800));
+    const inspector = DisplayedInspector.empty(new Rect(0, 0, 1000, 800));
 
     assertThat(inspector.desiredHeight()).isEqualTo(
         inspector.displayedCircuit.desiredHeight() + 2 * Layout.CIRCUIT_TOP_MARGIN);
 });
 
 suite.test("endsOutputDisplaysAtTheRightEdgeOfASpaciousArea", () => {
-    let wide = DisplayedInspector.empty(new Rect(0, 0, 1600, 800));
-    let narrow = DisplayedInspector.empty(new Rect(0, 0, 1400, 800));
+    const wide = DisplayedInspector.empty(new Rect(0, 0, 1600, 800));
+    const narrow = DisplayedInspector.empty(new Rect(0, 0, 1400, 800));
 
     // The circuit fills the available width instead of leaving dead space to its right. gateRect
     // snaps display columns to the pixel grid, so allow a pixel; the helper compares with a
@@ -58,7 +58,7 @@ suite.test("endsOutputDisplaysAtTheRightEdgeOfASpaciousArea", () => {
 });
 
 suite.test("growsPastTheAreaSoALongCircuitCanScroll", () => {
-    let inspector = DisplayedInspector.empty(new Rect(0, 0, 400, 800));
+    const inspector = DisplayedInspector.empty(new Rect(0, 0, 400, 800));
 
     // Too narrow to right-align into, so the circuit keeps its natural width and the page scrolls.
     assertThat(inspector.displayedCircuit.desiredWidth()).isGreaterThan(400);

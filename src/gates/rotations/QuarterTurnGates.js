@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import {Gate, GateBuilder} from "../../circuit/model/Gate.js"
-import {Matrix} from "../../engine/math/matrix/Matrix.js"
+/** @typedef {import("../../circuit/model/Gate.js").Gate} Gate */
+import {GateBuilder} from "../../circuit/model/Gate.js"
 import {QubitMatrix} from "../../engine/math/matrix/QubitMatrix.js"
 
-let QuarterTurnGates = {};
+const QuarterTurnGates = {};
 
 // Titles lead with the symbol drawn on the circuit, with any other common convention in
 // parentheses, so a toolbox row never shows two different names for one gate.

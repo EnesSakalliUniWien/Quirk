@@ -20,13 +20,13 @@ import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js
 import {CircuitStats} from "../../../src/engine/simulation/CircuitStats.js"
 import {Serializer} from "../../../src/serialization/Serializer.js"
 
-let suite = new Suite("SampleDisplay");
+const suite = new Suite("SampleDisplay");
 
 suite.testUsingWebGL("SampleDisplay_SingleZero", () => {
-    let stats = CircuitStats.fromCircuitAtTime(
+    const stats = CircuitStats.fromCircuitAtTime(
         Serializer.fromJson(CircuitDefinition, {"cols":[["Sample1"]]}),
         0);
-    let out = stats.toReadableJson();
+    const out = stats.toReadableJson();
     assertThat(out.displays[0].data.probabilities).isApproximatelyEqualTo([
         1,
         0,

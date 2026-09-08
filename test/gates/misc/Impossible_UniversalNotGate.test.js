@@ -23,18 +23,18 @@ import {Controls} from "../../../src/circuit/model/Controls.js"
 import {Shaders} from "../../../src/engine/webgl/shader/Shaders.js"
 import {WglTextureTrader} from "../../../src/engine/webgl/texture/WglTextureTrader.js"
 
-let suite = new Suite("Impossible_UniverseNotGate");
+const suite = new Suite("Impossible_UniverseNotGate");
 
 suite.testUsingWebGL('universalNot', () => {
-    let input = Shaders.vec2Data(new Float32Array([
+    const input = Shaders.vec2Data(new Float32Array([
         1,2, 3,4,
         5,6, 7,8
     ])).toVec2Texture(2);
-    let assertAbout = (index, control) => {
-        let controlTex = CircuitShaders.controlMask(control).toBoolTexture(2);
-        let trader = new WglTextureTrader(input);
+    const assertAbout = (index, control) => {
+        const controlTex = CircuitShaders.controlMask(control).toBoolTexture(2);
+        const trader = new WglTextureTrader(input);
         trader.dontDeallocCurrentTexture();
-        let ctx = new CircuitEvalContext(
+        const ctx = new CircuitEvalContext(
             0,
             index,
             2,

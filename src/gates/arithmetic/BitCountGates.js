@@ -24,7 +24,7 @@ import {
 import { Util } from "../../base/Util.js";
 import { WglArg } from "../../engine/webgl/shader/WglArg.js";
 
-let BitCountGates = {};
+const BitCountGates = {};
 
 const POP_COUNT_SHADER = ketShaderPermute(
   `

@@ -17,7 +17,7 @@
 import {Suite, assertThat, assertTrue, assertFalse} from "../TestUtil.js"
 import {isPrimaryPress, watchPointerDrags, trackPointerUntilRelease} from "../../src/browser/PointerDrag.js"
 
-let suite = new Suite("PointerDrag");
+const suite = new Suite("PointerDrag");
 
 function pointer(type, overrides = {}) {
     return new PointerEvent(type, {
@@ -34,10 +34,10 @@ suite.test("isPrimaryPress accepts the left mouse button and any primary touch",
 });
 
 suite.test("watchPointerDrags reports grab, drag and drop for one pointer", () => {
-    let element = document.createElement('div');
+    const element = document.createElement('div');
     document.body.appendChild(element);
-    let log = [];
-    let dispose = watchPointerDrags(element, {
+    const log = [];
+    const dispose = watchPointerDrags(element, {
         onGrab: pt => log.push(['grab', pt.x, pt.y]),
         onDrag: pt => log.push(['drag', pt === undefined ? undefined : pt.x]),
         onDrop: pt => log.push(['drop', pt === undefined ? undefined : pt.x]),
@@ -51,7 +51,7 @@ suite.test("watchPointerDrags reports grab, drag and drop for one pointer", () =
         element.dispatchEvent(pointer('pointermove', {pointerId: 2, clientX: 99}));
         element.dispatchEvent(pointer('pointerup', {clientX: 30, buttons: 0}));
         element.dispatchEvent(pointer('pointermove', {clientX: 40}));  // Nothing grabbed any more.
-        let b = element.getBoundingClientRect();
+        const b = element.getBoundingClientRect();
         assertThat(log).isEqualTo([
             ['grab', 10 - b.left, 20 - b.top],
             ['drag', 15 - b.left],
@@ -64,10 +64,10 @@ suite.test("watchPointerDrags reports grab, drag and drop for one pointer", () =
 });
 
 suite.test("watchPointerDrags treats a released button and a cancel as the end of the gesture", () => {
-    let element = document.createElement('div');
+    const element = document.createElement('div');
     document.body.appendChild(element);
-    let log = [];
-    let dispose = watchPointerDrags(element, {
+    const log = [];
+    const dispose = watchPointerDrags(element, {
         onGrab: () => log.push('grab'),
         onDrag: () => log.push('drag'),
         onDrop: pt => log.push(pt === undefined ? 'lost' : 'drop'),
@@ -86,9 +86,9 @@ suite.test("watchPointerDrags treats a released button and a cancel as the end o
 });
 
 suite.test("trackPointerUntilRelease follows only its pointer and stops on release", () => {
-    let log = [];
-    let start = pointer('pointerdown', {pointerId: 7});
-    let stop = trackPointerUntilRelease(start, {
+    const log = [];
+    const start = pointer('pointerdown', {pointerId: 7});
+    const stop = trackPointerUntilRelease(start, {
         onMove: ev => log.push(['move', ev.clientX]),
         onRelease: ev => log.push(['release', ev.clientX]),
         onCancel: () => log.push(['cancel']),

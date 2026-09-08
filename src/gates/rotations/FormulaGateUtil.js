@@ -23,9 +23,9 @@ import {ComplexFormula} from "../../engine/math/formula/ComplexFormula.js"
  * @returns {undefined|!number}
  */
 function parseTimeFormula(formula, time, warn) {
-    let variables = time === undefined ? {} : {t: time};
+    const variables = time === undefined ? {} : {t: time};
     try {
-        let angle = ComplexFormula.parse(formula, {angleUnit: ComplexFormula.RADIANS, variables});
+        const angle = ComplexFormula.parse(formula, {angleUnit: ComplexFormula.RADIANS, variables});
         if (Math.abs(angle.imag) > 0.0001) {
             throw new Error(`Non-real angle: ${formula} = ${angle}`);
         }
@@ -54,8 +54,8 @@ function makeUpdateFormulaFunc(symbolOverheadChars=1, allowTimeDependence=true) 
         // A formula is only time-dependent when it fails to parse on its own but succeeds once a
         // value is substituted for t. A formula that never parses is broken, not time-dependent;
         // treating it as stable avoids endlessly recomputing a gate that is disabled anyway.
-        let constant = parseTimeFormula(gate.param, undefined, false) !== undefined;
-        let dynamic = allowTimeDependence && !constant &&
+        const constant = parseTimeFormula(gate.param, undefined, false) !== undefined;
+        const dynamic = allowTimeDependence && !constant &&
             TIME_PROBE_VALUES.some(t => parseTimeFormula(gate.param, t, false) !== undefined);
         gate._stableDuration = dynamic ? 0 : Infinity;
 
@@ -64,7 +64,7 @@ function makeUpdateFormulaFunc(symbolOverheadChars=1, allowTimeDependence=true) 
             gate.alternate = gate._copy();
             gate.alternate.alternate = gate;
             if (gate.param.startsWith('-(') && gate.param.endsWith(')')) {
-                gate.alternate.param = gate.param.substring(2, gate.param.length - 1);
+                gate.alternate.param = gate.param.slice(2, gate.param.length - 1);
             } else {
                 gate.alternate.param = '-(' + gate.param + ')';
             }

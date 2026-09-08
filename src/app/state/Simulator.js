@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {CircuitDefinition} from "../../circuit/model/CircuitDefinition.js"
+/** @typedef {import("../../circuit/model/CircuitDefinition.js").CircuitDefinition} CircuitDefinition */
 import {Simulation} from "../../config/Simulation.js"
 import {CircuitStats} from "../../engine/simulation/CircuitStats.js"
 
@@ -44,7 +44,7 @@ class StatsCache {
         }
 
         this._cachedStats = undefined;
-        let result = CircuitStats.fromCircuitAtTime(circuit, time);
+        const result = CircuitStats.fromCircuitAtTime(circuit, time);
         if (circuit.stableDuration() === Infinity) {
             this._cachedStats = result;
         }
@@ -107,8 +107,8 @@ class Simulator {
      * @returns {!number}
      */
     cycleTime() {
-        let nextRealTime = this._nowMillis();
-        let elapsed = (nextRealTime - this._prevRealTime) / Simulation.CYCLE_DURATION_MS;
+        const nextRealTime = this._nowMillis();
+        const elapsed = (nextRealTime - this._prevRealTime) / Simulation.CYCLE_DURATION_MS;
         this._cycleTime += elapsed;
         this._cycleTime %= 1;
         this._prevRealTime = nextRealTime;
@@ -133,7 +133,7 @@ class Simulator {
      * @returns {!CircuitStats}
      */
     simulateAtStep(circuit, step, time) {
-        let clamped = Math.max(0, step);
+        const clamped = Math.max(0, step);
         if (this._cachedTruncation === undefined ||
                 this._cachedTruncation.source !== circuit ||
                 this._cachedTruncation.step !== clamped) {

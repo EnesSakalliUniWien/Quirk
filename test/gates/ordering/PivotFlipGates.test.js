@@ -21,10 +21,10 @@ import {PivotFlipGates} from "../../../src/gates/ordering/PivotFlipGates.js"
 import {Gates} from "../../../src/gates/AllGates.js"
 import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js"
 
-let suite = new Suite("PivotFlipGates");
+const suite = new Suite("PivotFlipGates");
 
 suite.testUsingWebGL('pivot_flip', () => {
-    let circ = diagram => CircuitDefinition.fromTextDiagram(new Map([
+    const circ = diagram => CircuitDefinition.fromTextDiagram(new Map([
         ['5', Gates.InputGates.SetA.withParam(5)],
         ['X', Gates.HalfTurns.X],
         ['F', PivotFlipGates.FlipUnderA],

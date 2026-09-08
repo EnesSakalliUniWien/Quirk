@@ -62,11 +62,11 @@ function initGateParamDialog(revision, displayed, overlayState) {
         pending = undefined;
         overlayState.close();
         if (result.gate !== oldGate && result.gate.param !== oldGate.param) {
-            let cols = [...circuitDefinition.columns];
-            let gates = [...cols[col].gates];
+            const cols = [...circuitDefinition.columns];
+            const gates = [...cols[col].gates];
             gates.splice(row, 1, result.gate);
             cols.splice(col, 1, new GateColumn(gates));
-            let newInspector = displayed.get().withCircuitDefinition(circuitDefinition.withColumns(cols));
+            const newInspector = displayed.get().withCircuitDefinition(circuitDefinition.withColumns(cols));
             revision.commit(newInspector.afterTidyingUp().snapshot());
         }
     };

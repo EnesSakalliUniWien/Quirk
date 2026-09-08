@@ -28,7 +28,7 @@ import {ketArgs, ketShaderPermute} from '../../engine/simulation/gpu/KetShaderUt
 import {WglArg} from '../../engine/webgl/shader/WglArg.js';
 import {Util} from '../../base/Util.js';
 
-let Controls = {};
+const Controls = {};
 
 Controls.Control = new GateBuilder().
     setSerializedIdAndSymbol("•").
@@ -59,7 +59,7 @@ Controls.AntiControl = new GateBuilder().
             GatePainting.paintBackground(args);
             GatePainting.paintOutline(args);
         }
-        let p = args.rect.center();
+        const p = args.rect.center();
         circle(args.painter, p, 5, {fill: CanvasTheme.surface.gate});
         circle(args.painter, p, 5, {stroke: {color: CanvasTheme.text.primary, width: 1}});
     }).
@@ -83,7 +83,7 @@ Controls.XAntiControl = new GateBuilder().
             GatePainting.paintBackground(args);
             GatePainting.paintOutline(args);
         }
-        let p = args.rect.center();
+        const p = args.rect.center();
         circle(args.painter, p, 5, {fill: CanvasTheme.surface.gate});
         circle(args.painter, p, 5, {stroke: {color: CanvasTheme.text.primary, width: 1}});
         strokePath(args.painter, [p.offsetBy(-5, 0), p.offsetBy(+5, 0)], CanvasTheme.text.primary, 1);
@@ -109,7 +109,7 @@ Controls.XControl = new GateBuilder().
             GatePainting.paintBackground(args);
             GatePainting.paintOutline(args);
         }
-        let p = args.rect.center();
+        const p = args.rect.center();
         circle(args.painter, p, 5, {fill: CanvasTheme.surface.gate});
         circle(args.painter, p, 5, {stroke: {color: CanvasTheme.text.primary, width: 1}});
         strokePath(args.painter, [p.offsetBy(0, -5), p.offsetBy(0, +5)], CanvasTheme.text.primary, 1);
@@ -135,10 +135,10 @@ Controls.YAntiControl = new GateBuilder().
             GatePainting.paintBackground(args);
             GatePainting.paintOutline(args);
         }
-        let p = args.rect.center();
+        const p = args.rect.center();
         circle(args.painter, p, 5, {fill: CanvasTheme.surface.gate});
         circle(args.painter, p, 5, {stroke: {color: CanvasTheme.text.primary, width: 1}});
-        let r = 5*Math.sqrt(0.5)*1.1;
+        const r = 5*Math.sqrt(0.5)*1.1;
         strokePath(args.painter, [p.offsetBy(+r, -r), p.offsetBy(-r, +r)], CanvasTheme.text.primary, 1);
         if (args.isHighlighted) {
             GatePainting.paintOutline(args);
@@ -165,10 +165,10 @@ Controls.YControl = new GateBuilder().
             GatePainting.paintBackground(ctx);
             GatePainting.paintOutline(ctx);
         }
-        let p = ctx.rect.center();
+        const p = ctx.rect.center();
         ctx.painter.fillCircle(p, 5);
         ctx.painter.strokeCircle(p, 5);
-        let r = 5*Math.sqrt(0.5);
+        const r = 5*Math.sqrt(0.5);
         ctx.painter.strokeLine(p.offsetBy(+r, +r), p.offsetBy(-r, -r));
         ctx.painter.strokeLine(p.offsetBy(+r, -r), p.offsetBy(-r, +r));
         if (ctx.isHighlighted) {
@@ -204,9 +204,9 @@ const PARITY_SHADER = ketShaderPermute(
  * @param {!boolean} order
  */
 function parityGatherScatter(ctx, order) {
-    let c = ctx.rawControls;
-    let isLast = 2 << ctx.row > c.parityMask;
-    let isFirst = 1 << ctx.row === (c.parityMask & ~(c.parityMask - 1));
+    const c = ctx.rawControls;
+    const isLast = 2 << ctx.row > c.parityMask;
+    const isFirst = 1 << ctx.row === (c.parityMask & ~(c.parityMask - 1));
     if (order ? isLast : isFirst) {
         ctx.applyOperation(PARITY_SHADER.withArgs(
             ...ketArgs(ctx.withRow(Util.ceilLg2(c.parityMask & c.inclusionMask))),
@@ -225,7 +225,7 @@ function parityDrawer(name) {
             GatePainting.paintBackground(args);
             GatePainting.paintOutline(args);
         }
-        let center = args.rect.paddedBy(-10);
+        const center = args.rect.paddedBy(-10);
         rectangle(args.painter, center, {fill: CanvasTheme.surface.gate});
         rectangle(args.painter, center, {stroke: {color: CanvasTheme.text.primary, width: 1}});
         rectangle(args.painter, center.paddedBy(-4).skipBottom(-6).skipTop(-6), {fill: CanvasTheme.surface.gate});

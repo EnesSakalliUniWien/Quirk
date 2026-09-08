@@ -6,12 +6,12 @@ import {DisplayView} from '../../draw/TestDisplayView.js';
 import {Rect} from '../../../src/geometry/Rect.js';
 import {Matrix} from '../../../src/engine/math/matrix/Matrix.js';
 
-let suite = new Suite("BlochSphereDisplay");
+const suite = new Suite("BlochSphereDisplay");
 
 suite.test("shell stays visible for mixed states and readout stays below it at different scales", () => {
-    for (let scale of [0.5, 1, 1.5]) {
-        for (let density of [Matrix.square(1, 0, 0, 0), Matrix.identity(2).times(0.5)]) {
-            let painter = new DisplayView(document.createElement('canvas'));
+    for (const scale of [0.5, 1, 1.5]) {
+        for (const density of [Matrix.square(1, 0, 0, 0), Matrix.identity(2).times(0.5)]) {
+            const painter = new DisplayView(document.createElement('canvas'));
             let bounds = CircuitGeometry.blochDisplayRect(new Rect(40, 40, Layout.UNIT, Layout.UNIT));
             bounds = new Rect(bounds.x, bounds.y, bounds.w * scale, bounds.h * scale);
             paintBlochSphereDisplay(painter, density, bounds);

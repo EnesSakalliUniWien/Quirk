@@ -24,13 +24,13 @@ import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js
 import {GateColumn} from "../../../src/circuit/model/GateColumn.js"
 import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
 
-let suite = new Suite("XorGates");
+const suite = new Suite("XorGates");
 
 suite.testUsingWebGL('xor_a', () => {
-    let matrix = Matrix.generateTransition(1 << 6, i => {
-        let a = (i >> 3) & 3;
-        let dst = i & 3;
-        let left = i & ~3;
+    const matrix = Matrix.generateTransition(1 << 6, i => {
+        const a = (i >> 3) & 3;
+        const dst = i & 3;
+        const left = i & ~3;
         return (a ^ dst) + left;
     });
 

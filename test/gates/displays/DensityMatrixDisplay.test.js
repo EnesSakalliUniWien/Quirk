@@ -18,11 +18,11 @@ import {Suite, assertThat} from "../../TestUtil.js"
 import {amplitudesToCouplings} from "../../../src/gates/displays/DensityMatrixDisplay.js"
 import {Shaders} from "../../../src/engine/webgl/shader/Shaders.js"
 
-let suite = new Suite("DensityMatrixDisplay");
+const suite = new Suite("DensityMatrixDisplay");
 
 suite.testUsingWebGL("amplitudesToCouplings", () => {
-    let s = Math.sqrt(0.5);
-    let inp = Shaders.vec2Data(new Float32Array([
+    const s = Math.sqrt(0.5);
+    const inp = Shaders.vec2Data(new Float32Array([
         s,0,
         0,0,
         0,0,

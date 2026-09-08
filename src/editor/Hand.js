@@ -33,7 +33,7 @@ class Hand {
      * @param {undefined|!Point} resizingGateSlot
      */
     constructor(pos, heldGate, holdOffset, heldColumn, heldRow, resizingGateSlot) {
-        let args = {pos, heldGate, holdOffset, heldColumn, heldRow, resizingGateSlot};
+        const args = {pos, heldGate, holdOffset, heldColumn, heldRow, resizingGateSlot};
         if (pos !== undefined && !(pos instanceof Point)) {
             throw new DetailedError("Bad pos", args);
         }

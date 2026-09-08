@@ -17,10 +17,10 @@
 import {Suite, assertThat, assertTrue, assertFalse} from "../TestUtil.js"
 import {Point} from "../../src/geometry/Point.js"
 
-let suite = new Suite("Point");
+const suite = new Suite("Point");
 
 suite.test("isEqualTo", () => {
-    let p = new Point(2, 3);
+    const p = new Point(2, 3);
     assertTrue(p.isEqualTo(p));
     assertFalse(p.isEqualTo(null));
     assertFalse(p.isEqualTo(""));

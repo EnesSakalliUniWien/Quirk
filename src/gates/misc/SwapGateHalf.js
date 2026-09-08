@@ -25,7 +25,7 @@ import { Rect } from "../../geometry/Rect.js";
 // Note: there is special code to handle swaps sprinkled everywhere, since it's the only gate with two paired sides.
 
 /** @type {!Gate} */
-let SwapGateHalf = new GateBuilder()
+const SwapGateHalf = new GateBuilder()
   .setSerializedIdAndSymbol("Swap")
   .setTitle("Swap Gate [Half]")
   .setBlurb("Swaps the values of two qubits.\n(Place two in the same column.)")
@@ -40,7 +40,7 @@ let SwapGateHalf = new GateBuilder()
     }
 
     // A swap gate half is shown as a small X (joined by a line to the other half; that's handled elsewhere).
-    let swapRect = Rect.centeredSquareWithRadius(
+    const swapRect = Rect.centeredSquareWithRadius(
       args.rect.center(),
       args.rect.w / 6,
     );
@@ -58,12 +58,12 @@ let SwapGateHalf = new GateBuilder()
     );
   })
   .setExtraDisableReasonFinder((args) => {
-    let col = args.innerColumn;
-    let swapRows = Array.from(
+    const col = args.innerColumn;
+    const swapRows = Array.from(
       { length: col.gates.length },
       (_, row) => row,
     ).filter((row) => col.gates[row] === SwapGateHalf);
-    let n = swapRows.length;
+    const n = swapRows.length;
     if (n === 1) {
       return "need\nother\nswap";
     }
@@ -71,10 +71,10 @@ let SwapGateHalf = new GateBuilder()
       return "too\nmany\nswap";
     }
 
-    let affectsMeasured = swapRows.some(
+    const affectsMeasured = swapRows.some(
       (r) => (args.measuredMask & (1 << r)) !== 0,
     );
-    let affectsUnmeasured = swapRows.some(
+    const affectsUnmeasured = swapRows.some(
       (r) => (args.measuredMask & (1 << r)) === 0,
     );
     if (affectsMeasured && col.hasCoherentControl(args.measuredMask)) {

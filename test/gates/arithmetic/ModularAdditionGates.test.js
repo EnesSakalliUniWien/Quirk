@@ -22,7 +22,7 @@ import {InputGates} from "../../../src/gates/inputs/InputGates.js"
 import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js"
 import {Util} from "../../../src/base/Util.js"
 
-let suite = new Suite("ModularAdditionGates");
+const suite = new Suite("ModularAdditionGates");
 
 suite.testUsingWebGL('plus_A_mod_R_permutation', () => {
     assertThatGateActsLikePermutation(
@@ -59,7 +59,7 @@ suite.testUsingWebGL('minus_A_mod_R_permutation', () => {
 });
 
 suite.testUsingWebGL('plus_A_mod_R_no_nan', () => {
-    let circuit = CircuitDefinition.fromTextDiagram(new Map([
+    const circuit = CircuitDefinition.fromTextDiagram(new Map([
         ['a', InputGates.SetA.withParam(0)],
         ['r', InputGates.SetR.withParam(33)],
         ['p', ModularAdditionGates.PlusAModRFamily],

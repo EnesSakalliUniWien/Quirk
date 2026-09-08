@@ -17,28 +17,27 @@
 import {Suite, assertThat, assertThrows} from "../../../TestUtil.js"
 import {Complex} from "../../../../src/engine/math/complex/Complex.js"
 import {Matrix} from "../../../../src/engine/math/matrix/Matrix.js"
-import {Format} from "../../../../src/base/Format.js"
 import {MatrixDecomposition} from "../../../../src/engine/math/matrix/MatrixDecomposition.js"
 import {isUpperTriangular, isLowerTriangular} from "../../../MatrixTestUtil.js"
 
-let suite = new Suite("MatrixDecomposition");
+const suite = new Suite("MatrixDecomposition");
 
 const assertQrDecompositionWorksFor = m => {
-    let {Q, R} = MatrixDecomposition.qr(m);
+    const {Q, R} = MatrixDecomposition.qr(m);
     assertThat(Q.isUnitary(0.00001)).withInfo({m, Q, R, test: "isUnitary"}).isEqualTo(true);
     assertThat(isUpperTriangular(R, 0.00001)).withInfo({m, Q, R, test: "isUpperTriangular"}).isEqualTo(true);
     assertThat(Q.times(R)).withInfo({m, Q, R}).isApproximatelyEqualTo(m);
 };
 
 const assertLqDecompositionWorksFor = m => {
-    let {L, Q} = MatrixDecomposition.lq(m);
+    const {L, Q} = MatrixDecomposition.lq(m);
     assertThat(Q.isUnitary(0.00001)).withInfo({m, L, Q, test: "isUnitary"}).isEqualTo(true);
     assertThat(isLowerTriangular(L, 0.00001)).withInfo({m, L, Q, test: "isLowerTriangular"}).isEqualTo(true);
     assertThat(L.times(Q)).withInfo({m, L, Q}).isApproximatelyEqualTo(m);
 };
 
 const assertSvdDecompositionWorksFor = m => {
-    let {U, S, V} = MatrixDecomposition.svd(m, 0.000001, 100);
+    const {U, S, V} = MatrixDecomposition.svd(m, 0.000001, 100);
     assertThat(U.isUnitary(0.00001)).withInfo({m, U, S, V, test: "U isUnitary"}).isEqualTo(true);
     assertThat(V.isUnitary(0.00001)).withInfo({m, U, S, V, test: "V isUnitary"}).isEqualTo(true);
     assertThat(S.isDiagonal(0.00001)).withInfo({m, U, S, V, test: "S diagonal"}).isEqualTo(true);
@@ -72,7 +71,7 @@ suite.test("qrDecomposition", () => {
 
 suite.test("qrDecomposition_randomized", () => {
     for (let k = 1; k < 6; k++) {
-        let m = Matrix.generate(k, k, () => new Complex(Math.random() - 0.5, Math.random() - 0.5));
+        const m = Matrix.generate(k, k, () => new Complex(Math.random() - 0.5, Math.random() - 0.5));
         assertQrDecompositionWorksFor(m);
     }
 });
@@ -101,7 +100,7 @@ suite.test("lqDecomposition", () => {
 
 suite.test("lqDecomposition_randomized", () => {
     for (let k = 1; k < 6; k++) {
-        let m = Matrix.generate(k, k, () => new Complex(Math.random() - 0.5, Math.random() - 0.5));
+        const m = Matrix.generate(k, k, () => new Complex(Math.random() - 0.5, Math.random() - 0.5));
         assertLqDecompositionWorksFor(m);
     }
 });
@@ -137,14 +136,14 @@ suite.test("singularValueDecomposition", () => {
 
 suite.test("singularValueDecomposition_randomized", () => {
     for (let k = 1; k < 5; k++) {
-        let m = Matrix.generate(k, k, () => new Complex(Math.random() - 0.5, Math.random() - 0.5));
+        const m = Matrix.generate(k, k, () => new Complex(Math.random() - 0.5, Math.random() - 0.5));
         assertSvdDecompositionWorksFor(m);
     }
 });
 
 suite.test("closestUnitary", () => {
-    let i = Complex.I;
-    let ni = i.neg();
+    const i = Complex.I;
+    const ni = i.neg();
     assertThat(MatrixDecomposition.closestUnitary(Matrix.square(0, 0, 0, 0))).
         isApproximatelyEqualTo(Matrix.square(1, 0, 0, 1));
     assertThat(MatrixDecomposition.closestUnitary(Matrix.square(2, 0, 0, 0.0001))).
@@ -154,13 +153,13 @@ suite.test("closestUnitary", () => {
     assertThat(MatrixDecomposition.closestUnitary(Matrix.square(1.01, i, -1, ni))).
         isApproximatelyEqualTo(Matrix.square(1, 0, 0, ni));
 
-    let m = Matrix.square(
+    const m = Matrix.square(
         1,  1,  1,  1,
         1,  i, -1, ni,
         1, -1,  1, -1,
         1, ni, -1,  i);
     assertThat(MatrixDecomposition.closestUnitary(m, 0.001)).isApproximatelyEqualTo(m.times(0.5));
 
-    let m2 = Matrix.generateDiagonal(4, k => Complex.polar(1, Math.PI*2/3*k));
+    const m2 = Matrix.generateDiagonal(4, k => Complex.polar(1, Math.PI*2/3*k));
     assertThat(MatrixDecomposition.closestUnitary(m2, 0.001)).isApproximatelyEqualTo(m2);
 });

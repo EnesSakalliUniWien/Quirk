@@ -18,12 +18,12 @@ import {fitParagraph} from '../../draw/pixi/TextLayout.js';
 import {drawingArea} from '../../draw/pixi/DisplayView.js';
 import {rectangle, strokePath} from '../../draw/pixi/ShapeView.js';
 
-import {CircuitDefinition} from '../../circuit/model/CircuitDefinition.js';
+/** @typedef {import('../../circuit/model/CircuitDefinition.js').CircuitDefinition} CircuitDefinition */
 import {CanvasTheme} from '../../config/CanvasTheme.js';
 import {drawCircuitTooltip} from '../../editor/DisplayedCircuit.js';
 import {GateBuilder} from '../../circuit/model/Gate.js';
 import {MathPainter} from '../../draw/MathPainter.js';
-import {Matrix} from '../../engine/math/matrix/Matrix.js';
+/** @typedef {import('../../engine/math/matrix/Matrix.js').Matrix} Matrix */
 import {Observable, ObservableValue} from '../../base/Obs.js';
 import {RenderSurface} from '../../draw/pixi/RenderSurface.js';
 import {Point} from '../../geometry/Point.js';
@@ -59,13 +59,13 @@ function initForge(revision, overlayState, getCycleTime) {
 
     function computeAndPaintOp(canvas, opGetter, button) {
         button.disabled = true;
-        let painter = RenderSurface.forCanvas(canvas).beginFrame();
+        const painter = RenderSurface.forCanvas(canvas).beginFrame();
         rectangle(painter, drawingArea(painter), {fill: CanvasTheme.surface.gate});
-        let d = Math.min((canvas.width - 5)/2, canvas.height);
-        let rect1 = new Rect(0, 0, d, d);
-        let rect2 = new Rect(d + 5, 0, d, d);
+        const d = Math.min((canvas.width - 5)/2, canvas.height);
+        const rect1 = new Rect(0, 0, d, d);
+        const rect2 = new Rect(d + 5, 0, d, d);
         try {
-            let op = opGetter();
+            const op = opGetter();
             MathPainter.paintMatrix(
                 painter,
                 op,
@@ -96,7 +96,7 @@ function initForge(revision, overlayState, getCycleTime) {
                     CanvasTheme.operation.background,
                     CanvasTheme.operation.fill);
             }
-            let cx = (rect1.right() + rect2.x)/2;
+            const cx = (rect1.right() + rect2.x)/2;
             strokePath(painter, [new Point(cx, 0), new Point(cx, canvas.height)], CanvasTheme.text.primary, 2);
             if (!op.hasNaN()) {
                 button.disabled = false;
@@ -115,7 +115,7 @@ function initForge(revision, overlayState, getCycleTime) {
      * @param {undefined|!CircuitDefinition=undefined} circuitDef
      */
     function createCustomGateAndClose(gate, circuitDef=undefined) {
-        let c = circuitDef || fromJsonText_CircuitDefinition(latestInspectorText);
+        const c = circuitDef || fromJsonText_CircuitDefinition(latestInspectorText);
         revision.commit(JSON.stringify(Serializer.toJson(c.withCustomGate(gate)), null, 0));
         overlayState.close();
     }
@@ -203,8 +203,8 @@ function initForge(revision, overlayState, getCycleTime) {
             inputObservables: [textEditObservable(txtMatrix), Observable.elementEvent(chkFix, 'change')],
             parseOp: () => parseUserMatrix(valueElsePlaceholder(txtMatrix), chkFix.checked),
             buildGate: (mat, rawName) => {
-                let name = rawName.trim();
-                let h = Math.round(Math.log2(mat.height()));
+                const name = rawName.trim();
+                const h = Math.round(Math.log2(mat.height()));
                 return new GateBuilder().
                     setSerializedId(randomCustomGateId()).
                     setSymbol(name).
@@ -229,8 +229,8 @@ function initForge(revision, overlayState, getCycleTime) {
 
         /** @returns {{gate: !Gate, circuit: !CircuitDefinition}} */
         function parseEnteredCircuitGate() {
-            let circuit = fromJsonText_CircuitDefinition(latestInspectorText);
-            let gate = parseUserGateFromCircuitRange(
+            const circuit = fromJsonText_CircuitDefinition(latestInspectorText);
+            const gate = parseUserGateFromCircuitRange(
                 circuit,
                 valueElsePlaceholder(txtCols),
                 valueElsePlaceholder(txtRows),
@@ -238,8 +238,8 @@ function initForge(revision, overlayState, getCycleTime) {
             return {gate, circuit};
         }
 
-        let latestGate = new ObservableValue(undefined);
-        let drawGate = (painter, gate) => drawCircuitTooltip(
+        const latestGate = new ObservableValue(undefined);
+        const drawGate = (painter, gate) => drawCircuitTooltip(
             painter,
             gate.knownCircuitNested,
             new Rect(0, 0, circuitCanvas.width, circuitCanvas.height),
@@ -253,18 +253,18 @@ function initForge(revision, overlayState, getCycleTime) {
                 Observable.requestAnimationTicker().map(_ => e)).
             flattenLatest().
             subscribe(e => {
-                let painter = RenderSurface.forCanvas(circuitCanvas).beginFrame();
+                const painter = RenderSurface.forCanvas(circuitCanvas).beginFrame();
                 rectangle(painter, drawingArea(painter), {fill: CanvasTheme.surface.gate});
                 drawGate(painter, e.gate);
             });
 
-        let redraw = () => {
+        const redraw = () => {
             circuitButton.disabled = true;
-            let painter = RenderSurface.forCanvas(circuitCanvas).beginFrame();
+            const painter = RenderSurface.forCanvas(circuitCanvas).beginFrame();
             rectangle(painter, drawingArea(painter), {fill: CanvasTheme.surface.gate});
             try {
-                let {gate} = parseEnteredCircuitGate();
-                let keys = gate.getUnmetContextKeys();
+                const {gate} = parseEnteredCircuitGate();
+                const keys = gate.getUnmetContextKeys();
                 spanInputs.innerText = keys.size === 0 ?
                     "(none)" :
                     [...keys].map(e => e.replace("Input Range ", "").
@@ -289,7 +289,7 @@ function initForge(revision, overlayState, getCycleTime) {
 
         circuitButton.addEventListener('click', () => {
             try {
-                let {gate, circuit} = parseEnteredCircuitGate();
+                const {gate, circuit} = parseEnteredCircuitGate();
                 createCustomGateAndClose(gate, circuit);
             } catch (ex) {
                 // Button is about to be disabled, so no handling required.

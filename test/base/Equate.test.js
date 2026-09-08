@@ -19,7 +19,7 @@ import {equate} from "../../src/base/Equate.js"
 
 import {describe} from "../../src/base/Describe.js"
 
-let suite = new Suite("Equate");
+const suite = new Suite("Equate");
 
 class EmptyClass {
     constructor() { }
@@ -64,7 +64,7 @@ class Iter2 {
 }
 
 suite.test("groups", () => {
-    let groups = [
+    const groups = [
         [null, null],
         [undefined, undefined],
         [true, true],
@@ -120,13 +120,13 @@ suite.test("groups", () => {
     assertTrue(equate(1, 1));
     assertFalse(equate(1, 2));
 
-    for (let g1 of groups) {
-        for (let g2 of groups) {
-            for (let e1 of g1) {
-                for (let e2 of g2) {
-                    let actual = equate(e1, e2);
-                    let expected = g1 === g2;
-                    let eq = expected ? "equal" : "NOT equal";
+    for (const g1 of groups) {
+        for (const g2 of groups) {
+            for (const e1 of g1) {
+                for (const e2 of g2) {
+                    const actual = equate(e1, e2);
+                    const expected = g1 === g2;
+                    const eq = expected ? "equal" : "NOT equal";
                     if (actual !== expected) {
                         // Note: not using assertThat because assertThat's correctness depends on equate
                         fail(`Expected <${describe(e1)}> to ${eq} <${describe(e2)}>.`)

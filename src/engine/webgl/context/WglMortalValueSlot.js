@@ -76,7 +76,7 @@ class WglMortalValueSlot {
    */
   ensureDeinitialized() {
     if (this.lifetimeId !== undefined) {
-      let val = this.mortalValue;
+      const val = this.mortalValue;
       this.lifetimeId = undefined;
       this.mortalValue = undefined;
       this.deinitializer(val);

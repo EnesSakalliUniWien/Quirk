@@ -36,7 +36,7 @@ function webGl2SupportProblem() {
     return "Your GPU can't render to floating point textures (EXT_color_buffer_float is missing).";
   }
   const GL = WebGL2RenderingContext;
-  let format = sharedContext.getShaderPrecisionFormat(GL.FRAGMENT_SHADER, GL.HIGH_FLOAT);
+  const format = sharedContext.getShaderPrecisionFormat(GL.FRAGMENT_SHADER, GL.HIGH_FLOAT);
   if (format === null || format.precision === 0) {
     return "Your GPU doesn't support high precision floats in fragment shaders.";
   }

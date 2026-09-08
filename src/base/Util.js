@@ -28,11 +28,11 @@ class Util {
      */
     static need(expression, message, args) {
         if (expression !== true) {
-            let argDesc = args === undefined ?
+            const argDesc = args === undefined ?
                 "(not provided)" :
                 `[${ Array.prototype.slice.call(args).join(", ") }]` ;
-            let msgDesc = message === undefined ? "(not provided)" : message;
-            let msg = "Precondition failed" +
+            const msgDesc = message === undefined ? "(not provided)" : message;
+            const msg = "Precondition failed" +
                 "\n\nMessage: " + msgDesc +
                 "\n\nArgs: " + argDesc;
             throw new Error(msg);
@@ -125,7 +125,7 @@ class Util {
         if (n <= 1) {
             return 0;
         }
-        let p = Math.ceil(Math.log2(n));
+        const p = Math.ceil(Math.log2(n));
         if (1<<p < n) {
             return p + 1;
         }
@@ -143,7 +143,7 @@ class Util {
         if (n <= 1) {
             return 0;
         }
-        let p = Math.floor(Math.log2(n));
+        const p = Math.floor(Math.log2(n));
         if (1<<(p+1) <= n) {
             return p + 1;
         }
@@ -203,16 +203,16 @@ class Util {
      * @template K, V
      */
     static reverseGroupMap(groupMap, includeGroupsForOriginalKeysEvenIfEmpty = false) {
-        let result = new Map();
+        const result = new Map();
 
         if (includeGroupsForOriginalKeysEvenIfEmpty) {
-            for (let e of groupMap.keys()) {
+            for (const e of groupMap.keys()) {
                 result.set(e, []);
             }
         }
 
-        for (let [k, g] of groupMap) {
-            for (let e of g) {
+        for (const [k, g] of groupMap) {
+            for (const e of g) {
                 if (!result.has(e)) {
                     result.set(e, []);
                 }
@@ -236,7 +236,7 @@ class Util {
     static binarySearchForTransitionFromTrueToFalse(max, argIsBeforeTransitionFunc) {
         let min = 0;
         while (max > min) {
-            let med = min + Math.floor((max - min) / 2);
+            const med = min + Math.floor((max - min) / 2);
             if (argIsBeforeTransitionFunc(med)) {
                 min = med + 1;
             } else {
@@ -257,25 +257,25 @@ class Util {
         if (text === "") {
             return [""];
         }
-        let lines = [];
+        const lines = [];
         let p = 0;
         while (p < text.length) {
             // How many characters will fit on this line?
             let maxKeepLength = Util.binarySearchForTransitionFromTrueToFalse(
                 text.length - p + 1,
-                i => measureWidth(text.substr(p, i)) <= maxWidth) - 1;
+                i => measureWidth(text.slice(p, p + i)) <= maxWidth) - 1;
             maxKeepLength = Math.max(1, maxKeepLength);
-            let maxChunk = text.substr(p, maxKeepLength);
+            const maxChunk = text.slice(p, p + maxKeepLength);
 
-            let hitBoundary = p + maxKeepLength === text.length ||
-                text.substr(p + maxKeepLength, 1).match(/\s/) !== null;
+            const hitBoundary = p + maxKeepLength === text.length ||
+                text.slice(p + maxKeepLength, p + maxKeepLength + 1).match(/\s/) !== null;
             if (!hitBoundary) {
                 // If some of the chunk words fit, defer the split word into the next line.
-                let niceRegex = /^(.*\S)(\s+)\S*$/;
-                let niceChunkMatch = niceRegex.exec(maxChunk);
+                const niceRegex = /^(.*\S)(\s+)\S*$/;
+                const niceChunkMatch = niceRegex.exec(maxChunk);
                 if (niceChunkMatch !== null) {
-                    let keepChunk = niceChunkMatch[1];
-                    let skipChunk = niceChunkMatch[2];
+                    const keepChunk = niceChunkMatch[1];
+                    const skipChunk = niceChunkMatch[2];
                     lines.push(keepChunk.trim());
                     p += keepChunk.length + skipChunk.length;
                     continue;
@@ -287,7 +287,7 @@ class Util {
             p += maxChunk.length;
 
             // Skip starting whitespace
-            p += text.substr(p).match(/^\s*/)[0].length;
+            p += text.slice(p).match(/^\s*/)[0].length;
         }
         return lines;
     }
@@ -300,12 +300,12 @@ class Util {
      * @returns {!Array.<*>}
      */
     static decomposeObjectValues(object) {
-        let result = [];
+        const result = [];
 
-        let decomposeValueOrArray;
-        decomposeValueOrArray = val => {
+        
+        const decomposeValueOrArray = val => {
             if (Array.isArray(val)) {
-                for (let item of val) {
+                for (const item of val) {
                     decomposeValueOrArray(item);
                 }
             } else {
@@ -313,7 +313,7 @@ class Util {
             }
         };
 
-        for (let key of Object.keys(object).sort()) {
+        for (const key of Object.keys(object).sort()) {
             decomposeValueOrArray(object[key], result);
         }
         return result;
@@ -325,14 +325,14 @@ class Util {
      * @returns {!object}
      */
     static recomposedObjectValues(originalObject, newFieldValues) {
-        let result = {};
+        const result = {};
         let i = 0;
 
-        let recomposeValueOrArray;
-        recomposeValueOrArray = originalVal => {
+        
+        const recomposeValueOrArray = originalVal => {
             if (Array.isArray(originalVal)) {
-                let arr = [];
-                for (let item of originalVal) {
+                const arr = [];
+                for (const item of originalVal) {
                     arr.push(recomposeValueOrArray(item));
                 }
                 return arr;
@@ -341,7 +341,7 @@ class Util {
             return newFieldValues[i++];
         };
 
-        for (let key of Object.keys(originalObject).sort()) {
+        for (const key of Object.keys(originalObject).sort()) {
             result[key] = recomposeValueOrArray(originalObject[key]);
         }
         Util.need(i === newFieldValues.length, "Mismatched field value count.");
@@ -363,8 +363,8 @@ class Util {
      * @returns {!Array.<!number>}
      */
     static snappedCosSin(radians) {
-        let unit = Math.PI/4;
-        let i = Math.round(radians / unit);
+        const unit = Math.PI/4;
+        const i = Math.round(radians / unit);
         if (i*unit === radians) {
             const s = Math.sqrt(0.5);
             const snaps = [
@@ -393,7 +393,7 @@ class Util {
         if (denominator <= 0) {
             throw new DetailedError("denominator <= 0", {numerator, denominator});
         }
-        let result = numerator % denominator;
+        const result = numerator % denominator;
         return result + (result < 0 ? denominator : 0);
     }
 
@@ -402,9 +402,9 @@ class Util {
      * @returns {!Map}
      */
     static mergeMaps(...maps) {
-        let result = new Map();
-        for (let map of maps) {
-            for (let [key, val] of map.entries()) {
+        const result = new Map();
+        for (const map of maps) {
+            for (const [key, val] of map.entries()) {
                 result.set(key, val);
             }
         }
@@ -442,7 +442,7 @@ class Util {
         let old_t = 0;
         let old_r = a;
         while (r !== 0) {
-            let q = Math.floor(old_r / r);
+            const q = Math.floor(old_r / r);
             [old_r, r] = [r, old_r - q * r];
             [old_s, s] = [s, old_s - q * s];
             [old_t, t] = [t, old_t - q * t];
@@ -455,8 +455,8 @@ class Util {
      * @returns {!string}
      */
     static digits_to_superscript_digits(text) {
-        let digits = "0123456789";
-        let superscript_digits = "⁰¹²³⁴⁵⁶⁷⁸⁹";
+        const digits = "0123456789";
+        const superscript_digits = "⁰¹²³⁴⁵⁶⁷⁸⁹";
         for (let i = 0; i < 10; i++) {
             text = text.split(digits[i]).join(superscript_digits[i]);
         }

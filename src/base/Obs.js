@@ -52,7 +52,7 @@ class Observable {
    */
   static of(...items) {
     return new Observable((observer) => {
-      for (let item of items) {
+      for (const item of items) {
         observer(item);
       }
       return () => {};
@@ -65,8 +65,8 @@ class Observable {
    * @template T
    */
   snapshot() {
-    let result = [];
-    let unsub = this.subscribe((e) => result.push(e));
+    const result = [];
+    const unsub = this.subscribe((e) => result.push(e));
     unsub();
     return result;
   }
@@ -109,14 +109,14 @@ class Observable {
       let has2 = false;
       let last1;
       let last2;
-      let unreg1 = this.subscribe((e1) => {
+      const unreg1 = this.subscribe((e1) => {
         last1 = e1;
         has1 = true;
         if (has2) {
           observer(mergeFunc(last1, last2));
         }
       });
-      let unreg2 = other.subscribe((e2) => {
+      const unreg2 = other.subscribe((e2) => {
         last2 = e2;
         has2 = true;
         if (has1) {
@@ -136,9 +136,8 @@ class Observable {
    */
   static requestAnimationTicker() {
     return new Observable((observer) => {
-      let iter;
       let isDone = false;
-      iter = () => {
+      const iter = () => {
         if (!isDone) {
           observer(undefined);
           window.requestAnimationFrame(iter);
@@ -160,11 +159,11 @@ class Observable {
     return new Observable((observer) => {
       let unregLatest = () => {};
       let isDone = false;
-      let unregAll = this.subscribe((subObservable) => {
+      const unregAll = this.subscribe((subObservable) => {
         if (isDone) {
           return;
         }
-        let prevUnreg = unregLatest;
+        const prevUnreg = unregLatest;
         unregLatest = subObservable.subscribe(observer);
         prevUnreg();
       });
@@ -195,14 +194,14 @@ class Observable {
    */
   flatten() {
     return new Observable((observer) => {
-      let unsubs = [];
+      const unsubs = [];
       unsubs.push(
         this.subscribe((observable) =>
           unsubs.push(observable.subscribe(observer)),
         ),
       );
       return () => {
-        for (let unsub of unsubs) {
+        for (const unsub of unsubs) {
           unsub();
         }
       };
@@ -220,12 +219,12 @@ class Observable {
     return new Observable((observer) => {
       let latest = undefined;
       let isKilled = false;
-      let throttle = new CooldownThrottle(() => {
+      const throttle = new CooldownThrottle(() => {
         if (!isKilled) {
           observer(latest);
         }
       }, cooldownMillis);
-      let unsub = this.subscribe((e) => {
+      const unsub = this.subscribe((e) => {
         latest = e;
         throttle.trigger();
       });
@@ -273,7 +272,7 @@ class Observable {
    * @template T
    */
   whenDifferent(equater = undefined) {
-    let eq = equater || ((e1, e2) => e1 === e2);
+    const eq = equater || ((e1, e2) => e1 === e2);
     return new Observable((observer) => {
       let hasLast = false;
       let last = undefined;
@@ -326,7 +325,7 @@ class ObservableSource {
    * @template T
    */
   send(eventValue) {
-    for (let obs of this._observers) {
+    for (const obs of this._observers) {
       obs(eventValue);
     }
   }

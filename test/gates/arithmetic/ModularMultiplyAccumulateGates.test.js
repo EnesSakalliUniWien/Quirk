@@ -20,7 +20,7 @@ import {assertThatGateActsLikePermutation} from "../../CircuitOperationTestUtil.
 import {ModularMultiplyAccumulateGates} from "../../../src/gates/arithmetic/ModularMultiplyAccumulateGates.js"
 import {Util} from "../../../src/base/Util.js"
 
-let suite = new Suite("ModularMultiplyAccumulateGates");
+const suite = new Suite("ModularMultiplyAccumulateGates");
 
 suite.testUsingWebGL('plus_AB_mod_R_permutation', () => {
     assertThatGateActsLikePermutation(

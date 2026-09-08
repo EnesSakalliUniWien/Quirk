@@ -44,7 +44,7 @@ class Serializer {
      * @returns {*}
      */
     static toJson(value, context=undefined) {
-        for (let [type, toJ, _] of BINDINGS) {
+        for (const [type, toJ, _] of BINDINGS) {
             if (value instanceof type) {
                 return toJ(value, context);
             }
@@ -59,7 +59,7 @@ class Serializer {
      * @returns {*}
      */
     static fromJson(expectedType, json, context=undefined) {
-        for (let [type, _, fromJ] of BINDINGS) {
+        for (const [type, _, fromJ] of BINDINGS) {
             if (type === expectedType) {
                 return fromJ(json, context);
             }
@@ -72,14 +72,14 @@ class Serializer {
  * @param {!Complex} v
  * @returns {!object}
  */
-let toJson_Complex = v => v.toString(Format.MINIFIED);
+const toJson_Complex = v => v.toString(Format.MINIFIED);
 
 /**
  * @param {object} json
  * @returns {!Complex}
  * @throws {Error}
  */
-let fromJson_Complex = json => {
+const fromJson_Complex = json => {
     if (typeof json === "string") {
         return ComplexFormula.parse(json);
     }
@@ -90,14 +90,14 @@ let fromJson_Complex = json => {
  * @param {!Matrix} v
  * @returns {!object}
  */
-let toJson_Matrix = v => v.toString(Format.MINIFIED);
+const toJson_Matrix = v => v.toString(Format.MINIFIED);
 
 /**
  * @param {object} json
  * @returns {!Matrix}
  * @throws {Error}
  */
-let fromJson_Matrix = json => {
+const fromJson_Matrix = json => {
     if (typeof json !== "string") {
         throw new Error("Not a packed matrix string: " + json);
     }
@@ -109,8 +109,8 @@ let fromJson_Matrix = json => {
  * @param {!CustomGateSet=} context
  * @returns {!object}
  */
-let toJson_Gate = (gate, context=new CustomGateSet()) => {
-    let found = Gates.findKnownGateById(gate.serializedId, context);
+const toJson_Gate = (gate, context=new CustomGateSet()) => {
+    const found = Gates.findKnownGateById(gate.serializedId, context);
     if (found === gate) {
         return gate.serializedId;
     }
@@ -122,7 +122,7 @@ let toJson_Gate = (gate, context=new CustomGateSet()) => {
         return gate.tag;
     }
 
-    let result = {};
+    const result = {};
     if (gate.serializedId !== "") {
         result.id = gate.serializedId;
     }
@@ -147,7 +147,7 @@ let toJson_Gate = (gate, context=new CustomGateSet()) => {
  * @private
  */
 function _getGateId(json) {
-    let symbol = typeof json === "string" ? json : json["id"];
+    const symbol = typeof json === "string" ? json : json["id"];
 
     // Recover from bad symbol.
     if (symbol === undefined) {
@@ -170,7 +170,7 @@ function _parseGateMatrix(matrixProp) {
     if (matrixProp === undefined) {
         throw new Error("Unrecognized gate id, but no matrix specified.");
     }
-    let matrix = fromJson_Matrix(matrixProp);
+    const matrix = fromJson_Matrix(matrixProp);
     if (matrix.width() !== matrix.height()) {
         throw new Error("Gate matrix must be square.");
     }
@@ -184,15 +184,15 @@ function _parseGateMatrix(matrixProp) {
  * @param {object} json
  * @returns {!{id: !String, matrix: *, circuit: *, symbol: *, name: *, param: *}}
  */
-let fromJson_Gate_props = json => {
-    let id = _getGateId(json);
-    let matrix = json["matrix"];
-    let circuit = json["circuit"];
-    let param = json["arg"];
-    let symbol = json.name !== undefined ? json.name :
+const fromJson_Gate_props = json => {
+    const id = _getGateId(json);
+    const matrix = json["matrix"];
+    const circuit = json["circuit"];
+    const param = json["arg"];
+    const symbol = json.name !== undefined ? json.name :
         id.startsWith('~') ? '' :
         id;
-    let name = id.startsWith('~') ? `${symbol || 'Custom'} Gate [${id.substring(1)}]` :
+    const name = id.startsWith('~') ? `${symbol || 'Custom'} Gate [${id.slice(1)}]` :
         symbol !== '' ? symbol :
         id;
     return {id, matrix, circuit, symbol, name, param};
@@ -202,19 +202,19 @@ let fromJson_Gate_props = json => {
  * @param {!{id: !String, matrix: *, circuit: *, symbol: *, name: *, param: *}} props
  * @returns {!Gate}
  */
-let fromJson_Gate_Matrix = props => {
-    let mat = _parseGateMatrix(props.matrix);
+const fromJson_Gate_Matrix = props => {
+    const mat = _parseGateMatrix(props.matrix);
 
     // Special case the mystery gate.
     if (props.id === MysteryGateSymbol) {
         return MysteryGateMakerWithMatrix(mat);
     }
 
-    let height = Math.round(Math.log2(mat.height()));
-    let width = props.symbol === '' ? height : 1;
-    let matrix = _parseGateMatrix(props.matrix);
+    const height = Math.round(Math.log2(mat.height()));
+    const width = props.symbol === '' ? height : 1;
+    const matrix = _parseGateMatrix(props.matrix);
 
-    let builder = new GateBuilder().
+    const builder = new GateBuilder().
         setSerializedId(props.id).
         setSymbol(props.symbol).
         setTitle(props.name).
@@ -236,8 +236,8 @@ let fromJson_Gate_Matrix = props => {
  * @param {undefined|!CustomGateSet} context
  * @returns {!Gate}
  */
-let fromJson_Gate_Circuit = (props, context) => {
-    let circuit = fromJson_CircuitDefinition(props.circuit, context).withMinimumWireCount();
+const fromJson_Gate_Circuit = (props, context) => {
+    const circuit = fromJson_CircuitDefinition(props.circuit, context).withMinimumWireCount();
     return setGateBuilderEffectToCircuit(new GateBuilder(), circuit).
         setSerializedId(props.id).
         setSymbol(props.symbol).
@@ -252,8 +252,8 @@ let fromJson_Gate_Circuit = (props, context) => {
  * @returns {!Gate}
  * @throws {Error}
  */
-let fromJson_Gate = (json, context=new CustomGateSet()) => {
-    let props = fromJson_Gate_props(json);
+const fromJson_Gate = (json, context=new CustomGateSet()) => {
+    const props = fromJson_Gate_props(json);
 
     try {
         if (props.matrix !== undefined) {
@@ -308,7 +308,7 @@ function toJson_GateColumn(v, context=new CustomGateSet()) {
  * @returns {!GateColumn}
  * @throws
  */
-let fromJson_GateColumn = (json, context=new CustomGateSet()) => {
+const fromJson_GateColumn = (json, context=new CustomGateSet()) => {
     if (!Array.isArray(json)) {
         throw new Error(`GateColumn json should be an array. Json: ${describe(json)}`);
     }
@@ -320,7 +320,7 @@ let fromJson_GateColumn = (json, context=new CustomGateSet()) => {
  * @returns {*}
  */
 function toJson_CustomGateSet(v) {
-    let result = [];
+    const result = [];
     for (let i = 0; i < v.gates.length; i++) {
         result.push(toJson_Gate(v.gates[i], new CustomGateSet(...v.gates.slice(0, i))));
     }
@@ -336,7 +336,7 @@ function fromJson_CustomGateSet(json) {
         throw new DetailedError("Expected an array of gates.", {json});
     }
     let gatesSoFar = new CustomGateSet();
-    for (let e of json) {
+    for (const e of json) {
         gatesSoFar = gatesSoFar.withGate(fromJson_Gate(e, gatesSoFar));
     }
     return gatesSoFar;
@@ -347,8 +347,8 @@ function fromJson_CustomGateSet(json) {
  * @param {undefined|!CustomGateSet} context
  * @returns {!object}
  */
-let toJson_CircuitDefinition = (v, context) => {
-    let result = {
+const toJson_CircuitDefinition = (v, context) => {
+    const result = {
         cols: v.trimEmptyColumnsAtEndIgnoringGateWidths().columns.
             map(e => toJson_GateColumn(e, context || v.customGateSet)).
             map(c => {
@@ -365,9 +365,9 @@ let toJson_CircuitDefinition = (v, context) => {
     }
     if (v.customInitialValues.size > 0) {
         result.init = [];
-        let maxInit = Math.max(...v.customInitialValues.keys());
+        const maxInit = Math.max(...v.customInitialValues.keys());
         for (let i = 0; i <= maxInit; i++) {
-            let s = v.customInitialValues.get(i);
+            const s = v.customInitialValues.get(i);
             result.init.push(
                 s === undefined ? 0 :
                 s === '1' ? 1 :
@@ -394,7 +394,7 @@ function fromJsonText_CircuitDefinition(jsonText) {
  * @throws
  */
 function _fromJson_InitialState(json) {
-    let {init} = json;
+    const {init} = json;
     if (init === undefined) {
         return new Map();
     }
@@ -403,9 +403,9 @@ function _fromJson_InitialState(json) {
         throw new DetailedError('Initial states must be an array.', {json});
     }
 
-    let result = new Map();
+    const result = new Map();
     for (let i = 0; i < init.length; i++) {
-        let v = init[i];
+        const v = init[i];
         if (v === 0) {
             // 0 is the default. Don't need to do anything.
         } else if (v === 1) {
@@ -427,8 +427,8 @@ function _fromJson_InitialState(json) {
  * @throws
  */
 function fromJson_CircuitDefinition(json, context=undefined) {
-    let {cols} = json;
-    let customGateSet = context ||
+    const {cols} = json;
+    const customGateSet = context ||
         (json.gates === undefined ? new CustomGateSet() : fromJson_CustomGateSet(json.gates));
 
     if (!Array.isArray(cols)) {
@@ -436,10 +436,10 @@ function fromJson_CircuitDefinition(json, context=undefined) {
     }
     let gateCols = cols.map(e => fromJson_GateColumn(e, customGateSet));
 
-    let initialValues = _fromJson_InitialState(json);
+    const initialValues = _fromJson_InitialState(json);
 
     let numWires = 0;
-    for (let col of gateCols) {
+    for (const col of gateCols) {
         numWires = Math.max(numWires, col.minimumRequiredWireCount());
     }
     numWires = Math.max(

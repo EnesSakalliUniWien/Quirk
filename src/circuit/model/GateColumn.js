@@ -15,7 +15,7 @@
  */
 
 import {DetailedError} from "../../base/DetailedError.js"
-import {Gate} from "./Gate.js"
+/** @typedef {import("./Gate.js").Gate} Gate */
 import {GateCheckArgs} from "./GateCheckArgs.js"
 import {Util} from "../../base/Util.js"
 
@@ -137,12 +137,12 @@ class GateColumn {
      * @private
      */
     _disabledReason(inputMeasureMask, row, outerRowOffset, context, isNested) {
-        let g = this.gates[row];
+        const g = this.gates[row];
         if (g === undefined) {
             return undefined;
         }
 
-        let args = new GateCheckArgs(g, this, outerRowOffset + row, inputMeasureMask, context, isNested);
+        const args = new GateCheckArgs(g, this, outerRowOffset + row, inputMeasureMask, context, isNested);
         return g.customDisableReasonFinder(args) ||
             GateColumn._disabledReason_inputs(args) ||
             this._disabledReason_controlInside(row) ||
@@ -157,15 +157,15 @@ class GateColumn {
      * @private
      */
     _disabledReason_overlappingTags(outerRow, row) {
-        let keys = new Set(
+        const keys = new Set(
             this.gates[row].customColumnContextProvider(outerRow + row, this.gates[row]).map(e => e.key));
         if (keys.length === 0) {
             return undefined;
         }
 
         for (let i = 0; i < row; i++) {
-            let g = this.gates[i];
-            for (let {key: otherKey} of g === undefined ? [] : g.customColumnContextProvider(outerRow + i, g)) {
+            const g = this.gates[i];
+            for (const {key: otherKey} of g === undefined ? [] : g.customColumnContextProvider(outerRow + i, g)) {
                 if (keys.has(otherKey)) {
                     return "already\ndefined";
                 }
@@ -183,9 +183,9 @@ class GateColumn {
      */
     _disabledReason_remixing(row, inputMeasureMask) {
         // Measured qubits can't be re-superposed for implementation simplicity reasons.
-        let g = this.gates[row];
-        let mask = ((1 << g.height) - 1) << row;
-        let maskMeasured = mask & inputMeasureMask;
+        const g = this.gates[row];
+        const mask = ((1 << g.height) - 1) << row;
+        const maskMeasured = mask & inputMeasureMask;
         if (maskMeasured !== 0 && g.knownBitPermutationFunc === undefined) {
             // Don't try to superpose measured qubits.
             if (g.effectMightCreateSuperpositions()) {
@@ -203,18 +203,18 @@ class GateColumn {
         // Check permutation subgroups for bad mixing of measured and coherent qubits.
         if (g.knownBitPermutationGroupMasks !== undefined) {
             for (let maskGroup of g.knownBitPermutationGroupMasks) {
-                let isSingleton = ((maskGroup - 1) & maskGroup) === 0;
+                const isSingleton = ((maskGroup - 1) & maskGroup) === 0;
                 if (isSingleton) {
                     continue;
                 }
 
                 maskGroup <<= row;
-                let hasCoherentQubits = (maskGroup & inputMeasureMask) !== maskGroup;
-                let hasMeasuredQubits = (maskGroup & inputMeasureMask) !== 0;
-                let coherentControl = this.hasCoherentControl(inputMeasureMask);
-                let controlled = this.hasControl(inputMeasureMask);
-                let coherentControlledMixingOfMeasured = hasMeasuredQubits && coherentControl;
-                let controlledMixingOfCoherentAndMeasured = hasCoherentQubits && hasMeasuredQubits && controlled;
+                const hasCoherentQubits = (maskGroup & inputMeasureMask) !== maskGroup;
+                const hasMeasuredQubits = (maskGroup & inputMeasureMask) !== 0;
+                const coherentControl = this.hasCoherentControl(inputMeasureMask);
+                const controlled = this.hasControl(inputMeasureMask);
+                const coherentControlledMixingOfMeasured = hasMeasuredQubits && coherentControl;
+                const controlledMixingOfCoherentAndMeasured = hasCoherentQubits && hasMeasuredQubits && controlled;
                 if (coherentControlledMixingOfMeasured || controlledMixingOfCoherentAndMeasured) {
                     return "no\nremix\n(sorry)";
                 }
@@ -229,7 +229,7 @@ class GateColumn {
      */
     hasGatesWithGlobalEffects() {
         for (let i = 0; i < this.gates.length; i++) {
-            let gate = this.gates[i];
+            const gate = this.gates[i];
             if (gate !== undefined && gate.shouldShowAsHavingGlobalEffect()) {
                 return true;
             }
@@ -242,7 +242,7 @@ class GateColumn {
      */
     indexOfNonUnitaryGate() {
         for (let i = 0; i < this.gates.length; i++) {
-            let gate = this.gates[i];
+            const gate = this.gates[i];
             if (gate !== undefined && !gate.isDefinitelyUnitary()) {
                 return i;
             }
@@ -256,8 +256,8 @@ class GateColumn {
      * @private
      */
     static _disabledReason_inputs(args) {
-        let rangeVals = [];
-        for (let key of args.gate.getUnmetContextKeys()) {
+        const rangeVals = [];
+        for (const key of args.gate.getUnmetContextKeys()) {
             if (key.startsWith("Input Range ") && args.context.has(key)) {
                 rangeVals.push(args.context.get(key));
             }
@@ -274,9 +274,9 @@ class GateColumn {
      * @private
      */
     static _disabledReason_inputs_missing(args) {
-        let missing = [];
-        for (let key of args.gate.getUnmetContextKeys()) {
-            let altKey = key.
+        const missing = [];
+        for (const key of args.gate.getUnmetContextKeys()) {
+            const altKey = key.
                 replace("Input Range ", "Input Default ").
                 replace("Input NO_DEFAULT Range ", "Input Range ");
             if (!args.context.has(key) && !args.context.has(altKey) && !args.isNested) {
@@ -299,8 +299,8 @@ class GateColumn {
      * @private
      */
     static _disabledReason_inputs_inside(args, rangeVals) {
-        let row = args.outerRow;
-        for (let {offset, length} of rangeVals) {
+        const row = args.outerRow;
+        for (const {offset, length} of rangeVals) {
             if (offset + length > row && row + args.gate.height > offset) {
                 return "input\ninside";
             }
@@ -315,11 +315,11 @@ class GateColumn {
      * @private
      */
     static _disabledReason_inputs_coherenceMismatch(args, rangeVals) {
-        let row = args.outerRow;
+        const row = args.outerRow;
         if (args.gate.effectMightPermutesStates()) {
-            let hasMeasuredOutputs = ((args.measuredMask >> row) & ((1 << args.gate.height) - 1)) !== 0;
+            const hasMeasuredOutputs = ((args.measuredMask >> row) & ((1 << args.gate.height) - 1)) !== 0;
             if (hasMeasuredOutputs) {
-                for (let {offset, length} of rangeVals) {
+                for (const {offset, length} of rangeVals) {
                     if (((~args.measuredMask >> offset) & ((1 << length) - 1)) !== 0) {
                         return "no\nremix\n(sorry)";
                     }
@@ -336,7 +336,7 @@ class GateColumn {
      * @private
      */
     _disabledReason_controlInside(row) {
-        let g = this.gates[row];
+        const g = this.gates[row];
         for (let j = 1; j < g.height && row + j < this.gates.length; j++) {
             if (this.gates[row + j] !== undefined && this.gates[row + j].isControl()) {
                 return "control\ninside";
@@ -357,7 +357,7 @@ class GateColumn {
 
     maximumGateWidth() {
         let best = -Infinity;
-        for (let g of this.gates) {
+        for (const g of this.gates) {
             if (g !== undefined) {
                 best = Math.max(best, g.width);
             }
@@ -374,12 +374,12 @@ class GateColumn {
      * @returns {{allReasons: !Array.<undefined|!string>, stickyCtx: !Map<!string, *>}}
      */
     perRowDisabledReasons(inputMeasureMask, outerRowOffset, outerContext, prevStickyCtx, isNested) {
-        let context = Util.mergeMaps(outerContext, prevStickyCtx);
-        let stickyCtx = new Map(prevStickyCtx);
+        const context = Util.mergeMaps(outerContext, prevStickyCtx);
+        const stickyCtx = new Map(prevStickyCtx);
         for (let row = this.gates.length - 1; row >= 0; row--) {
-            let g = this.gates[row];
+            const g = this.gates[row];
             if (g !== undefined) {
-                for (let {key, val} of g.customColumnContextProvider(row + outerRowOffset, g)) {
+                for (const {key, val} of g.customColumnContextProvider(row + outerRowOffset, g)) {
                     context.set(key, val);
                     if (!g.isContextTemporary) {
                         stickyCtx.set(key, val);
@@ -388,7 +388,7 @@ class GateColumn {
             }
         }
 
-        let allReasons = [];
+        const allReasons = [];
         for (let i = 0; i < this.gates.length; i++) {
             allReasons.push(this._disabledReason(inputMeasureMask, i, outerRowOffset, context, isNested))
         }
@@ -407,7 +407,7 @@ class GateColumn {
             return;
         }
 
-        let gate = this.gates[row];
+        const gate = this.gates[row];
 
         if (gate === undefined) {
             return;
@@ -421,7 +421,7 @@ class GateColumn {
 
         // Post-selection gates un-measure (in that the simulator can then do coherent operations on the qubit
         // without getting the wrong answer, at least).
-        let hasSingleResult = gate.measureEffect === "collapse";
+        const hasSingleResult = gate.measureEffect === "collapse";
         if (!this.hasControl(0, 1 << row) && hasSingleResult) {
             state.measureMask &= ~(1<<row);
             return;
@@ -449,9 +449,9 @@ class GateColumn {
         }
 
         // Swap gate swaps measurement states.
-        let other = 1 << state.earlierRowWithSwapGate;
-        let d = row - state.earlierRowWithSwapGate;
-        let bit = 1 << row;
+        const other = 1 << state.earlierRowWithSwapGate;
+        const d = row - state.earlierRowWithSwapGate;
+        const bit = 1 << row;
         state.measureMask = (state.measureMask & ~(other | bit)) |
             ((state.measureMask & other) << d) |
             ((state.measureMask & bit) >> d);
@@ -470,13 +470,13 @@ class GateColumn {
             return;
         }
 
-        let mask = ((1 << gate.height) - 1) << row;
-        let prev = state.measureMask & mask;
+        const mask = ((1 << gate.height) - 1) << row;
+        const prev = state.measureMask & mask;
         state.measureMask &= ~mask;
         for (let i = 0; i < gate.height; i++) {
-            let prevBit = 1 << (row + i);
+            const prevBit = 1 << (row + i);
             if ((prev & prevBit) !== 0) {
-                let nextBit = 1 << (row + gate.knownBitPermutationFunc(i));
+                const nextBit = 1 << (row + gate.knownBitPermutationFunc(i));
                 state.measureMask |= nextBit;
             }
         }
@@ -488,7 +488,7 @@ class GateColumn {
      * @returns {!int}
      */
     nextMeasureMask(inputMeasureMask, disabledReasons) {
-        let state = {measureMask: inputMeasureMask, earlierRowWithSwapGate: undefined};
+        const state = {measureMask: inputMeasureMask, earlierRowWithSwapGate: undefined};
         for (let row = 0; row < this.gates.length; row++) {
             this._updateMeasureMask_gateStep(state, row, disabledReasons);
         }
@@ -505,7 +505,7 @@ class GateColumn {
                 || startIndex > this.gates.length- insertedCol.gates.length) {
             throw new DetailedError("Bad start index", {baseCol: this, startIndex, insertedCol});
         }
-        let gates = this.gates.map(e => e);
+        const gates = this.gates.map(e => e);
         for (let i = 0; i < insertedCol.gates.length; i++) {
             gates[startIndex + i] = insertedCol.gates[i];
         }

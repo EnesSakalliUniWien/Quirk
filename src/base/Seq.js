@@ -130,9 +130,9 @@ class Seq {
    * @template T
    */
   takeWhile(predicate) {
-    let seq = this._iterable;
+    const seq = this._iterable;
     return Seq.fromGenerator(function* () {
-      for (let e of seq) {
+      for (const e of seq) {
         if (!predicate(e)) {
           break;
         }
@@ -158,7 +158,7 @@ class Seq {
   ) {
     let curMaxItem = EMPTY_SYGIL;
     let curMaxScore = EMPTY_SYGIL;
-    for (let item of this._iterable) {
+    for (const item of this._iterable) {
       // Delay computing the score for the first item, so that singleton lists never touch the score function.
       if (curMaxItem === EMPTY_SYGIL) {
         curMaxItem = item;
@@ -168,7 +168,7 @@ class Seq {
         curMaxScore = projection(curMaxItem);
       }
 
-      let score = projection(item);
+      const score = projection(item);
       if (isALessThanBComparator(curMaxScore, score)) {
         curMaxItem = item;
         curMaxScore = score;
@@ -209,12 +209,12 @@ class Seq {
    * @template T
    */
   segmentBy(keySelector) {
-    let seq = this;
+    const seq = this;
     return Seq.fromGenerator(function* () {
       let group = [];
       let lastKey = undefined;
-      for (let item of seq) {
-        let itemKey = keySelector(item);
+      for (const item of seq) {
+        const itemKey = keySelector(item);
         if (group.length > 0 && itemKey !== lastKey) {
           yield group;
           group = [];
@@ -238,9 +238,9 @@ class Seq {
    * @template T, A
    */
   single(emptyManyErrorAlternative = THROW_IF_EMPTY) {
-    let iter = this[Symbol.iterator]();
+    const iter = this[Symbol.iterator]();
 
-    let first = iter.next();
+    const first = iter.next();
     if (!first.done && iter.next().done) {
       return first.value;
     }
@@ -263,6 +263,6 @@ class Seq {
  * @returns {!Seq.<T>}
  * @template T
  */
-let seq = (iterable) => new Seq(iterable);
+const seq = (iterable) => new Seq(iterable);
 
 export { seq, Seq };

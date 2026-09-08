@@ -152,32 +152,32 @@ class Outputs {
  * @returns {!WglShader}
  */
 function combinedShaderPartsWithCode(shaderPartsOrDescs, bodyCode) {
-  let shaderPartDescs = shaderPartsOrDescs.map((partOrDesc) =>
+  const shaderPartDescs = shaderPartsOrDescs.map((partOrDesc) =>
     partOrDesc instanceof ShaderPart
       ? new ShaderPartDescription((_) => partOrDesc, "fixed")
       : partOrDesc,
   );
-  let sourceMaker = () => {
-    let libs = new Set();
-    for (let part of shaderPartDescs) {
-      for (let lib of part.toConcretePart().libs) {
+  const sourceMaker = () => {
+    const libs = new Set();
+    for (const part of shaderPartDescs) {
+      for (const lib of part.toConcretePart().libs) {
         libs.add(lib);
       }
     }
-    let libCode = [
+    const libCode = [
       ...libs,
       ...shaderPartDescs.map((e) => e.toConcretePart().code),
     ].join("");
-    let afterLibCode = "\n//////// body ////////\n" + bodyCode + "\n";
+    const afterLibCode = "\n//////// body ////////\n" + bodyCode + "\n";
 
     // The body defines outputFor, which the output part's main() calls, so the body has to come
     // before main() to satisfy GLSL's declare-before-use rule.
-    let mainIndex = libCode.indexOf("void main()");
+    const mainIndex = libCode.indexOf("void main()");
     if (mainIndex !== -1) {
       return (
-        libCode.substring(0, mainIndex) +
+        libCode.slice(0, Math.max(0, mainIndex)) +
         afterLibCode +
-        libCode.substring(mainIndex)
+        libCode.slice(Math.max(0, mainIndex))
       );
     }
 
@@ -194,9 +194,9 @@ function combinedShaderPartsWithCode(shaderPartsOrDescs, bodyCode) {
  * @returns {!function(args: ...(!!WglTexture|!WglArg)) : !WglConfiguredShader}
  */
 function makePseudoShaderWithInputsAndOutputAndCode(inputs, output, bodyCode) {
-  let shader = combinedShaderPartsWithCode([...inputs, output], bodyCode);
+  const shader = combinedShaderPartsWithCode([...inputs, output], bodyCode);
   return (...inputsAndArgs) => {
-    let args = [];
+    const args = [];
     for (let i = 0; i < inputs.length; i++) {
       args.push(...inputs[i].toConcretePart().argsFor(inputsAndArgs[i]));
     }

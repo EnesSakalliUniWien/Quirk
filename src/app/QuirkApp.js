@@ -80,11 +80,11 @@ function startQuirk() {
             whenDifferent(),
         overlayState);
     /** @type {!Revision} */
-    let revision = Revision.startingAt(displayed.get().snapshot());
+    const revision = Revision.startingAt(displayed.get().snapshot());
 
     revision.latestActiveCommit().subscribe(jsonText => {
-        let circuitDef = fromJsonText_CircuitDefinition(jsonText);
-        let newInspector = displayed.get().withCircuitDefinition(circuitDef);
+        const circuitDef = fromJsonText_CircuitDefinition(jsonText);
+        const newInspector = displayed.get().withCircuitDefinition(circuitDef);
         displayed.set(newInspector);
     });
 
@@ -92,7 +92,7 @@ function startQuirk() {
      * @param {!DisplayedInspector} curInspector
      * @returns {{w: number, h: !number}}
      */
-    let desiredCanvasSizeFor = curInspector => {
+    const desiredCanvasSizeFor = curInspector => {
         // The content extent, in circuit units: at least the visible area (which covers more
         // circuit units when zoomed out), grown to fit a circuit larger than it.
         return {
@@ -108,7 +108,7 @@ function startQuirk() {
      * @returns {!DisplayedInspector}
      */
     const syncArea = ins => {
-        let size = desiredCanvasSizeFor(ins);
+        const size = desiredCanvasSizeFor(ins);
         ins.updateArea(new Rect(0, 0, size.w, size.h));
         return ins;
     };
@@ -138,7 +138,7 @@ function startQuirk() {
     initCanvasPointer(
         canvas, canvasDiv, revision, displayed, syncArea, openGateParamEditor, openBlochSphereView);
 
-    let circuitActions = new CircuitActions(revision, overlayState);
+    const circuitActions = new CircuitActions(revision, overlayState);
     // The toolbar and transport components act on these through the store, and show what they
     // may do from the mirrored availability and playhead state.
     appStore.setState({circuitActions, playhead});

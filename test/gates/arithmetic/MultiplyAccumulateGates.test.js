@@ -24,7 +24,7 @@ import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js
 import {GateColumn} from "../../../src/circuit/model/GateColumn.js"
 import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
 
-let suite = new Suite("MultiplyAccumulateGates");
+const suite = new Suite("MultiplyAccumulateGates");
 
 suite.testUsingWebGL('plus_AB', () => {
     assertThatCircuitUpdateActsLikeMatrix(
@@ -38,9 +38,9 @@ suite.testUsingWebGL('plus_AB', () => {
                 InputGates.InputBFamily.ofSize(1)])]),
             false),
         Matrix.generateTransition(32, i => {
-            let a = (i>>2)&3;
-            let b = (i>>4)&1;
-            let t = i & 3;
+            const a = (i>>2)&3;
+            const b = (i>>4)&1;
+            const t = i & 3;
             return (a<<2) | (b<<4) | ((t+a*b)&3);
         }));
 });
@@ -57,15 +57,15 @@ suite.testUsingWebGL('minus_AB', () => {
                 InputGates.InputBFamily.ofSize(1)])]),
             false).output,
         Matrix.generateTransition(32, i => {
-            let a = i&3;
-            let b = (i>>4)&1;
-            let t = (i>>2)&3;
+            const a = i&3;
+            const b = (i>>4)&1;
+            const t = (i>>2)&3;
             return a | (b<<4) | (((t-a*b)&3)<<2);
         }));
 });
 
 suite.testUsingWebGL('plus_big_AB', () => {
-    let circuit = CircuitDefinition.fromTextDiagram(new Map([
+    const circuit = CircuitDefinition.fromTextDiagram(new Map([
         ['a', InputGates.SetA.withParam((1<<14)+1)],
         ['b', InputGates.SetB.withParam((1<<14)+1)],
         ['*', MultiplyAccumulateGates.MultiplyAddInputsFamily],

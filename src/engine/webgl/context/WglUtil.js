@@ -28,7 +28,7 @@ function checkGetErrorResult(gl, previousOperationDescription, isOnHotPath = fal
         return;
     }
 
-    let code = gl.getError();
+    const code = gl.getError();
     const GL = WebGL2RenderingContext;
     if (code === GL.NO_ERROR) {
         return;
@@ -49,7 +49,7 @@ function checkGetErrorResult(gl, previousOperationDescription, isOnHotPath = fal
         [GL.INVALID_FRAMEBUFFER_OPERATION]: "INVALID_FRAMEBUFFER_OPERATION",
         [GL.CONTEXT_LOST_WEBGL]: "CONTEXT_LOST_WEBGL"
     };
-    let d = msgs[code] !== undefined ? msgs[code] : "?";
+    const d = msgs[code] !== undefined ? msgs[code] : "?";
     throw new Error(`gl.getError() returned 0x${code.toString(16)} (${d}) after ${previousOperationDescription}.`);
 }
 
@@ -65,7 +65,7 @@ function checkFrameBufferStatusResult(gl, isOnHotPath = false) {
     }
 
     const GL = WebGL2RenderingContext;
-    let code = gl.checkFramebufferStatus(GL.FRAMEBUFFER);
+    const code = gl.checkFramebufferStatus(GL.FRAMEBUFFER);
     if (code === GL.FRAMEBUFFER_COMPLETE) {
         return;
     }
@@ -84,7 +84,7 @@ function checkFrameBufferStatusResult(gl, isOnHotPath = false) {
         [GL.FRAMEBUFFER_INCOMPLETE_DIMENSIONS]: "FRAMEBUFFER_INCOMPLETE_DIMENSIONS",
         [GL.FRAMEBUFFER_UNSUPPORTED]: "FRAMEBUFFER_UNSUPPORTED"
     };
-    let d = msgs[code] !== undefined ? msgs[code] : "?";
+    const d = msgs[code] !== undefined ? msgs[code] : "?";
     throw new Error(`gl.checkFramebufferStatus() returned 0x${code.toString(16)} (${d}).`);
 }
 

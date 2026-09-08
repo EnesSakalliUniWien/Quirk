@@ -116,7 +116,7 @@ const ketShaderPhase = (head, body, span=null) => ketShader(
  * @returns {!Array.<!WglArg>}
  */
 function ketArgs(ctx, span=undefined, input_letters=[]) {
-    let result = [
+    const result = [
         ctx.stateTrader.currentTexture,
         ctx.controlsTexture,
         WglArg.float("_ketgen_step", 1 << ctx.row)
@@ -124,7 +124,7 @@ function ketArgs(ctx, span=undefined, input_letters=[]) {
     if (span !== undefined) {
         result.push(WglArg.float('span', 1 << span));
     }
-    for (let letter of input_letters) {
+    for (const letter of input_letters) {
         result.push(...ketInputGateArgs(ctx, letter));
     }
     return result;
@@ -156,8 +156,8 @@ function ketInputGateShaderCode(letter) {
 function ketInputGateArgs(ctx, letter) {
     let offset = 0;
     let length = -1;
-    let defaultVal = ctx.customContextFromGates.get(`Input Default ${letter}`) || 0;
-    let inputCtx = ctx.customContextFromGates.get(`Input Range ${letter}`);
+    const defaultVal = ctx.customContextFromGates.get(`Input Default ${letter}`) || 0;
+    const inputCtx = ctx.customContextFromGates.get(`Input Range ${letter}`);
     if (inputCtx !== undefined) {
         offset = inputCtx.offset;
         length = inputCtx.length;

@@ -88,22 +88,22 @@ function bannerElements() {
         return _state.elements;
     }
 
-    let banner = document.createElement('div');
+    const banner = document.createElement('div');
     banner.className = 'error-banner';
     banner.id = 'error-banner';
     banner.hidden = true;
 
-    let message = document.createElement('span');
+    const message = document.createElement('span');
     message.className = 'error-banner-message';
     message.id = 'error-banner-message';
     // An alert, so screen readers announce the failure without the banner stealing focus.
     message.setAttribute('role', 'alert');
 
-    let count = document.createElement('span');
+    const count = document.createElement('span');
     count.className = 'error-banner-count';
     count.hidden = true;
 
-    let copyButton = document.createElement('button');
+    const copyButton = document.createElement('button');
     copyButton.type = 'button';
     copyButton.className = 'error-banner-button';
     copyButton.textContent = 'Copy details';
@@ -114,13 +114,13 @@ function bannerElements() {
         }, () => {});
     });
 
-    let reportAnchor = document.createElement('a');
+    const reportAnchor = document.createElement('a');
     reportAnchor.className = 'error-banner-button';
     reportAnchor.textContent = 'Report an issue';
     reportAnchor.target = '_blank';
     reportAnchor.rel = 'noreferrer noopener';
 
-    let dismissButton = document.createElement('button');
+    const dismissButton = document.createElement('button');
     dismissButton.type = 'button';
     dismissButton.className = 'error-banner-button error-banner-dismiss';
     // Lucide's x icon, inlined the way quirk.html inlines the menu icons.
@@ -141,7 +141,7 @@ function bannerElements() {
  * @param {!{kind: !string, title: !string, detailsText: !string}} report
  */
 function showBanner(report) {
-    let els = bannerElements();
+    const els = bannerElements();
     if (_state.banner !== undefined && _state.banner.title === report.title) {
         _state.banner.count += 1;
     } else {
@@ -168,8 +168,8 @@ function showBanner(report) {
  * @returns {!function(): void}
  */
 function installErrorReporter(host = /** @type {!HTMLElement} */ document.getElementById('error-banner-root')) {
-    let prevOnError = window.onerror;
-    let onUnhandledRejection = ev => {
+    const prevOnError = window.onerror;
+    const onUnhandledRejection = ev => {
         reportUnexpectedError(ev.reason instanceof Object && ev.reason.message || String(ev.reason), ev.reason);
         ev.preventDefault();
     };

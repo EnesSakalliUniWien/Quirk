@@ -35,6 +35,9 @@ try {
     await page.goto(`${serve.origin}/quirk.html#circuit=` + circuitJson);
     await page.waitForSelector('#loading-div', {visible: false, timeout: 5 * 1000});
     await page.screenshot({path: 'screenshot.png'});
+    if (caughtPageError) {
+        process.exitCode = 1;
+    }
     await browser.close();
     await serve.close();
 } catch (ex) {

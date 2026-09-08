@@ -44,18 +44,18 @@ function _paintBlochSphereDisplay_tooltips(
         y,
         z,
         focusPoints) {
-    let c = drawArea.center();
-    let u = Math.min(drawArea.w, drawArea.h) / 2;
+    const c = drawArea.center();
+    const u = Math.min(drawArea.w, drawArea.h) / 2;
     if (focusPoints.every(pt => pt.distanceTo(c) >= u)) {
         return;
     }
 
     const τ = Math.PI * 2;
-    let deg = v => (v >= 0 ? '+' : '') + (v*360/τ).toFixed(2) + '°';
-    let forceSign = v => (v >= 0 ? '+' : '') + v.toFixed(4);
-    let d = Math.sqrt(x*x + y*y + z*z);
-    let ϕ = Math.atan2(y, -x);
-    let θ = Math.max(0, Math.PI/2 - Math.atan2(-z, Math.sqrt(y*y + x*x)));
+    const deg = v => (v >= 0 ? '+' : '') + (v*360/τ).toFixed(2) + '°';
+    const forceSign = v => (v >= 0 ? '+' : '') + v.toFixed(4);
+    const d = Math.sqrt(x*x + y*y + z*z);
+    const ϕ = Math.atan2(y, -x);
+    const θ = Math.max(0, Math.PI/2 - Math.atan2(-z, Math.sqrt(y*y + x*x)));
     circle(painter, c, u, {stroke: {color: CanvasTheme.interaction.outline, width: 2}});
     MathPainter.paintDeferredValueTooltip(
         painter,
@@ -81,13 +81,13 @@ function _paintBlochSphereDisplay_indicator(
         z,
         drawArea,
         fillColor) {
-    let c = drawArea.center();
-    let u = Math.min(drawArea.w, drawArea.h) / 2;
-    let {dx, dy, dz} = MathPainter.coordinateSystem(u);
+    const c = drawArea.center();
+    const u = Math.min(drawArea.w, drawArea.h) / 2;
+    const {dx, dy, dz} = MathPainter.coordinateSystem(u);
 
-    let p = c.plus(dx.times(x)).plus(dy.times(y)).plus(dz.times(z));
+    const p = c.plus(dx.times(x)).plus(dy.times(y)).plus(dz.times(z));
     // Scales with the sphere so the indicator stays visible instead of being a fixed few pixels.
-    let r = u * 0.12 / (1 + x / 6);
+    const r = u * 0.12 / (1 + x / 6);
 
     // Draw state indicators (in not-quite-correct 3d).
     strokePath(painter, [c, p], CanvasTheme.bloch.vector, u * 0.07);
@@ -115,11 +115,11 @@ function _paintBlochSphereDisplay_indicator(
  * @param {!number} r The length of the reduced Bloch vector.
  */
 function _paintBlochSphereDisplay_purity(painter, drawArea, r) {
-    let x = drawArea.center().x;
-    let y = drawArea.bottom();
-    let readoutHeight = drawArea.w * Layout.BLOCH_READOUT_HEIGHT /
+    const x = drawArea.center().x;
+    const y = drawArea.bottom();
+    const readoutHeight = drawArea.w * Layout.BLOCH_READOUT_HEIGHT /
         (2 * (Layout.BLOCH_RADIUS + Layout.BLOCH_LABEL_MARGIN));
-    let fontSize = readoutHeight * 2 / 3;
+    const fontSize = readoutHeight * 2 / 3;
     fitText(painter, `|r| ${r.toFixed(3)}`, {
         x,
         y,
@@ -155,18 +155,18 @@ function paintBlochSphereDisplay(
         focusPoints = [],
         backgroundColor = CanvasTheme.bloch.background,
         fillColor = CanvasTheme.bloch.vector) {
-    let u = Math.min(
+    const u = Math.min(
         drawArea.w * Layout.BLOCH_RADIUS / (2 * (Layout.BLOCH_RADIUS + Layout.BLOCH_LABEL_MARGIN)),
         drawArea.h * Layout.BLOCH_RADIUS /
             (2 * (Layout.BLOCH_RADIUS + Layout.BLOCH_LABEL_MARGIN) + Layout.BLOCH_READOUT_HEIGHT));
-    let margin = u * Layout.BLOCH_LABEL_MARGIN / Layout.BLOCH_RADIUS;
-    let c = new Point(drawArea.center().x, drawArea.y + margin + u);
-    let sphereArea = new Rect(c.x - u, c.y - u, 2 * u, 2 * u);
-    let {dx, dy, dz} = MathPainter.coordinateSystem(u);
+    const margin = u * Layout.BLOCH_LABEL_MARGIN / Layout.BLOCH_RADIUS;
+    const c = new Point(drawArea.center().x, drawArea.y + margin + u);
+    const sphereArea = new Rect(c.x - u, c.y - u, 2 * u, 2 * u);
+    const {dx, dy, dz} = MathPainter.coordinateSystem(u);
 
-    let hasNaN = qubitDensityMatrix.hasNaN();
-    let [x, y, z] = hasNaN ? [NaN, NaN, NaN] : QubitMatrix.densityMatrixToBlochVector(qubitDensityMatrix);
-    let r = hasNaN ? NaN : Math.min(1, Math.sqrt(x*x + y*y + z*z));
+    const hasNaN = qubitDensityMatrix.hasNaN();
+    const [x, y, z] = hasNaN ? [NaN, NaN, NaN] : QubitMatrix.densityMatrixToBlochVector(qubitDensityMatrix);
+    const r = hasNaN ? NaN : Math.min(1, Math.sqrt(x*x + y*y + z*z));
 
     // Draw sphere and axis lines (in not-quite-proper 3d).
     circle(painter, c, u, {fill: backgroundColor});
@@ -180,18 +180,18 @@ function paintBlochSphereDisplay(
             }
         });
         // Split the meridians by depth: internal positive x points away from the viewer.
-        for (let axis of [dy, dz]) {
-            for (let back of [true, false]) {
+        for (const axis of [dy, dz]) {
+            for (const back of [true, false]) {
                 const points = [];
                 for (let i = 0; i <= 32; i++) {
-                    let t = (back ? 0 : Math.PI) + i * Math.PI / 32;
-                    let p = c.plus(dx.times(Math.sin(t))).plus(axis.times(Math.cos(t)));
+                    const t = (back ? 0 : Math.PI) + i * Math.PI / 32;
+                    const p = c.plus(dx.times(Math.sin(t))).plus(axis.times(Math.cos(t)));
                     points.push(p);
                 }
                 strokePath(painter, points, back ? CanvasTheme.stroke.guide : CanvasTheme.stroke.bright, u * 0.035, back ? [u * 0.1, u * 0.1] : []);
             }
         }
-        for (let d of [dy, dz]) {
+        for (const d of [dy, dz]) {
             strokePath(painter, [c.minus(d), c.plus(d)], CanvasTheme.stroke.guide, u * 0.03);
         }
         strokePath(painter, [c, c.minus(dx)], CanvasTheme.stroke.bright, u * 0.035);
@@ -199,7 +199,7 @@ function paintBlochSphereDisplay(
     });
 
     // Labels use conventional Bloch signs: +X is -dx and +Z points up.
-    for (let [label, p] of [
+    for (const [label, p] of [
         ['X', c.minus(dx.times(2.4))],
         ['Y', c.plus(dy.times(1.12))],
         ['Z', c.minus(dz.times(1.12))]

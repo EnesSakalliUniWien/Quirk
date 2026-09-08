@@ -57,7 +57,7 @@ class CustomGateSet {
      * @returns {undefined|!Gate}
      */
     findGateWithSerializedId(id) {
-        for (let g of this.gates) {
+        for (const g of this.gates) {
             if (g.serializedId === id) {
                 return g;
             }

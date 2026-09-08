@@ -24,7 +24,7 @@ import {advanceStateWithCircuit} from "../../../src/engine/simulation/CircuitCom
 import {Complex} from "../../../src/engine/math/complex/Complex.js"
 import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
 
-let suite = new Suite("FourierTransformGates");
+const suite = new Suite("FourierTransformGates");
 
 suite.testUsingWebGL('controlledPhaseGradient', () => {
     assertThatCircuitUpdateActsLikeMatrix(

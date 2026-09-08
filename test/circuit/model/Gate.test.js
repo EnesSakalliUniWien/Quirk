@@ -20,24 +20,24 @@ import {Gate, GateBuilder} from "../../../src/circuit/model/Gate.js"
 import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
 import {QubitMatrix} from "../../../src/engine/math/matrix/QubitMatrix.js"
 
-let suite = new Suite("Gate");
+const suite = new Suite("Gate");
 
 suite.test("toString_runsWithoutFailing", () => {
-    let g = new GateBuilder().setEffectToTimeVaryingMatrix(_ => QubitMatrix.HADAMARD).gate;
+    const g = new GateBuilder().setEffectToTimeVaryingMatrix(_ => QubitMatrix.HADAMARD).gate;
     assertThat(g.toString()).isNotEqualTo(null);
 });
 
 suite.test("stableDuration", () => {
-    let m0 = Gate.fromKnownMatrix("symbol", QubitMatrix.HADAMARD, "name", "blurb");
-    let mt = new GateBuilder().setEffectToTimeVaryingMatrix(t => Matrix.square(t, 0, 0, 0)).gate;
+    const m0 = Gate.fromKnownMatrix("symbol", QubitMatrix.HADAMARD, "name", "blurb");
+    const mt = new GateBuilder().setEffectToTimeVaryingMatrix(t => Matrix.square(t, 0, 0, 0)).gate;
 
     assertThat(m0.stableDuration()).isEqualTo(Infinity);
     assertThat(mt.stableDuration()).isEqualTo(0);
 });
 
 suite.test("knownMatrixAt", () => {
-    let m0 = Gate.fromKnownMatrix("symbol", QubitMatrix.HADAMARD, "name", "blurb");
-    let mt = new GateBuilder().setEffectToTimeVaryingMatrix(t => Matrix.square(t, 0, 0, 0)).gate;
+    const m0 = Gate.fromKnownMatrix("symbol", QubitMatrix.HADAMARD, "name", "blurb");
+    const mt = new GateBuilder().setEffectToTimeVaryingMatrix(t => Matrix.square(t, 0, 0, 0)).gate;
 
     assertThat(m0.knownMatrixAt(0)).isEqualTo(QubitMatrix.HADAMARD);
     assertThat(m0.knownMatrixAt(0.5)).isEqualTo(QubitMatrix.HADAMARD);

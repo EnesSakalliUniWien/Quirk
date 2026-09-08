@@ -35,7 +35,7 @@ class WglConfiguredShader {
    * @param {!WglTexture} texture
    */
   renderTo(texture) {
-    let shouldBeUndefined = this.renderToFunc(texture);
+    const shouldBeUndefined = this.renderToFunc(texture);
     if (shouldBeUndefined instanceof WglConfiguredShader) {
       throw new Error(
         "Returned a WglConfiguredShader instead of calling renderTo on it.",
@@ -108,8 +108,8 @@ class WglConfiguredShader {
    * @returns {!Uint8Array} Each entry represents one of the booleans: 1 for true, 0 for false.
    */
   readBoolOutputs(sizePower) {
-    let pixels = this._renderReadDealloc(WglTexturePool.takeBoolTex(sizePower));
-    let result = new Uint8Array(pixels.length >> 2);
+    const pixels = this._renderReadDealloc(WglTexturePool.takeBoolTex(sizePower));
+    const result = new Uint8Array(pixels.length >> 2);
     for (let i = 0; i < result.length; i++) {
       result[i] = pixels[i << 2] & 1;
     }

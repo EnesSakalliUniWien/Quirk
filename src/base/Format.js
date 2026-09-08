@@ -62,19 +62,19 @@ class Format {
       throw new Error("Not a number: '" + text + "'");
     }
     if (text[0] === "-") {
-      return -Format.parseFloat(text.substr(1));
+      return -Format.parseFloat(text.slice(1));
     }
     if (text[0] === "\u221A") {
-      return Math.sqrt(Format.parseFloat(text.substr(1)));
+      return Math.sqrt(Format.parseFloat(text.slice(1)));
     }
 
-    let fraction = match(UNICODE_FRACTIONS, (e) => e.character === text);
+    const fraction = match(UNICODE_FRACTIONS, (e) => e.character === text);
     if (fraction !== undefined) {
       return fraction.value;
     }
 
-    let result = parseFloat(text);
-    if (isNaN(result)) {
+    const result = Number.parseFloat(text);
+    if (Number.isNaN(result)) {
       throw new Error("Not a number: '" + text + "'");
     }
     return result;
@@ -90,12 +90,12 @@ class Format {
       return -Format.simplifyByRounding(-value, epsilon);
     }
 
-    let r = value % 1;
+    const r = value % 1;
     if (r <= epsilon || 1 - r <= epsilon) {
       return Math.round(value);
     }
 
-    let fraction = match(
+    const fraction = match(
       UNICODE_FRACTIONS,
       (e) => Math.abs(e.value - value) <= epsilon,
     );
@@ -103,7 +103,7 @@ class Format {
       return fraction.value;
     }
 
-    let rootFraction = match(
+    const rootFraction = match(
       UNICODE_FRACTIONS,
       (e) => Math.abs(Math.sqrt(e.value) - value) <= epsilon,
     );
@@ -143,7 +143,7 @@ const UNICODE_FRACTIONS = [
  * Returns the first element of an array matching the given predicate, or else returns undefined.
  */
 const match = function (array, predicate) {
-  for (let item of array) {
+  for (const item of array) {
     if (predicate(item)) {
       return item;
     }
@@ -167,7 +167,7 @@ function abbreviateFloat(value, epsilon = 0, digits = undefined) {
     return "-" + abbreviateFloat(-value, epsilon, digits);
   }
 
-  let fraction = match(
+  const fraction = match(
     UNICODE_FRACTIONS,
     (e) => Math.abs(e.value - value) <= epsilon,
   );
@@ -175,7 +175,7 @@ function abbreviateFloat(value, epsilon = 0, digits = undefined) {
     return fraction.character;
   }
 
-  let rootFraction = match(
+  const rootFraction = match(
     UNICODE_FRACTIONS,
     (e) => Math.abs(Math.sqrt(e.value) - value) <= epsilon,
   );

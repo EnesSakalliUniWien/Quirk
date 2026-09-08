@@ -301,7 +301,7 @@ class DisplayedCircuit {
             }
         }
 
-        let gate = this.circuitDefinition.gateInSlot(col, row);
+        const gate = this.circuitDefinition.gateInSlot(col, row);
         if (gate === undefined || this._highlightedSlot !== undefined) {
             return {
                 isResizeShowing: false,
@@ -310,22 +310,22 @@ class DisplayedCircuit {
             };
         }
 
-        let gateRect = this.gateRect(row, col, gate.width, gate.height);
-        let resizeTabRect = rectForResizeTab(gateRect);
+        const gateRect = this.gateRect(row, col, gate.width, gate.height);
+        const resizeTabRect = rectForResizeTab(gateRect);
 
-        let isOverGate = pos => {
-            let overGate = findGateOverlappingPos(this, pos);
+        const isOverGate = pos => {
+            const overGate = findGateOverlappingPos(this, pos);
             return overGate !== undefined && overGate.col === col && overGate.row === row;
         };
-        let isNotCoveredAt = pos => {
-            let g = findGateOverlappingPos(this, pos);
+        const isNotCoveredAt = pos => {
+            const g = findGateOverlappingPos(this, pos);
             return g === undefined || (g.col === col && g.row === row);
         };
-        let isOverGateResizeTab = pos => isNotCoveredAt(pos) && resizeTabRect.containsPoint(pos);
+        const isOverGateResizeTab = pos => isNotCoveredAt(pos) && resizeTabRect.containsPoint(pos);
 
-        let isResizeHighlighted = gate.canChangeInSize() && focusPosPts.some(isOverGateResizeTab);
-        let isHighlighted = !isResizeHighlighted && focusPosPts.some(isOverGate);
-        let isResizeShowing = gate.canChangeInSize() && (isResizeHighlighted || isHighlighted);
+        const isResizeHighlighted = gate.canChangeInSize() && focusPosPts.some(isOverGateResizeTab);
+        const isHighlighted = !isResizeHighlighted && focusPosPts.some(isOverGate);
+        const isResizeShowing = gate.canChangeInSize() && (isResizeHighlighted || isHighlighted);
 
         return {isHighlighted, isResizeShowing, isResizeHighlighted};
     }
@@ -466,16 +466,16 @@ class DisplayedCircuit {
      * @private
      */
     _outputStateAsMatrix(stats) {
-        let numWire = this.importantWireCount();
+        const numWire = this.importantWireCount();
         let buf = stats.finalState.rawBuffer();
         if (stats.circuitDefinition.numWires !== numWire) {
-            let r = new Float32Array(2 << numWire);
+            const r = new Float32Array(2 << numWire);
             r.set(buf.slice(0, r.length));
             buf = r;
         }
 
-        let [colWires, rowWires] = [Math.floor(numWire/2), Math.ceil(numWire/2)];
-        let [colCount, rowCount] = [1 << colWires, 1 << rowWires];
+        const [colWires, rowWires] = [Math.floor(numWire/2), Math.ceil(numWire/2)];
+        const [colCount, rowCount] = [1 << colWires, 1 << rowWires];
         return new Matrix(colCount, rowCount, buf);
     }
 
@@ -500,31 +500,31 @@ class DisplayedCircuit {
      * @returns {!{circuit: !DisplayedCircuit, pts: !Array.<!Point>}}
      */
     static fromTextDiagram(gateMap, diagramText) {
-        let lines = diagramText.split('\n').map(e => {
-            let p = e.split('|');
+        const lines = diagramText.split('\n').map(e => {
+            const p = e.split('|');
             if (p.length !== 2) {
                 throw new DetailedError('Bad diagram', {diagramText, gateMap});
             }
             return p[1];
         });
         // The diagram interleaves content rows and columns with spacer ones; keep the odd indices.
-        let odd = (_, i) => i % 2 === 1;
-        let circuitDiagramSubset = lines.
+        const odd = (_, i) => i % 2 === 1;
+        const circuitDiagramSubset = lines.
             filter(odd).
             map(line => [...line].filter(odd).join("")).
             join('\n');
-        let top = 10;
-        let circuit = new DisplayedCircuit(
+        const top = 10;
+        const circuit = new DisplayedCircuit(
             top,
             CircuitDefinition.fromTextDiagram(gateMap, circuitDiagramSubset),
             undefined,
             undefined,
             undefined);
-        let pts = Seq.naturals().
-            takeWhile(k => diagramText.indexOf(k) !== -1).
+        const pts = Seq.naturals().
+            takeWhile(k => diagramText.includes(k)).
             toArray().
             map(k => {
-                let pos = seq(lines.
+                const pos = seq(lines.
                     map((line, row) => ({row, col: line.indexOf(k)})).
                     filter(e => e.col !== -1)).
                     single();
@@ -550,22 +550,22 @@ class DisplayedCircuit {
  * @returns {!{maxW: !number, maxH: !number}}
  */
 function drawCircuitTooltip(painter, circuitDefinition, rect, showWires, time) {
-    let displayed = new DisplayedCircuit(
+    const displayed = new DisplayedCircuit(
         0,
         circuitDefinition,
         undefined,
         undefined,
         undefined);
-    let neededWidth = displayed.desiredWidth(true);
-    let neededHeight = displayed.desiredHeight(true);
+    const neededWidth = displayed.desiredWidth(true);
+    const neededHeight = displayed.desiredHeight(true);
     let scaleX = rect.w / neededWidth;
     let scaleY = rect.h / neededHeight;
     if (showWires) {
-        let s = Math.min(scaleX, scaleY);
+        const s = Math.min(scaleX, scaleY);
         scaleX = s;
         scaleY = s;
     }
-    let stats = CircuitStats.withNanDataFromCircuitAtTime(circuitDefinition, time);
+    const stats = CircuitStats.withNanDataFromCircuitAtTime(circuitDefinition, time);
     painter.group('circuit-preview', painter => {
         painter.position.set(rect.x, rect.y);
         painter.scale.set(Math.min(1, scaleX), Math.min(1, scaleY));
@@ -577,8 +577,8 @@ function drawCircuitTooltip(painter, circuitDefinition, rect, showWires, time) {
 /**
  * @param {!GateDrawParams} args
  */
-let GATE_CIRCUIT_DRAWER = args => {
-    let circuit = args.gate.knownCircuit;
+const GATE_CIRCUIT_DRAWER = args => {
+    const circuit = args.gate.knownCircuit;
     if (circuit === undefined || args.gate.symbol !== '') {
         if (args.gate.stableDuration() === Infinity) {
             GatePainting.DEFAULT_DRAWER(args);
@@ -588,7 +588,7 @@ let GATE_CIRCUIT_DRAWER = args => {
         return;
     }
 
-    let toolboxColor = args.gate.stableDuration() === Infinity ?
+    const toolboxColor = args.gate.stableDuration() === Infinity ?
         CanvasTheme.surface.gate :
         CanvasTheme.gate.time;
     GatePainting.paintBackground(args, toolboxColor);

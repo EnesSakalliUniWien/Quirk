@@ -28,7 +28,7 @@ const circuitMetrics = {
     gateSize: 2 * Layout.GATE_RADIUS, firstColumnLeft: CIRCUIT_OP_LEFT_SPACING,
     topMargin: Layout.CIRCUIT_TOP_MARGIN, bottomMargin: CIRCUIT_BOTTOM_MARGIN,
     blochRadius: Layout.BLOCH_RADIUS,
-    background: CanvasTheme.surface.background.slice(1).match(/../g).map(v => parseInt(v, 16))
+    background: CanvasTheme.surface.background.slice(1).match(/../g).map(v => Number.parseInt(v, 16))
 };
 
 const DEFAULT_VIEWPORT = {width: 1280, height: 720, deviceScaleFactor: 1};
@@ -67,7 +67,7 @@ async function waitForQuirk(page) {
 // Circuit hashes use URI encoding, so a literal + is a ket sign, not a form-encoded space.
 async function currentCircuit(page) {
     return page.evaluate(() => {
-        const params = new URLSearchParams(document.location.hash.substring(1).replace(/\+/g, '%2B'));
+        const params = new URLSearchParams(document.location.hash.slice(1).replace(/\+/g, '%2B'));
         const jsonText = params.get('circuit');
         return jsonText === null ? {cols: []} : JSON.parse(jsonText);
     });
@@ -77,7 +77,7 @@ async function waitForCircuit(page, expectedCircuit) {
     const expectedJson = JSON.stringify(expectedCircuit);
     await page.waitForFunction(
         expected => {
-            const params = new URLSearchParams(document.location.hash.substring(1).replace(/\+/g, '%2B'));
+            const params = new URLSearchParams(document.location.hash.slice(1).replace(/\+/g, '%2B'));
             const jsonText = params.get('circuit');
             const actual = jsonText === null ? {cols: []} : JSON.parse(jsonText);
             return JSON.stringify(actual) === expected;
@@ -128,7 +128,7 @@ async function withQuirkPage(browser, circuit, body, viewport=DEFAULT_VIEWPORT, 
         await waitForQuirk(page);
         await body(page);
         // Tests that deliberately trigger a recovery allow the reporter's own console line.
-        let unexpectedErrors = browserErrors.filter(e => !allowedConsoleErrors.some(regex => regex.test(e)));
+        const unexpectedErrors = browserErrors.filter(e => !allowedConsoleErrors.some(regex => regex.test(e)));
         assert.deepEqual(unexpectedErrors, [], 'The page must not report browser errors.');
     } catch (error) {
         failure = error;

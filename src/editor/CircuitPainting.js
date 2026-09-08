@@ -71,13 +71,13 @@ function _drawLabelsReasonablyFast(painter, dy, n, labeller, boundingWidth) {
             fontSize: 12,
             fontFamily: Typography.MONO_FONT_FAMILY
         };
-        let w = Math.max(measureText(labeller(0), font).width, measureText(labeller(n - 1), font).width);
-        let h = measureText("0", font).width * 2.5;
-        let scale = Math.min(Math.min((boundingWidth - 2) / w, dy / h), 1);
+        const w = Math.max(measureText(labeller(0), font).width, measureText(labeller(n - 1), font).width);
+        const h = measureText("0", font).width * 2.5;
+        const scale = Math.min(Math.min((boundingWidth - 2) / w, dy / h), 1);
 
         // Row labels.
-        let step = dy / scale;
-        let pad = 1 / scale;
+        const step = dy / scale;
+        const pad = 1 / scale;
         painter.scale.set(scale, scale);
         painter.position.set(0, dy * 0.5 - scale * h * 0.5);
         if (h < step * 0.95) {
@@ -104,14 +104,14 @@ function _drawLabelsReasonablyFast(painter, dy, n, labeller, boundingWidth) {
     });
 }
 
-let _cachedRowLabelDrawer = new BasisLabels(
+const _cachedRowLabelDrawer = new BasisLabels(
     numWire => ({
         width: SUPERPOSITION_GRID_LABEL_SPAN,
         height: (numWire - 1) * Layout.WIRE_SPACING + Layout.GATE_RADIUS * 2
     }),
     (painter, numWire) => {
-        let [colWires, rowWires] = [Math.floor(numWire/2), Math.ceil(numWire/2)];
-        let rowCount = 1 << rowWires;
+        const rowWires = Math.ceil(numWire/2);
+        const rowCount = 1 << rowWires;
         _drawLabelsReasonablyFast(
             painter,
             drawingArea(painter).h / rowCount,
@@ -121,21 +121,21 @@ let _cachedRowLabelDrawer = new BasisLabels(
             SUPERPOSITION_GRID_LABEL_SPAN);
     });
 
-let _cachedColLabelDrawer = new BasisLabels(
+const _cachedColLabelDrawer = new BasisLabels(
     numWire => {
-        let [colWires, rowWires] = [Math.floor(numWire/2), Math.ceil(numWire/2)];
-        let [colCount, rowCount] = [1 << colWires, 1 << rowWires];
-        let total_height = (numWire - 1) * Layout.WIRE_SPACING + Layout.GATE_RADIUS * 2;
-        let cellDiameter = total_height / rowCount;
+        const [colWires, rowWires] = [Math.floor(numWire/2), Math.ceil(numWire/2)];
+        const [colCount, rowCount] = [1 << colWires, 1 << rowWires];
+        const total_height = (numWire - 1) * Layout.WIRE_SPACING + Layout.GATE_RADIUS * 2;
+        const cellDiameter = total_height / rowCount;
         return {
             width: colCount * cellDiameter,
             height: SUPERPOSITION_GRID_LABEL_SPAN
         }
     },
     (painter, numWire) => {
-        let [colWires, rowWires] = [Math.floor(numWire/2), Math.ceil(numWire/2)];
-        let colCount = 1 << colWires;
-        let dw = drawingArea(painter).w / colCount;
+        const colWires = Math.floor(numWire/2);
+        const colCount = 1 << colWires;
+        const dw = drawingArea(painter).w / colCount;
 
         painter.position.set(colCount*dw, 0);
         painter.rotation = Math.PI/2;
@@ -194,7 +194,7 @@ function drawPlayheadBand(circuit, painter, playheadStep) {
         return;
     }
 
-    let rect = circuit.gateRect(0, playheadStep, 1, circuit.geometry().groundedWireCount()).paddedBy(3);
+    const rect = circuit.gateRect(0, playheadStep, 1, circuit.geometry().groundedWireCount()).paddedBy(3);
     rectangle(painter, rect, {fill: CanvasTheme.interaction.playheadBand});
     strokePath(painter, [rect.topLeft(), rect.bottomLeft()], CanvasTheme.interaction.playhead, 2);
 }
@@ -206,19 +206,19 @@ function drawPlayheadBand(circuit, painter, playheadStep) {
  * @param {!Hand} hand
  */
 function drawWires(circuit, painter, showLabels, hand) {
-    let drawnWireCount = Math.min(circuit.circuitDefinition.numWires, (circuit.geometry().extraWireStartIndex || Infinity) + 1);
+    const drawnWireCount = Math.min(circuit.circuitDefinition.numWires, (circuit.geometry().extraWireStartIndex || Infinity) + 1);
 
     // Initial value labels
     if (showLabels) {
         for (let row = 0; row < drawnWireCount; row++) {
-            let wireRect = circuit.wireRect(row);
-            let y = wireRect.center().y;
+            const wireRect = circuit.wireRect(row);
+            const y = wireRect.center().y;
             let v = circuit.circuitDefinition.customInitialValues.get(row);
             if (v === undefined) {
                 v = '0';
             }
-            let rect = wireInitialStateClickableRect(circuit, row);
-            let indexRect = circuit.geometry().wireIndexRect(row);
+            const rect = wireInitialStateClickableRect(circuit, row);
+            const indexRect = circuit.geometry().wireIndexRect(row);
             fitText(painter, `q${row}`, {
                 x: indexRect.x,
                 y,
@@ -253,13 +253,13 @@ function drawWires(circuit, painter, showLabels, hand) {
         painter.group('wire-' + row, painter => {
             painter.alpha = row >= circuit.geometry().extraWireStartIndex ? 0.5 : 1;
             const segments = [[], []];
-            let wireRect = circuit.wireRect(row);
-            let y = Math.round(wireRect.center().y - 0.5) + 0.5;
+            const wireRect = circuit.wireRect(row);
+            const y = Math.round(wireRect.center().y - 0.5) + 0.5;
             let lastX = showLabels ? circuit.geometry().wireInitialStateRect(row).right() : 5;
             // Wires terminate at the superposition display instead of running to the canvas's right edge.
-            let wireEndX = showLabels ? circuit.geometry().rectForSuperpositionDisplay().x - 4 : Infinity;
+            const wireEndX = showLabels ? circuit.geometry().rectForSuperpositionDisplay().x - 4 : Infinity;
             for (let col = 0; showLabels ? lastX < wireEndX : col <= circuit.circuitDefinition.columns.length; col++) {
-                let x = Math.min(circuit.opRect(col).center().x, wireEndX);
+                const x = Math.min(circuit.opRect(col).center().x, wireEndX);
                 if (circuit.circuitDefinition.locIsMeasured(new Point(col, row))) {
                     // Measured wire.
                     segments[1].push([lastX, y - 1, x, y - 1]);
@@ -286,8 +286,8 @@ function drawWires(circuit, painter, showLabels, hand) {
     if (showLabels &&
             circuit.geometry().extraWireStartIndex === undefined &&
             circuit.circuitDefinition.numWires < Simulation.MAX_WIRE_COUNT) {
-        let hintY = Math.round(circuit.wireRect(drawnWireCount).center().y - 0.5) + 0.5;
-        let hintRect = circuit.geometry().wireInitialStateRect(drawnWireCount);
+        const hintY = Math.round(circuit.wireRect(drawnWireCount).center().y - 0.5) + 0.5;
+        const hintRect = circuit.geometry().wireInitialStateRect(drawnWireCount);
         painter.group('wire-hint-' + painter.order, painter => {
             strokePath(painter, [new Point(hintRect.right(), hintY), new Point(circuit.opRect(1).right(), hintY)], CanvasTheme.stroke.faint, 1, [4, 4]);
         });
@@ -326,7 +326,7 @@ function drawWires(circuit, painter, showLabels, hand) {
  * @param {!boolean} isHighlighted
  */
 function drawGate_disabledReason(circuit, painter, col, row, gateRect, isHighlighted) {
-    let isDisabledReason = circuit.circuitDefinition.gateAtLocIsDisabledReason(col, row);
+    const isDisabledReason = circuit.circuitDefinition.gateAtLocIsDisabledReason(col, row);
     if (isDisabledReason === undefined) {
         return;
     }
@@ -364,13 +364,13 @@ function drawColumn(circuit, painter, gateColumn, col, hand, stats) {
         if (gateColumn.gates[row] === undefined) {
             continue;
         }
-        let gate = gateColumn.gates[row];
-        let gateRect = circuit.geometry().gateDrawRect(row, col, gate);
+        const gate = gateColumn.gates[row];
+        const gateRect = circuit.geometry().gateDrawRect(row, col, gate);
 
-        let {isHighlighted, isResizeShowing, isResizeHighlighted} =
+        const {isHighlighted, isResizeShowing, isResizeHighlighted} =
             circuit._highlightStatusAt(col, row, hand.hoverPoints());
 
-        let drawer = gate.customDrawer || GatePainting.DEFAULT_DRAWER;
+        const drawer = gate.customDrawer || GatePainting.DEFAULT_DRAWER;
         painter.interaction.block({rect: gateRect, cursor: 'pointer'});
         if (gate.canChangeInSize()) {
             painter.interaction.block({rect: rectForResizeTab(gateRect), cursor: 'ns-resize'});
@@ -400,28 +400,28 @@ function drawColumnSurvivalRate(circuit, painter, gateColumn, col, stats) {
         return;
     }
 
-    let preRate = stats.survivalRate(col - 1);
-    let postRate = stats.survivalRate(col);
+    const preRate = stats.survivalRate(col - 1);
+    const postRate = stats.survivalRate(col);
 
-    let marginalRate = (postRate - preRate) / preRate;
-    if (isNaN(marginalRate) || Math.abs(marginalRate) <= 0.005) {
+    const marginalRate = (postRate - preRate) / preRate;
+    if (Number.isNaN(marginalRate) || Math.abs(marginalRate) <= 0.005) {
         return;
     }
 
     let descAmount;
     let descCategory;
     if (marginalRate < 0) {
-        let rate = Math.round(-marginalRate * 100);
-        let rateDesc = marginalRate === -1 ? "100" : rate < 100 ? rate : ">99";
+        const rate = Math.round(-marginalRate * 100);
+        const rateDesc = marginalRate === -1 ? "100" : rate < 100 ? rate : ">99";
         descAmount = `${rateDesc}%`;
         descCategory = 'omits';
     } else {
-        let factor = Math.round(marginalRate * 100 + 100);
+        const factor = Math.round(marginalRate * 100 + 100);
         descAmount = `${factor}%`;
         descCategory = 'gains';
     }
 
-    let pt = circuit.opRect(col).bottomCenter();
+    const pt = circuit.opRect(col).bottomCenter();
     fitText(painter, descCategory, {
         x: pt.x,
         y: pt.y - 28,
@@ -448,7 +448,7 @@ function drawColumnDragHighlight(circuit, painter, col) {
     if (circuit._highlightedSlot !== undefined &&
         circuit._highlightedSlot.col === col &&
         circuit._highlightedSlot.row === undefined) {
-        let rect = circuit.gateRect(0, col, 1, circuit.geometry().groundedWireCount()).paddedBy(3);
+        const rect = circuit.gateRect(0, col, 1, circuit.geometry().groundedWireCount()).paddedBy(3);
         rectangle(painter, rect, {fill: CanvasTheme.interaction.drop});
         rectangle(painter, rect, {stroke: {color: CanvasTheme.text.primary, width: 1}});
     }
@@ -463,9 +463,9 @@ function drawRowDragHighlight(circuit, painter) {
             circuit._highlightedSlot.col === undefined &&
             circuit._highlightedSlot.row !== undefined) {
 
-        let row = circuit._highlightedSlot.row;
-        let w = circuit.gateRect(row, circuit.clampedCircuitColCount() + 1).x;
-        let rect = circuit.wireRect(row).takeLeft(w);
+        const row = circuit._highlightedSlot.row;
+        const w = circuit.gateRect(row, circuit.clampedCircuitColCount() + 1).x;
+        const rect = circuit.wireRect(row).takeLeft(w);
         rectangle(painter, rect, {fill: CanvasTheme.interaction.drop});
         rectangle(painter, rect, {stroke: {color: CanvasTheme.text.primary, width: 1}});
     }
@@ -477,7 +477,7 @@ function drawRowDragHighlight(circuit, painter) {
  * @param {!int} columnIndex
  */
 function drawColumnControlWires(circuit, painter, columnIndex) {
-    let x = Math.round(circuit.opRect(columnIndex).center().x - 0.5) + 0.5;
+    const x = Math.round(circuit.opRect(columnIndex).center().x - 0.5) + 0.5;
 
     // Dashed line indicates effects from non-unitary gates may affect, or appear to affect, other wires.
     if (circuit.circuitDefinition.columns[columnIndex].hasGatesWithGlobalEffects()) {
@@ -486,9 +486,9 @@ function drawColumnControlWires(circuit, painter, columnIndex) {
         });
     }
 
-    for (let {first, last, measured} of circuit.circuitDefinition.controlLinesRanges(columnIndex)) {
-        let y1 =  circuit.wireRect(first).center().y;
-        let y2 = circuit.wireRect(last).center().y;
+    for (const {first, last, measured} of circuit.circuitDefinition.controlLinesRanges(columnIndex)) {
+        const y1 =  circuit.wireRect(first).center().y;
+        const y2 = circuit.wireRect(last).center().y;
         if (measured) {
             strokePath(painter, [new Point(x+1, y1), new Point(x+1, y2)], CanvasTheme.iqp.classicalWire, 1);
             strokePath(painter, [new Point(x-1, y1), new Point(x-1, y2)], CanvasTheme.iqp.classicalWire, 1);
@@ -507,16 +507,16 @@ function drawColumnControlWires(circuit, painter, columnIndex) {
  * @param {!Hand} hand
  */
 function drawOutputDisplays(circuit, painter, stats, hand) {
-    let chanceCol = circuit.clampedCircuitColCount() + 1;
-    let blochCol = chanceCol + 1;
-    let numWire = circuit.importantWireCount();
+    const chanceCol = circuit.clampedCircuitColCount() + 1;
+    const blochCol = chanceCol + 1;
+    const numWire = circuit.importantWireCount();
 
     for (let i = 0; i < numWire; i++) {
-        let p = stats.controlledWireProbabilityJustAfter(i, Infinity);
+        const p = stats.controlledWireProbabilityJustAfter(i, Infinity);
         painter.group('probability-' + i, view => MathPainter.paintProbabilityBox(view, p, circuit.gateRect(i, chanceCol), hand.hoverPoints()));
-        let m = stats.qubitDensityMatrix(Infinity, i);
+        const m = stats.qubitDensityMatrix(Infinity, i);
         if (m !== undefined) {
-            let blochRect = CircuitGeometry.blochDisplayRect(circuit.gateRect(i, blochCol));
+            const blochRect = CircuitGeometry.blochDisplayRect(circuit.gateRect(i, blochCol));
             painter.group('bloch-' + i, view => paintBlochSphereDisplay(view, m, blochRect, hand.hoverPoints()));
             // Clicking a sphere opens the enlarged Bloch view; the cursor is the affordance.
             if (hand.hoverPoints().some(pt => blochRect.containsPoint(pt))) {
@@ -525,10 +525,10 @@ function drawOutputDisplays(circuit, painter, stats, hand) {
         }
     }
 
-    let bottom = circuit.wireRect(numWire-1).bottom();
-    let capX = circuit.opRect(chanceCol).x - 35;
+    const bottom = circuit.wireRect(numWire-1).bottom();
+    const capX = circuit.opRect(chanceCol).x - 35;
     // Keep the caption clear of the superposition grid's rotated column labels.
-    let capW = Math.min(160, circuit.geometry().rectForSuperpositionDisplay().x - capX - 10);
+    const capW = Math.min(160, circuit.geometry().rectForSuperpositionDisplay().x - capX - 10);
     fitParagraph(painter, "Local wire states\n(Chance/Bloch)", new Rect(capX, bottom + 8, capW, 40), {
         alignment: new Point(0.5, 0),
         fill: CanvasTheme.text.muted
@@ -546,10 +546,10 @@ function drawOutputDisplays(circuit, painter, stats, hand) {
  * @param {!Hand} hand
  */
 function drawOutputSuperpositionDisplay(circuit, painter, stats, hand) {
-    let amplitudeGrid = circuit._outputStateAsMatrix(stats);
-    let gridRect = circuit.geometry().rectForSuperpositionDisplay();
+    const amplitudeGrid = circuit._outputStateAsMatrix(stats);
+    const gridRect = circuit.geometry().rectForSuperpositionDisplay();
 
-    let numWire = circuit.importantWireCount();
+    const numWire = circuit.importantWireCount();
     MathPainter.paintMatrix(
         painter,
         amplitudeGrid,
@@ -559,7 +559,7 @@ function drawOutputSuperpositionDisplay(circuit, painter, stats, hand) {
         numWire < Simulation.SIMPLE_SUPERPOSITION_DRAWING_WIRE_THRESHOLD ? CanvasTheme.amplitude.fill : undefined,
         CanvasTheme.amplitude.background,
         numWire < Simulation.SIMPLE_SUPERPOSITION_DRAWING_WIRE_THRESHOLD ? phaseColor : undefined);
-    let forceSign = v => (v >= 0 ? '+' : '') + v.toFixed(2);
+    const forceSign = v => (v >= 0 ? '+' : '') + v.toFixed(2);
     MathPainter.paintMatrixTooltip(painter, amplitudeGrid, gridRect, hand.hoverPoints(),
         (c, r) => `Amplitude of |${Util.bin(r*amplitudeGrid.width() + c, numWire)}⟩ (decimal ${r*amplitudeGrid.width() + c})`,
         (c, r, v) => 'val:' + v.toString(new Format(false, 0, 5, ", ")),
@@ -573,8 +573,8 @@ function drawOutputSuperpositionDisplay(circuit, painter, stats, hand) {
  * @param {!DisplayView} painter
  */
 function drawOutputSuperpositionDisplay_labels(circuit, painter) {
-    let gridRect = circuit.geometry().rectForSuperpositionDisplay();
-    let numWire = circuit.importantWireCount();
+    const gridRect = circuit.geometry().rectForSuperpositionDisplay();
+    const numWire = circuit.importantWireCount();
     _cachedRowLabelDrawer.paint(gridRect.right(), gridRect.y, painter, numWire);
     _cachedColLabelDrawer.paint(gridRect.x, gridRect.bottom(), painter, numWire);
 }
@@ -587,7 +587,7 @@ function drawOutputSuperpositionDisplay_labels(circuit, painter) {
  * @param {!CircuitStats} stats
  */
 function drawHintLabels(circuit, painter, stats) {
-    let gridRect = circuit.geometry().rectForSuperpositionDisplay();
+    const gridRect = circuit.geometry().rectForSuperpositionDisplay();
 
     // Amplitude hint.
     fitText(painter, 'Final amplitudes', {
@@ -621,17 +621,17 @@ function drawHintLabels(circuit, painter, stats) {
     }
 
     // Discard rate warning.
-    let survivalRate = stats.survivalRate(Infinity);
+    const survivalRate = stats.survivalRate(Infinity);
     if (Math.abs(survivalRate - 1) > 0.01) {
         let desc;
         if (survivalRate < 1) {
-            let rate = Math.round(survivalRate * 100);
-            let rateDesc = survivalRate === 0 ? "0" :
+            const rate = Math.round(survivalRate * 100);
+            const rateDesc = survivalRate === 0 ? "0" :
                 rate > 0 ? rate :
                 "<1";
             desc = `kept: ${rateDesc}%`;
         } else {
-            let factor = Math.round(survivalRate * 100);
+            const factor = Math.round(survivalRate * 100);
             desc = `over-unity: ${factor}%`;
         }
         fitText(painter, desc, {
