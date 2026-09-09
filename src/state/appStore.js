@@ -15,31 +15,19 @@
  */
 
 import {createStore} from "zustand/vanilla"
-import {Observable} from "../base/Obs.js"
 
 /**
  * The shell's UI state, in one zustand store that the React components read with `useStore` and
  * the plain modules read with `appStore.getState()` and `appStore.subscribe()`.
  *
  * The circuit itself is not here: it lives in the Revision and the DisplayedInspector observable.
- * This store holds what the chrome shows and which model instances its buttons act on.
+ * Panel layout is not here either: it belongs to the layout manager.
  */
 const appStore = createStore((set) => ({
-    /** @type {undefined|!string} The overlay that is open, or undefined for none. */
-    activeOverlay: "menu",
-    /** @param {!string} name */
-    openOverlay: name => set({activeOverlay: name}),
-    closeOverlay: () => set({activeOverlay: undefined}),
-
     /** @type {!number} The circuit camera's zoom factor; 1 is the natural drawing size. */
     zoom: 1,
     /** @param {!number} zoom Already clamped by the camera. */
     setZoom: zoom => set({zoom}),
-
-    /** @type {!Object.<!string, !string>} Overlay name -> the snap zone it is docked into. */
-    dockModes: {},
-    /** @param {!Object.<!string, !string>} dockModes */
-    setDockModes: dockModes => set({dockModes}),
 
     /** What the circuit action buttons may do right now. Mirrored from CircuitActions. */
     circuitAvailability: {canUndo: false, canRedo: false, canClearCircuit: false, canClearAll: false},
@@ -51,26 +39,36 @@ const appStore = createStore((set) => ({
         step: 0, columnCount: 0, playing: false, canPlay: false, canStepBack: false, canStepForward: false},
     /** @type {undefined|!Playhead} Set once by startQuirk. */
     playhead: undefined,
+
+    /** The gate palette's pipelines. Undefined until the circuit panel has started the circuit.
+     *  @type {undefined|!{obsCustomGateSet: !Observable, mostRecentStats: !ObservableValue,
+     *      onGrab: !function(!Gate, !PointerEvent): void, onPlace: !function(!Gate): void}} */
+    gateToolbox: undefined,
+
+    /** @type {!boolean} False until the first frame is about to be painted; the shell hides itself
+     *  until then rather than showing a half-built app. */
+    booted: false,
+
+    /** @type {undefined|!Object} The dock's api, set once the layout manager is ready. Panels are
+     *  opened and closed through src/components/dock.jsx, which reads it from here. */
+    dock: undefined,
+
+    /** @type {undefined|!HTMLElement} The circuit cell, published by the circuit panel. The gate
+     *  palette's narrow-viewport trigger floats over it from outside the dock. */
+    circuitArea: undefined,
+
+    /** What the panels read the circuit through. Published once by startQuirk.
+     *  @type {undefined|!{revision: !Revision, displayed: !ObservableValue,
+     *      mostRecentStats: !ObservableValue, playheadStats: !ObservableValue,
+     *      cycleTime: !function(): !number}} */
+    panelDeps: undefined,
+
+    /** @type {undefined|!{col: !int, row: !int, gate: !Gate}} The gate the parameter panel edits,
+     *  set by the click that opens it. Transient, so it is not part of the dock's layout. */
+    gateParamTarget: undefined,
+
+    /** @type {undefined|!{row: !int, col: (undefined|!int)}} The sphere the Bloch panel enlarges. */
+    blochTarget: undefined,
 }));
 
-/**
- * Exposes one field of the store as an Observable in the style of src/base/Obs.js: the current
- * value on subscribe, then every change. For the plain modules that still speak Observable.
- *
- * @param {!function(!Object): T} selector
- * @returns {!Observable.<T>}
- * @template T
- */
-function observeAppStore(selector) {
-    return new Observable(observer => {
-        observer(selector(appStore.getState()));
-        return appStore.subscribe((state, previous) => {
-            const next = selector(state);
-            if (next !== selector(previous)) {
-                observer(next);
-            }
-        });
-    });
-}
-
-export {appStore, observeAppStore}
+export {appStore}

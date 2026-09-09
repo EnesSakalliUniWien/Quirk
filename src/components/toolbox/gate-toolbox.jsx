@@ -1,16 +1,14 @@
 import { memo, useEffect, useMemo, useRef, useState } from "react";
-import { useStore } from "zustand";
-
-import { appStore } from "../../state/appStore.js";
-import { createPortal, flushSync } from "react-dom";
-import { createRoot } from "react-dom/client";
+import { createPortal } from "react-dom";
 
 import { AtomIcon, BookOpenIcon, SearchIcon, BlocksIcon } from "lucide-react";
 import { ScrollArea } from "@base-ui/react/scroll-area";
 import { Drawer } from "@base-ui/react/drawer";
 
-import { Button } from "@/components/ui/button";
 
+import { Button } from "@/components/ui/button";
+import { openPanel } from "../dock.jsx";
+import { useObservedValue } from "../useObservedValue.js";
 import { gateStyle } from "../../config/CanvasTheme.js";
 import { Gates } from "../../gates/AllGates.js";
 import {
@@ -36,23 +34,6 @@ const COMPACT_MEDIA_QUERY = "(max-width: 920px)";
  * imperative: they are drawn by the same painter the circuit uses.
  */
 
-/**
- * @param {!Observable.<*>} observable
- * @returns {*} The observable's latest value; Quirk observables emit their current value on
- *     subscribe, so the initial render already has one.
- */
-function useObservedValue(observable) {
-  const [value, setValue] = useState(() => {
-    // Seed synchronously: the effect's subscription would leave the first paint empty.
-    let initial = undefined;
-    observable.subscribe((latest) => {
-      initial = latest;
-    })();
-    return initial;
-  });
-  useEffect(() => observable.subscribe(setValue), [observable]);
-  return value;
-}
 
 /** @returns {!boolean} */
 function useMediaQuery(query) {
@@ -161,65 +142,32 @@ function GateTile({
   );
 }
 
-// Opens the welcome menu. Disabled while any overlay is open, like the toolbar buttons; it reads
-// that from the app store so a remount of the drawer starts in the right state.
-function MenuButton() {
-  const overlayOpen = useStore(appStore, (s) => s.activeOverlay !== undefined);
-  const openOverlay = useStore(appStore, (s) => s.openOverlay);
-  return (
-    <Button
-      id="menu-button"
-      size="icon"
-      className="sidebar-menu-button"
-      aria-label="Menu"
-      title="Menu"
-      disabled={overlayOpen}
-      onClick={() => openOverlay("menu")}
-    >
-      <BookOpenIcon strokeWidth={1.5} aria-hidden="true" />
-    </Button>
-  );
-}
-
 // Renders once: memo with zero props keeps React away from this subtree while the toolbox
-// re-renders around it, so the adopted toolbar root below is never re-parented. The menu button
-// is its own component and re-renders on its own.
+// re-renders around it.
 const SidebarHeader = memo(function SidebarHeader() {
-  // The circuit actions toolbar is its own render-once React island, mounted once into
-  // #app-toolbar-root at startup. The sidebar ADOPTS that root here and parks it back in
-  // #chrome-stash on unmount, so the drawer's mount-on-open below 920px never recreates the
-  // buttons the src/app modules hold by id — the dialog panels' stash pattern, applied to
-  // chrome.
-  const adoptToolbar = (slot) => {
-    if (slot === null) {
-      return undefined;
-    }
-    // Captured, not re-queried: by the time the cleanup runs the sidebar subtree is
-    // already detached, so getElementById can no longer find the adopted root.
-    const toolbarRoot = document.getElementById("app-toolbar-root");
-    slot.appendChild(toolbarRoot);
-    return () => {
-      document.getElementById("chrome-stash").appendChild(toolbarRoot);
-    };
-  };
-
   return (
-    <>
-      <div className="sidebar-brand">
-        <span className="app-brand-mark" aria-hidden="true">
-          <AtomIcon strokeWidth={1.5} />
-        </span>
-        <span className="app-brand-copy">
-          <strong>Shadow-Quant</strong>
-        </span>
-        <MenuButton />
-      </div>
-      <div className="sidebar-actions" ref={adoptToolbar} />
-    </>
+    <div className="sidebar-brand">
+      <span className="app-brand-mark" aria-hidden="true">
+        <AtomIcon strokeWidth={1.5} />
+      </span>
+      <span className="app-brand-copy">
+        <strong>Shadow-Quant</strong>
+      </span>
+      <Button
+        id="menu-button"
+        size="icon"
+        className="sidebar-menu-button"
+        aria-label="Menu"
+        title="Menu"
+        onClick={() => openPanel("menu")}
+      >
+        <BookOpenIcon strokeWidth={1.5} aria-hidden="true" />
+      </Button>
+    </div>
   );
 });
 
-function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace }) {
+function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace, searchRef }) {
   const customGateSet = useObservedValue(obsCustomGateSet);
   const [query, setQuery] = useState("");
   const [stopKey, setStopKey] = useState(undefined);
@@ -339,6 +287,7 @@ function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace }) {
           />
           <input
             id="gate-search"
+            ref={searchRef}
             type="search"
             className="gate-toolbox-search-input"
             data-slot="sidebar-input"
@@ -429,10 +378,14 @@ function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace }) {
 /**
  * Wide layouts get the sidebar in the flex row; narrow ones get a floating trigger that opens
  * the same palette as an off-canvas drawer, instead of a band squeezing the circuit down.
+ *
+ * @param {!{circuitArea: undefined|!HTMLElement}} props circuitArea is where the drawer's trigger
+ *     is portalled to, so it floats over the canvas's corner.
  */
-function ResponsiveGateToolbox(props) {
+function ResponsiveGateToolbox({ circuitArea, ...props }) {
   const compact = useMediaQuery(COMPACT_MEDIA_QUERY);
   const [open, setOpen] = useState(false);
+  const searchRef = useRef(null);
 
   if (!compact) {
     return <GateToolbox {...props} />;
@@ -448,25 +401,26 @@ function ResponsiveGateToolbox(props) {
   // React position stays under the drawer root that gives it its behavior.
   return (
     <Drawer.Root open={open} onOpenChange={setOpen} swipeDirection="left">
-      {createPortal(
-        <Drawer.Trigger
-          className="gate-toolbox-drawer-trigger"
-          aria-label="Open the gate palette"
-        >
-          <BlocksIcon strokeWidth={1.5} aria-hidden="true" />
-          Gates
-        </Drawer.Trigger>,
-        document.getElementById("circuit-area"),
-      )}
+      {circuitArea !== undefined &&
+        createPortal(
+          <Drawer.Trigger
+            className="gate-toolbox-drawer-trigger"
+            aria-label="Open the gate palette"
+          >
+            <BlocksIcon strokeWidth={1.5} aria-hidden="true" />
+            Gates
+          </Drawer.Trigger>,
+          circuitArea,
+        )}
       <Drawer.Portal>
         <Drawer.Backdrop className="dialog-overlay" />
         <Drawer.Viewport className="gate-toolbox-drawer-viewport">
           <Drawer.Popup
             className="gate-toolbox-drawer-popup"
             aria-label="Gate palette"
-            initialFocus={() => document.getElementById("gate-search")}
+            initialFocus={() => searchRef.current}
           >
-            <GateToolbox {...props} onGrab={grabAndClose} />
+            <GateToolbox {...props} onGrab={grabAndClose} searchRef={searchRef} />
           </Drawer.Popup>
         </Drawer.Viewport>
       </Drawer.Portal>
@@ -474,25 +428,4 @@ function ResponsiveGateToolbox(props) {
   );
 }
 
-let gateToolboxRoot;
-
-/**
- * @param {!{obsCustomGateSet: !Observable, mostRecentStats: !ObservableValue,
- *     onGrab: !function(!Gate, !PointerEvent): void, onPlace: !function(!Gate): void}} deps
- */
-function mountGateToolbox(deps) {
-  const container = document.getElementById("gate-toolbox-root");
-  if (container === null) {
-    throw new Error("Couldn't find 'gate-toolbox-root'");
-  }
-  if (gateToolboxRoot !== undefined) {
-    throw new Error("The gate toolbox has already been mounted.");
-  }
-
-  flushSync(() => {
-    gateToolboxRoot = createRoot(container);
-    gateToolboxRoot.render(<ResponsiveGateToolbox {...deps} />);
-  });
-}
-
-export { mountGateToolbox };
+export { ResponsiveGateToolbox };

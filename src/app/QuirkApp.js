@@ -21,45 +21,39 @@ import {Revision} from "../base/Revision.js"
 import {fromJsonText_CircuitDefinition} from "../serialization/Serializer.js"
 import {Util} from "../base/Util.js"
 import {ObservableValue} from "../base/Obs.js"
-import {initExports} from "./dialogs/exports.js"
-import {initForge} from "./dialogs/forge.js"
-import {initMenu} from "./dialogs/menu.js"
 import {CircuitActions} from "./state/CircuitActions.js"
 import {Playhead} from "./state/Playhead.js"
-import {initStateTable} from "./dialogs/stateTable.js"
-import {mountGateToolbox} from "../components/toolbox/gate-toolbox.jsx"
 import {initToolboxDrag, initToolboxKeyboardPlace} from "./canvas/toolboxDrag.js"
 import {initRedrawLoop} from "./canvas/redrawLoop.js"
 import {initCanvasPointer} from "./canvas/canvasPointer.js"
-import {scheduleBoot} from "./session/boot.js"
-import {mountAppDialogs} from "../components/dialogs/app-dialogs.jsx"
-import {OverlayState} from "./state/OverlayState.js"
+import {scheduleBoot, shouldShowWelcome} from "./session/boot.js"
 import {initUrlCircuitSync} from "./session/url.js"
 import {initTitleSync} from "./session/title.js"
 import {Simulator} from "./state/Simulator.js"
 import {circuitZoom, initZoomControls, attachCircuitScrollSource} from "./canvas/zoom.js"
 import {initMinimap} from "./canvas/minimap.js"
-import {initGateParamDialog} from "./dialogs/gateParamDialog.js"
-import {initBlochSphereDialog} from "./dialogs/blochSphereDialog.js"
 import {noteCircuitEdited} from "../diagnostics/errorReporter.js"
-import {initDialogSnap, notifyDialogOpened} from "./dialogs/dialogSnap.js"
 import {appStore} from "../state/appStore.js"
 
 /**
- * Starts Quirk after its document elements are available. Must be called exactly once.
+ * Starts Quirk once the shell has mounted the circuit's elements. Must be called exactly once.
+ *
+ * Every element it works on is handed in: nothing here looks the DOM up, and nothing here mounts
+ * any UI. What the shell needs back is published through the app store, the way the circuit
+ * actions and the playhead already are.
+ *
+ * @param {!{canvas: !HTMLCanvasElement, canvasDiv: !HTMLElement, scrollSpacer: !HTMLElement,
+ *     circuitOverlay: !HTMLElement, onReady: !function(): void,
+ *     openGateParamEditor: !function(!{col: !int, row: !int, gate: !Gate}): void,
+ *     openBlochSphereView: !function(!{row: !int, col: (undefined|!int)}): void,
+ *     showWelcome: !function(): void}} shell
  * @returns {void}
  */
-function startQuirk() {
+function startQuirk({canvas, canvasDiv, scrollSpacer, circuitOverlay, onReady,
+                     openGateParamEditor, openBlochSphereView, showWelcome}) {
     // The one simulator: the animation cycle's phase and the stats caches are app-wide state.
     const simulator = new Simulator();
 
-    const canvasDiv = document.getElementById("canvasDiv");
-
-    /** @type {!HTMLCanvasElement} */
-    const canvas = document.getElementById("drawCanvas");
-    if (!canvas) {
-        throw new Error("Couldn't find 'drawCanvas'");
-    }
     // A placeholder size for the pre-boot inspector; the first redraw sizes the canvas to fit.
     canvas.width = canvasDiv.clientWidth;
     /** @type {ObservableValue.<!DisplayedInspector>} */
@@ -70,15 +64,10 @@ function startQuirk() {
      *  number of wires the circuit shows.
      *  @type {ObservableValue.<!{stats: !CircuitStats, wireCount: !int}>} */
     const playheadStats = new ObservableValue({stats: CircuitStats.EMPTY, wireCount: 0});
-    const overlayState = new OverlayState();
-    // Mounted before anything that looks the dialogs' elements up by id.
-    initDialogSnap();
-    mountAppDialogs(overlayState, notifyDialogOpened);
     const playhead = new Playhead(
         displayed.observable().
             map(e => e.displayedCircuit.circuitDefinition.columns.length).
-            whenDifferent(),
-        overlayState);
+            whenDifferent());
     /** @type {!Revision} */
     const revision = Revision.startingAt(displayed.get().snapshot());
 
@@ -122,6 +111,7 @@ function startQuirk() {
     const redrawLoop = initRedrawLoop(
         canvas,
         canvasDiv,
+        scrollSpacer,
         displayed,
         simulator,
         playhead,
@@ -133,22 +123,17 @@ function startQuirk() {
     // The canvas is pinned to the scroll container's visible corner, so pointer positions only
     // become circuit coordinates after the container's scroll is added back.
     attachCircuitScrollSource(canvasDiv);
-    const openGateParamEditor = initGateParamDialog(revision, displayed, overlayState);
-    const openBlochSphereView = initBlochSphereDialog(displayed, mostRecentStats, overlayState);
     initCanvasPointer(
         canvas, canvasDiv, revision, displayed, syncArea, openGateParamEditor, openBlochSphereView);
 
-    const circuitActions = new CircuitActions(revision, overlayState);
+    const circuitActions = new CircuitActions(revision);
     // The toolbar and transport components act on these through the store, and show what they
     // may do from the mirrored availability and playhead state.
     appStore.setState({circuitActions, playhead});
     circuitActions.availability().subscribe(circuitAvailability => appStore.setState({circuitAvailability}));
     playhead.state().subscribe(playheadState => appStore.setState({playheadState}));
     initUrlCircuitSync(revision);
-    initExports(revision, mostRecentStats, overlayState);
-    initForge(revision, overlayState, () => simulator.cycleTime());
-    initStateTable(playheadStats);
-    mountGateToolbox({
+    const gateToolbox = /** @type {!Object} */ ({
         // Compared by content, not identity: every commit deserializes a fresh CustomGateSet, and
         // rebuilding the toolbox for each one would recreate every tile and drop keyboard focus.
         obsCustomGateSet: displayed.observable().
@@ -158,19 +143,30 @@ function startQuirk() {
         onGrab: initToolboxDrag(canvas, revision, displayed, syncArea),
         onPlace: initToolboxKeyboardPlace(revision, displayed, syncArea),
     });
-    initMenu(revision, overlayState);
+    appStore.setState({
+        gateToolbox,
+        panelDeps: {revision, displayed, mostRecentStats, playheadStats,
+                    cycleTime: () => simulator.cycleTime()},
+    });
     initTitleSync(revision);
-    const circuitOverlay = document.getElementById('circuit-overlay');
     // Fitting never zooms in: at 100% or below the whole circuit is judged by its own width,
     // without the slack the right-aligned output displays absorb.
     initZoomControls(circuitOverlay, () =>
         Math.min(1, canvasDiv.clientWidth / displayed.get().displayedCircuit.unshiftedDesiredWidth()));
     initMinimap(circuitOverlay, canvasDiv, displayed);
-    // The dialogs are floating, non-modal windows, so the circuit is always editable and the
-    // canvas always keeps its tab stop.
+    // The circuit is always editable, so the canvas always keeps its tab stop.
     canvasDiv.tabIndex = 0;
 
-    scheduleBoot(displayed, overlayState, redrawLoop);
+    // The greeting waits for the boot tick: opening a panel while the dock is still building the
+    // circuit's own panel leaves the layout half-formed.
+    scheduleBoot(redrawLoop, () => {
+        onReady();
+        // A first visit is greeted; a load that already carries a circuit is not.
+        if (shouldShowWelcome(displayed.get().displayedCircuit.circuitDefinition.isEmpty(),
+                              window.localStorage)) {
+            showWelcome();
+        }
+    });
 }
 
 export {startQuirk}

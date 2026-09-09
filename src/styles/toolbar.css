@@ -1,6 +1,5 @@
-/* The app toolbar: the circuit's actions as an icon row. It renders once into #app-toolbar-root
-   and the sidebar adopts it (src/components/toolbox/gate-toolbox.jsx); the brand, version, and Menu live
-   beside it in src/styles/sidebar/shell.css. */
+/* The app toolbar: the circuit's actions as an icon row, the shell's top strip above the work
+   area (src/components/app.jsx). */
 @layer components {
     .app-toolbar {
         display: flex;

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import {Suite, assertThat, assertThrows} from "../../TestUtil.js"
-import {Complex} from "../../../src/engine/math/complex/Complex.js"
-import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
-import {parseUserMatrix, parseUserRotation} from "../../../src/app/dialogs/customGateParsing.js"
-import {QubitMatrix} from "../../../src/engine/math/matrix/QubitMatrix.js"
+import {Suite, assertThat, assertThrows} from "../TestUtil.js"
+import {Complex} from "../../src/engine/math/complex/Complex.js"
+import {Matrix} from "../../src/engine/math/matrix/Matrix.js"
+import {parseUserMatrix, parseUserRotation} from "../../src/serialization/customGateParsing.js"
+import {QubitMatrix} from "../../src/engine/math/matrix/QubitMatrix.js"
 
 const suite = new Suite("customGateParsing");
 

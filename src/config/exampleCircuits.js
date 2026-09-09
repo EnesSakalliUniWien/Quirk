@@ -15,8 +15,8 @@
  */
 
 /**
- * The welcome panel's example circuits: data, no behaviour. Each entry names the anchor in
- * quirk.html's menu panel that links to it; src/app/dialogs/menu.js wires them up.
+ * The example circuits a panel can offer: data, no behaviour. Each entry carries the name shown
+ * for it, so the list is describable without markup.
  */
 
 const groverLink = {
@@ -270,18 +270,18 @@ const distillLink = {
     ]
 };
 
-/** @type {!Array.<!{anchorId: !string, circuit: !object}>} */
+/** @type {!Array.<!{name: !string, circuit: !object}>} */
 const EXAMPLE_CIRCUITS = [
-    {anchorId: 'example-anchor-grover', circuit: groverLink},
-    {anchorId: 'example-anchor-shor', circuit: shorLink},
-    {anchorId: 'example-anchor-teleport', circuit: teleportLink},
-    {anchorId: 'example-anchor-delayed-eraser', circuit: eraserLink},
-    {anchorId: 'example-addition', circuit: additionLink},
-    {anchorId: 'example-superdense-coding', circuit: superdenseCodingLink},
-    {anchorId: 'example-symmetry-break', circuit: symmetryBreakingLink},
-    {anchorId: 'example-chsh-test', circuit: chshTestLink},
-    {anchorId: 'example-qft', circuit: qftLink},
-    {anchorId: 'example-anchor-distill', circuit: distillLink},
+    {name: 'Grover Search', circuit: groverLink},
+    {name: 'Shor Period Finding', circuit: shorLink},
+    {name: 'Bell Inequality Test (CHSH)', circuit: chshTestLink},
+    {name: 'Quantum Teleportation', circuit: teleportLink},
+    {name: 'Superdense Coding', circuit: superdenseCodingLink},
+    {name: 'Delayed Choice Eraser', circuit: eraserLink},
+    {name: 'Symmetry Breaking', circuit: symmetryBreakingLink},
+    {name: 'Quantum Fourier Transform', circuit: qftLink},
+    {name: 'Reversible Addition', circuit: additionLink},
+    {name: 'Magic State Distillation', circuit: distillLink},
 ];
 
 export {EXAMPLE_CIRCUITS}

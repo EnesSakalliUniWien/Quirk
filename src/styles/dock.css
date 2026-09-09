@@ -1,0 +1,41 @@
+/* The dock: dockview's grid, retinted to the app's tokens so its tabs and sashes read as part of
+   Shadow-Quant rather than as an embedded widget.
+
+   Deliberately unlayered. dockview ships its themes unlayered too, and an unlayered rule beats a
+   layered one whatever the specificity, so overrides written inside @layer components would never
+   apply to it. */
+
+.app-dock {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    /* The work area only stretches its children above 920px; the dock must fill it at every width,
+       because below that the palette is a drawer and the dock is the whole row. */
+    align-self: stretch;
+}
+
+.app-dock .dockview-theme-dark {
+    --dv-group-view-background-color: var(--background);
+    --dv-tabs-and-actions-container-background-color: var(--background);
+    --dv-activegroup-visiblepanel-tab-background-color: var(--card);
+    --dv-activegroup-hiddenpanel-tab-background-color: var(--background);
+    --dv-inactivegroup-visiblepanel-tab-background-color: var(--card);
+    --dv-inactivegroup-hiddenpanel-tab-background-color: var(--background);
+    --dv-activegroup-visiblepanel-tab-color: var(--foreground);
+    --dv-activegroup-hiddenpanel-tab-color: var(--muted-foreground);
+    --dv-inactivegroup-visiblepanel-tab-color: var(--muted-foreground);
+    --dv-inactivegroup-hiddenpanel-tab-color: var(--muted-foreground);
+    --dv-tab-divider-color: var(--border);
+    --dv-separator-border: var(--border);
+    --dv-paneview-header-border-color: var(--border);
+    --dv-context-menu-background-color: var(--card);
+    /* The sashes ship transparent, which leaves no visible seam between panels. */
+    --dv-sash-color: var(--border);
+    --dv-active-sash-color: var(--ring, var(--border));
+}
+
+/* A panel's content fills the cell dockview sizes for it. */
+.app-dock .dv-default-panel,
+.app-dock #circuit-area {
+    height: 100%;
+}

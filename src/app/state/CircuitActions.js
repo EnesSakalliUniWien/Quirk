@@ -22,19 +22,15 @@ const EMPTY_STATE = '{"cols":[]}';
 class CircuitActions {
     /**
      * @param {!Revision} revision
-     * @param {!OverlayState} overlayState
      */
-    constructor(revision, overlayState) {
+    constructor(revision) {
         this._revision = revision;
-        const obsIsAnyOverlayShowing = overlayState.active().map(active => active !== undefined).whenDifferent();
-        this._availability = revision.latestActiveCommit().zipLatest(
-            obsIsAnyOverlayShowing,
-            (state, overlayShowing) => ({
-                canUndo: !revision.isAtBeginningOfHistory() && !overlayShowing,
-                canRedo: !revision.isAtEndOfHistory() && !overlayShowing,
-                canClearCircuit: state !== _emptyCircuitState(state) && !overlayShowing,
-                canClearAll: state !== EMPTY_STATE && !overlayShowing
-            }));
+        this._availability = revision.latestActiveCommit().map(state => ({
+            canUndo: !revision.isAtBeginningOfHistory(),
+            canRedo: !revision.isAtEndOfHistory(),
+            canClearCircuit: state !== _emptyCircuitState(state),
+            canClearAll: state !== EMPTY_STATE
+        }));
     }
 
     /**

@@ -1,6 +1,4 @@
 import { useEffect, useRef } from "react";
-import { flushSync } from "react-dom";
-import { createRoot } from "react-dom/client";
 import { useStore } from "zustand";
 
 import {
@@ -169,21 +167,4 @@ function TransportBar() {
   );
 }
 
-let transportBarRoot;
-
-function mountTransportBar() {
-  const container = document.getElementById("transport-bar-root");
-  if (container === null) {
-    throw new Error("Couldn't find 'transport-bar-root'");
-  }
-  if (transportBarRoot !== undefined) {
-    throw new Error("The transport bar has already been mounted.");
-  }
-
-  flushSync(() => {
-    transportBarRoot = createRoot(container);
-    transportBarRoot.render(<TransportBar />);
-  });
-}
-
-export { mountTransportBar };
+export { TransportBar };

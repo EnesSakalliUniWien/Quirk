@@ -20,10 +20,15 @@ import assert from "node:assert/strict";
 import { CanvasTheme, gateStyle } from "../src/config/CanvasTheme.js";
 import { Layout } from "../src/config/Layout.js";
 import { Typography } from "../src/config/Typography.js";
-import {circuitMetrics, test, withQuirkPage, waitForCircuit, currentCircuit, exportedCircuit, TEST_TIMEOUT_MILLIS, canvasLayout, assertCircuitLayout, circuitTopForWires, waitForCanvasViewport} from "./harness.js";
+import {circuitMetrics, test, withQuirkPage, waitForCircuit, currentCircuit, exportedCircuit, waitForPanel, TEST_TIMEOUT_MILLIS, canvasLayout, assertCircuitLayout, circuitTopForWires, waitForCanvasViewport} from "./harness.js";
 
 test("paints canvas colours directly while DOM controls use stylesheet colours", async (browser) => {
   await withQuirkPage(browser, { cols: [["H"], ["Bloch"]] }, async (page) => {
+    // The probability bars live in the state panel, which is a panel like any other now.
+    await page.click("#state-button");
+    await waitForPanel(page, "state", true);
+    await page.waitForSelector(".state-bar-fill", { timeout: TEST_TIMEOUT_MILLIS });
+
     const read = () =>
       page.evaluate(() => {
         const style = getComputedStyle(document.documentElement);
@@ -77,8 +82,8 @@ test("paints canvas colours directly while DOM controls use stylesheet colours",
 test("loads a URL circuit and renders its Bloch sphere in the circuit area", async (browser) => {
   const circuit = { cols: [["H"], ["Bloch"]] };
   await withQuirkPage(browser, circuit, async (page) => {
-    // The menu dialog unmounts entirely while closed.
-    assert.equal(await page.$("#menu-div"), null);
+    // A panel that is not open has no DOM at all.
+    assert.equal(await page.$('[data-panel-id="menu"]'), null);
     assert.deepEqual(await exportedCircuit(page), circuit);
     assertCircuitLayout(await canvasLayout(page));
   });
@@ -149,8 +154,6 @@ test("IQP-dark chips share the canvas assignment and Register clicks survive zoo
 
 test("drags a gate onto a wire and supports undo, redo, and clear actions", async (browser) => {
   await withQuirkPage(browser, { cols: [] }, async (page) => {
-    await page.click("#close-menu-button");
-
     const canvasBounds = await page.$eval("#drawCanvas", (element) => {
       const bounds = element.getBoundingClientRect();
       return {
@@ -248,13 +251,6 @@ test("undoes and redoes with both the control and command modifiers", async (bro
 
 test("keeps drops accurate while zoomed out and fits the circuit on demand", async (browser) => {
   await withQuirkPage(browser, { cols: [] }, async (page) => {
-    // The welcome menu only opens on a browser's first visit; dismiss it if it is showing.
-    await page.evaluate(() => {
-      const closeButton = document.getElementById("close-menu-button");
-      if (closeButton !== null && closeButton.offsetParent !== null) {
-        closeButton.click();
-      }
-    });
     const readout = () =>
       page.$eval(
         ".circuit-zoom-button[aria-live]",

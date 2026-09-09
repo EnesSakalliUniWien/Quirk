@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
+import { createRoot } from "react-dom/client";
+
 // The error reporter installs first, so a failure anywhere in startup still reaches the banner.
+// It has nowhere to paint one until the shell mounts and hands it a host; a report raised before
+// that is remembered and painted then.
 import {
   installErrorReporter,
   reportBlockingIssue,
 } from "./diagnostics/errorReporter.js";
 import { webGl2SupportProblem } from "./engine/webgl/context/issues.js";
-import { startQuirk } from "./app/QuirkApp.js";
-import { mountAppToolbar } from "./components/toolbar/app-toolbar.jsx";
-import { mountTransportBar } from "./components/toolbar/transport-bar.jsx";
+import { App } from "./components/app.jsx";
 import "./styles/globals.css";
 
 installErrorReporter();
@@ -30,7 +32,7 @@ const gpuProblem = webGl2SupportProblem();
 if (gpuProblem !== undefined) {
   reportBlockingIssue("Can't simulate circuits. " + gpuProblem);
 }
-mountAppToolbar();
-mountTransportBar();
-// The gate toolbox mounts inside startQuirk: it needs the circuit's drag and place pipelines.
-startQuirk();
+
+// The app's one React root. Everything the app shows is rendered under it, and the circuit starts
+// from inside it, once its canvas exists.
+createRoot(document.getElementById("root")).render(<App />);

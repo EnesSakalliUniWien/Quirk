@@ -83,6 +83,7 @@ function initCanvasPointer(canvas, canvasDiv, revision, displayed, syncArea, ope
             const oldInspector = displayed.get();
             const newHand = oldInspector.hand.withPos(intoCircuit(pt));
             gestureDownPos = newHand.pos;
+
             let newInspector = syncArea(oldInspector.withHand(newHand));
             clickDownGateButtonKey = (
                 ev.ctrlKey || ev.metaKey || ev.shiftKey || ev.altKey ? undefined : newInspector.tryGetHandOverButtonKey());

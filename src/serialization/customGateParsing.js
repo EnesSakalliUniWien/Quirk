@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-import {Axis} from '../../engine/math/formula/Axis.js';
-import {CircuitDefinition} from '../../circuit/model/CircuitDefinition.js';
-import {setGateBuilderEffectToCircuit} from '../../engine/simulation/CircuitComputeUtil.js';
-import {Complex} from '../../engine/math/complex/Complex.js';
-import {DetailedError} from '../../base/DetailedError.js';
-import {Format} from '../../base/Format.js';
-import {GateBuilder} from '../../circuit/model/Gate.js';
-import {GateColumn} from '../../circuit/model/GateColumn.js';
-import {Matrix} from '../../engine/math/matrix/Matrix.js';
-import {Util} from '../../base/Util.js';
-import {MatrixDecomposition} from '../../engine/math/matrix/MatrixDecomposition.js';
-import {QubitMatrix} from '../../engine/math/matrix/QubitMatrix.js';
-import {ComplexFormula} from '../../engine/math/formula/ComplexFormula.js';
+import {Axis} from '../engine/math/formula/Axis.js';
+import {CircuitDefinition} from '../circuit/model/CircuitDefinition.js';
+import {setGateBuilderEffectToCircuit} from '../engine/simulation/CircuitComputeUtil.js';
+import {Complex} from '../engine/math/complex/Complex.js';
+import {DetailedError} from '../base/DetailedError.js';
+import {Format} from '../base/Format.js';
+import {GateBuilder} from '../circuit/model/Gate.js';
+import {GateColumn} from '../circuit/model/GateColumn.js';
+import {Matrix} from '../engine/math/matrix/Matrix.js';
+import {Util} from '../base/Util.js';
+import {MatrixDecomposition} from '../engine/math/matrix/MatrixDecomposition.js';
+import {QubitMatrix} from '../engine/math/matrix/QubitMatrix.js';
+import {ComplexFormula} from '../engine/math/formula/ComplexFormula.js';
 
 /**
  * Turns the text the gate forge accepts into operations and gates: rotation angles and axes,
  * matrices in several loose notations, and column and wire ranges of the current circuit. Pure
- * functions, no DOM; the forge dialog calls them and paints the results.
+ * functions, no DOM; the forge panel calls them and paints the results.
  */
 
 /**
@@ -41,13 +41,6 @@ function randomCustomGateId() {
     return '~' + Math.floor(Math.random()*(1 << 20)).toString(32);
 }
 
-/**
- * @param {!HTMLInputElement} textBox
- * @returns {!string}
- */
-function valueElsePlaceholder(textBox) {
-    return textBox.value === '' ? textBox.placeholder : textBox.value;
-}
 
 /**
  * @param {!string} text
@@ -227,7 +220,6 @@ function parseUserGateFromCircuitRange(circuit, colRangeText, wireRangeText, nam
 
 export {
     randomCustomGateId,
-    valueElsePlaceholder,
     parseUserRotation,
     parseUserMatrix,
     parseUserGateFromCircuitRange,

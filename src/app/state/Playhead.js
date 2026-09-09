@@ -27,12 +27,10 @@ import {Simulation} from "../../config/Simulation.js"
 class Playhead {
     /**
      * @param {!Observable.<!int>} obsColumnCount The number of columns in the circuit being edited.
-     * @param {!OverlayState} overlayState
      * @param {!function(!function(): void, !number): *} setIntervalFunc
      * @param {!function(*): void} clearIntervalFunc
      */
     constructor(obsColumnCount,
-                overlayState,
                 setIntervalFunc = (callback, delay) => setInterval(callback, delay),
                 clearIntervalFunc = timer => clearInterval(timer)) {
         this._setInterval = setIntervalFunc;
@@ -40,7 +38,6 @@ class Playhead {
         this._columnCount = 0;
         this._step = 0;
         this._playing = false;
-        this._overlayShowing = false;
         /** @type {undefined|*} */
         this._timer = undefined;
         this._state = new ObservableValue(this._snapshot());
@@ -56,13 +53,6 @@ class Playhead {
             this._publish();
         });
 
-        overlayState.active().map(active => active !== undefined).whenDifferent().subscribe(showing => {
-            this._overlayShowing = showing;
-            if (showing) {
-                this._pause();
-            }
-            this._publish();
-        });
     }
 
     /**
@@ -81,9 +71,9 @@ class Playhead {
             step: this._step,
             columnCount: this._columnCount,
             playing: this._playing,
-            canPlay: this._columnCount > 0 && !this._overlayShowing,
-            canStepBack: this._step > 0 && !this._overlayShowing,
-            canStepForward: this._step < this._columnCount && !this._overlayShowing
+            canPlay: this._columnCount > 0,
+            canStepBack: this._step > 0,
+            canStepForward: this._step < this._columnCount
         };
     }
 
@@ -197,7 +187,7 @@ class Playhead {
             this._publish();
             return;
         }
-        if (this._columnCount === 0 || this._overlayShowing) {
+        if (this._columnCount === 0) {
             return;
         }
         if (this._step >= this._columnCount) {

@@ -17,7 +17,7 @@
 import {initializedWglContext} from "../../engine/webgl/context/WglContext.js"
 
 /**
- * Remembers that the welcome overlay has been shown. Without it the overlay is the app's starting
+ * Remembers that the welcome panel has been shown. Without it the panel is the app's starting
  * state on every load, which is a greeting the first time and an obstacle every time after.
  * @type {!string}
  */
@@ -50,7 +50,7 @@ function noteWelcomeSeen(storage) {
 }
 
 /**
- * Whether this load should greet the user with the welcome overlay, remembering a yes so the next
+ * Whether this load should greet the user with the welcome panel, remembering a yes so the next
  * load doesn't repeat it. A load that already carries a circuit skips the greeting outright.
  *
  * @param {!boolean} circuitIsEmpty
@@ -66,33 +66,19 @@ function shouldShowWelcome(circuitIsEmpty, storage) {
 }
 
 /**
- * Schedules the app's reveal: unhide the page, paint the first frame, swap the loading notice for
- * the welcome's action button, and settle whether the welcome overlay stays up. Deferred a tick so
- * that a WebGL initialization failure surfaces as a runtime error rather than killing the module
+ * Schedules the app's reveal: unhide the shell and paint the first frame. Deferred a tick so that
+ * a WebGL initialization failure surfaces as a runtime error rather than killing the module
  * loading phase.
  *
- * Interface note: also requires #inspectorDiv and #canvasDiv (quirk.html) and the
- * welcome panel's #loading-div and #close-menu-button (shipped in quirk.html's dialog stash, mounted by
- * src/components/dialogs/menu-dialog.jsx) to exist before the scheduled tick runs.
- *
- * @param {!ObservableValue.<!DisplayedInspector>} displayed
- * @param {!OverlayState} overlayState
  * @param {!{start: !function(): void, trigger: !function(): void}} redrawLoop
- * @param {!Storage=} storage Where the welcome-seen flag lives.
+ * @param {!function(): void} onReady Reveals the shell, which renders hidden until the first
+ *     frame is about to be painted.
  * @returns {void}
  */
-function scheduleBoot(displayed, overlayState, redrawLoop, storage = window.localStorage) {
+function scheduleBoot(redrawLoop, onReady) {
     setTimeout(() => {
-        // Clearing the inline 'none' hands display back to the stylesheet, which lays the app out
-        // as a column.
-        document.getElementById("inspectorDiv").style.display = '';
+        onReady();
         redrawLoop.start();
-        document.getElementById("loading-div").style.display = 'none';
-        document.getElementById("close-menu-button").style.display = 'block';
-        const circuitIsEmpty = displayed.get().displayedCircuit.circuitDefinition.isEmpty();
-        if (!shouldShowWelcome(circuitIsEmpty, storage)) {
-            overlayState.close();
-        }
 
         try {
             initializedWglContext().onContextRestored = () => redrawLoop.trigger();

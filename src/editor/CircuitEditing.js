@@ -282,7 +282,7 @@ function tryClick(circuit, hand) {
         return circuit.withCircuit(circuit.circuitDefinition.withSwitchedInitialStateOn(clickedInitialStateWire))
     }
 
-    // Gates with a parameter dialog are handled by the pointer code before it tries a click.
+    // Gates with a parameter panel are handled by the pointer code before it tries a click.
     return undefined;
 }
 

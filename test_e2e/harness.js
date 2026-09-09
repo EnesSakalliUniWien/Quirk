@@ -54,7 +54,6 @@ function urlForCircuit(circuit) {
 }
 
 async function waitForQuirk(page) {
-    await page.waitForSelector('#loading-div', {hidden: true, timeout: TEST_TIMEOUT_MILLIS});
     await page.waitForFunction(
         () => {
             const inspector = document.getElementById('inspectorDiv');
@@ -86,28 +85,38 @@ async function waitForCircuit(page, expectedCircuit) {
         expectedJson);
 }
 
-// The overlays are Base UI Dialogs kept mounted while closed, so open/closed is the popup's
-// computed visibility rather than an inline display style.
-async function waitForDialog(page, selector, expectedOpen) {
+/**
+ * Every panel carries the name the dock opens it by, stamped by the panel registry. It is the only
+ * way these tests identify a panel: a panel that is not showing has no DOM at all, so presence is
+ * openness.
+ */
+const panelSelector = name => `[data-panel-id="${name}"]`;
+
+async function waitForPanel(page, name, expectedOpen) {
     await page.waitForFunction(
-        (targetSelector, open) => {
-            const element = document.querySelector(targetSelector);
-            if (element === null) {
-                return !open;
-            }
-            return (getComputedStyle(element).display !== 'none' && !element.hidden) === open;
-        },
+        (selector, open) => (document.querySelector(selector) !== null) === open,
         {timeout: TEST_TIMEOUT_MILLIS},
-        selector,
+        panelSelector(name),
         expectedOpen);
+}
+
+/** Closes a panel through its tab's close control, the way a user would. */
+async function closePanel(page, name) {
+    await page.evaluate(selector => {
+        const panel = document.querySelector(selector);
+        const group = panel.closest('.dv-groupview');
+        const tabs = [...group.querySelectorAll('.dv-tab')];
+        const active = tabs.find(tab => tab.classList.contains('dv-active-tab')) ?? tabs[0];
+        active.querySelector('.dv-default-tab-action').click();
+    }, panelSelector(name));
+    await waitForPanel(page, name, false);
 }
 
 async function exportedCircuit(page) {
     await page.click('#export-button');
-    await waitForDialog(page, '#export-div', true);
+    await waitForPanel(page, 'export', true);
     const jsonText = await page.$eval('#export-circuit-json-pre', element => element.textContent);
-    await page.keyboard.press('Escape');
-    await waitForDialog(page, '#export-div', false);
+    await closePanel(page, 'export');
     return JSON.parse(jsonText);
 }
 
@@ -123,6 +132,17 @@ async function withQuirkPage(browser, circuit, body, viewport=DEFAULT_VIEWPORT, 
 
     let failure;
     try {
+        // The dock remembers its arrangement, and the whole suite shares one browser: without this
+        // a test that opens a panel would leave the circuit half width for every test after it.
+        // The greeting is suppressed for the same reason; the spec that wants it clears the flag.
+        await page.evaluateOnNewDocument(() => {
+            try {
+                window.localStorage.removeItem('shadow-quant.dock-layout');
+                window.localStorage.setItem('shadow-quant.seen-welcome', 'true');
+            } catch {
+                // A browser that refuses site data is already starting clean.
+            }
+        });
         await page.setViewport(viewport);
         await page.goto(urlForCircuit(circuit));
         await waitForQuirk(page);
@@ -267,7 +287,8 @@ export {
     waitForQuirk,
     currentCircuit,
     waitForCircuit,
-    waitForDialog,
+    waitForPanel,
+    closePanel,
     exportedCircuit,
     withQuirkPage,
     TEST_TIMEOUT_MILLIS,

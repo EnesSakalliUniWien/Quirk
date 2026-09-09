@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-// The menu, export, and gate forge dialogs.
+// The panels the circuit and the toolbar open: welcome, export, gate forge, gate parameter, Bloch.
 
 import assert from 'node:assert/strict';
-import {circuitMetrics, test, withQuirkPage, waitForCircuit, waitForDialog, TEST_TIMEOUT_MILLIS, circuitTopForWires, waitForCanvasViewport} from './harness.js';
+import {circuitMetrics, test, withQuirkPage, waitForCircuit, waitForPanel, closePanel, TEST_TIMEOUT_MILLIS, circuitTopForWires, waitForCanvasViewport} from './harness.js';
 
 test('opens a Bloch sphere from its enlarged edge at different zoom levels', async browser => {
     await withQuirkPage(browser, {cols: [['H'], ['Bloch']]}, async page => {
@@ -37,46 +37,58 @@ test('opens a Bloch sphere from its enlarged edge at different zoom levels', asy
                 circuitMetrics.gateSize / 2 + circuitMetrics.blochRadius * 0.9;
             await page.mouse.click(canvas.x + x * zoom,
                 canvas.y + (top + circuitMetrics.wireSpacing / 2) * zoom);
-            await waitForDialog(page, '#bloch-div', true);
-            await page.keyboard.press('Escape');
-            await waitForDialog(page, '#bloch-div', false);
+            await waitForPanel(page, 'bloch', true);
+            await closePanel(page, 'bloch');
         }
     });
 });
 
-test('opens and closes the menu, export, and gate forge overlays', async browser => {
+test('opens and closes the welcome, export, and gate forge panels', async browser => {
     const circuit = {cols: [['H']]};
     await withQuirkPage(browser, circuit, async page => {
         await page.click('#menu-button');
-        await waitForDialog(page, '#menu-div', true);
-        assert.equal(await page.$eval('#export-button', button => button.disabled), true);
-        await page.keyboard.press('Escape');
-        await waitForDialog(page, '#menu-div', false);
+        await waitForPanel(page, 'menu', true);
+        // An open panel never disables the app: the rest of the chrome keeps working around it.
+        assert.equal(await page.$eval('#export-button', button => button.disabled), false);
+        await closePanel(page, 'menu');
 
         await page.click('#export-button');
-        await waitForDialog(page, '#export-div', true);
+        await waitForPanel(page, 'export', true);
         const jsonText = await page.$eval('#export-circuit-json-pre', element => element.textContent);
         assert.deepEqual(JSON.parse(jsonText), circuit);
-        // The offline-copy quine is gone; the dialog must not offer the download any more.
+        // The offline-copy quine is gone; the panel must not offer the download any more.
         assert.equal(await page.$('#download-offline-copy-button'), null);
-        await page.keyboard.press('Escape');
-        await waitForDialog(page, '#export-div', false);
-        assert.equal(await page.$eval('#menu-button', button => button.disabled), false);
+        await closePanel(page, 'export');
 
         await page.click('#gate-forge-button');
-        await waitForDialog(page, '#gate-forge-div', true);
-        const forge = await page.$eval('.forge-dialog', element => ({
-            title: element.querySelector('.dialog-title')?.textContent,
+        await waitForPanel(page, 'forge', true);
+        const forge = await page.$eval('.forge-panel', element => ({
+            title: element.querySelector('.panel-title')?.textContent,
             methodCount: element.querySelectorAll('.forge-method').length
         }));
         assert.equal(forge.title, 'Make a gate');
         assert.equal(forge.methodCount, 3);
-        // The dialog moves focus asynchronously after it opens.
-        await page.waitForFunction(
-            () => document.activeElement?.id === 'gate-forge-rotation-axis',
-            {timeout: TEST_TIMEOUT_MILLIS});
-        await page.keyboard.press('Escape');
-        await waitForDialog(page, '#gate-forge-div', false);
+        await closePanel(page, 'forge');
+    });
+});
+
+test('greets a first visit with the welcome panel', async browser => {
+    await withQuirkPage(browser, {cols: []}, async page => {
+        // The harness marks the greeting seen for every other test; this is the one that wants it,
+        // and the later script wins over the harness's on the reload below.
+        await page.evaluateOnNewDocument(() => {
+            try {
+                window.localStorage.removeItem('shadow-quant.seen-welcome');
+            } catch {
+                // Nothing to clear.
+            }
+        });
+        await page.reload();
+        await waitForPanel(page, 'menu', true);
+
+        // Its own button dismisses it. That it is not shown twice is boot.test.js's business.
+        await page.click('#close-menu-button');
+        await waitForPanel(page, 'menu', false);
     });
 });
 
@@ -102,10 +114,10 @@ test('edits a rotation gate angle through the parameter dialog', async browser =
             await page.mouse.move(canvasBounds.x + circuitMetrics.firstColumnLeft + circuitMetrics.gateSize / 2, canvasBounds.y + circuitTop + circuitMetrics.wireSpacing / 2 + 13);
             await page.mouse.down();
             await page.mouse.up();
-            opened = await page.waitForSelector('#gate-param-div', {visible: true, timeout: 2000}).
+            opened = await page.waitForSelector('[data-panel-id="gate-param"]', {visible: true, timeout: 2000}).
                 then(() => true, () => false);
         }
-        assert.ok(opened, 'The parameter dialog must open.');
+        assert.ok(opened, 'The parameter panel must open.');
         await page.waitForFunction(
             () => document.activeElement?.id === 'gate-param-input',
             {timeout: TEST_TIMEOUT_MILLIS});
@@ -113,7 +125,7 @@ test('edits a rotation gate angle through the parameter dialog', async browser =
         // Focusing selects the current value, so typing replaces it; Enter applies.
         await page.keyboard.type('3pi/4');
         await page.keyboard.press('Enter');
-        await waitForDialog(page, '#gate-param-div', false);
+        await waitForPanel(page, 'gate-param', false);
         await waitForCircuit(page, {cols: [[{id: 'Rx', arg: '3pi/4'}]]});
     });
 });
@@ -132,10 +144,10 @@ test('opens the enlarged Bloch sphere view from a Bloch display gate', async bro
             await waitForCanvasViewport(page);
             const circuitTop = await circuitTopForWires(page, 2);
             await page.mouse.click(canvasBounds.x + circuitMetrics.columnSpacing + circuitMetrics.firstColumnLeft + circuitMetrics.gateSize / 2, canvasBounds.y + circuitTop + circuitMetrics.wireSpacing / 2);
-            opened = await page.waitForSelector('#bloch-div', {visible: true, timeout: 2000}).
+            opened = await page.waitForSelector('[data-panel-id="bloch"]', {visible: true, timeout: 2000}).
                 then(() => true, () => false);
         }
-        assert.ok(opened, 'The Bloch sphere dialog must open.');
+        assert.ok(opened, 'The Bloch sphere panel must open.');
         await page.waitForFunction(
             () => document.getElementById('bloch-subtitle').textContent !== '',
             {timeout: TEST_TIMEOUT_MILLIS});
@@ -154,15 +166,14 @@ test('opens the enlarged Bloch sphere view from a Bloch display gate', async bro
         assert.equal(readout.theta, '90.0°');
         assert.equal(readout.purity, '1.000');
 
-        await page.keyboard.press('Escape');
-        await waitForDialog(page, '#bloch-div', false);
+        await closePanel(page, 'bloch');
     });
 });
 
 test('lists the shortcuts in the menu', async browser => {
     await withQuirkPage(browser, {cols: [['H']]}, async page => {
         await page.click('#menu-button');
-        await waitForDialog(page, '#menu-div', true);
+        await waitForPanel(page, 'menu', true);
         const shortcuts = await page.$$eval('.shortcut-list dd', elements => elements.map(e => e.textContent));
         assert.ok(shortcuts.length >= 8, `The shortcut list must be filled in, saw ${shortcuts.length}.`);
         assert.ok(shortcuts.includes('Undo'));

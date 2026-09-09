@@ -1,7 +1,7 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": [
-    "src/main.js",
+    "src/main.jsx",
     "test/test-entry.js",
     "test/**/*.test.js",
     "test_perf/test-entry.js",

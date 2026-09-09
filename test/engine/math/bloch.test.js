@@ -15,7 +15,8 @@
  */
 
 import {Suite, assertThat, assertTrue} from "../../TestUtil.js"
-import {blochCoordinates, blochAngles, pureStateText, projectPoint} from "../../../src/app/dialogs/blochSphereDialog.js"
+import {blochCoordinates, blochAngles, pureStateText} from "../../../src/engine/math/bloch.js"
+import {projectPoint} from "../../../src/draw/pixi/displays/BlochScene.js"
 import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
 
 const suite = new Suite("blochSphereDialog");

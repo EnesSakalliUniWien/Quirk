@@ -80,12 +80,16 @@ function formatDetails(subject, context, error) {
 }
 
 /**
- * Builds the banner's DOM on first use; the host div ships empty in the page template.
- * @returns {*}
+ * Builds the banner's DOM on first use. Returns undefined until the shell has handed over a host,
+ * so a failure during startup is remembered and painted when the host arrives.
+ * @returns {undefined|*}
  */
 function bannerElements() {
     if (_state.elements !== undefined) {
         return _state.elements;
+    }
+    if (_state.host === undefined) {
+        return undefined;
     }
 
     const banner = document.createElement('div');
@@ -141,22 +145,51 @@ function bannerElements() {
  * @param {!{kind: !string, title: !string, detailsText: !string}} report
  */
 function showBanner(report) {
-    const els = bannerElements();
     if (_state.banner !== undefined && _state.banner.title === report.title) {
         _state.banner.count += 1;
     } else {
         _state.banner = {kind: report.kind, title: report.title, count: 1};
-        els.message.textContent = report.title;
-        els.reportAnchor.href = NEW_ISSUE_URL + encodeURIComponent('Encountered error: ' + report.title);
     }
     _state.detailsText = report.detailsText;
     _state.shownAt = Date.now();
-    els.count.textContent = '×' + _state.banner.count;
-    els.count.hidden = _state.banner.count < 2;
+    renderBanner();
+}
+
+/**
+ * Paints the remembered banner, if there is a host to paint it into yet.
+ * @returns {void}
+ */
+function renderBanner() {
+    const els = bannerElements();
+    if (els === undefined) {
+        return;
+    }
+    const {kind, title, count} = _state.banner;
+    els.message.textContent = title;
+    els.reportAnchor.href = NEW_ISSUE_URL + encodeURIComponent('Encountered error: ' + title);
+    els.count.textContent = '×' + count;
+    els.count.hidden = count < 2;
     // Environment problems aren't reportable bugs; the details buttons only accompany crashes.
-    els.copyButton.hidden = report.kind === 'blocking';
-    els.reportAnchor.hidden = report.kind === 'blocking';
+    els.copyButton.hidden = kind === 'blocking';
+    els.reportAnchor.hidden = kind === 'blocking';
     els.banner.hidden = false;
+}
+
+/**
+ * Hands the reporter the element the shell reserved for the banner. Called by the React shell once
+ * it has mounted, which is after the global handlers are installed.
+ *
+ * @param {undefined|!HTMLElement} host
+ * @returns {void}
+ */
+function setErrorBannerHost(host) {
+    if (_state === undefined) {
+        return;
+    }
+    _state.host = host;
+    if (_state.banner !== undefined) {
+        renderBanner();
+    }
 }
 
 /**
@@ -164,10 +197,11 @@ function showBanner(report) {
  * function that restores the previous handlers, so the shared browser test page can hook and
  * unhook without leaking a handler that would swallow later suites' real failures.
  *
- * @param {!HTMLElement=} host
+ * @param {!HTMLElement=} host Where the banner is painted. The shell hands this over after mount
+ *     with setErrorBannerHost, so the handlers can be installed before any DOM exists.
  * @returns {!function(): void}
  */
-function installErrorReporter(host = /** @type {!HTMLElement} */ document.getElementById('error-banner-root')) {
+function installErrorReporter(host = undefined) {
     const prevOnError = window.onerror;
     const onUnhandledRejection = ev => {
         reportUnexpectedError(ev.reason instanceof Object && ev.reason.message || String(ev.reason), ev.reason);
@@ -203,8 +237,7 @@ function reportUnexpectedError(subject, error) {
         if (_state.banner !== undefined && _state.banner.kind === 'blocking') {
             // The environment banner already explains the root cause; crash spam only counts up.
             _state.banner.count += 1;
-            bannerElements().count.textContent = '×' + _state.banner.count;
-            bannerElements().count.hidden = false;
+            renderBanner();
             return;
         }
         showBanner({
@@ -233,8 +266,7 @@ function reportRecoveredError(recovery, context, error) {
     console.error('Recovered from unexpected error', {recovery, context, error});
     if (_state.banner !== undefined && _state.banner.kind === 'blocking') {
         _state.banner.count += 1;
-        bannerElements().count.textContent = '×' + _state.banner.count;
-        bannerElements().count.hidden = false;
+        renderBanner();
         return;
     }
     showBanner({kind: 'recovered', title: recovery, detailsText: formatDetails(recovery, context, error)});
@@ -276,4 +308,11 @@ function dismissErrorBanner() {
     _state.banner = undefined;
 }
 
-export {installErrorReporter, reportRecoveredError, reportBlockingIssue, noteCircuitEdited, dismissErrorBanner}
+export {
+    installErrorReporter,
+    setErrorBannerHost,
+    reportRecoveredError,
+    reportBlockingIssue,
+    noteCircuitEdited,
+    dismissErrorBanner
+}

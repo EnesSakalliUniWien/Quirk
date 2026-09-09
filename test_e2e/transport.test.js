@@ -18,7 +18,7 @@
 
 import assert from 'node:assert/strict';
 import {CanvasTheme} from '../src/config/CanvasTheme.js';
-import {circuitMetrics, test, withQuirkPage, TEST_TIMEOUT_MILLIS, waitForCanvasViewport} from './harness.js';
+import {circuitMetrics, test, withQuirkPage, waitForPanel, TEST_TIMEOUT_MILLIS, waitForCanvasViewport} from './harness.js';
 
 async function playheadBandPixels(page, columnLeft) {
     await waitForCanvasViewport(page);
@@ -85,11 +85,16 @@ async function stateTableRows(page) {
 
 test('steps the circuit with the transport controls and reports the state at the playhead', async browser => {
     await withQuirkPage(browser, {cols: [['H'], ['\u2022', 'X']]}, async page => {
-        const transport = await page.$eval('#transport-bar-root [role="group"]', element => ({
+        // The strip is the labelled group; the scrub sits beside its buttons, not inside them.
+        const transport = await page.$eval('.transport-bar[role="group"]', element => ({
             label: element.getAttribute('aria-label'),
             buttonLabels: Array.from(element.querySelectorAll('[data-slot="button"]'), b => b.textContent),
             scrubMax: element.querySelector('#playhead-scrub').max
         }));
+
+        // The amplitudes at the playhead are their own panel now.
+        await page.click('#state-button');
+        await waitForPanel(page, 'state', true);
         assert.equal(transport.label, 'Playback controls');
         // ket writes its arrows as ASCII; here they are drawn glyphs, so the labels are the words.
         assert.deepEqual(transport.buttonLabels, ['Reset', 'Prev', 'Play', 'Next', 'End']);
@@ -173,12 +178,21 @@ test('scrubbing to a gate stops playback', async browser => {
     });
 });
 
-test('houses the transport in the bottom debugger dock', async browser => {
+test('houses the transport in the shell below the work area', async browser => {
     await withQuirkPage(browser, {cols: [['H'], ['X']]}, async page => {
-        const inPanel = await page.evaluate(() =>
-            document.getElementById('state-panel').contains(
-                document.getElementById('transport-bar-root')));
-        assert.ok(inPanel, 'The transport controls must live inside the state panel.');
+        // The transport is the shell's own bottom strip now, not a band inside a panel: it stays
+        // put whatever the dock is showing.
+        const placement = await page.evaluate(() => {
+            const transport = document.querySelector('.transport-bar');
+            const work = document.querySelector('.app-body');
+            return {
+                insideAPanel: transport.closest('[data-panel-id]') !== null,
+                belowTheWorkArea:
+                    transport.getBoundingClientRect().top >= work.getBoundingClientRect().bottom - 1,
+            };
+        });
+        assert.equal(placement.insideAPanel, false, 'The transport must not live inside a panel.');
+        assert.ok(placement.belowTheWorkArea, 'The transport must sit below the work area.');
 
         await page.click('#playhead-next-button');
         await page.waitForFunction(

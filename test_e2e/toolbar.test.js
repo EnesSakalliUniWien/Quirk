@@ -21,7 +21,7 @@ import {test, withQuirkPage} from './harness.js';
 
 test('renders the circuit controls as a button toolbar', async browser => {
     await withQuirkPage(browser, {cols: [['H']]}, async page => {
-        const toolbar = await page.$eval('#app-toolbar-root [role="toolbar"]', element => ({
+        const toolbar = await page.$eval('.app-toolbar[role="toolbar"]', element => ({
             label: element.getAttribute('aria-label'),
             buttonIds: Array.from(element.querySelectorAll('[data-slot="button"]'), button => button.id),
             buttonGroupCount: element.querySelectorAll('[data-slot="button-group"]').length
@@ -43,6 +43,7 @@ test('renders the circuit controls as a button toolbar', async browser => {
         // Clear All comes last, away from Clear Circuit; the row has no button groups.
         assert.deepEqual(toolbar.buttonIds, [
             'export-button',
+            'state-button',
             'clear-circuit-button',
             'undo-button',
             'redo-button',
@@ -50,9 +51,10 @@ test('renders the circuit controls as a button toolbar', async browser => {
             'clear-all-button'
         ]);
         assert.equal(toolbar.buttonGroupCount, 0);
-        const labels = await page.$$eval('#app-toolbar-root [data-slot="button"]',
+        const labels = await page.$$eval('.app-toolbar [data-slot="button"]',
             els => els.map(el => el.getAttribute('aria-label')));
-        assert.deepEqual(labels, ['Export', 'Clear Circuit', 'Undo', 'Redo', 'Make Gate', 'Clear All']);
+        assert.deepEqual(labels,
+            ['Export', 'State', 'Clear Circuit', 'Undo', 'Redo', 'Make Gate', 'Clear All']);
 
         // The destructive action takes the row's slack: never flush against Clear Circuit, and
         // visibly apart from its neighbour.
@@ -73,7 +75,7 @@ test('renders the circuit controls as a button toolbar', async browser => {
         // The base layer's `font: inherit` reset must not outrank the components layer, or the
         // buttons silently lose their 14px/500 type.
         const typography = await page.$$eval(
-            '#app-toolbar-root [data-slot="button"]',
+            '.app-toolbar [data-slot="button"]',
             els => els.map(el => {
                 const s = getComputedStyle(el);
                 return `${s.fontSize}/${s.fontWeight}/${el.getBoundingClientRect().height}`;
@@ -82,7 +84,7 @@ test('renders the circuit controls as a button toolbar', async browser => {
 
         // WAI-ARIA's toolbar pattern: one tab stop, arrow keys move between the controls.
         const roving = await page.evaluate(() => {
-            const items = () => [...document.querySelectorAll('#app-toolbar-root [data-slot="button"]')];
+            const items = () => [...document.querySelectorAll('.app-toolbar [data-slot="button"]')];
             const enabled = items().filter(b => !b.disabled);
             const press = key => document.activeElement.dispatchEvent(
                 new KeyboardEvent('keydown', {key, bubbles: true, cancelable: true}));

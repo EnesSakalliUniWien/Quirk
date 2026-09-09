@@ -1,141 +1,53 @@
-/* The overlay dialogs: the shared frame, the welcome and example panels, the export stack, and
-   the error panel. Imported after forge.css so this file's narrow-viewport overrides win by
-   source order over .forge-dialog's own width. */
+/* Panel content: what the dock's panels render inside the space dockview gives them. The panel
+   window itself - its tab, its frame, where it sits - belongs to the dock, not here. */
 @layer components {
-    .dialog-overlay {
-        position: fixed;
-        inset: 0;
-        z-index: 10;
-        background: var(--dialog-backdrop);
-        backdrop-filter: blur(7px);
-    }
-
-    /* A window: the title bar on top, the adopted panels in a row beneath it. */
-    .dialog-layout {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        z-index: 11;
-        display: flex;
-        width: fit-content;
-        max-width: calc(100vw - 48px);
-        max-height: calc(100vh - 48px);
-        flex-direction: column;
-        align-items: stretch;
-        gap: calc(var(--spacing) * 1);
+    /* Every panel scrolls inside its own cell rather than growing the dock. */
+    .panel-scroll {
         overflow: auto;
-        transform: translate(-50%, -50%);
+        height: 100%;
     }
 
-    /* Sticky like a real window's title bar: the popup scrolls its content, and focusing a
-       control low in a panel must never scroll the handle out of reach. */
-    .dialog-titlebar {
-        position: sticky;
-        top: 0;
-        z-index: 1;
-        display: flex;
-        align-items: center;
-        gap: calc(var(--spacing) * 2);
-        padding: calc(var(--spacing) * 1) calc(var(--spacing) * 1) calc(var(--spacing) * 1) calc(var(--spacing) * 3);
-        color: var(--muted-foreground);
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 10px;
-    }
-
-    .dialog-titlebar-title {
-        flex: 1 1 auto;
-        font-size: var(--text-small);
-        font-weight: 600;
-        letter-spacing: 0.01em;
-    }
-
-    .dialog-titlebar-close {
-        display: inline-flex;
-        width: 26px;
-        height: 26px;
-        flex: 0 0 auto;
-        align-items: center;
-        justify-content: center;
-        /* The panels' generic button padding would leave a 2px content box for the icon. */
-        padding: 0;
-        border: 0;
-        border-radius: 7px;
-        background: transparent;
-        color: var(--muted-foreground);
-        cursor: pointer;
-    }
-
-    .dialog-titlebar-close:hover {
-        color: var(--foreground);
-        background: var(--accent);
-    }
-
-    .dialog-titlebar-close svg {
-        width: 15px;
-        height: 15px;
-        flex: 0 0 auto;
-    }
-
-    [data-snap-handle] {
-        cursor: grab;
-        user-select: none;
-        touch-action: none;
-    }
-
-    .snap-ghost {
-        position: fixed;
-        z-index: 12;
-        pointer-events: none;
-        border: 1px solid var(--ring);
-        background: var(--dialog-snap-preview);
-        border-radius: 6px;
-    }
-
-    @media (prefers-reduced-motion: no-preference) {
-        .dialog-layout[data-docked] {
-            transition: left 120ms ease-out, top 120ms ease-out,
-                width 120ms ease-out, height 120ms ease-out;
-        }
-    }
-
-    /* A dialog's parked panels, moved between the stash and the popup as one unit; inside the
-       popup it is the row of panels under the title bar. */
-    .dialog-content {
+    /* A panel whose content is a row of sections, such as the welcome panel's greeting beside its
+       list of examples. */
+    .panel-content {
         display: flex;
         align-items: stretch;
         gap: calc(var(--spacing) * 3);
     }
 
-    .dialog-panel,
+    @media (max-width: 760px) {
+        .panel-content {
+            flex-wrap: wrap;
+        }
+    }
+
+    /* A panel's own content. The dock supplies the surface it sits on, so this is padding and
+       colour only - no card border, radius or drop shadow the way the floating windows had. */
+    .panel-body,
     .example-panel {
         box-sizing: border-box;
         color: var(--card-foreground);
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        box-shadow: 0 24px 70px var(--shadow-popup);
     }
 
-    .dialog-panel {
+    .panel-body {
         padding: calc(var(--spacing) * 6);
     }
 
-    .dialog-header {
+    .panel-header {
         display: grid;
         gap: calc(var(--spacing) * 1);
     }
 
-    .dialog-eyebrow {
+    .panel-eyebrow {
         margin: 0;
-        color: var(--dialog-heading);
+        color: var(--panel-heading);
         font-size: var(--text-caption);
         font-weight: 650;
         letter-spacing: 0.1em;
         text-transform: uppercase;
     }
 
-    .dialog-title {
+    .panel-title {
         margin: 0;
         font-size: var(--text-title);
         font-weight: 650;
@@ -143,7 +55,7 @@
         line-height: 1.15;
     }
 
-    .dialog-description {
+    .panel-description {
         margin: 0;
         color: var(--muted-foreground);
         font-size: var(--text-body);
@@ -173,7 +85,7 @@
         width: 32px;
         height: 32px;
         color: var(--brand-ink);
-        filter: drop-shadow(0 0 9px var(--dialog-glow));
+        filter: drop-shadow(0 0 9px var(--panel-glow));
     }
 
     .welcome-tagline {
@@ -204,7 +116,7 @@
     }
 
     .welcome-primary-action:hover:not(:disabled) {
-        background: var(--dialog-primary-hover);
+        background: var(--panel-primary-hover);
     }
 
     .resource-grid {
@@ -220,7 +132,7 @@
         justify-content: center;
         padding: calc(var(--spacing) * 3);
         color: var(--muted-foreground);
-        background: var(--dialog-option-surface);
+        background: var(--panel-option-surface);
         border: 1px solid var(--border);
         border-radius: 10px;
         font-size: 0.875rem;
@@ -233,7 +145,7 @@
     .resource-card:hover {
         color: var(--foreground);
         background: var(--accent);
-        border-color: var(--dialog-option-border);
+        border-color: var(--panel-option-border);
         transform: translateY(-1px);
     }
 
@@ -328,7 +240,7 @@
         justify-items: center;
     }
 
-    .bloch-panel .dialog-header,
+    .bloch-panel .panel-header,
     .bloch-actions {
         justify-self: stretch;
     }
@@ -358,9 +270,6 @@
         cursor: grabbing;
     }
 
-    .dialog-layout[data-docked] .bloch-canvas {
-        width: min(100% - 48px, 60vh);
-    }
 
     .bloch-hint {
         margin: 0;
@@ -415,17 +324,17 @@
         font-size: 0.75rem;
     }
 
-    .dialog-stack {
+    .panel-stack {
         display: grid;
         width: min(780px, calc(100vw - 48px));
         gap: calc(var(--spacing) * 3);
     }
 
-    .dialog-stack > .dialog-header {
+    .panel-stack > .panel-header {
         margin-bottom: calc(var(--spacing) * 2);
     }
 
-    .dialog-section {
+    .panel-section {
         display: grid;
         gap: calc(var(--spacing) * 3);
         padding: calc(var(--spacing) * 4);
@@ -434,23 +343,23 @@
         border-radius: 10px;
     }
 
-    .dialog-section-heading {
+    .panel-section-heading {
         color: var(--muted-foreground);
         font-size: 0.875rem;
     }
 
-    .dialog-section-title {
+    .panel-section-title {
         color: var(--foreground);
         font-size: 0.9375rem;
         font-weight: 650;
     }
 
-    .dialog-section-body {
+    .panel-section-body {
         display: grid;
         gap: calc(var(--spacing) * 2);
     }
 
-    .dialog-action-row,
+    .panel-action-row,
     .checkbox-row {
         display: flex;
         align-items: center;
@@ -463,7 +372,7 @@
     }
 
     .copy-result {
-        color: var(--dialog-link);
+        color: var(--panel-link);
         font-size: var(--text-small);
         font-weight: 600;
     }
@@ -486,36 +395,21 @@
     }
 
     .output-box a {
-        color: var(--dialog-link-hover);
+        color: var(--panel-link-hover);
     }
 
+    /* Narrow panels stack their columns and tighten their padding. */
     @media (max-width: 760px) {
-        .dialog-layout {
-            top: calc(var(--spacing) * 3);
-            right: calc(var(--spacing) * 3);
-            bottom: calc(var(--spacing) * 3);
-            left: calc(var(--spacing) * 3);
-            width: auto;
-            max-width: none;
-            max-height: none;
-            flex-direction: column;
-            transform: none;
-        }
-
-        .dialog-content {
-            flex-wrap: wrap;
-        }
-
-        .dialog-panel,
+        .panel-body,
         .welcome-panel,
         .example-panel,
-        .dialog-stack,
-        .forge-dialog {
+        .panel-stack,
+        .forge-panel {
             width: 100%;
             box-sizing: border-box;
         }
 
-        .dialog-panel,
+        .panel-body,
         .welcome-panel,
         .example-panel {
             padding: calc(var(--spacing) * 4);

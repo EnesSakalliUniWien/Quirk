@@ -1,9 +1,9 @@
-import {flushSync} from "react-dom";
-import {createRoot} from "react-dom/client";
+
 import {
     DownloadIcon,
     EraserIcon,
     Redo2Icon,
+    SigmaIcon,
     Trash2Icon,
     Undo2Icon,
     WandSparklesIcon
@@ -14,6 +14,7 @@ import {useStore} from "zustand";
 
 import {Button} from "@/components/ui/button";
 import {appStore} from "../../state/appStore.js";
+import {openPanel} from "../dock.jsx";
 
 // Lucide draws at a 24px grid with a stroke of 2. These render at 16px, so the stroke is
 // scaled down to match, which is also what the inline SVGs in the menu use.
@@ -115,7 +116,7 @@ function useRovingTabIndex(toolbarRef) {
 
 /**
  * Ctrl+Z / Cmd+Z undoes and Ctrl+Shift+Z, Cmd+Shift+Z or Ctrl+Y redoes, wherever focus is.
- * Availability already accounts for open overlays, so the shortcuts and the buttons stay in sync.
+ * The shortcuts read the same availability the buttons do, so the two stay in sync.
  */
 function useUndoRedoShortcuts() {
     useEffect(() => {
@@ -150,9 +151,7 @@ function AppToolbar() {
     useUndoRedoShortcuts();
 
     const availability = useStore(appStore, s => s.circuitAvailability);
-    const overlayOpen = useStore(appStore, s => s.activeOverlay !== undefined);
     const circuitActions = useStore(appStore, s => s.circuitActions);
-    const openOverlay = useStore(appStore, s => s.openOverlay);
 
     return (
         <header className="app-toolbar" role="toolbar" aria-label="Circuit controls" ref={toolbarRef}>
@@ -160,8 +159,12 @@ function AppToolbar() {
                 id="export-button"
                 icon={DownloadIcon}
                 label="Export"
-                disabled={overlayOpen}
-                onClick={() => openOverlay("export")} />
+                onClick={() => openPanel("export")} />
+            <ToolbarButton
+                id="state-button"
+                icon={SigmaIcon}
+                label="State"
+                onClick={() => openPanel("state")} />
             <ToolbarButton
                 id="clear-circuit-button"
                 icon={EraserIcon}
@@ -184,8 +187,7 @@ function AppToolbar() {
                 id="gate-forge-button"
                 icon={WandSparklesIcon}
                 label="Make Gate"
-                disabled={overlayOpen}
-                onClick={() => openOverlay("forge")} />
+                onClick={() => openPanel("forge")} />
             {/* Last, and pushed clear of the others by its auto margin: it discards custom gates
                 as well as the circuit, and sitting flush against the rest made it easy to hit
                 by mistake. Distinguished by colour, not by size. */}
@@ -200,21 +202,4 @@ function AppToolbar() {
     );
 }
 
-let appToolbarRoot;
-
-function mountAppToolbar() {
-    const container = document.getElementById("app-toolbar-root");
-    if (container === null) {
-        throw new Error("Couldn't find 'app-toolbar-root'");
-    }
-    if (appToolbarRoot !== undefined) {
-        throw new Error("The app toolbar has already been mounted.");
-    }
-
-    flushSync(() => {
-        appToolbarRoot = createRoot(container);
-        appToolbarRoot.render(<AppToolbar />);
-    });
-}
-
-export {mountAppToolbar};
+export {AppToolbar};

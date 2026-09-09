@@ -56,7 +56,7 @@ class Gate {
         /** @type {undefined|!function(!GateDrawParams) : void} Draws the gate. A default is used when undefined. */
         this.customDrawer = undefined;
         /**
-         * When set, clicking the gate's button opens the in-app parameter dialog.
+         * When set, clicking the gate's button opens the in-app parameter panel.
          * @type {undefined|!{title: !string, message: !string,
          *     applyText: !function(oldGate: !Gate, text: !string): !{gate: !Gate}|!{error: !string}}}
          */
@@ -633,7 +633,7 @@ class GateBuilder {
     }
 
     /**
-     * Makes the gate's button open the in-app parameter dialog.
+     * Makes the gate's button open the in-app parameter panel.
      * @param {!{title: !string, message: !string,
      *     applyText: !function(oldGate: !Gate, text: !string): !{gate: !Gate}|!{error: !string}}} paramDialog
      * @returns {!GateBuilder}

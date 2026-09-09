@@ -38,6 +38,7 @@ import {circuitZoom, onCircuitZoomChanged} from './zoom.js';
  *
  * @param {!HTMLCanvasElement} canvas
  * @param {!HTMLElement} canvasDiv The canvas's container; scroll blocking and sizing track it.
+ * @param {!HTMLElement} scrollSpacer Carries the scroll extent, so the canvas stays viewport-sized.
  * @param {!ObservableValue.<!DisplayedInspector>} displayed
  * @param {!Simulator} simulator
  * @param {!Playhead} playhead
@@ -51,6 +52,7 @@ import {circuitZoom, onCircuitZoomChanged} from './zoom.js';
  */
 function initRedrawLoop(canvas,
                         canvasDiv,
+                        scrollSpacer,
                         displayed,
                         simulator,
                         playhead,
@@ -63,7 +65,7 @@ function initRedrawLoop(canvas,
     // The scroll extent lives on this spacer, not the canvas: the canvas stays viewport-sized
     // while the spacer stretches to the content, so a wide circuit scrolls without the canvas's
     // backing store ever growing.
-    const spacer = document.getElementById('canvas-scroll-spacer');
+    const spacer = scrollSpacer;
 
     // Some drawn values dither with randomness. Keeping one rng for a fraction of a second, and
     // restarting it each frame, keeps them stable enough to read while still visibly noisy.

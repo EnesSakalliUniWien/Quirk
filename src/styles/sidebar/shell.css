@@ -33,11 +33,7 @@
         margin-left: auto;
     }
 
-    /* The chrome (brand + actions) ends here; the palette (search + groups) starts below. */
-    .sidebar-actions {
-        padding-bottom: calc(var(--spacing) * 2);
-        border-bottom: 1px solid var(--sidebar-border);
-    }
+
 
     .app-brand-mark {
         display: inline-flex;

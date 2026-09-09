@@ -16,7 +16,6 @@
 
 import {Suite, assertThat} from "../../TestUtil.js"
 import {ObservableValue} from "../../../src/base/Obs.js"
-import {OverlayState} from "../../../src/app/state/OverlayState.js"
 import {Playhead} from "../../../src/app/state/Playhead.js"
 
 const suite = new Suite("Playhead");
@@ -42,11 +41,9 @@ function fakeClock() {
 
 function playheadOver(columnCount) {
     const columns = new ObservableValue(columnCount);
-    const overlays = new OverlayState();
-    overlays.close();
     const clock = fakeClock();
-    const playhead = new Playhead(columns.observable(), overlays, clock.setInterval, clock.clearInterval);
-    return {playhead, columns, overlays, clock};
+    const playhead = new Playhead(columns.observable(), clock.setInterval, clock.clearInterval);
+    return {playhead, columns, clock};
 }
 
 suite.test("starts before the first column", () => {
@@ -142,21 +139,6 @@ suite.test("moving the playhead by hand stops playback", () => {
     assertThat(clock.pendingCount()).isEqualTo(0);
 });
 
-suite.test("an overlay blocks the controls and stops playback", () => {
-    const {playhead, overlays} = playheadOver(3);
-    playhead.togglePlay();
-
-    overlays.open("menu");
-
-    assertThat(playhead.state().snapshot()).isEqualTo([{
-        step: 0,
-        columnCount: 3,
-        playing: false,
-        canPlay: false,
-        canStepBack: false,
-        canStepForward: false
-    }]);
-});
 
 suite.test("an empty circuit has nothing to play", () => {
     const {playhead, clock} = playheadOver(0);
