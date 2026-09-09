@@ -21,6 +21,14 @@
 
     /* Named rows, the way a DAW browser lists devices: the name identifies, the glyph shows what
        the gate looks like on the circuit. */
+    /* A hundred-odd tiles are cheap to keep in the DOM - the search filters them by `hidden` and
+       one tab stop walks them - but not to lay out and paint. This lets the browser skip the work
+       for groups that are scrolled out of sight, and remember their height so the scrollbar does
+       not jump. Browsers without it simply render everything, as before. */
+    .gate-group-tiles {
+        content-visibility: auto;
+    }
+
     .gate-group-tiles {
         display: grid;
         gap: 2px;

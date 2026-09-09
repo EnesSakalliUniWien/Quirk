@@ -14,26 +14,6 @@
  * limitations under the License.
  */
 
-import { DisplayView } from "../../draw/pixi/DisplayView.js";
-import { RenderSurface } from "../../draw/pixi/RenderSurface.js";
-import { Rect } from "../../geometry/Rect.js";
-import { RestartableRng } from "../../base/RestartableRng.js";
-import { WidgetPainter } from "../../draw/WidgetPainter.js";
-
-/** The tooltip is measured into this box first, then drawn at the size it reports back. */
-const TOOLTIP_MEASURING_AREA = new Rect(0, 0, 500, 300);
-
-/** Pixels kept between the tooltip and the edge of the window. */
-const TOOLTIP_MARGIN = 8;
-
-/**
- * @returns {!number}
- * @private
- */
-function _pixelRatio() {
-  return window.devicePixelRatio || 1;
-}
-
 /**
  * @param {!Gate} gate
  * @returns {!string} The name a toolbox row shows.
@@ -59,97 +39,6 @@ function chipPartsOf(gate) {
 }
 
 /**
- * A gate's own documentation, drawn by the painter the circuit already uses, into a canvas that
- * plain DOM positions. The toolbox is HTML now, but the matrices and mini-circuits in these
- * tooltips are worth what it costs to keep painting them.
- */
-class GateTooltip {
-  /**
-   * @param {!HTMLElement} container
-   */
-  constructor(container) {
-    this._element = document.createElement("div");
-    this._element.className = "gate-tooltip";
-    this._element.setAttribute("role", "tooltip");
-    this._element.hidden = true;
-    this._canvas = document.createElement("canvas");
-    this._element.appendChild(this._canvas);
-    container.appendChild(this._element);
-
-    /** Painted with no alpha, only to learn how large the real one has to be. */
-    this._measuringCanvas = document.createElement("canvas");
-    this._measuringCanvas.width = TOOLTIP_MEASURING_AREA.w;
-    this._measuringCanvas.height = TOOLTIP_MEASURING_AREA.h;
-  }
-
-  /**
-   * @param {!HTMLElement} anchor
-   * @param {!Gate} gate
-   * @param {!number} time
-   * @returns {void}
-   */
-  show(anchor, gate, time) {
-    const measurer = new DisplayView(
-      this._measuringCanvas,
-      new RestartableRng(),
-      1,
-    );
-    measurer.alpha = 0;
-    const { maxW, maxH } = WidgetPainter.paintGateTooltip(
-      measurer,
-      TOOLTIP_MEASURING_AREA,
-      gate,
-      time,
-      true,
-    );
-    measurer.tooltips?.flush();
-    measurer.destroy();
-
-    const needsScaling =
-      maxW >= TOOLTIP_MEASURING_AREA.w || maxH >= TOOLTIP_MEASURING_AREA.h;
-    const ratio = _pixelRatio();
-    this._canvas.width = Math.round(maxW * ratio);
-    this._canvas.height = Math.round(maxH * ratio);
-    this._canvas.style.width = `${maxW}px`;
-    this._canvas.style.height = `${maxH}px`;
-
-    const painter = RenderSurface.forCanvas(this._canvas).beginFrame(
-      new RestartableRng(),
-      ratio,
-    );
-    WidgetPainter.paintGateTooltip(
-      painter,
-      new Rect(0, 0, maxW, maxH),
-      gate,
-      time,
-      needsScaling,
-    );
-    painter.tooltips?.flush();
-
-    // Fixed positioning, because the toolbox scrolls and the tooltip must not scroll with it.
-    const bounds = anchor.getBoundingClientRect();
-    const left = Math.min(
-      bounds.right + TOOLTIP_MARGIN,
-      window.innerWidth - maxW - TOOLTIP_MARGIN,
-    );
-    const top = Math.min(
-      bounds.top - TOOLTIP_MARGIN,
-      window.innerHeight - maxH - TOOLTIP_MARGIN,
-    );
-    this._element.style.left = `${Math.max(TOOLTIP_MARGIN, left)}px`;
-    this._element.style.top = `${Math.max(TOOLTIP_MARGIN, top)}px`;
-    this._element.hidden = false;
-  }
-
-  /**
-   * @returns {void}
-   */
-  hide() {
-    this._element.hidden = true;
-  }
-}
-
-/**
  * @param {!Gate} gate
  * @param {!string} groupHint
  * @returns {!string} The text the search box matches against.
@@ -158,4 +47,4 @@ function searchTextOf(gate, groupHint) {
   return `${gate.name} ${gate.listName} ${gate.symbol} ${gate.serializedId} ${groupHint}`.toLowerCase();
 }
 
-export { GateTooltip, chipPartsOf, listNameOf, searchTextOf };
+export { chipPartsOf, listNameOf, searchTextOf };

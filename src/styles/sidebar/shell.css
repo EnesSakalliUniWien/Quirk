@@ -1,10 +1,6 @@
 /* The sidebar's outer shell: the flex rail beside the circuit, its brand row and action row, and
    its header slot. */
 @layer components {
-    /* The React root is a wrapper, not a box: the sidebar itself is what the flex row lays out. */
-    #gate-toolbox-root {
-        display: contents;
-    }
 
     .gate-toolbox {
         /* A drag that begins here is a gate grab, never a text selection. */

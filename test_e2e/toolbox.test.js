@@ -74,7 +74,8 @@ test('searches the gate toolbox and documents a gate on hover', async browser =>
             () => [...document.querySelectorAll('.gate-tile')].filter(tile => !tile.hidden).length > 90,
             {timeout: TEST_TIMEOUT_MILLIS});
 
-        // Hovering a tile still brings up the gate's matrix and blurb, painted into a popover.
+        // Hovering a tile brings up the gate's own documentation: its matrix written out, what it
+        // does to each basis state, and the turn it performs.
         const tile = await page.evaluate(() => {
             const target = [...document.querySelectorAll('.gate-tile')].
                 find(e => e.getAttribute('aria-label') === 'Hadamard Gate');
@@ -85,15 +86,30 @@ test('searches the gate toolbox and documents a gate on hover', async browser =>
             return {x: bounds.x + bounds.width/2, y: bounds.y + bounds.height/2};
         });
         await page.mouse.move(tile.x, tile.y);
-        await page.waitForFunction(
-            () => !document.querySelector('.gate-tooltip').hidden,
-            {timeout: TEST_TIMEOUT_MILLIS});
-        const tooltip = await page.$eval('.gate-tooltip canvas', element => ({
-            width: element.width,
-            height: element.height
+        await page.waitForSelector('.gate-hover', {visible: true, timeout: TEST_TIMEOUT_MILLIS});
+        const card = await page.$eval('.gate-hover', element => ({
+            title: element.querySelector('.gate-details-title').textContent,
+            cells: element.querySelectorAll('math mtd').length,
+            // Real typesetting, not glyphs: a stacked fraction over a radical.
+            fractions: element.querySelectorAll('math mfrac').length,
+            roots: element.querySelectorAll('math msqrt').length,
+            mathHeight: Math.round(element.querySelector('math').getBoundingClientRect().height),
+            actions: [...element.querySelectorAll('.gate-details-actions li')].map(e => e.textContent),
+            axis: element.querySelector('.gate-details-facts dd')?.textContent,
+            hasFigure: element.querySelector('.rotation-figure') !== null
         }));
-        assert.ok(tooltip.width > 100 && tooltip.height > 100,
-            `The tooltip must be painted, saw ${tooltip.width}x${tooltip.height}.`);
+        assert.equal(card.title, 'Hadamard Gate');
+        assert.equal(card.cells, 4, 'The matrix must be written out, one element per entry.');
+        assert.equal(card.fractions, 4);
+        assert.equal(card.roots, 4);
+        // A stacked fraction is taller than a line of text; a glyph fallback would not be.
+        assert.ok(card.mathHeight > 40, `The matrix must be typeset, saw ${card.mathHeight}px.`);
+        assert.deepEqual(card.actions, [
+            'transforms |0⟩ into √½|0⟩ + √½|1⟩',
+            'transforms |1⟩ into √½|0⟩ - √½|1⟩'
+        ]);
+        assert.ok(card.hasFigure, 'A one-qubit gate must show the turn it performs.');
+        assert.ok(card.axis.startsWith('180°'), `The turn must be named, saw ${card.axis}.`);
     });
 });
 

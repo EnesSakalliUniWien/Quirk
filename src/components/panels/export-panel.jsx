@@ -23,7 +23,7 @@ function CopyButton({ id, resultId, label, text }) {
       await navigator.clipboard.writeText(text());
       setResult("Done!");
     } catch (ex) {
-      setResult("It didn't work...");
+      setResult("It didn’t work…");
       console.warn("Clipboard copy failed.", ex);
     }
     setTimeout(() => setResult(""), COPY_RESULT_MILLIS);

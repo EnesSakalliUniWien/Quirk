@@ -4,6 +4,9 @@ import { createPortal } from "react-dom";
 import { AtomIcon, BookOpenIcon, SearchIcon, BlocksIcon } from "lucide-react";
 import { ScrollArea } from "@base-ui/react/scroll-area";
 import { Drawer } from "@base-ui/react/drawer";
+import { PreviewCard } from "@base-ui/react/preview-card";
+
+import { GateHoverCard, gateHoverHandle } from "../gate/gate-hover.jsx";
 
 
 import { Button } from "@/components/ui/button";
@@ -16,7 +19,6 @@ import {
   MysteryGateMaker,
 } from "../../gates/misc/Joke_MysteryGate.js";
 import {
-  GateTooltip,
   chipPartsOf,
   listNameOf,
   searchTextOf,
@@ -24,6 +26,11 @@ import {
 
 /** Below this width the sidebar becomes an off-canvas drawer instead of squeezing the circuit. */
 const COMPACT_MEDIA_QUERY = "(max-width: 920px)";
+
+/** A tile's height and the gap between them, from src/styles/sidebar/tiles.css and groups.css.
+ *  Used only to reserve space for a group whose rendering is skipped while it is off screen. */
+const TILE_HEIGHT = 32;
+const TILE_GAP = 2;
 
 /**
  * The gate palette, structured the way a shadcn sidebar is: a header holding the search, a
@@ -98,14 +105,14 @@ function GateTile({
   onGrab,
   onPlace,
   onFocusTile,
-  tooltip,
-  latestTime,
   registerTile,
 }) {
   const gate = model.gate;
   return (
-    <button
-      type="button"
+    <PreviewCard.Trigger
+      handle={gateHoverHandle}
+      payload={gate}
+      render={<button type="button" />}
       className="gate-tile"
       data-slot="sidebar-menu-button"
       data-gate-id={gate.serializedId}
@@ -114,16 +121,9 @@ function GateTile({
       hidden={hidden}
       tabIndex={isStop ? 0 : -1}
       ref={(element) => registerTile(model.key, element)}
-      onMouseEnter={(ev) => tooltip.show(ev.currentTarget, gate, latestTime())}
-      onFocus={(ev) => {
-        tooltip.show(ev.currentTarget, gate, latestTime());
-        onFocusTile(model.key);
-      }}
-      onMouseLeave={() => tooltip.hide()}
-      onBlur={() => tooltip.hide()}
+      onFocus={() => onFocusTile(model.key)}
       onPointerDown={(ev) => {
         if (ev.isPrimary && (ev.pointerType !== "mouse" || ev.button === 0)) {
-          tooltip.hide();
           onGrab(model, ev.nativeEvent);
           ev.preventDefault();
         }
@@ -138,7 +138,7 @@ function GateTile({
     >
       <GateChip gate={gate} />
       <span className="gate-tile-name">{listNameOf(gate)}</span>
-    </button>
+    </PreviewCard.Trigger>
   );
 }
 
@@ -179,10 +179,8 @@ function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace, searc
     setModels(buildTileModels(customGateSet));
   }
 
-  // The tooltip is the circuit's painter drawing into a floating canvas; it stays imperative.
-  const [tooltip] = useState(() => new GateTooltip(document.body));
-  useEffect(() => () => tooltip._element.remove(), [tooltip]);
-  // Chips are static text, but a tooltip opened on a time-dependent gate paints at current time.
+  // Chips are static text, but a card opened on a time-dependent gate describes it at the
+  // animation's current phase.
   const latestTimeRef = useRef(0);
   useEffect(
     () =>
@@ -336,6 +334,11 @@ function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace, searc
                   <div
                     className="gate-group-tiles"
                     data-slot="sidebar-group-content"
+                    /* The height this group would have, so one whose rendering is skipped while
+                       off screen still takes its real space and the scrollbar means something. */
+                    style={{
+                      containIntrinsicSize: `auto ${groupModels.length * TILE_HEIGHT + (groupModels.length - 1) * TILE_GAP}px`,
+                    }}
                   >
                     {groupModels.map((model) => (
                       <GateTile
@@ -346,8 +349,6 @@ function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace, searc
                         onGrab={grabModel}
                         onPlace={placeModel}
                         onFocusTile={setStopKey}
-                        tooltip={tooltip}
-                        latestTime={latestTime}
                         registerTile={registerTile}
                       />
                     ))}
@@ -371,6 +372,8 @@ function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace, searc
           <ScrollArea.Thumb className="gate-toolbox-scrollbar-thumb" />
         </ScrollArea.Scrollbar>
       </ScrollArea.Root>
+      {/* One card for every tile: the triggers above drive it through the shared handle. */}
+      <GateHoverCard latestTime={latestTime} />
     </aside>
   );
 }

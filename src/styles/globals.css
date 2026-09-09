@@ -12,6 +12,7 @@
 @import "./toolbar.css";
 @import "./transport.css";
 @import "./sidebar/index.css";
+@import "./gate-details.css";
 @import "./panels.css";
 @import "./state-panel.css";
 @import "./forge.css";
