@@ -14,7 +14,7 @@ stroke, alpha and text properties in JavaScript. CSS styles the surrounding HTML
   gate/layer identity; unnamed marks preserve their occurrence within that owner. Removed children
   are destroyed. It has no drawing-state stack, font state, primitive API or tooltip callbacks.
 - `GateView` owns one gate occurrence. Static default symbols retain their complete geometry;
-  custom and scientific drawers update from their current inputs. `GateDrawParams.withPainter`
+  custom and scientific renderers update from their current inputs. `GateRenderParams.withPainter`
   supplies the owner while preserving gate-context access.
 - `ShapeView` updates native Graphics only when a fixed shape's geometry or colours change.
   Free-form scientific paths still rebuild through GraphicsPath. Each halo/foreground stroke

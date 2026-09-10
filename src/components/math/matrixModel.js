@@ -40,18 +40,22 @@ function operatorModel(matrix) {
 }
 
 /**
- * @param {!MatrixModel} model
- * @returns {!Array.<!{row: !int, col: !int, value: !Complex}>} Every cell, flat, for renderers that
- *     want data rather than indices.
+ * The model for a state: one column, rows are basis states written as kets.
+ *
+ * @param {!Matrix} vector A column vector, as src/engine/simulation/stepAlgebra.js's paddedState returns.
+ * @returns {!MatrixModel}
  */
-function modelCells(model) {
-  const cells = [];
-  for (let row = 0; row < model.rows; row++) {
-    for (let col = 0; col < model.cols; col++) {
-      cells.push({ row, col, value: model.at(row, col) });
-    }
-  }
-  return cells;
+function stateModel(vector) {
+  const rows = vector.height();
+  const bits = Math.round(Math.log2(Math.max(rows, 1)));
+  const entries = vector.getColumn(0);
+  return {
+    rows,
+    cols: 1,
+    at: (row) => entries[row],
+    rowLabel: (i) => `|${Util.bin(i, bits)}⟩`,
+    colLabel: () => "",
+  };
 }
 
-export { operatorModel, modelCells };
+export { operatorModel, stateModel };

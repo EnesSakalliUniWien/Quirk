@@ -22,7 +22,7 @@
  * Construct through the named factories below - inCircuit, held - which capture the
  * two places a gate is drawn and hide the defaults each of them implies.
  */
-class GateDrawParams {
+class GateRenderParams {
   /**
    * Prefer the named factories; the positional constructor is their implementation.
    * @param {!DisplayView} painter
@@ -90,7 +90,7 @@ class GateDrawParams {
    *     focusPoints: (!Array.<!Point>|undefined),
    *     customStats: (*|undefined)
    * }=} opts
-   * @returns {!GateDrawParams}
+   * @returns {!GateRenderParams}
    */
   static inCircuit(
     painter,
@@ -101,7 +101,7 @@ class GateDrawParams {
     positionInCircuit,
     opts = {},
   ) {
-    return new GateDrawParams(
+    return new GateRenderParams(
       painter,
       hand,
       opts.isHighlighted || false,
@@ -124,10 +124,10 @@ class GateDrawParams {
    * @param {!Rect} rect
    * @param {!Gate} gate
    * @param {!CircuitStats} stats
-   * @returns {!GateDrawParams}
+   * @returns {!GateRenderParams}
    */
   static held(painter, hand, rect, gate, stats) {
-    return new GateDrawParams(
+    return new GateRenderParams(
       painter,
       hand,
       true,
@@ -147,7 +147,7 @@ class GateDrawParams {
    * @returns {undefined|*}
    */
   withPainter(painter) {
-    return new GateDrawParams(
+    return new GateRenderParams(
       painter,
       this.hand,
       this.isHighlighted,
@@ -173,4 +173,4 @@ class GateDrawParams {
   }
 }
 
-export { GateDrawParams };
+export { GateRenderParams };

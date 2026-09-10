@@ -19,7 +19,7 @@ import {CircuitShaders} from "../../engine/simulation/gpu/CircuitShaders.js"
 import {Gate} from "../../circuit/model/Gate.js"
 import {GatePainting} from "../../draw/gate/GatePainting.js"
 import {GateShaders} from "../../engine/simulation/gpu/GateShaders.js"
-import {paintDensityMatrix} from "../../draw/pixi/displays/DensityMatrixView.js"
+import {DATA_RENDERERS} from "../../draw/renderers/dataRenderers.js"
 import {Matrix} from "../../engine/math/matrix/Matrix.js"
 import {Shaders} from "../../engine/webgl/shader/Shaders.js"
 import {Util} from "../../base/Util.js"
@@ -171,11 +171,11 @@ function densityMatrixDisplayMaker_shared(builder) {
 function singleDensityMatrixDisplayMaker(builder) {
     return densityMatrixDisplayMaker_shared(builder).
         setSerializedId("Density").
-        markAsDrawerNeedsSingleQubitDensityStats().
-        setDrawer(GatePainting.makeDisplayDrawer(args => {
+        markAsRendererNeedsSingleQubitDensityStats().
+        setRenderer(GatePainting.makeDisplayRenderer(args => {
             const {col, row} = args.positionInCircuit;
             const ρ = args.stats.qubitDensityMatrix(col, row).transpose();
-            paintDensityMatrix(args.painter, ρ, args.rect, args.focusPoints);
+            DATA_RENDERERS.matrix(args.painter, ρ, args.rect, {style: "density", focusPoints: args.focusPoints});
         }));
 }
 
@@ -188,7 +188,7 @@ function largeDensityMatrixDisplayMaker(span, builder) {
     return densityMatrixDisplayMaker_shared(builder).
         setSerializedId("Density" + span).
         setWidth(span).
-        setDrawer(DENSITY_MATRIX_DRAWER_FROM_CUSTOM_STATS).
+        setRenderer(DENSITY_MATRIX_RENDERER_FROM_CUSTOM_STATS).
         setProcessedStatsToJsonFunc(data => {
             return {density_matrix: data.toReadableJson()};
         }).
@@ -198,12 +198,12 @@ function largeDensityMatrixDisplayMaker(span, builder) {
 }
 
 /**
- * @param {!GateDrawParams} args
+ * @param {!GateRenderParams} args
  */
-const DENSITY_MATRIX_DRAWER_FROM_CUSTOM_STATS = GatePainting.makeDisplayDrawer(args => {
+const DENSITY_MATRIX_RENDERER_FROM_CUSTOM_STATS = GatePainting.makeDisplayRenderer(args => {
     const n = args.gate.height;
     const ρ = args.customStats || Matrix.zero(1<<n, 1<<n).times(NaN);
-    paintDensityMatrix(args.painter, ρ, args.rect, args.focusPoints);
+    DATA_RENDERERS.matrix(args.painter, ρ, args.rect, {style: "density", focusPoints: args.focusPoints});
 });
 
 const DensityMatrixDisplayFamily = Gate.buildFamily(1, 8, (span, builder) =>

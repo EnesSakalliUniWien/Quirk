@@ -40,7 +40,8 @@ const appStore = createStore((set) => ({
     /** @type {undefined|!Playhead} Set once by startQuirk. */
     playhead: undefined,
 
-    /** The gate palette's pipelines. Undefined until the circuit panel has started the circuit.
+    /** The gate palette's pipelines, read by the gates panel. Undefined until the circuit panel has
+     *  started the circuit.
      *  @type {undefined|!{obsCustomGateSet: !Observable, mostRecentStats: !ObservableValue,
      *      onGrab: !function(!Gate, !PointerEvent): void, onPlace: !function(!Gate): void}} */
     gateToolbox: undefined,
@@ -52,10 +53,6 @@ const appStore = createStore((set) => ({
     /** @type {undefined|!Object} The dock's api, set once the layout manager is ready. Panels are
      *  opened and closed through src/components/dock.jsx, which reads it from here. */
     dock: undefined,
-
-    /** @type {undefined|!HTMLElement} The circuit cell, published by the circuit panel. The gate
-     *  palette's narrow-viewport trigger floats over it from outside the dock. */
-    circuitArea: undefined,
 
     /** What the panels read the circuit through. Published once by startQuirk.
      *  @type {undefined|!{revision: !Revision, displayed: !ObservableValue,

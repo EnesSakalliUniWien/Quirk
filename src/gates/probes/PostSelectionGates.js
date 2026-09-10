@@ -26,9 +26,9 @@ import {Matrix} from '../../engine/math/matrix/Matrix.js';
 
 const PostSelectionGates = {};
 
-const POST_SELECT_DRAWER = args => {
+const POST_SELECT_RENDERER = args => {
     if (args.isHighlighted) {
-        GatePainting.DEFAULT_DRAWER(args);
+        GatePainting.DEFAULT_RENDERER(args);
     } else {
         rectangle(args.painter, args.rect, {fill: CanvasTheme.surface.gate});
         GatePainting.paintGateSymbol(args);
@@ -63,7 +63,7 @@ PostSelectionGates.PostSelectOff = new GateBuilder().
     setTitle("Postselect Off").
     setBlurb("Keeps OFF states, discards/retries ON states.").
     setMeasureEffect("collapse").
-    setDrawer(POST_SELECT_DRAWER).
+    setRenderer(POST_SELECT_RENDERER).
     setKnownEffectToMatrix(Matrix.square(1, 0, 0, 0)).
     gate;
 
@@ -74,7 +74,7 @@ PostSelectionGates.PostSelectOn = new GateBuilder().
     setTitle("Postselect On").
     setBlurb("Keeps On states, discards/retries Off states.").
     setMeasureEffect("collapse").
-    setDrawer(POST_SELECT_DRAWER).
+    setRenderer(POST_SELECT_RENDERER).
     setKnownEffectToMatrix(Matrix.square(0, 0, 0, 1)).
     gate;
 
@@ -84,7 +84,7 @@ PostSelectionGates.PostSelectAntiX = new GateBuilder().
     setSymbol("|+⟩⟨+|").
     setTitle("Postselect X-Off").
     setBlurb("Keeps ON+OFF states, discards/retries ON-OFF states.").
-    setDrawer(POST_SELECT_DRAWER).
+    setRenderer(POST_SELECT_RENDERER).
     setKnownEffectToMatrix(Matrix.square(1, 1, 1, 1).times(0.5)).
     gate;
 
@@ -95,7 +95,7 @@ PostSelectionGates.PostSelectX = new GateBuilder().
     setSymbol("|-⟩⟨-|").
     setTitle("Postselect X-On").
     setBlurb("Keeps ON-OFF states, discards/retries ON+OFF states.").
-    setDrawer(POST_SELECT_DRAWER).
+    setRenderer(POST_SELECT_RENDERER).
     setKnownEffectToMatrix(Matrix.square(1, -1, -1, 1).times(0.5)).
     gate;
 
@@ -105,7 +105,7 @@ PostSelectionGates.PostSelectAntiY = new GateBuilder().
     setSymbol("|i⟩⟨i|").
     setTitle("Postselect Y-Off").
     setBlurb("Keeps ON+iOFF states, discards ON-iOFF states.").
-    setDrawer(POST_SELECT_DRAWER).
+    setRenderer(POST_SELECT_RENDERER).
     setKnownEffectToMatrix(Matrix.square(1, Complex.I.neg(), Complex.I, 1).times(0.5)).
     gate;
 
@@ -116,7 +116,7 @@ PostSelectionGates.PostSelectY = new GateBuilder().
     setSymbol("|-i⟩⟨-i|").
     setTitle("Postselect Y-On").
     setBlurb("Keeps ON-iOFF states, discards/retries ON+iOFF states.").
-    setDrawer(POST_SELECT_DRAWER).
+    setRenderer(POST_SELECT_RENDERER).
     setKnownEffectToMatrix(Matrix.square(1, Complex.I, Complex.I.neg(), 1).times(0.5)).
     gate;
 

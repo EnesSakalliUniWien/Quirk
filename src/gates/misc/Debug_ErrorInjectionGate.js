@@ -26,7 +26,7 @@ const ErrorInjectionGate = new GateBuilder()
   .setBlurb(
     "Throws an exception during circuit stat computations, for testing error paths.",
   )
-  .setDrawer(GatePainting.MAKE_HIGHLIGHTED_DRAWER(CanvasTheme.error.background))
+  .setRenderer(GatePainting.MAKE_HIGHLIGHTED_RENDERER(CanvasTheme.error.background))
   .setActualEffectToUpdateFunc((ctx) => {
     throw new DetailedError("Applied an Error Injection Gate", {
       qubit: ctx.row,

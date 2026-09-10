@@ -34,11 +34,11 @@ const HalfTurnGates = {};
 
 /**
  * The X gate is drawn as a crossed circle when it has controls.
- * @param {!GateDrawParams} args
+ * @param {!GateRenderParams} args
  */
-function NOT_DRAWER(args) {
+function NOT_RENDERER(args) {
   if (args.isHighlighted) {
-    GatePainting.DEFAULT_DRAWER(args);
+    GatePainting.DEFAULT_RENDERER(args);
     return;
   }
 
@@ -136,7 +136,7 @@ HalfTurnGates.X = new GateBuilder()
   .setSerializedIdAndSymbol("X")
   .setTitle("Pauli X Gate")
   .setBlurb("The NOT gate.\nToggles between ON and OFF.")
-  .setDrawer(NOT_DRAWER)
+  .setRenderer(NOT_RENDERER)
   .setActualEffectToShaderProvider((ctx) => xShader.withArgs(...ketArgs(ctx)))
   .setKnownEffectToMatrix(QubitMatrix.PAULI_X).gate;
 

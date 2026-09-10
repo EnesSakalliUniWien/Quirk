@@ -1,12 +1,20 @@
+import { useMemo } from "react";
+
 import { Format } from "../../base/Format.js";
+import { CircuitDefinition } from "../../circuit/model/CircuitDefinition.js";
+import { CustomGateSet } from "../../circuit/model/CustomGateSet.js";
+import { GateColumn } from "../../circuit/model/GateColumn.js";
 import {
   describeAxis,
   describeGateTransformations,
 } from "../../circuit/gateDescription.js";
 import { decompositionOf } from "../../circuit/gateDecomposition.js";
 import { QubitMatrix } from "../../engine/math/matrix/QubitMatrix.js";
+import { columnStructure, structureMatrix } from "../../engine/simulation/columnStructure.js";
+import { Serializer } from "../../serialization/Serializer.js";
 import { MatrixMath } from "../math/mathml.jsx";
-import { MatrixPlot } from "../math/matrix-plot.jsx";
+import { DataView } from "../math/data-view.jsx";
+import { OperatorView } from "../math/operator-view.jsx";
 import { operatorModel } from "../math/matrixModel.js";
 import { CircuitFigure } from "./circuit-figure.jsx";
 import { RotationFigure } from "./rotation-figure.jsx";
@@ -15,8 +23,44 @@ import { RotationFigure } from "./rotation-figure.jsx";
 const MAX_SYMBOLIC_ROWS = 4;
 /** Past two qubits one sentence per basis state is a wall of text, not an explanation. */
 const MAX_DESCRIBED_ROWS = 4;
-/** Asking a larger gate for its matrix builds a 2^n x 2^n one, which is a way to exhaust memory. */
+/**
+ * Up to this height the card builds a gate's whole matrix, to write out or to draw. A taller gate's
+ * 2^n x 2^n matrix is never built: it is drawn tile by tile from the gate's structure.
+ */
 const MAX_MATRIX_QUBITS = 4;
+/** The side of a drawn matrix, in pixels. */
+const DRAWN_MATRIX_SIZE = 260;
+
+/**
+ * A gate too tall to build its matrix, set alone in a circuit as tall as itself - which is what the
+ * operator view draws: the gate's structure, and the circuit JSON the tile worker rebuilds it from.
+ *
+ * @param {!Gate} gate
+ * @param {!number} time
+ * @returns {undefined|!{structure: !ColumnStructure, source: !Object}|!{reason: !string}} Undefined
+ *     when the gate is disabled on its own, as a gate that reads inputs is.
+ */
+function gateAlone(gate, time) {
+  const column = new GateColumn([gate, ...Array(gate.height - 1).fill(undefined)]);
+  const customGates = gate.serializedId.startsWith("~") ? new CustomGateSet(gate) : new CustomGateSet();
+  const circuit = new CircuitDefinition(gate.height, [column], 0, new Map(), customGates);
+  if (circuit.gateAtLocIsDisabledReason(0, 0) !== undefined) {
+    return undefined;
+  }
+  const structure = columnStructure(circuit, 0, gate.height, time);
+  if (!structure.ok) {
+    return { reason: structure.reason };
+  }
+  return {
+    structure,
+    source: {
+      json: JSON.stringify(Serializer.toJson(circuit)),
+      col: 0,
+      wireCount: gate.height,
+      time: gate.stableDuration() === Infinity ? 0 : time,
+    },
+  };
+}
 
 /**
  * @param {!number} degrees
@@ -59,6 +103,23 @@ function turnsText(angle) {
  * @param {!{gate: undefined|!Gate, time: !number}} props
  */
 function GateDetails({ gate, time }) {
+  // Once per gate and moment: a tall gate's structure can hold a dense block of up to 10 qubits.
+  const { matrix, alone } = useMemo(() => {
+    if (gate === undefined || gate.definitelyHasNoEffect()) {
+      return {};
+    }
+    const small = gate.height <= MAX_MATRIX_QUBITS;
+    const known = small ? gate.knownMatrixAt(time) : undefined;
+    if (known !== undefined || (small && gate.knownCircuit === undefined)) {
+      return { matrix: known };
+    }
+    // Too tall to build, or with no matrix of its own - a gate built from a circuit: read the
+    // gate off its structure, whole while it is small, tile by tile past that.
+    const found = gateAlone(gate, time);
+    return small && found?.structure !== undefined
+      ? { matrix: structureMatrix(found.structure) }
+      : { alone: found };
+  }, [gate, time]);
   if (gate === undefined) {
     return (
       <div className="gate-details">
@@ -67,8 +128,6 @@ function GateDetails({ gate, time }) {
     );
   }
 
-  const matrix =
-    gate.height <= MAX_MATRIX_QUBITS ? gate.knownMatrixAt(time) : undefined;
   const format =
     gate.stableDuration() < 0.2 ? Format.CONSISTENT : Format.SIMPLIFIED;
   const model = matrix === undefined ? undefined : operatorModel(matrix);
@@ -94,13 +153,30 @@ function GateDetails({ gate, time }) {
             <MatrixMath model={model} label={`The matrix of the ${gate.name}`} />
           ) : (
             <>
-              <MatrixPlot
-                model={model}
-                label={`The matrix of the ${gate.name}, plotted: hue is phase, opacity is magnitude`}
+              <DataView
+                kind="matrix"
+                data={matrix}
+                width={DRAWN_MATRIX_SIZE}
+                height={DRAWN_MATRIX_SIZE}
+                label={`The matrix of the ${gate.name}, drawn as in the circuit`}
               />
-              <p className="gate-details-legend">hue is phase, opacity is magnitude</p>
+              <p className="gate-details-legend">disc area is magnitude, the hand is phase</p>
             </>
           )}
+        </section>
+      )}
+
+      {alone?.structure !== undefined && (
+        <section className="gate-details-section">
+          <h3>Matrix</h3>
+          <OperatorView
+            key={gate.serializedId}
+            source={alone.source}
+            structure={alone.structure}
+            size={DRAWN_MATRIX_SIZE}
+            label={`The matrix of the ${gate.name}`}
+          />
+          <p className="gate-details-legend">hue is phase, strength is magnitude</p>
         </section>
       )}
 
@@ -154,11 +230,9 @@ function GateDetails({ gate, time }) {
         </section>
       )}
 
-      {model === undefined && decomposition === undefined && (
+      {model === undefined && alone?.structure === undefined && decomposition === undefined && (
         <p className="gate-details-note">
-          {gate.height > MAX_MATRIX_QUBITS
-            ? `${gate.height} qubits is too many for a matrix to be worth showing.`
-            : "This gate has no fixed matrix: what it does depends on its inputs."}
+          {alone?.reason ?? "This gate has no fixed matrix: what it does depends on its inputs."}
         </p>
       )}
     </div>

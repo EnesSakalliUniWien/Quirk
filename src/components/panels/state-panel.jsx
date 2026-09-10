@@ -1,13 +1,6 @@
-import { useEffect, useState } from "react";
-import { useStore } from "zustand";
-
-import { CooldownThrottle } from "../../base/CooldownThrottle.js";
 import { phaseColor } from "../../config/CanvasTheme.js";
 import { stateTableRows } from "../../engine/simulation/stateTableRows.js";
-import { appStore } from "../../state/appStore.js";
-
-/** Milliseconds. Rate-limit on rebuilding the table, which redraws far slower than the canvas. */
-const STATE_TABLE_COOLDOWN_MILLIS = 100;
+import { usePlayheadStats } from "./usePlayheadStats.js";
 
 /**
  * @param {!number} v
@@ -19,36 +12,6 @@ function forceSign(v, digits) {
 }
 
 /**
- * The stats at the playhead, sampled no faster than the table can be read. The circuit redraws
- * every frame; re-deriving thousands of amplitude rows that often would spend the whole frame
- * budget on a table nobody can read that fast.
- *
- * @returns {undefined|!{stats: !CircuitStats, wireCount: !int}}
- */
-function useThrottledPlayheadStats() {
-  const deps = useStore(appStore, (s) => s.panelDeps);
-  const [sample, setSample] = useState(undefined);
-
-  useEffect(() => {
-    if (deps === undefined) {
-      return undefined;
-    }
-    let latest = undefined;
-    const throttle = new CooldownThrottle(
-      () => setSample(latest),
-      STATE_TABLE_COOLDOWN_MILLIS,
-    );
-    const unsubscribe = deps.playheadStats.observable().subscribe((value) => {
-      latest = value;
-      throttle.trigger();
-    });
-    return unsubscribe;
-  }, [deps]);
-
-  return sample;
-}
-
-/**
  * The state at the playhead: how many amplitudes the circuit has, and the nonzero ones as a table
  * of ket, probability, amplitude and phase.
  *
@@ -56,7 +19,7 @@ function useThrottledPlayheadStats() {
  * pure function, and render them under the same rate limit.
  */
 function StatePanel() {
-  const sample = useThrottledPlayheadStats();
+  const sample = usePlayheadStats();
   const wireCount = sample?.wireCount ?? 0;
   const { amplitudeCount, nonzeroCount, rows } =
     sample === undefined

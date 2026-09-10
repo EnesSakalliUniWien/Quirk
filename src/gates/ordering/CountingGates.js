@@ -44,8 +44,8 @@ const staircaseCurve = steps => {
     return curve;
 };
 
-const STAIRCASE_DRAWER = (timeOffset, steps, flip=false) => args => {
-    GatePainting.MAKE_HIGHLIGHTED_DRAWER(CanvasTheme.gate.time)(args);
+const STAIRCASE_RENDERER = (timeOffset, steps, flip=false) => args => {
+    GatePainting.MAKE_HIGHLIGHTED_RENDERER(CanvasTheme.gate.time)(args);
 
     const t = (args.stats.time + timeOffset) % 1;
     let yOn = args.rect.y + 3;
@@ -116,7 +116,7 @@ CountingGates.ClockPulseGate = new GateBuilder().
     setSerializedIdAndSymbol("X^⌈t⌉").
     setTitle("Clock Pulse Gate").
     setBlurb("Xors a square wave into the target wire.").
-    setDrawer(STAIRCASE_DRAWER(0, 2)).
+    setRenderer(STAIRCASE_RENDERER(0, 2)).
     setEffectToTimeVaryingMatrix(t => (t % 1) < 0.5 ? Matrix.identity(2) : QubitMatrix.PAULI_X).
     promiseEffectOnlyPermutesAndPhases().
     gate;
@@ -126,7 +126,7 @@ CountingGates.QuarterPhaseClockPulseGate = new GateBuilder().
     setSymbol("X^⌈t-½⌉").
     setTitle("Clock Pulse Gate (Quarter Phase)").
     setBlurb("Xors a quarter-phased square wave into the target wire.").
-    setDrawer(STAIRCASE_DRAWER(0.75, 2)).
+    setRenderer(STAIRCASE_RENDERER(0.75, 2)).
     setEffectToTimeVaryingMatrix(t => ((t+0.75) % 1) < 0.5 ? Matrix.identity(2) : QubitMatrix.PAULI_X).
     promiseEffectOnlyPermutesAndPhases().
     gate;
@@ -136,7 +136,7 @@ CountingGates.CountingFamily = Gate.buildFamily(1, 16, (span, builder) => builde
     setSymbol("+⌈t'⌉").
     setTitle("Counting Gate").
     setBlurb("Adds an increasing little-endian count into a block of qubits.").
-    setDrawer(STAIRCASE_DRAWER(0, 1 << span)).
+    setRenderer(STAIRCASE_RENDERER(0, 1 << span)).
     setActualEffectToShaderProvider(ctx => offsetShader.withArgs(
         ...ketArgs(ctx, span),
         WglArg.float("amount", Math.floor(ctx.time*(1<<span))))).
@@ -148,7 +148,7 @@ CountingGates.UncountingFamily = Gate.buildFamily(1, 16, (span, builder) => buil
     setSymbol("-⌈t'⌉").
     setTitle("Down Counting Gate").
     setBlurb("Subtracts an increasing little-endian count from a block of qubits.").
-    setDrawer(STAIRCASE_DRAWER(0, 1 << span, true)).
+    setRenderer(STAIRCASE_RENDERER(0, 1 << span, true)).
     setActualEffectToShaderProvider(ctx => offsetShader.withArgs(
         ...ketArgs(ctx, span),
         WglArg.float("amount", -Math.floor(ctx.time*(1<<span))))).
@@ -159,7 +159,7 @@ CountingGates.RightShiftRotatingFamily = Gate.buildFamily(2, 16, (span, builder)
     setSymbol("↟⌈t'⌉").
     setTitle("Right-Shift Cycling Gate").
     setBlurb("Right-rotates a block of bits by more and more.").
-    setDrawer(STAIRCASE_DRAWER(0, span, true)).
+    setRenderer(STAIRCASE_RENDERER(0, span, true)).
     setActualEffectToShaderProvider(ctx => cycleBitsShader(ctx, span, -Math.floor(ctx.time*span))).
     setKnownEffectToTimeVaryingPermutation((t, i) => bitOffsetPermutation(t, -1, span, i)));
 
@@ -168,7 +168,7 @@ CountingGates.LeftShiftRotatingFamily = Gate.buildFamily(2, 16, (span, builder) 
     setSymbol("↡⌈t'⌉").
     setTitle("Left-Shift Cycling Gate").
     setBlurb("Left-rotates a block of bits by more and more.").
-    setDrawer(STAIRCASE_DRAWER(0, span)).
+    setRenderer(STAIRCASE_RENDERER(0, span)).
     setActualEffectToShaderProvider(ctx => cycleBitsShader(ctx, span, Math.floor(ctx.time*span))).
     setKnownEffectToTimeVaryingPermutation((t, i) => bitOffsetPermutation(t, +1, span, i)));
 

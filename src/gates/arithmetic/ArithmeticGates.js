@@ -56,8 +56,8 @@ ArithmeticGates.Legacy_AdditionFamily = Gate.buildFamily(
       .setSymbol("b+=a")
       .setTitle("Addition Gate")
       .setBlurb("Adds a little-endian number into another.")
-      .setDrawer(
-        GatePainting.SECTIONED_DRAWER_MAKER(
+      .setRenderer(
+        GatePainting.SECTIONED_RENDERER_MAKER(
           ["a", "b+=a"],
           [Math.floor(span / 2) / span],
         ),
@@ -84,8 +84,8 @@ ArithmeticGates.Legacy_SubtractionFamily = Gate.buildFamily(
       .setSymbol("b-=a")
       .setTitle("Subtraction Gate")
       .setBlurb("Subtracts a little-endian number from another.")
-      .setDrawer(
-        GatePainting.SECTIONED_DRAWER_MAKER(
+      .setRenderer(
+        GatePainting.SECTIONED_RENDERER_MAKER(
           ["a", "b-=a"],
           [Math.floor(span / 2) / span],
         ),

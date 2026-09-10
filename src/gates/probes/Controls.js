@@ -37,7 +37,7 @@ Controls.Control = new GateBuilder().
     promiseHasNoNetEffectOnStateVector().
     markAsControlExpecting(true).
     promiseEffectIsUnitary().
-    setDrawer(args => {
+    setRenderer(args => {
         if (args.isHighlighted) {
             GatePainting.paintBackground(args);
             GatePainting.paintOutline(args);
@@ -54,7 +54,7 @@ Controls.AntiControl = new GateBuilder().
     promiseHasNoNetEffectOnStateVector().
     markAsControlExpecting(false).
     promiseEffectIsUnitary().
-    setDrawer(args => {
+    setRenderer(args => {
         if (args.isHighlighted) {
             GatePainting.paintBackground(args);
             GatePainting.paintOutline(args);
@@ -78,7 +78,7 @@ Controls.XAntiControl = new GateBuilder().
     setActualEffectToUpdateFunc(() => {}).
     promiseEffectIsStable().
     promiseEffectIsUnitary().
-    setDrawer(args => {
+    setRenderer(args => {
         if (args.isHighlighted) {
             GatePainting.paintBackground(args);
             GatePainting.paintOutline(args);
@@ -104,7 +104,7 @@ Controls.XControl = new GateBuilder().
     setActualEffectToUpdateFunc(() => {}).
     promiseEffectIsStable().
     promiseEffectIsUnitary().
-    setDrawer(args => {
+    setRenderer(args => {
         if (args.isHighlighted) {
             GatePainting.paintBackground(args);
             GatePainting.paintOutline(args);
@@ -130,7 +130,7 @@ Controls.YAntiControl = new GateBuilder().
     setActualEffectToUpdateFunc(() => {}).
     promiseEffectIsStable().
     promiseEffectIsUnitary().
-    setDrawer(args => {
+    setRenderer(args => {
         if (args.isHighlighted) {
             GatePainting.paintBackground(args);
             GatePainting.paintOutline(args);
@@ -160,7 +160,7 @@ Controls.YControl = new GateBuilder().
     setActualEffectToUpdateFunc(() => {}).
     promiseEffectIsStable().
     promiseEffectIsUnitary().
-    setDrawer(ctx => {
+    setRenderer(ctx => {
         if (ctx.isHighlighted) {
             GatePainting.paintBackground(ctx);
             GatePainting.paintOutline(ctx);
@@ -217,9 +217,9 @@ function parityGatherScatter(ctx, order) {
 
 /**
  * @param {!string} name
- * @returns {!function(args: !GateDrawParams)}
+ * @returns {!function(args: !GateRenderParams)}
  */
-function parityDrawer(name) {
+function parityRenderer(name) {
     return args => {
         if (args.isHighlighted) {
             GatePainting.paintBackground(args);
@@ -260,7 +260,7 @@ Controls.XParityControl = new GateBuilder().
             parityGatherScatter(ctx, false);
             HalfTurnGates.H.customOperation(ctx);
         }).
-    setDrawer(parityDrawer('X')).
+    setRenderer(parityRenderer('X')).
     gate;
 
 Controls.YParityControl = new GateBuilder().
@@ -281,7 +281,7 @@ Controls.YParityControl = new GateBuilder().
             parityGatherScatter(ctx, false);
             GateShaders.applyMatrixOperation(ctx, QuarterTurnGates.SqrtXBackward._knownMatrix);
         }).
-    setDrawer(parityDrawer('Y')).
+    setRenderer(parityRenderer('Y')).
     gate;
 
 Controls.ZParityControl = new GateBuilder().
@@ -296,7 +296,7 @@ Controls.ZParityControl = new GateBuilder().
         ctx => parityGatherScatter(ctx, false)).
     setActualEffectToUpdateFunc(() => {}).
     promiseEffectIsUnitary().
-    setDrawer(parityDrawer('Z')).
+    setRenderer(parityRenderer('Z')).
     gate;
 
 Controls.all = [

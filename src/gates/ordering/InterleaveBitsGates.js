@@ -22,7 +22,7 @@ import {Simulation} from '../../config/Simulation.js';
 import {Gate} from '../../circuit/model/Gate.js';
 import {ketArgs, ketShaderPermute} from '../../engine/simulation/gpu/KetShaderUtil.js';
 import {paintBackground, paintOutline, paintResizeTab} from '../../draw/gate/GateFrame.js';
-import {PERMUTATION_DRAWER} from './PermutationDrawer.js';
+import {PERMUTATION_RENDERER} from './PermutationRenderer.js';
 import {Point} from '../../geometry/Point.js';
 
 const InterleaveBitsGates = {};
@@ -92,7 +92,7 @@ const _deinterleaveShadersForSize = new Map(
 
 const interleavePainter = reverse => args => {
     if (args.positionInCircuit !== undefined) {
-        PERMUTATION_DRAWER(args);
+        PERMUTATION_RENDERER(args);
         return;
     }
 
@@ -125,7 +125,7 @@ InterleaveBitsGates.InterleaveBitsGateFamily = Gate.buildFamily(4, 16, (span, bu
     setTitle("Interleave").
     setBlurb("Re-orders blocks of bits into stripes of bits.").
     setWidth(span <= 8 ? 1 : 2).
-    setDrawer(interleavePainter(false)).
+    setRenderer(interleavePainter(false)).
     setActualEffectToShaderProvider(ctx => _interleaveShadersForSize.get(span).withArgs(...ketArgs(ctx, span))).
     setKnownEffectToBitPermutation(b => interleaveBit(b, span)));
 
@@ -136,7 +136,7 @@ InterleaveBitsGates.DeinterleaveBitsGateFamily = Gate.buildFamily(4, 16, (span, 
     setTitle("Deinterleave").
     setBlurb("Re-orders stripes of bits into blocks of bits.").
     setWidth(span <= 8 ? 1 : 2).
-    setDrawer(interleavePainter(true)).
+    setRenderer(interleavePainter(true)).
     setActualEffectToShaderProvider(ctx => _deinterleaveShadersForSize.get(span).withArgs(...ketArgs(ctx, span))).
     setKnownEffectToBitPermutation(b => deinterleaveBit(b, span)));
 

@@ -26,7 +26,7 @@ import {reverseShaderForSize} from '../ordering/ReverseBitsGate.js';
 const InputGates = {};
 
 /**
- * @param {!GateDrawParams} args
+ * @param {!GateRenderParams} args
  * @param {!string} key
  * @param {!boolean} reverse
  */
@@ -63,7 +63,7 @@ const makeInputGate = (key, reverse) => Gate.buildFamily(1, 16, (span, builder) 
     setSymbol((reverse ? 'rev ' : '') + `input ${key}`).
     setTitle(`Input Gate [${key}]` + (reverse ? ' [reversed]' : '')).
     setBlurb(`Temporarily uses some qubits as input ${key}${reverse ? ', in big-endian order' : ''}.`).
-    setDrawer(args => drawInputGate(args, key, reverse)).
+    setRenderer(args => drawInputGate(args, key, reverse)).
     promiseHasNoNetEffectOnStateVector().
     markAsNotInterestedInControls().
     setSetupCleanupEffectsToShaderProviders(
@@ -91,7 +91,7 @@ const makeSetInputGate = key => new GateBuilder().
         val: gate.param,
         sticky: true
     }]).
-    setDrawer(args => {
+    setRenderer(args => {
         GatePainting.paintLocationIndependentFrame(args, CanvasTheme.surface.quiet);
         GatePainting.paintGateSymbol(args, `${key}=${args.gate.param}`);
         GatePainting.paintGateButton(args);

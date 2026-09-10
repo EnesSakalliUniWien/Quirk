@@ -23,7 +23,7 @@ const ImaginaryGate = new GateBuilder()
   .setSerializedIdAndSymbol("i")
   .setTitle("Imaginary Gate")
   .setBlurb("Phases everything by i.")
-  .setDrawer((args) => {
+  .setRenderer((args) => {
     GatePainting.paintLocationIndependentFrame(args);
     GatePainting.paintGateSymbol(args);
   })
@@ -34,7 +34,7 @@ const AntiImaginaryGate = new GateBuilder()
   .setSerializedIdAndSymbol("-i")
   .setTitle("Anti-Imaginary Gate")
   .setBlurb("Phases everything by -i.")
-  .setDrawer((args) => {
+  .setRenderer((args) => {
     GatePainting.paintLocationIndependentFrame(args);
     GatePainting.paintGateSymbol(args);
   })
@@ -46,7 +46,7 @@ const SqrtImaginaryGate = new GateBuilder()
   .setSerializedIdAndSymbol("√i")
   .setTitle("Half Imaginary Gate")
   .setBlurb("Phases everything by √i.")
-  .setDrawer((args) => {
+  .setRenderer((args) => {
     GatePainting.paintLocationIndependentFrame(args);
     GatePainting.paintGateSymbol(args);
   })
@@ -61,7 +61,7 @@ const AntiSqrtImaginaryGate = new GateBuilder()
   .setSerializedIdAndSymbol("√-i")
   .setTitle("Half Anti-Imaginary Gate")
   .setBlurb("Phases everything by √-i.")
-  .setDrawer((args) => {
+  .setRenderer((args) => {
     GatePainting.paintLocationIndependentFrame(args);
     GatePainting.paintGateSymbol(args);
   })

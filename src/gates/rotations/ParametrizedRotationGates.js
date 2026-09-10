@@ -29,9 +29,9 @@ const ParametrizedRotationGates = {};
  * @param {!string} pattern
  * @param {!int} xyz
  * @param {!number} tScale
- * @returns {!function(args: !GateDrawParams)}
+ * @returns {!function(args: !GateRenderParams)}
  */
-function configurableRotationDrawer(pattern, xyz, tScale) {
+function configurableRotationRenderer(pattern, xyz, tScale) {
     const xScale = [1, 0.5, -1][xyz];
     const yScale = [1, 1, -0.5][xyz];
     return args => {
@@ -50,7 +50,7 @@ function configurableRotationDrawer(pattern, xyz, tScale) {
 }
 
 /**
- * @param {!GateDrawParams} args
+ * @param {!GateRenderParams} args
  */
 function exponent_to_A_len_painter(args) {
     const v = args.getGateContext('Input Range A');
@@ -110,7 +110,7 @@ ParametrizedRotationGates.XToA = new GateBuilder().
     setBlurb("Rotates the target by input A / 2ⁿ'th of a half turn around the X axis.\n" +
         "n is the number of qubits in input A.").
     setRequiredContextKeys('Input NO_DEFAULT Range A').
-    setDrawer(exponent_to_A_len_painter).
+    setRenderer(exponent_to_A_len_painter).
     setActualEffectToShaderProvider(ctx => X_TO_A_SHADER.withArgs(
         ...ketArgs(ctx, 1, ['A']),
         WglArg.float('factor', Math.PI))).
@@ -126,7 +126,7 @@ ParametrizedRotationGates.XToMinusA = new GateBuilder().
     setBlurb("Counter-rotates the target by input A / 2ⁿ'th of a half turn around the X axis.\n" +
         "n is the number of qubits in input A.").
     setRequiredContextKeys('Input NO_DEFAULT Range A').
-    setDrawer(exponent_to_A_len_painter).
+    setRenderer(exponent_to_A_len_painter).
     setActualEffectToShaderProvider(ctx => X_TO_A_SHADER.withArgs(
         ...ketArgs(ctx, 1, ['A']),
         WglArg.float('factor', -Math.PI))).
@@ -141,7 +141,7 @@ ParametrizedRotationGates.YToA = new GateBuilder().
     setBlurb("Rotates the target by input A / 2ⁿ'th of a half turn around the Y axis.\n" +
         "n is the number of qubits in input A.").
     setRequiredContextKeys('Input NO_DEFAULT Range A').
-    setDrawer(exponent_to_A_len_painter).
+    setRenderer(exponent_to_A_len_painter).
     setActualEffectToShaderProvider(ctx => Y_TO_A_SHADER.withArgs(
         ...ketArgs(ctx, 1, ['A']),
         WglArg.float('factor', Math.PI))).
@@ -157,7 +157,7 @@ ParametrizedRotationGates.YToMinusA = new GateBuilder().
     setBlurb("Counter-rotates the target by input A / 2ⁿ'th of a half turn around the Y axis.\n" +
         "n is the number of qubits in input A.").
     setRequiredContextKeys('Input NO_DEFAULT Range A').
-    setDrawer(exponent_to_A_len_painter).
+    setRenderer(exponent_to_A_len_painter).
     setActualEffectToShaderProvider(ctx => Y_TO_A_SHADER.withArgs(
         ...ketArgs(ctx, 1, ['A']),
         WglArg.float('factor', -Math.PI))).
@@ -172,7 +172,7 @@ ParametrizedRotationGates.ZToA = new GateBuilder().
     setBlurb("Rotates the target by input A / 2ⁿ'th of a half turn around the Z axis.\n" +
         "n is the number of qubits in input A.").
     setRequiredContextKeys('Input NO_DEFAULT Range A').
-    setDrawer(exponent_to_A_len_painter).
+    setRenderer(exponent_to_A_len_painter).
     setActualEffectToShaderProvider(ctx => Z_TO_A_SHADER.withArgs(
         ...ketArgs(ctx, 1, ['A']),
         WglArg.float('factor', Math.PI))).
@@ -188,7 +188,7 @@ ParametrizedRotationGates.ZToMinusA = new GateBuilder().
     setBlurb("Counter-rotates the target by input A / 2ⁿ'th of a half turn around the Z axis.\n" +
         "n is the number of qubits in input A.").
     setRequiredContextKeys('Input NO_DEFAULT Range A').
-    setDrawer(exponent_to_A_len_painter).
+    setRenderer(exponent_to_A_len_painter).
     setActualEffectToShaderProvider(ctx => Z_TO_A_SHADER.withArgs(
         ...ketArgs(ctx, 1, ['A']),
         WglArg.float('factor', -Math.PI))).
@@ -240,7 +240,7 @@ ParametrizedRotationGates.FormulaicRotationX = new GateBuilder().
     setSerializedIdAndSymbol("X^ft").
     setTitle("Formula X Rotation").
     setBlurb("Rotates around X by an amount determined by a formula.").
-    setDrawer(configurableRotationDrawer('X^f(t)', 0, Math.PI)).
+    setRenderer(configurableRotationRenderer('X^f(t)', 0, Math.PI)).
     setWidth(2).
     setExtraDisableReasonFinder(badFormulaDetector).
     setParamDialog(angleFormulaDialog("X gate's exponent")).
@@ -256,7 +256,7 @@ ParametrizedRotationGates.FormulaicRotationY = new GateBuilder().
     setSerializedIdAndSymbol("Y^ft").
     setTitle("Formula Y Rotation").
     setBlurb("Rotates around Y by an amount determined by a formula.").
-    setDrawer(configurableRotationDrawer('Y^f(t)', 1, Math.PI)).
+    setRenderer(configurableRotationRenderer('Y^f(t)', 1, Math.PI)).
     setWidth(2).
     setExtraDisableReasonFinder(badFormulaDetector).
     setParamDialog(angleFormulaDialog("Y gate's exponent")).
@@ -272,7 +272,7 @@ ParametrizedRotationGates.FormulaicRotationZ = new GateBuilder().
     setSerializedIdAndSymbol("Z^ft").
     setTitle("Formula Z Rotation").
     setBlurb("Rotates around Z by an amount determined by a formula.").
-    setDrawer(configurableRotationDrawer('Z^f(t)', 2, Math.PI)).
+    setRenderer(configurableRotationRenderer('Z^f(t)', 2, Math.PI)).
     setWidth(2).
     setExtraDisableReasonFinder(badFormulaDetector).
     setParamDialog(angleFormulaDialog("Z gate's exponent")).
@@ -288,7 +288,7 @@ ParametrizedRotationGates.FormulaicRotationRx = new GateBuilder().
     setSerializedIdAndSymbol("Rxft").
     setTitle("Formula Rx Gate").
     setBlurb("Rotates around X by an angle in radians determined by a formula.").
-    setDrawer(configurableRotationDrawer('Rx(f(t))', 0, 1)).
+    setRenderer(configurableRotationRenderer('Rx(f(t))', 0, 1)).
     setWidth(2).
     setExtraDisableReasonFinder(badFormulaDetector).
     setParamDialog(angleFormulaDialog("Rx gate's angle in radians")).
@@ -301,7 +301,7 @@ ParametrizedRotationGates.FormulaicRotationRy = new GateBuilder().
     setSerializedIdAndSymbol("Ryft").
     setTitle("Formula Ry Gate").
     setBlurb("Rotates around Y by an angle in radians determined by a formula.").
-    setDrawer(configurableRotationDrawer('Ry(f(t))', 1, 1)).
+    setRenderer(configurableRotationRenderer('Ry(f(t))', 1, 1)).
     setWidth(2).
     setExtraDisableReasonFinder(badFormulaDetector).
     setParamDialog(angleFormulaDialog("Ry gate's angle in radians")).
@@ -314,7 +314,7 @@ ParametrizedRotationGates.FormulaicRotationRz = new GateBuilder().
     setSerializedIdAndSymbol("Rzft").
     setTitle("Formula Rz Gate").
     setBlurb("Rotates around Z by an angle in radians determined by a formula.").
-    setDrawer(configurableRotationDrawer('Rz(f(t))', 2, 1)).
+    setRenderer(configurableRotationRenderer('Rz(f(t))', 2, 1)).
     setWidth(2).
     setExtraDisableReasonFinder(badFormulaDetector).
     setParamDialog(angleFormulaDialog("Rz gate's angle in radians")).

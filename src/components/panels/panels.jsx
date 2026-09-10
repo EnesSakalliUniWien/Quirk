@@ -1,9 +1,13 @@
+import { AlgebraPanel } from "./algebra-panel.jsx";
 import { BlochPanel } from "./bloch-panel.jsx";
 import { CircuitPanel } from "./circuit-panel.jsx";
 import { ExportPanel } from "./export-panel.jsx";
 import { ForgePanel } from "./forge-panel.jsx";
+import { GatesPanel } from "./gates-panel.jsx";
 import { GateParamPanel } from "./gate-param-panel.jsx";
 import { MenuPanel } from "./menu-panel.jsx";
+import { ProbabilitiesPanel } from "./probabilities-panel.jsx";
+import { QubitsPanel } from "./qubits-panel.jsx";
 import { StatePanel } from "./state-panel.jsx";
 
 /**
@@ -17,6 +21,10 @@ import { StatePanel } from "./state-panel.jsx";
  * ever comes back without it, and the dock keeps their content mounted even while another tab in
  * their group is showing. The circuit needs that: a hidden panel is destroyed by default, and
  * rebuilding the circuit would mean a second startQuirk and a lost WebGL context.
+ *
+ * `side` places a permanent panel other than the circuit when the dock adds it: beside the circuit
+ * in that direction, at that width - or, on a narrow screen, where a column beside the circuit
+ * would squeeze it, as a tab behind the circuit, which stays in front.
  *
  * `floating` panels are answers to a moment - a greeting, a clicked gate, a clicked sphere - and
  * open as windows over the circuit at the size given here. The rest dock beside it, where they can
@@ -32,11 +40,22 @@ import { StatePanel } from "./state-panel.jsx";
  * app on its behalf.
  *
  * @type {!Object.<!string, !{title: !string, component: !function, permanent: (undefined|!boolean),
+ *     side: (undefined|!{direction: !string, width: !int}),
  *     floating: (undefined|!{width: !int, height: !int})}>}
  */
 const PANELS = {
   circuit: { title: "Circuit", component: CircuitPanel, permanent: true },
+  // After the circuit: it is placed against it.
+  gates: {
+    title: "Gates",
+    component: GatesPanel,
+    permanent: true,
+    side: { direction: "left", width: 240 },
+  },
   state: { title: "State", component: StatePanel },
+  algebra: { title: "Algebra", component: AlgebraPanel },
+  probabilities: { title: "Probabilities", component: ProbabilitiesPanel },
+  qubits: { title: "Qubits", component: QubitsPanel },
   export: { title: "Export", component: ExportPanel },
   forge: { title: "Make Gate", component: ForgePanel },
   menu: {

@@ -5,13 +5,12 @@
    layered one whatever the specificity, so overrides written inside @layer components would never
    apply to it. */
 
+/* The work area between the toolbar and the transport: every panel, the gate palette included,
+   lives inside it. */
 .app-dock {
     flex: 1 1 auto;
     min-width: 0;
     min-height: 0;
-    /* The work area only stretches its children above 920px; the dock must fill it at every width,
-       because below that the palette is a drawer and the dock is the whole row. */
-    align-self: stretch;
 }
 
 .app-dock .dockview-theme-dark {

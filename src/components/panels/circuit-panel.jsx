@@ -20,20 +20,16 @@ function CircuitPanel() {
   const scrollSpacerRef = useRef(null);
   const circuitOverlayRef = useRef(null);
   const errorBannerRef = useRef(null);
-  const circuitAreaRef = useRef(null);
 
   useEffect(() => {
     setErrorBannerHost(errorBannerRef.current);
-    // The palette's drawer trigger floats over this cell from outside the dock, so the cell has to
-    // be reachable without looking it up by id.
-    appStore.setState({ circuitArea: circuitAreaRef.current });
     startQuirk({
       canvas: canvasRef.current,
       canvasDiv: canvasDivRef.current,
       scrollSpacer: scrollSpacerRef.current,
       circuitOverlay: circuitOverlayRef.current,
-      // Flushed, not batched: the redraw loop starts on the next line and measures this cell,
-      // which has no size until the shell's reveal has actually been laid out.
+      // Flushed, not batched: the redraw loop starts on the next line, and its first frame should
+      // land in a shell that is already showing.
       onReady: () => flushSync(() => appStore.setState({ booted: true })),
       // Clicking a parametrized gate's button, or a Bloch sphere, opens its panel. The target is
       // transient state rather than a panel parameter, so it never reaches the saved layout.
@@ -50,7 +46,7 @@ function CircuitPanel() {
   }, []);
 
   return (
-    <div id="circuit-area" ref={circuitAreaRef}>
+    <div id="circuit-area">
       <div
         id="canvasDiv"
         ref={canvasDivRef}

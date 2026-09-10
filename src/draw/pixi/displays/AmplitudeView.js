@@ -15,22 +15,17 @@
  */
 
 import {fitText} from '../TextLayout.js';
-import {strokePath, rectangle} from '../ShapeView.js';
 
-import {CanvasTheme, phaseColor} from '../../../config/CanvasTheme.js';
+import {CanvasTheme} from '../../../config/CanvasTheme.js';
 import {Typography} from '../../../config/Typography.js';
 import {GatePainting} from '../../gate/GatePainting.js';
-import {Format} from '../../../base/Format.js';
-import {MathPainter} from '../../MathPainter.js';
 import {Matrix} from '../../../engine/math/matrix/Matrix.js';
-import {Point} from '../../../geometry/Point.js';
-import {Rect} from '../../../geometry/Rect.js';
-import {Util} from '../../../base/Util.js';
+import {DATA_RENDERERS} from '../../renderers/dataRenderers.js';
 
 /**
- * @type {!function(!GateDrawParams)}
+ * @type {!function(!GateRenderParams)}
  */
-const AMPLITUDE_DRAWER_FROM_CUSTOM_STATS = GatePainting.makeDisplayDrawer(args => {
+const AMPLITUDE_RENDERER_FROM_CUSTOM_STATS = GatePainting.makeDisplayRenderer(args => {
     const n = args.gate.height;
     const {quality, ket, phaseLockIndex, incoherentKet} = args.customStats || {
         ket: (n === 1 ? Matrix.zero(2, 1) : Matrix.zero(1 << Math.floor(n / 2), 1 << Math.ceil(n / 2))).times(NaN),
@@ -44,54 +39,21 @@ const AMPLITUDE_DRAWER_FROM_CUSTOM_STATS = GatePainting.makeDisplayDrawer(args =
     const dw = args.rect.w - args.rect.h*ket.width()/ket.height();
     const drawRect = args.rect.skipLeft(dw/2).skipRight(dw/2);
     const indicatorAlpha = Math.min(1, Math.max(0, (quality - 0.9999) / 0.0001));
-    MathPainter.paintMatrix(
-        args.painter,
-        matrix,
-        drawRect,
-        CanvasTheme.amplitude.circle,
-        CanvasTheme.text.primary,
-        CanvasTheme.amplitude.fill,
-        CanvasTheme.amplitude.background,
-        phase => indicatorAlpha > 0 ? phaseColor(phase, indicatorAlpha) : undefined);
-
-    const forceSign = v => (v >= 0 ? '+' : '') + v.toFixed(2);
-    if (isIncoherent) {
-        MathPainter.paintMatrixTooltip(args.painter, matrix, drawRect, args.focusPoints,
-            (c, r) => `Chance of |${Util.bin(r*matrix.width() + c, args.gate.height)}⟩ (decimal ${r*matrix.width() + c}) [amplitude not defined]`,
-            (c, r, v) => `raw: ${(v.norm2()*100).toFixed(4)}%, log: ${(Math.log10(v.norm2())*10).toFixed(1)} dB`,
-            (c, r, v) => '[entangled with other qubits]');
-    } else {
-        MathPainter.paintMatrixTooltip(args.painter, matrix, drawRect, args.focusPoints,
-            (c, r) => `Amplitude of |${Util.bin(r*matrix.width() + c, args.gate.height)}⟩ (decimal ${r*matrix.width() + c})`,
-            (c, r, v) => 'val:' + v.toString(new Format(false, 0, 5, ", ")),
-            (c, r, v) => `mag²:${(v.norm2()*100).toFixed(4)}%, phase:${forceSign(v.phase() * 180 / Math.PI)}°`);
-        if (phaseLockIndex !== undefined && indicatorAlpha > 0) {
-            const cw = drawRect.w/matrix.width();
-            const rh = drawRect.h/matrix.height();
-            const c = phaseLockIndex % matrix.width();
-            const r = Math.floor(phaseLockIndex / matrix.width());
-            const cx = drawRect.x + cw*(c+0.5);
-            const cy = drawRect.y + rh*(r+0.5);
-            strokePath(args.painter, [new Point(cx, cy), new Point(cx + cw/2, cy)], CanvasTheme.amplitude.reference, 2);
-            fitText(args.painter, 'fixed', {
-                x: cx + 0.5*cw,
-                y: cy,
-                align: 'right',
-                baseline: 'bottom',
-                fill: CanvasTheme.amplitude.reference,
-                font: {fontSize: 12, fontFamily: Typography.MONO_FONT_FAMILY},
-                width: cw*0.5,
-                height: rh*0.5,
-                beforeDraw: (w, h) => rectangle(args.painter, new Rect(cx + cw/2 - w, cy - h, w, h), {fill: CanvasTheme.surface.gate})
-            });
-        }
-    }
+    // The drawing is the shared state renderer's (src/draw/renderers/dataRenderers.js); this gate
+    // only decides which amplitudes, where, and how sure it is of their phases.
+    DATA_RENDERERS.state(args.painter, matrix, drawRect, {
+        wireCount: args.gate.height,
+        focusPoints: args.focusPoints,
+        coherent: !isIncoherent,
+        indicatorAlpha,
+        phaseLockIndex,
+    });
 
     paintErrorIfPresent(args, indicatorAlpha);
 });
 
 /**
- * @param {!GateDrawParams} args
+ * @param {!GateRenderParams} args
  * @param {!number} indicatorAlpha
  */
 function paintErrorIfPresent(args, indicatorAlpha) {
@@ -118,4 +80,4 @@ function paintErrorIfPresent(args, indicatorAlpha) {
     }
 }
 
-export {AMPLITUDE_DRAWER_FROM_CUSTOM_STATS};
+export {AMPLITUDE_RENDERER_FROM_CUSTOM_STATS};

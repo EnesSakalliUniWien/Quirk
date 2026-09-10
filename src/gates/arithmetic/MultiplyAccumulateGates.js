@@ -83,8 +83,8 @@ MultiplyAccumulateGates.Legacy_MultiplyAddFamily = Gate.buildFamily(
       .setSymbol("c+=ab")
       .setTitle("Multiply-Add Gate")
       .setBlurb("Adds the product of two numbers into a third.")
-      .setDrawer(
-        GatePainting.SECTIONED_DRAWER_MAKER(
+      .setRenderer(
+        GatePainting.SECTIONED_RENDERER_MAKER(
           ["a", "b", "c+=ab"],
           sectionSizes(span)
             .slice(0, 2)
@@ -115,8 +115,8 @@ MultiplyAccumulateGates.Legacy_MultiplySubtractFamily = Gate.buildFamily(
       .setSymbol("c-=ab")
       .setTitle("Multiply-Subtract Gate")
       .setBlurb("Subtracts the product of two numbers from a third.")
-      .setDrawer(
-        GatePainting.SECTIONED_DRAWER_MAKER(
+      .setRenderer(
+        GatePainting.SECTIONED_RENDERER_MAKER(
           ["a", "b", "c-=ab"],
           sectionSizes(span)
             .slice(0, 2)

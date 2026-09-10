@@ -27,7 +27,7 @@ const SpacerGate = new GateBuilder()
   .setBlurb("A gate with no effect.")
   .markAsNotInterestedInControls()
   .promiseHasNoNetEffectOnStateVector()
-  .setDrawer((args) => {
+  .setRenderer((args) => {
     // Drawn as an ellipsis.
     if (args.isHighlighted) {
       rectangle(args.painter, args.rect, { fill: CanvasTheme.gate.hover });

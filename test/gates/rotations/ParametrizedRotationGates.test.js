@@ -43,7 +43,7 @@ suite.test("formulaClock_doesNotCoverChangeButton", async () => {
                 hand: {isHoldingSomething: () => false},
                 focusPoints: []
             };
-            args.gate.customDrawer(args);
+            args.gate.customRenderer(args);
             const button = gateButtonRect(args.rect).paddedBy(-1);
             const before = (await scenePixels(canvas, button.x, button.y, button.w, button.h)).data;
             // Repainting the opaque button must not change any pixel in its interior.

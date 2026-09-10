@@ -19,13 +19,13 @@ import {strokePath} from '../../draw/pixi/ShapeView.js';
 import {Layout} from '../../config/Layout.js';
 import {CanvasTheme} from '../../config/CanvasTheme.js';
 import {Point} from '../../geometry/Point.js';
-import {DEFAULT_DRAWER} from '../../draw/gate/GateDrawers.js';
+import {DEFAULT_RENDERER} from '../../draw/gate/GateRenderers.js';
 import {paintBackground, paintOutline, paintResizeTab} from '../../draw/gate/GateFrame.js';
 
-/** @typedef {import('../../draw/gate/GateDrawParams.js').GateDrawParams} GateDrawParams */
+/** @typedef {import('../../draw/gate/GateRenderParams.js').GateRenderParams} GateRenderParams */
 
 /**
- * @param {!GateDrawParams} args
+ * @param {!GateRenderParams} args
  * @param {!int} offset
  * @returns {!number}
  */
@@ -34,7 +34,7 @@ function wireY(args, offset) {
 }
 
 /**
- * @param {!GateDrawParams} args
+ * @param {!GateRenderParams} args
  */
 function eraseWiresForPermutation(args) {
     for (let i = 0; i < args.gate.height; i++) {
@@ -57,11 +57,11 @@ function eraseWiresForPermutation(args) {
 
 /**
  * Draws the gate as a re-arrangement of wires.
- * @param {!GateDrawParams} args
+ * @param {!GateRenderParams} args
  */
-const PERMUTATION_DRAWER = args => {
+const PERMUTATION_RENDERER = args => {
     if (args.positionInCircuit === undefined) {
-        DEFAULT_DRAWER(args);
+        DEFAULT_RENDERER(args);
         return;
     }
 
@@ -96,4 +96,4 @@ const PERMUTATION_DRAWER = args => {
     }
 };
 
-export {PERMUTATION_DRAWER}
+export {PERMUTATION_RENDERER}

@@ -26,7 +26,7 @@ const NeGate = new GateBuilder().
     setSerializedId("NeGate").
     setTitle("Ne-Gate").
     setBlurb("Negates all amplitudes.").
-    setDrawer(args => {
+    setRenderer(args => {
         GatePainting.paintLocationIndependentFrame(args);
         const {x, y} = args.rect.center();
         strokePath(args.painter, [new Point(x - 6, y), new Point(x + 6, y)], CanvasTheme.text.primary, 2);

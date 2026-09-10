@@ -32,7 +32,7 @@ import {Simulation} from '../config/Simulation.js';
 import {Typography} from '../config/Typography.js';
 import {Format} from '../base/Format.js';
 
-import {GateDrawParams} from '../draw/gate/GateDrawParams.js';
+import {GateRenderParams} from '../draw/gate/GateRenderParams.js';
 import {GatePainting} from '../draw/gate/GatePainting.js';
 
 import {MathPainter} from '../draw/MathPainter.js';
@@ -104,7 +104,7 @@ function _drawLabelsReasonablyFast(painter, dy, n, labeller, boundingWidth) {
     });
 }
 
-const _cachedRowLabelDrawer = new BasisLabels(
+const _cachedRowLabelRenderer = new BasisLabels(
     numWire => ({
         width: SUPERPOSITION_GRID_LABEL_SPAN,
         height: (numWire - 1) * Layout.WIRE_SPACING + Layout.GATE_RADIUS * 2
@@ -121,7 +121,7 @@ const _cachedRowLabelDrawer = new BasisLabels(
             SUPERPOSITION_GRID_LABEL_SPAN);
     });
 
-const _cachedColLabelDrawer = new BasisLabels(
+const _cachedColLabelRenderer = new BasisLabels(
     numWire => {
         const [colWires, rowWires] = [Math.floor(numWire/2), Math.ceil(numWire/2)];
         const [colCount, rowCount] = [1 << colWires, 1 << rowWires];
@@ -370,17 +370,17 @@ function drawColumn(circuit, painter, gateColumn, col, hand, stats) {
         const {isHighlighted, isResizeShowing, isResizeHighlighted} =
             circuit._highlightStatusAt(col, row, hand.hoverPoints());
 
-        const drawer = gate.customDrawer || GatePainting.DEFAULT_DRAWER;
+        const renderer = gate.customRenderer || GatePainting.DEFAULT_RENDERER;
         painter.interaction.block({rect: gateRect, cursor: 'pointer'});
         if (gate.canChangeInSize()) {
             painter.interaction.block({rect: rectForResizeTab(gateRect), cursor: 'ns-resize'});
         }
-        renderGateView(painter, `gate-${col}-${row}`, GateDrawParams.inCircuit(painter, hand, gateRect, gate, stats, {row, col}, {
+        renderGateView(painter, `gate-${col}-${row}`, GateRenderParams.inCircuit(painter, hand, gateRect, gate, stats, {row, col}, {
             isHighlighted: isHighlighted && !isResizeHighlighted,
             isResizeShowing,
             isResizeHighlighted,
             focusPoints: circuit._highlightedSlot === undefined ? hand.hoverPoints() : [],
-            customStats: stats.customStatsForSlot(col, row)}), drawer);
+            customStats: stats.customStatsForSlot(col, row)}), renderer);
 
         drawGate_disabledReason(circuit, painter, col, row, gateRect, isHighlighted);
     }
@@ -575,8 +575,8 @@ function drawOutputSuperpositionDisplay(circuit, painter, stats, hand) {
 function drawOutputSuperpositionDisplay_labels(circuit, painter) {
     const gridRect = circuit.geometry().rectForSuperpositionDisplay();
     const numWire = circuit.importantWireCount();
-    _cachedRowLabelDrawer.paint(gridRect.right(), gridRect.y, painter, numWire);
-    _cachedColLabelDrawer.paint(gridRect.x, gridRect.bottom(), painter, numWire);
+    _cachedRowLabelRenderer.paint(gridRect.right(), gridRect.y, painter, numWire);
+    _cachedColLabelRenderer.paint(gridRect.x, gridRect.bottom(), painter, numWire);
 }
 
 /**
@@ -648,8 +648,8 @@ function drawHintLabels(circuit, painter, stats) {
 }
 
 function invalidateCircuitLabelCache() {
-    _cachedRowLabelDrawer.clear();
-    _cachedColLabelDrawer.clear();
+    _cachedRowLabelRenderer.clear();
+    _cachedColLabelRenderer.clear();
 }
 
 export {paintCircuit, invalidateCircuitLabelCache}

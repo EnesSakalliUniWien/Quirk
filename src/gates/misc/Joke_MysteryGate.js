@@ -27,7 +27,7 @@ const MysteryGateMakerWithMatrix = (matrix) =>
     .setSerializedIdAndSymbol(MysteryGateSymbol)
     .setTitle("Mystery Gate")
     .setBlurb("Different every time.\n(Use shift+drag to copy circuit gates.)")
-    .setDrawer(GatePainting.MATRIX_DRAWER)
+    .setRenderer(GatePainting.MATRIX_RENDERER)
     .setKnownEffectToMatrix(matrix).gate;
 
 const MysteryGateMaker = () =>

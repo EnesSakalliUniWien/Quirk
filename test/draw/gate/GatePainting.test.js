@@ -15,7 +15,7 @@ suite.test("IQP-dark gate backgrounds and ink reach the painter and survive hove
             const painter = new DisplayView(document.createElement('canvas'));
             const args = {painter, rect: new Rect(10, 10, 40, 40), gate, isHighlighted,
                 isResizeShowing: false};
-            (gate.customDrawer || GatePainting.DEFAULT_DRAWER)(args);
+            (gate.customRenderer || GatePainting.DEFAULT_RENDERER)(args);
             const pixel = [...(await scenePixels(painter.canvas, 14, 14, 1, 1)).data];
             const style = gateStyle(gate);
             assertThat(pixel).isEqualTo([...style.fill.slice(1).match(/../g).map(v => Number.parseInt(v, 16)), 255]);
@@ -41,7 +41,7 @@ suite.test("displayResizeTab_drawsOnceAboveContent", () => {
             isResizeHighlighted: highlighted,
             gate: {canChangeInSize: () => true, canIncreaseInSize: () => true, canDecreaseInSize: () => true}
         };
-        GatePainting.makeDisplayDrawer(a => rectangle(a.painter, a.rect, {fill: 'black'}))(args);
+        GatePainting.makeDisplayRenderer(a => rectangle(a.painter, a.rect, {fill: 'black'}))(args);
         const fills = [];
         const collect = (node, alpha = 1) => {
             alpha *= node.alpha;

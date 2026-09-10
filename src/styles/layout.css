@@ -1,28 +1,12 @@
-/* The app's overall arrangement: the work-area row, the fixed-height shell, the narrow-viewport
-   reflow, motion preferences, and the no-script warning. Imported last so its media overrides win
-   by source order over the feature files' own rules within the components layer. */
+/* The app's overall arrangement: the fixed-height shell, motion preferences, and the no-script
+   warning. Imported last so its media overrides win by source order over the feature files' own
+   rules within the components layer. */
 @layer components {
-    /* The work area: the gate palette beside the dock. Both stretch to fill it - below 920px the
-       palette is an off-canvas drawer, so the dock is the whole row. */
-    .app-body {
-        display: flex;
-        flex: 1 1 auto;
-        align-items: stretch;
-        min-height: 0;
-    }
-
-    /* The app shell: with the palette beside the dock the page is a fixed-height column - toolbar,
-       work area, transport - and only the dock's own panels scroll. The toolbar and transport
-       controls therefore never leave the screen. */
-    @media (min-width: 921px) {
-        #inspectorDiv {
-            height: 100vh;
-            height: 100dvh;
-        }
-
-        .gate-toolbox {
-            max-height: none;
-        }
+    /* The app shell: a fixed-height column - toolbar, dock, transport - in which only the dock's
+       own panels scroll. The toolbar and transport controls therefore never leave the screen. */
+    #inspectorDiv {
+        height: 100vh;
+        height: 100dvh;
     }
 
     @media (prefers-reduced-motion: reduce) {

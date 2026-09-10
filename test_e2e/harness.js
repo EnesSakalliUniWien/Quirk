@@ -58,7 +58,7 @@ async function waitForQuirk(page) {
         () => {
             const inspector = document.getElementById('inspectorDiv');
             const canvas = document.getElementById('drawCanvas');
-            return inspector.style.display !== 'none' && canvas.width > 0 && canvas.height > 0 && canvas.dataset.renderer === 'pixijs';
+            return inspector.style.visibility !== 'hidden' && canvas.width > 0 && canvas.height > 0 && canvas.dataset.renderer === 'pixijs';
         },
         {timeout: TEST_TIMEOUT_MILLIS});
 }

@@ -46,7 +46,7 @@ const SampleDisplayFamily = Gate.buildFamily(1, 16, (span, builder) =>
     )
     .promiseHasNoNetEffectOnStateVectorButStillRequiresDynamicRedraw()
     .setProcessedStatsToJsonFunc(probabilityDataToJson)
-    .setDrawer(GatePainting.makeDisplayDrawer(paintSampleDisplay))
+    .setRenderer(GatePainting.makeDisplayRenderer(paintSampleDisplay))
     .setExtraDisableReasonFinder((args) =>
       args.isNested ? "can't\nnest\ndisplays\n(sorry)" : undefined,
     ),

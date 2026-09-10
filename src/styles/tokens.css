@@ -38,7 +38,6 @@
     --panel-link-hover: #FFFFFF;
     --error-border: rgba(232, 121, 249, 0.5);
     --sidebar-scrollbar: rgba(252, 250, 250, 0.22);
-    --drawer-trigger-hover: #2B2124;
     --shadow-popup: rgba(0, 0, 0, 0.45);
     --shadow-banner: rgba(0, 0, 0, 0.4);
     --shadow-control: rgba(0, 0, 0, 0.35);
@@ -82,5 +81,4 @@
     --sidebar-accent-foreground: var(--accent-foreground);
     --sidebar-border: var(--border);
     --sidebar-ring: var(--ring);
-    --sidebar-width: 240px;
 }

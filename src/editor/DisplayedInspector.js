@@ -21,7 +21,7 @@ import { rectangle } from "../draw/pixi/ShapeView.js";
 import { Layout } from "../config/Layout.js";
 import { CanvasTheme } from "../config/CanvasTheme.js";
 import { DisplayedCircuit } from "./DisplayedCircuit.js";
-import { GateDrawParams } from "../draw/gate/GateDrawParams.js";
+import { GateRenderParams } from "../draw/gate/GateRenderParams.js";
 import { GatePainting } from "../draw/gate/GatePainting.js";
 import { Hand } from "./Hand.js";
 import { CircuitGeometry } from "./CircuitGeometry.js";
@@ -122,8 +122,8 @@ class DisplayedInspector {
     if (gate.serializedId === "Bloch") {
       rect = CircuitGeometry.blochDisplayRect(rect);
     }
-    const drawer = gate.customDrawer || GatePainting.DEFAULT_DRAWER;
-    drawer(GateDrawParams.held(painter, this.hand, rect, gate, stats));
+    const renderer = gate.customRenderer || GatePainting.DEFAULT_RENDERER;
+    renderer(GateRenderParams.held(painter, this.hand, rect, gate, stats));
   }
 
   /**

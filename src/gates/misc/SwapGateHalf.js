@@ -33,9 +33,9 @@ const SwapGateHalf = new GateBuilder()
   .setKnownEffectToMatrix(
     Matrix.square(1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1),
   )
-  .setDrawer((args) => {
+  .setRenderer((args) => {
     if (args.isHighlighted) {
-      GatePainting.DEFAULT_DRAWER(args);
+      GatePainting.DEFAULT_RENDERER(args);
       return;
     }
 

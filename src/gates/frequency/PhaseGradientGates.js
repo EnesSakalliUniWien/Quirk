@@ -79,7 +79,7 @@ PhaseGradientGates.DynamicPhaseGradientFamily = Gate.buildFamily(1, 16, (span, b
         1 << span,
         k => Complex.polar(1, t * 2 * Math.PI * k))).
     promiseEffectOnlyPhases().
-    setDrawer(GatePainting.makeCycleDrawer(-1, -1, 1, -Math.PI / 2)));
+    setRenderer(GatePainting.makeCycleRenderer(-1, -1, 1, -Math.PI / 2)));
 
 PhaseGradientGates.DynamicPhaseDegradientFamily = Gate.buildFamily(1, 16, (span, builder) => builder.
     setAlternateFromFamily(PhaseGradientGates.DynamicPhaseGradientFamily).
@@ -94,7 +94,7 @@ PhaseGradientGates.DynamicPhaseDegradientFamily = Gate.buildFamily(1, 16, (span,
         1 << span,
         k => Complex.polar(1, t * 2 * Math.PI * -k))).
     promiseEffectOnlyPhases().
-    setDrawer(GatePainting.makeCycleDrawer(1, -1, 1, Math.PI / 2)));
+    setRenderer(GatePainting.makeCycleRenderer(1, -1, 1, Math.PI / 2)));
 
 PhaseGradientGates.all = [
     ...PhaseGradientGates.PhaseGradientFamily.all,

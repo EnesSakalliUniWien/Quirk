@@ -23,8 +23,8 @@ const BlochSphereDisplay = new GateBuilder().
     setSerializedIdAndSymbol("Bloch").
     setTitle("Bloch Sphere Display").
     setBlurb("Shows a wire's local state as a point on the Bloch Sphere.\nUse controls to see conditional states.").
-    markAsDrawerNeedsSingleQubitDensityStats().
-    setDrawer(GatePainting.makeDisplayDrawer(args => {
+    markAsRendererNeedsSingleQubitDensityStats().
+    setRenderer(GatePainting.makeDisplayRenderer(args => {
         const {row, col} = args.positionInCircuit;
         const ρ = args.stats.qubitDensityMatrix(col, row);
         paintBlochSphereDisplay(args.painter, ρ, args.rect, args.focusPoints);

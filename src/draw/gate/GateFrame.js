@@ -23,10 +23,10 @@ import { CanvasTheme, gateStyle } from "../../config/CanvasTheme.js";
 import { Typography } from "../../config/Typography.js";
 import { gateButtonRect, rectForResizeTab } from "./GateRects.js";
 
-/** @typedef {import('./GateDrawParams.js').GateDrawParams} GateDrawParams */
+/** @typedef {import('./GateRenderParams.js').GateRenderParams} GateRenderParams */
 
 /**
- * @param {!GateDrawParams} args
+ * @param {!GateRenderParams} args
  */
 function paintOutline(args) {
   rectangle(args.painter, args.rect, {
@@ -40,7 +40,7 @@ function paintOutline(args) {
 }
 
 /**
- * @param {!GateDrawParams} args
+ * @param {!GateRenderParams} args
  * @param {!string=} fillColor
  */
 function paintBackground(args, fillColor = gateStyle(args.gate).fill) {
@@ -48,7 +48,7 @@ function paintBackground(args, fillColor = gateStyle(args.gate).fill) {
 }
 
 /**
- * @param {!GateDrawParams} args
+ * @param {!GateRenderParams} args
  */
 function paintResizeTab(args) {
   if (!args.isResizeShowing || !args.gate.canChangeInSize()) {
@@ -104,7 +104,7 @@ function paintResizeTab(args) {
 }
 
 /**
- * @param {!GateDrawParams} args
+ * @param {!GateRenderParams} args
  * @param {!GraphicsPath} tracer
  */
 function traceLocationIndependentOutline(args, tracer) {
@@ -140,7 +140,7 @@ function traceLocationIndependentOutline(args, tracer) {
 }
 
 /**
- * @param {!GateDrawParams} args
+ * @param {!GateRenderParams} args
  * @param {!string=} normalFillColor
  */
 function paintLocationIndependentFrame(
@@ -159,7 +159,7 @@ function paintLocationIndependentFrame(
 }
 
 /**
- * @param {!GateDrawParams} args
+ * @param {!GateRenderParams} args
  */
 function paintGateButton(args) {
   if (!args.isHighlighted || args.hand.isHoldingSomething()) {

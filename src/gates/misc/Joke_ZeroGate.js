@@ -24,7 +24,7 @@ const ZeroGate = new GateBuilder().
     setSerializedIdAndSymbol("0").
     setTitle("Nothing Gate").
     setBlurb("Destroys the universe.").
-    setDrawer(GatePainting.makeLocationIndependentGateDrawer(CanvasTheme.text.muted)).
+    setRenderer(GatePainting.makeLocationIndependentGateRenderer(CanvasTheme.text.muted)).
     setKnownEffectToMatrix(Matrix.square(0, 0, 0, 0)).
     gate;
 

@@ -16,6 +16,16 @@ export default defineConfig(({mode}) => {
                 "@": resolve(projectRoot, "src")
             }
         },
+        worker: {
+            // The operator tile worker loads the gate catalogue, which splits into chunks, and
+            // only module workers can load chunks.
+            format: "es",
+            rollupOptions: {
+                output: {
+                    keepNames: true
+                }
+            }
+        },
         build: {
             outDir: "out",
             // The test and perf builds sit beside a previously built app page, unminified so

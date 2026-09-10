@@ -19,20 +19,20 @@ import {fitText} from '../pixi/TextLayout.js';
 
 import {Layout} from '../../config/Layout.js';
 import {CanvasTheme} from '../../config/CanvasTheme.js';
-import {MathPainter} from '../MathPainter.js';
+import {DATA_RENDERERS} from '../renderers/dataRenderers.js';
 import {Point} from '../../geometry/Point.js';
 import {Util} from '../../base/Util.js';
 
 import {paintBackground, paintOutline, paintResizeTab, paintLocationIndependentFrame} from './GateFrame.js';
 import {GATE_SYMBOL_FONT, paintGateSymbol} from './GateSymbol.js';
 
-/** @typedef {import('./GateDrawParams.js').GateDrawParams} GateDrawParams */
+/** @typedef {import('./GateRenderParams.js').GateRenderParams} GateRenderParams */
 
 /**
  * @param {!string=} fillColor
- * @returns {!function(!GateDrawParams)}
+ * @returns {!function(!GateRenderParams)}
  */
-const MAKE_HIGHLIGHTED_DRAWER = (fillColor = undefined) => args => {
+const MAKE_HIGHLIGHTED_RENDERER = (fillColor = undefined) => args => {
     paintBackground(args, fillColor);
     paintOutline(args);
     paintResizeTab(args);
@@ -40,16 +40,16 @@ const MAKE_HIGHLIGHTED_DRAWER = (fillColor = undefined) => args => {
 };
 
 /**
- * @param {!GateDrawParams} args
+ * @param {!GateRenderParams} args
  */
-const DEFAULT_DRAWER = MAKE_HIGHLIGHTED_DRAWER();
+const DEFAULT_RENDERER = MAKE_HIGHLIGHTED_RENDERER();
 
 /**
- * @param {!GateDrawParams} args
+ * @param {!GateRenderParams} args
  */
-const LABEL_DRAWER = args => {
+const LABEL_RENDERER = args => {
     if (args.positionInCircuit === undefined || args.isHighlighted) {
-        DEFAULT_DRAWER(args);
+        DEFAULT_RENDERER(args);
         return;
     }
 
@@ -61,24 +61,24 @@ const LABEL_DRAWER = args => {
 
 /**
  * @param {!string} normalFillColor
- * @returns {!function(!GateDrawParams)}
+ * @returns {!function(!GateRenderParams)}
  */
-const makeLocationIndependentGateDrawer = normalFillColor => args => {
+const makeLocationIndependentGateRenderer = normalFillColor => args => {
     paintLocationIndependentFrame(args, normalFillColor);
     paintGateSymbol(args);
 };
 
 /**
- * @param {!GateDrawParams} args
+ * @param {!GateRenderParams} args
  */
-const LOCATION_INDEPENDENT_GATE_DRAWER = makeLocationIndependentGateDrawer(CanvasTheme.surface.gate);
+const LOCATION_INDEPENDENT_GATE_RENDERER = makeLocationIndependentGateRenderer(CanvasTheme.surface.gate);
 
 /**
  * @param {!Array.<!string>} labels
  * @param {!Array.<!number>} dividers
- * @returns {!function(!GateDrawParams)}
+ * @returns {!function(!GateRenderParams)}
  */
-const SECTIONED_DRAWER_MAKER = (labels, dividers) => args => {
+const SECTIONED_RENDERER_MAKER = (labels, dividers) => args => {
     const backColor = args.isHighlighted ? CanvasTheme.gate.hover : CanvasTheme.surface.gate;
     rectangle(args.painter, args.rect, {fill: backColor});
     let p = 0;
@@ -108,15 +108,15 @@ const SECTIONED_DRAWER_MAKER = (labels, dividers) => args => {
     paintResizeTab(args);
 };
 
-const DISPLAY_GATE_DEFAULT_DRAWER = MAKE_HIGHLIGHTED_DRAWER();
+const DISPLAY_GATE_DEFAULT_RENDERER = MAKE_HIGHLIGHTED_RENDERER();
 
 /**
- * @param {!function(!GateDrawParams)} statePainter
- * @returns {!function(!GateDrawParams)}
+ * @param {!function(!GateRenderParams)} statePainter
+ * @returns {!function(!GateRenderParams)}
  */
-const makeDisplayDrawer = statePainter => args => {
+const makeDisplayRenderer = statePainter => args => {
     if (args.positionInCircuit === undefined) {
-        DISPLAY_GATE_DEFAULT_DRAWER(args);
+        DISPLAY_GATE_DEFAULT_RENDERER(args);
         return;
     }
 
@@ -131,26 +131,17 @@ const makeDisplayDrawer = statePainter => args => {
 };
 
 /**
- * @param {!GateDrawParams} args
+ * @param {!GateRenderParams} args
  */
-const MATRIX_DRAWER = args => {
+const MATRIX_RENDERER = args => {
     const m = args.gate.knownMatrixAt(args.stats.time);
     if (m === undefined) {
-        DEFAULT_DRAWER(args);
+        DEFAULT_RENDERER(args);
         return;
     }
 
     rectangle(args.painter, args.rect, {fill: args.isHighlighted ? CanvasTheme.gate.hover : CanvasTheme.surface.gate});
-    MathPainter.paintMatrix(
-        args.painter,
-        m,
-        args.rect,
-        CanvasTheme.operation.fill,
-        CanvasTheme.text.primary,
-        undefined,
-        CanvasTheme.operation.background,
-        undefined,
-        CanvasTheme.transparent);
+    DATA_RENDERERS.matrix(args.painter, m, args.rect);
     if (args.isHighlighted) {
         args.painter.group('hover-' + args.painter.order, painter => {
             painter.alpha *= 0.9;
@@ -161,7 +152,7 @@ const MATRIX_DRAWER = args => {
 };
 
 /**
- * @param {!GateDrawParams} args
+ * @param {!GateRenderParams} args
  * @param {!number} angle
  * @param {!number=} xScale
  * @param {!number=} yScale
@@ -194,23 +185,23 @@ function paintCycleState(args, angle, xScale = 1, yScale = 1, zeroAngle = 0) {
  * @param {!number=} yScale
  * @param {!number=} tScale
  * @param {!number=} zeroAngle
- * @returns {!function(!GateDrawParams)}
+ * @returns {!function(!GateRenderParams)}
  */
-const makeCycleDrawer = (xScale = 1, yScale = 1, tScale = 1, zeroAngle = 0) => args => {
+const makeCycleRenderer = (xScale = 1, yScale = 1, tScale = 1, zeroAngle = 0) => args => {
     // The clock marks time dependence while the fill retains the operation family.
-    DEFAULT_DRAWER(args);
+    DEFAULT_RENDERER(args);
     paintCycleState(args, args.stats.time * 2 * Math.PI * tScale, xScale, yScale, zeroAngle);
 };
 
 export {
-    MAKE_HIGHLIGHTED_DRAWER,
-    DEFAULT_DRAWER,
-    LABEL_DRAWER,
-    makeLocationIndependentGateDrawer,
-    LOCATION_INDEPENDENT_GATE_DRAWER,
-    SECTIONED_DRAWER_MAKER,
-    makeDisplayDrawer,
-    MATRIX_DRAWER,
+    MAKE_HIGHLIGHTED_RENDERER,
+    DEFAULT_RENDERER,
+    LABEL_RENDERER,
+    makeLocationIndependentGateRenderer,
+    LOCATION_INDEPENDENT_GATE_RENDERER,
+    SECTIONED_RENDERER_MAKER,
+    makeDisplayRenderer,
+    MATRIX_RENDERER,
     paintCycleState,
-    makeCycleDrawer
+    makeCycleRenderer
 }

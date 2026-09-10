@@ -15,7 +15,7 @@
  */
 
 import {DetailedError} from "../../base/DetailedError.js"
-/** @typedef {import("../../draw/gate/GateDrawParams.js").GateDrawParams} GateDrawParams */
+/** @typedef {import("../../draw/gate/GateRenderParams.js").GateRenderParams} GateRenderParams */
 import {Complex} from "../../engine/math/complex/Complex.js"
 import {Matrix} from "../../engine/math/matrix/Matrix.js"
 
@@ -53,8 +53,8 @@ class Gate {
          */
         this._withParamRecomputeFunc = g => {};
 
-        /** @type {undefined|!function(!GateDrawParams) : void} Draws the gate. A default is used when undefined. */
-        this.customDrawer = undefined;
+        /** @type {undefined|!function(!GateRenderParams) : void} Draws the gate. A default is used when undefined. */
+        this.customRenderer = undefined;
         /**
          * When set, clicking the gate's button opens the in-app parameter panel.
          * @type {undefined|!{title: !string, message: !string,
@@ -309,7 +309,7 @@ class Gate {
         g.paramDialog = this.paramDialog;
         g.tag = this.tag;
         g.param = this.param;
-        g.customDrawer = this.customDrawer;
+        g.customRenderer = this.customRenderer;
         g.interestedInControls = this.interestedInControls;
         g.customBeforeOperation = this.customBeforeOperation;
         g.knownBitPermutationFunc = this.knownBitPermutationFunc;
@@ -526,7 +526,7 @@ class GateBuilder {
     }
 
     /**
-     * Sets the text shown inside the box when drawing the gate (unless a custom drawer is used).
+     * Sets the text shown inside the box when drawing the gate (unless a custom renderer is used).
      * @param {!string} symbol
      * @returns {!GateBuilder}
      */
@@ -623,12 +623,12 @@ class GateBuilder {
     }
 
     /**
-     * Provides a custom drawing function for the gate (use undefined to use the default boxed-symbol drawer).
-     * @param {undefined|!function(!GateDrawParams) : void} drawer
+     * Provides a custom drawing function for the gate (use undefined to use the default boxed-symbol renderer).
+     * @param {undefined|!function(!GateRenderParams) : void} renderer
      * @returns {!GateBuilder}
      */
-    setDrawer(drawer) {
-        this.gate.customDrawer = drawer;
+    setRenderer(renderer) {
+        this.gate.customRenderer = renderer;
         return this;
     }
 
@@ -972,7 +972,7 @@ class GateBuilder {
      * Sets meta-properties indicating a qubit density matrix needs to be computed wherever this gate is placed.
      * @returns {!GateBuilder}
      */
-    markAsDrawerNeedsSingleQubitDensityStats() {
+    markAsRendererNeedsSingleQubitDensityStats() {
         this.gate.isSingleQubitDisplay = true;
         return this;
     }

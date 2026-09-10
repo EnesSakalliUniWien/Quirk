@@ -34,9 +34,9 @@ function angleInRadians(param) {
 
 /**
  * @param {!string} axisName
- * @returns {!function(args: !GateDrawParams)}
+ * @returns {!function(args: !GateRenderParams)}
  */
-function angleRotationDrawer(axisName) {
+function angleRotationRenderer(axisName) {
     // The label states the exact angle; the animation clock the time-varying gates paint
     // (paintCycleState) is meaningless for a constant angle and only obscured the label.
     return args => {
@@ -88,7 +88,7 @@ RotationGates.Rx = new GateBuilder().
     setTitle("Rx Gate").
     setBlurb("Rotates the target around the X axis by an adjustable angle given in radians.\n" +
         "Click the gate to change the angle.").
-    setDrawer(angleRotationDrawer('Rx')).
+    setRenderer(angleRotationRenderer('Rx')).
     setWidth(2).
     setExtraDisableReasonFinder(badAngleFormulaDetector).
     setParamDialog(radianAngleDialog('Rx')).
@@ -102,7 +102,7 @@ RotationGates.Ry = new GateBuilder().
     setTitle("Ry Gate").
     setBlurb("Rotates the target around the Y axis by an adjustable angle given in radians.\n" +
         "Click the gate to change the angle.").
-    setDrawer(angleRotationDrawer('Ry')).
+    setRenderer(angleRotationRenderer('Ry')).
     setWidth(2).
     setExtraDisableReasonFinder(badAngleFormulaDetector).
     setParamDialog(radianAngleDialog('Ry')).
@@ -116,7 +116,7 @@ RotationGates.Rz = new GateBuilder().
     setTitle("Rz Gate").
     setBlurb("Rotates the target around the Z axis by an adjustable angle given in radians.\n" +
         "Click the gate to change the angle.").
-    setDrawer(angleRotationDrawer('Rz')).
+    setRenderer(angleRotationRenderer('Rz')).
     setWidth(2).
     setExtraDisableReasonFinder(badAngleFormulaDetector).
     setParamDialog(radianAngleDialog('Rz')).

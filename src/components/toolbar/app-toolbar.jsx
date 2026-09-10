@@ -1,9 +1,12 @@
 
 import {
+    ChartColumnIcon,
     DownloadIcon,
     EraserIcon,
+    OrbitIcon,
     Redo2Icon,
     SigmaIcon,
+    SquareFunctionIcon,
     Trash2Icon,
     Undo2Icon,
     WandSparklesIcon
@@ -165,6 +168,21 @@ function AppToolbar() {
                 icon={SigmaIcon}
                 label="State"
                 onClick={() => openPanel("state")} />
+            <ToolbarButton
+                id="algebra-button"
+                icon={SquareFunctionIcon}
+                label="Algebra"
+                onClick={() => openPanel("algebra")} />
+            <ToolbarButton
+                id="probabilities-button"
+                icon={ChartColumnIcon}
+                label="Probabilities"
+                onClick={() => openPanel("probabilities")} />
+            <ToolbarButton
+                id="qubits-button"
+                icon={OrbitIcon}
+                label="Qubits"
+                onClick={() => openPanel("qubits")} />
             <ToolbarButton
                 id="clear-circuit-button"
                 icon={EraserIcon}

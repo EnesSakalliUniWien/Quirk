@@ -41,7 +41,7 @@ Before opening the pull request, keep the checks green:
 - `src/gates/` — the gate catalogue, aggregated by `AllGates.js`; a gate missing from its
   lists silently stops serializing and disappears from the toolbox.
 - `src/draw/` — canvas painting primitives. Two seams let the editor hand renderers down
-  without `draw` importing it: `gate/CustomGateCircuitDrawer.js` and `CircuitPreview.js`.
+  without `draw` importing it: `gate/CustomGateCircuitRenderer.js` and `CircuitPreview.js`.
 - `src/engine/` — every calculation: pure numerics in `math/`, the WebGL2 abstraction in `webgl/`
   (`webgl/context/issues.js` owns the one shared GL context), and circuit evaluation in `simulation/`
   with its shader and texture utilities in `simulation/gpu/`. `math/` and `webgl/` are leaves;

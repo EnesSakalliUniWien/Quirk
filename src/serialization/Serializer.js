@@ -31,7 +31,7 @@ import {reportRecoveredError} from "../diagnostics/errorReporter.js"
 import {MysteryGateSymbol, MysteryGateMakerWithMatrix} from "../gates/misc/Joke_MysteryGate.js"
 import {setGateBuilderEffectToCircuit} from "../engine/simulation/CircuitComputeUtil.js"
 import {GatePainting} from "../draw/gate/GatePainting.js"
-import {drawCustomGateCircuit} from "../draw/gate/CustomGateCircuitDrawer.js"
+import {renderCustomGateCircuit} from "../draw/gate/CustomGateCircuitRenderer.js"
 import {ComplexFormula} from "../engine/math/formula/ComplexFormula.js"
 
 /**
@@ -220,9 +220,9 @@ const fromJson_Gate_Matrix = props => {
         setTitle(props.name).
         setHeight(height).
         setWidth(width).
-        setDrawer(props.symbol === "" ? GatePainting.MATRIX_DRAWER
-            : matrix.isIdentity() ? GatePainting.LABEL_DRAWER
-            : matrix.isScaler() ? GatePainting.LOCATION_INDEPENDENT_GATE_DRAWER
+        setRenderer(props.symbol === "" ? GatePainting.MATRIX_RENDERER
+            : matrix.isIdentity() ? GatePainting.LABEL_RENDERER
+            : matrix.isScaler() ? GatePainting.LOCATION_INDEPENDENT_GATE_RENDERER
             : undefined).
         setKnownEffectToMatrix(matrix);
     if (matrix.isIdentity()) {
@@ -242,7 +242,7 @@ const fromJson_Gate_Circuit = (props, context) => {
         setSerializedId(props.id).
         setSymbol(props.symbol).
         setTitle(props.name).
-        setDrawer(drawCustomGateCircuit).
+        setRenderer(renderCustomGateCircuit).
         gate;
 };
 

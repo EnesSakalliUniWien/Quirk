@@ -17,9 +17,13 @@
 /**
  * The one canvas and WebGL2 context the whole application renders with. Created once, at import,
  * so that every texture and shader shares a single GL state.
+ *
+ * A worker has no document and never simulates, but it does load the gate catalogue to evaluate
+ * gates' permutations and matrices (see src/draw/renderers/operatorTiles.worker.js). There the
+ * context is simply absent, and nothing that would use it runs.
  */
-const sharedCanvas = document.createElement("canvas");
-const sharedContext = sharedCanvas.getContext("webgl2");
+const sharedCanvas = typeof document === "undefined" ? undefined : document.createElement("canvas");
+const sharedContext = sharedCanvas === undefined ? undefined : sharedCanvas.getContext("webgl2");
 
 /**
  * Explains why the simulation cannot run on this browser, or returns undefined when it can.

@@ -184,7 +184,7 @@ test('houses the transport in the shell below the work area', async browser => {
         // put whatever the dock is showing.
         const placement = await page.evaluate(() => {
             const transport = document.querySelector('.transport-bar');
-            const work = document.querySelector('.app-body');
+            const work = document.querySelector('.app-dock');
             return {
                 insideAPanel: transport.closest('[data-panel-id]') !== null,
                 belowTheWorkArea:

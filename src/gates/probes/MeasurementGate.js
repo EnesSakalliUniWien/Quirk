@@ -22,7 +22,7 @@ import {GateBuilder} from '../../circuit/model/Gate.js';
 import {GatePainting} from '../../draw/gate/GatePainting.js';
 
 /**
- * @param {!GateDrawParams} args
+ * @param {!GateRenderParams} args
  */
 function drawMeasurementGate(args) {
     const style = gateStyle(args.gate);
@@ -52,7 +52,7 @@ const MeasurementGate = new GateBuilder().
     setBlurb("Measures whether a qubit is ON or OFF, without conditioning on the result.").
     setMeasureEffect("measure").
     promiseHasNoNetEffectOnStateVector().  // Because in the simulation we defer measurement by preventing operations.
-    setDrawer(drawMeasurementGate).
+    setRenderer(drawMeasurementGate).
     setExtraDisableReasonFinder(args => {
         if (args.isNested) {
             return "can't\nnest\nmeasure\n(sorry)";

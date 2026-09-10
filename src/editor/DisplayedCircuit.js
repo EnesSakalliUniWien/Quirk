@@ -26,7 +26,7 @@ import {paintCircuit} from './CircuitPainting.js';
 import {CircuitDefinition} from '../circuit/model/CircuitDefinition.js';
 import {CircuitGeometry} from './CircuitGeometry.js';
 import {rectForResizeTab} from '../draw/gate/GateRects.js';
-import {setCustomGateCircuitDrawer} from '../draw/gate/CustomGateCircuitDrawer.js';
+import {setCustomGateCircuitRenderer} from '../draw/gate/CustomGateCircuitRenderer.js';
 import {CircuitStats} from '../engine/simulation/CircuitStats.js';
 import {Layout} from '../config/Layout.js';
 import {CanvasTheme} from '../config/CanvasTheme.js';
@@ -574,15 +574,15 @@ function drawCircuitTooltip(painter, circuitDefinition, rect, showWires, time) {
 }
 
 /**
- * @param {!GateDrawParams} args
+ * @param {!GateRenderParams} args
  */
-const GATE_CIRCUIT_DRAWER = args => {
+const GATE_CIRCUIT_RENDERER = args => {
     const circuit = args.gate.knownCircuit;
     if (circuit === undefined || args.gate.symbol !== '') {
         if (args.gate.stableDuration() === Infinity) {
-            GatePainting.DEFAULT_DRAWER(args);
+            GatePainting.DEFAULT_RENDERER(args);
         } else {
-            GatePainting.makeCycleDrawer()(args);
+            GatePainting.makeCycleRenderer()(args);
         }
         return;
     }
@@ -606,6 +606,6 @@ const GATE_CIRCUIT_DRAWER = args => {
 
 // Deposited rather than imported by the serializer, because this module (via CircuitStats)
 // imports the serializer right back.
-setCustomGateCircuitDrawer(GATE_CIRCUIT_DRAWER);
+setCustomGateCircuitRenderer(GATE_CIRCUIT_RENDERER);
 
 export {DisplayedCircuit, drawCircuitTooltip}

@@ -1,22 +1,18 @@
-/* The sidebar's outer shell: the flex rail beside the circuit, its brand row and action row, and
-   its header slot. */
+/* The palette's outer shell: the column that fills its dock panel, its brand row, and its header
+   slot. The dock sizes the panel and draws the seam beside it. */
 @layer components {
 
     .gate-toolbox {
         /* A drag that begins here is a gate grab, never a text selection. */
         user-select: none;
-        position: sticky;
-        top: 0;
         display: flex;
-        width: var(--sidebar-width);
-        max-height: 100vh;
-        flex: 0 0 var(--sidebar-width);
+        height: 100%;
+        min-height: 0;
         flex-direction: column;
         gap: calc(var(--spacing) * 3);
         padding: calc(var(--spacing) * 3);
         color: var(--sidebar-foreground);
         background: var(--sidebar);
-        border-right: 1px solid var(--sidebar-border);
     }
 
     .sidebar-brand {

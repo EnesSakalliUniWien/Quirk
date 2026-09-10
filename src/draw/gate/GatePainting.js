@@ -24,23 +24,23 @@ import {
 } from "./GateFrame.js";
 import { paintGateSymbol } from "./GateSymbol.js";
 import {
-  MAKE_HIGHLIGHTED_DRAWER,
-  DEFAULT_DRAWER,
-  LABEL_DRAWER,
-  makeLocationIndependentGateDrawer,
-  LOCATION_INDEPENDENT_GATE_DRAWER,
-  SECTIONED_DRAWER_MAKER,
-  makeDisplayDrawer,
-  MATRIX_DRAWER,
+  MAKE_HIGHLIGHTED_RENDERER,
+  DEFAULT_RENDERER,
+  LABEL_RENDERER,
+  makeLocationIndependentGateRenderer,
+  LOCATION_INDEPENDENT_GATE_RENDERER,
+  SECTIONED_RENDERER_MAKER,
+  makeDisplayRenderer,
+  MATRIX_RENDERER,
   paintCycleState,
-  makeCycleDrawer,
-} from "./GateDrawers.js";
+  makeCycleRenderer,
+} from "./GateRenderers.js";
 import { rectForResizeTab } from "./GateRects.js";
 
 /**
  * The gate painting namespace, kept so the gate modules and the serializer can keep spelling their
- * drawers as GatePainting.X. The pieces live in GateFrame (outline, background, resize tab, gate
- * button), GateSymbol (the symbol typography) and GateDrawers (the composed drawers); new code
+ * renderers as GatePainting.X. The pieces live in GateFrame (outline, background, resize tab, gate
+ * button), GateSymbol (the symbol typography) and GateRenderers (the composed renderers); new code
  * imports those directly.
  */
 const GatePainting = {
@@ -52,16 +52,16 @@ const GatePainting = {
   paintGateButton,
   paintGateSymbol,
   rectForResizeTab,
-  MAKE_HIGHLIGHTED_DRAWER,
-  DEFAULT_DRAWER,
-  LABEL_DRAWER,
-  makeLocationIndependentGateDrawer,
-  LOCATION_INDEPENDENT_GATE_DRAWER,
-  SECTIONED_DRAWER_MAKER,
-  makeDisplayDrawer,
-  MATRIX_DRAWER,
+  MAKE_HIGHLIGHTED_RENDERER,
+  DEFAULT_RENDERER,
+  LABEL_RENDERER,
+  makeLocationIndependentGateRenderer,
+  LOCATION_INDEPENDENT_GATE_RENDERER,
+  SECTIONED_RENDERER_MAKER,
+  makeDisplayRenderer,
+  MATRIX_RENDERER,
   paintCycleState,
-  makeCycleDrawer,
+  makeCycleRenderer,
 };
 
 export { GatePainting };

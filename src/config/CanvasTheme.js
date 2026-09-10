@@ -15,7 +15,7 @@
  */
 
 /**
- * Explicit colours for canvas drawing and gate chips. Drawers consume these values directly.
+ * Explicit colours for canvas drawing and gate chips. Gate renderers consume these values directly.
  * DOM colours are defined separately in styles/tokens.css.
  * Each section states the meaning and visible cue that accompanies its colours.
  */

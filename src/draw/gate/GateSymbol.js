@@ -19,7 +19,7 @@ import { gateStyle } from "../../config/CanvasTheme.js";
 import { Typography } from "../../config/Typography.js";
 
 /** @typedef {import('../pixi/DisplayView.js').DisplayView} DisplayView */
-/** @typedef {import('./GateDrawParams.js').GateDrawParams} GateDrawParams */
+/** @typedef {import('./GateRenderParams.js').GateRenderParams} GateRenderParams */
 
 /**
  * @param {!number} size
@@ -94,7 +94,7 @@ function fitGateSymbol(text, maxWidth) {
 }
 
 /**
- * @param {!GateDrawParams} args
+ * @param {!GateRenderParams} args
  * @param {undefined|!string=undefined} symbolOverride
  * @param {!boolean=} allowExponent
  */

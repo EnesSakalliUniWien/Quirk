@@ -1,9 +1,7 @@
 import { memo, useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 
-import { AtomIcon, BookOpenIcon, SearchIcon, BlocksIcon } from "lucide-react";
+import { AtomIcon, BookOpenIcon, SearchIcon } from "lucide-react";
 import { ScrollArea } from "@base-ui/react/scroll-area";
-import { Drawer } from "@base-ui/react/drawer";
 import { PreviewCard } from "@base-ui/react/preview-card";
 
 import { GateHoverCard, gateHoverHandle } from "../gate/gate-hover.jsx";
@@ -24,37 +22,10 @@ import {
   searchTextOf,
 } from "./toolbox.js";
 
-/** Below this width the sidebar becomes an off-canvas drawer instead of squeezing the circuit. */
-const COMPACT_MEDIA_QUERY = "(max-width: 920px)";
-
 /** A tile's height and the gap between them, from src/styles/sidebar/tiles.css and groups.css.
  *  Used only to reserve space for a group whose rendering is skipped while it is off screen. */
 const TILE_HEIGHT = 32;
 const TILE_GAP = 2;
-
-/**
- * The gate palette, structured the way a shadcn sidebar is: a header holding the search, a
- * scrollable content region, and labelled groups of menu buttons - except the buttons are drag
- * sources for the circuit, not navigation. The groups do not fold: 112 gates in one scroll
- * region stay findable, and a fold remembered across sessions only hides gates from the user
- * who forgot they closed it. Search is the way to narrow the list. The painted tooltips stay
- * imperative: they are drawn by the same painter the circuit uses.
- */
-
-
-/** @returns {!boolean} */
-function useMediaQuery(query) {
-  const [matches, setMatches] = useState(
-    () => window.matchMedia(query).matches,
-  );
-  useEffect(() => {
-    const mq = window.matchMedia(query);
-    const onChange = () => setMatches(mq.matches);
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
-  }, [query]);
-  return matches;
-}
 
 /**
  * @param {*} customGateSet
@@ -167,7 +138,16 @@ const SidebarHeader = memo(function SidebarHeader() {
   );
 });
 
-function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace, searchRef }) {
+/**
+ * The gate palette, structured the way a shadcn sidebar is: a header holding the search, a
+ * scrollable content region, and labelled groups of menu buttons - except the buttons are drag
+ * sources for the circuit, not navigation. The groups do not fold: 112 gates in one scroll
+ * region stay findable, and a fold remembered across sessions only hides gates from the user
+ * who forgot they closed it. Search is the way to narrow the list.
+ *
+ * It is the content of the gates dock panel (src/components/panels/gates-panel.jsx), which fills.
+ */
+function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace }) {
   const customGateSet = useObservedValue(obsCustomGateSet);
   const [query, setQuery] = useState("");
   const [stopKey, setStopKey] = useState(undefined);
@@ -285,7 +265,6 @@ function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace, searc
           />
           <input
             id="gate-search"
-            ref={searchRef}
             type="search"
             className="gate-toolbox-search-input"
             data-slot="sidebar-input"
@@ -378,57 +357,4 @@ function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace, searc
   );
 }
 
-/**
- * Wide layouts get the sidebar in the flex row; narrow ones get a floating trigger that opens
- * the same palette as an off-canvas drawer, instead of a band squeezing the circuit down.
- *
- * @param {!{circuitArea: undefined|!HTMLElement}} props circuitArea is where the drawer's trigger
- *     is portalled to, so it floats over the canvas's corner.
- */
-function ResponsiveGateToolbox({ circuitArea, ...props }) {
-  const compact = useMediaQuery(COMPACT_MEDIA_QUERY);
-  const [open, setOpen] = useState(false);
-  const searchRef = useRef(null);
-
-  if (!compact) {
-    return <GateToolbox {...props} />;
-  }
-
-  // A grab has to reach the canvas under the drawer, so taking a gate closes it; the document-
-  // level drag tracker keeps following the pointer through the close.
-  const grabAndClose = (gate, pointer) => {
-    setOpen(false);
-    props.onGrab(gate, pointer);
-  };
-  // The trigger's DOM lands in the circuit area, floating over the canvas's corner, while its
-  // React position stays under the drawer root that gives it its behavior.
-  return (
-    <Drawer.Root open={open} onOpenChange={setOpen} swipeDirection="left">
-      {circuitArea !== undefined &&
-        createPortal(
-          <Drawer.Trigger
-            className="gate-toolbox-drawer-trigger"
-            aria-label="Open the gate palette"
-          >
-            <BlocksIcon strokeWidth={1.5} aria-hidden="true" />
-            Gates
-          </Drawer.Trigger>,
-          circuitArea,
-        )}
-      <Drawer.Portal>
-        <Drawer.Backdrop className="dialog-overlay" />
-        <Drawer.Viewport className="gate-toolbox-drawer-viewport">
-          <Drawer.Popup
-            className="gate-toolbox-drawer-popup"
-            aria-label="Gate palette"
-            initialFocus={() => searchRef.current}
-          >
-            <GateToolbox {...props} onGrab={grabAndClose} searchRef={searchRef} />
-          </Drawer.Popup>
-        </Drawer.Viewport>
-      </Drawer.Portal>
-    </Drawer.Root>
-  );
-}
-
-export { ResponsiveGateToolbox };
+export { GateToolbox };

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { AMPLITUDE_DRAWER_FROM_CUSTOM_STATS } from "../../draw/pixi/displays/AmplitudeView.js";
+import { AMPLITUDE_RENDERER_FROM_CUSTOM_STATS } from "../../draw/pixi/displays/AmplitudeView.js";
 
 import { CircuitShaders } from "../../engine/simulation/gpu/CircuitShaders.js";
 import { Gate } from "../../circuit/model/Gate.js";
@@ -322,7 +322,7 @@ const AmplitudeDisplayFamily = Gate.buildFamily(1, 16, (span, builder) =>
     )
     .setStatPixelDataPostProcessor((val, def) => processOutputs(span, val, def))
     .setProcessedStatsToJsonFunc(customStatsToJsonData)
-    .setDrawer(AMPLITUDE_DRAWER_FROM_CUSTOM_STATS),
+    .setRenderer(AMPLITUDE_RENDERER_FROM_CUSTOM_STATS),
 );
 
 export {

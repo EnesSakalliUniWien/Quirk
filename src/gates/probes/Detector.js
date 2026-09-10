@@ -163,7 +163,7 @@ function sampleMeasure(ctx) {
 }
 
 /**
- * @param {!GateDrawParams} args
+ * @param {!GateRenderParams} args
  * @param {!string} axis
  */
 function drawDetector(args, axis) {
@@ -173,7 +173,7 @@ function drawDetector(args, axis) {
 }
 
 /**
- * @param {!GateDrawParams} args
+ * @param {!GateRenderParams} args
  */
 function drawHighlight(args) {
     // Can't use the typical highlight function because the detector has no box outline.
@@ -184,7 +184,7 @@ function drawHighlight(args) {
 }
 
 /**
- * @param {!GateDrawParams} args
+ * @param {!GateRenderParams} args
  * @param {!string} axis
  */
 function drawWedge(args, axis) {
@@ -206,7 +206,7 @@ function drawWedge(args, axis) {
 }
 
 /**
- * @param {!GateDrawParams} args
+ * @param {!GateRenderParams} args
  * @param {undefined|!string} axis
  */
 function drawClick(args, axis) {
@@ -259,7 +259,7 @@ function drawClick(args, axis) {
 }
 
 /**
- * @param {!GateDrawParams} args
+ * @param {!GateRenderParams} args
  * @param {!string} axis
  */
 function drawControlBulb(args, axis) {
@@ -289,7 +289,7 @@ function drawControlBulb(args, axis) {
 }
 
 /**
- * @param {!GateDrawParams} args
+ * @param {!GateRenderParams} args
  * @param {!string} axis
  */
 function drawDetectClearReset(args, axis) {
@@ -323,7 +323,7 @@ function drawDetectClearReset(args, axis) {
 }
 
 /**
- * @param {!GateDrawParams} args
+ * @param {!GateRenderParams} args
  */
 function redrawControlWires(args) {
     if (args.positionInCircuit === undefined || args.isHighlighted) {
@@ -386,7 +386,7 @@ function makeDetectControlClearGate(axis) {
         setSerializedIdAndSymbol(`${axis}DetectControlReset`).
         setTitle(`${axis} Detect-Control-Reset`).
         setBlurb(`Does a sampled ${axis}-axis measurement.\nControls operations with the result.\nResets the target to |0⟩.`).
-        setDrawer(args => drawDetectClearReset(args, axis)).
+        setRenderer(args => drawDetectClearReset(args, axis)).
         markAsControlExpecting(true, true).
         markAsReachingOtherWires().
         setActualEffectToUpdateFunc(() => {}).
@@ -423,7 +423,7 @@ function makeDetector(axis) {
         setBlurb(
             `Sampled ${axis}-axis measurement.\n` +
             `Shows *click* when the target qubit is ${state} and controls are satisfied.`).
-        setDrawer(args => drawDetector(args, axis)).
+        setRenderer(args => drawDetector(args, axis)).
         markAsReachingOtherWires().
         setSetupCleanupEffectToUpdateFunc(
             ctx => switchToBasis(ctx, axis, false),

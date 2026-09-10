@@ -125,8 +125,8 @@ function watchPointerDrags(element, handlers, measureElement = element) {
 
 /**
  * Follows one pointer, already pressed, until it is released or lost. For drags that start on an
- * element that may disappear mid-gesture (a drawer that closes when a gate is taken), so the
- * listeners sit on the document rather than on the element.
+ * element that may be covered mid-gesture (a palette tab that gives way to the circuit when a gate
+ * is taken), so the listeners sit on the document rather than on the element.
  *
  * @param {!PointerEvent} startEvent The press the gesture began with.
  * @param {!{

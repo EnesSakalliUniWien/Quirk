@@ -20,7 +20,7 @@ import {strokePath} from '../../draw/pixi/ShapeView.js';
 import {Layout} from '../../config/Layout.js';
 import {Gate} from '../../circuit/model/Gate.js';
 import {paintBackground, paintOutline, paintResizeTab} from '../../draw/gate/GateFrame.js';
-import {PERMUTATION_DRAWER} from './PermutationDrawer.js';
+import {PERMUTATION_RENDERER} from './PermutationRenderer.js';
 import {ketArgs, ketShaderPermute} from '../../engine/simulation/gpu/KetShaderUtil.js';
 import {Matrix} from '../../engine/math/matrix/Matrix.js';
 import {Point} from '../../geometry/Point.js';
@@ -51,7 +51,7 @@ const makeCycleBitsMatrix = (shift, span) => Matrix.generateTransition(1<<span, 
 
 const cyclePainter = reverse => args => {
     if (args.positionInCircuit !== undefined) {
-        PERMUTATION_DRAWER(args);
+        PERMUTATION_RENDERER(args);
         return;
     }
 
@@ -82,7 +82,7 @@ CycleBitsGates.CycleBitsFamily = Gate.buildFamily(2, 16, (span, builder) => buil
     setSymbol("<<<").
     setTitle("Left Rotate").
     setBlurb("Rotates bits downward.").
-    setDrawer(cyclePainter(false)).
+    setRenderer(cyclePainter(false)).
     setTooltipMatrixFunc(() => makeCycleBitsMatrix(1, span)).
     setActualEffectToShaderProvider(ctx => cycleBitsShader(ctx, span, +1)).
     setKnownEffectToBitPermutation(i => (i + 1) % span));
@@ -93,7 +93,7 @@ CycleBitsGates.ReverseCycleBitsFamily = Gate.buildFamily(2, 16, (span, builder) 
     setSymbol(">>>").
     setTitle("Right Rotate").
     setBlurb("Rotates bits upward.").
-    setDrawer(cyclePainter(true)).
+    setRenderer(cyclePainter(true)).
     setTooltipMatrixFunc(() => makeCycleBitsMatrix(-1, span)).
     setActualEffectToShaderProvider(ctx => cycleBitsShader(ctx, span, -1)).
     setKnownEffectToBitPermutation(i => (i + span - 1) % span));

@@ -1,10 +1,13 @@
-import { DockviewReact, themeDark } from "dockview-react";
+import { DockviewDefaultTab, DockviewReact, themeDark } from "dockview-react";
+import { useRef } from "react";
 
 import { appStore } from "../state/appStore.js";
 import { PANELS, PANEL_COMPONENTS } from "./panels/panels.jsx";
 
 /** Where the dock's arrangement is remembered between visits. */
 const LAYOUT_STORAGE_KEY = "shadow-quant.dock-layout";
+/** Below this width a permanent side panel starts as a tab behind the circuit, not beside it. */
+const NARROW_MEDIA_QUERY = "(max-width: 920px)";
 
 /**
  * @param {!Object} api
@@ -56,8 +59,22 @@ function readLayout() {
 }
 
 /**
- * Puts every panel that must always be present back on screen. A layout saved by an older version
- * can be missing one, and the circuit is the app rather than a view of it.
+ * Where a permanent side panel starts: beside the circuit at its width, or, on a narrow screen, as
+ * a tab behind the circuit. The user's own arrangement is remembered after that, at any width.
+ *
+ * @param {!{direction: !string, width: !int}} side
+ * @returns {!Object} Placement options for dockview's addPanel.
+ */
+function besideOrBehindTheCircuit({ direction, width }) {
+  return window.matchMedia(NARROW_MEDIA_QUERY).matches
+    ? { position: { referencePanel: "circuit" }, inactive: true }
+    : { position: { referencePanel: "circuit", direction }, initialWidth: width };
+}
+
+/**
+ * Puts every panel that must always be present back on screen: on a first visit, when a layout
+ * saved by an older version is missing one, and when one was floated, since floating panels are
+ * not remembered. The circuit and its gate palette are the app rather than views of it.
  *
  * @param {!Object} api
  * @returns {void}
@@ -70,9 +87,22 @@ function addMissingPermanentPanels(api) {
         component: name,
         title: panel.title,
         renderer: "always",
+        ...(panel.side === undefined ? {} : besideOrBehindTheCircuit(panel.side)),
       });
     }
   }
+}
+
+/**
+ * Every tab as dockview draws it, minus the close control on a permanent panel. closePanel refuses
+ * to close one, so its tab should not offer to.
+ *
+ * @param {!Object} props dockview's tab props.
+ */
+function DockTab(props) {
+  return (
+    <DockviewDefaultTab {...props} hideClose={PANELS[props.api.id]?.permanent === true} />
+  );
 }
 
 /**
@@ -169,9 +199,17 @@ function closePanel(name) {
  * them into is remembered.
  */
 function Dock() {
+  const hostRef = useRef(null);
   const onReady = (event) => {
     const { api } = event;
     appStore.setState({ dock: api });
+    // Sized before anything is placed. Dockview learns its size from a resize observer a frame
+    // later, and a panel added at a width to a grid of no size - the gate palette at 240px - is
+    // scaled with the grid afterwards instead of keeping its width.
+    const host = hostRef.current;
+    if (host !== null) {
+      api.layout(host.clientWidth, host.clientHeight);
+    }
 
     const saved = readLayout();
     if (saved !== undefined) {
@@ -194,10 +232,11 @@ function Dock() {
   // Wrapped, because dockview's className lands on an inner element: the flex child the work area
   // sizes has to be one this file owns.
   return (
-    <div className="app-dock">
+    <div className="app-dock" ref={hostRef}>
       <DockviewReact
         theme={themeDark}
         components={PANEL_COMPONENTS}
+        defaultTabComponent={DockTab}
         onReady={onReady}
       />
     </div>

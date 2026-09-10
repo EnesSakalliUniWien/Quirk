@@ -84,13 +84,6 @@
         color: var(--muted-foreground);
     }
 
-    /* Bigger matrices are plotted instead: hue is phase, opacity is magnitude, the same convention
-       the circuit paints with. */
-    .matrix-plot svg {
-        display: block;
-        overflow: visible;
-    }
-
     .gate-details-legend {
         margin: 0;
         color: var(--muted-foreground);

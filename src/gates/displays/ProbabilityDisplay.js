@@ -166,7 +166,7 @@ function multiChanceGateMaker(span, builder) {
       probabilityPixelsToColumnVector(pixels, span),
     )
     .setProcessedStatsToJsonFunc(probabilityDataToJson)
-    .setDrawer(GatePainting.makeDisplayDrawer(paintMultiProbabilityDisplay));
+    .setRenderer(GatePainting.makeDisplayRenderer(paintMultiProbabilityDisplay));
 }
 
 /**
@@ -176,9 +176,9 @@ function multiChanceGateMaker(span, builder) {
 function singleChangeGateMaker(builder) {
   return shared_chanceGateMaker(builder)
     .setSerializedId("Chance")
-    .markAsDrawerNeedsSingleQubitDensityStats()
-    .setDrawer(
-      GatePainting.makeDisplayDrawer((args) => {
+    .markAsRendererNeedsSingleQubitDensityStats()
+    .setRenderer(
+      GatePainting.makeDisplayRenderer((args) => {
         const { row, col } = args.positionInCircuit;
         MathPainter.paintProbabilityBox(
           args.painter,

@@ -27,7 +27,7 @@ import {Util} from '../../../base/Util.js';
 
 /**
  * Looks up the simulated probability distribution and samples from it using the current graphics PRNG.
- * @param {!GateDrawParams} args
+ * @param {!GateRenderParams} args
  * @returns {!{i: !number, p: !number}}
  */
 function sampleFromDistribution(args) {
@@ -45,7 +45,7 @@ function sampleFromDistribution(args) {
 }
 
 /**
- * @param {!GateDrawParams} args
+ * @param {!GateRenderParams} args
  */
 function _paintSampleDisplay_result(args) {
     const {painter, rect: {x, y, w, h}} = args;

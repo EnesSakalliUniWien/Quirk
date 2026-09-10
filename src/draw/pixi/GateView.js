@@ -3,11 +3,11 @@ import { textLayoutVersion } from "./TextLayout.js";
 
 /** A gate occurrence owns its display objects, independently of neighbouring circuit slots. */
 class GateView extends DisplayView {
-  update(args, drawer) {
+  update(args, renderer) {
     const { rect, gate } = args;
     const inputs = [
       gate,
-      drawer,
+      renderer,
       rect.x,
       rect.y,
       rect.w,
@@ -20,7 +20,7 @@ class GateView extends DisplayView {
     ];
     // The default static symbol does not read simulation data, focus points, or randomness.
     const staticSymbol =
-      !gate.customDrawer && gate.stableDuration() === Infinity;
+      !gate.customRenderer && gate.stableDuration() === Infinity;
     if (
       staticSymbol &&
       this.inputs &&
@@ -29,11 +29,11 @@ class GateView extends DisplayView {
       this.used = new Set(this.objects.keys());
       return;
     }
-    drawer(args.withPainter(this));
+    renderer(args.withPainter(this));
     this.inputs = staticSymbol ? inputs : undefined;
   }
 }
 
-export function renderGateView(view, key, args, drawer) {
-  return view.group(key, (child) => child.update(args, drawer), GateView);
+export function renderGateView(view, key, args, renderer) {
+  return view.group(key, (child) => child.update(args, renderer), GateView);
 }
