@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {rectangle, strokePath} from '../pixi/ShapeView.js';
+import {frame, highlightRing, lineWidth, rectangle, strokePath} from '../pixi/ShapeView.js';
 import {fitText} from '../pixi/TextLayout.js';
 
 import {Layout} from '../../config/Layout.js';
@@ -104,7 +104,10 @@ const SECTIONED_RENDERER_MAKER = (labels, dividers) => args => {
         });
         p = p2;
     }
-    rectangle(args.painter, args.rect, {stroke: {color: CanvasTheme.text.primary, width: 1}});
+    rectangle(args.painter, args.rect, {stroke: {color: CanvasTheme.text.primary, width: lineWidth(args.painter, 1)}});
+    if (args.isHighlighted) {
+        highlightRing(args.painter, args.rect);
+    }
     paintResizeTab(args);
 };
 
@@ -122,8 +125,11 @@ const makeDisplayRenderer = statePainter => args => {
 
     statePainter(args);
 
+    // Every display wears the frame ink, not only while hovered: its dark fill is barely lighter
+    // than the canvas, so the frame is its edge.
+    frame(args.painter, args.rect);
     if (args.isHighlighted) {
-        rectangle(args.painter, args.rect, {stroke: {color: CanvasTheme.text.primary, width: 1.5}});
+        highlightRing(args.painter, args.rect);
     }
 
     // Draw the tab once, above the display, with its normal/highlight opacity.

@@ -21,7 +21,7 @@ app/
 │   ├── minimap.js          the schematic overview of a wide circuit
 │   └── redrawLoop.js       the frame pipeline: simulate, publish stats, size, paint
 └── session/        document-level lifecycle
-    ├── boot.js             first-run welcome and GL context recovery
+    ├── boot.js             the reveal tick and GL context recovery
     ├── url.js              the circuit in the URL hash
     └── title.js            the window title
 ```

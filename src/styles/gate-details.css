@@ -187,7 +187,7 @@
 
     .rotation-figure-turn {
         fill: none;
-        stroke: var(--state-probability-fill);
+        stroke: var(--operator);
         stroke-width: 2;
         stroke-linecap: round;
     }
@@ -197,6 +197,6 @@
     }
 
     .rotation-figure-turn-head-fill {
-        fill: var(--state-probability-fill);
+        fill: var(--operator);
     }
 }

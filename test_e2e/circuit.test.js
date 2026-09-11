@@ -83,7 +83,7 @@ test("loads a URL circuit and renders its Bloch sphere in the circuit area", asy
   const circuit = { cols: [["H"], ["Bloch"]] };
   await withQuirkPage(browser, circuit, async (page) => {
     // A panel that is not open has no DOM at all.
-    assert.equal(await page.$('[data-panel-id="menu"]'), null);
+    assert.equal(await page.$('[data-panel-id="export"]'), null);
     assert.deepEqual(await exportedCircuit(page), circuit);
     assertCircuitLayout(await canvasLayout(page));
   });

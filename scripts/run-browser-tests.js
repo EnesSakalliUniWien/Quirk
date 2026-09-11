@@ -14,51 +14,63 @@
  * limitations under the License.
  */
 
-import path from 'node:path';
+import path from "node:path";
 
-import puppeteer from 'puppeteer';
+import puppeteer from "puppeteer";
 
-import {startStaticServer} from '../server/staticServer.js';
+import { startStaticServer } from "../server/staticServer.js";
 
 let browser;
 let serve;
 try {
-    const pageFile = process.argv[2] || 'test/test.html';
-    if (pageFile !== 'test/test.html' && pageFile !== 'test_perf/test_perf.html') {
-        throw new Error(`Unsupported test page: ${pageFile}`);
-    }
+  const pageFile = process.argv[2] || "test/test.html";
+  if (
+    pageFile !== "test/test.html" &&
+    pageFile !== "test_perf/test_perf.html"
+  ) {
+    throw new Error(`Unsupported test page: ${pageFile}`);
+  }
 
-    browser = await puppeteer.launch();
-    const page = await browser.newPage();
-    let caughtPageError = false;
-    page.on('console', message => console.log(message.text()));
-    page.on('pageerror', error => {
-        caughtPageError = true;
-        console.error("Page error bubbled into run-browser-tests.js: " + error.message);
-    });
+  browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  let caughtPageError = false;
+  page.on("console", (message) => console.log(message.text()));
+  page.on("pageerror", (error) => {
+    caughtPageError = true;
+    console.error(
+      "Page error bubbled into run-browser-tests.js: " + error.message,
+    );
+  });
 
-    // Served over http rather than file://, because browsers refuse module scripts from disk.
-    serve = await startStaticServer({root: path.join(import.meta.dirname, '..', 'out')});
-    await page.goto(`${serve.origin}/${pageFile}`);
-    await page.waitForSelector('#done', {timeout: 5 * 60 * 1000});
-    const result = await page.evaluate(() => ({
-        anyFailures: __any_failures,
-        completed: __total_done,
-        total: __total_tests
-    }));
-    console.log(`Completed ${result.completed}/${result.total} tests.`);
+  // Served over http rather than file://, because browsers refuse module scripts from disk.
+  serve = await startStaticServer({
+    root: path.join(import.meta.dirname, "..", "out"),
+  });
+  await page.goto(`${serve.origin}/${pageFile}`);
+  await page.waitForSelector("#done", { timeout: 5 * 60 * 1000 });
+  const result = await page.evaluate(() => ({
+    anyFailures: __any_failures,
+    completed: __total_done,
+    total: __total_tests,
+  }));
+  console.log(`Completed ${result.completed}/${result.total} tests.`);
 
-    if (result.anyFailures || caughtPageError || result.total === 0 || result.completed !== result.total) {
-        process.exitCode = 1;
-    }
-} catch (ex) {
-    console.error("Error bubbled up into run-browser-tests.js: " + ex);
+  if (
+    result.anyFailures ||
+    caughtPageError ||
+    result.total === 0 ||
+    result.completed !== result.total
+  ) {
     process.exitCode = 1;
+  }
+} catch (ex) {
+  console.error("Error bubbled up into run-browser-tests.js: " + ex);
+  process.exitCode = 1;
 } finally {
-    if (browser !== undefined) {
-        await browser.close();
-    }
-    if (serve !== undefined) {
-        await serve.close();
-    }
+  if (browser !== undefined) {
+    await browser.close();
+  }
+  if (serve !== undefined) {
+    await serve.close();
+  }
 }

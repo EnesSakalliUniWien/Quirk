@@ -43,6 +43,7 @@
     --shadow-control: rgba(0, 0, 0, 0.35);
     --state-probability-fill: #22C55E;
     --state-probability-back: #0F1F14;
+    --operator: #A78BFA;
     --phase-legend: linear-gradient(to right, #4CF0F0, #9E4CF0, #F04C4C, #9EF04C, #4CF0F0);
     --app-font-sans: 'Geist Variable', sans-serif;
     --app-font-mono: ui-monospace, "SFMono-Regular", Consolas, monospace;

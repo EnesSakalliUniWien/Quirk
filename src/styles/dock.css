@@ -25,12 +25,30 @@
     --dv-inactivegroup-visiblepanel-tab-color: var(--muted-foreground);
     --dv-inactivegroup-hiddenpanel-tab-color: var(--muted-foreground);
     --dv-tab-divider-color: var(--border);
+    /* A tab carries its panel's mark before its title (src/components/panels/panels.jsx). */
+    --dock-tab-icon-size: 14px;
     --dv-separator-border: var(--border);
     --dv-paneview-header-border-color: var(--border);
     --dv-context-menu-background-color: var(--card);
     /* The sashes ship transparent, which leaves no visible seam between panels. */
     --dv-sash-color: var(--border);
     --dv-active-sash-color: var(--ring, var(--border));
+}
+
+/* A tab: the panel's own mark, then the tab dockview draws. The mark inherits the tab's colour, so
+   it fades with the title when the tab is not the active one. */
+.app-dock .dock-tab {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--spacing) * 1.5);
+    height: 100%;
+}
+
+.app-dock .dock-tab-icon {
+    flex: none;
+    width: var(--dock-tab-icon-size);
+    height: var(--dock-tab-icon-size);
+    margin-left: calc(var(--spacing) * 2);
 }
 
 /* A panel's content fills the cell dockview sizes for it. */

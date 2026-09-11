@@ -4,7 +4,6 @@ import { useStore } from "zustand";
 import { INPUT_LETTERS } from "../../circuit/model/InputLetters.js";
 import { Registers } from "../../circuit/model/Registers.js";
 import { registerValue, wireLabel } from "../../circuit/registerLabels.js";
-import { registerColor } from "../../config/CanvasTheme.js";
 import { Simulation } from "../../config/Simulation.js";
 import { qubitMarginals } from "../../engine/simulation/qubitMarginals.js";
 import { paddedState } from "../../engine/simulation/stepAlgebra.js";
@@ -63,7 +62,7 @@ function registerReadings(stats, wireCount) {
  * One register's row: its name, wires and input, each edited in place and applied as one undoable
  * change; the values it holds at the playhead; and its qubits under it.
  */
-function RegisterRow({ reading, color, registers, actions, focused, onDone, onRefused }) {
+function RegisterRow({ reading, registers, actions, focused, onDone, onRefused }) {
   const { register, values, qubits } = reading;
   const nameRef = useRef(null);
   useEffect(() => {
@@ -122,7 +121,7 @@ function RegisterRow({ reading, color, registers, actions, focused, onDone, onRe
   return (
     <li className="registers-item" data-register={register.name}>
       <div className="registers-row">
-        <span className="registers-swatch" style={{ background: color }} aria-hidden="true" />
+        <span className="registers-swatch" aria-hidden="true" />
         <input
           key={register.name}
           ref={nameRef}
@@ -140,6 +139,19 @@ function RegisterRow({ reading, color, registers, actions, focused, onDone, onRe
           onBlur={applyName}
         />
         <span className="registers-wires">{wires}</span>
+        <button
+          type="button"
+          className="registers-remove registers-ungroup"
+          aria-label={`Ungroup ${register.name}`}
+          title="Ungroup: the wires keep their gates and lose the name"
+          onClick={() => onRefused(actions.remove(register.name))}
+        >
+          ×
+        </button>
+      </div>
+      {/* One line each under the name, all starting past the swatch: its wires and input, the
+          values it holds, their labels, and its qubits. */}
+      <div className="registers-settings">
         <label className="registers-field">
           first
           <input
@@ -180,7 +192,8 @@ function RegisterRow({ reading, color, registers, actions, focused, onDone, onRe
             ))}
           </select>
         </label>
-        <span className="registers-values" aria-label={`Values ${register.name} can hold at the playhead`}>
+      </div>
+      <div className="registers-values" role="group" aria-label={`Values ${register.name} can hold at the playhead`}>
           {shown.map(({ value, p }) => (
             // A value reads by its label; choosing one puts it in the label form below.
             <button
@@ -196,18 +209,8 @@ function RegisterRow({ reading, color, registers, actions, focused, onDone, onRe
           {values.length > SHOWN_VALUES && (
             <span className="registers-value">{`+${values.length - SHOWN_VALUES}`}</span>
           )}
-        </span>
-        <button
-          type="button"
-          className="registers-remove"
-          aria-label={`Ungroup ${register.name}`}
-          title="Ungroup: the wires keep their gates and lose the name"
-          onClick={() => onRefused(actions.remove(register.name))}
-        >
-          ×
-        </button>
       </div>
-      <div className="registers-labels" aria-label={`Value labels of ${register.name}`}>
+      <div className="registers-labels" role="group" aria-label={`Value labels of ${register.name}`}>
         {labels.map(({ value, label }) => (
           <span key={value} className="registers-label">
             <b>{label}</b>
@@ -310,11 +313,10 @@ function RegistersPanel() {
 
       {readings.length > 0 ? (
         <ul className="registers-list">
-          {readings.map((reading, index) => (
+          {readings.map((reading) => (
             <RegisterRow
               key={reading.register.name}
               reading={reading}
-              color={registerColor(index)}
               registers={registers}
               actions={actions}
               focused={target === reading.register.name}

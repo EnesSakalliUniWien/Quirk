@@ -39,10 +39,10 @@ export class RenderSurface {
         canvas.dataset.renderer = "pixijs";
       });
   }
-  beginFrame(rng, pixelRatio = 1) {
+  beginFrame(rng, pixelRatio = 1, lineScale = 1) {
     this.width = Math.max(1, this.canvas.width);
     this.height = Math.max(1, this.canvas.height);
-    this.view.begin(rng, pixelRatio);
+    this.view.begin(rng, pixelRatio, lineScale);
     this.view.interaction.reset();
     this.view.tooltips.begin();
     this.app.stage.scale.set(pixelRatio);

@@ -15,7 +15,7 @@
  */
 
 import {PathGeometry} from './pixi/PathGeometry.js';
-import {drawPath, rectangle, circle, strokePath} from './pixi/ShapeView.js';
+import {drawPath, rectangle, circle, strokePath, frame, highlightRing} from './pixi/ShapeView.js';
 import {TooltipLayer} from './pixi/TooltipView.js';
 import {fitText} from './pixi/TextLayout.js';
 
@@ -89,11 +89,11 @@ class MathPainter {
             });
         }
 
-        rectangle(painter, drawArea, {stroke: {color: CanvasTheme.stroke.grid, width: 1}});
+        frame(painter, drawArea);
 
         // Tool tips.
         if (focusPoints.some(pt => drawArea.containsPoint(pt))) {
-            rectangle(painter, drawArea, {stroke: {color: CanvasTheme.interaction.outline, width: 2}});
+            highlightRing(painter, drawArea);
             MathPainter.paintDeferredValueTooltip(
                 painter,
                 drawArea.right(),

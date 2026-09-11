@@ -47,39 +47,41 @@ function QubitsPanel() {
           {`${marginals.filter((q) => q.purity < PURE).length} of ${marginals.length} entangled with the rest`}
         </span>
       </header>
-      <table className="qubits-table">
-        <thead>
-          <tr>
-            <th scope="col">qubit</th>
-            <th scope="col">P(1)</th>
-            <th scope="col">Bloch x</th>
-            <th scope="col">Bloch y</th>
-            <th scope="col">Bloch z</th>
-            <th scope="col">purity</th>
-          </tr>
-        </thead>
-        <tbody>
-          {marginals.map(({ wire, probabilityOne, bloch, purity }) => (
-            <tr key={wire} data-qubit={wire}>
-              <th scope="row" className="qubits-name">{wireLabel(registers, wire)}</th>
-              <td>
-                <span className="qubits-bar" aria-hidden="true">
-                  <span className="qubits-bar-fill" style={{ width: `${probabilityOne * 100}%` }} />
-                </span>
-                <span className="qubits-number">{probabilityOne.toFixed(3)}</span>
-              </td>
-              <td className="qubits-number">{signed(bloch.x)}</td>
-              <td className="qubits-number">{signed(bloch.y)}</td>
-              <td className="qubits-number">{signed(bloch.z)}</td>
-              <td>
-                <span className={purity < PURE ? "qubits-purity qubits-mixed" : "qubits-purity"}>
-                  {purity.toFixed(3)}
-                </span>
-              </td>
+      <div className="qubits-table-scroll">
+        <table className="qubits-table">
+          <thead>
+            <tr>
+              <th scope="col">qubit</th>
+              <th scope="col">P(1)</th>
+              <th scope="col">Bloch x</th>
+              <th scope="col">Bloch y</th>
+              <th scope="col">Bloch z</th>
+              <th scope="col">purity</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {marginals.map(({ wire, probabilityOne, bloch, purity }) => (
+              <tr key={wire} data-qubit={wire}>
+                <th scope="row" className="qubits-name">{wireLabel(registers, wire)}</th>
+                <td>
+                  <span className="qubits-bar" aria-hidden="true">
+                    <span className="qubits-bar-fill" style={{ width: `${probabilityOne * 100}%` }} />
+                  </span>
+                  <span className="qubits-number">{probabilityOne.toFixed(3)}</span>
+                </td>
+                <td className="qubits-number">{signed(bloch.x)}</td>
+                <td className="qubits-number">{signed(bloch.y)}</td>
+                <td className="qubits-number">{signed(bloch.z)}</td>
+                <td>
+                  <span className={purity < PURE ? "qubits-purity qubits-mixed" : "qubits-purity"}>
+                    {purity.toFixed(3)}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       <p className="debug-panel-note">
         Purity is 1 for a qubit in a state of its own and 0.5 for one maximally entangled with the
         others. Without measurement or post-selection, anything below 1 is entanglement.

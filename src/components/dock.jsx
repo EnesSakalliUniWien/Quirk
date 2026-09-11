@@ -8,6 +8,10 @@ import { PANELS, PANEL_COMPONENTS } from "./panels/panels.jsx";
 const LAYOUT_STORAGE_KEY = "shadow-quant.dock-layout";
 /** Below this width a permanent side panel starts as a tab behind the circuit, not beside it. */
 const NARROW_MEDIA_QUERY = "(max-width: 920px)";
+/** A side panel opens at this share of the dock's width, within the bounds below. */
+const SIDE_SHARE = 0.32;
+const SIDE_MIN_WIDTH = 340;
+const SIDE_MAX_WIDTH = 480;
 
 /**
  * @param {!Object} api
@@ -94,14 +98,19 @@ function addMissingPermanentPanels(api) {
 }
 
 /**
- * Every tab as dockview draws it, minus the close control on a permanent panel. closePanel refuses
- * to close one, so its tab should not offer to.
+ * Every tab as dockview draws it, with the panel's own mark before its title, and minus the close
+ * control on a permanent panel. closePanel refuses to close one, so its tab should not offer to.
  *
  * @param {!Object} props dockview's tab props.
  */
 function DockTab(props) {
+  const panel = PANELS[props.api.id];
+  const Icon = panel?.icon;
   return (
-    <DockviewDefaultTab {...props} hideClose={PANELS[props.api.id]?.permanent === true} />
+    <span className="dock-tab">
+      {Icon === undefined ? undefined : <Icon className="dock-tab-icon" aria-hidden="true" />}
+      <DockviewDefaultTab {...props} hideClose={panel?.permanent === true} />
+    </span>
   );
 }
 
@@ -122,9 +131,49 @@ function besideTheCircuit(api) {
       PANELS[candidate.id]?.permanent !== true &&
       PANELS[candidate.id]?.floating === undefined,
   );
+  // Given a width of its own, the new column takes its room from the circuit. Without one, dockview
+  // shares the whole width out evenly, and the gate palette swells to a third of the screen.
+  const width = Math.round(
+    Math.min(SIDE_MAX_WIDTH, Math.max(SIDE_MIN_WIDTH, api.width * SIDE_SHARE)),
+  );
   return sidePanel === undefined
-    ? { position: { referencePanel: "circuit", direction: "right" } }
+    ? { position: { referencePanel: "circuit", direction: "right" }, initialWidth: width }
     : { position: { referenceGroup: sidePanel.group } };
+}
+
+/**
+ * Keeps the gate palette at its width while columns come and go. Dockview shares the width out
+ * evenly whenever a group is removed, or added without a size: closing the last side panel would
+ * hand the palette half the screen. A width the user drags it to is kept the same way.
+ *
+ * The width is remembered on each layout change, which dockview reports a microtask late, so when a
+ * group is added or removed the remembered width is still the one from before.
+ *
+ * @param {!Object} api
+ * @returns {void}
+ */
+function keepPaletteWidth(api) {
+  // Only a column of its own: on a narrow screen the palette is a tab in the circuit's group.
+  const paletteColumn = () => {
+    const group = api.getPanel("gates")?.group;
+    return group === undefined ||
+      group.api.location.type !== "grid" ||
+      group.panels.some((panel) => panel.id === "circuit")
+      ? undefined
+      : group;
+  };
+  let width = paletteColumn()?.api.width;
+  api.onDidLayoutChange(() => {
+    width = paletteColumn()?.api.width;
+  });
+  const restore = () => {
+    const column = paletteColumn();
+    if (column !== undefined && width !== undefined && column.api.width !== width) {
+      column.api.setSize({ width });
+    }
+  };
+  api.onDidAddGroup(restore);
+  api.onDidRemoveGroup(restore);
 }
 
 /**
@@ -227,6 +276,7 @@ function Dock() {
     // Subscribed after the restore, so the half-built states dockview reports while it rebuilds
     // are never written back.
     api.onDidLayoutChange(() => saveLayout(api));
+    keepPaletteWidth(api);
   };
 
   // Wrapped, because dockview's className lands on an inner element: the flex child the work area

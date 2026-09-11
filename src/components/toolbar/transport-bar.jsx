@@ -2,25 +2,26 @@ import { useEffect, useRef } from "react";
 import { useStore } from "zustand";
 
 import {
+  ChevronFirstIcon,
+  ChevronLastIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   PauseIcon,
   PlayIcon,
-  SkipBackIcon,
-  SkipForwardIcon,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { appStore } from "../../state/appStore.js";
 
-/** Matches the app toolbar, so the two strips read as one set of controls. */
-const ICON_STROKE_WIDTH = 1.5;
-
+/**
+ * The transport follows the OP-1's keys: the arrows that move the playhead are drawn as outlines,
+ * and play and pause, the keys that run it, are filled. The stroke is the app's, from IconProvider.
+ */
 function TransportButton({ id, icon: Icon, disabled, onClick, children }) {
   return (
     <Button id={id} size="default" disabled={disabled} onClick={onClick}>
-      <Icon data-icon="inline-start" strokeWidth={ICON_STROKE_WIDTH} />
+      <Icon data-icon="inline-start" />
       {children}
     </Button>
   );
@@ -101,7 +102,7 @@ function TransportBar() {
       <ButtonGroup aria-label="Playhead">
         <TransportButton
           id="playhead-reset-button"
-          icon={SkipBackIcon}
+          icon={ChevronFirstIcon}
           disabled={!state.canStepBack}
           onClick={() => playhead.reset()}
         >
@@ -123,9 +124,9 @@ function TransportBar() {
           onClick={() => playhead.togglePlay()}
         >
           {state.playing ? (
-            <PauseIcon id="playhead-pause-icon" data-icon="inline-start" strokeWidth={ICON_STROKE_WIDTH} />
+            <PauseIcon id="playhead-pause-icon" data-icon="inline-start" fill="currentColor" />
           ) : (
-            <PlayIcon id="playhead-play-icon" data-icon="inline-start" strokeWidth={ICON_STROKE_WIDTH} />
+            <PlayIcon id="playhead-play-icon" data-icon="inline-start" fill="currentColor" />
           )}
           <span id="playhead-play-label">{state.playing ? "Pause" : "Play"}</span>
         </Button>
@@ -139,7 +140,7 @@ function TransportBar() {
         </TransportButton>
         <TransportButton
           id="playhead-end-button"
-          icon={SkipForwardIcon}
+          icon={ChevronLastIcon}
           disabled={!state.canStepForward}
           onClick={() => playhead.end()}
         >

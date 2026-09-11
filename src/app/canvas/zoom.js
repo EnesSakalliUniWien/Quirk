@@ -15,6 +15,7 @@
  */
 
 import {Point} from "../../geometry/Point.js"
+import {iconElement} from "../../resources/icons/index.js"
 import {appStore} from "../../state/appStore.js"
 
 /**
@@ -98,10 +99,10 @@ function initZoomControls(container, fitFactorProvider) {
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'circuit-zoom-button';
-        if (content.startsWith('<svg')) {
-            button.innerHTML = content;
-        } else {
+        if (typeof content === 'string') {
             button.textContent = content;
+        } else {
+            button.appendChild(content);
         }
         button.setAttribute('aria-label', label);
         button.addEventListener('click', onActivate);
@@ -109,21 +110,12 @@ function initZoomControls(container, fitFactorProvider) {
         return button;
     };
 
-    // Lucide's minus and plus, inlined the way quirk.html inlines the menu icons: the same 24px
-    // grid and the app's 1.5 stroke, sized to sit on the buttons' 12px text line.
-    const MINUS_ICON_SVG =
-        '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"' +
-        ' stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"' +
-        ' aria-hidden="true"><path d="M5 12h14"/></svg>';
-    const PLUS_ICON_SVG =
-        '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"' +
-        ' stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"' +
-        ' aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg>';
-
-    makeButton(MINUS_ICON_SVG, 'Zoom out', () => setCircuitZoom(circuitZoom() / ZOOM_STEP));
+    // The minus and plus come from src/resources/icons, where the app keeps the icons it draws
+    // itself; the stylesheet sizes them to the buttons' text line.
+    makeButton(iconElement('minus'), 'Zoom out', () => setCircuitZoom(circuitZoom() / ZOOM_STEP));
     const readout = makeButton('100%', 'Reset zoom', () => setCircuitZoom(1));
     readout.setAttribute('aria-live', 'polite');
-    makeButton(PLUS_ICON_SVG, 'Zoom in', () => setCircuitZoom(circuitZoom() * ZOOM_STEP));
+    makeButton(iconElement('plus'), 'Zoom in', () => setCircuitZoom(circuitZoom() * ZOOM_STEP));
     makeButton('Fit', 'Fit the circuit to the visible area', () => setCircuitZoom(fitFactorProvider()));
 
     const showZoom = () => {

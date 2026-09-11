@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-// The panels the circuit and the toolbar open: welcome, export, gate forge, gate parameter, Bloch.
+// The panels the circuit and the toolbar open: export, gate forge, gate parameter, Bloch.
 
 import assert from 'node:assert/strict';
 import {circuitMetrics, test, withQuirkPage, waitForCircuit, waitForPanel, closePanel, TEST_TIMEOUT_MILLIS, circuitTopForWires, waitForCanvasViewport} from './harness.js';
@@ -43,16 +43,12 @@ test('opens a Bloch sphere from its enlarged edge at different zoom levels', asy
     });
 });
 
-test('opens and closes the welcome, export, and gate forge panels', async browser => {
+test('opens and closes the export and gate forge panels', async browser => {
     const circuit = {cols: [['H']]};
     await withQuirkPage(browser, circuit, async page => {
-        await page.click('#menu-button');
-        await waitForPanel(page, 'menu', true);
-        // An open panel never disables the app: the rest of the chrome keeps working around it.
-        assert.equal(await page.$eval('#export-button', button => button.disabled), false);
-        await closePanel(page, 'menu');
-
         await page.click('#export-button');
+        // An open panel never disables the app: the rest of the chrome keeps working around it.
+        assert.equal(await page.$eval('#gate-forge-button', button => button.disabled), false);
         await waitForPanel(page, 'export', true);
         const jsonText = await page.$eval('#export-circuit-json-pre', element => element.textContent);
         assert.deepEqual(JSON.parse(jsonText), circuit);
@@ -69,26 +65,6 @@ test('opens and closes the welcome, export, and gate forge panels', async browse
         assert.equal(forge.title, 'Make a gate');
         assert.equal(forge.methodCount, 3);
         await closePanel(page, 'forge');
-    });
-});
-
-test('greets a first visit with the welcome panel', async browser => {
-    await withQuirkPage(browser, {cols: []}, async page => {
-        // The harness marks the greeting seen for every other test; this is the one that wants it,
-        // and the later script wins over the harness's on the reload below.
-        await page.evaluateOnNewDocument(() => {
-            try {
-                window.localStorage.removeItem('shadow-quant.seen-welcome');
-            } catch {
-                // Nothing to clear.
-            }
-        });
-        await page.reload();
-        await waitForPanel(page, 'menu', true);
-
-        // Its own button dismisses it. That it is not shown twice is boot.test.js's business.
-        await page.click('#close-menu-button');
-        await waitForPanel(page, 'menu', false);
     });
 });
 
@@ -167,16 +143,5 @@ test('opens the enlarged Bloch sphere view from a Bloch display gate', async bro
         assert.equal(readout.purity, '1.000');
 
         await closePanel(page, 'bloch');
-    });
-});
-
-test('lists the shortcuts in the menu', async browser => {
-    await withQuirkPage(browser, {cols: [['H']]}, async page => {
-        await page.click('#menu-button');
-        await waitForPanel(page, 'menu', true);
-        const shortcuts = await page.$$eval('.shortcut-list dd', elements => elements.map(e => e.textContent));
-        assert.ok(shortcuts.length >= 8, `The shortcut list must be filled in, saw ${shortcuts.length}.`);
-        assert.ok(shortcuts.includes('Undo'));
-        assert.ok(shortcuts.includes('Play or pause the animation'));
     });
 });

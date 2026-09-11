@@ -27,7 +27,7 @@ import {Playhead} from "./state/Playhead.js"
 import {initToolboxDrag, initToolboxKeyboardPlace} from "./canvas/toolboxDrag.js"
 import {initRedrawLoop} from "./canvas/redrawLoop.js"
 import {initCanvasPointer} from "./canvas/canvasPointer.js"
-import {scheduleBoot, shouldShowWelcome} from "./session/boot.js"
+import {scheduleBoot} from "./session/boot.js"
 import {initUrlCircuitSync} from "./session/url.js"
 import {initTitleSync} from "./session/title.js"
 import {Simulator} from "./state/Simulator.js"
@@ -46,13 +46,11 @@ import {appStore} from "../state/appStore.js"
  * @param {!{canvas: !HTMLCanvasElement, canvasDiv: !HTMLElement, scrollSpacer: !HTMLElement,
  *     circuitOverlay: !HTMLElement, onReady: !function(): void,
  *     openGateParamEditor: !function(!{col: !int, row: !int, gate: !Gate}): void,
- *     openBlochSphereView: !function(!{row: !int, col: (undefined|!int)}): void,
- *     showWelcome: !function(): void}} shell
+ *     openBlochSphereView: !function(!{row: !int, col: (undefined|!int)}): void}} shell
  * @returns {void}
  */
 function startQuirk({canvas, canvasDiv, scrollSpacer, circuitOverlay, onReady,
-                     openGateParamEditor, openBlochSphereView, openRegisterRename, openGutterMenu,
-                     showWelcome}) {
+                     openGateParamEditor, openBlochSphereView, openRegisterRename, openGutterMenu}) {
     // The one simulator: the animation cycle's phase and the stats caches are app-wide state.
     const simulator = new Simulator();
 
@@ -161,16 +159,7 @@ function startQuirk({canvas, canvasDiv, scrollSpacer, circuitOverlay, onReady,
     // The circuit is always editable, so the canvas always keeps its tab stop.
     canvasDiv.tabIndex = 0;
 
-    // The greeting waits for the boot tick: opening a panel while the dock is still building the
-    // circuit's own panel leaves the layout half-formed.
-    scheduleBoot(redrawLoop, () => {
-        onReady();
-        // A first visit is greeted; a load that already carries a circuit is not.
-        if (shouldShowWelcome(displayed.get().displayedCircuit.circuitDefinition.isEmpty(),
-                              window.localStorage)) {
-            showWelcome();
-        }
-    });
+    scheduleBoot(redrawLoop, onReady);
 }
 
 export {startQuirk}

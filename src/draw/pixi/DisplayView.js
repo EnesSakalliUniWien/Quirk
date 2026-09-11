@@ -29,9 +29,12 @@ export class DisplayView extends Container {
         this.begin(rng, pixelRatio);
     }
 
-    begin(rng = this.rng, pixelRatio = this.pixelRatio) {
+    begin(rng = this.rng, pixelRatio = this.pixelRatio, lineScale = 1) {
         this.rng = rng;
         this.pixelRatio = pixelRatio;
+        // How much wider than drawn a structural line must be to keep its CSS width when the
+        // scene is zoomed out (see lineWidth in ShapeView.js); 1 at 100% and above.
+        this.lineScale = lineScale;
         this.order = 0;
         this.used = new Set();
         this.position.set(0);
@@ -60,7 +63,7 @@ export class DisplayView extends Container {
         child.canvas = this.canvas;
         child.interaction = this.interaction;
         child.tooltips = this.tooltips;
-        child.begin(this.rng, this.pixelRatio);
+        child.begin(this.rng, this.pixelRatio, this.lineScale);
         const result = update(child);
         child.finish();
         child.result = result;

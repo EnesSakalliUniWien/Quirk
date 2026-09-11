@@ -134,11 +134,9 @@ async function withQuirkPage(browser, circuit, body, viewport=DEFAULT_VIEWPORT, 
     try {
         // The dock remembers its arrangement, and the whole suite shares one browser: without this
         // a test that opens a panel would leave the circuit half width for every test after it.
-        // The greeting is suppressed for the same reason; the spec that wants it clears the flag.
         await page.evaluateOnNewDocument(() => {
             try {
                 window.localStorage.removeItem('shadow-quant.dock-layout');
-                window.localStorage.setItem('shadow-quant.seen-welcome', 'true');
             } catch {
                 // A browser that refuses site data is already starting clean.
             }

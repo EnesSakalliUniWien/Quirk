@@ -1,5 +1,5 @@
 import { ketBitsHeader } from "../../circuit/registerLabels.js";
-import { phaseColor, registerColor } from "../../config/CanvasTheme.js";
+import { phaseColor } from "../../config/CanvasTheme.js";
 import { stateTableRows } from "../../engine/simulation/stateTableRows.js";
 import { usePlayheadStats } from "./usePlayheadStats.js";
 
@@ -59,8 +59,8 @@ function StatePanel() {
             <thead>
               <tr>
                 {named &&
-                  registers.list.map((register, index) => (
-                    <th key={register.name} scope="col" style={{ color: registerColor(index) }}>
+                  registers.list.map((register) => (
+                    <th key={register.name} scope="col">
                       {register.name}
                     </th>
                   ))}

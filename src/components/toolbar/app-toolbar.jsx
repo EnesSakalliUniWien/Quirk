@@ -1,17 +1,5 @@
 
-import {
-    BracketsIcon,
-    ChartColumnIcon,
-    DownloadIcon,
-    EraserIcon,
-    OrbitIcon,
-    Redo2Icon,
-    SigmaIcon,
-    SquareFunctionIcon,
-    Trash2Icon,
-    Undo2Icon,
-    WandSparklesIcon
-} from "lucide-react";
+import {EraserIcon, Redo2Icon, Trash2Icon, Undo2Icon} from "lucide-react";
 
 import {useEffect, useRef} from "react";
 import {useStore} from "zustand";
@@ -19,11 +7,11 @@ import {useStore} from "zustand";
 import {Button} from "@/components/ui/button";
 import {appStore} from "../../state/appStore.js";
 import {openPanel} from "../dock.jsx";
+import {PANELS} from "../panels/panels.jsx";
+import {ExamplesMenu} from "./examples-menu.jsx";
 
-// Lucide draws at a 24px grid with a stroke of 2. These render at 16px, so the stroke is
-// scaled down to match, which is also what the inline SVGs in the menu use.
-const ICON_STROKE_WIDTH = 1.5;
-
+// The stroke comes from the app's IconProvider (src/components/ui/icon.jsx), so no icon here
+// carries a weight of its own.
 function ToolbarButton({id, icon: Icon, label, className, disabled, onClick}) {
     return (
         <Button
@@ -34,9 +22,15 @@ function ToolbarButton({id, icon: Icon, label, className, disabled, onClick}) {
             title={label}
             disabled={disabled}
             onClick={onClick}>
-            <Icon strokeWidth={ICON_STROKE_WIDTH} aria-hidden="true" />
+            <Icon aria-hidden="true" />
         </Button>
     );
+}
+
+/** A button that opens a panel, marked and named by the panel itself. */
+function PanelButton({id, panel}) {
+    const {icon, title} = PANELS[panel];
+    return <ToolbarButton id={id} icon={icon} label={title} onClick={() => openPanel(panel)} />;
 }
 
 /**
@@ -159,36 +153,13 @@ function AppToolbar() {
 
     return (
         <header className="app-toolbar" role="toolbar" aria-label="Circuit controls" ref={toolbarRef}>
-            <ToolbarButton
-                id="export-button"
-                icon={DownloadIcon}
-                label="Export"
-                onClick={() => openPanel("export")} />
-            <ToolbarButton
-                id="state-button"
-                icon={SigmaIcon}
-                label="State"
-                onClick={() => openPanel("state")} />
-            <ToolbarButton
-                id="algebra-button"
-                icon={SquareFunctionIcon}
-                label="Algebra"
-                onClick={() => openPanel("algebra")} />
-            <ToolbarButton
-                id="probabilities-button"
-                icon={ChartColumnIcon}
-                label="Probabilities"
-                onClick={() => openPanel("probabilities")} />
-            <ToolbarButton
-                id="qubits-button"
-                icon={OrbitIcon}
-                label="Qubits"
-                onClick={() => openPanel("qubits")} />
-            <ToolbarButton
-                id="registers-button"
-                icon={BracketsIcon}
-                label="Registers"
-                onClick={() => openPanel("registers")} />
+            <ExamplesMenu />
+            <PanelButton id="export-button" panel="export" />
+            <PanelButton id="state-button" panel="state" />
+            <PanelButton id="algebra-button" panel="algebra" />
+            <PanelButton id="probabilities-button" panel="probabilities" />
+            <PanelButton id="qubits-button" panel="qubits" />
+            <PanelButton id="registers-button" panel="registers" />
             <ToolbarButton
                 id="clear-circuit-button"
                 icon={EraserIcon}
@@ -207,11 +178,7 @@ function AppToolbar() {
                 label="Redo"
                 disabled={!availability.canRedo}
                 onClick={() => circuitActions.redo()} />
-            <ToolbarButton
-                id="gate-forge-button"
-                icon={WandSparklesIcon}
-                label="Make Gate"
-                onClick={() => openPanel("forge")} />
+            <PanelButton id="gate-forge-button" panel="forge" />
             {/* Last, and pushed clear of the others by its auto margin: it discards custom gates
                 as well as the circuit, and sitting flush against the rest made it easy to hit
                 by mistake. Distinguished by colour, not by size. */}

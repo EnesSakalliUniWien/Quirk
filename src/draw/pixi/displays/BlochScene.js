@@ -41,7 +41,7 @@ function strokeGreatCircle(view, pointAt, cx, cy, scale, yaw, pitch) {
     for (const front of [false, true]) {
 
         let points = [];
-        const flush = () => { strokePath(view, points, front ? CanvasTheme.stroke.guide : CanvasTheme.stroke.faint, 1, front ? [] : [3, 4]); points = []; };
+        const flush = () => { strokePath(view, points, front ? CanvasTheme.stroke.guide : CanvasTheme.stroke.faint, 1, front ? [] : [4, 4]); points = []; };
         for (let i = 0; i <= 120; i++) {
             const p = projectPoint(...pointAt(i * Math.PI * 2 / 120), yaw, pitch);
             if ((p.depth >= 0) === front) points.push(new Point(cx + p.sx * scale, cy - p.sy * scale));
@@ -75,7 +75,7 @@ function drawBlochScene(canvas, vec, yaw, pitch) {
         [[0,-1,0], '|−i⟩'], [[0,0,1], '|0⟩', 'z'], [[0,0,-1], '|1⟩']]) {
         const tip = project(...dir);
 
-        strokePath(view, [center, tip], tip.depth >= 0 ? CanvasTheme.stroke.guide : CanvasTheme.stroke.faint, 1, tip.depth >= 0 ? [] : [3, 4]);
+        strokePath(view, [center, tip], tip.depth >= 0 ? CanvasTheme.stroke.guide : CanvasTheme.stroke.faint, 1, tip.depth >= 0 ? [] : [4, 4]);
 
         const label = project(...dir.map(v => v * 1.22));
         drawText(view, ket, {
@@ -108,7 +108,7 @@ function drawBlochScene(canvas, vec, yaw, pitch) {
     }
     const tip = project(vec.x, vec.y, vec.z), foot = project(vec.x, vec.y, 0);
 
-    strokePath(view, [tip, foot, center], CanvasTheme.text.muted, 1, [3, 4]);
+    strokePath(view, [tip, foot, center], CanvasTheme.text.muted, 1, [4, 4]);
 
     strokePath(view, [center, tip], CanvasTheme.bloch.vector, 2);
     circle(view, tip, 5, {fill: CanvasTheme.bloch.vector});

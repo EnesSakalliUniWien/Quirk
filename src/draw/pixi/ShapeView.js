@@ -38,6 +38,31 @@ export function rectangle(view, r, style, radius) {
         radius === undefined ? [r.x, r.y, r.w, r.h] : [r.x, r.y, r.w, r.h, radius], style);
 }
 
+/**
+ * A width for the canvas's structural lines - wires, gate outlines, frames, the highlight - that
+ * never renders thinner than the same width in CSS pixels. The circuit is drawn in its own units and
+ * scaled by the zoom, so below 100% a 1-unit line would shrink to a fraction of a pixel. Data
+ * strokes belong to their picture and scale with it, so they don't use this.
+ */
+export function lineWidth(view, width) {
+    return width * view.lineScale;
+}
+
+/** The 1px frame every container wears: displays, kets, output boxes, the resize tab. */
+export function frame(view, r, color = CanvasTheme.stroke.frame) {
+    return rectangle(view, r, {stroke: {color, width: lineWidth(view, 1)}});
+}
+
+/**
+ * The 2px ring around whatever is hovered or dropped on. It sits just outside the element's 1px
+ * outline instead of over it, on the rect grown by 1.5: element edges are snapped to .5, so that
+ * also lands it on whole pixels.
+ */
+export function highlightRing(view, r) {
+    return rectangle(view, r.paddedBy(lineWidth(view, 1.5)),
+        {stroke: {color: CanvasTheme.interaction.outline, width: lineWidth(view, 2)}});
+}
+
 export function circle(view, p, radius, style) {
     // Preserve the existing scientific marker's diameter convention.
     return view.use(ShapeView).update('circle', [p.x, p.y, Math.max(0, radius - 0.5)], style);

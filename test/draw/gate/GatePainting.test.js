@@ -1,4 +1,4 @@
-import {gateStyle} from '../../../src/config/CanvasTheme.js';
+import {CanvasTheme, gateStyle} from '../../../src/config/CanvasTheme.js';
 import {rectangle} from '../../../src/draw/pixi/ShapeView.js';
 import {Suite, assertThat} from '../../TestUtil.js';
 import {GatePainting} from '../../../src/draw/gate/GatePainting.js';
@@ -56,5 +56,23 @@ suite.test("displayResizeTab_drawsOnceAboveContent", () => {
         assertThat(fills[1].rect).isEqualTo(GatePainting.rectForResizeTab(args.rect).skipLeft(2).skipRight(2));
         assertThat(fills[1].alpha).isApproximatelyEqualTo(highlighted ? 1 : 0.7);
         assertThat(painter.alpha).isEqualTo(1);
+    }
+});
+
+suite.test("display gates always wear a frame, and a highlight ring outside it while hovered", () => {
+    for (const isHighlighted of [false, true]) {
+        const painter = new DisplayView(document.createElement('canvas'));
+        const rect = new Rect(10.5, 10.5, 80, 80);
+        GatePainting.makeDisplayRenderer(() => {})({painter, rect, isHighlighted, isResizeShowing: false,
+            positionInCircuit: {row: 0, col: 0}, gate: {canChangeInSize: () => false}});
+        const strokes = [];
+        const collect = node => {
+            if (node.values?.[0] === 'rect' && node.values[6] !== undefined) strokes.push(node.values.slice(1));
+            for (const child of node.children || []) collect(child);
+        };
+        collect(painter);
+        const expected = [[10.5, 10.5, 80, 80, undefined, CanvasTheme.stroke.frame, 1]];
+        if (isHighlighted) expected.push([9, 9, 83, 83, undefined, CanvasTheme.interaction.outline, 2]);
+        assertThat(strokes).withInfo({isHighlighted}).isEqualTo(expected);
     }
 });

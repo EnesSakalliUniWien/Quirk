@@ -15,6 +15,7 @@
  */
 
 import {describe} from "../base/Describe.js"
+import {iconElement} from "../resources/icons/index.js"
 
 /**
  * The app's error surface: a dismissible banner over the circuit area, fed by the global error
@@ -127,11 +128,8 @@ function bannerElements() {
     const dismissButton = document.createElement('button');
     dismissButton.type = 'button';
     dismissButton.className = 'error-banner-button error-banner-dismiss';
-    // Lucide's x icon, inlined the way quirk.html inlines the menu icons.
-    dismissButton.innerHTML =
-        '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"' +
-        ' stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"' +
-        ' aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
+    // The x comes from src/resources/icons, the app's one home for the icons it draws itself.
+    dismissButton.appendChild(iconElement('x'));
     dismissButton.setAttribute('aria-label', 'Dismiss the error message');
     dismissButton.addEventListener('click', dismissErrorBanner);
 

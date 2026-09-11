@@ -17,7 +17,8 @@ import {drawText} from '../../src/draw/pixi/TextLayout.js';
  */
 
 import {PathGeometry} from '../../src/draw/pixi/PathGeometry.js';
-import {drawPath, rectangle, circle, strokePath, polygon} from '../../src/draw/pixi/ShapeView.js';
+import {drawPath, rectangle, circle, strokePath, polygon, frame, highlightRing, lineWidth} from '../../src/draw/pixi/ShapeView.js';
+import {CanvasTheme} from '../../src/config/CanvasTheme.js';
 import {fitLine} from '../../src/draw/pixi/TextLayout.js';
 import {drawingArea} from '../../src/draw/pixi/DisplayView.js';
 
@@ -358,4 +359,23 @@ suite.test('tooltip flush is idempotent and an unrequested tooltip leaves on the
     view.tooltips.flush();
     assertThat(view.tooltips.children.length).isEqualTo(0);
     assertThat(tooltip.destroyed).isEqualTo(true);
+});
+
+suite.test('structural lines keep their CSS width when zoomed out, and groups inherit that', () => {
+    const view = new DisplayView(document.createElement('canvas'));
+    view.begin(undefined, 0.8, 2.5);
+    const child = view.group('child', () => {});
+    assertThat(child.lineScale).isEqualTo(2.5);
+    assertThat(lineWidth(child, 2)).isEqualTo(5);
+    view.begin();
+    assertThat(view.lineScale).isEqualTo(1);
+});
+
+suite.test('a frame sits on its edge and the highlight ring just outside it, on whole pixels', () => {
+    const view = new DisplayView(document.createElement('canvas'));
+    const r = new Rect(10.5, 20.5, 40, 30);
+    assertThat(frame(view, r).values).isEqualTo(['rect', 10.5, 20.5, 40, 30, undefined, CanvasTheme.stroke.frame, 1]);
+    assertThat(highlightRing(view, r).values).isEqualTo(['rect', 9, 19, 43, 33, undefined, CanvasTheme.interaction.outline, 2]);
+    view.begin(undefined, 1, 2);
+    assertThat(highlightRing(view, r).values).isEqualTo(['rect', 7.5, 17.5, 46, 36, undefined, CanvasTheme.interaction.outline, 4]);
 });

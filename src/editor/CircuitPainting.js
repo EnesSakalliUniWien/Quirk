@@ -15,7 +15,7 @@
  */
 
 import {PathGeometry} from '../draw/pixi/PathGeometry.js';
-import {drawPath, rectangle, strokePath} from '../draw/pixi/ShapeView.js';
+import {drawPath, frame, highlightRing, lineWidth, rectangle, strokePath} from '../draw/pixi/ShapeView.js';
 
 import {measureText, drawText, fitText, fitParagraph} from '../draw/pixi/TextLayout.js';
 import {drawingArea} from '../draw/pixi/DisplayView.js';
@@ -27,7 +27,7 @@ import {renderGateView} from '../draw/pixi/GateView.js';
 import {BasisLabels} from '../draw/pixi/BasisLabels.js';
 
 import {Layout} from '../config/Layout.js';
-import {CanvasTheme, phaseColor, registerColor} from '../config/CanvasTheme.js';
+import {CanvasTheme, phaseColor} from '../config/CanvasTheme.js';
 import {Simulation} from '../config/Simulation.js';
 import {Typography} from '../config/Typography.js';
 import {Format} from '../base/Format.js';
@@ -202,12 +202,14 @@ function drawPlayheadBand(circuit, painter, playheadStep) {
 
     const rect = circuit.gateRect(0, playheadStep, 1, circuit.geometry().groundedWireCount()).paddedBy(3);
     rectangle(painter, rect, {fill: CanvasTheme.interaction.playheadBand});
-    strokePath(painter, [rect.topLeft(), rect.bottomLeft()], CanvasTheme.interaction.playhead, 2);
+    strokePath(painter, [rect.topLeft(), rect.bottomLeft()], CanvasTheme.interaction.playhead, lineWidth(painter, 2));
 }
 
 /**
- * A register in the gutter: a curly brace down its wires' labels, in its colour, with its name at
+ * A register in the gutter: a curly brace down its wires' labels in the frame ink, with its name at
  * the brace's tip - the way a paper labels a register - and the input it feeds under the name.
+ * Registers are told apart by name and brace rather than colour, so no hue here competes with the
+ * gates' and the displays'.
  * Clicking it opens the Registers panel; a double click renames it; a right click opens its menu
  * (src/app/canvas/canvasPointer.js).
  *
@@ -215,9 +217,8 @@ function drawPlayheadBand(circuit, painter, playheadStep) {
  * @param {!DisplayView} painter
  * @param {!Hand} hand
  * @param {!Register} register
- * @param {!string} color
  */
-function drawRegisterGutter(circuit, painter, hand, register, color) {
+function drawRegisterGutter(circuit, painter, hand, register) {
     const geometry = circuit.geometry();
     const box = geometry.registerNameRect(register.start, register.length);
     const top = box.y + REGISTER_BRACE_INSET;
@@ -242,7 +243,7 @@ function drawRegisterGutter(circuit, painter, hand, register, color) {
         trace.quadraticCurveTo(x, mid, x, mid + r);
         trace.lineTo(x, bottom - r);
         trace.quadraticCurveTo(x, bottom, x + r, bottom);
-    }, [{stroke: {color, width: 1.5}}]);
+    }, [{stroke: {color: CanvasTheme.stroke.frame, width: lineWidth(painter, 1)}}]);
 
     const nameWidth = x - r - 2 * REGISTER_BRACE_GAP;
     const feeds = register.input !== undefined;
@@ -251,7 +252,7 @@ function drawRegisterGutter(circuit, painter, hand, register, color) {
         y: feeds ? mid - Layout.REGISTER_FONT_SIZE * 0.45 : mid,
         align: 'right',
         baseline: 'middle',
-        fill: color,
+        fill: CanvasTheme.text.primary,
         font: {fontSize: Layout.REGISTER_FONT_SIZE, fontFamily: Typography.MONO_FONT_FAMILY},
         width: nameWidth,
         height: Layout.REGISTER_HEIGHT
@@ -293,7 +294,7 @@ function drawWires(circuit, painter, showLabels, hand) {
                 y,
                 align: 'left',
                 baseline: 'middle',
-                fill: register === undefined ? CanvasTheme.text.muted : registerColor(registers.list.indexOf(register)),
+                fill: register === undefined ? CanvasTheme.text.muted : CanvasTheme.text.primary,
                 font: {fontSize: Layout.REGISTER_FONT_SIZE, fontFamily: Typography.MONO_FONT_FAMILY},
                 width: indexRect.w,
                 height: indexRect.h
@@ -310,8 +311,14 @@ function drawWires(circuit, painter, showLabels, hand) {
             painter.interaction.block({rect, cursor: 'pointer'});
             // A quiet fill marks the ket as clickable before the pointer ever finds it.
             rectangle(painter, rect, {fill: CanvasTheme.surface.quiet});
-            if (circuit._highlightedSlot === undefined && hand.pos !== undefined && rect.containsPoint(hand.pos)) {
+            const hovered = circuit._highlightedSlot === undefined && hand.pos !== undefined && rect.containsPoint(hand.pos);
+            if (hovered) {
                 rectangle(painter, rect, {fill: CanvasTheme.gate.hover});
+            }
+            // Its fill is as dark as the canvas, so the frame is what gives the ket an edge.
+            frame(painter, rect);
+            if (hovered) {
+                highlightRing(painter, rect);
             }
             fitText(painter, `|${v}⟩`, {
                 x: rect.center().x,
@@ -324,9 +331,9 @@ function drawWires(circuit, painter, showLabels, hand) {
                 height: rect.h
             });
         }
-        registers.list.forEach((register, index) => {
+        registers.list.forEach(register => {
             if (register.start < drawnWireCount) {
-                drawRegisterGutter(circuit, painter, hand, register, registerColor(index));
+                drawRegisterGutter(circuit, painter, hand, register);
             }
         });
     }
@@ -336,6 +343,8 @@ function drawWires(circuit, painter, showLabels, hand) {
         painter.group('wire-' + row, painter => {
             painter.alpha = row >= circuit.geometry().extraWireStartIndex ? 0.5 : 1;
             const segments = [[], []];
+            // A measured wire's double line keeps its gap when zoomed out, as its width does.
+            const gap = lineWidth(painter, 1);
             const wireRect = circuit.wireRect(row);
             const y = Math.round(wireRect.center().y - 0.5) + 0.5;
             let lastX = showLabels ? circuit.geometry().wireInitialStateRect(row).right() : 5;
@@ -345,8 +354,8 @@ function drawWires(circuit, painter, showLabels, hand) {
                 const x = Math.min(circuit.opRect(col).center().x, wireEndX);
                 if (circuit.circuitDefinition.locIsMeasured(new Point(col, row))) {
                     // Measured wire.
-                    segments[1].push([lastX, y - 1, x, y - 1]);
-                    segments[1].push([lastX, y + 1, x, y + 1]);
+                    segments[1].push([lastX, y - gap, x, y - gap]);
+                    segments[1].push([lastX, y + gap, x, y + gap]);
                 } else {
                     // Unmeasured wire.
                     segments[0].push([lastX, y, x, y]);
@@ -357,7 +366,7 @@ function drawWires(circuit, painter, showLabels, hand) {
                 drawPath(painter, trace => segments[i].forEach(segment => PathGeometry.line(trace, ...segment)), [{
                     stroke: {
                         color: color,
-                        width: 1
+                        width: lineWidth(painter, 1)
                     }
                 }]);
             }
@@ -415,7 +424,7 @@ function drawGate_disabledReason(circuit, painter, col, row, gateRect, isHighlig
     }
 
     // Keep the reason opaque and readable, including while the disabled gate is hovered.
-    strokePath(painter, [gateRect.topLeft(), gateRect.bottomRight()], CanvasTheme.error.text, 3);
+    strokePath(painter, [gateRect.topLeft(), gateRect.bottomRight()], CanvasTheme.error.text, 2);
     const area = gateRect.paddedBy(5);
     rectangle(painter, area, {fill: CanvasTheme.error.background});
     rectangle(painter, area, {stroke: {color: CanvasTheme.error.text, width: 1}});
@@ -533,7 +542,7 @@ function drawColumnDragHighlight(circuit, painter, col) {
         circuit._highlightedSlot.row === undefined) {
         const rect = circuit.gateRect(0, col, 1, circuit.geometry().groundedWireCount()).paddedBy(3);
         rectangle(painter, rect, {fill: CanvasTheme.interaction.drop});
-        rectangle(painter, rect, {stroke: {color: CanvasTheme.text.primary, width: 1}});
+        highlightRing(painter, rect);
     }
 }
 
@@ -550,7 +559,7 @@ function drawRowDragHighlight(circuit, painter) {
         const w = circuit.gateRect(row, circuit.clampedCircuitColCount() + 1).x;
         const rect = circuit.wireRect(row).takeLeft(w);
         rectangle(painter, rect, {fill: CanvasTheme.interaction.drop});
-        rectangle(painter, rect, {stroke: {color: CanvasTheme.text.primary, width: 1}});
+        highlightRing(painter, rect);
     }
 }
 
@@ -572,11 +581,12 @@ function drawColumnControlWires(circuit, painter, columnIndex) {
     for (const {first, last, measured} of circuit.circuitDefinition.controlLinesRanges(columnIndex)) {
         const y1 =  circuit.wireRect(first).center().y;
         const y2 = circuit.wireRect(last).center().y;
+        const w = lineWidth(painter, 1);
         if (measured) {
-            strokePath(painter, [new Point(x+1, y1), new Point(x+1, y2)], CanvasTheme.iqp.classicalWire, 1);
-            strokePath(painter, [new Point(x-1, y1), new Point(x-1, y2)], CanvasTheme.iqp.classicalWire, 1);
+            strokePath(painter, [new Point(x+w, y1), new Point(x+w, y2)], CanvasTheme.iqp.classicalWire, w);
+            strokePath(painter, [new Point(x-w, y1), new Point(x-w, y2)], CanvasTheme.iqp.classicalWire, w);
         } else {
-            strokePath(painter, [new Point(x, y1), new Point(x, y2)], CanvasTheme.text.primary, 1);
+            strokePath(painter, [new Point(x, y1), new Point(x, y2)], CanvasTheme.text.primary, w);
         }
     }
 }
@@ -600,7 +610,10 @@ function drawOutputDisplays(circuit, painter, stats, hand) {
         const m = stats.qubitDensityMatrix(Infinity, i);
         if (m !== undefined) {
             const blochRect = CircuitGeometry.blochDisplayRect(circuit.gateRect(i, blochCol));
-            painter.group('bloch-' + i, view => paintBlochSphereDisplay(view, m, blochRect, hand.hoverPoints()));
+            painter.group('bloch-' + i, view => {
+                paintBlochSphereDisplay(view, m, blochRect, hand.hoverPoints());
+                frame(view, blochRect);
+            });
             // Clicking a sphere opens the enlarged Bloch view; the cursor is the affordance.
             if (hand.hoverPoints().some(pt => blochRect.containsPoint(pt))) {
                 painter.interaction.cursor = 'pointer';
@@ -642,6 +655,7 @@ function drawOutputSuperpositionDisplay(circuit, painter, stats, hand) {
         numWire < Simulation.SIMPLE_SUPERPOSITION_DRAWING_WIRE_THRESHOLD ? CanvasTheme.amplitude.fill : undefined,
         CanvasTheme.amplitude.background,
         numWire < Simulation.SIMPLE_SUPERPOSITION_DRAWING_WIRE_THRESHOLD ? phaseColor : undefined);
+    frame(painter, gridRect);
     const forceSign = v => (v >= 0 ? '+' : '') + v.toFixed(2);
     MathPainter.paintMatrixTooltip(painter, amplitudeGrid, gridRect, hand.hoverPoints(),
         (c, r) => `Amplitude of |${ketLabel(circuit.circuitDefinition.registers.fittingIn(numWire), numWire,

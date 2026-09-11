@@ -17,55 +17,6 @@
 import {initializedWglContext} from "../../engine/webgl/context/WglContext.js"
 
 /**
- * Remembers that the welcome panel has been shown. Without it the panel is the app's starting
- * state on every load, which is a greeting the first time and an obstacle every time after.
- * @type {!string}
- */
-const SEEN_WELCOME_STORAGE_KEY = 'shadow-quant.seen-welcome';
-
-/**
- * @param {!Storage} storage
- * @returns {!boolean}
- */
-function hasSeenWelcome(storage) {
-    // Private windows and blocked site data throw rather than returning null, and a browser that
-    // can't remember should still get the welcome rather than an error.
-    try {
-        return storage.getItem(SEEN_WELCOME_STORAGE_KEY) === 'true';
-    } catch {
-        return false;
-    }
-}
-
-/**
- * @param {!Storage} storage
- * @returns {void}
- */
-function noteWelcomeSeen(storage) {
-    try {
-        storage.setItem(SEEN_WELCOME_STORAGE_KEY, 'true');
-    } catch {
-        // Nothing to do: the welcome simply shows again next time.
-    }
-}
-
-/**
- * Whether this load should greet the user with the welcome panel, remembering a yes so the next
- * load doesn't repeat it. A load that already carries a circuit skips the greeting outright.
- *
- * @param {!boolean} circuitIsEmpty
- * @param {!Storage} storage
- * @returns {!boolean}
- */
-function shouldShowWelcome(circuitIsEmpty, storage) {
-    if (!circuitIsEmpty || hasSeenWelcome(storage)) {
-        return false;
-    }
-    noteWelcomeSeen(storage);
-    return true;
-}
-
-/**
  * Schedules the app's reveal: unhide the shell and paint the first frame. Deferred a tick so that
  * a WebGL initialization failure surfaces as a runtime error rather than killing the module
  * loading phase.
@@ -90,4 +41,4 @@ function scheduleBoot(redrawLoop, onReady) {
     }, 0);
 }
 
-export {scheduleBoot, shouldShowWelcome, SEEN_WELCOME_STORAGE_KEY}
+export {scheduleBoot}

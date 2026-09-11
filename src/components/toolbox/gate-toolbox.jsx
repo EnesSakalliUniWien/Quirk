@@ -1,14 +1,12 @@
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 
-import { AtomIcon, BookOpenIcon, SearchIcon } from "lucide-react";
+import { AtomIcon, SearchIcon } from "lucide-react";
 import { ScrollArea } from "@base-ui/react/scroll-area";
 import { PreviewCard } from "@base-ui/react/preview-card";
 
 import { GateHoverCard, gateHoverHandle } from "../gate/gate-hover.jsx";
 
 
-import { Button } from "@/components/ui/button";
-import { openPanel } from "../dock.jsx";
 import { useObservedValue } from "../useObservedValue.js";
 import { gateStyle } from "../../config/CanvasTheme.js";
 import { Gates } from "../../gates/AllGates.js";
@@ -119,21 +117,11 @@ const SidebarHeader = memo(function SidebarHeader() {
   return (
     <div className="sidebar-brand">
       <span className="app-brand-mark" aria-hidden="true">
-        <AtomIcon strokeWidth={1.5} />
+        <AtomIcon />
       </span>
       <span className="app-brand-copy">
         <strong>Shadow-Quant</strong>
       </span>
-      <Button
-        id="menu-button"
-        size="icon"
-        className="sidebar-menu-button"
-        aria-label="Menu"
-        title="Menu"
-        onClick={() => openPanel("menu")}
-      >
-        <BookOpenIcon strokeWidth={1.5} aria-hidden="true" />
-      </Button>
     </div>
   );
 });
@@ -258,11 +246,7 @@ function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace }) {
       <SidebarHeader />
       <div className="gate-toolbox-header" data-slot="sidebar-header">
         <div className="gate-toolbox-search">
-          <SearchIcon
-            className="gate-toolbox-search-icon"
-            strokeWidth={1.5}
-            aria-hidden="true"
-          />
+          <SearchIcon className="gate-toolbox-search-icon" aria-hidden="true" />
           <input
             id="gate-search"
             type="search"

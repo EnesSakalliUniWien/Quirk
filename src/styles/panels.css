@@ -7,24 +7,9 @@
         height: 100%;
     }
 
-    /* A panel whose content is a row of sections, such as the welcome panel's greeting beside its
-       list of examples. */
-    .panel-content {
-        display: flex;
-        align-items: stretch;
-        gap: calc(var(--spacing) * 3);
-    }
-
-    @media (max-width: 760px) {
-        .panel-content {
-            flex-wrap: wrap;
-        }
-    }
-
     /* A panel's own content. The dock supplies the surface it sits on, so this is padding and
        colour only - no card border, radius or drop shadow the way the floating windows had. */
-    .panel-body,
-    .example-panel {
+    .panel-body {
         box-sizing: border-box;
         color: var(--card-foreground);
     }
@@ -158,6 +143,11 @@
     .resource-card svg {
         width: 38px;
         height: 38px;
+    }
+
+    /* The marks lucide-react has no icon for, from src/resources/icons. */
+    .resource-icon {
+        display: inline-flex;
     }
 
     .example-panel {
@@ -295,35 +285,6 @@
         margin: 0;
     }
 
-    .shortcut-heading {
-        margin-top: calc(var(--spacing) * 4);
-    }
-
-    .shortcut-list {
-        display: grid;
-        grid-template-columns: auto 1fr;
-        align-items: baseline;
-        gap: 5px calc(var(--spacing) * 3);
-        margin: 0;
-        padding: 0 calc(var(--spacing) * 2);
-        color: var(--muted-foreground);
-        font-size: 0.8125rem;
-    }
-
-    .shortcut-list dd {
-        margin: 0;
-    }
-
-    .shortcut-list kbd {
-        padding: 1px 5px;
-        border: 1px solid var(--border);
-        border-radius: 5px;
-        background: var(--accent);
-        color: var(--foreground);
-        font-family: inherit;
-        font-size: 0.75rem;
-    }
-
     .panel-stack {
         display: grid;
         width: min(780px, calc(100vw - 48px));
@@ -401,26 +362,14 @@
     /* Narrow panels stack their columns and tighten their padding. */
     @media (max-width: 760px) {
         .panel-body,
-        .welcome-panel,
-        .example-panel,
         .panel-stack,
         .forge-panel {
             width: 100%;
             box-sizing: border-box;
         }
 
-        .panel-body,
-        .welcome-panel,
-        .example-panel {
+        .panel-body {
             padding: calc(var(--spacing) * 4);
-        }
-
-        .resource-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .resource-card {
-            min-height: 72px;
         }
     }
 }

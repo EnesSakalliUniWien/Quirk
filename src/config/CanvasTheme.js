@@ -18,18 +18,32 @@
  * Explicit colours for canvas drawing and gate chips. Gate renderers consume these values directly.
  * DOM colours are defined separately in styles/tokens.css.
  * Each section states the meaning and visible cue that accompanies its colours.
+ *
+ * A colour that means something means one thing: gate families, three kinds of data, the
+ * highlight and errors each have their own hue, and everything else is neutral. Where two roles
+ * share a value on purpose, the value is named once below rather than copied.
  */
+
+/** The state readout: Chance, Bloch, density matrices and samples. */
+const STATE_READOUT = "#22C55E";
+const STATE_READOUT_BACKGROUND = "#0F1F14";
+const GATE_SURFACE = "#191C24";
+/** Muted text, and the frame ink containers wear one step behind the circuit's white lines. */
+const MUTED = "#B0B7C9";
+/** Where you are and what you touch: hover, drop targets, the gate button, the playhead. */
+const HIGHLIGHT = "#F59E0B";
+
 const CanvasTheme = Object.freeze({
   // IQP-dark canvas and wire colour. Quirk-only displays keep their explicit data roles below.
   surface: Object.freeze({
     background: "#262626",
-    gate: "#191C24",
+    gate: GATE_SURFACE,
     quiet: "#232630",
   }),
   text: Object.freeze({
     primary: "#FFFFFF",
     default: "#FAFAFA",
-    muted: "#B0B7C9",
+    muted: MUTED,
     onBright: "#000000",
   }),
   // Qiskit visualization/circuit/styles/iqp-dark.json. Names describe assignments, not physics.
@@ -41,18 +55,21 @@ const CanvasTheme = Object.freeze({
     measure: "#8D8D8D",
     classicalWire: "#778899",
   }),
-  // Wires, grid boundaries and depth guides remain visible on the dark display surfaces.
+  // Wires, grid boundaries and depth guides remain visible on the dark display surfaces. The
+  // circuit's own lines are text.primary; frame is the quieter ink every container wears -
+  // displays, kets, output boxes, register braces - so the circuit leads and its readouts follow.
   stroke: Object.freeze({
     grid: "#7D8599",
     guide: "#8B93A6",
     faint: "#747D91",
     bright: "#D3D6E0",
+    frame: MUTED,
   }),
   gate: Object.freeze({ hover: "#493824", time: "#302C43" }),
   // Probability is also encoded by bar extent and numbers; labels use an opaque neutral plate.
   probability: Object.freeze({
-    background: "#0F1F14",
-    fill: "#22C55E",
+    background: STATE_READOUT_BACKGROUND,
+    fill: STATE_READOUT,
     outline: "#70E09A",
   }),
   // Circle area/level show probability; line angle and tooltips show phase independently of hue.
@@ -63,30 +80,28 @@ const CanvasTheme = Object.freeze({
     phaseHalo: "#14161D",
     reference: "#FAFAFA",
   }),
-  // Operator matrices and rotation arrows, also identified by gate labels and arrow direction.
-  operation: Object.freeze({ background: "#2E2A12", fill: "#EAB308" }),
-  // Bloch vector length/direction and the numeric |r| readout carry the state information.
+  // Operator matrices, cycle and counting gates, and rotations, also identified by gate labels and
+  // arrow direction. Violet keeps an operator matrix apart from the amplitude grid and the density
+  // matrix, which are drawn the same way, including under red-green colour blindness.
+  operation: Object.freeze({ background: GATE_SURFACE, fill: "#A78BFA" }),
+  // Bloch vector length/direction and the numeric |r| readout carry the state information; a
+  // mixed state greys out rather than changing hue.
   bloch: Object.freeze({
-    background: "#0F1F14",
-    vector: "#22C55E",
-    mixed: "#EAB308",
+    background: STATE_READOUT_BACKGROUND,
+    vector: STATE_READOUT,
+    mixed: MUTED,
   }),
   // Hover/focus have outlines; the playhead has a band and edge; drop targets have an outline.
   interaction: Object.freeze({
-    outline: "#F59E0B",
-    button: "#F59E0B",
+    outline: HIGHLIGHT,
+    button: HIGHLIGHT,
     buttonFocus: "#FCD34D",
-    playhead: "#A78BFA",
-    playheadBand: "rgba(167, 139, 250, 0.14)",
+    playhead: HIGHLIGHT,
+    playheadBand: "rgba(245, 158, 11, 0.14)",
     drop: "rgba(255, 196, 112, 0.16)",
   }),
   // Errors retain their message and a crossed-out gate. Error colour never means hover.
   error: Object.freeze({ text: "#E879F9", background: "#351C39" }),
-  tooltip: Object.freeze({ title: "#60A5FA", background: "#101812" }),
-  // Registers take these in wire order, for their names and the bar down their wire labels.
-  register: Object.freeze({
-    colors: Object.freeze(["#22D3EE", "#EAB308", "#A78BFA", "#F472B6", "#34D399", "#FB923C"]),
-  }),
   transparent: "transparent",
 });
 
@@ -117,13 +132,4 @@ function phaseColor(phaseDegrees, alpha = 1) {
   return `hsl(${((phaseDegrees % 360) + 360) % 360} 85% 62% / ${alpha})`;
 }
 
-/**
- * @param {!int} index A register's place in wire order.
- * @returns {!string} Its colour, on the canvas and in the panels alike.
- */
-function registerColor(index) {
-  const { colors } = CanvasTheme.register;
-  return colors[index % colors.length];
-}
-
-export { CanvasTheme, phaseColor, gateStyle, registerColor };
+export { CanvasTheme, phaseColor, gateStyle };

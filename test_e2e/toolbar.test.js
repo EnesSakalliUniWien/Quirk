@@ -17,7 +17,8 @@
 // The app toolbar: the button row and the WAI-ARIA toolbar pattern.
 
 import assert from 'node:assert/strict';
-import {test, withQuirkPage} from './harness.js';
+import {EXAMPLE_CIRCUITS} from '../src/config/exampleCircuits.js';
+import {test, withQuirkPage, currentCircuit, waitForCircuit, TEST_TIMEOUT_MILLIS} from './harness.js';
 
 test('renders the circuit controls as a button toolbar', async browser => {
     await withQuirkPage(browser, {cols: [['H']]}, async page => {
@@ -33,15 +34,13 @@ test('renders the circuit controls as a button toolbar', async browser => {
             await page.$eval('#drawCanvas', element => getComputedStyle(element).filter),
             'none');
         assert.equal(toolbar.label, 'Circuit controls');
-        // The brand and the Menu button live in the sidebar; the toolbar is circuit actions only.
+        // The brand lives in the sidebar; the toolbar is circuit actions only.
         const sidebarBrand = await page.$eval('.gate-toolbox .app-brand-copy strong',
             element => element.textContent);
         assert.equal(sidebarBrand, 'Shadow-Quant');
-        const menuLabel = await page.$eval('.gate-toolbox #menu-button',
-            element => element.getAttribute('aria-label'));
-        assert.equal(menuLabel, 'Menu');
         // Clear All comes last, away from Clear Circuit; the row has no button groups.
         assert.deepEqual(toolbar.buttonIds, [
+            'examples-button',
             'export-button',
             'state-button',
             'algebra-button',
@@ -58,8 +57,8 @@ test('renders the circuit controls as a button toolbar', async browser => {
         const labels = await page.$$eval('.app-toolbar [data-slot="button"]',
             els => els.map(el => el.getAttribute('aria-label')));
         assert.deepEqual(labels,
-            ['Export', 'State', 'Algebra', 'Probabilities', 'Qubits', 'Registers', 'Clear Circuit', 'Undo',
-             'Redo', 'Make Gate', 'Clear All']);
+            ['Examples', 'Export', 'State', 'Algebra', 'Probabilities', 'Qubits', 'Registers',
+             'Clear Circuit', 'Undo', 'Redo', 'Make Gate', 'Clear All']);
 
         // The destructive action takes the row's slack: never flush against Clear Circuit, and
         // visibly apart from its neighbour.
@@ -109,5 +108,31 @@ test('renders the circuit controls as a button toolbar', async browser => {
         assert.notEqual(roving.order[0], roving.order[1], 'ArrowRight must move off the first control.');
         assert.equal(roving.order[2], roving.lastEnabledId, 'End must reach the last enabled control.');
         assert.equal(roving.order[3], roving.firstEnabledId, 'Home must return to the first control.');
+    });
+});
+
+test('the examples menu loads a circuit, and undo puts the old one back', async browser => {
+    const circuit = {cols: [['H']]};
+    await withQuirkPage(browser, circuit, async page => {
+        await page.click('#examples-button');
+        const item = await page.waitForSelector('.app-menu [role="menuitem"]',
+            {timeout: TEST_TIMEOUT_MILLIS});
+        assert.equal(await item.evaluate(element => element.textContent), EXAMPLE_CIRCUITS[0].name);
+
+        await item.click();
+        await page.waitForFunction(
+            startJson => {
+                const params = new URLSearchParams(document.location.hash.slice(1).replace(/\+/g, '%2B'));
+                return (params.get('circuit') ?? '') !== startJson;
+            },
+            {timeout: TEST_TIMEOUT_MILLIS},
+            JSON.stringify(circuit));
+        const loaded = await currentCircuit(page);
+        assert.ok(loaded.cols.length > circuit.cols.length,
+            `Choosing an example must load its circuit; the URL carried ${JSON.stringify(loaded)}.`);
+
+        // An example is committed like any other edit, so the circuit that was there comes back.
+        await page.click('#undo-button');
+        await waitForCircuit(page, circuit);
     });
 });

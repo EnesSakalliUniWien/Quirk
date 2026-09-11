@@ -56,7 +56,7 @@ function _paintSampleDisplay_result(args) {
     for (let i = 0; i < args.gate.height; i++) {
         const bit = ((sample >> i) & 1) !== 0;
         if (bit) {
-            rectangle(painter, new Rect(x, startY+d*i+5, w, d-10), {fill: CanvasTheme.operation.fill});
+            rectangle(painter, new Rect(x, startY+d*i+5, w, d-10), {fill: CanvasTheme.probability.fill});
         }
         fitText(painter, bit ? 'on' : 'off', {
             x: x+w/2,
@@ -80,13 +80,17 @@ function _paintSampleDisplay_result(args) {
                 `Sampled |${Util.bin(sample, args.gate.height)}⟩`,
                 `decimal: |${sample}⟩`,
                 "chance: " + (p * 100).toFixed(4) + "%",
-                CanvasTheme.operation.background);
+                CanvasTheme.probability.background);
         }
     }
 }
 
+/**
+ * A sampled measurement outcome is a state readout, so it wears the readout's colours. The display
+ * renderer around it draws its frame.
+ */
 function paintSampleDisplay(args) {
-    rectangle(args.painter, args.rect, {fill: CanvasTheme.operation.background});
+    rectangle(args.painter, args.rect, {fill: CanvasTheme.probability.background});
 
     const probabilities = args.customStats;
     const noData = probabilities === undefined || probabilities.hasNaN();
@@ -98,8 +102,6 @@ function paintSampleDisplay(args) {
     } else {
         _paintSampleDisplay_result(args);
     }
-
-    rectangle(args.painter, args.rect, {stroke: {color: CanvasTheme.stroke.grid, width: 1}});
 }
 
 export {paintSampleDisplay};

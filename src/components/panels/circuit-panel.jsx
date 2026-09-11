@@ -8,8 +8,8 @@ import { openPanel } from "../dock.jsx";
 import { GutterEditors } from "../circuit/gutter-editors.jsx";
 
 /**
- * The circuit itself, as a dock panel: the scrolling cell, its canvas, the zoom and overview
- * overlay, and the error banner that floats over them.
+ * The circuit itself, as a dock panel: the scrolling cell, its canvas, the bar under it holding the
+ * zoom and the overview, and the error banner that floats over them.
  *
  * The elements are React's; what happens inside them is not. On mount they are handed to
  * startQuirk, which drives them imperatively - which is what a WebGL surface wants - and publishes
@@ -55,7 +55,6 @@ function CircuitPanel() {
             y,
           },
         }),
-      showWelcome: () => openPanel("menu"),
     });
   }, []);
 

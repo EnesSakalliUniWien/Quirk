@@ -22,12 +22,12 @@ import {Rect} from '../../geometry/Rect.js';
 import {CanvasTheme} from '../../config/CanvasTheme.js';
 import {circuitZoom, onCircuitZoomChanged} from './zoom.js';
 
-const MINIMAP_WIDTH = 180;
-const MINIMAP_MAX_HEIGHT = 110;
-
 /**
  * A schematic overview of the whole circuit with a box marking the visible part, shown only while
  * the circuit is wider than its scroll area. Clicking or dragging on it scrolls the circuit.
+ *
+ * Its size is the bar's to decide (see base.css): the circuit is squeezed into it on each axis
+ * separately, so a long circuit uses the overview's whole width instead of a sliver of it.
  *
  * The schematic is drawn from the same geometry the circuit itself uses — wires as lines, gates
  * as blocks — rather than a shrunken copy of the full painting, which would be illegible at this
@@ -55,18 +55,18 @@ function initMinimap(container, canvasDiv, displayed) {
         }
         canvas.hidden = false;
 
-        const contentHeight = geometry.desiredHeight();
-        const scale = Math.min(MINIMAP_WIDTH / contentWidth, MINIMAP_MAX_HEIGHT / contentHeight);
+        const w = Math.max(1, canvas.clientWidth);
+        const h = Math.max(1, canvas.clientHeight);
+        const sx = w / contentWidth;
+        const sy = h / geometry.desiredHeight();
+        // At least a pixel each way, so a narrow gate in a long circuit still shows.
+        const squeezed = r => new Rect(r.x * sx, r.y * sy, Math.max(1, r.w * sx), Math.max(1, r.h * sy));
         const pixelRatio = window.devicePixelRatio || 1;
-        const w = Math.round(contentWidth * scale);
-        const h = Math.round(contentHeight * scale);
-        canvas.width = w * pixelRatio;
-        canvas.height = h * pixelRatio;
-        canvas.style.width = w + 'px';
-        canvas.style.height = h + 'px';
+        canvas.width = Math.round(w * pixelRatio);
+        canvas.height = Math.round(h * pixelRatio);
 
-        const view = RenderSurface.forCanvas(canvas).beginFrame(undefined, pixelRatio * scale);
-        rectangle(view, new Rect(0, 0, contentWidth, contentHeight), {fill: CanvasTheme.surface.gate});
+        const view = RenderSurface.forCanvas(canvas).beginFrame(undefined, pixelRatio);
+        rectangle(view, new Rect(0, 0, w, h), {fill: CanvasTheme.surface.gate});
 
         // Wires.
         const circuitDefinition = geometry.circuitDefinition;
@@ -74,8 +74,8 @@ function initMinimap(container, canvasDiv, displayed) {
         const wireEndX = geometry.rectForSuperpositionDisplay().x - 4;
 
         for (let row = 0; row < wireCount; row++) {
-            const y = geometry.wireRect(row).center().y;
-            strokePath(view, [new Point(0, y), new Point(wireEndX, y)], CanvasTheme.stroke.faint, 1 / scale);
+            const y = geometry.wireRect(row).center().y * sy;
+            strokePath(view, [new Point(0, y), new Point(wireEndX * sx, y)], CanvasTheme.stroke.faint, 1);
         }
 
         // Gates as blocks.
@@ -87,25 +87,25 @@ function initMinimap(container, canvasDiv, displayed) {
                     continue;
                 }
                 const r = geometry.gateRect(row, col, gate.width, gate.height);
-                rectangle(view, r, {fill: CanvasTheme.stroke.guide});
+                rectangle(view, squeezed(r), {fill: CanvasTheme.stroke.guide});
             }
         }
 
         // The output display block.
         const grid = geometry.rectForSuperpositionDisplay();
-        rectangle(view, grid, {stroke: {color: CanvasTheme.stroke.guide, width: 1}});
+        rectangle(view, squeezed(grid), {stroke: {color: CanvasTheme.stroke.guide, width: 1}});
 
         // The visible part.
         const viewX = canvasDiv.scrollLeft / circuitZoom();
-        rectangle(view, new Rect(viewX, 0, visibleWidth, contentHeight), {stroke: {color: CanvasTheme.interaction.outline, width: 1.5 / scale}});
+        rectangle(view, new Rect(viewX * sx, 0, visibleWidth * sx, h), {stroke: {color: CanvasTheme.interaction.outline, width: 2}});
     };
 
     const scrollTo = ev => {
         const b = canvas.getBoundingClientRect();
         const contentWidth = displayed.get().desiredWidth();
-        const scale = b.width / contentWidth;
+        const scale = canvas.clientWidth / contentWidth;
         const visibleWidth = canvasDiv.clientWidth / circuitZoom();
-        const centerX = (ev.clientX - b.left) / scale;
+        const centerX = (ev.clientX - b.left - canvas.clientLeft) / scale;
         canvasDiv.scrollLeft = (centerX - visibleWidth / 2) * circuitZoom();
     };
     // Pointer events rather than mouse events, so dragging the viewport box also works by touch.

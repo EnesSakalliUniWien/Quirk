@@ -161,7 +161,7 @@ test('a right click on a wire label groups, feeds and ungroups through its menu'
         await waitForCanvasViewport(page);
         const label = await wireLabelAt(page, 1, 2, false);
         await page.mouse.click(label.x, label.y, {button: 'right'});
-        const item = await page.waitForSelector('.gutter-menu [role="menuitem"]', {timeout: TEST_TIMEOUT_MILLIS});
+        const item = await page.waitForSelector('.app-menu [role="menuitem"]', {timeout: TEST_TIMEOUT_MILLIS});
         assert.equal(await item.evaluate(e => e.textContent), 'Group q1 into a register');
         await item.click();
         await waitForCircuit(page, {cols: [['H']], registers: [{name: 'a', wires: [1, 1]}]});
@@ -178,19 +178,19 @@ test('a right click on a wire label groups, feeds and ungroups through its menu'
         // On a register's label the menu feeds an input, and ungroups.
         const named = await wireLabelAt(page, 1, 2, true);
         await page.mouse.click(named.x, named.y, {button: 'right'});
-        const feedA = await page.waitForSelector('.gutter-menu [role="menuitemradio"][data-value="A"]', {timeout: TEST_TIMEOUT_MILLIS}).
+        const feedA = await page.waitForSelector('.app-menu [role="menuitemradio"][data-value="A"]', {timeout: TEST_TIMEOUT_MILLIS}).
             catch(() => undefined);
         if (feedA !== undefined) {
             await feedA.click();
         } else {
-            await page.evaluate(() => [...document.querySelectorAll('.gutter-menu [role="menuitemradio"]')].
+            await page.evaluate(() => [...document.querySelectorAll('.app-menu [role="menuitemradio"]')].
                 find(e => e.textContent === 'Input A').click());
         }
         await waitForCircuit(page, {cols: [['H']], registers: [{name: 'anc', wires: [1, 1], input: 'A'}]});
 
         await page.mouse.click(named.x, named.y, {button: 'right'});
-        await page.waitForSelector('.gutter-menu', {timeout: TEST_TIMEOUT_MILLIS});
-        await page.evaluate(() => [...document.querySelectorAll('.gutter-menu [role="menuitem"]')].
+        await page.waitForSelector('.app-menu', {timeout: TEST_TIMEOUT_MILLIS});
+        await page.evaluate(() => [...document.querySelectorAll('.app-menu [role="menuitem"]')].
             find(e => e.textContent.startsWith('Ungroup')).click());
         await waitForCircuit(page, {cols: [['H']]});
     });

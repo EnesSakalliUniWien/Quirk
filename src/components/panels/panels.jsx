@@ -1,3 +1,17 @@
+import {
+  BracketsIcon,
+  ChartColumnIcon,
+  DownloadIcon,
+  GitCommitHorizontalIcon,
+  GlobeIcon,
+  OrbitIcon,
+  ShapesIcon,
+  SigmaIcon,
+  SlidersHorizontalIcon,
+  SquareFunctionIcon,
+  WandSparklesIcon,
+} from "lucide-react";
+
 import { AlgebraPanel } from "./algebra-panel.jsx";
 import { BlochPanel } from "./bloch-panel.jsx";
 import { CircuitPanel } from "./circuit-panel.jsx";
@@ -5,7 +19,6 @@ import { ExportPanel } from "./export-panel.jsx";
 import { ForgePanel } from "./forge-panel.jsx";
 import { GatesPanel } from "./gates-panel.jsx";
 import { GateParamPanel } from "./gate-param-panel.jsx";
-import { MenuPanel } from "./menu-panel.jsx";
 import { ProbabilitiesPanel } from "./probabilities-panel.jsx";
 import { QubitsPanel } from "./qubits-panel.jsx";
 import { RegistersPanel } from "./registers-panel.jsx";
@@ -40,38 +53,48 @@ import { StatePanel } from "./state-panel.jsx";
  * when its sphere goes. A new panel owes the same, and owes it to itself; nothing will disable the
  * app on its behalf.
  *
- * @type {!Object.<!string, !{title: !string, component: !function, permanent: (undefined|!boolean),
- *     side: (undefined|!{direction: !string, width: !int}),
+ * `icon` is the panel's mark, drawn on its tab and on the toolbar button that opens it, so a panel
+ * is named the same way wherever it appears and neither place picks an icon of its own.
+ *
+ * @type {!Object.<!string, !{title: !string, icon: !function, component: !function,
+ *     permanent: (undefined|!boolean), side: (undefined|!{direction: !string, width: !int}),
  *     floating: (undefined|!{width: !int, height: !int})}>}
  */
 const PANELS = {
-  circuit: { title: "Circuit", component: CircuitPanel, permanent: true },
+  circuit: {
+    title: "Circuit",
+    icon: GitCommitHorizontalIcon,
+    component: CircuitPanel,
+    permanent: true,
+  },
   // After the circuit: it is placed against it.
   gates: {
     title: "Gates",
+    icon: ShapesIcon,
     component: GatesPanel,
     permanent: true,
     side: { direction: "left", width: 240 },
   },
-  state: { title: "State", component: StatePanel },
-  algebra: { title: "Algebra", component: AlgebraPanel },
-  probabilities: { title: "Probabilities", component: ProbabilitiesPanel },
-  qubits: { title: "Qubits", component: QubitsPanel },
-  registers: { title: "Registers", component: RegistersPanel },
-  export: { title: "Export", component: ExportPanel },
-  forge: { title: "Make Gate", component: ForgePanel },
-  menu: {
-    title: "Welcome",
-    component: MenuPanel,
-    floating: { width: 880, height: 560 },
+  state: { title: "State", icon: SigmaIcon, component: StatePanel },
+  algebra: { title: "Algebra", icon: SquareFunctionIcon, component: AlgebraPanel },
+  probabilities: {
+    title: "Probabilities",
+    icon: ChartColumnIcon,
+    component: ProbabilitiesPanel,
   },
+  qubits: { title: "Qubits", icon: OrbitIcon, component: QubitsPanel },
+  registers: { title: "Registers", icon: BracketsIcon, component: RegistersPanel },
+  export: { title: "Export", icon: DownloadIcon, component: ExportPanel },
+  forge: { title: "Make Gate", icon: WandSparklesIcon, component: ForgePanel },
   "gate-param": {
     title: "Gate Parameter",
+    icon: SlidersHorizontalIcon,
     component: GateParamPanel,
     floating: { width: 420, height: 320 },
   },
   bloch: {
     title: "Bloch Sphere",
+    icon: GlobeIcon,
     component: BlochPanel,
     floating: { width: 420, height: 680 },
   },

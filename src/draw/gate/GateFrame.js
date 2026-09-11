@@ -15,7 +15,7 @@
  */
 
 import { PathGeometry } from "../pixi/PathGeometry.js";
-import { drawPath, rectangle } from "../pixi/ShapeView.js";
+import { drawPath, frame, highlightRing, lineWidth, rectangle } from "../pixi/ShapeView.js";
 import { fitText } from "../pixi/TextLayout.js";
 
 import { Layout } from "../../config/Layout.js";
@@ -26,17 +26,16 @@ import { gateButtonRect, rectForResizeTab } from "./GateRects.js";
 /** @typedef {import('./GateRenderParams.js').GateRenderParams} GateRenderParams */
 
 /**
+ * The circuit's white line around a gate, and the highlight ring outside it while it is hovered.
  * @param {!GateRenderParams} args
  */
 function paintOutline(args) {
   rectangle(args.painter, args.rect, {
-    stroke: {
-      color: args.isHighlighted
-        ? CanvasTheme.interaction.outline
-        : CanvasTheme.text.primary,
-      width: 1,
-    },
+    stroke: { color: CanvasTheme.text.primary, width: lineWidth(args.painter, 1) },
   });
+  if (args.isHighlighted) {
+    highlightRing(args.painter, args.rect);
+  }
 }
 
 /**
@@ -68,9 +67,7 @@ function paintResizeTab(args) {
   args.painter.group("resize-tab-" + args.painter.order, (painter) => {
     painter.alpha *= args.isResizeHighlighted ? 1 : 0.7;
     rectangle(painter, trimRect, { fill: backColor });
-    rectangle(painter, trimRect, {
-      stroke: { color: CanvasTheme.stroke.guide, width: 1 },
-    });
+    frame(painter, trimRect);
   });
   fitText(args.painter, "resize", {
     x: cx,
@@ -153,7 +150,7 @@ function paintLocationIndependentFrame(
     (tracer) => traceLocationIndependentOutline(args, tracer),
     [
       { fill: backColor },
-      { stroke: { color: CanvasTheme.text.primary, width: 1 } },
+      { stroke: { color: CanvasTheme.text.primary, width: lineWidth(args.painter, 1) } },
     ],
   );
 }
@@ -184,7 +181,7 @@ function paintGateButton(args) {
     height: buttonRect.h,
   });
   rectangle(args.painter, buttonRect, {
-    stroke: { color: CanvasTheme.text.primary, width: 1 },
+    stroke: { color: CanvasTheme.text.primary, width: lineWidth(args.painter, 1) },
   });
 }
 

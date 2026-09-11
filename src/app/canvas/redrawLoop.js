@@ -134,6 +134,8 @@ function initRedrawLoop(canvas,
         shown.updateArea(new Rect(0, 0, size.w, size.h));
         const painter = scene.update(shown, stats, playheadStep, {
             rng: semiStableRng.cur.restarted(), resolution: pixelRatio * zoom,
+            // Zoomed out, the circuit's lines widen in circuit units so they stay a CSS pixel wide.
+            lineScale: 1 / Math.min(zoom, 1),
             scrollX: canvasDiv.scrollLeft / zoom, scrollY: canvasDiv.scrollTop / zoom,
         });
 
