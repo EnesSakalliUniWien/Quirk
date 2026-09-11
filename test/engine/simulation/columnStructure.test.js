@@ -25,6 +25,8 @@ import {
     structureMatrix,
 } from "../../../src/engine/simulation/columnStructure.js"
 import {engineColumnOperator} from "./engineColumnOperator.js"
+import {CircuitStats} from "../../../src/engine/simulation/CircuitStats.js"
+import {paddedState} from "../../../src/engine/simulation/stepAlgebra.js"
 
 const suite = new Suite("columnStructure");
 
@@ -143,4 +145,34 @@ suite.test("a detector measures at random, so its column has no matrix", () => {
         assertThat(structure.ok).withInfo({cols}).isEqualTo(false);
         assertThat(structure.reason.includes("random")).withInfo({cols, reason: structure.reason}).isEqualTo(true);
     }
+});
+
+suite.test("a register that feeds input A serves the column the way an input gate would", () => {
+    const viaGate = fromJson([["+=A2", 1, "inputA2"]]);
+    const viaRegister = fromJsonText_CircuitDefinition(JSON.stringify(
+        {cols: [["+=A2"]], registers: [{name: "x", wires: [2, 2], input: "A"}]}));
+    const structure = columnStructure(viaRegister, 0, 4, 0);
+    assertThat(structure.ok).withInfo({reason: structure.reason}).isEqualTo(true);
+    assertThat(structureMatrix(structure)).isApproximatelyEqualTo(structureMatrix(columnStructure(viaGate, 0, 4, 0)), 1e-9);
+
+    // And the simulator agrees: with x at 3, the adder adds 3.
+    const run = json => paddedState(
+        CircuitStats.fromCircuitAtTime(fromJsonText_CircuitDefinition(JSON.stringify(json)), 0).finalState, 4);
+    assertThat(run({cols: [["+=A2"]], init: [0, 0, 1, 1], registers: [{name: "x", wires: [2, 2], input: "A"}]})).
+        isApproximatelyEqualTo(run({cols: [["+=A2", 1, "inputA2"]], init: [0, 0, 1, 1]}), 1e-6);
+});
+
+
+suite.test("a prepare box takes |0…0⟩ of its wires to its state and discards the rest", () => {
+    const s = Math.SQRT1_2;
+    const structure = columnStructure(fromJson([[1, "PrepBell"]]), 0, 3, 0);
+    assertThat(structure.ok).withInfo({reason: structure.reason}).isEqualTo(true);
+    assertThat(structureFanOut(structure)).isEqualTo(2);
+    // q0 = 1 and the pair at |00⟩: it becomes (|001⟩ + |111⟩)/√2.
+    assertThat([...columnImage(structure, 1).entries()]).isApproximatelyEqualTo([[1, [s, 0]], [7, [s, 0]]], 1e-12);
+    // The pair away from |00⟩ has nowhere to go.
+    assertThat(columnImage(structure, 0b010).size).isEqualTo(0);
+
+    const value = columnStructure(fromJson([[{id: "Prep3", arg: 5}]]), 0, 3, 0);
+    assertThat([...columnImage(value, 0).entries()]).isEqualTo([[5, [1, 0]]]);
 });

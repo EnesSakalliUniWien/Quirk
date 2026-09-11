@@ -15,6 +15,19 @@
  */
 
 import {Util} from "../../base/Util.js"
+import {Registers} from "../../circuit/model/Registers.js"
+import {ketBits, registerValue} from "../../circuit/registerLabels.js"
+
+/**
+ * The registers' values read as one word, in wire order: AGA when every value is a single letter,
+ * six·A or 1·G when one is longer or a number, so that two values never run together into a third.
+ *
+ * @param {!Array.<!string>} values
+ * @returns {!string}
+ */
+function joinedSequence(values) {
+    return values.join(values.every(v => v.length === 1 && !/[0-9]/.test(v)) ? "" : "·");
+}
 
 /**
  * Amplitudes at or below this probability are treated as absent. NaN amplitudes fail the same
@@ -43,8 +56,14 @@ const MAX_ROWS = 4096;
  * @returns {!{
  *     amplitudeCount: !int,
  *     nonzeroCount: !int,
+ *     registers: !Registers,
  *     rows: !Array.<!{
  *         ket: !string,
+ *         bits: !string,
+ *         values: !Array.<!string>,
+ *         sequence: !string,
+ *         bits: !string,
+ *         values: !Array.<!int>,
  *         probability: !number,
  *         real: !number,
  *         imag: !number,
@@ -56,6 +75,8 @@ function stateTableRows(stats, wireCount, maxRows=MAX_ROWS) {
     const buf = stats.finalState.rawBuffer();
     const amplitudeCount = 1 << wireCount;
 
+    // Registers are named in the table; each row carries their values and its bits grouped by them.
+    const registers = stats.circuitDefinition.registers.fittingIn(wireCount);
     const rows = [];
     let nonzeroCount = 0;
     for (let i = 0; i < amplitudeCount; i++) {
@@ -68,8 +89,13 @@ function stateTableRows(stats, wireCount, maxRows=MAX_ROWS) {
 
         nonzeroCount++;
         if (rows.length < maxRows) {
+            const values = registers.list.map(r => Registers.valueLabel(r, registerValue(r, i)));
             rows.push({
                 ket: Util.bin(i, wireCount),
+                bits: ketBits(registers, wireCount, i),
+                values,
+                // The registers read together: a sequence, when they are the letters of one.
+                sequence: joinedSequence(values),
                 probability,
                 real,
                 imag,
@@ -78,7 +104,7 @@ function stateTableRows(stats, wireCount, maxRows=MAX_ROWS) {
         }
     }
 
-    return {amplitudeCount, nonzeroCount, rows};
+    return {amplitudeCount, nonzeroCount, rows, registers};
 }
 
 export {stateTableRows}

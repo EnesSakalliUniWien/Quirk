@@ -109,9 +109,11 @@ function drawView(canvas, source, view) {
  * the arrow keys. A plain scroll is left to whatever scrolls around the view.
  *
  * @param {!{source: !{json: !string, col: !int, wireCount: !int, time: !number},
- *     structure: !ColumnStructure, size: !number, label: !string}} props
+ *     structure: !ColumnStructure, size: !number, label: !string,
+ *     formatKet: (undefined|!function(!int): !string)}} props
+ *     formatKet writes a basis state for the readout; bits by default.
  */
-function OperatorView({ source, structure, size, label }) {
+function OperatorView({ source, structure, size, label, formatKet }) {
   const { json, col, wireCount, time } = source;
   const tileSource = useMemo(() => ({ json, col, wireCount, time }), [json, col, wireCount, time]);
   const canvasRef = useRef(null);
@@ -260,11 +262,12 @@ function OperatorView({ source, structure, size, label }) {
       return undefined;
     }
     const [re, im] = columnImage(structure, hovered.col).get(hovered.row) ?? [0, 0];
+    const ket = formatKet ?? ((index) => Util.bin(index, wireCount));
     return {
-      entry: `⟨${Util.bin(hovered.row, wireCount)}|U|${Util.bin(hovered.col, wireCount)}⟩`,
+      entry: `⟨${ket(hovered.row)}|U|${ket(hovered.col)}⟩`,
       value: new Complex(re, im).toString(Format.SIMPLIFIED),
     };
-  }, [hovered, structure, wireCount]);
+  }, [hovered, structure, wireCount, formatKet]);
   const failed = failure !== undefined && failure.source === tileSource ? failure.message : undefined;
 
   return (

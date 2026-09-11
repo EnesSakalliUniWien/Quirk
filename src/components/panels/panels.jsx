@@ -8,6 +8,7 @@ import { GateParamPanel } from "./gate-param-panel.jsx";
 import { MenuPanel } from "./menu-panel.jsx";
 import { ProbabilitiesPanel } from "./probabilities-panel.jsx";
 import { QubitsPanel } from "./qubits-panel.jsx";
+import { RegistersPanel } from "./registers-panel.jsx";
 import { StatePanel } from "./state-panel.jsx";
 
 /**
@@ -56,6 +57,7 @@ const PANELS = {
   algebra: { title: "Algebra", component: AlgebraPanel },
   probabilities: { title: "Probabilities", component: ProbabilitiesPanel },
   qubits: { title: "Qubits", component: QubitsPanel },
+  registers: { title: "Registers", component: RegistersPanel },
   export: { title: "Export", component: ExportPanel },
   forge: { title: "Make Gate", component: ForgePanel },
   menu: {

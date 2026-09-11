@@ -1,5 +1,6 @@
 
 import {
+    BracketsIcon,
     ChartColumnIcon,
     DownloadIcon,
     EraserIcon,
@@ -183,6 +184,11 @@ function AppToolbar() {
                 icon={OrbitIcon}
                 label="Qubits"
                 onClick={() => openPanel("qubits")} />
+            <ToolbarButton
+                id="registers-button"
+                icon={BracketsIcon}
+                label="Registers"
+                onClick={() => openPanel("registers")} />
             <ToolbarButton
                 id="clear-circuit-button"
                 icon={EraserIcon}

@@ -47,6 +47,7 @@ test('renders the circuit controls as a button toolbar', async browser => {
             'algebra-button',
             'probabilities-button',
             'qubits-button',
+            'registers-button',
             'clear-circuit-button',
             'undo-button',
             'redo-button',
@@ -57,8 +58,8 @@ test('renders the circuit controls as a button toolbar', async browser => {
         const labels = await page.$$eval('.app-toolbar [data-slot="button"]',
             els => els.map(el => el.getAttribute('aria-label')));
         assert.deepEqual(labels,
-            ['Export', 'State', 'Algebra', 'Probabilities', 'Qubits', 'Clear Circuit', 'Undo', 'Redo',
-             'Make Gate', 'Clear All']);
+            ['Export', 'State', 'Algebra', 'Probabilities', 'Qubits', 'Registers', 'Clear Circuit', 'Undo',
+             'Redo', 'Make Gate', 'Clear All']);
 
         // The destructive action takes the row's slack: never flush against Clear Circuit, and
         // visibly apart from its neighbour.

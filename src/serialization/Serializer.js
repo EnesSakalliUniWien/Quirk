@@ -25,6 +25,7 @@ import {Gate, GateBuilder} from "../circuit/model/Gate.js"
 import {GateColumn} from "../circuit/model/GateColumn.js"
 import {Gates} from "../gates/AllGates.js"
 import {INITIAL_STATE_KEYS} from "../circuit/model/InitialStates.js"
+import {Registers} from "../circuit/model/Registers.js"
 import {Matrix} from "../engine/math/matrix/Matrix.js"
 import {Util} from "../base/Util.js"
 import {reportRecoveredError} from "../diagnostics/errorReporter.js"
@@ -374,8 +375,55 @@ const toJson_CircuitDefinition = (v, context) => {
                 s);
         }
     }
+    if (!v.registers.isEmpty()) {
+        result.registers = v.registers.list.map(toJson_Register);
+    }
     return result;
 };
+
+/**
+ * A register as JSON: its name, its wires as [first, count], the input it feeds when it feeds one,
+ * and the labels of its values when it has any.
+ *
+ * @param {!Register} register
+ * @returns {!object}
+ */
+function toJson_Register(register) {
+    const result = {name: register.name, wires: [register.start, register.length]};
+    if (register.input !== undefined) {
+        result.input = register.input;
+    }
+    if (register.labels !== undefined) {
+        result.labels = {...register.labels};
+    }
+    return result;
+}
+
+/**
+ * @param {object} json
+ * @returns {!Registers}
+ * @throws
+ */
+function _fromJson_Registers(json) {
+    const {registers} = json;
+    if (registers === undefined) {
+        return Registers.EMPTY;
+    }
+    if (!Array.isArray(registers)) {
+        throw new DetailedError('Registers must be an array.', {json});
+    }
+    const list = registers.map(e => {
+        if (e === null || typeof e !== 'object' || !Array.isArray(e.wires) || e.wires.length !== 2) {
+            throw new DetailedError('A register needs a name and its wires as [first, count].', {register: e});
+        }
+        return {name: e.name, start: e.wires[0], length: e.wires[1], input: e.input, labels: e.labels};
+    });
+    const problem = Registers.problemWith(list);
+    if (problem !== undefined) {
+        throw new DetailedError(problem, {registers});
+    }
+    return new Registers(list);
+}
 
 let _cachedCircuit = undefined;
 let _cachedCircuit_Arg = undefined;
@@ -437,6 +485,7 @@ function fromJson_CircuitDefinition(json, context=undefined) {
     let gateCols = cols.map(e => fromJson_GateColumn(e, customGateSet));
 
     const initialValues = _fromJson_InitialState(json);
+    const registers = _fromJson_Registers(json);
 
     let numWires = 0;
     for (const col of gateCols) {
@@ -445,6 +494,7 @@ function fromJson_CircuitDefinition(json, context=undefined) {
     numWires = Math.max(
         Simulation.MIN_WIRE_COUNT,
         Math.min(numWires, Simulation.MAX_WIRE_COUNT),
+        registers.minimumRequiredWireCount(),
         ...[...initialValues.keys()].map(e => e + 1));
 
     gateCols = gateCols.map(col => new GateColumn([
@@ -454,7 +504,8 @@ function fromJson_CircuitDefinition(json, context=undefined) {
         // Silently discard gates off the edge of the circuit.
         ].slice(0, numWires)));
 
-    return new CircuitDefinition(numWires, gateCols, undefined, undefined, customGateSet, false, initialValues).
+    return new CircuitDefinition(numWires, gateCols, undefined, undefined, customGateSet, false, initialValues,
+        registers).
         withTrailingSpacersIncluded();
 }
 

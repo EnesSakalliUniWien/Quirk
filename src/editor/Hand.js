@@ -32,8 +32,11 @@ class Hand {
      * @param {undefined|!{initialState: *, gates: !Array.<undefined|!Gate>}} heldRow
      * @param {undefined|!Point} resizingGateSlot
      */
-    constructor(pos, heldGate, holdOffset, heldColumn, heldRow, resizingGateSlot) {
-        const args = {pos, heldGate, holdOffset, heldColumn, heldRow, resizingGateSlot};
+    constructor(pos, heldGate, holdOffset, heldColumn, heldRow, resizingGateSlot, selectingWires = undefined) {
+        const args = {pos, heldGate, holdOffset, heldColumn, heldRow, resizingGateSlot, selectingWires};
+        if (selectingWires !== undefined && !Number.isInteger(selectingWires)) {
+            throw new DetailedError("Bad selectingWires", args);
+        }
         if (pos !== undefined && !(pos instanceof Point)) {
             throw new DetailedError("Bad pos", args);
         }
@@ -68,6 +71,12 @@ class Hand {
         this.heldRow = heldRow;
         /** @type {undefined|!Point} */
         this.resizingGateSlot = resizingGateSlot;
+        /**
+         * The wire a drag down the gutter's wire labels started on, while that drag picks the
+         * wires of a new register.
+         * @type {undefined|!int}
+         */
+        this.selectingWires = selectingWires;
     }
 
     /**
@@ -83,7 +92,7 @@ class Hand {
     paintCursor(painter) {
         if (this.heldGate !== undefined || this.heldColumn !== undefined) {
             painter.interaction.cursor = 'move';
-        } else if (this.resizingGateSlot !== undefined) {
+        } else if (this.resizingGateSlot !== undefined || this.selectingWires !== undefined) {
             painter.interaction.cursor = 'ns-resize';
         }
     }
@@ -95,7 +104,8 @@ class Hand {
         return (this.heldGate !== undefined ||
             this.heldColumn !== undefined ||
             this.resizingGateSlot !== undefined ||
-            this.heldRow !== undefined);
+            this.heldRow !== undefined ||
+            this.selectingWires !== undefined);
     }
 
     /**
@@ -119,7 +129,8 @@ class Hand {
             Util.CUSTOM_IS_EQUAL_TO_EQUALITY(this.heldGate, other.heldGate) &&
             Util.CUSTOM_IS_EQUAL_TO_EQUALITY(this.heldColumn, other.heldColumn) &&
             Util.CUSTOM_IS_EQUAL_TO_EQUALITY(this.heldRow, other.heldRow) &&
-            Util.CUSTOM_IS_EQUAL_TO_EQUALITY(this.resizingGateSlot, other.resizingGateSlot);
+            Util.CUSTOM_IS_EQUAL_TO_EQUALITY(this.resizingGateSlot, other.resizingGateSlot) &&
+            this.selectingWires === other.selectingWires;
     }
 
     /**
@@ -132,7 +143,8 @@ class Hand {
             holdOffset: this.holdOffset,
             heldColumn: this.heldColumn,
             heldRow: this.heldRow,
-            resizingGateSlot: this.resizingGateSlot
+            resizingGateSlot: this.resizingGateSlot,
+            selectingWires: this.selectingWires
         })}`;
     }
 
@@ -141,7 +153,8 @@ class Hand {
      * @returns {!Hand}
      */
     withPos(newPos) {
-        return new Hand(newPos, this.heldGate, this.holdOffset, this.heldColumn, this.heldRow, this.resizingGateSlot);
+        return new Hand(newPos, this.heldGate, this.holdOffset, this.heldColumn, this.heldRow, this.resizingGateSlot,
+            this.selectingWires);
     }
 
     /**
@@ -185,6 +198,14 @@ class Hand {
      */
     withResizeSlot(resizeSlot, resizeTabOffset) {
         return new Hand(this.pos, undefined, resizeTabOffset, undefined, undefined, resizeSlot);
+    }
+
+    /**
+     * @param {!int} wire The wire whose label the drag started on.
+     * @returns {!Hand}
+     */
+    withSelectingWires(wire) {
+        return new Hand(this.pos, undefined, undefined, undefined, undefined, undefined, wire);
     }
 
     /**

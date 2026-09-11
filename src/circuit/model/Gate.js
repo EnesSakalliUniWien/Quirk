@@ -56,6 +56,11 @@ class Gate {
         /** @type {undefined|!function(!GateRenderParams) : void} Draws the gate. A default is used when undefined. */
         this.customRenderer = undefined;
         /**
+         * The state a prepare box puts its wires in (src/engine/math/preparedStates.js), when the gate is one.
+         * @type {undefined|!Preparation}
+         */
+        this.knownPreparation = undefined;
+        /**
          * When set, clicking the gate's button opens the in-app parameter panel.
          * @type {undefined|!{title: !string, message: !string,
          *     applyText: !function(oldGate: !Gate, text: !string): !{gate: !Gate}|!{error: !string}}}
@@ -310,6 +315,7 @@ class Gate {
         g.tag = this.tag;
         g.param = this.param;
         g.customRenderer = this.customRenderer;
+        g.knownPreparation = this.knownPreparation;
         g.interestedInControls = this.interestedInControls;
         g.customBeforeOperation = this.customBeforeOperation;
         g.knownBitPermutationFunc = this.knownBitPermutationFunc;
@@ -655,6 +661,28 @@ class GateBuilder {
         this.gate._hasNoEffect = matrix.isIdentity();
         this.gate._stableDuration = Infinity;
         this.gate._knownMatrix = matrix;
+        return this;
+    }
+
+    /**
+     * Declares the gate a prepare box: it takes its wires from |0…0⟩ to the given state, and discards any other
+     * basis state of them. A rank-one operation, so not unitary; the matrix, when it is small enough to build, has
+     * the state as its first column and zeros elsewhere.
+     *
+     * @param {!Preparation} preparation
+     * @param {undefined|!Matrix=} matrix The gate's matrix, for the sizes it is worth building.
+     * @returns {!GateBuilder}
+     */
+    setKnownEffectToPreparation(preparation, matrix = undefined) {
+        const g = this.gate;
+        g.knownPreparation = preparation;
+        g._knownMatrix = matrix;
+        g._knownMatrixFunc = undefined;
+        g._stableDuration = Infinity;
+        g._hasNoEffect = false;
+        g._effectPermutesStates = false;
+        g._effectCreatesSuperpositions = true;
+        g._isDefinitelyUnitary = false;
         return this;
     }
 

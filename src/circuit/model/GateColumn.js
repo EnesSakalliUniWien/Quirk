@@ -136,13 +136,13 @@ class GateColumn {
      * @returns {undefined|!string}
      * @private
      */
-    _disabledReason(inputMeasureMask, row, outerRowOffset, context, isNested) {
+    _disabledReason(inputMeasureMask, row, outerRowOffset, context, isNested, touchedMask = 0) {
         const g = this.gates[row];
         if (g === undefined) {
             return undefined;
         }
 
-        const args = new GateCheckArgs(g, this, outerRowOffset + row, inputMeasureMask, context, isNested);
+        const args = new GateCheckArgs(g, this, outerRowOffset + row, inputMeasureMask, context, isNested, touchedMask);
         return g.customDisableReasonFinder(args) ||
             GateColumn._disabledReason_inputs(args) ||
             this._disabledReason_controlInside(row) ||
@@ -373,7 +373,7 @@ class GateColumn {
      * @param {!boolean} isNested
      * @returns {{allReasons: !Array.<undefined|!string>, stickyCtx: !Map<!string, *>}}
      */
-    perRowDisabledReasons(inputMeasureMask, outerRowOffset, outerContext, prevStickyCtx, isNested) {
+    perRowDisabledReasons(inputMeasureMask, outerRowOffset, outerContext, prevStickyCtx, isNested, touchedMask = 0) {
         const context = Util.mergeMaps(outerContext, prevStickyCtx);
         const stickyCtx = new Map(prevStickyCtx);
         for (let row = this.gates.length - 1; row >= 0; row--) {
@@ -390,7 +390,7 @@ class GateColumn {
 
         const allReasons = [];
         for (let i = 0; i < this.gates.length; i++) {
-            allReasons.push(this._disabledReason(inputMeasureMask, i, outerRowOffset, context, isNested))
+            allReasons.push(this._disabledReason(inputMeasureMask, i, outerRowOffset, context, isNested, touchedMask))
         }
         return {allReasons, stickyCtx};
     }
@@ -480,6 +480,29 @@ class GateColumn {
                 state.measureMask |= nextBit;
             }
         }
+    }
+
+    /**
+     * The wires acted on so far, after this column: what a prepare box checks, since it may only start wires
+     * nothing has changed yet. Displays, inputs and spacers change nothing; controls, measurements and every
+     * gate with an effect do.
+     *
+     * @param {!int} touchedMask The wires acted on before this column.
+     * @param {!Array.<undefined|!string>} disabledReasons
+     * @returns {!int}
+     */
+    nextTouchedMask(touchedMask, disabledReasons) {
+        let mask = touchedMask;
+        for (let row = 0; row < this.gates.length; row++) {
+            const gate = this.gates[row];
+            if (gate === undefined || disabledReasons[row] !== undefined) {
+                continue;
+            }
+            if (!gate.definitelyHasNoEffect() || gate.isControl() || gate.measureEffect !== undefined) {
+                mask |= ((1 << gate.height) - 1) << row;
+            }
+        }
+        return mask;
     }
 
     /**

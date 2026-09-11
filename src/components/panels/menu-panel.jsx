@@ -54,6 +54,9 @@ const SHORTCUTS = [
     undefined,
     "Step through toolbox gates",
   ],
+  ["Drag down the wire labels", undefined, "Group wires into a register"],
+  ["Right-click a wire label", undefined, "Group, rename, feed or ungroup a register"],
+  ["Double-click a register", undefined, "Rename it in place"],
 ];
 
 /**

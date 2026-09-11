@@ -15,6 +15,8 @@
  */
 
 import {equate_Maps} from "../../base/Equate.js"
+import {Registers} from "../../circuit/model/Registers.js"
+import {wiresLabel} from "../../circuit/registerLabels.js"
 import {Matrix} from "../math/matrix/Matrix.js"
 import {CircuitStats} from "./CircuitStats.js"
 import {applyStructure, columnStructure, structureMatrix} from "./columnStructure.js"
@@ -76,16 +78,17 @@ function stateDistance(a, b) {
  * The column in words: what acts on which qubit, and under which condition.
  *
  * @param {!GateColumn} column
+ * @param {!Registers=} registers Name wires by register, when the circuit has any.
  * @returns {!string}
  */
-function describeColumn(column) {
+function describeColumn(column, registers = Registers.EMPTY) {
     const actions = [];
     const conditions = [];
     column.gates.forEach((gate, row) => {
         if (gate === undefined) {
             return;
         }
-        const wires = gate.height > 1 ? `q${row}–q${row + gate.height - 1}` : `q${row}`;
+        const wires = wiresLabel(registers, row, gate.height);
         if (gate.isControl()) {
             const bit = gate.controlBit();
             conditions.push(bit === true ? `${wires} is 1` : bit === false ? `${wires} is 0` : `${wires} is ${bit}`);
@@ -150,7 +153,7 @@ function circuitAlgebra(stats, wireCount, previous = undefined) {
             column,
             reasons,
             context,
-            description: reusable ? old.description : describeColumn(column),
+            description: describeColumn(column, circuit.registers),
             structure,
             matrix,
             reason,

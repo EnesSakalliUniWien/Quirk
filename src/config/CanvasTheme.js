@@ -83,6 +83,10 @@ const CanvasTheme = Object.freeze({
   // Errors retain their message and a crossed-out gate. Error colour never means hover.
   error: Object.freeze({ text: "#E879F9", background: "#351C39" }),
   tooltip: Object.freeze({ title: "#60A5FA", background: "#101812" }),
+  // Registers take these in wire order, for their names and the bar down their wire labels.
+  register: Object.freeze({
+    colors: Object.freeze(["#22D3EE", "#EAB308", "#A78BFA", "#F472B6", "#34D399", "#FB923C"]),
+  }),
   transparent: "transparent",
 });
 
@@ -113,4 +117,13 @@ function phaseColor(phaseDegrees, alpha = 1) {
   return `hsl(${((phaseDegrees % 360) + 360) % 360} 85% 62% / ${alpha})`;
 }
 
-export { CanvasTheme, phaseColor, gateStyle };
+/**
+ * @param {!int} index A register's place in wire order.
+ * @returns {!string} Its colour, on the canvas and in the panels alike.
+ */
+function registerColor(index) {
+  const { colors } = CanvasTheme.register;
+  return colors[index % colors.length];
+}
+
+export { CanvasTheme, phaseColor, gateStyle, registerColor };

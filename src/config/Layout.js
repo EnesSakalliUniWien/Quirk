@@ -27,6 +27,9 @@ Layout.REGISTER_INDEX_WIDTH = Layout.UNIT * 0.9;
 Layout.REGISTER_KET_WIDTH = Layout.UNIT * 1.1;
 Layout.REGISTER_HEIGHT = Layout.UNIT;
 Layout.REGISTER_FONT_SIZE = Layout.UNIT * 0.4;
+// Room for a register's name and the brace that groups its wires, added left of the gutter only
+// while the circuit has registers.
+Layout.REGISTER_NAME_WIDTH = Layout.UNIT * 1.3;
 Layout.BLOCH_RADIUS = Layout.UNIT * 0.75;
 Layout.BLOCH_LABEL_MARGIN = Layout.UNIT * 0.15;
 Layout.BLOCH_READOUT_HEIGHT = Layout.UNIT * 0.45;

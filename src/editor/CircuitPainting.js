@@ -27,10 +27,11 @@ import {renderGateView} from '../draw/pixi/GateView.js';
 import {BasisLabels} from '../draw/pixi/BasisLabels.js';
 
 import {Layout} from '../config/Layout.js';
-import {CanvasTheme, phaseColor} from '../config/CanvasTheme.js';
+import {CanvasTheme, phaseColor, registerColor} from '../config/CanvasTheme.js';
 import {Simulation} from '../config/Simulation.js';
 import {Typography} from '../config/Typography.js';
 import {Format} from '../base/Format.js';
+import {ketLabel, wireLabel} from '../circuit/registerLabels.js';
 
 import {GateRenderParams} from '../draw/gate/GateRenderParams.js';
 import {GatePainting} from '../draw/gate/GatePainting.js';
@@ -46,6 +47,11 @@ import {SUPERPOSITION_GRID_LABEL_SPAN, DISPLAY_CAPTION_WIDTH, DISPLAY_CAPTION_GA
 
 // One ellipsis stands in for the bits the other axis supplies, keeping labels short enough to read.
 const SUPERPOSITION_GRID_LABEL_ELLIPSIS = '⋯';
+// A register's brace: drawn down its wires' labels, stopping short of the first and last so
+// neighbouring registers read apart, with its tip pointing at the name.
+const REGISTER_BRACE_INSET = 4;
+const REGISTER_BRACE_CURVE = 6;
+const REGISTER_BRACE_GAP = 3;
 
 /**
  * Renders a DisplayedCircuit. These are read-only over the circuit: they paint, they never
@@ -200,6 +206,71 @@ function drawPlayheadBand(circuit, painter, playheadStep) {
 }
 
 /**
+ * A register in the gutter: a curly brace down its wires' labels, in its colour, with its name at
+ * the brace's tip - the way a paper labels a register - and the input it feeds under the name.
+ * Clicking it opens the Registers panel; a double click renames it; a right click opens its menu
+ * (src/app/canvas/canvasPointer.js).
+ *
+ * @param {!DisplayedCircuit} circuit
+ * @param {!DisplayView} painter
+ * @param {!Hand} hand
+ * @param {!Register} register
+ * @param {!string} color
+ */
+function drawRegisterGutter(circuit, painter, hand, register, color) {
+    const geometry = circuit.geometry();
+    const box = geometry.registerNameRect(register.start, register.length);
+    const top = box.y + REGISTER_BRACE_INSET;
+    const bottom = box.bottom() - REGISTER_BRACE_INSET;
+    const mid = (top + bottom) / 2;
+    const x = box.right() - REGISTER_BRACE_GAP;
+    const r = Math.min(REGISTER_BRACE_CURVE, (bottom - top) / 4);
+
+    // The whole column down the register's wires answers the pointer.
+    const labelsRight = geometry.wireIndexRect(register.start).right();
+    const target = new Rect(0, box.y, labelsRight, box.h);
+    painter.interaction.block({rect: target, cursor: 'pointer'});
+    if (circuit._highlightedSlot === undefined && hand.pos !== undefined && target.containsPoint(hand.pos)) {
+        rectangle(painter, target, {fill: CanvasTheme.gate.hover});
+    }
+
+    drawPath(painter, trace => {
+        trace.moveTo(x + r, top);
+        trace.quadraticCurveTo(x, top, x, top + r);
+        trace.lineTo(x, mid - r);
+        trace.quadraticCurveTo(x, mid, x - r, mid);
+        trace.quadraticCurveTo(x, mid, x, mid + r);
+        trace.lineTo(x, bottom - r);
+        trace.quadraticCurveTo(x, bottom, x + r, bottom);
+    }, [{stroke: {color, width: 1.5}}]);
+
+    const nameWidth = x - r - 2 * REGISTER_BRACE_GAP;
+    const feeds = register.input !== undefined;
+    fitText(painter, register.name, {
+        x: x - r - REGISTER_BRACE_GAP,
+        y: feeds ? mid - Layout.REGISTER_FONT_SIZE * 0.45 : mid,
+        align: 'right',
+        baseline: 'middle',
+        fill: color,
+        font: {fontSize: Layout.REGISTER_FONT_SIZE, fontFamily: Typography.MONO_FONT_FAMILY},
+        width: nameWidth,
+        height: Layout.REGISTER_HEIGHT
+    });
+    if (feeds) {
+        fitText(painter, `→${register.input}`, {
+            x: x - r - REGISTER_BRACE_GAP,
+            y: mid + Layout.REGISTER_FONT_SIZE * 0.5,
+            align: 'right',
+            baseline: 'middle',
+            fill: CanvasTheme.text.muted,
+            font: {fontSize: Layout.REGISTER_FONT_SIZE * 0.7, fontFamily: Typography.MONO_FONT_FAMILY},
+            width: nameWidth,
+            height: Layout.REGISTER_HEIGHT
+        });
+    }
+}
+
+/**
  * @param {!DisplayedCircuit} circuit
  * @param {!DisplayView} painter
  * @param {!boolean} showLabels
@@ -208,27 +279,34 @@ function drawPlayheadBand(circuit, painter, playheadStep) {
 function drawWires(circuit, painter, showLabels, hand) {
     const drawnWireCount = Math.min(circuit.circuitDefinition.numWires, (circuit.geometry().extraWireStartIndex || Infinity) + 1);
 
-    // Initial value labels
+    // Initial value labels. A wire in a register is named by it - a₀ rather than q0 - and every
+    // wire keeps its own starting ket.
     if (showLabels) {
+        const {registers} = circuit.circuitDefinition;
         for (let row = 0; row < drawnWireCount; row++) {
             const wireRect = circuit.wireRect(row);
             const y = wireRect.center().y;
+            const register = registers.at(row);
+            const indexRect = circuit.geometry().wireIndexRect(row);
+            fitText(painter, wireLabel(registers, row), {
+                x: indexRect.x,
+                y,
+                align: 'left',
+                baseline: 'middle',
+                fill: register === undefined ? CanvasTheme.text.muted : registerColor(registers.list.indexOf(register)),
+                font: {fontSize: Layout.REGISTER_FONT_SIZE, fontFamily: Typography.MONO_FONT_FAMILY},
+                width: indexRect.w,
+                height: indexRect.h
+            });
+            if (register === undefined) {
+                // Pressing a label and dragging down the others picks wires for a new register.
+                painter.interaction.block({rect: indexRect, cursor: 'ns-resize'});
+            }
             let v = circuit.circuitDefinition.customInitialValues.get(row);
             if (v === undefined) {
                 v = '0';
             }
             const rect = wireInitialStateClickableRect(circuit, row);
-            const indexRect = circuit.geometry().wireIndexRect(row);
-            fitText(painter, `q${row}`, {
-                x: indexRect.x,
-                y,
-                align: 'left',
-                baseline: 'middle',
-                fill: CanvasTheme.text.muted,
-                font: {fontSize: Layout.REGISTER_FONT_SIZE, fontFamily: Typography.MONO_FONT_FAMILY},
-                width: indexRect.w,
-                height: indexRect.h
-            });
             painter.interaction.block({rect, cursor: 'pointer'});
             // A quiet fill marks the ket as clickable before the pointer ever finds it.
             rectangle(painter, rect, {fill: CanvasTheme.surface.quiet});
@@ -246,6 +324,11 @@ function drawWires(circuit, painter, showLabels, hand) {
                 height: rect.h
             });
         }
+        registers.list.forEach((register, index) => {
+            if (register.start < drawnWireCount) {
+                drawRegisterGutter(circuit, painter, hand, register, registerColor(index));
+            }
+        });
     }
 
     // Wires (doubled-up for measured sections).
@@ -561,7 +644,8 @@ function drawOutputSuperpositionDisplay(circuit, painter, stats, hand) {
         numWire < Simulation.SIMPLE_SUPERPOSITION_DRAWING_WIRE_THRESHOLD ? phaseColor : undefined);
     const forceSign = v => (v >= 0 ? '+' : '') + v.toFixed(2);
     MathPainter.paintMatrixTooltip(painter, amplitudeGrid, gridRect, hand.hoverPoints(),
-        (c, r) => `Amplitude of |${Util.bin(r*amplitudeGrid.width() + c, numWire)}⟩ (decimal ${r*amplitudeGrid.width() + c})`,
+        (c, r) => `Amplitude of |${ketLabel(circuit.circuitDefinition.registers.fittingIn(numWire), numWire,
+            r*amplitudeGrid.width() + c)}⟩ (decimal ${r*amplitudeGrid.width() + c})`,
         (c, r, v) => 'val:' + v.toString(new Format(false, 0, 5, ", ")),
         (c, r, v) => `mag²:${(v.norm2()*100).toFixed(4)}%, phase:${forceSign(v.phase() * 180 / Math.PI)}°`);
 

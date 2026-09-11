@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import { Util } from "../../base/Util.js";
+import { ketLabel } from "../../circuit/registerLabels.js";
 import { Matrix } from "../../engine/math/matrix/Matrix.js";
 import { paddedState } from "../../engine/simulation/stepAlgebra.js";
 import { DataView } from "../math/data-view.jsx";
@@ -30,6 +30,7 @@ function ProbabilitiesPanel() {
       return undefined;
     }
     const { stats, wireCount } = sample;
+    const { registers } = stats.circuitDefinition;
     const amplitudes = paddedState(stats.finalState, wireCount).rawBuffer();
     const size = 1 << wireCount;
     const buffer = new Float64Array(size * 2);
@@ -38,17 +39,17 @@ function ProbabilitiesPanel() {
       const p = amplitudes[i * 2] ** 2 + amplitudes[i * 2 + 1] ** 2;
       buffer[i * 2] = p;
       if (p > NEGLIGIBLE) {
-        outcomes.push({ ket: Util.bin(i, wireCount), p });
+        outcomes.push({ ket: ketLabel(registers, wireCount, i), p });
       }
     }
-    return { wireCount, size, outcomes, probabilities: new Matrix(1, size, buffer) };
+    return { wireCount, size, outcomes, registers, probabilities: new Matrix(1, size, buffer) };
   }, [sample]);
 
   if (distribution === undefined) {
     return <p className="debug-panel-empty">Waiting for the circuit…</p>;
   }
 
-  const { wireCount, size, outcomes, probabilities } = distribution;
+  const { wireCount, size, outcomes, registers, probabilities } = distribution;
   const height = Math.min(CHART_MAX_HEIGHT, size * ROW_HEIGHT);
   const rowHeight = height / size;
   const labelled = rowHeight >= LABELLED_ROW_HEIGHT;
@@ -73,7 +74,7 @@ function ProbabilitiesPanel() {
         {labelled && (
           <ol className="probabilities-kets" aria-hidden="true">
             {Array.from({ length: size }, (_, i) => (
-              <li key={i}>{`|${Util.bin(i, wireCount)}⟩`}</li>
+              <li key={i}>{`|${ketLabel(registers, wireCount, i)}⟩`}</li>
             ))}
           </ol>
         )}

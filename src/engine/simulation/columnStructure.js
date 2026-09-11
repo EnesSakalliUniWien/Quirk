@@ -21,6 +21,7 @@ import {HalfTurnGates} from "../../gates/rotations/HalfTurnGates.js"
 import {ParametrizedRotationGates} from "../../gates/rotations/ParametrizedRotationGates.js"
 import {QuarterTurnGates} from "../../gates/rotations/QuarterTurnGates.js"
 import {Matrix} from "../math/matrix/Matrix.js"
+import {preparedStateVector} from "../math/preparedStates.js"
 
 /**
  * A column of the circuit as a *structure* rather than a matrix: which gate does what to which
@@ -187,6 +188,16 @@ function columnStructure(circuit, colIndex, wireCount, time, rowOffset = 0, oute
             }
             core.push({kind: 'inputRotation', wire: at, ...inputRotations.get(gate),
                 input: {offset: range.offset, length: range.length, fallback: 0}, cache: new Map()});
+            continue;
+        }
+        if (gate.knownPreparation !== undefined) {
+            // ψ⟨0…0|: the register's |0…0⟩ component becomes ψ, and its other components are discarded.
+            const amplitudes = preparedStateVector(gate.knownPreparation, gate.height);
+            let nonzero = 0;
+            for (let v = 0; v < amplitudes.length; v += 2) {
+                nonzero += amplitudes[v] !== 0 || amplitudes[v + 1] !== 0 ? 1 : 0;
+            }
+            core.push({kind: 'prepare', row: at, height: gate.height, amplitudes, nonzero});
             continue;
         }
         if (gate.knownPermutationFuncTakingInputs !== undefined) {
@@ -369,6 +380,19 @@ function applyOp(op, amplitudes) {
                 }
                 break;
             }
+            case 'prepare': {
+                const mask = (1 << op.height) - 1;
+                if (((index >> op.row) & mask) !== 0) {
+                    break;
+                }
+                for (let v = 0; v <= mask; v++) {
+                    const ar = op.amplitudes[v * 2], ai = op.amplitudes[v * 2 + 1];
+                    if (ar !== 0 || ai !== 0) {
+                        accumulate(out, index | (v << op.row), re * ar - im * ai, re * ai + im * ar);
+                    }
+                }
+                break;
+            }
             case 'permutation': {
                 const mask = (1 << op.height) - 1;
                 const inputs = op.inputs.map(input => readInput(input, index));
@@ -477,6 +501,8 @@ function structureFanOut(structure) {
             fanOut *= 2;
         } else if (op.kind === 'dense') {
             fanOut *= 1 << op.height;
+        } else if (op.kind === 'prepare') {
+            fanOut *= op.nonzero;
         } else if (op.kind === 'nested') {
             fanOut *= op.fanOut;
         }

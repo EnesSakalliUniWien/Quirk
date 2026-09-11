@@ -4,6 +4,7 @@ Files are grouped by their primary purpose. Filenames and exported symbols remai
 
 ```text
 circuit/
+├── registerLabels.js   how wires and basis states are written once wires have names
 └── model/
     ├── CircuitDefinition.js
     ├── Controls.js
@@ -12,7 +13,8 @@ circuit/
     ├── GateCheckArgs.js
     ├── GateColumn.js
     ├── InitialStates.js
-    └── InputLetters.js
+    ├── InputLetters.js
+    └── Registers.js
 ```
 
 ## Models
@@ -27,6 +29,15 @@ with the gate catalogue: the order wires cycle through their initial states, and
 letters input gates feed. The catalogue imports them; the model never imports the catalogue.
 Where the model must know what a gate does to a wire's measured state it reads
 `gate.measureEffect` and `gate.isSwapHalf`, which `GateBuilder` sets.
+
+`Registers` is the circuit's named groups of wires - contiguous, non-overlapping, uniquely
+named. A register names its wires, can label its values (so a=A reads where a=0 would), and can
+feed an input letter to every column that has no input gate of its own; how its wires start is a
+prepare box on them, a gate in the catalogue
+(`src/gates/prepare/PrepareGates.js`), which `Gate.knownPreparation` declares to the model.
+`registerLabels` is the one place a wire or a basis state is written for display (`a₀`,
+`a=6, b=3`), so the canvas and the panels agree; without registers it writes `q3` and bit
+strings, as before.
 
 ## Serialization
 

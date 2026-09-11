@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-import {Suite, assertThat, assertTrue} from "../TestUtil.js"
+import {Suite, assertThat, assertThrows, assertTrue} from "../TestUtil.js"
 import {Serializer} from "../../src/serialization/Serializer.js"
 
 import {CircuitDefinition} from "../../src/circuit/model/CircuitDefinition.js"
+import {Registers} from "../../src/circuit/model/Registers.js"
 import {setGateBuilderEffectToCircuit} from "../../src/engine/simulation/CircuitComputeUtil.js"
 import {Complex} from "../../src/engine/math/complex/Complex.js"
 import {CustomGateSet} from "../../src/circuit/model/CustomGateSet.js"
@@ -190,6 +191,11 @@ const IDS_THAT_SHOULD_BE_KNOWN = [
     "inputB1", "inputB2", "inputB3", "inputB4", "inputB5", "inputB6", "inputB7", "inputB8", "inputB9", "inputB10", "inputB11", "inputB12", "inputB13", "inputB14", "inputB15", "inputB16",
     "inputR1", "inputR2", "inputR3", "inputR4", "inputR5", "inputR6", "inputR7", "inputR8", "inputR9", "inputR10", "inputR11", "inputR12", "inputR13", "inputR14", "inputR15", "inputR16",
     "setA", "setB", "setR",
+    "Prep1", "Prep2", "Prep3", "Prep4", "Prep5", "Prep6", "Prep7", "Prep8", "Prep9", "Prep10", "Prep11", "Prep12", "Prep13", "Prep14", "Prep15", "Prep16",
+    "Prep+1", "Prep+2", "Prep+3", "Prep+4", "Prep+5", "Prep+6", "Prep+7", "Prep+8", "Prep+9", "Prep+10", "Prep+11", "Prep+12", "Prep+13", "Prep+14", "Prep+15", "Prep+16",
+    "PrepBell", "PrepGHZ2", "PrepGHZ3", "PrepGHZ4", "PrepGHZ5", "PrepGHZ6", "PrepGHZ7", "PrepGHZ8", "PrepGHZ9", "PrepGHZ10", "PrepGHZ11", "PrepGHZ12", "PrepGHZ13", "PrepGHZ14", "PrepGHZ15", "PrepGHZ16",
+    "PrepW2", "PrepW3", "PrepW4", "PrepW5", "PrepW6", "PrepW7", "PrepW8", "PrepW9", "PrepW10", "PrepW11", "PrepW12", "PrepW13", "PrepW14", "PrepW15", "PrepW16", "PrepPsi1",
+    "PrepPsi2", "PrepPsi3", "PrepPsi4",
     "revinputA1", "revinputA2", "revinputA3", "revinputA4", "revinputA5", "revinputA6", "revinputA7", "revinputA8", "revinputA9", "revinputA10", "revinputA11", "revinputA12", "revinputA13", "revinputA14", "revinputA15", "revinputA16",
     "revinputB1", "revinputB2", "revinputB3", "revinputB4", "revinputB5", "revinputB6", "revinputB7", "revinputB8", "revinputB9", "revinputB10", "revinputB11", "revinputB12", "revinputB13", "revinputB14", "revinputB15", "revinputB16",
     "__error__",
@@ -322,4 +328,44 @@ suite.test("known_gates_toolbox", () => {
     //        console.warn("hidden id: " + id);
     //    }
     //}
+});
+
+suite.test("roundTrip_circuitDefinitionWithRegisters", () => {
+    const registers = new Registers([
+        {name: "a", start: 0, length: 3, input: "A"},
+        {name: "b", start: 3, length: 2, input: undefined, labels: {"0": "A", "3": "D"}},
+    ]);
+    assertRoundTrip(
+        CircuitDefinition,
+        new CircuitDefinition(
+            5,
+            [new GateColumn([Gates.HalfTurns.X, undefined, undefined, undefined, undefined])],
+            undefined, undefined, undefined, false, new Map(), registers),
+        {cols: [["X"]], registers: [
+            {name: "a", wires: [0, 3], input: "A"},
+            {name: "b", wires: [3, 2], labels: {"0": "A", "3": "D"}},
+        ]});
+});
+
+suite.test("roundTrip_prepareBoxesKeepTheirParameter", () => {
+    // Gates compare by identity, so a parsed box is checked by what it declares and writes back.
+    const json = {cols: [[{id: "Prep2", arg: 3}, 1, {id: "PrepPsi1", arg: [[0.6, 0], [0, 0.8]]}]]};
+    const circuit = Serializer.fromJson(CircuitDefinition, json);
+    const [value, _, psi] = circuit.columns[0].gates;
+    assertThat(value.param).isEqualTo(3);
+    assertThat(value.knownPreparation).isEqualTo({kind: "value", value: 3});
+    assertThat(psi.knownPreparation).isEqualTo({kind: "amplitudes", amplitudes: [[0.6, 0], [0, 0.8]]});
+    assertThat(JSON.stringify(Serializer.toJson(circuit))).isEqualTo(JSON.stringify(json));
+});
+
+suite.test("fromJson_circuitDefinitionRejectsBrokenRegisters", () => {
+    for (const registers of [
+        {name: "a"},
+        [{name: "a", wires: [0, 3]}, {name: "b", wires: [2, 1]}],
+        [{name: "a", wires: [0, 2], input: "Q"}],
+        [{name: "a", wires: [0, 2], labels: {"4": "E"}}],
+        [{name: "a"}],
+    ]) {
+        assertThrows(() => Serializer.fromJson(CircuitDefinition, {cols: [], registers}));
+    }
 });

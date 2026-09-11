@@ -36,10 +36,35 @@ import {seq} from "../base/Seq.js"
  * @returns {!DisplayedCircuit}
  */
 function previewDrop(circuit, hand) {
-    return hand.heldRow !== undefined ? previewDropMovedRow(circuit, hand) :
+    return hand.selectingWires !== undefined ? previewNewRegister(circuit, hand) :
+        hand.heldRow !== undefined ? previewDropMovedRow(circuit, hand) :
         hand.heldColumn !== undefined ? previewDropMovedGateColumn(circuit, hand) :
         hand.heldGate !== undefined ? previewDropMovedGate(circuit, hand) :
         previewResizedGate(circuit, hand);
+}
+
+/**
+ * The circuit with a register over the wires picked so far, when they are all free: shown while
+ * the drag goes on, and made when it ends. A register only names its wires, so making one changes
+ * nothing about what the circuit does.
+ *
+ * @param {!DisplayedCircuit} circuit
+ * @param {!Hand} hand
+ * @returns {!DisplayedCircuit}
+ */
+function previewNewRegister(circuit, hand) {
+    if (hand.pos === undefined) {
+        return circuit;
+    }
+    const def = circuit.circuitDefinition;
+    const to = Math.max(0, Math.min(def.numWires - 1, wireIndexAt(circuit, hand.pos.y)));
+    const first = Math.min(hand.selectingWires, to);
+    const wires = Array.from({length: Math.abs(to - hand.selectingWires) + 1}, (_, i) => first + i);
+    if (wires.some(wire => def.registers.covers(wire))) {
+        return circuit;
+    }
+    const register = {name: def.registers.nextFreeName(), start: first, length: wires.length, input: undefined};
+    return circuit.withCircuit(def.withRegisters(def.registers.withRegister(register)));
 }
 
 /**
@@ -74,7 +99,10 @@ function previewDropMovedRow(circuit, hand) {
     if (hand.heldRow.initialState !== undefined) {
         newInitialStates.set(handWire, hand.heldRow.initialState);
     }
-    const newCircuitDef = circuit.circuitDefinition.withColumns(newCols).withInitialStates(newInitialStates);
+    // A register the row lands strictly inside takes it in; the ones below move down with the rows.
+    const newCircuitDef = circuit.circuitDefinition.withColumns(newCols).
+        withRegisters(circuit.circuitDefinition.registers.afterRowInserted(handWire)).
+        withInitialStates(newInitialStates);
 
     return circuit.withCircuit(newCircuitDef).
         _withHighlightedSlot({row: handWire, col: undefined, resizeStyle: false});
@@ -304,6 +332,11 @@ function tryGrab(circuit, hand, duplicate=false, wholeColumn=false, ignoreResize
         return tryGrabWholeColumn(circuit, hand, duplicate, alt) || {newCircuit: circuit, newHand: hand};
     }
 
+    const selecting = tryStartWireSelection(circuit, hand);
+    if (selecting !== undefined) {
+        return selecting;
+    }
+
     let newHand = hand;
     let newCircuit = circuit;
     if (!ignoreResizeTabs) {
@@ -315,6 +348,26 @@ function tryGrab(circuit, hand, duplicate=false, wholeColumn=false, ignoreResize
     }
 
     return tryGrabGate(newCircuit, newHand, duplicate, alt) || {newCircuit, newHand};
+}
+
+/**
+ * A press on the label of a wire outside every register starts picking wires for a new one.
+ *
+ * @param {!DisplayedCircuit} circuit
+ * @param {!Hand} hand
+ * @returns {undefined|!{newCircuit: !DisplayedCircuit, newHand: !Hand}}
+ */
+function tryStartWireSelection(circuit, hand) {
+    if (hand.pos === undefined) {
+        return undefined;
+    }
+    const wire = wireIndexAt(circuit, hand.pos.y);
+    const def = circuit.circuitDefinition;
+    if (wire < 0 || wire >= def.numWires || def.registers.covers(wire) ||
+            !circuit.geometry().wireIndexRect(wire).containsPoint(hand.pos)) {
+        return undefined;
+    }
+    return {newCircuit: circuit, newHand: hand.withSelectingWires(wire)};
 }
 
 /**
@@ -371,7 +424,10 @@ function cutRow(circuit, row) {
             filter(([k, _]) => k !== row).
             map(([k, v]) => [k - (k > row ? 1 : 0), v]));
     return {
-        newCircuit: circuit.circuitDefinition.withColumns(cols).withInitialStates(newInitialStates),
+        // The register the row was in loses it; the ones below move up with the rows.
+        newCircuit: circuit.circuitDefinition.withColumns(cols).
+            withRegisters(circuit.circuitDefinition.registers.afterRowRemoved(row)).
+            withInitialStates(newInitialStates),
         rowGates: row_gates,
         initialState: circuit.circuitDefinition.customInitialValues.get(row)
     };

@@ -16,6 +16,8 @@
 
 import {Suite, assertThat, assertThrows, assertTrue, assertFalse} from "../../TestUtil.js"
 import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js"
+import {Registers} from "../../../src/circuit/model/Registers.js"
+import {ArithmeticGates} from "../../../src/gates/arithmetic/ArithmeticGates.js"
 
 import {setGateBuilderEffectToCircuit} from "../../../src/engine/simulation/CircuitComputeUtil.js"
 import {Complex} from "../../../src/engine/math/complex/Complex.js"
@@ -29,6 +31,14 @@ import {Serializer} from "../../../src/serialization/Serializer.js"
 import {Util} from "../../../src/base/Util.js"
 
 const suite = new Suite("CircuitDefinition");
+
+/**
+ * @param {!int} wires
+ * @param {...!Array.<undefined|!Gate>} columns
+ * @returns {!CircuitDefinition}
+ */
+const circuitOf = (wires, ...columns) =>
+    new CircuitDefinition(wires, columns.map(gates => new GateColumn(gates)));
 
 const X = Gates.HalfTurns.X;
 const Y = Gates.HalfTurns.Y;
@@ -1467,3 +1477,47 @@ function assertControlLinesMatchDiagram(diagram, ...extraGates) {
         }
     }
 }
+
+suite.test("registers: a register survives rebuilds and leaves every wire's ket alone", () => {
+    const registers = new Registers([{name: "a", start: 1, length: 2, input: undefined}]);
+    const circuit = new CircuitDefinition(4, [], undefined, undefined, undefined, false,
+        new Map([[0, "1"], [1, "+"], [3, "-"]]), registers);
+    assertThat([...circuit.customInitialValues.entries()]).isEqualTo([[0, "1"], [1, "+"], [3, "-"]]);
+    assertThat(circuit.withColumns([]).registers.isEqualTo(registers)).isEqualTo(true);
+    assertThat(circuit.withWireCount(5).registers.isEqualTo(registers)).isEqualTo(true);
+    assertThat(new CircuitDefinition(2, []).withWireCount(4).withRegisters(registers).minimumRequiredWireCount()).
+        isEqualTo(3);
+    assertThat(circuit.isEqualTo(circuit.withRegisters(Registers.EMPTY))).isEqualTo(false);
+});
+
+suite.test("registers: one that feeds input A serves an adder with no input gate", () => {
+    const plusA = ArithmeticGates.PlusAFamily.ofSize(2);
+    const alone = new CircuitDefinition(4, [new GateColumn([plusA, undefined, undefined, undefined])]);
+    assertThat(alone.gateAtLocIsDisabledReason(0, 0) === undefined).isEqualTo(false);
+
+    const fed = alone.withRegisters(new Registers([{name: "x", start: 2, length: 2, input: "A"}]));
+    assertThat(fed.gateAtLocIsDisabledReason(0, 0)).isEqualTo(undefined);
+    assertThat(fed.colCustomContextFromGates(0, 0).get("Input Range A")).isEqualTo({offset: 2, length: 2});
+
+    // A register over the adder's own wires would be an input inside the gate.
+    const inside = alone.withRegisters(new Registers([{name: "x", start: 1, length: 2, input: "A"}]));
+    assertThat(inside.gateAtLocIsDisabledReason(0, 0)).isEqualTo("input\ninside");
+});
+
+suite.test("a prepare box is allowed only where nothing has acted on its wires yet", () => {
+    const prep = Gates.PrepareGates.ValueFamily.ofSize(1).withParam(1);
+    const bell = Gates.PrepareGates.Bell;
+    // First thing on its wires: fine. After a gate on them, or under a control, or after a ket: not.
+    assertThat(circuitOf(2, [prep, undefined]).gateAtLocIsDisabledReason(0, 0)).isEqualTo(undefined);
+    assertThat(circuitOf(2, [undefined, H], [prep, undefined]).gateAtLocIsDisabledReason(1, 0)).isEqualTo(undefined);
+    assertThat(circuitOf(2, [H, undefined], [prep, undefined]).gateAtLocIsDisabledReason(1, 0)).isEqualTo("wires\nalready\nset");
+    assertThat(circuitOf(2, [C, X], [bell, undefined]).gateAtLocIsDisabledReason(1, 0)).isEqualTo("wires\nalready\nset");
+    assertThat(circuitOf(2, [prep, undefined]).withInitialStates(new Map([[0, "+"]])).gateAtLocIsDisabledReason(0, 0)).
+        isEqualTo("wires\nalready\nset");
+    // A display reads without acting, so it does not count.
+    assertThat(circuitOf(2, [Gates.Displays.ChanceDisplay, undefined], [prep, undefined]).gateAtLocIsDisabledReason(1, 0)).
+        isEqualTo(undefined);
+    // Inside a custom gate the wires' history is unknown.
+    assertThat(circuitOf(2, [prep, undefined]).withDisabledReasonsForEmbeddedContext(0, new Map()).
+        gateAtLocIsDisabledReason(0, 0)).isEqualTo("no\nprepare\nin custom\ngate");
+});

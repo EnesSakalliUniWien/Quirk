@@ -19,6 +19,7 @@ import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js
 import {CircuitStats} from "../../../src/engine/simulation/CircuitStats.js"
 import {Gates} from "../../../src/gates/AllGates.js"
 import {stateTableRows} from "../../../src/engine/simulation/stateTableRows.js"
+import {fromJsonText_CircuitDefinition} from "../../../src/serialization/Serializer.js"
 
 const suite = new Suite("stateTable");
 
@@ -86,4 +87,22 @@ suite.test("pads out wires the simulator dropped because no gate touched them", 
     assertThat(amplitudeCount).isEqualTo(4);
     assertThat(nonzeroCount).isEqualTo(1);
     assertThat(rows.map(e => e.ket)).isEqualTo(['01']);
+});
+
+suite.test("the registers' values read together as a sequence", () => {
+    const bases = {"0": "A", "1": "C", "2": "G", "3": "T"};
+    const circuit = fromJsonText_CircuitDefinition(JSON.stringify({
+        cols: [["X", 1, 1, "X"]],
+        registers: [{name: "n1", wires: [0, 2], labels: bases}, {name: "n2", wires: [2, 2], labels: bases}],
+    }));
+    const {rows} = stateTableRows(CircuitStats.fromCircuitAtTime(circuit, 0), 4);
+    // n1 = 1 = C, n2 = 2 = G: single letters run together.
+    assertThat(rows.map(r => [r.values, r.sequence])).isEqualTo([[["C", "G"], "CG"]]);
+
+    // A value longer than a letter keeps a dot between the values.
+    const numbered = fromJsonText_CircuitDefinition(JSON.stringify({
+        cols: [["X", 1, 1, "X"]],
+        registers: [{name: "n1", wires: [0, 2]}, {name: "n2", wires: [2, 2], labels: {"2": "G"}}],
+    }));
+    assertThat(stateTableRows(CircuitStats.fromCircuitAtTime(numbered, 0), 4).rows[0].sequence).isEqualTo("1·G");
 });

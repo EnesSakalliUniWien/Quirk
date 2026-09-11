@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { useStore } from "zustand";
 
 import { Util } from "../../base/Util.js";
+import { ketLabel } from "../../circuit/registerLabels.js";
 import { stateGrid } from "../../draw/renderers/dataRenderers.js";
 import { Matrix } from "../../engine/math/matrix/Matrix.js";
 import { circuitAlgebra } from "../../engine/simulation/stepAlgebra.js";
@@ -125,9 +126,10 @@ function useCircuitAlgebra(stats, wireCount) {
  * basis states it covers. Reading along a row shows one amplitude change step by step. The current
  * step is outlined and kept in view as the playhead moves.
  *
- * @param {!{states: !Array.<!Matrix>, wireCount: !int, current: !int}} props
+ * @param {!{states: !Array.<!Matrix>, wireCount: !int, current: !int,
+ *     formatKet: (undefined|!function(!int): !string)}} props
  */
-function EvolutionChart({ states, wireCount, current }) {
+function EvolutionChart({ states, wireCount, current, formatKet }) {
   const scrollerRef = useRef(null);
   useWheelScrollsSideways(scrollerRef);
   const size = 1 << wireCount;
@@ -172,7 +174,7 @@ function EvolutionChart({ states, wireCount, current }) {
         {labelled && (
           <ol className="evolution-kets" aria-hidden="true">
             {Array.from({ length: size }, (_, i) => (
-              <li key={i}>{`|${Util.bin(i, wireCount)}⟩`}</li>
+              <li key={i}>{`|${formatKet === undefined ? Util.bin(i, wireCount) : formatKet(i)}⟩`}</li>
             ))}
           </ol>
         )}
@@ -200,7 +202,7 @@ function EvolutionChart({ states, wireCount, current }) {
  * One step as a card: what the column does, its matrix, and the state it leaves - with the entries
  * that step changed marked, so the cards read as a sequence of changes rather than of states.
  */
-function StepCard({ index, step, before, after, wireCount, current, onSeek, source }) {
+function StepCard({ index, step, before, after, wireCount, current, onSeek, source, formatKet }) {
   const symbolic = (1 << wireCount) <= SYMBOLIC_MAX_ROWS;
   const grid = useMemo(() => stateGrid(after), [after]);
   const changed = (row) => {
@@ -251,6 +253,7 @@ function StepCard({ index, step, before, after, wireCount, current, onSeek, sour
             <OperatorView
               source={source}
               structure={step.structure}
+              formatKet={formatKet}
               size={PLOT_SIZE}
               label={`Step ${number} as a matrix`}
             />
@@ -316,6 +319,16 @@ function AlgebraPanel() {
     () => (circuit === undefined ? undefined : JSON.stringify(Serializer.toJson(circuit))),
     [circuit],
   );
+  // Kets by register, the way every other view writes them; bits when there are none.
+  const registers = circuit?.registers;
+  const shownWires = playheadSample?.wireCount;
+  const formatKet = useMemo(
+    () =>
+      registers === undefined || shownWires === undefined || registers.isEmpty()
+        ? undefined
+        : (index) => ketLabel(registers, shownWires, index),
+    [registers, shownWires],
+  );
 
   // Move with the playhead: whenever it steps, bring its card to the middle of the track. Only on
   // a step, never on a re-render, so scrolling by hand is not undone ten times a second.
@@ -358,7 +371,7 @@ function AlgebraPanel() {
         </span>
       </header>
 
-      <EvolutionChart states={states} wireCount={wireCount} current={current} />
+      <EvolutionChart states={states} wireCount={wireCount} current={current} formatKet={formatKet} />
 
       {/* Focusable so the arrow keys scroll it: a region you can only scroll with a mouse is not
           one everyone can scroll. */}
@@ -399,6 +412,7 @@ function AlgebraPanel() {
             wireCount={wireCount}
             current={current === index + 1}
             onSeek={seek}
+            formatKet={formatKet}
             source={{
               json: circuitJson,
               col: index,

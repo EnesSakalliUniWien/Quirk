@@ -29,14 +29,35 @@ import {pointIntoCircuitCoords} from "./zoom.js"
  * @param {!function(!DisplayedInspector): !DisplayedInspector} syncArea
  * @param {!function(found: !{col: !int, row: !int, gate: !Gate}): void} openGateParamEditor
  * @param {!function(target: !{row: !int, col: undefined|!int}): void} openBlochSphereView
+ * @param {!function(name: !string, rect: !Rect): void} openRegisterRename Opens the inline rename box
+ *     over the register's name, whose place in circuit coordinates is `rect`.
+ * @param {!function(target: !{wire: !int, register: (undefined|!string), rect: (undefined|!Rect),
+ *     x: !number, y: !number}): void} openGutterMenu Opens the menu for a wire label, at the client position.
  * @returns {void}
  */
 function initCanvasPointer(canvas, canvasDiv, revision, displayed, syncArea, openGateParamEditor,
-                           openBlochSphereView) {
+                           openBlochSphereView, openRegisterRename, openGutterMenu) {
     // Positions arrive in the canvas's on-screen pixels; the hand and geometry live in circuit
     // coordinates, which differ from those by the zoom factor and the scroll.
     const intoCircuit = pt => pt === undefined ? undefined : pointIntoCircuitCoords(pt);
     const circuitPosOf = ev => pointIntoCircuitCoords(eventPosRelativeTo(ev, canvas));
+
+    /**
+     * Puts the inline rename box over a register's name.
+     * @param {!string} name
+     */
+    const renameRegister = name => {
+        const circuit = syncArea(displayed.get()).displayedCircuit;
+        const register = circuit.circuitDefinition.registers.named(name);
+        if (register !== undefined) {
+            openRegisterRename(name, circuit.geometry().registerNameRect(register.start, register.length));
+        }
+    };
+
+    /** How close in time two clicks on a register must be to count as one double click. */
+    const DOUBLE_CLICK_MILLIS = 400;
+    /** @type {undefined|!{name: !string, at: !number}} The last click on a register, for the next to pair with. */
+    let lastRegisterClick = undefined;
 
     /** @type {undefined|!string} */
     let clickDownGateButtonKey = undefined;
@@ -61,6 +82,22 @@ function initCanvasPointer(canvas, canvasDiv, revision, displayed, syncArea, ope
         const wasStationary = gestureDownPos !== undefined &&
             Math.hypot(pt.x - gestureDownPos.x, pt.y - gestureDownPos.y) < 6;
         if (wasStationary) {
+            // A register's name and wire labels answer a double click - renaming - and a right click.
+            // A single click does nothing, so it cannot get in the way of the double click's first
+            // half. The pair is counted here rather than taken from dblclick, which the browser
+            // withholds once a press has been claimed for dragging.
+            const register = syncedInspector.displayedCircuit.findRegisterContaining(pt);
+            if (register !== undefined) {
+                const now = performance.now();
+                const paired = ev.detail >= 2 ||
+                    (lastRegisterClick !== undefined && lastRegisterClick.name === register.name &&
+                        now - lastRegisterClick.at < DOUBLE_CLICK_MILLIS);
+                lastRegisterClick = paired ? undefined : {name: register.name, at: now};
+                if (paired) {
+                    renameRegister(register.name);
+                }
+                return;
+            }
             const bloch = syncedInspector.displayedCircuit.findBlochSphereContaining(pt);
             if (bloch !== undefined) {
                 openBlochSphereView(bloch);
@@ -97,10 +134,12 @@ function initCanvasPointer(canvas, canvasDiv, revision, displayed, syncArea, ope
                 return;
             }
 
-            // Add extra wire temporarily.
+            // Add extra wire temporarily - unless the press is on a wire label, picking wires for a
+            // register: a wire appearing would move the labels under the pointer.
             revision.startedWorkingOnCommit();
+            const extraWires = newInspector.hand.selectingWires === undefined ? 1 : 0;
             displayed.set(
-                syncArea(oldInspector.withHand(newHand).withJustEnoughWires(newInspector.hand, 1)).
+                syncArea(oldInspector.withHand(newHand).withJustEnoughWires(newInspector.hand, extraWires)).
                     afterGrabbing(ev.shiftKey, ev.ctrlKey || ev.metaKey, false, ev.altKey));
 
             ev.preventDefault();
@@ -138,11 +177,28 @@ function initCanvasPointer(canvas, canvasDiv, revision, displayed, syncArea, ope
                 return;
             }
 
+            // A press on a wire label that never moved is a click, and a click makes no register.
+            const dropPos = intoCircuit(pt);
+            if (displayed.get().hand.selectingWires !== undefined && (dropPos === undefined ||
+                    gestureDownPos === undefined ||
+                    Math.hypot(dropPos.x - gestureDownPos.x, dropPos.y - gestureDownPos.y) < 6)) {
+                revision.cancelCommitBeingWorkedOn();
+                ev.preventDefault();
+                return;
+            }
+
+            const registersBefore = displayed.get().displayedCircuit.circuitDefinition.registers;
             const newHand = displayed.get().hand.withPos(intoCircuit(pt));
             const newInspector = syncArea(displayed.get()).withHand(newHand).afterDropping().afterTidyingUp();
             const clearHand = newInspector.hand.withPos(undefined);
             const clearInspector = newInspector.withJustEnoughWires(clearHand, 0);
             revision.commit(clearInspector.snapshot());
+            // A drag down the wire labels made a register: offer its name straight away.
+            const created = clearInspector.displayedCircuit.circuitDefinition.registers.list.
+                find(r => registersBefore.named(r.name) === undefined);
+            if (created !== undefined) {
+                renameRegister(created.name);
+            }
             ev.preventDefault();
         },
     }, canvas);
@@ -170,6 +226,26 @@ function initCanvasPointer(canvas, canvasDiv, revision, displayed, syncArea, ope
         }
         if (!displayed.get().isEqualTo(newInspector)) {
             revision.commit(newInspector.snapshot());
+            ev.preventDefault();
+        }
+    });
+
+    // A right click on a wire label opens its menu: group the wire, or rename, feed or ungroup its
+    // register. Elsewhere the browser's own menu stays.
+    canvasDiv.addEventListener('contextmenu', ev => {
+        const circuit = syncArea(displayed.get()).displayedCircuit;
+        const found = circuit.findGutterWireAt(circuitPosOf(ev));
+        if (found !== undefined) {
+            const {register} = found;
+            openGutterMenu({
+                wire: found.wire,
+                register: register?.name,
+                // Where the register's name is, for the menu's rename to put the box over it.
+                rect: register === undefined ? undefined :
+                    circuit.geometry().registerNameRect(register.start, register.length),
+                x: ev.clientX,
+                y: ev.clientY,
+            });
             ev.preventDefault();
         }
     });

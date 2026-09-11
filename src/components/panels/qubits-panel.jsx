@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 
+import { wireLabel } from "../../circuit/registerLabels.js";
 import { paddedState } from "../../engine/simulation/stepAlgebra.js";
 import { qubitMarginals } from "../../engine/simulation/qubitMarginals.js";
 import { usePlayheadStats } from "./usePlayheadStats.js";
@@ -35,6 +36,7 @@ function QubitsPanel() {
     return <p className="debug-panel-empty">Waiting for the circuit…</p>;
   }
 
+  const { registers } = sample.stats.circuitDefinition;
   return (
     <section className="debug-panel" aria-labelledby="qubits-heading">
       <header className="debug-panel-header">
@@ -59,7 +61,7 @@ function QubitsPanel() {
         <tbody>
           {marginals.map(({ wire, probabilityOne, bloch, purity }) => (
             <tr key={wire} data-qubit={wire}>
-              <th scope="row" className="qubits-name">{`q${wire}`}</th>
+              <th scope="row" className="qubits-name">{wireLabel(registers, wire)}</th>
               <td>
                 <span className="qubits-bar" aria-hidden="true">
                   <span className="qubits-bar-fill" style={{ width: `${probabilityOne * 100}%` }} />

@@ -33,6 +33,8 @@ const appStore = createStore((set) => ({
     circuitAvailability: {canUndo: false, canRedo: false, canClearCircuit: false, canClearAll: false},
     /** @type {undefined|!CircuitActions} Set once by startQuirk. */
     circuitActions: undefined,
+    /** @type {undefined|!RegisterActions} Edits to the registers, each one commit. Set once by startQuirk. */
+    registerActions: undefined,
 
     /** Where the transport is parked and what it may do. Mirrored from Playhead. */
     playheadState: {
@@ -66,6 +68,21 @@ const appStore = createStore((set) => ({
 
     /** @type {undefined|!{row: !int, col: (undefined|!int)}} The sphere the Bloch panel enlarges. */
     blochTarget: undefined,
+
+    /** @type {undefined|!string} The register the Registers panel should show and focus, by name.
+     *  Transient, like the targets above. */
+    registerTarget: undefined,
+
+    /** @type {undefined|!{name: !string, rect: !{x: !number, y: !number, w: !number, h: !number}}}
+     *  The register being renamed in place on the canvas, and where its name is, in circuit
+     *  coordinates. */
+    registerRename: undefined,
+
+    /** @type {undefined|!{wire: !int, register: (undefined|!string),
+     *      rect: (undefined|!{x: !number, y: !number, w: !number, h: !number}), x: !number, y: !number}}
+     *  The wire label whose menu is open, its register's name rect in circuit coordinates when it
+     *  has one, and where the pointer was, in client coordinates. */
+    gutterMenu: undefined,
 }));
 
 export {appStore}

@@ -22,6 +22,7 @@ import {fromJsonText_CircuitDefinition} from "../serialization/Serializer.js"
 import {Util} from "../base/Util.js"
 import {ObservableValue} from "../base/Obs.js"
 import {CircuitActions} from "./state/CircuitActions.js"
+import {RegisterActions} from "./state/RegisterActions.js"
 import {Playhead} from "./state/Playhead.js"
 import {initToolboxDrag, initToolboxKeyboardPlace} from "./canvas/toolboxDrag.js"
 import {initRedrawLoop} from "./canvas/redrawLoop.js"
@@ -50,7 +51,8 @@ import {appStore} from "../state/appStore.js"
  * @returns {void}
  */
 function startQuirk({canvas, canvasDiv, scrollSpacer, circuitOverlay, onReady,
-                     openGateParamEditor, openBlochSphereView, showWelcome}) {
+                     openGateParamEditor, openBlochSphereView, openRegisterRename, openGutterMenu,
+                     showWelcome}) {
     // The one simulator: the animation cycle's phase and the stats caches are app-wide state.
     const simulator = new Simulator();
 
@@ -124,12 +126,14 @@ function startQuirk({canvas, canvasDiv, scrollSpacer, circuitOverlay, onReady,
     // become circuit coordinates after the container's scroll is added back.
     attachCircuitScrollSource(canvasDiv);
     initCanvasPointer(
-        canvas, canvasDiv, revision, displayed, syncArea, openGateParamEditor, openBlochSphereView);
+        canvas, canvasDiv, revision, displayed, syncArea, openGateParamEditor, openBlochSphereView,
+        openRegisterRename, openGutterMenu);
 
     const circuitActions = new CircuitActions(revision);
+    const registerActions = new RegisterActions(revision, displayed);
     // The toolbar and transport components act on these through the store, and show what they
     // may do from the mirrored availability and playhead state.
-    appStore.setState({circuitActions, playhead});
+    appStore.setState({circuitActions, playhead, registerActions});
     circuitActions.availability().subscribe(circuitAvailability => appStore.setState({circuitAvailability}));
     playhead.state().subscribe(playheadState => appStore.setState({playheadState}));
     initUrlCircuitSync(revision);

@@ -29,6 +29,7 @@ import {Gate} from "./Gate.js"
 import {GateColumn} from "./GateColumn.js"
 import {INITIAL_STATE_KEYS} from "./InitialStates.js"
 import {INPUT_LETTERS} from "./InputLetters.js"
+import {Registers} from "./Registers.js"
 import {Point} from "../../geometry/Point.js"
 import {Util} from "../../base/Util.js"
 
@@ -47,6 +48,7 @@ class CircuitDefinition {
      * @param {!CustomGateSet} customGateSet
      * @param {!boolean} isNested
      * @param {!Map.<!int, !string>} customInitialValues
+     * @param {!Registers} registers
      */
     constructor(numWires,
                 columns,
@@ -54,7 +56,8 @@ class CircuitDefinition {
                 outerContext=new Map(),
                 customGateSet=new CustomGateSet(),
                 isNested=false,
-                customInitialValues=new Map()) {
+                customInitialValues=new Map(),
+                registers=Registers.EMPTY) {
         if (numWires < 0) {
             throw new DetailedError("Bad numWires", {numWires})
         }
@@ -78,6 +81,11 @@ class CircuitDefinition {
         this.outerRowOffset = outerRowOffset;
         this.outerContext = outerContext;
         this.isNested = isNested;
+        /**
+         * Named groups of wires, each with the state it starts in (src/circuit/model/Registers.js).
+         * @type {!Registers}
+         */
+        this.registers = registers.fittingIn(numWires);
         /** @type {!Map.<!int, !string>} */
         this.customInitialValues = new Map();
         for (const [k, v] of customInitialValues.entries()) {
@@ -101,15 +109,25 @@ class CircuitDefinition {
          */
         this._measureMasks = [0];
         let mask = 0;
+        // A register that feeds an input serves every column that has no input gate of its own.
+        const columnOuterContext = new Map([...this.registers.inputContext(outerRowOffset), ...outerContext]);
         let prevStickyCtx = new Map();
+        // A wire whose ket starts it away from |0⟩ has already been acted on, as far as a prepare box
+        // is concerned; every column adds the wires it acts on.
+        let touched = 0;
+        for (const wire of this.customInitialValues.keys()) {
+            touched |= 1 << wire;
+        }
         for (const col of columns) {
             const {allReasons: rowReasons, stickyCtx} = col.perRowDisabledReasons(
                 mask,
                 outerRowOffset,
-                outerContext,
+                columnOuterContext,
                 prevStickyCtx,
-                isNested);
+                isNested,
+                touched);
             mask = col.nextMeasureMask(mask, rowReasons);
+            touched = col.nextTouchedMask(touched, rowReasons);
             this._colRowDisabledReason.push(rowReasons);
             this._measureMasks.push(mask);
             prevStickyCtx = stickyCtx;
@@ -170,7 +188,24 @@ class CircuitDefinition {
             this.outerContext,
             this.customGateSet,
             this.isNested,
-            map);
+            map,
+            this.registers);
+    }
+
+    /**
+     * @param {!Registers} registers
+     * @returns {!CircuitDefinition}
+     */
+    withRegisters(registers) {
+        return new CircuitDefinition(
+            this.numWires,
+            this.columns,
+            this.outerRowOffset,
+            this.outerContext,
+            this.customGateSet,
+            this.isNested,
+            this.customInitialValues,
+            registers);
     }
 
     /**
@@ -215,7 +250,8 @@ class CircuitDefinition {
             outerContext,
             this.customGateSet,
             true,
-            this.customInitialValues);
+            this.customInitialValues,
+            this.registers);
     }
 
     /**
@@ -258,7 +294,8 @@ class CircuitDefinition {
             this.numWires === other.numWires &&
             this.columns.length === other.columns.length &&
             this.columns.every((e, i) => Util.CUSTOM_IS_EQUAL_TO_EQUALITY(e, other.columns[i])) &&
-            equate_Maps(this.customInitialValues, other.customInitialValues);
+            equate_Maps(this.customInitialValues, other.customInitialValues) &&
+            this.registers.isEqualTo(other.registers);
     }
 
     /**
@@ -377,7 +414,8 @@ class CircuitDefinition {
             this.outerContext,
             this.customGateSet,
             false,
-            this.customInitialValues);
+            this.customInitialValues,
+            this.registers);
     }
 
     /**
@@ -531,7 +569,8 @@ class CircuitDefinition {
             this.outerContext,
             this.customGateSet,
             false,
-            this.customInitialValues);
+            this.customInitialValues,
+            this.registers);
     }
 
     /**
@@ -552,7 +591,8 @@ class CircuitDefinition {
             this.outerContext,
             this.customGateSet,
             false,
-            this.customInitialValues);
+            this.customInitialValues,
+            this.registers);
     }
 
     /**
@@ -567,7 +607,7 @@ class CircuitDefinition {
         for (const usedWire of this.customInitialValues.keys()) {
             best = Math.max(best, usedWire + 1);
         }
-        return best;
+        return Math.max(best, this.registers.minimumRequiredWireCount());
     }
 
     /**
@@ -646,8 +686,9 @@ class CircuitDefinition {
     _uncached_customContextFromGates(outerRowOffset) {
         const results = [];
         const stickyCtx = new Map();
+        const registerCtx = this.registers.inputContext(outerRowOffset);
         for (let col = 0; col < this.columns.length; col++) {
-            const ctx = new Map(stickyCtx);
+            const ctx = new Map([...registerCtx, ...stickyCtx]);
             const c = this.columns[col];
             for (let row = 0; row < c.gates.length; row++) {
                 const g = c.gates[row];
@@ -968,7 +1009,8 @@ class CircuitDefinition {
             this.outerContext,
             this.customGateSet.withGate(gate),
             false,
-            this.customInitialValues);
+            this.customInitialValues,
+            this.registers);
     }
 
     /**

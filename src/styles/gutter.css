@@ -1,0 +1,106 @@
+/* The two editors that sit over the circuit's gutter: the box that renames a register in place,
+   and the menu a right click on a wire label opens. Both are React, inside the scroll content, so
+   they stay with the drawing as it scrolls. */
+@layer components {
+    /* Placed over the register's name at the drawing's zoom; the font follows the zoom too. */
+    .gutter-rename {
+        position: absolute;
+        z-index: 4;
+        box-sizing: border-box;
+        padding: 0 4px;
+        border: 1px solid var(--ring);
+        border-radius: 6px;
+        background: var(--card);
+        color: var(--foreground);
+        font-family: var(--font-mono);
+        font-weight: 600;
+        text-align: right;
+        outline: none;
+        box-shadow: 0 0 0 3px var(--focus-shadow);
+    }
+
+    .gutter-rename[aria-invalid="true"] {
+        border-color: var(--destructive);
+    }
+
+    .gutter-rename-error {
+        position: absolute;
+        z-index: 4;
+        max-width: 260px;
+        margin: 0;
+        padding: 4px 8px;
+        color: var(--destructive);
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        font-size: 0.75rem;
+    }
+
+    /* The menu opens against this: a point where the pointer was. */
+    .gutter-menu-anchor {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        pointer-events: none;
+    }
+}
+
+/* Portalled to the body, so lifted over the dock the way the hover card is. Unlayered, like the
+   dock's own rules, so it is not outranked by them. */
+.gutter-menu-positioner {
+    z-index: 1000;
+}
+
+.gutter-menu {
+    box-sizing: border-box;
+    min-width: 200px;
+    padding: calc(var(--spacing) * 1);
+    color: var(--card-foreground);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: 0 12px 32px var(--shadow-popup);
+    font-size: var(--text-small);
+    outline: none;
+}
+
+.gutter-menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: calc(var(--spacing) * 3);
+    padding: 6px calc(var(--spacing) * 2);
+    border-radius: 6px;
+    cursor: default;
+    user-select: none;
+    outline: none;
+}
+
+.gutter-menu-item[data-highlighted] {
+    background: var(--accent);
+}
+
+.gutter-menu-item[data-checked]::after {
+    content: "✓";
+    color: var(--muted-foreground);
+}
+
+.gutter-menu-label {
+    padding: 6px calc(var(--spacing) * 2) 2px;
+    color: var(--muted-foreground);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.gutter-menu-separator {
+    height: 1px;
+    margin: calc(var(--spacing) * 1) 0;
+    background: var(--border);
+}
+
+.gutter-menu-item kbd {
+    color: var(--muted-foreground);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+}

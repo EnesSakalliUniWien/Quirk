@@ -47,7 +47,7 @@ function wireIndexAt(circuit, y) {
  */
 function toColumnSpaceCoordinate(circuit, x) {
   const spacing = CIRCUIT_OP_HORIZONTAL_SPACING + Layout.GATE_RADIUS * 2;
-  const left = CIRCUIT_OP_LEFT_SPACING - CIRCUIT_OP_HORIZONTAL_SPACING / 2;
+  const left = circuit.geometry().gutterLeft() + CIRCUIT_OP_LEFT_SPACING - CIRCUIT_OP_HORIZONTAL_SPACING / 2;
   return (x - left) / spacing - 0.5;
 }
 
@@ -297,6 +297,42 @@ function findWireWithInitialStateAreaContaining(circuit, pt) {
   return wire;
 }
 
+/**
+ * @param {!DisplayedCircuit} circuit
+ * @param {!Point} pt
+ * @returns {undefined|!{wire: !int, register: (undefined|!Register)}} The wire whose label - or
+ *     whose register's name and brace - is at the point.
+ */
+function findGutterWireAt(circuit, pt) {
+  const wire = wireIndexAt(circuit, pt.y);
+  if (wire < 0 || wire >= circuit.circuitDefinition.numWires) {
+    return undefined;
+  }
+  const labels = circuit.geometry().wireIndexRect(wire);
+  if (pt.x < 0 || pt.x >= labels.right() || pt.y < labels.y || pt.y >= labels.bottom()) {
+    return undefined;
+  }
+  return { wire, register: circuit.circuitDefinition.registers.at(wire) };
+}
+
+/**
+ * @param {!DisplayedCircuit} circuit
+ * @param {!Point} pt
+ * @returns {undefined|!Register} The register whose name, brace or wire labels are at the point.
+ *     The whole column down the register's wires counts, gaps between the labels included.
+ */
+function findRegisterContaining(circuit, pt) {
+  const wire = wireIndexAt(circuit, pt.y);
+  const register = circuit.circuitDefinition.registers.at(wire);
+  if (register === undefined) {
+    return undefined;
+  }
+  const geometry = circuit.geometry();
+  const labels = geometry.wireIndexRect(wire);
+  const box = geometry.registerNameRect(register.start, register.length);
+  return pt.x >= 0 && pt.x < labels.right() && pt.y >= box.y && pt.y < box.bottom() ? register : undefined;
+}
+
 export {
   wireIndexAt,
   toColumnSpaceCoordinate,
@@ -308,4 +344,6 @@ export {
   findBlochSphereContaining,
   wireInitialStateClickableRect,
   findWireWithInitialStateAreaContaining,
+  findRegisterContaining,
+  findGutterWireAt,
 };

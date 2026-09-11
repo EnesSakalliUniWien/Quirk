@@ -173,6 +173,8 @@ suite.test("knownNonUnitaryGates", () => {
         'XDetectControlReset',
         'YDetectControlReset',
         'ZDetectControlReset',
+        // A prepare box discards every basis state but |0…0⟩, which is why it must come first.
+        ...Gates.PrepareGates.all.map(g => g.serializedId),
     ]));
 });
 

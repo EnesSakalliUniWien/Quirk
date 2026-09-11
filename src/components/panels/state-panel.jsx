@@ -1,4 +1,5 @@
-import { phaseColor } from "../../config/CanvasTheme.js";
+import { ketBitsHeader } from "../../circuit/registerLabels.js";
+import { phaseColor, registerColor } from "../../config/CanvasTheme.js";
 import { stateTableRows } from "../../engine/simulation/stateTableRows.js";
 import { usePlayheadStats } from "./usePlayheadStats.js";
 
@@ -21,10 +22,14 @@ function forceSign(v, digits) {
 function StatePanel() {
   const sample = usePlayheadStats();
   const wireCount = sample?.wireCount ?? 0;
-  const { amplitudeCount, nonzeroCount, rows } =
+  const { amplitudeCount, nonzeroCount, rows, registers } =
     sample === undefined
-      ? { amplitudeCount: 0, nonzeroCount: 0, rows: [] }
+      ? { amplitudeCount: 0, nonzeroCount: 0, rows: [], registers: undefined }
       : stateTableRows(sample.stats, wireCount);
+  // With registers, each gets a column of its values, and the kets become the bits grouped by them.
+  const named = registers !== undefined && !registers.isEmpty();
+  // Two or more registers also read together, as a sequence: AGA for three bases.
+  const sequenced = named && registers.list.length >= 2;
 
   return (
     <>
@@ -50,19 +55,39 @@ function StatePanel() {
         </header>
 
         <div className="state-table-scroll">
-          <table id="state-table" className="state-table">
+          <table id="state-table" className={named ? "state-table state-table-registers" : "state-table"}>
             <thead>
               <tr>
-                <th scope="col">state</th>
+                {named &&
+                  registers.list.map((register, index) => (
+                    <th key={register.name} scope="col" style={{ color: registerColor(index) }}>
+                      {register.name}
+                    </th>
+                  ))}
+                {sequenced && (
+                  <th scope="col" title="The registers' values read together, in wire order">
+                    sequence
+                  </th>
+                )}
+                <th scope="col" title={named ? "The bits, highest wire first, grouped by register" : undefined}>
+                  {named ? ketBitsHeader(registers, wireCount) : "state"}
+                </th>
                 <th scope="col">probability</th>
                 <th scope="col">amplitude</th>
                 <th scope="col">phase (deg)</th>
               </tr>
             </thead>
             <tbody id="state-table-body">
-              {rows.map(({ ket, probability, real, imag, phaseDegrees }) => (
+              {rows.map(({ ket, bits, values, sequence, probability, real, imag, phaseDegrees }) => (
                 <tr key={ket}>
-                  <td className="state-ket">{`|${ket}⟩`}</td>
+                  {named &&
+                    values.map((value, index) => (
+                      <td key={index} className="state-register">
+                        {value}
+                      </td>
+                    ))}
+                  {sequenced && <td className="state-sequence">{sequence}</td>}
+                  <td className="state-ket">{`|${named ? bits : ket}⟩`}</td>
                   <td className="state-probability">
                     <span className="state-bar">
                       <span

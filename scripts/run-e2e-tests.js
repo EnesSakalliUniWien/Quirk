@@ -30,6 +30,7 @@ import '../test_e2e/transport.test.js';
 import '../test_e2e/toolbox.test.js';
 import '../test_e2e/errors.test.js';
 import '../test_e2e/debugPanels.test.js';
+import '../test_e2e/registers.test.js';
 
 let browser;
 let serve;

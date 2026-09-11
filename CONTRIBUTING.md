@@ -32,7 +32,8 @@ Before opening the pull request, keep the checks green:
   `Button` and `ButtonGroup` primitives under `src/components/ui/` (styled by
   `src/styles/controls.css`), and `toolbox.js`, the vanilla helper module the gate toolbox drives.
 - `src/circuit/` — the circuit model: `CircuitDefinition`, `GateColumn`, `Gate` and
-  `GateBuilder`, `Controls`, plus the two vocabularies the gate catalogue builds on
+  `GateBuilder`, `Controls`, the registers (`Registers.js`) and their display labels
+  (`registerLabels.js`), plus the two vocabularies the gate catalogue builds on
   (`InitialStates.js`, `InputLetters.js`). It never imports the catalogue: where the model has
   to know what a gate does to a wire it reads a flag the builder set (`measureEffect`,
   `isSwapHalf`). See [the circuit directory guide](src/circuit/README.md).

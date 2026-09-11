@@ -19,7 +19,7 @@ import {rectangle} from '../draw/pixi/ShapeView.js';
 /** @typedef {import('../draw/pixi/DisplayView.js').DisplayView} DisplayView */
 
 import {CIRCUIT_OP_LEFT_SPACING} from './CircuitLayoutConstants.js';
-import {findBlochSphereContaining, findGateOverlappingPos, findGateWithButtonContaining, findWireWithInitialStateAreaContaining, indexOfDisplayedRowAt} from './CircuitHitTesting.js';
+import {findBlochSphereContaining, findGateOverlappingPos, findGateWithButtonContaining, findWireWithInitialStateAreaContaining, findRegisterContaining, findGutterWireAt, indexOfDisplayedRowAt} from './CircuitHitTesting.js';
 import {afterDropping, previewDrop, tryClick, tryGrab, withJustEnoughWires} from './CircuitEditing.js';
 import {paintCircuit} from './CircuitPainting.js';
 
@@ -252,6 +252,22 @@ class DisplayedCircuit {
      */
     findWireWithInitialStateAreaContaining(pt) {
         return findWireWithInitialStateAreaContaining(this, pt);
+    }
+
+    /**
+     * @param {!Point} pt
+     * @returns {undefined|!Register}
+     */
+    findRegisterContaining(pt) {
+        return findRegisterContaining(this, pt);
+    }
+
+    /**
+     * @param {!Point} pt
+     * @returns {undefined|!{wire: !int, register: (undefined|!Register)}}
+     */
+    findGutterWireAt(pt) {
+        return findGutterWireAt(this, pt);
     }
 
     /**

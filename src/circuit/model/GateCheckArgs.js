@@ -25,13 +25,15 @@ class GateCheckArgs {
      * @param {!int} measuredMask
      * @param {!Map.<!string, *>} context
      * @param {!boolean} isNested
+     * @param {!int=} touchedMask The wires an earlier column acted on, or a ket started away from |0⟩.
      */
     constructor(gate,
                 innerColumn,
                 outerRow,
                 measuredMask,
                 context,
-                isNested) {
+                isNested,
+                touchedMask = 0) {
         /** @type {!Gate} */
         this.gate = gate;
         /** @type {!GateColumn} */
@@ -44,6 +46,8 @@ class GateCheckArgs {
         this.context = context;
         /** @type {!boolean} */
         this.isNested = isNested;
+        /** @type {!int} */
+        this.touchedMask = touchedMask;
     }
 }
 

@@ -9,13 +9,16 @@ import {
   describeGateTransformations,
 } from "../../circuit/gateDescription.js";
 import { decompositionOf } from "../../circuit/gateDecomposition.js";
+import { Matrix } from "../../engine/math/matrix/Matrix.js";
 import { QubitMatrix } from "../../engine/math/matrix/QubitMatrix.js";
+import { preparedStateVector } from "../../engine/math/preparedStates.js";
 import { columnStructure, structureMatrix } from "../../engine/simulation/columnStructure.js";
 import { Serializer } from "../../serialization/Serializer.js";
 import { MatrixMath } from "../math/mathml.jsx";
 import { DataView } from "../math/data-view.jsx";
+import { stateGrid } from "../../draw/renderers/dataRenderers.js";
 import { OperatorView } from "../math/operator-view.jsx";
-import { operatorModel } from "../math/matrixModel.js";
+import { operatorModel, stateModel } from "../math/matrixModel.js";
 import { CircuitFigure } from "./circuit-figure.jsx";
 import { RotationFigure } from "./rotation-figure.jsx";
 
@@ -30,6 +33,18 @@ const MAX_DESCRIBED_ROWS = 4;
 const MAX_MATRIX_QUBITS = 4;
 /** The side of a drawn matrix, in pixels. */
 const DRAWN_MATRIX_SIZE = 260;
+/** Up to this many amplitudes a prepared state is written out; past it, it is drawn. */
+const MAX_WRITTEN_AMPLITUDES = 8;
+
+/**
+ * The state a prepare box puts its wires in, as a column vector.
+ *
+ * @param {!Gate} gate
+ * @returns {!Matrix}
+ */
+function preparedState(gate) {
+  return new Matrix(1, 1 << gate.height, preparedStateVector(gate.knownPreparation, gate.height));
+}
 
 /**
  * A gate too tall to build its matrix, set alone in a circuit as tall as itself - which is what the
@@ -145,6 +160,30 @@ function GateDetails({ gate, time }) {
         <h2 className="gate-details-title">{gate.name}</h2>
         {gate.blurb !== "" && <p className="gate-details-blurb">{gate.blurb}</p>}
       </header>
+
+      {gate.knownPreparation !== undefined && (
+        <section className="gate-details-section">
+          <h3>Prepares</h3>
+          {(1 << gate.height) <= MAX_WRITTEN_AMPLITUDES ? (
+            <MatrixMath model={stateModel(preparedState(gate))} label={`The state the ${gate.name} prepares`} />
+          ) : (
+            <>
+              <DataView
+                kind="state"
+                data={stateGrid(preparedState(gate))}
+                width={220}
+                height={220}
+                options={{ wireCount: gate.height }}
+                label={`The state the ${gate.name} prepares, drawn as in the circuit`}
+              />
+              <p className="gate-details-legend">disc area is magnitude, the hand is phase</p>
+            </>
+          )}
+          <p className="gate-details-legend">
+            Its wires start in this state. Nothing may have acted on them before the box.
+          </p>
+        </section>
+      )}
 
       {model !== undefined && (
         <section className="gate-details-section">

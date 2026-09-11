@@ -8,6 +8,7 @@ Every module holds exactly one class; import the owning file directly.
 math/
 ├── complex/
 │   └── Complex.js               the complex number value type
+├── preparedStates.js            the states a prepare box puts its wires in, and its rank-one matrix
 ├── formula/
 │   ├── FormulaParser.js         the tokenizer and infix parser shared by every formula
 │   ├── ComplexFormula.js        ComplexFormula.parse and its token maps, with an explicit angle unit

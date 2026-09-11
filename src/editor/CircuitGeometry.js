@@ -137,8 +137,27 @@ class CircuitGeometry {
     }
 
     /** Noninteractive wire index and clickable initial ket share one scalable Register gutter. */
+    /**
+     * @returns {!number} How far the gutter and the columns are pushed right to make room for the
+     *     registers' names and braces: nothing while the circuit has no registers.
+     */
+    gutterLeft() {
+        return this.circuitDefinition.registers.isEmpty() ? 0 : Layout.REGISTER_NAME_WIDTH;
+    }
+
+    /**
+     * @param {!int} start A register's first wire.
+     * @param {!int} length How many wires it covers.
+     * @returns {!Rect} Where its name and brace go: the column left of its wires' labels.
+     */
+    registerNameRect(start, length) {
+        const first = this.wireIndexRect(start);
+        const last = this.wireIndexRect(start + length - 1);
+        return new Rect(0, first.y, this.gutterLeft(), last.bottom() - first.y);
+    }
+
     wireIndexRect(wireIndex) {
-        return new Rect(Layout.REGISTER_MARGIN,
+        return new Rect(this.gutterLeft() + Layout.REGISTER_MARGIN,
             this.wireRect(wireIndex).center().y - Layout.REGISTER_HEIGHT / 2,
             Layout.REGISTER_INDEX_WIDTH, Layout.REGISTER_HEIGHT);
     }
@@ -164,7 +183,7 @@ class CircuitGeometry {
             tweak = opSeparation;
         }
 
-        let dx = opSeparation * operationIndex - tweak + CIRCUIT_OP_LEFT_SPACING;
+        let dx = opSeparation * operationIndex - tweak + this.gutterLeft() + CIRCUIT_OP_LEFT_SPACING;
         if (this._isOutputDisplayColumn(operationIndex)) {
             dx += this.displayShift;
         }

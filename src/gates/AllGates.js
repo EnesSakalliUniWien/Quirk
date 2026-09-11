@@ -78,6 +78,7 @@ import { NeGate } from "./misc/Joke_NeGate.js";
 import { ZeroGate } from "./misc/Joke_ZeroGate.js";
 import { SpacerGate } from "./misc/SpacerGate.js";
 import { SwapGateHalf } from "./misc/SwapGateHalf.js";
+import { PrepareGates } from "./prepare/PrepareGates.js";
 import { INITIAL_STATE_KEYS } from "../circuit/model/InitialStates.js";
 
 
@@ -122,6 +123,7 @@ Gates.PostSelectionGates = PostSelectionGates;
 
 // Inputs.
 Gates.InputGates = InputGates;
+Gates.PrepareGates = PrepareGates;
 
 // Arithmetic.
 Gates.Arithmetic = ArithmeticGates;
@@ -162,6 +164,7 @@ Gates.ZeroGate = ZeroGate;
 Gates.KnownToSerializer = [
   ...Controls.all,
   ...InputGates.all,
+  ...PrepareGates.all,
   MeasurementGate,
   SwapGateHalf,
   SpacerGate,
@@ -248,6 +251,17 @@ Gates.TopToolboxGroups = [
       BlochSphereDisplay,
       ProbabilityDisplayFamily.ofSize(1),
       AmplitudeDisplayFamily.ofSize(2),
+    ],
+  },
+  {
+    hint: "Prepare",
+    gates: [
+      PrepareGates.ValueFamily.ofSize(2),
+      PrepareGates.UniformFamily.ofSize(2),
+      PrepareGates.Bell,
+      PrepareGates.GhzFamily.ofSize(3),
+      PrepareGates.WFamily.ofSize(3),
+      PrepareGates.AmplitudesFamily.ofSize(1),
     ],
   },
   {

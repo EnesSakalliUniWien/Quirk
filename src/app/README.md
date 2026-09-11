@@ -11,6 +11,7 @@ app/
 ├── state/          the DOM-free models the rest of the app subscribes to (the zustand store
 │   │                   they are mirrored into lives in src/state/appStore.js)
 │   ├── CircuitActions.js   undo, redo and clearing over the circuit revision
+│   ├── RegisterActions.js  edits to the circuit's registers - name, wires, input - each one commit
 │   ├── Playhead.js         where the transport controls are parked in the circuit
 │   └── Simulator.js        runs circuits against one clock and caches their stats
 ├── canvas/         the circuit canvas

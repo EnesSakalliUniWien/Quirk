@@ -5,6 +5,7 @@ import { startQuirk } from "../../app/QuirkApp.js";
 import { setErrorBannerHost } from "../../diagnostics/errorReporter.js";
 import { appStore } from "../../state/appStore.js";
 import { openPanel } from "../dock.jsx";
+import { GutterEditors } from "../circuit/gutter-editors.jsx";
 
 /**
  * The circuit itself, as a dock panel: the scrolling cell, its canvas, the zoom and overview
@@ -41,6 +42,19 @@ function CircuitPanel() {
         appStore.setState({ blochTarget: target });
         openPanel("bloch");
       },
+      openRegisterRename: (name, rect) => {
+        appStore.setState({ registerRename: { name, rect: { x: rect.x, y: rect.y, w: rect.w, h: rect.h } } });
+      },
+      openGutterMenu: ({ wire, register, rect, x, y }) =>
+        appStore.setState({
+          gutterMenu: {
+            wire,
+            register,
+            rect: rect === undefined ? undefined : { x: rect.x, y: rect.y, w: rect.w, h: rect.h },
+            x,
+            y,
+          },
+        }),
       showWelcome: () => openPanel("menu"),
     });
   }, []);
@@ -55,6 +69,8 @@ function CircuitPanel() {
         <canvas id="drawCanvas" ref={canvasRef} />
         {/* Carries the scroll extent, so the canvas can stay viewport-sized. */}
         <div id="canvas-scroll-spacer" ref={scrollSpacerRef} aria-hidden="true" />
+        {/* The rename box and the wire-label menu sit in the scroll content, over the drawing. */}
+        <GutterEditors host={canvasDivRef} />
       </div>
       <div id="circuit-overlay" ref={circuitOverlayRef} />
       {/* The error banner floats over the circuit; errorReporter.js fills it. */}
