@@ -1,3 +1,4 @@
+import {RecordControls} from "../panels/tape/record-controls.jsx";
 import { useEffect, useRef } from "react";
 import { useStore } from "zustand";
 
@@ -147,6 +148,7 @@ function TransportBar() {
           End
         </TransportButton>
       </ButtonGroup>
+      <RecordControls />
       <input
         id="playhead-scrub"
         className="transport-scrub"

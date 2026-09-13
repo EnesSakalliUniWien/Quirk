@@ -133,7 +133,7 @@ const SidebarHeader = memo(function SidebarHeader() {
  * region stay findable, and a fold remembered across sessions only hides gates from the user
  * who forgot they closed it. Search is the way to narrow the list.
  *
- * It is the content of the gates dock panel (src/components/panels/gates-panel.jsx), which fills.
+ * It is the content of the gates dock panel (src/components/panels/gates/gates-panel.jsx), which fills.
  */
 function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace }) {
   const customGateSet = useObservedValue(obsCustomGateSet);

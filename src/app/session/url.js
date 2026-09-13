@@ -19,6 +19,7 @@ import {CircuitDefinition} from "../../circuit/model/CircuitDefinition.js"
 import {AppInfo} from "../../config/AppInfo.js"
 import {HistoryPusher} from "../../browser/HistoryPusher.js"
 import {fromJsonText_CircuitDefinition, Serializer} from "../../serialization/Serializer.js"
+import {LINK_LIMIT} from "../../results/takeFile.js";
 
 function urlWithCircuitHash(jsonText) {
     if (jsonText.includes('%') || jsonText.includes('&')) {
@@ -29,8 +30,12 @@ function urlWithCircuitHash(jsonText) {
 
 /**
  * @param {!Revision} revision
+ * @param {!Recorder} recorder
+ * @param {undefined|!function(): void} onTakeLoaded Called after the current URL take is restored.
  */
-function initUrlCircuitSync(revision) {
+function initUrlCircuitSync(revision, recorder, onTakeLoaded) {
+    let loadingTake = false;
+    let loadVersion = 0;
     // Pull initial circuit out of URL '#x=y' arguments.
     const getHashParameters = () => {
         const hashText = document.location.hash.slice(1);
@@ -51,9 +56,22 @@ function initUrlCircuitSync(revision) {
 
     const historyPusher = new HistoryPusher();
     const loadCircuitFromUrl = () => {
+        const version = ++loadVersion;
         try {
             historyPusher.currentStateIsMemorableButUnknown();
             const params = getHashParameters();
+            if (params.has("take") && recorder !== undefined) {
+                if (new TextEncoder().encode(document.location.hash).byteLength > LINK_LIMIT) throw new Error("Take link exceeds 32 KiB");
+                if (JSON.parse(params.get("take")).format !== "shadow-quant-take/1") throw new Error("A take link must contain one take");
+                const requestedHash = document.location.hash;
+                recorder.importText(params.get("take")).then(takes => {
+                    if (version !== loadVersion || document.location.hash !== requestedHash) return;
+                    loadingTake = true;
+                    try {recorder.restore(takes[0]);} finally {loadingTake = false;}
+                    onTakeLoaded?.();
+                }).catch(error => recorder.store.error.set(error.message));
+                return;
+            }
             if (!params.has(AppInfo.URL_CIRCUIT_PARAM_KEY)) {
                 const def = JSON.stringify(Serializer.toJson(CircuitDefinition.EMPTY));
                 params.set(AppInfo.URL_CIRCUIT_PARAM_KEY, def);
@@ -82,7 +100,7 @@ function initUrlCircuitSync(revision) {
     loadCircuitFromUrl();
 
     revision.latestActiveCommit().whenDifferent().skip(1).subscribe(jsonText => {
-        historyPusher.stateChange(jsonText, urlWithCircuitHash(jsonText));
+        if (!loadingTake) historyPusher.stateChange(jsonText, urlWithCircuitHash(jsonText));
     });
 }
 

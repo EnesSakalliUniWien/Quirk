@@ -297,6 +297,19 @@ class Registers {
     }
 
     /**
+     * @param {!int} first
+     * @param {!int} count
+     * @returns {!Registers} The registers lying wholly on the `count` wires from `first`, numbered
+     *     from that wire: what a gate over those wires sees. One the gate only partly covers is
+     *     not among them.
+     */
+    within(first, count) {
+        return new Registers(this.list.
+            filter(r => r.start >= first && r.start + r.length <= first + count).
+            map(r => ({...r, start: r.start - first})));
+    }
+
+    /**
      * @param {!Register} register
      * @param {!int} value
      * @returns {!string} The value's label, or the value itself when it has none.

@@ -149,6 +149,7 @@ function _extractStateStatsNeededByCircuitColumn(ctx, circuitDefinition, col) {
         ctx.customContextFromGates,
         circuitDefinition.colCustomContextFromGates(col, row),
       ),
+      ctx.random,
     );
     const stat =
       circuitDefinition.columns[col].gates[row].customStatTexturesMaker(
@@ -214,6 +215,7 @@ function _advanceStateWithCircuitDefinitionColumn(
     controls,
     trader,
     colContext,
+    ctx.random,
   );
   const mainCtx = new CircuitEvalContext(
     ctx.time,
@@ -224,6 +226,7 @@ function _advanceStateWithCircuitDefinitionColumn(
     controls,
     trader,
     colContext,
+    ctx.random,
   );
 
   circuitDefinition.applyBeforeOperationsInCol(col, aroundCtx);

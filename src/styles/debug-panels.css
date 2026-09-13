@@ -55,15 +55,16 @@
     /* The steps run left to right, like the circuit they come from, and scroll sideways. */
     .algebra-steps {
         position: relative;
-        display: flex;
-        align-items: flex-start;
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: var(--algebra-card-width, max-content);
+        grid-template-rows: auto auto auto;
         gap: calc(var(--spacing) * 2);
         margin: 0;
         padding: 0 0 calc(var(--spacing) * 2);
         list-style: none;
         overflow-x: auto;
         overscroll-behavior-x: contain;
-        scroll-snap-type: x proximity;
         scrollbar-width: thin;
         scrollbar-color: var(--sidebar-scrollbar) transparent;
     }
@@ -76,9 +77,9 @@
 
     .algebra-step {
         display: grid;
-        flex: 0 0 auto;
+        grid-template-rows: subgrid;
+        grid-row: 1 / span 3;
         gap: calc(var(--spacing) * 2);
-        max-width: 100%;
         padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3) calc(var(--spacing) * 3);
         border: 1px solid var(--border);
         border-radius: 10px;
@@ -103,6 +104,7 @@
         font-size: var(--text-small);
         text-align: left;
         cursor: pointer;
+        align-self: start;
     }
 
     .algebra-step-header:hover .algebra-step-description {
@@ -125,39 +127,22 @@
     .algebra-step-description {
         min-width: 0;
         overflow-wrap: anywhere;
+        max-width: 36rem;
     }
 
-    /* A step's matrix and its result, wrapping onto a second line when the matrix is wide. */
+    /* The whole equation scrolls with its card. No factor wraps, shrinks or scrolls on its own. */
     .algebra-equation {
         display: flex;
-        align-items: center;
-        flex-wrap: wrap;
+        align-items: flex-start;
+        flex-wrap: nowrap;
         gap: calc(var(--spacing) * 1) calc(var(--spacing) * 2);
-        min-width: 0;
-    }
-
-    .algebra-math {
-        margin: 0;
-        font-size: 1.05rem;
-        overflow-x: auto;
-    }
-
-    .algebra-math mo {
-        padding-inline: 0.2em;
+        width: max-content;
     }
 
     /* The entries a step changed: the change the list is there to show. */
-    .algebra-math mtd[data-changed] {
-        background: color-mix(in oklab, var(--ring) 22%, transparent);
+    .matrix-table mtd[data-changed] {
+        background: var(--matrix-active-surface);
         border-radius: 3px;
-    }
-
-    .algebra-plotted {
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: calc(var(--spacing) * 2);
-        min-width: 0;
     }
 
     .algebra-check-ok {
@@ -275,7 +260,7 @@
 
     .operator-view-canvas {
         display: block;
-        background: color-mix(in oklab, var(--foreground) 5%, transparent);
+        background: var(--operator-control-surface);
         border-radius: 4px;
         cursor: grab;
         touch-action: none;
@@ -450,18 +435,7 @@
         box-sizing: border-box;
         min-width: 0;
         padding: 3px calc(var(--spacing) * 2);
-        border: 1px solid var(--border);
-        border-radius: 6px;
-        background: var(--background);
-        color: var(--foreground);
-        font: inherit;
         font-size: var(--text-small);
-    }
-
-    .registers-input:focus {
-        border-color: var(--ring);
-        box-shadow: 0 0 0 3px var(--focus-shadow);
-        outline: none;
     }
 
     .registers-input[aria-invalid="true"] {
@@ -508,10 +482,6 @@
 
     .registers-values button {
         cursor: pointer;
-    }
-
-    .registers-values button:hover {
-        background: var(--accent);
     }
 
     /* The register's value labels, and the form that adds one. */

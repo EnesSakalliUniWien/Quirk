@@ -3,10 +3,9 @@
    shell and reflow media rules win by source order. */
 @layer base, components;
 @import "@fontsource-variable/geist";
-/* dockview's own stylesheet is unlayered, so ./dock.css below is unlayered too and can override it. */
+/* Dockview supplies layout; Theme.js supplies its theme values. */
 @import "dockview-react/dist/styles/dockview.css";
 
-@import "./tokens.css";
 @import "./base.css";
 @import "./controls.css";
 @import "./toolbar.css";
@@ -14,10 +13,12 @@
 @import "./sidebar/index.css";
 @import "./gate-details.css";
 @import "./panels.css";
+@import "./tape.css";
 @import "./state-panel.css";
 @import "./debug-panels.css";
 @import "./gutter.css";
 @import "./menu.css";
 @import "./forge.css";
+@import "./matrices.css";
 @import "./dock.css";
 @import "./layout.css";

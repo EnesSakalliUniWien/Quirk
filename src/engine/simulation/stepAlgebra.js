@@ -126,7 +126,7 @@ function circuitAlgebra(stats, wireCount, previous = undefined) {
     const states = [];
     for (let k = 0; k < columns.length; k++) {
         const truncated = circuit.withColumns(columns.slice(0, k));
-        states.push(paddedState(CircuitStats.fromCircuitAtTime(truncated, stats.time).finalState, wireCount));
+        states.push(paddedState(CircuitStats.fromCircuitAtTime(truncated, stats.time, stats.seed).finalState, wireCount));
     }
     states.push(paddedState(stats.finalState, wireCount));
 

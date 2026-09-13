@@ -26,22 +26,14 @@ import {Rect} from '../../../geometry/Rect.js';
 import {Util} from '../../../base/Util.js';
 
 /**
- * Looks up the simulated probability distribution and samples from it using the current graphics PRNG.
+ * Reads the outcome selected during simulation; drawing never samples again.
  * @param {!GateRenderParams} args
  * @returns {!{i: !number, p: !number}}
  */
 function sampleFromDistribution(args) {
-    const probabilities = args.customStats;
-    const buf = probabilities.rawBuffer();
-    let r = args.painter.rng.random();
-    const n = probabilities.height();
-    for (let i = 0; ; i++) {
-        const p = buf[i*2];
-        r -= p;
-        if (i === n-1 || r < 0.00001) {
-            return {i, p};
-        }
-    }
+    const pos = args.positionInCircuit;
+    return pos === undefined ? {i: 0, p: 1} :
+        (args.stats.sampleOutcomes[`${pos.col}:${pos.row}`] ?? {i: 0, p: 0});
 }
 
 /**

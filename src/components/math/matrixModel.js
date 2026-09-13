@@ -1,5 +1,8 @@
 import { Util } from "../../base/Util.js";
 
+/** Written entries stay readable through three qubits; larger operators use the zoomable view. */
+const SYMBOLIC_MAX_ROWS = 8;
+
 /**
  * What a matrix view shows, described rather than drawn.
  *
@@ -14,7 +17,9 @@ import { Util } from "../../base/Util.js";
  *     cols: !int,
  *     at: !function(!int, !int): !Complex,
  *     rowLabel: !function(!int): !string,
- *     colLabel: !function(!int): !string
+ *     colLabel: !function(!int): !string,
+ *     kind: ("operator"|"state"),
+ *     layout: {rowHeight: (undefined|number)}
  * }} MatrixModel
  */
 
@@ -24,13 +29,14 @@ import { Util } from "../../base/Util.js";
  * @param {!Matrix} matrix
  * @returns {!MatrixModel}
  */
-function operatorModel(matrix) {
+function operatorModel(matrix, formatKet, layout = {}) {
   const rows = matrix.height();
   const cols = matrix.width();
   const bits = Math.round(Math.log2(Math.max(rows, cols)));
   const columns = Array.from({ length: cols }, (_, c) => matrix.getColumn(c));
-  const ket = (i) => `|${Util.bin(i, bits)}⟩`;
+  const ket = (i) => `|${formatKet === undefined ? Util.bin(i, bits) : formatKet(i)}⟩`;
   return {
+    kind: "operator", layout,
     rows,
     cols,
     at: (row, col) => columns[col][row],
@@ -45,17 +51,18 @@ function operatorModel(matrix) {
  * @param {!Matrix} vector A column vector, as src/engine/simulation/stepAlgebra.js's paddedState returns.
  * @returns {!MatrixModel}
  */
-function stateModel(vector) {
+function stateModel(vector, formatKet, layout = {}) {
   const rows = vector.height();
   const bits = Math.round(Math.log2(Math.max(rows, 1)));
   const entries = vector.getColumn(0);
   return {
+    kind: "state", layout,
     rows,
     cols: 1,
     at: (row) => entries[row],
-    rowLabel: (i) => `|${Util.bin(i, bits)}⟩`,
+    rowLabel: (i) => `|${formatKet === undefined ? Util.bin(i, bits) : formatKet(i)}⟩`,
     colLabel: () => "",
   };
 }
 
-export { operatorModel, stateModel };
+export { operatorModel, stateModel, SYMBOLIC_MAX_ROWS };

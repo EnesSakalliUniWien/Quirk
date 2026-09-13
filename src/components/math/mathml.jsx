@@ -92,6 +92,7 @@ function realMath(value, keyPrefix = "r", prefer = "cos") {
  */
 function complexMath(value, keyPrefix = "c", realPrefer = "cos") {
   const { real, imag } = value;
+  if (!Number.isFinite(real) || !Number.isFinite(imag)) return <mtext>unavailable</mtext>;
   const hasReal = Math.abs(real) > TOLERANCE;
   const hasImag = Math.abs(imag) > TOLERANCE;
 
@@ -150,24 +151,25 @@ function preferenceAt(model, row, col) {
 
 /**
  * A matrix's entries inside brackets that stretch to the table, as a MathML row. It belongs inside
- * a <math>: MatrixMath gives it one, and an equation can hold several side by side.
+ * a <math>: MatrixMath gives it one, and an equation can hold several complete factors side by side.
  *
  * @param {!{model: !MatrixModel, highlight: (undefined|!function(!int, !int): !boolean)}} props
  *     highlight marks cells a reader should look at - the entries a step changed, say.
  */
 function MatrixRow({ model, highlight }) {
   return (
-    <mrow>
+    <mrow data-matrix-kind={model.kind}>
       <mo stretchy="true">[</mo>
-      <mtable>
+      <mtable className="matrix-table" style={{"--matrix-row-height": model.layout?.rowHeight === undefined ? undefined : `${model.layout.rowHeight}px`}}>
         {Array.from({ length: model.rows }, (_, row) => (
-          <mtr key={row}>
+          <mtr key={row} data-matrix-row={row}>
             {Array.from({ length: model.cols }, (_, col) => (
               <mtd
                 key={col}
+                title={model.cols === 1 ? model.rowLabel(row) : `${model.rowLabel(row)} ← ${model.colLabel(col)}`}
                 data-changed={highlight !== undefined && highlight(row, col) ? "" : undefined}
               >
-                <mrow>
+                <mrow className="matrix-entry-value">
                   {complexMath(model.at(row, col), `${row}-${col}`, preferenceAt(model, row, col))}
                 </mrow>
               </mtd>
@@ -185,12 +187,12 @@ function MatrixRow({ model, highlight }) {
  *
  * @param {!{model: !MatrixModel, label: (undefined|!string)}} props
  */
-function MatrixMath({ model, label = "The gate's matrix" }) {
+function MatrixMath({ model, label = "The gate's matrix", highlight }) {
   return (
     <math className="matrix-math" display="block" aria-label={label}>
-      <MatrixRow model={model} />
+      <MatrixRow model={model} highlight={highlight} />
     </math>
   );
 }
 
-export { MatrixMath, MatrixRow };
+export { MatrixMath };

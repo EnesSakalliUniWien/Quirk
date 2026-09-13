@@ -155,6 +155,7 @@ function AppToolbar() {
         <header className="app-toolbar" role="toolbar" aria-label="Circuit controls" ref={toolbarRef}>
             <ExamplesMenu />
             <PanelButton id="export-button" panel="export" />
+                <PanelButton id="tape-button" panel="tape" />
             <PanelButton id="state-button" panel="state" />
             <PanelButton id="algebra-button" panel="algebra" />
             <PanelButton id="probabilities-button" panel="probabilities" />

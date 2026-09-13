@@ -30,6 +30,12 @@ import {QubitMatrix} from '../../../engine/math/matrix/QubitMatrix.js';
 const PURE_STATE_THRESHOLD = 0.999;
 
 /**
+ * Below this sphere radius the dashed back guides go: at a gate's size seven lines in sixty pixels
+ * hid the vector, and the front meridians and axes still say which way is which.
+ */
+const DETAILED_SPHERE_RADIUS = 40;
+
+/**
  * @param {!DisplayView} painter
  * @param {!Rect} drawArea
  * @param {!number} x
@@ -87,10 +93,10 @@ function _paintBlochSphereDisplay_indicator(
 
     const p = c.plus(dx.times(x)).plus(dy.times(y)).plus(dz.times(z));
     // Scales with the sphere so the indicator stays visible instead of being a fixed few pixels.
-    const r = u * 0.12 / (1 + x / 6);
+    const r = u * 0.16 / (1 + x / 6);
 
     // Draw state indicators (in not-quite-correct 3d).
-    strokePath(painter, [c, p], CanvasTheme.bloch.vector, u * 0.07);
+    strokePath(painter, [c, p], CanvasTheme.bloch.vector, u * 0.1);
     circle(painter, p, r, {fill: fillColor});
 
     painter.group('mixed-state-' + painter.order, painter => {
@@ -119,13 +125,14 @@ function _paintBlochSphereDisplay_purity(painter, drawArea, r) {
     const y = drawArea.bottom();
     const readoutHeight = drawArea.w * Layout.BLOCH_READOUT_HEIGHT /
         (2 * (Layout.BLOCH_RADIUS + Layout.BLOCH_LABEL_MARGIN));
-    const fontSize = readoutHeight * 2 / 3;
+    const fontSize = readoutHeight * 0.75;
+    // A mixed state greys out, as its ball does; a pure one reads in the primary ink.
     fitText(painter, `|r| ${r.toFixed(3)}`, {
         x,
         y,
         align: 'center',
         baseline: 'bottom',
-        fill: r > PURE_STATE_THRESHOLD ? CanvasTheme.bloch.vector : CanvasTheme.bloch.mixed,
+        fill: r > PURE_STATE_THRESHOLD ? CanvasTheme.text.primary : CanvasTheme.bloch.mixed,
         font: {fontSize: fontSize, fontFamily: Typography.MONO_FONT_FAMILY},
         width: drawArea.w,
         height: readoutHeight,
@@ -171,6 +178,7 @@ function paintBlochSphereDisplay(
     // Draw sphere and axis lines (in not-quite-proper 3d).
     circle(painter, c, u, {fill: backgroundColor});
 
+    const detailed = u >= DETAILED_SPHERE_RADIUS;
     painter.group('sphere-guides-' + painter.order, painter => {
         // The reference sphere stays equally visible for pure and mixed states.
         circle(painter, c, u, {
@@ -181,7 +189,7 @@ function paintBlochSphereDisplay(
         });
         // Split the meridians by depth: internal positive x points away from the viewer.
         for (const axis of [dy, dz]) {
-            for (const back of [true, false]) {
+            for (const back of detailed ? [true, false] : [false]) {
                 const points = [];
                 for (let i = 0; i <= 32; i++) {
                     const t = (back ? 0 : Math.PI) + i * Math.PI / 32;
@@ -195,7 +203,9 @@ function paintBlochSphereDisplay(
             strokePath(painter, [c.minus(d), c.plus(d)], CanvasTheme.stroke.guide, u * 0.03);
         }
         strokePath(painter, [c, c.minus(dx)], CanvasTheme.stroke.bright, u * 0.035);
-        strokePath(painter, [c, c.plus(dx)], CanvasTheme.stroke.guide, u * 0.03, [u * 0.1, u * 0.1]);
+        if (detailed) {
+            strokePath(painter, [c, c.plus(dx)], CanvasTheme.stroke.guide, u * 0.03, [u * 0.1, u * 0.1]);
+        }
     });
 
     // Labels use conventional Bloch signs: +X is -dx and +Z points up.

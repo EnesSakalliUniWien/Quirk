@@ -304,7 +304,7 @@ const AmplitudeDisplayFamily = Gate.buildFamily(1, 16, (span, builder) =>
     .setSymbol("Amps")
     .setTitle("Amplitude Display")
     .setBlurb(
-      "Shows the amplitudes of some wires, if separable.\nUse controls to see conditional amplitudes.",
+      "Shows state-vector amplitudes reshaped as a grid, if separable.\nUse controls to see conditional amplitudes.",
     )
     .setWidth(span === 1 ? 2 : span % 2 === 0 ? span : Math.ceil(span / 2))
     .promiseHasNoNetEffectOnStateVector()

@@ -84,9 +84,9 @@ export function paintDensityMatrix(painter,
 
             drawPath(painter, traceCouplingsWith(MathPainter._traceAmplitudeProbabilityCircle), [{fill: fillColor}, {stroke: {color: CanvasTheme.probability.outline, width: 0.5}}]);
 
-            drawPath(painter, traceCouplingsWith(MathPainter._traceAmplitudeLogarithmCircle), [{stroke: {color: CanvasTheme.stroke.faint, width: 0.5}}]);
+            drawPath(painter, traceCouplingsWith(MathPainter._traceAmplitudeLogarithmCircle), [{stroke: {color: CanvasTheme.stroke.faint, width: MathPainter.LOG_RING_WIDTH}}]);
 
-            drawPath(painter, traceCouplingsWith(MathPainter._traceAmplitudePhaseDirection), [{stroke: {color: CanvasTheme.amplitude.phaseHalo, width: 3}}, {stroke: {color: CanvasTheme.text.primary, width: 1}}]);
+            drawPath(painter, traceCouplingsWith(MathPainter._traceAmplitudePhaseDirection), [{stroke: {color: CanvasTheme.amplitude.phaseHalo, width: 3}}, {stroke: {color: CanvasTheme.text.primary, width: MathPainter.PHASE_HAND_WIDTH}}]);
         }
 
         // Dividers.

@@ -1,0 +1,46 @@
+/* Shared MathML presentation. The surrounding window, never an individual factor, scrolls. */
+@layer components {
+    .matrix-math {
+        margin: 0;
+        font-size: 1.05rem;
+        text-align: left;
+        white-space: nowrap;
+        overflow: visible;
+        flex: none;
+    }
+    .matrix-table mtd {
+        padding: 3px 8px;
+        height: var(--matrix-row-height, auto);
+        box-sizing: border-box;
+        vertical-align: middle;
+        white-space: nowrap;
+    }
+    .matrix-factor {
+        display: grid;
+        grid-template-rows: 1.75rem auto;
+        align-content: start;
+        justify-items: start;
+        margin: 0;
+        width: max-content;
+        flex: none;
+    }
+    .matrix-factor > figcaption {
+        font-size: var(--text-small);
+        color: var(--muted-foreground);
+        white-space: nowrap;
+    }
+    .equation-sign {
+        align-self: center;
+        font-size: 1.2rem;
+        padding-top: 1.75rem;
+    }
+    .algebra-step-note { max-width: 36rem; align-self: start; margin: 0; color: var(--muted-foreground); font-size: var(--text-small); }
+    .matrix-grid-label { max-width: 180px; margin: 4px 0 0; font-size: var(--text-small); color: var(--muted-foreground); }
+    .operator-entry-controls { display: flex; gap: 8px; font-size: var(--text-small); }
+    .operator-entry-controls label { display: grid; gap: 2px; }
+    .operator-entry-controls input { width: 6em; }
+    .operator-view-readout { width: 260px; }
+    .forge-operation-preview { display: grid; gap: 12px; width: max-content; }
+    .forge-operation-preview .rotation-figure { width: 180px; height: 180px; }
+    .forge-method { min-width: min-content; }
+}

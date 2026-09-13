@@ -15,6 +15,7 @@
  */
 
 import {columnImage, structureFanOut} from '../../engine/simulation/columnStructure.js';
+import {phaseRgb} from '../../config/CanvasTheme.js';
 
 /**
  * Data drawn as pixels rather than marks: one pixel per entry, or one per block of entries when
@@ -34,23 +35,11 @@ const MIN_ALPHA = 0.3;
 /** How many amplitudes one tile may work out before it samples operator columns instead. */
 const TILE_BUDGET = 1 << 21;
 
-/** hsl(degree, 85%, 62%) as 0-255 RGB for each whole degree, as phaseColor writes it. */
+/** The phase wheel as 0-255 RGB for each whole degree, as phaseColor writes it. */
 const PHASE_RGB = (() => {
     const table = new Uint8Array(360 * 3);
-    const s = 0.85;
-    const l = 0.62;
-    const q = l + s - l * s;
-    const p = 2 * l - q;
-    const channel = t => {
-        const u = ((t % 1) + 1) % 1;
-        const v = u < 1 / 6 ? p + (q - p) * 6 * u : u < 1 / 2 ? q : u < 2 / 3 ? p + (q - p) * (2 / 3 - u) * 6 : p;
-        return Math.round(v * 255);
-    };
     for (let degree = 0; degree < 360; degree++) {
-        const h = degree / 360;
-        table[degree * 3] = channel(h + 1 / 3);
-        table[degree * 3 + 1] = channel(h);
-        table[degree * 3 + 2] = channel(h - 1 / 3);
+        table.set(phaseRgb(degree), degree * 3);
     }
     return table;
 })();

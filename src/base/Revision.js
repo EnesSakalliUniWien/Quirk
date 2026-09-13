@@ -52,6 +52,7 @@ class Revision {
     this.isWorkingOnCommit = isWorkingOnCommit;
     /** @type {!ObservableSource} */
     this._changes = new ObservableSource();
+    this._beforeCommit = new ObservableSource();
     /** @type {!ObservableSource} */
     this._latestActiveCommit = new ObservableValue(this.history[this.index]);
   }
@@ -66,6 +67,8 @@ class Revision {
   /**
    * @returns {!Observable.<*>}
    */
+  beforeCommit() {return this._beforeCommit.observable();}
+
   latestActiveCommit() {
     return this._latestActiveCommit.observable();
   }
@@ -146,6 +149,7 @@ class Revision {
       this.cancelCommitBeingWorkedOn();
       return;
     }
+    this._beforeCommit.send({before: this.peekActiveCommit(), after: newCheckpoint});
     this.isWorkingOnCommit = false;
     this.index += 1;
     this.history.splice(this.index, this.history.length - this.index);

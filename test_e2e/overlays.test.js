@@ -145,3 +145,40 @@ test('opens the enlarged Bloch sphere view from a Bloch display gate', async bro
         await closePanel(page, 'bloch');
     });
 });
+
+test('panel controls remain distinct from their surfaces across panels', async browser => {
+    await withQuirkPage(browser, {cols: [['H']]}, async page => {
+        for (const [trigger, panel] of [['export-button', 'export'], ['gate-forge-button', 'forge'], ['tape-button', 'tape']]) {
+            await page.click(`#${trigger}`);
+            await waitForPanel(page, panel, true);
+            const appearance = await page.$eval(`[data-panel-id="${panel}"]`, root => {
+                const rgb = color => color.match(/[\d.]+/g).slice(0, 3).map(Number);
+                const luminance = color => rgb(color).map(value => {
+                    const channel = value / 255;
+                    return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+                }).reduce((sum, channel, i) => sum + channel * [0.2126, 0.7152, 0.0722][i], 0);
+                const contrast = (a, b) => {
+                    const values = [luminance(a), luminance(b)].sort((x, y) => y - x);
+                    return (values[0] + 0.05) / (values[1] + 0.05);
+                };
+                const content = root.closest('.dv-groupview');
+                const surface = getComputedStyle(content).backgroundColor;
+                return {
+                    ownTheme: root.closest('.dockview-theme-shadow-quant') !== null,
+                    stockTheme: root.closest('.dockview-theme-dark') !== null,
+                    controls: [...root.querySelectorAll('button:not([class])')].map(button => {
+                        const style = getComputedStyle(button);
+                        return {text: contrast(style.color, style.backgroundColor), surface: contrast(style.backgroundColor, surface)};
+                    })
+                };
+            });
+            assert.equal(appearance.ownTheme, true);
+            assert.equal(appearance.stockTheme, false);
+            assert.ok(appearance.controls.length > 0);
+            for (const control of appearance.controls) {
+                assert.ok(control.text >= 4.5, `${panel}: readable button text`);
+                assert.ok(control.surface >= 1.5, `${panel}: button surface distinguishable from panel`);
+            }
+        }
+    });
+});

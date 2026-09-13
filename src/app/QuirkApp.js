@@ -30,6 +30,8 @@ import {initCanvasPointer} from "./canvas/canvasPointer.js"
 import {scheduleBoot} from "./session/boot.js"
 import {initUrlCircuitSync} from "./session/url.js"
 import {initTitleSync} from "./session/title.js"
+import {Recorder} from "./state/Recorder.js";
+import {TapeStore} from "../results/tapeStore.js";
 import {Simulator} from "./state/Simulator.js"
 import {circuitZoom, initZoomControls, attachCircuitScrollSource} from "./canvas/zoom.js"
 import {initMinimap} from "./canvas/minimap.js"
@@ -46,11 +48,12 @@ import {appStore} from "../state/appStore.js"
  * @param {!{canvas: !HTMLCanvasElement, canvasDiv: !HTMLElement, scrollSpacer: !HTMLElement,
  *     circuitOverlay: !HTMLElement, onReady: !function(): void,
  *     openGateParamEditor: !function(!{col: !int, row: !int, gate: !Gate}): void,
- *     openBlochSphereView: !function(!{row: !int, col: (undefined|!int)}): void}} shell
+ *     openBlochSphereView: !function(!{row: !int, col: (undefined|!int)}): void,
+ *     openTape: !function(): void}} shell
  * @returns {void}
  */
 function startQuirk({canvas, canvasDiv, scrollSpacer, circuitOverlay, onReady,
-                     openGateParamEditor, openBlochSphereView, openRegisterRename, openGutterMenu}) {
+                     openGateParamEditor, openBlochSphereView, openRegisterRename, openGutterMenu, openTape}) {
     // The one simulator: the animation cycle's phase and the stats caches are app-wide state.
     const simulator = new Simulator();
 
@@ -60,10 +63,6 @@ function startQuirk({canvas, canvasDiv, scrollSpacer, circuitOverlay, onReady,
     const displayed = new ObservableValue(
         DisplayedInspector.empty(new Rect(0, 0, canvas.clientWidth, canvas.clientHeight)));
     const mostRecentStats = new ObservableValue(CircuitStats.EMPTY);
-    /** The same stats, but for the circuit only as far as the playhead has run it, alongside the
-     *  number of wires the circuit shows.
-     *  @type {ObservableValue.<!{stats: !CircuitStats, wireCount: !int}>} */
-    const playheadStats = new ObservableValue({stats: CircuitStats.EMPTY, wireCount: 0});
     const playhead = new Playhead(
         displayed.observable().
             map(e => e.displayedCircuit.circuitDefinition.columns.length).
@@ -71,10 +70,23 @@ function startQuirk({canvas, canvasDiv, scrollSpacer, circuitOverlay, onReady,
     /** @type {!Revision} */
     const revision = Revision.startingAt(displayed.get().snapshot());
 
+    const captureCommitted = () => {
+        const circuit = fromJsonText_CircuitDefinition(revision.peekActiveCommit());
+        return simulator.evaluate(circuit, circuit.numWires, playhead.step());
+    };
+    const tapeStore = new TapeStore();
+    const recorder = new Recorder(revision, playhead, simulator, tapeStore, captureCommitted,
+        {onRestore: () => redrawLoop.trigger()});
+    let lastCommit = revision.peekActiveCommit();
     revision.latestActiveCommit().subscribe(jsonText => {
+        if (jsonText !== lastCommit && !recorder.restoring) {
+            simulator.newRun();
+        }
+        lastCommit = jsonText;
         const circuitDef = fromJsonText_CircuitDefinition(jsonText);
         const newInspector = displayed.get().withCircuitDefinition(circuitDef);
         displayed.set(newInspector);
+        if (!recorder.restoring) captureCommitted();
     });
 
     /**
@@ -116,9 +128,8 @@ function startQuirk({canvas, canvasDiv, scrollSpacer, circuitOverlay, onReady,
         simulator,
         playhead,
         mostRecentStats,
-        playheadStats,
         desiredCanvasSizeFor,
-        syncArea);
+        syncArea, captureCommitted);
 
     // The canvas is pinned to the scroll container's visible corner, so pointer positions only
     // become circuit coordinates after the container's scroll is added back.
@@ -131,10 +142,17 @@ function startQuirk({canvas, canvasDiv, scrollSpacer, circuitOverlay, onReady,
     const registerActions = new RegisterActions(revision, displayed);
     // The toolbar and transport components act on these through the store, and show what they
     // may do from the mirrored availability and playhead state.
-    appStore.setState({circuitActions, playhead, registerActions});
+    appStore.setState({circuitActions, playhead, registerActions, recorder});
     circuitActions.availability().subscribe(circuitAvailability => appStore.setState({circuitAvailability}));
-    playhead.state().subscribe(playheadState => appStore.setState({playheadState}));
-    initUrlCircuitSync(revision);
+    let generation = playhead.generation;
+    playhead.state().subscribe(playheadState => {
+        simulator.setPlaying(playheadState.playing, generation !== playhead.generation);
+        generation = playhead.generation;
+        if (!recorder.restoring) captureCommitted();
+        appStore.setState({playheadState});
+        redrawLoop.trigger();
+    });
+    initUrlCircuitSync(revision, recorder, openTape);
     const gateToolbox = /** @type {!Object} */ ({
         // Compared by content, not identity: every commit deserializes a fresh CustomGateSet, and
         // rebuilding the toolbox for each one would recreate every tile and drop keyboard focus.
@@ -147,7 +165,7 @@ function startQuirk({canvas, canvasDiv, scrollSpacer, circuitOverlay, onReady,
     });
     appStore.setState({
         gateToolbox,
-        panelDeps: {revision, displayed, mostRecentStats, playheadStats,
+        panelDeps: {revision, displayed, mostRecentStats, completed: simulator.completed, recorder,
                     cycleTime: () => simulator.cycleTime()},
     });
     initTitleSync(revision);

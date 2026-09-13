@@ -154,7 +154,7 @@ function sampleMeasure(ctx) {
         weightMatch,
         maskMatch,
         ctx.stateTrader.currentTexture,
-        WglArg.float('rnd', Math.random())));
+        WglArg.float('rnd', ctx.random())));
 
     weightMatch.deallocByDepositingInPool();
     weightAll.deallocByDepositingInPool();

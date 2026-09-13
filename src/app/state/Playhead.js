@@ -38,6 +38,8 @@ class Playhead {
         this._columnCount = 0;
         this._step = 0;
         this._playing = false;
+        this.generation = 0;
+        this._restartOnPlay = true;
         /** @type {undefined|*} */
         this._timer = undefined;
         this._state = new ObservableValue(this._snapshot());
@@ -144,6 +146,7 @@ class Playhead {
      * @returns {void}
      */
     seek(step) {
+        if (step <= 0) this._restartOnPlay = true;
         this.pause();
         this._seek(step);
     }
@@ -192,7 +195,10 @@ class Playhead {
         }
         if (this._step >= this._columnCount) {
             this._step = 0;
+            this._restartOnPlay = true;
         }
+        if (this._step === 0 && this._restartOnPlay) this.generation++;
+        this._restartOnPlay = false;
         this._playing = true;
         this._timer = this._setInterval(() => this._seek(this._step + 1), Simulation.PLAYHEAD_STEP_DURATION_MS);
         this._publish();

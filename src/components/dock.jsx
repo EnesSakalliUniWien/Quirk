@@ -1,6 +1,7 @@
-import { DockviewDefaultTab, DockviewReact, themeDark } from "dockview-react";
+import { DockviewDefaultTab, DockviewReact } from "dockview-react";
 import { useRef } from "react";
 
+import { Theme } from "../config/Theme.js";
 import { appStore } from "../state/appStore.js";
 import { PANELS, PANEL_COMPONENTS } from "./panels/panels.jsx";
 
@@ -284,7 +285,7 @@ function Dock() {
   return (
     <div className="app-dock" ref={hostRef}>
       <DockviewReact
-        theme={themeDark}
+        theme={Theme.dock}
         components={PANEL_COMPONENTS}
         defaultTabComponent={DockTab}
         onReady={onReady}

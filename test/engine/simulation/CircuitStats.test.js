@@ -26,6 +26,24 @@ import {QubitMatrix} from "../../../src/engine/math/matrix/QubitMatrix.js"
 
 const suite = new Suite("CircuitStats");
 
+suite.test("snapshotData preserves histories without exposing their containers", () => {
+    const stats = new CircuitStats(CircuitDefinition.EMPTY.withWireCount(1), 0.25,
+        [0.75], [[Matrix.square(0.25, 0, 0, 0.75)]], Matrix.col(1, 0),
+        new Map([["0:0", true], ["1:0", false]]));
+    const data = stats.snapshotData();
+    assertThat(data).isEqualTo({survival: [0.75],
+        densities: [[[0.25, 0, 0, 0, 0, 0, 0.75, 0]]], custom: [["0:0", true], ["1:0", false]]});
+    data.survival[0] = 0;
+    data.densities[0][0][0] = 0;
+    data.custom[0][1] = false;
+    data.custom.pop();
+    assertThat(stats.survivalRate(0)).isEqualTo(0.75);
+    assertThat(stats.qubitDensityMatrix(0, 0)).isEqualTo(Matrix.square(0.25, 0, 0, 0.75));
+    assertThat([...stats.customStatsEntries()]).isEqualTo([["0:0", true], ["1:0", false]]);
+    const missing = CircuitStats.withNanDataFromCircuitAtTime(CircuitDefinition.EMPTY, 0).snapshotData();
+    assertThat(missing).isEqualTo({survival: [1], densities: [], custom: []});
+});
+
 const circuit = (diagram, ...extras) => CircuitDefinition.fromTextDiagram(new Map([
     ...extras,
     ['X', Gates.HalfTurns.X],

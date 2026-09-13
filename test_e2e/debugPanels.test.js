@@ -42,7 +42,7 @@ test('the algebra panel lists every operation with its matrix and the change it 
             return steps === undefined || steps.length !== 3 || !drawn ? false : {
                 summary: root.querySelector('.debug-panel-summary').textContent,
                 descriptions: [...root.querySelectorAll('.algebra-step-description')].map(e => e.textContent),
-                // Start shows one state; each step shows its matrix and the state after it.
+                // Start shows one state; each step expands operator, input and output.
                 tablesPerStep: [...steps].map(step => step.querySelectorAll('mtable').length),
                 cnotRows: steps[2].querySelector('mtable').querySelectorAll('mtr').length,
                 changedAfterCnot: steps[2].querySelectorAll('mtd[data-changed]').length,
@@ -52,7 +52,7 @@ test('the algebra panel lists every operation with its matrix and the change it 
         }, {timeout: TEST_TIMEOUT_MILLIS}).then(handle => handle.jsonValue());
         assert.match(panel.summary, /2 steps · 2 qubits · every matrix reproduces the simulated state/);
         assert.equal(panel.descriptions[0], 'Start');
-        assert.deepEqual(panel.tablesPerStep, [1, 2, 2]);
+        assert.deepEqual(panel.tablesPerStep, [1, 3, 3]);
         assert.equal(panel.cnotRows, 4, 'CNOT over two qubits is 4x4.');
         // CNOT moves the |01> amplitude to |11>: exactly those two entries change.
         assert.equal(panel.changedAfterCnot, 2);
@@ -88,12 +88,12 @@ test('the algebra steps run left to right, follow the playhead and scroll sidewa
         assert.ok(layout.overflows, 'Eight steps must be wider than the panel, so it scrolls.');
         assert.equal(layout.scrollLeft, 0, 'The playhead starts at the first step.');
 
-        // A plain mouse wheel over the steps scrolls them sideways.
+        // A horizontal gesture over the steps scrolls them sideways.
         const box = await page.$eval('[data-panel-id="algebra"] .algebra-steps', el => {
             const r = el.getBoundingClientRect(); return {x: r.x + r.width / 2, y: r.y + 40};
         });
         await page.mouse.move(box.x, box.y);
-        await page.mouse.wheel({deltaY: 400});
+        await page.mouse.wheel({deltaX: 400});
         await page.waitForFunction(
             () => document.querySelector('[data-panel-id="algebra"] .algebra-steps').scrollLeft > 0,
             {timeout: TEST_TIMEOUT_MILLIS});
@@ -104,7 +104,8 @@ test('the algebra steps run left to right, follow the playhead and scroll sidewa
             const track = document.querySelector('[data-panel-id="algebra"] .algebra-steps');
             const card = track.querySelector('[data-step="8"]');
             const t = track.getBoundingClientRect(), c = card.getBoundingClientRect();
-            return card.getAttribute('aria-current') === 'step' && c.left >= t.left - 1 && c.right <= t.right + 1;
+            return card.getAttribute('aria-current') === 'step' && c.left >= t.left - 1 &&
+                (c.width > t.width ? c.left <= t.left + 1 : c.right <= t.right + 1);
         }, {timeout: TEST_TIMEOUT_MILLIS});
     });
 });

@@ -34,7 +34,7 @@
     }
 
   .app-toolbar button,
-  .transport-bar button,
+  .transport-bar .ui-button,
   .gate-toolbox button {
     margin: 0;
     font: inherit;
@@ -53,7 +53,6 @@
 
     html {
         background: var(--background);
-        color-scheme: dark;
         font-family: var(--font-sans);
         font-size: 16px;
         line-height: 1.5;
@@ -194,12 +193,12 @@
         font: inherit;
     }
 
-    button {
+    button:where(:not([class])) {
         min-height: 32px;
         padding: 5px calc(var(--spacing) * 3);
         color: var(--secondary-foreground);
-        background: var(--secondary);
-        border: 1px solid var(--border);
+        background: var(--control-surface);
+        border: 1px solid var(--control-border);
         border-radius: 8px;
         font-size: 0.875rem;
         font-weight: 550;
@@ -208,9 +207,9 @@
         transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
     }
 
-    button:hover:not(:disabled) {
+    button:where(:not([class])):hover:not(:disabled) {
         color: var(--foreground);
-        background: var(--accent);
+        background: var(--control-hover);
         border-color: var(--control-border);
     }
 
@@ -219,6 +218,8 @@
         opacity: 0.48;
     }
 
+    input:not([type]),
+    input[type="number"],
     input[type="text"],
     textarea {
         min-height: 32px;
@@ -244,6 +245,8 @@
         outline-offset: 2px;
     }
 
+    input:not([type]):focus,
+    input[type="number"]:focus,
     input[type="text"]:focus,
     textarea:focus {
         border-color: var(--ring);

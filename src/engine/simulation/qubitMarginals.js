@@ -72,4 +72,13 @@ function qubitMarginals(state, wireCount) {
     return marginals;
 }
 
-export {qubitMarginals}
+function qubitReadings(stats, wireCount) {
+    return Array.from({length: wireCount}, (_, wire) => {
+        const density = stats.qubitDensityMatrix(Infinity, wire);
+        const bloch = blochCoordinates(density);
+        return {wire, bloch, probabilityOne: (1 - bloch.z) / 2,
+            purity: (1 + bloch.x ** 2 + bloch.y ** 2 + bloch.z ** 2) / 2};
+    });
+}
+
+export {qubitMarginals, qubitReadings}

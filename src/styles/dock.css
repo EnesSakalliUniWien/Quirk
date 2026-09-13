@@ -1,9 +1,4 @@
-/* The dock: dockview's grid, retinted to the app's tokens so its tabs and sashes read as part of
-   Shadow-Quant rather than as an embedded widget.
-
-   Deliberately unlayered. dockview ships its themes unlayered too, and an unlayered rule beats a
-   layered one whatever the specificity, so overrides written inside @layer components would never
-   apply to it. */
+/* Dock layout only. Theme.js defines the values assigned by applyTheme.js. */
 
 /* The work area between the toolbar and the transport: every panel, the gate palette included,
    lives inside it. */
@@ -13,27 +8,6 @@
     min-height: 0;
 }
 
-.app-dock .dockview-theme-dark {
-    --dv-group-view-background-color: var(--background);
-    --dv-tabs-and-actions-container-background-color: var(--background);
-    --dv-activegroup-visiblepanel-tab-background-color: var(--card);
-    --dv-activegroup-hiddenpanel-tab-background-color: var(--background);
-    --dv-inactivegroup-visiblepanel-tab-background-color: var(--card);
-    --dv-inactivegroup-hiddenpanel-tab-background-color: var(--background);
-    --dv-activegroup-visiblepanel-tab-color: var(--foreground);
-    --dv-activegroup-hiddenpanel-tab-color: var(--muted-foreground);
-    --dv-inactivegroup-visiblepanel-tab-color: var(--muted-foreground);
-    --dv-inactivegroup-hiddenpanel-tab-color: var(--muted-foreground);
-    --dv-tab-divider-color: var(--border);
-    /* A tab carries its panel's mark before its title (src/components/panels/panels.jsx). */
-    --dock-tab-icon-size: 14px;
-    --dv-separator-border: var(--border);
-    --dv-paneview-header-border-color: var(--border);
-    --dv-context-menu-background-color: var(--card);
-    /* The sashes ship transparent, which leaves no visible seam between panels. */
-    --dv-sash-color: var(--border);
-    --dv-active-sash-color: var(--ring, var(--border));
-}
 
 /* A tab: the panel's own mark, then the tab dockview draws. The mark inherits the tab's colour, so
    it fades with the title when the tab is not the active one. */

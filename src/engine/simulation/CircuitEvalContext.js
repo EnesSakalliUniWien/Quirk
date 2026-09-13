@@ -40,9 +40,10 @@ class CircuitEvalContext {
                 controlsTexture,
                 rawControls,
                 stateTrader,
-                customContextFromGates) {
+                customContextFromGates, random = Math.random) {
         /** @type {!number} */
         this.time = time;
+        this.random = random;
         /**
          * The top-level row that we're working relative to.
          * @type {undefined|!int}
@@ -84,7 +85,7 @@ class CircuitEvalContext {
             this.controlsTexture,
             this.rawControls,
             this.stateTrader,
-            this.customContextFromGates);
+            this.customContextFromGates, this.random);
     }
 
     /**

@@ -17,13 +17,11 @@ import { Serializer } from "../../serialization/Serializer.js";
 import { MatrixMath } from "../math/mathml.jsx";
 import { DataView } from "../math/data-view.jsx";
 import { stateGrid } from "../../draw/renderers/dataRenderers.js";
-import { OperatorView } from "../math/operator-view.jsx";
-import { operatorModel, stateModel } from "../math/matrixModel.js";
+import { OperatorMatrix } from "../math/operator-matrix.jsx";
+import { stateModel } from "../math/matrixModel.js";
 import { CircuitFigure } from "./circuit-figure.jsx";
 import { RotationFigure } from "./rotation-figure.jsx";
 
-/** Past two qubits the entries stop fitting a card, and the plot says more than the symbols. */
-const MAX_SYMBOLIC_ROWS = 4;
 /** Past two qubits one sentence per basis state is a wall of text, not an explanation. */
 const MAX_DESCRIBED_ROWS = 4;
 /**
@@ -145,7 +143,6 @@ function GateDetails({ gate, time }) {
 
   const format =
     gate.stableDuration() < 0.2 ? Format.CONSISTENT : Format.SIMPLIFIED;
-  const model = matrix === undefined ? undefined : operatorModel(matrix);
   // The circuit the gate stands for: its own, when it was built from one, or the one the app knows
   // it is equivalent to. The simulator reaches most of these another way, so this is display only.
   const decomposition = decompositionOf(gate);
@@ -174,7 +171,7 @@ function GateDetails({ gate, time }) {
                 width={220}
                 height={220}
                 options={{ wireCount: gate.height }}
-                label={`The state the ${gate.name} prepares, drawn as in the circuit`}
+                label={`The state the ${gate.name} prepares: state-vector amplitudes reshaped as a grid`}
               />
               <p className="gate-details-legend">disc area is magnitude, the hand is phase</p>
             </>
@@ -185,41 +182,16 @@ function GateDetails({ gate, time }) {
         </section>
       )}
 
-      {model !== undefined && (
+      {(matrix !== undefined || alone?.structure !== undefined) && (
         <section className="gate-details-section">
           <h3>Matrix</h3>
-          {model.rows <= MAX_SYMBOLIC_ROWS ? (
-            <MatrixMath model={model} label={`The matrix of the ${gate.name}`} />
-          ) : (
-            <>
-              <DataView
-                kind="matrix"
-                data={matrix}
-                width={DRAWN_MATRIX_SIZE}
-                height={DRAWN_MATRIX_SIZE}
-                label={`The matrix of the ${gate.name}, drawn as in the circuit`}
-              />
-              <p className="gate-details-legend">disc area is magnitude, the hand is phase</p>
-            </>
-          )}
+          <OperatorMatrix matrix={matrix} source={alone?.source} structure={alone?.structure}
+            size={DRAWN_MATRIX_SIZE} label={"The matrix of the " + gate.name} />
+          <p className="gate-details-legend">Rows: output basis states. Columns: input basis states. Basis order runs from |0…0⟩ to |1…1⟩.</p>
         </section>
       )}
 
-      {alone?.structure !== undefined && (
-        <section className="gate-details-section">
-          <h3>Matrix</h3>
-          <OperatorView
-            key={gate.serializedId}
-            source={alone.source}
-            structure={alone.structure}
-            size={DRAWN_MATRIX_SIZE}
-            label={`The matrix of the ${gate.name}`}
-          />
-          <p className="gate-details-legend">hue is phase, strength is magnitude</p>
-        </section>
-      )}
-
-      {model !== undefined && model.rows <= MAX_DESCRIBED_ROWS && (
+      {matrix !== undefined && matrix.height() <= MAX_DESCRIBED_ROWS && (
         <section className="gate-details-section">
           <h3>Acts on</h3>
           <ul className="gate-details-actions">
@@ -269,7 +241,7 @@ function GateDetails({ gate, time }) {
         </section>
       )}
 
-      {model === undefined && alone?.structure === undefined && decomposition === undefined && (
+      {matrix === undefined && alone?.structure === undefined && decomposition === undefined && (
         <p className="gate-details-note">
           {alone?.reason ?? "This gate has no fixed matrix: what it does depends on its inputs."}
         </p>

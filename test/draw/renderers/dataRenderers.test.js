@@ -19,9 +19,35 @@ import {Complex} from "../../../src/engine/math/complex/Complex.js"
 import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
 import {Rect} from "../../../src/geometry/Rect.js"
 import {DisplayView} from "../../../src/draw/pixi/DisplayView.js"
+import {LabelView} from "../../../src/draw/pixi/LabelView.js"
+import {Registers} from "../../../src/circuit/model/Registers.js"
 import {DATA_RENDERERS, stateGrid} from "../../../src/draw/renderers/dataRenderers.js"
 
 const suite = new Suite("dataRenderers");
+
+suite.test("a state's cells carry their basis states, in the registers' words, where they fit", () => {
+    const labels = (rect, registers) => {
+        const view = new DisplayView();
+        DATA_RENDERERS.state(view, stateGrid(Matrix.col(0.5, 0.5, 0.5, 0.5)), rect, {wireCount: 2, registers});
+        view.finish();
+        const texts = [];
+        const walk = node => {
+            if (node instanceof LabelView) {
+                texts.push(node.text);
+            }
+            for (const child of node.children ?? []) {
+                walk(child);
+            }
+        };
+        walk(view);
+        return texts;
+    };
+    const roomy = new Rect(0, 0, 100, 100);
+    assertThat(labels(roomy, Registers.EMPTY)).isEqualTo(["00", "01", "10", "11"]);
+    assertThat(labels(roomy, new Registers([{name: "a", start: 0, length: 2}]))).isEqualTo(["a=0", "a=1", "a=2", "a=3"]);
+    // A cell too small to read a label in carries none.
+    assertThat(labels(new Rect(0, 0, 40, 40), Registers.EMPTY)).isEqualTo([]);
+});
 
 suite.test("a state is laid out the way the amplitude display lays it out", () => {
     // Four amplitudes become a 2x2 grid, row-major, so index r*width + c is the basis state.

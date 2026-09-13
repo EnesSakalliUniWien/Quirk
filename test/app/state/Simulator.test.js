@@ -44,6 +44,7 @@ const circuit = diagram => CircuitDefinition.fromTextDiagram(new Map([
 suite.test("cycleTime follows the injected clock and wraps at a full cycle", () => {
     const clock = manualClock();
     const sim = new Simulator(clock.now);
+    sim.setPlaying(true);
 
     assertThat(sim.cycleTime()).isEqualTo(0);
 
@@ -61,6 +62,7 @@ suite.test("cycleTime follows the injected clock and wraps at a full cycle", () 
 suite.test("simulate reuses the computed stats while the circuit is unchanged", () => {
     const clock = manualClock();
     const sim = new Simulator(clock.now);
+    sim.setPlaying(true);
     // Both wires carry a gate, so withMinimumWireCount is an identity and a repeat is a cache hit.
     const c = circuit(`H-
                      -X`).withMinimumWireCount();
@@ -77,6 +79,7 @@ suite.test("simulate reuses the computed stats while the circuit is unchanged", 
 suite.test("simulate recomputes a time-dependent circuit every call", () => {
     const clock = manualClock();
     const sim = new Simulator(clock.now);
+    sim.setPlaying(true);
     const c = circuit(`t-
                      --`);
 
@@ -90,6 +93,7 @@ suite.test("simulate recomputes a time-dependent circuit every call", () => {
 suite.test("simulateAtStep runs the truncated circuit without evicting the whole-circuit cache", () => {
     const clock = manualClock();
     const sim = new Simulator(clock.now);
+    sim.setPlaying(true);
     const c = circuit(`HX
                      --`).withMinimumWireCount();
 

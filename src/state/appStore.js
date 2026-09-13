@@ -41,6 +41,8 @@ const appStore = createStore((set) => ({
         step: 0, columnCount: 0, playing: false, canPlay: false, canStepBack: false, canStepForward: false},
     /** @type {undefined|!Playhead} Set once by startQuirk. */
     playhead: undefined,
+    /** @type {undefined|!Object} Records and restores completed simulation results. */
+    recorder: undefined,
 
     /** The gate palette's pipelines, read by the gates panel. Undefined until the circuit panel has
      *  started the circuit.
@@ -58,7 +60,7 @@ const appStore = createStore((set) => ({
 
     /** What the panels read the circuit through. Published once by startQuirk.
      *  @type {undefined|!{revision: !Revision, displayed: !ObservableValue,
-     *      mostRecentStats: !ObservableValue, playheadStats: !ObservableValue,
+     *      mostRecentStats: !ObservableValue, completed: !ObservableValue, recorder: !Object,
      *      cycleTime: !function(): !number}} */
     panelDeps: undefined,
 

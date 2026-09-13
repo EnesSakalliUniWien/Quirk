@@ -32,6 +32,23 @@
 - **create custom gate**: click 'Make Gate' button
 - **remove custom gate**: [crummy support] have to use undo or clear all or manually edit URL
 
+**Reading operation matrices**
+
+Open Algebra to follow each operation as its matrix times the expanded input state, alongside
+the simulated output state. Cards share their dimensions and basis-state row spacing. Matrices
+through 8×8 use written entries; larger operators use zoomable plots. Rows identify output basis
+states and columns identify input basis states. Hover a written entry for its basis labels.
+
+Scroll the operation sequence horizontally with a trackpad, Shift+wheel or the keyboard. A plain
+wheel scrolls the panel vertically. Wide equations remain intact; resize the Algebra panel for
+more space. In a plotted operator, use zoom buttons or Ctrl+wheel, drag or arrow keys to pan, and
+the Output row / Input column fields to inspect a numerical entry with the keyboard.
+
+An arrow without a matrix represents simulated states for an operation with no matrix
+representation. A mismatch is marked ≠; unchecked large products are not claimed equal. After
+deferred measurement, the kets are internal simulation amplitudes: density matrices describe
+the physical mixed state. An amplitude grid is a reshaped state vector, not an operator.
+
 **Conventions**
 
 - Coordinates

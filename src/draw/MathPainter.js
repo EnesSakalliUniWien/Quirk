@@ -32,6 +32,11 @@ import {Matrix} from '../engine/math/matrix/Matrix.js';
 import {QubitMatrix} from '../engine/math/matrix/QubitMatrix.js';
 
 class MathPainter {
+    /** The phase hand's width. It is white over a dark halo, so its angle reads on any disc. */
+    static PHASE_HAND_WIDTH = 2;
+    /** The width of the ring an amplitude too small for a disc still shows; a hairline was lost at 1x. */
+    static LOG_RING_WIDTH = 1;
+
     static describeProbability(p, fractionalDigits) {
         const v = p * 100;
         const e = Math.pow(10, -fractionalDigits);
@@ -244,7 +249,8 @@ class MathPainter {
      * @param {!string} amplitudeCircleStrokeColor
      * @param {undefined|!string} amplitudeProbabilityFillColor
      * @param {undefined|!string=} backColor
-     * @param {(!function(!number): (undefined|!string))=} phaseColorForDegrees
+     * @param {(!function(!number): (undefined|!string))=} phaseColorForDegrees The hand's colour
+     *     for a cell's phase in degrees; undefined draws no hand for that cell.
      * @param {undefined|!string=} logCircleStrokeColor
      */
     static paintMatrix(painter,
@@ -291,7 +297,7 @@ class MathPainter {
             if (amplitudeCircleFillColor !== undefined) {
                 drawPath(painter, traceCellsWith(MathPainter._traceAmplitudeProbabilityCircle), [{fill: amplitudeCircleFillColor}, {stroke: {color: amplitudeCircleStrokeColor, width: 0.5}}]);
 
-                drawPath(painter, traceCellsWith(MathPainter._traceAmplitudeLogarithmCircle), [{stroke: {color: logCircleStrokeColor, width: 0.5}}]);
+                drawPath(painter, traceCellsWith(MathPainter._traceAmplitudeLogarithmCircle), [{stroke: {color: logCircleStrokeColor, width: MathPainter.LOG_RING_WIDTH}}]);
             }
         }
 
@@ -317,7 +323,7 @@ class MathPainter {
                             MathPainter._traceAmplitudePhaseDirection(trace, buf[k], buf[k + 1],
                                 x + diam * col, y + diam * row, diam);
                         }
-                    }, [{stroke: {color: CanvasTheme.amplitude.phaseHalo, width: 3}}, {stroke: {color: color, width: 1}}]);
+                    }, [{stroke: {color: CanvasTheme.amplitude.phaseHalo, width: 3}}, {stroke: {color: color, width: MathPainter.PHASE_HAND_WIDTH}}]);
                 }
             }
         }

@@ -116,7 +116,7 @@
 
     .state-table td:first-child {
         z-index: 1;
-        background: var(--background);
+        background: var(--card);
     }
 
     .state-table tr:last-child td {

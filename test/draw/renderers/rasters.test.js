@@ -20,6 +20,7 @@ import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
 import {columnStructure} from "../../../src/engine/simulation/columnStructure.js"
 import {fromJsonText_CircuitDefinition} from "../../../src/serialization/Serializer.js"
 import {TILE_SIZE, rasterMatrix, rasterOperatorTile} from "../../../src/draw/renderers/rasters.js"
+import {phaseRgb} from "../../../src/config/CanvasTheme.js"
 
 const suite = new Suite("rasters");
 
@@ -31,8 +32,8 @@ const structureOf = (cols, wireCount) =>
 
 suite.test("an entry is a pixel whose hue is its phase and whose opacity is its magnitude", () => {
     const pixels = rasterMatrix(Matrix.square(1, 0, 0, new Complex(0, 0.5)), 2, 2);
-    // Phase zero is the red of phaseColor(0): hsl(0 85% 62%).
-    assertThat(pixel(pixels, 2, 0, 0)).isEqualTo([240, 76, 76, 255]);
+    // Phase zero is the wheel's colour at zero degrees, the one the state panel's swatch shows.
+    assertThat(pixel(pixels, 2, 0, 0)).isEqualTo([...phaseRgb(0), 255]);
     // A zero is left clear, and a half-size entry is half opaque.
     assertThat(pixel(pixels, 2, 1, 0)).isEqualTo([0, 0, 0, 0]);
     assertThat(pixel(pixels, 2, 1, 1)[3]).isEqualTo(128);

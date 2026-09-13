@@ -73,6 +73,15 @@ suite.test("putting a row in moves the registers below down and grows the one it
     assertThat(registers.afterRowInserted(4).list).isEqualTo([reg("a", 0, 3), reg("b", 3, 3)]);
 });
 
+suite.test("a gate over some wires sees the registers wholly on them, numbered from its first wire", () => {
+    const registers = new Registers([reg("a", 0, 2), reg("b", 2, 3), reg("c", 5, 1)]);
+    assertThat(registers.within(2, 4).list).isEqualTo([reg("b", 0, 3), reg("c", 3, 1)]);
+    assertThat(registers.within(0, 6).isEqualTo(registers)).isEqualTo(true);
+    // A register the gate only partly covers is not one of its registers.
+    assertThat(registers.within(1, 3).isEmpty()).isEqualTo(true);
+    assertThat(registers.within(3, 3).list).isEqualTo([reg("c", 2, 1)]);
+});
+
 suite.test("a register can feed an input, the way an input gate would", () => {
     const registers = new Registers([reg("a", 2, 3, "A")]);
     assertThat([...registers.inputContext(0).entries()]).isEqualTo([["Input Range A", {offset: 2, length: 3}]]);

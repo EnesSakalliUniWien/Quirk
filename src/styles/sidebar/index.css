@@ -1,5 +1,5 @@
 /* The sidebar: the gate palette, the content of the gates dock panel, with its search header,
-   groups and tiles. Colours come from the sidebar token family in tokens.css, so the whole surface
+   groups and tiles. Colours come from the sidebar values assigned by Theme.js, so the whole surface
    retints from one place. The card a tile opens on hover is its own module, in
    ../gate-details.css.
 

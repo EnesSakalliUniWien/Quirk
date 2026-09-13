@@ -1,6 +1,6 @@
 # PixiJS canvas rendering
 
-Canvas colours come directly from `src/config/CanvasTheme.js`. Native Pixi objects receive fill,
+Canvas colours come from `src/config/Theme.js` through the `CanvasTheme.js` entry point. Native Pixi objects receive fill,
 stroke, alpha and text properties in JavaScript. CSS styles the surrounding HTML controls.
 
 ## Ownership

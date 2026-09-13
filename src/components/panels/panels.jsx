@@ -12,17 +12,19 @@ import {
   WandSparklesIcon,
 } from "lucide-react";
 
-import { AlgebraPanel } from "./algebra-panel.jsx";
-import { BlochPanel } from "./bloch-panel.jsx";
-import { CircuitPanel } from "./circuit-panel.jsx";
-import { ExportPanel } from "./export-panel.jsx";
-import { ForgePanel } from "./forge-panel.jsx";
-import { GatesPanel } from "./gates-panel.jsx";
-import { GateParamPanel } from "./gate-param-panel.jsx";
-import { ProbabilitiesPanel } from "./probabilities-panel.jsx";
-import { QubitsPanel } from "./qubits-panel.jsx";
-import { RegistersPanel } from "./registers-panel.jsx";
-import { StatePanel } from "./state-panel.jsx";
+import {TapePanel} from "./tape/tape-panel.jsx";
+import { AlgebraPanel } from "./algebra/algebra-panel.jsx";
+import { BlochPanel } from "./bloch/bloch-panel.jsx";
+import { CircuitPanel } from "./circuit/circuit-panel.jsx";
+import { ExportPanel } from "./export/export-panel.jsx";
+import { ForgePanel } from "./forge/forge-panel.jsx";
+import { GatesPanel } from "./gates/gates-panel.jsx";
+import { GateParamPanel } from "./gate-param/gate-param-panel.jsx";
+import { ProbabilitiesPanel } from "./probabilities/probabilities-panel.jsx";
+import { QubitsPanel } from "./qubits/qubits-panel.jsx";
+import { RegistersPanel } from "./registers/registers-panel.jsx";
+import { StatePanel } from "./state/state-panel.jsx";
+import { createPanelComponent } from "./shared/panel-wrapper.jsx";
 
 /**
  * Every panel the dock can show, keyed by the name dockview writes into its serialized layout.
@@ -61,6 +63,7 @@ import { StatePanel } from "./state-panel.jsx";
  *     floating: (undefined|!{width: !int, height: !int})}>}
  */
 const PANELS = {
+  tape: {title: "Tape", icon: DownloadIcon, component: TapePanel},
   circuit: {
     title: "Circuit",
     icon: GitCommitHorizontalIcon,
@@ -108,16 +111,7 @@ const PANELS = {
  * cannot drift from the name the dock opens the panel by, and no panel needs an id of its own.
  */
 const PANEL_COMPONENTS = Object.fromEntries(
-  Object.entries(PANELS).map(([name, panel]) => {
-    const Component = panel.component;
-    const Wrapped = (props) => (
-      <div className="panel-scroll" data-panel-id={name}>
-        <Component {...props} />
-      </div>
-    );
-    Wrapped.displayName = `Panel(${name})`;
-    return [name, Wrapped];
-  }),
+  Object.entries(PANELS).map(([name, panel]) => [name, createPanelComponent(name, panel.component)]),
 );
 
 export { PANELS, PANEL_COMPONENTS };

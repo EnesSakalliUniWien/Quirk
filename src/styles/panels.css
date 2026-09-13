@@ -204,17 +204,6 @@
         box-sizing: border-box;
         width: 100%;
         padding: 7px calc(var(--spacing) * 2);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        background: var(--background);
-        color: var(--foreground);
-        font: inherit;
-    }
-
-    .gate-param-input:focus {
-        border-color: var(--ring);
-        box-shadow: 0 0 0 3px var(--focus-shadow);
-        outline: none;
     }
 
     .gate-param-error {

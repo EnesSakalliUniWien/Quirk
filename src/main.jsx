@@ -15,6 +15,7 @@
  */
 
 import { createRoot } from "react-dom/client";
+import { applyTheme } from "./browser/applyTheme.js";
 
 // The error reporter installs first, so a failure anywhere in startup still reaches the banner.
 // It has nowhere to paint one until the shell mounts and hands it a host; a report raised before
@@ -27,6 +28,7 @@ import { webGl2SupportProblem } from "./engine/webgl/context/issues.js";
 import { App } from "./components/app.jsx";
 import "./styles/globals.css";
 
+applyTheme();
 installErrorReporter();
 const gpuProblem = webGl2SupportProblem();
 if (gpuProblem !== undefined) {

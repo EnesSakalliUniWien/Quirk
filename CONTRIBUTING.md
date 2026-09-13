@@ -18,10 +18,10 @@ Before opening the pull request, keep the checks green:
 
 # Source layout
 
-- `src/main.js` — the page entry; everything else is reached from here.
+- `src/main.jsx` — the page entry; mounts the React shell, whose CircuitPanel starts the app.
 - `src/app/` — everything the shell owns: the composition root (`QuirkApp.js`) plus the
   modules it wires together once at startup, grouped into `state/` (the DOM-free models),
-  `canvas/`, `dialogs/` and `session/`. See [the app directory guide](src/app/README.md).
+  `canvas/` and `session/`. See [the app directory guide](src/app/README.md).
 - `src/state/` — `appStore.js`, the zustand store the React chrome reads and the shell writes:
   the active overlay, zoom, dock modes, and the availability and playhead state mirrored from
   the models. It depends only on `src/base/`, so both `app` and `components` import it downward.
@@ -31,6 +31,8 @@ Before opening the pull request, keep the checks green:
 - `src/components/` — the React chrome (toolbar, transport bar, dialogs, gate toolbox), its
   `Button` and `ButtonGroup` primitives under `src/components/ui/` (styled by
   `src/styles/controls.css`), and `toolbox.js`, the vanilla helper module the gate toolbox drives.
+  Dock panels and their supporting components are grouped by responsibility under
+  `src/components/panels/`; see the [panel directory guide](src/components/panels/README.md).
 - `src/circuit/` — the circuit model: `CircuitDefinition`, `GateColumn`, `Gate` and
   `GateBuilder`, `Controls`, the registers (`Registers.js`) and their display labels
   (`registerLabels.js`), plus the two vocabularies the gate catalogue builds on
@@ -39,6 +41,9 @@ Before opening the pull request, keep the checks green:
   `isSwapHalf`). See [the circuit directory guide](src/circuit/README.md).
 - `src/serialization/` — `Serializer.js`, JSON in and out for circuits, gates and matrices. It
   needs the catalogue to resolve gate ids, so it sits above `circuit` and `gates`.
+- `src/results/` — complete takes and albums, file formats and Tape persistence. It reads
+  simulation histories through `CircuitStats.snapshotData()` and uses the circuit serializer;
+  it does not own playback, recording workflow or browser download operations.
 - `src/gates/` — the gate catalogue, aggregated by `AllGates.js`; a gate missing from its
   lists silently stops serializing and disappears from the toolbox.
 - `src/draw/` — canvas painting primitives. Two seams let the editor hand renderers down
@@ -56,7 +61,7 @@ Before opening the pull request, keep the checks green:
 
 Dependencies flow downward:
 
-    main → app → (components, editor) → serialization → engine/simulation → (gates, circuit) → draw
+    main → components → app → (results, editor) → serialization → engine/simulation → (gates, circuit) → draw
          → (engine/math, engine/webgl, diagnostics, browser, config, geometry, base)
 
 `state` sits beside `components` (read by `app` and `components`, depending only on `base`).

@@ -27,7 +27,7 @@ import {renderGateView} from '../draw/pixi/GateView.js';
 import {BasisLabels} from '../draw/pixi/BasisLabels.js';
 
 import {Layout} from '../config/Layout.js';
-import {CanvasTheme, phaseColor} from '../config/CanvasTheme.js';
+import {CanvasTheme} from '../config/CanvasTheme.js';
 import {Simulation} from '../config/Simulation.js';
 import {Typography} from '../config/Typography.js';
 import {Format} from '../base/Format.js';
@@ -206,10 +206,11 @@ function drawPlayheadBand(circuit, painter, playheadStep) {
 }
 
 /**
- * A register in the gutter: a curly brace down its wires' labels in the frame ink, with its name at
+ * A register in the gutter: a curly brace down its wires' labels in the bright ink, with its name at
  * the brace's tip - the way a paper labels a register - and the input it feeds under the name.
  * Registers are told apart by name and brace rather than colour, so no hue here competes with the
- * gates' and the displays'.
+ * gates' and the displays'; the brace is a hairline, so it wears the bright ink rather than the
+ * frame's.
  * Clicking it opens the Registers panel; a double click renames it; a right click opens its menu
  * (src/app/canvas/canvasPointer.js).
  *
@@ -243,7 +244,7 @@ function drawRegisterGutter(circuit, painter, hand, register) {
         trace.quadraticCurveTo(x, mid, x, mid + r);
         trace.lineTo(x, bottom - r);
         trace.quadraticCurveTo(x, bottom, x + r, bottom);
-    }, [{stroke: {color: CanvasTheme.stroke.frame, width: lineWidth(painter, 1)}}]);
+    }, [{stroke: {color: CanvasTheme.stroke.bright, width: lineWidth(painter, 1)}}]);
 
     const nameWidth = x - r - 2 * REGISTER_BRACE_GAP;
     const feeds = register.input !== undefined;
@@ -264,7 +265,7 @@ function drawRegisterGutter(circuit, painter, hand, register) {
             align: 'right',
             baseline: 'middle',
             fill: CanvasTheme.text.muted,
-            font: {fontSize: Layout.REGISTER_FONT_SIZE * 0.7, fontFamily: Typography.MONO_FONT_FAMILY},
+            font: {fontSize: Layout.REGISTER_FONT_SIZE * 0.75, fontFamily: Typography.MONO_FONT_FAMILY},
             width: nameWidth,
             height: Layout.REGISTER_HEIGHT
         });
@@ -281,9 +282,16 @@ function drawWires(circuit, painter, showLabels, hand) {
     const drawnWireCount = Math.min(circuit.circuitDefinition.numWires, (circuit.geometry().extraWireStartIndex || Infinity) + 1);
 
     // Initial value labels. A wire in a register is named by it - a₀ rather than q0 - and every
-    // wire keeps its own starting ket.
+    // wire keeps its own starting ket. Every label wears the primary ink: a wire outside every
+    // register is not a lesser wire, and muted would say it was.
     if (showLabels) {
         const {registers} = circuit.circuitDefinition;
+        // The gutter's hover fill extends behind the wire labels, so paint it first.
+        registers.list.forEach(register => {
+            if (register.start < drawnWireCount) {
+                drawRegisterGutter(circuit, painter, hand, register);
+            }
+        });
         for (let row = 0; row < drawnWireCount; row++) {
             const wireRect = circuit.wireRect(row);
             const y = wireRect.center().y;
@@ -294,7 +302,7 @@ function drawWires(circuit, painter, showLabels, hand) {
                 y,
                 align: 'left',
                 baseline: 'middle',
-                fill: register === undefined ? CanvasTheme.text.muted : CanvasTheme.text.primary,
+                fill: CanvasTheme.text.primary,
                 font: {fontSize: Layout.REGISTER_FONT_SIZE, fontFamily: Typography.MONO_FONT_FAMILY},
                 width: indexRect.w,
                 height: indexRect.h
@@ -331,11 +339,6 @@ function drawWires(circuit, painter, showLabels, hand) {
                 height: rect.h
             });
         }
-        registers.list.forEach(register => {
-            if (register.start < drawnWireCount) {
-                drawRegisterGutter(circuit, painter, hand, register);
-            }
-        });
     }
 
     // Wires (doubled-up for measured sections).
@@ -653,14 +656,13 @@ function drawOutputSuperpositionDisplay(circuit, painter, stats, hand) {
         numWire < Simulation.SIMPLE_SUPERPOSITION_DRAWING_WIRE_THRESHOLD ? CanvasTheme.amplitude.circle : undefined,
         CanvasTheme.text.primary,
         numWire < Simulation.SIMPLE_SUPERPOSITION_DRAWING_WIRE_THRESHOLD ? CanvasTheme.amplitude.fill : undefined,
-        CanvasTheme.amplitude.background,
-        numWire < Simulation.SIMPLE_SUPERPOSITION_DRAWING_WIRE_THRESHOLD ? phaseColor : undefined);
+        CanvasTheme.amplitude.background);
     frame(painter, gridRect);
     const forceSign = v => (v >= 0 ? '+' : '') + v.toFixed(2);
     MathPainter.paintMatrixTooltip(painter, amplitudeGrid, gridRect, hand.hoverPoints(),
         (c, r) => `Amplitude of |${ketLabel(circuit.circuitDefinition.registers.fittingIn(numWire), numWire,
             r*amplitudeGrid.width() + c)}⟩ (decimal ${r*amplitudeGrid.width() + c})`,
-        (c, r, v) => 'val:' + v.toString(new Format(false, 0, 5, ", ")),
+        (c, r, v) => 'val:' + v.toString(Format.SIMPLIFIED),
         (c, r, v) => `mag²:${(v.norm2()*100).toFixed(4)}%, phase:${forceSign(v.phase() * 180 / Math.PI)}°`);
 
     drawOutputSuperpositionDisplay_labels(circuit, painter);
@@ -688,7 +690,7 @@ function drawHintLabels(circuit, painter, stats) {
     const gridRect = circuit.geometry().rectForSuperpositionDisplay();
 
     // Amplitude hint.
-    fitText(painter, 'Final amplitudes', {
+    fitText(painter, 'State-vector grid', {
         x: gridRect.right() + DISPLAY_CAPTION_GAP,
         y: gridRect.bottom() + 3,
         align: 'left',

@@ -23,7 +23,6 @@ import {RenderSurface} from '../../draw/pixi/RenderSurface.js';
 import {Point} from '../../geometry/Point.js';
 import {RestartableRng} from '../../base/RestartableRng.js';
 import {Rect} from '../../geometry/Rect.js';
-import {Simulation} from '../../config/Simulation.js';
 import {TouchScrollBlocker} from '../../browser/TouchScrollBlocker.js';
 import {invalidateCircuitLabelCache} from '../../editor/CircuitPainting.js';
 import {circuitZoom, onCircuitZoomChanged} from './zoom.js';
@@ -43,10 +42,9 @@ import {circuitZoom, onCircuitZoomChanged} from './zoom.js';
  * @param {!Simulator} simulator
  * @param {!Playhead} playhead
  * @param {!ObservableValue.<!CircuitStats>} mostRecentStats Written every frame.
- * @param {!ObservableValue.<!{stats: !CircuitStats, wireCount: !int}>} playheadStats Written every
- *     frame with the stats as far as the playhead has run.
  * @param {!function(!DisplayedInspector): !{w: !number, h: !number}} desiredCanvasSizeFor
  * @param {!function(!DisplayedInspector): !DisplayedInspector} syncArea
+ * @param {!function(): !Object} captureCommitted Captures the committed circuit, separate from a drag preview.
  * @returns {!{start: !function(): void, trigger: !function(): void}} start paints the first frame
  *     and unlocks the loop; trigger asks for a redraw (cheap, rate-limited).
  */
@@ -57,9 +55,8 @@ function initRedrawLoop(canvas,
                         simulator,
                         playhead,
                         mostRecentStats,
-                        playheadStats,
                         desiredCanvasSizeFor,
-                        syncArea) {
+                        syncArea, captureCommitted) {
     let hasStarted = false;
     const scene = new CircuitScene(RenderSurface.forCanvas(canvas));
     // The scroll extent lives on this spacer, not the canvas: the canvas stays viewport-sized
@@ -67,17 +64,8 @@ function initRedrawLoop(canvas,
     // backing store ever growing.
     const spacer = scrollSpacer;
 
-    // Some drawn values dither with randomness. Keeping one rng for a fraction of a second, and
-    // restarting it each frame, keeps them stable enough to read while still visibly noisy.
-    const semiStableRng = (() => {
-        const target = {cur: new RestartableRng()};
-                const cycleRng = () => {
-            target.cur = new RestartableRng();
-            setTimeout(cycleRng, Simulation.SEMI_STABLE_RANDOM_VALUE_LIFETIME_MILLIS*0.99);
-        };
-        cycleRng();
-        return target;
-    })();
+    // Decorative randomness is stable across redraws. Measurement outcomes live in CircuitStats.
+    const graphicsRng = new RestartableRng();
 
     /** @type {!CooldownThrottle} */
     const scrollBlocker = new TouchScrollBlocker(canvasDiv);
@@ -91,18 +79,14 @@ function initRedrawLoop(canvas,
             shown = shown.withHand(shown.hand.withHeldGateColumn(new GateColumn([]), new Point(0, 0)))
         }
         const circuitDefinition = shown.displayedCircuit.circuitDefinition;
-        const stats = simulator.simulate(circuitDefinition);
+        const committed = captureCommitted();
+        const stats = committed.circuit.withMinimumWireCount().isEqualTo(circuitDefinition.withMinimumWireCount()) ?
+            committed.fullStats : simulator.simulate(circuitDefinition, committed.phase);
         mostRecentStats.set(stats);
 
         // The canvas keeps showing the whole circuit; the playhead only says which column comes
         // next, and what the state looks like up to there.
         const playheadStep = Math.min(playhead.step(), circuitDefinition.columns.length);
-        playheadStats.set({
-            stats: playheadStep >= circuitDefinition.columns.length ?
-                stats :
-                simulator.simulateAtStep(circuitDefinition, playheadStep, stats.time),
-            wireCount: shown.displayedCircuit.importantWireCount()
-        });
 
         const size = desiredCanvasSizeFor(shown);
         const pixelRatio = window.devicePixelRatio || 1;
@@ -133,7 +117,7 @@ function initRedrawLoop(canvas,
         // fixed viewport shows the scrolled-to part of the scene.
         shown.updateArea(new Rect(0, 0, size.w, size.h));
         const painter = scene.update(shown, stats, playheadStep, {
-            rng: semiStableRng.cur.restarted(), resolution: pixelRatio * zoom,
+            rng: graphicsRng.restarted(), resolution: pixelRatio * zoom,
             // Zoomed out, the circuit's lines widen in circuit units so they stay a CSS pixel wide.
             lineScale: 1 / Math.min(zoom, 1),
             scrollX: canvasDiv.scrollLeft / zoom, scrollY: canvasDiv.scrollTop / zoom,
@@ -150,7 +134,7 @@ function initRedrawLoop(canvas,
         canvas.style.cursor = painter.interaction.cursor || 'auto';
 
         const dt = displayed.get().stableDuration();
-        if (dt < Infinity) {
+        if (dt < Infinity && simulator.playing) {
             window.requestAnimationFrame(() => redrawThrottle.trigger());
         }
     };

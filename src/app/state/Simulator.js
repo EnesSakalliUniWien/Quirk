@@ -17,6 +17,8 @@
 /** @typedef {import("../../circuit/model/CircuitDefinition.js").CircuitDefinition} CircuitDefinition */
 import {Simulation} from "../../config/Simulation.js"
 import {CircuitStats} from "../../engine/simulation/CircuitStats.js"
+import {freshSeed} from "../../engine/simulation/random.js";
+import {ObservableValue} from "../../base/Obs.js";
 
 /**
  * Holds onto the last stats computed for one circuit, so redrawing an unchanging circuit doesn't
@@ -38,16 +40,17 @@ class StatsCache {
      * @param {!number} time
      * @returns {!CircuitStats}
      */
-    statsFor(circuit, time) {
-        if (this._cachedStats !== undefined && this._cachedStats.circuitDefinition.isEqualTo(circuit)) {
+    statsFor(circuit, time, seed) {
+        circuit = circuit.withMinimumWireCount();
+        if (this._cachedStats !== undefined && this._cachedStats.circuitDefinition.isEqualTo(circuit) &&
+                this._cachedStats.seed === seed &&
+                (circuit.stableDuration() === Infinity || this._cachedStats.time === time)) {
             return this._cachedStats.withTime(time);
         }
 
         this._cachedStats = undefined;
-        const result = CircuitStats.fromCircuitAtTime(circuit, time);
-        if (circuit.stableDuration() === Infinity) {
-            this._cachedStats = result;
-        }
+        const result = CircuitStats.fromCircuitAtTime(circuit, time, seed);
+        this._cachedStats = result;
         return result;
     }
 }
@@ -76,6 +79,10 @@ class Simulator {
          * @private
          */
         this._cycleTime = 0;
+        this.playing = false;
+        this.seed = freshSeed();
+        this.completed = new ObservableValue(undefined);
+        this.restored = undefined;
         /**
          * @type {!number}
          * @private
@@ -109,7 +116,7 @@ class Simulator {
     cycleTime() {
         const nextRealTime = this._nowMillis();
         const elapsed = (nextRealTime - this._prevRealTime) / Simulation.CYCLE_DURATION_MS;
-        this._cycleTime += elapsed;
+        if (this.playing) this._cycleTime += elapsed;
         this._cycleTime %= 1;
         this._prevRealTime = nextRealTime;
         return this._cycleTime;
@@ -119,8 +126,8 @@ class Simulator {
      * @param {!CircuitDefinition} circuit
      * @returns {!CircuitStats}
      */
-    simulate(circuit) {
-        return this._wholeCircuitCache.statsFor(circuit, this.cycleTime());
+    simulate(circuit, phase = this.cycleTime()) {
+        return this._wholeCircuitCache.statsFor(circuit, phase, this.seed);
     }
 
     /**
@@ -133,7 +140,7 @@ class Simulator {
      * @returns {!CircuitStats}
      */
     simulateAtStep(circuit, step, time) {
-        const clamped = Math.max(0, step);
+        const clamped = Math.min(circuit.columns.length, Math.max(0, step));
         if (this._cachedTruncation === undefined ||
                 this._cachedTruncation.source !== circuit ||
                 this._cachedTruncation.step !== clamped) {
@@ -143,7 +150,46 @@ class Simulator {
                 truncated: circuit.withColumns(circuit.columns.slice(0, clamped))
             };
         }
-        return this._playheadCache.statsFor(this._cachedTruncation.truncated, time);
+        return this._playheadCache.statsFor(this._cachedTruncation.truncated, time, this.seed);
+    }
+    setPlaying(playing, restart = false) {
+        this.cycleTime();
+        this.playing = playing;
+        if (restart) this.newRun();
+        if (playing) this.restored = undefined;
+    }
+
+    newRun() {
+        this.seed = freshSeed();
+        this.restored = undefined;
+    }
+
+    restore(result) {
+        this.playing = false;
+        this._cycleTime = result.phase;
+        this._prevRealTime = this._nowMillis();
+        this.seed = result.seed;
+        this.restored = result;
+        this.completed.set(result);
+    }
+
+    evaluate(circuit, wireCount, step, publish = true) {
+        const phase = this.cycleTime();
+        step = Math.min(circuit.columns.length, Math.max(0, step));
+        if (publish && this.restored?.circuit.isEqualTo(circuit) && this.restored.step === step) {
+            return this.restored;
+        }
+        const previous = this.completed.get();
+        if (publish && previous?.circuit.isEqualTo(circuit) && previous.step === step &&
+                previous.phase === phase && previous.seed === this.seed && previous.wireCount === wireCount) return previous;
+        const fullStats = this._wholeCircuitCache.statsFor(circuit, phase, this.seed);
+        const stats = step === circuit.columns.length ? fullStats : this.simulateAtStep(circuit, step, phase);
+        const result = {circuit, wireCount, step, phase, seed: this.seed, fullStats, stats};
+        if (publish) {
+            this.restored = undefined;
+            this.completed.set(result);
+        }
+        return result;
     }
 }
 

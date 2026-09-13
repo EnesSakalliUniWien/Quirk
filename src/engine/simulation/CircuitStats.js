@@ -31,6 +31,8 @@ import {WglTextureTrader} from "../webgl/texture/WglTextureTrader.js"
 import {ReadableJson} from "../math/matrix/ReadableJson.js"
 import {QubitMatrix} from "../math/matrix/QubitMatrix.js"
 
+import {randomFor} from "./random.js";
+
 class CircuitStats {
     /**
      * @param {!CircuitDefinition} circuitDefinition
@@ -45,7 +47,7 @@ class CircuitStats {
                 survivalRates,
                 singleQubitDensities,
                 finalState,
-                customStatsProcessed) {
+                customStatsProcessed, seed = undefined, sampleOutcomes = {}) {
         /**
          * The circuit that these stats apply to.
          * @type {!CircuitDefinition}
@@ -56,6 +58,8 @@ class CircuitStats {
          * @type {!number}
          */
         this.time = time;
+        this.seed = seed;
+        this.sampleOutcomes = sampleOutcomes;
         /**
          * @type {!Array.<!number>}
          * @private
@@ -127,10 +131,30 @@ class CircuitStats {
             ),
             displays: this._customStatsToReadableJson()
         };
+        if (Object.keys(this.sampleOutcomes).length) result.sample_outcomes = this.sampleOutcomes;
         if (includeOutputAmplitudes) {
             result['output_amplitudes'] = ReadableJson.complexVector(this.finalState.getColumn(0));
         }
         return result;
+    }
+
+    /**
+     * Copies the collected histories for recording without exposing their mutable containers.
+     * Density matrices become interleaved numeric arrays; custom display payloads retain their
+     * gate-specific types and are read-only, just like customStatsForSlot's return value.
+     * File versions, number encoding and displayed-wire padding belong to the caller.
+     */
+    snapshotData() {
+        return {
+            survival: [...this._survivalRates],
+            densities: this._qubitDensities.map(col => col.map(m => [...m.rawBuffer()])),
+            custom: [...this.customStatsEntries()],
+        };
+    }
+
+    /** Read-only display payloads in evaluation order, keyed by "column:row". */
+    customStatsEntries() {
+        return this._customStatsProcessed.entries();
     }
 
     _customStatsToReadableJson() {
@@ -205,7 +229,7 @@ class CircuitStats {
             this._survivalRates,
             this._qubitDensities,
             this.finalState,
-            this._customStatsProcessed);
+            this._customStatsProcessed, this.seed, this.sampleOutcomes);
     }
 
     /**
@@ -228,9 +252,9 @@ class CircuitStats {
      * @param {!number} time
      * @returns {!CircuitStats}
      */
-    static fromCircuitAtTime(circuitDefinition, time) {
+    static fromCircuitAtTime(circuitDefinition, time, seed = undefined) {
         try {
-            return CircuitStats._fromCircuitAtTime_noFallback(circuitDefinition, time);
+            return CircuitStats._fromCircuitAtTime_noFallback(circuitDefinition, time, seed);
         } catch (ex) {
             reportRecoveredError(
                 `Defaulted to NaN results. Computing circuit values failed.`,
@@ -334,7 +358,7 @@ class CircuitStats {
      * @param {!number} time
      * @returns {!CircuitStats}
      */
-    static _fromCircuitAtTime_noFallback(circuitDefinition, time) {
+    static _fromCircuitAtTime_noFallback(circuitDefinition, time, seed = undefined) {
         circuitDefinition = circuitDefinition.withMinimumWireCount();
         const numWires = circuitDefinition.numWires;
 
@@ -350,7 +374,7 @@ class CircuitStats {
                 controlTex,
                 Controls.NONE,
                 stateTrader,
-                new Map()),
+                new Map(), seed === undefined ? Math.random : randomFor(seed)),
             circuitDefinition,
             true);
         controlTex.deallocByDepositingInPool("controlTex in _fromCircuitAtTime_noFallback");
@@ -380,13 +404,29 @@ class CircuitStats {
             customStatsProcessed.set(col+":"+row, func(pixelData.customStats[out], circuitDefinition, col, row));
         }
 
+        const sampleOutcomes = {};
+        for (const [location, data] of customStatsProcessed) {
+            const [col, row] = location.split(":").map(Number);
+            if (!/^Sample\d+$/.test(circuitDefinition.gateInSlot(col, row).serializedId)) continue;
+            const rng = randomFor(`${seed ?? time}:sample:${location}`);
+            let remaining = rng();
+            const buf = data.rawBuffer();
+            if (data.hasNaN()) continue;
+            for (let i = 0; i < data.height(); i++) {
+                remaining -= buf[i * 2];
+                if (remaining < 0 || i === data.height() - 1) {
+                    sampleOutcomes[location] = {i, p: buf[i * 2]};
+                    break;
+                }
+            }
+        }
         return new CircuitStats(
             circuitDefinition,
             time,
             survivalRates,
             qubitDensities,
             outputSuperposition,
-            customStatsProcessed);
+            customStatsProcessed, seed, sampleOutcomes);
     }
 }
 
