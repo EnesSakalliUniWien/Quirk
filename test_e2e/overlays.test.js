@@ -492,3 +492,55 @@ test('parameter units, composition and stale targets preserve the current circui
         assert.deepEqual(await currentCircuit(page),initial);
     });
 });
+
+test('Escape closes the formula help before the parameter window', async browser => {
+    await withQuirkPage(browser, {cols: [[{id: 'Ry', arg: 'pi/3'}]]}, async page => {
+        await page.click('#gate-parameter-button');
+        await page.waitForSelector('.parameter-targets button');
+        await page.click('.parameter-targets button');
+        await page.waitForSelector('#gate-param-input');
+        await page.click('.formula-help summary');
+        assert.equal(await page.$eval('.formula-help', element => element.open), true);
+        await page.keyboard.press('Escape');
+        assert.equal(await page.$eval('.formula-help', element => element.open), false);
+        assert.ok(await page.$('[data-panel-id="gate-param"]'), 'The first Escape must leave the window open.');
+        await page.keyboard.press('Escape');
+        await waitForPanel(page, 'gate-param', false);
+    });
+});
+
+test('creating a gate keeps a toolbox search that shows it and clears one that hides it', async browser => {
+    await withQuirkPage(browser, {cols: [['H']]}, async page => {
+        for (const [search, name, kept] of [['kept', 'Kept', true], ['fourier', 'Cleared', false]]) {
+            const before = new Set(((await currentCircuit(page)).gates ?? []).map(gate => gate.id));
+            await replaceField(page, '#gate-search', search);
+            await page.click('#gate-forge-button');
+            await replaceField(page, '#gate-forge-rotation-name', name);
+            await page.waitForSelector('#gate-forge-rotation-button:not([disabled])');
+            await page.click('#gate-forge-rotation-button');
+            await waitForPanel(page, 'forge', false);
+            const id = (await currentCircuit(page)).gates.map(gate => gate.id).find(id => !before.has(id));
+            await page.waitForFunction(id => document.activeElement?.dataset.gateId === id, {}, id);
+            assert.equal(await page.$eval('#gate-search', element => element.value), kept ? search : '');
+        }
+    });
+});
+
+test('construction tabs move focus with the arrow keys and activate with Enter or Space', async browser => {
+    await withQuirkPage(browser, {cols: [['H']]}, async page => {
+        const selected = () => page.$eval('.construction-tabs [aria-selected="true"]', tab => tab.textContent);
+        await page.click('#gate-forge-button');
+        await page.waitForFunction(() => document.activeElement?.getAttribute('role') === 'tab');
+        assert.equal(await selected(), 'Rotation');
+        // The selected tab is the list's one tab stop, so the first arrow key already moves.
+        assert.deepEqual(await page.$$eval('.construction-tabs [role="tab"]', tabs => tabs.map(tab => tab.tabIndex)), [0, -1, -1]);
+        await page.keyboard.press('ArrowRight');
+        assert.equal(await page.evaluate(() => document.activeElement.textContent), 'Matrix');
+        await page.keyboard.press('Enter');
+        await page.waitForFunction(() => document.querySelector('.construction-tabs [aria-selected="true"]').textContent === 'Matrix');
+        await page.keyboard.press('ArrowRight');
+        await page.keyboard.press(' ');
+        await page.waitForFunction(() => document.querySelector('.construction-tabs [aria-selected="true"]').textContent === 'Circuit');
+        assert.ok(await page.$('#gate-forge-circuit-cols'));
+    });
+});

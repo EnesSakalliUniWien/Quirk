@@ -44,7 +44,7 @@ export function MatrixMethod({kind, draft, onDraftChange, parseOp, onCreate, onC
         </div>
         <footer className="construction-actions">
             <button type="button" onClick={onCancel}>Cancel</button>
-            <button id={`${prefix}-button`} type="submit" disabled={result.pending || !result.value}>Create {kind} Gate</button>
+            <button id={`${prefix}-button`} type="submit" disabled={result.pending || !result.value}>Create gate</button>
         </footer>
     </form>;
 }

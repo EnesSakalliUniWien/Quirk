@@ -10,17 +10,30 @@ import {MatrixMethod} from './matrix-method.jsx';
 import {MatrixInput, MatrixCorrection} from './matrix-input.jsx';
 import {CircuitMethod} from './circuit-method.jsx';
 import {parseMatrixDraft} from './construction.js';
+import {AngleUnit} from '../../../engine/math/formula/AngleExpression.js';
 
 export function ForgePanelBody({deps}) {
     const commits = useMemo(() => deps.revision.latestActiveCommit(), [deps]);
     const circuitJson = useObservedValue(commits) ?? '';
     const [method, setMethod] = useState('rotation');
-    const [rotation, setRotation] = useState({axis:'X+Z', customAxis:'X+Z', preset:'Custom', angle:'45', phase:'0', unit:'degrees', name:''});
+    const [rotation, setRotation] = useState({axis:'X+Z', customAxis:'X+Z', preset:'Custom', angle:'45', phase:'0', unit:AngleUnit.DEGREES, name:''});
     const [matrix, setMatrix] = useState({text:'{{1,0},{0,1}}', name:'', mode:'grid', size:2, grids:{2:['1','0','0','1']}, correction:'none'});
     const [circuit, setCircuit] = useState({cols:'1:∞', rows:'1:∞', name:''});
     const committed = useRef(false);
     const root = useRef(null);
-    useEffect(() => {root.current?.querySelector('[role="tab"][aria-selected="true"]')?.focus();}, []);
+    // Base UI indexes the tabs a render after they mount, and a tab focused before then claims
+    // index -1, leaving the list without a tab stop. Focus the selected tab once it is the stop.
+    useEffect(() => {
+        let frame;
+        let frames = 0;
+        const focusSelectedTab = () => {
+            const tab = root.current?.querySelector('[role="tab"][aria-selected="true"]');
+            if (tab?.tabIndex === 0 || ++frames > 30) tab?.focus();
+            else frame = requestAnimationFrame(focusSelectedTab);
+        };
+        frame = requestAnimationFrame(focusSelectedTab);
+        return () => cancelAnimationFrame(frame);
+    }, []);
     useEffect(() => () => {appStore.setState({forgeRange:undefined});}, []);
     const close = () => {
         closePanel('forge');

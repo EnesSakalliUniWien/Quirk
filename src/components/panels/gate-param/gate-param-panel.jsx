@@ -4,7 +4,7 @@ import {GateColumn} from '../../../circuit/model/GateColumn.js';
 import {appStore} from '../../../state/appStore.js';
 import {closePanel} from '../../dock.jsx';
 import {AngleField} from '../../math/angle-field.jsx';
-import {parseAngleExpression} from '../../../engine/math/formula/AngleExpression.js';
+import {AngleUnit, parseAngleExpression} from '../../../engine/math/formula/AngleExpression.js';
 
 export function GateParamPanel() {
     const deps = useStore(appStore,s => s.panelDeps);
@@ -25,13 +25,13 @@ function ParameterList({deps}) {
 }
 function ParameterEditor({deps,target}) {
     const [text,setText] = useState(String(target.gate.param ?? ''));
-    const [unit,setUnit] = useState('radians');
+    const [unit,setUnit] = useState(AngleUnit.RADIANS);
     const [error,setError] = useState('');
     const [edited,setEdited] = useState(false);
     const inputRef = useRef(null);
     const openingControl = useRef(document.activeElement);
     const closing = useRef(false);
-    const isAngle = target.gate.paramDialog.angleUnit === 'radians';
+    const isAngle = target.gate.paramDialog.angleUnit === AngleUnit.RADIANS;
     let parsed,validation;
     if (isAngle) {
         try {parsed = parseAngleExpression(text,unit);} catch (e) {validation = e.message;}
@@ -59,7 +59,7 @@ function ParameterEditor({deps,target}) {
         const definition = deps.displayed.getState().value.displayedCircuit.circuitDefinition;
         const oldGate = definition.gateInSlot(target.col,target.row);
         if (oldGate !== target.gate || !oldGate.paramDialog) {close(); return;}
-        const value = !edited ? String(oldGate.param ?? '') : isAngle && unit === 'degrees' ? String(parsed.radians) : text;
+        const value = !edited ? String(oldGate.param ?? '') : isAngle && unit === AngleUnit.DEGREES ? String(parsed.radians) : text;
         const result = oldGate.paramDialog.applyText(oldGate,value);
         if (result.error) {setError(result.error); return;}
         if (result.gate !== oldGate && result.gate.param !== oldGate.param) {
@@ -72,7 +72,14 @@ function ParameterEditor({deps,target}) {
         close();
     };
     return <form className="panel-body gate-param-panel" aria-labelledby="gate-param-title" onSubmit={e => {e.preventDefault(); apply();}}
-        onKeyDown={e => {if (e.nativeEvent.isComposing) {if (e.key === 'Enter') e.preventDefault(); return;} if (e.key === 'Escape' && !e.defaultPrevented) {e.preventDefault(); close();}}}>
+        onKeyDown={e => {
+            if (e.nativeEvent.isComposing) {if (e.key === 'Enter') e.preventDefault(); return;}
+            if (e.key !== 'Escape' || e.defaultPrevented) return;
+            e.preventDefault();
+            // Escape closes the open formula help before it cancels the window.
+            const help = e.currentTarget.querySelector('.formula-help[open]');
+            if (help) help.open = false; else close();
+        }}>
         <header><h2 id="gate-param-title" className="gate-param-title">{target.gate.paramDialog.title}</h2>
             <p className="field-description">Wire {target.row+1} · Column {target.col+1}</p></header>
         <div className="construction-scroll">

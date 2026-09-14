@@ -49,6 +49,6 @@ export function CircuitMethod({deps, circuitJson, draft, onDraftChange, onCreate
             </>}
         </div>
     </div></div><footer className="construction-actions"><button type="button" onClick={onCancel}>Cancel</button>
-        <button id="gate-forge-circuit-button" type="submit" disabled={!value}>Create Circuit Gate</button></footer>
+        <button id="gate-forge-circuit-button" type="submit" disabled={!value}>Create gate</button></footer>
     </form>;
 }

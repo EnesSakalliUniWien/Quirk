@@ -1,6 +1,6 @@
 import {useRef} from 'react';
 import {Field} from '@base-ui/react/field';
-import {parseAngleExpression} from '../../engine/math/formula/AngleExpression.js';
+import {AngleUnit, parseAngleExpression} from '../../engine/math/formula/AngleExpression.js';
 import {MathField} from './math-field.jsx';
 
 /** Unit conversion preserves the value, and a round trip without editing preserves the text. */
@@ -18,13 +18,17 @@ export function AngleField({id, label = 'Angle', value, unit, onChange, onUnitCh
     return <Field.Root className="angle-field" invalid={!!error}>
         <div className="field-label-row"><Field.Label htmlFor={id}>{label}</Field.Label>
             {showUnit && <select aria-label={`${label} unit`} value={unit} disabled={!parsed || unitDisabled} onChange={e => changeUnit(e.target.value)}>
-                <option value="radians">Radians</option><option value="degrees">Degrees</option>
+                <option value={AngleUnit.RADIANS}>Radians</option><option value={AngleUnit.DEGREES}>Degrees</option>
             </select>}
         </div>
         <MathField id={id} inputRef={inputRef} label={label} value={value} onChange={change} onKeyboardShow={onKeyboardShow}
             invalid={!!error} describedBy={`${id}-description`} />
-        <p id={`${id}-description`} className={error ? 'field-error' : 'field-description'} aria-live="polite">
-            {error || `${Number(parsed.radians.toPrecision(7))} rad = ${Number(parsed.degrees.toPrecision(7))}°`}
-        </p>
+        {/* The live region outlasts the swap between readout and error, so a new error is announced. */}
+        <div aria-live="polite">
+            {error ? <Field.Error id={`${id}-description`} className="field-error" match>{error}</Field.Error> :
+                <Field.Description id={`${id}-description`} className="field-description">
+                    {`${Number(parsed.radians.toPrecision(7))} rad = ${Number(parsed.degrees.toPrecision(7))}°`}
+                </Field.Description>}
+        </div>
     </Field.Root>;
 }

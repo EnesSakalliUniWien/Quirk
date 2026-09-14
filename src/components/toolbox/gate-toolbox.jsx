@@ -177,9 +177,11 @@ function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace }) {
   const customGateFocus = useStore(appStore, state => state.customGateFocus);
   useEffect(() => {
     if (!customGateFocus) return;
-    if (query) {setQuery(''); return;}
     const model = models.find(model => model.gate.serializedId === customGateFocus);
-    const element = model && tileElements.current.get(model.key);
+    if (!model) return;
+    // A search that already shows the new gate stays; only one that hides it is cleared.
+    if (!matches(model)) {setQuery(''); return;}
+    const element = tileElements.current.get(model.key);
     if (!element) return;
     setStopKey(model.key);
     element.scrollIntoView({block:'nearest'});

@@ -16,7 +16,7 @@
 
 import {GateBuilder} from "../../circuit/model/Gate.js"
 import {paintBackground, paintOutline, paintGateButton} from '../../draw/gate/GateFrame.js';
-import {parseAngleExpression} from '../../engine/math/formula/AngleExpression.js';
+import {AngleUnit, parseAngleExpression} from '../../engine/math/formula/AngleExpression.js';
 import {paintAngleGateLabel} from '../../draw/gate/AngleGateLabel.js';
 import {XExp, YExp, ZExp} from "./ExponentiatingGates.js"
 import {parseTimeFormula, makeUpdateFormulaFunc} from "./FormulaGateUtil.js"
@@ -70,7 +70,7 @@ function badAngleFormulaDetector(args) {
 function radianAngleDialog(axisName) {
     return {
         title: `${axisName} angle`,
-        angleUnit: 'radians',
+        angleUnit: AngleUnit.RADIANS,
         message: "The angle can be a constant formula (e.g. pi/2 or 3pi/4).\n" +
             "\n" +
             "Available constants: e, pi\n" +

@@ -64,6 +64,10 @@ export function toQuirkExpression(latex,{allowComplex = false} = {}) {
                 if (!match) throw new Error('Unsupported mathematical notation.');
                 pos += match[0].length;
                 let name = match[1];
+                // MathLive's keyboard writes e and i as macros, and its templates leave placeholders.
+                if (name === 'exponentialE') return 'e';
+                if (name === 'imaginaryI') return 'i';
+                if (name === 'placeholder') throw new Error('Complete the expression.');
                 if (name === 'frac' || name === 'dfrac' || name === 'tfrac') return `((${group(depth)})/(${group(depth)}))`;
                 if (name === 'sqrt') return `sqrt(${group(depth)})`;
                 if (name === 'pi') return 'pi';
