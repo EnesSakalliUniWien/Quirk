@@ -24,6 +24,16 @@ import {Gate} from "../../../src/circuit/model/Gate.js"
 
 const suite = new Suite("RotationGates");
 
+suite.test('parameter dialog rejects invalid and nonfinite angles before applying', () => {
+    for (const gate of Gates.RotationGates.all) {
+        for (const text of ['not_an_angle', 'i', '1/0', 't']) {
+            assertThat(typeof gate.paramDialog.applyText(gate, text).error).isEqualTo('string');
+        }
+        assertThat(gate.paramDialog.applyText(gate, '3pi/4').gate.param).isEqualTo('3pi/4');
+        assertThat(gate.paramDialog.applyText(gate, '').gate).isEqualTo(gate);
+    }
+});
+
 suite.test("rx_matrix_matches_angle", () => {
     const rx = angle => Gates.RotationGates.Rx.withParam(angle).knownMatrixAt(0.1);
 

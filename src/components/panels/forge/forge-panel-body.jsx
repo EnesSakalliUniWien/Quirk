@@ -1,159 +1,69 @@
-import { useMemo, useState } from "react";
-import { GateBuilder } from "../../../circuit/model/Gate.js";
-import { Serializer, fromJsonText_CircuitDefinition } from "../../../serialization/Serializer.js";
-import { parseUserMatrix, parseUserRotation, randomCustomGateId } from "../../../serialization/customGateParsing.js";
-import { closePanel } from "../../dock.jsx";
-import { useObservedValue } from "../../useObservedValue.js";
-import { inputKey, entered } from "./inputs.js";
-import { MatrixMethod } from "./matrix-method.jsx";
-import { CircuitMethod } from "./circuit-method.jsx";
+import {useEffect, useMemo, useRef, useState} from 'react';
+import {Tabs} from '@base-ui/react/tabs';
+import {Serializer, fromJsonText_CircuitDefinition} from '../../../serialization/Serializer.js';
+import {randomCustomGateId} from '../../../serialization/customGateParsing.js';
+import {appStore} from '../../../state/appStore.js';
+import {closePanel, openPanel} from '../../dock.jsx';
+import {useObservedValue} from '../../useObservedValue.js';
+import {RotationMethod} from './rotation-method.jsx';
+import {MatrixMethod} from './matrix-method.jsx';
+import {MatrixInput, MatrixCorrection} from './matrix-input.jsx';
+import {CircuitMethod} from './circuit-method.jsx';
+import {parseMatrixDraft} from './construction.js';
 
-/**
- * @param {!{deps: !Object}} props
- */
-function ForgePanelBody({ deps }) {
-  const commits = useMemo(() => deps.revision.latestActiveCommit(), [deps]);
-  const circuitJson = useObservedValue(commits) ?? "";
-  const [axis, setAxis] = useState("");
-  const [angle, setAngle] = useState("");
-  const [phase, setPhase] = useState("");
-  const [matrixText, setMatrixText] = useState("");
-  const [ensureUnitary, setEnsureUnitary] = useState(true);
-
-  const createGate = (gate, circuitDef = undefined) => {
-    const circuit = circuitDef ?? fromJsonText_CircuitDefinition(circuitJson);
-    deps.revision.commit(
-      JSON.stringify(Serializer.toJson(circuit.withCustomGate(gate)), null, 0),
-    );
-    closePanel("forge");
-  };
-
-  return (
-    <>
-      <div className="panel-body forge-panel" aria-labelledby="forge-title">
-        <header className="panel-header">
-          <p className="panel-eyebrow">Custom operation</p>
-          <h1 id="forge-title" className="panel-title">
-            Make a gate
-          </h1>
-          <p className="panel-description">
-            Define a gate from a rotation, a matrix, or part of the current circuit.
-          </p>
-        </header>
-        <div className="forge-grid">
-          <MatrixMethod
-            heading="From Rotation"
-            canvasId="gate-forge-rotation-canvas"
-            buttonId="gate-forge-rotation-button"
-            buttonLabel="Create Rotation Gate"
-            nameId="gate-forge-rotation-name"
-            namePlaceholder="[the matrix]"
-            inputs={inputKey(axis, angle, phase)}
-            parseOp={() =>
-              parseUserRotation(
-                entered(angle, "45"),
-                entered(phase, "0"),
-                entered(axis, "X+Z"),
-              )
-            }
-            buildGate={(matrix, name) =>
-              new GateBuilder()
-                .setSerializedId(randomCustomGateId())
-                .setSymbol(name)
-                .setTitle("Custom Rotation Gate")
-                .setKnownEffectToMatrix(matrix).gate
-            }
-            onCreate={createGate}
-          >
-            <label className="forge-field" htmlFor="gate-forge-rotation-axis">
-              <span>Axis</span>
-              <input
-                id="gate-forge-rotation-axis"
-                type="text"
-                placeholder="X+Z"
-                value={axis}
-                onChange={(event) => setAxis(event.target.value)}
-              />
-            </label>
-            <label className="forge-field" htmlFor="gate-forge-rotation-angle">
-              <span>Angle (degrees)</span>
-              <input
-                id="gate-forge-rotation-angle"
-                type="text"
-                placeholder="45"
-                value={angle}
-                onChange={(event) => setAngle(event.target.value)}
-              />
-            </label>
-            <label className="forge-field" htmlFor="gate-forge-rotation-phase">
-              <span>Global phase (degrees)</span>
-              <input
-                id="gate-forge-rotation-phase"
-                type="text"
-                placeholder="0"
-                value={phase}
-                onChange={(event) => setPhase(event.target.value)}
-              />
-            </label>
-          </MatrixMethod>
-
-          <div className="forge-choice-divider" aria-hidden="true">
-            or
-          </div>
-
-          <MatrixMethod
-            heading="From Matrix"
-            canvasId="gate-forge-matrix-canvas"
-            buttonId="gate-forge-matrix-button"
-            buttonLabel="Create Matrix Gate"
-            nameId="gate-forge-matrix-name"
-            namePlaceholder="[the matrix]"
-            inputs={inputKey(matrixText, ensureUnitary)}
-            parseOp={() =>
-              parseUserMatrix(entered(matrixText, "1, i,  i, 1"), ensureUnitary)
-            }
-            buildGate={(matrix, rawName) => {
-              const name = rawName.trim();
-              const h = Math.round(Math.log2(matrix.height()));
-              return new GateBuilder()
-                .setSerializedId(randomCustomGateId())
-                .setSymbol(name)
-                .setTitle("Custom Matrix Gate")
-                .setHeight(h)
-                .setWidth(name === "" ? h : 1)
-                .setKnownEffectToMatrix(matrix).gate;
-            }}
-            onCreate={createGate}
-          >
-            <label className="forge-field" htmlFor="gate-forge-matrix">
-              <span>Matrix values</span>
-              <textarea
-                id="gate-forge-matrix"
-                placeholder="1, i,  i, 1"
-                value={matrixText}
-                onChange={(event) => setMatrixText(event.target.value)}
-              />
-            </label>
-            <label className="checkbox-row" htmlFor="gate-forge-matrix-fix">
-              <input
-                id="gate-forge-matrix-fix"
-                type="checkbox"
-                checked={ensureUnitary}
-                onChange={(event) => setEnsureUnitary(event.target.checked)}
-              />
-              <span className="matrix-fix-label">Ensure unitary (by SVD)</span>
-            </label>
-          </MatrixMethod>
-
-          <div className="forge-choice-divider" aria-hidden="true">
-            or
-          </div>
-
-          <CircuitMethod deps={deps} circuitJson={circuitJson} onCreate={createGate} />
-        </div>
-      </div>
-    </>
-  );
+export function ForgePanelBody({deps}) {
+    const commits = useMemo(() => deps.revision.latestActiveCommit(), [deps]);
+    const circuitJson = useObservedValue(commits) ?? '';
+    const [method, setMethod] = useState('rotation');
+    const [rotation, setRotation] = useState({axis:'X+Z', customAxis:'X+Z', preset:'Custom', angle:'45', phase:'0', unit:'degrees', name:''});
+    const [matrix, setMatrix] = useState({text:'{{1,0},{0,1}}', name:'', mode:'grid', size:2, grids:{2:['1','0','0','1']}, correction:'none'});
+    const [circuit, setCircuit] = useState({cols:'1:∞', rows:'1:∞', name:''});
+    const committed = useRef(false);
+    const root = useRef(null);
+    useEffect(() => {root.current?.querySelector('[role="tab"][aria-selected="true"]')?.focus();}, []);
+    useEffect(() => () => {appStore.setState({forgeRange:undefined});}, []);
+    const close = () => {
+        closePanel('forge');
+        requestAnimationFrame(() => document.getElementById('gate-forge-button')?.focus());
+    };
+    const create = (gate, sourceJson = circuitJson) => {
+        if (committed.current || sourceJson !== circuitJson) return;
+        const definition = fromJsonText_CircuitDefinition(circuitJson);
+        const finalGate = gate._copy();
+        do {finalGate.serializedId = randomCustomGateId();}
+        while (definition.customGateSet.gates.some(g => g.serializedId === finalGate.serializedId));
+        committed.current = true;
+        deps.revision.commit(JSON.stringify(Serializer.toJson(definition.withCustomGate(finalGate))));
+        appStore.setState({customGateFocus:finalGate.serializedId});
+        closePanel('forge');
+        openPanel('gates');
+    };
+    return <div className="panel-body forge-panel" ref={root} aria-labelledby="forge-title" onKeyDown={event => {
+        if (event.nativeEvent.isComposing) {if (event.key === 'Enter') event.preventDefault(); return;}
+        if (event.key === 'Escape' && !event.defaultPrevented) {event.preventDefault(); close();}
+    }}>
+        <header className="panel-header"><h1 className="panel-title" id="forge-title">Make a gate</h1>
+            <p className="panel-description">Define the operation, inspect it, then add it to Custom Gates.</p></header>
+        <Tabs.Root className="forge-tabs" value={method} onValueChange={setMethod}>
+            <Tabs.List className="construction-tabs" aria-label="Construction method">
+                <Tabs.Tab value="rotation">Rotation</Tabs.Tab><Tabs.Tab value="matrix">Matrix</Tabs.Tab><Tabs.Tab value="circuit">Circuit</Tabs.Tab>
+            </Tabs.List>
+            <Tabs.Panel value="rotation" className="construction-tab-panel">
+                <RotationMethod draft={rotation} onDraftChange={setRotation} onCreate={create} onCancel={close} />
+            </Tabs.Panel>
+            <Tabs.Panel value="matrix" className="construction-tab-panel">
+                <MatrixMethod kind="Matrix" draft={matrix} onDraftChange={setMatrix}
+                    parseOp={() => {
+                        if (matrix.mode === 'grid' && matrix.grids[matrix.size].some(text => !text.trim())) throw new Error('Complete every matrix entry.');
+                        return parseMatrixDraft(matrix.text, matrix.correction === 'accepted');
+                    }} onCreate={create} onCancel={close}
+                    extraPreview={<MatrixCorrection draft={matrix} onChange={setMatrix} />}>
+                    <MatrixInput draft={matrix} onChange={setMatrix} />
+                </MatrixMethod>
+            </Tabs.Panel>
+            <Tabs.Panel value="circuit" className="construction-tab-panel">
+                <CircuitMethod deps={deps} circuitJson={circuitJson} draft={circuit} onDraftChange={setCircuit} onCreate={create} onCancel={close} />
+            </Tabs.Panel>
+        </Tabs.Root>
+    </div>;
 }
-
-export { ForgePanelBody };

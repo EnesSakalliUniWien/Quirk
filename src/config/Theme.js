@@ -190,6 +190,7 @@ const border = "rgba(211, 214, 224, 0.14)";
 const primary = "#E5E7EF";
 
 const dom = Object.freeze({
+  "--forge-range-fill": `color-mix(in srgb, ${foreground} 8%, transparent)`,
   "--spacing": "0.25rem",
   "--text-caption": "0.6875rem",
   "--text-small": "0.8125rem",

@@ -1,4 +1,6 @@
 import {observeStore} from '../../base/valueStore.js';
+import {useStore} from 'zustand';
+import {appStore} from '../../state/appStore.js';
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 
 import { AtomIcon, SearchIcon } from "lucide-react";
@@ -172,6 +174,18 @@ function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace }) {
   // The tiles share one tab stop; Up and Down move between the visible ones. Without this the
   // gates are over a hundred tab stops between the search box and the rest of the page.
   const tileElements = useRef(new Map());
+  const customGateFocus = useStore(appStore, state => state.customGateFocus);
+  useEffect(() => {
+    if (!customGateFocus) return;
+    if (query) {setQuery(''); return;}
+    const model = models.find(model => model.gate.serializedId === customGateFocus);
+    const element = model && tileElements.current.get(model.key);
+    if (!element) return;
+    setStopKey(model.key);
+    element.scrollIntoView({block:'nearest'});
+    element.focus();
+    appStore.setState({customGateFocus:undefined});
+  }, [customGateFocus,models,query]);
   const registerTile = (key, element) => {
     if (element === null) {
       tileElements.current.delete(key);

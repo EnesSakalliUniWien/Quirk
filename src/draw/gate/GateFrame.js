@@ -159,11 +159,16 @@ function paintLocationIndependentFrame(
  * @param {!GateRenderParams} args
  */
 function paintGateButton(args) {
-  if (!args.isHighlighted || args.hand.isHoldingSomething()) {
+  if (args.hand.isHoldingSomething()) {
     return;
   }
 
   const buttonRect = gateButtonRect(args.rect);
+  if (!args.isHighlighted) {
+    fitText(args.painter, 'edit', {x:args.rect.right()-3,y:args.rect.bottom()-2,align:'right',baseline:'bottom',
+      fill:gateStyle(args.gate).text,font:{fontSize:10,fontFamily:Typography.DEFAULT_FONT_FAMILY},width:19,height:14});
+    return;
+  }
   const buttonFocus = args.focusPoints.some((pt) => buttonRect.containsPoint(pt));
   rectangle(args.painter, buttonRect, {
     fill: buttonFocus

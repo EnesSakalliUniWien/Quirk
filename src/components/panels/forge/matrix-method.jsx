@@ -1,84 +1,50 @@
-import { useEffect, useRef, useState } from "react";
-import { useDebounced, PREVIEW_DEBOUNCE_MILLIS } from "./useDebounced.js";
-import { OperationPreview } from "./operation-preview.jsx";
+import {OperationPreview} from './operation-preview.jsx';
+import {GatePreview} from '../../gate/gate-preview.jsx';
+import {useDraftPreview} from './useDraftPreview.js';
+import {inputKey} from './inputs.js';
+import {buildMatrixGate} from './construction.js';
 
-/**
- * One matrix-based forge method: parse the inputs into an operation, preview it beside its Bloch
- * rotation, and on confirmation wrap it in a gate and commit it. The rotation and matrix sections
- * are both this skeleton; only their inputs, parsing, and gate dressing differ.
- *
- * @param {!{heading: !string, canvasId: !string, buttonId: !string, buttonLabel: !string,
- *     nameId: !string, namePlaceholder: !string, inputs: !string, parseOp: !function(): !Matrix,
- *     buildGate: !function(!Matrix, !string): !Gate, onCreate: !function(!Gate): void,
- *     children: *}} props
- */
-function MatrixMethod({
-  heading,
-  canvasId,
-  buttonId,
-  buttonLabel,
-  nameId,
-  namePlaceholder,
-  inputs,
-  parseOp,
-  buildGate,
-  onCreate,
-  children,
-}) {
-  const [preview, setPreview] = useState({});
-  // Held in a ref so the paint effect can call the latest parser without depending on its identity.
-  const parseOpRef = useRef(parseOp);
-  parseOpRef.current = parseOp;
-  const [name, setName] = useState("");
-  const [buildable, setBuildable] = useState(false);
-  const settled = useDebounced(inputs, PREVIEW_DEBOUNCE_MILLIS);
-
-  // Repaints when the settled inputs change. parseOp closes over those inputs, so `settled` is
-  // what makes it current; depending on parseOp itself would repaint on every render.
-  useEffect(() => {
-    try {
-      const matrix = parseOpRef.current();
-      setPreview({matrix});
-      setBuildable(!matrix.hasNaN());
-    } catch (error) {
-      setPreview({error: String(error)});
-      setBuildable(false);
-    }
-  }, [settled]);
-
-  const create = () => {
-    let matrix;
-    try {
-      matrix = parseOp();
-    } catch (ex) {
-      console.warn(ex);
-      return; // The button is about to be disabled, so no handling required.
-    }
-    onCreate(buildGate(matrix, name));
-  };
-
-  return (
-    <section className="forge-method">
-      <h2>{heading}</h2>
-      <div className="forge-fields">{children}</div>
-      <div id={canvasId}>
-        {preview.matrix ? <OperationPreview matrix={preview.matrix} /> : <p role="alert">{preview.error}</p>}
-      </div>
-      <label className="forge-field" htmlFor={nameId}>
-        <span>Circuit symbol</span>
-        <input
-          id={nameId}
-          type="text"
-          placeholder={namePlaceholder}
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-        />
-      </label>
-      <button id={buttonId} type="button" disabled={!buildable} onClick={create}>
-        {buttonLabel}
-      </button>
-    </section>
-  );
+/** Rotation and matrix methods share one operation preview and one commit path. */
+export function MatrixMethod({kind, draft, onDraftChange, parseOp, onCreate, onCancel, children, extraPreview}) {
+    const key = inputKey(kind, draft);
+    const parse = () => {
+        const matrix = parseOp();
+        return {matrix, gate: buildMatrixGate(matrix, draft.name, kind)};
+    };
+    const result = useDraftPreview(key, parse);
+    const prefix = `gate-forge-${kind.toLowerCase()}`;
+    return <form className="forge-method" onSubmit={event => {
+        event.preventDefault();
+        if (!result.pending && result.value) {
+            // Revalidate at the action boundary, even if a debounce is pending in React.
+            parseOp();
+            onCreate(result.value.gate);
+        }
+    }}>
+        <div className="construction-scroll">
+            <div className="construction-layout">
+                <div className="forge-fields">
+                    <h2>From {kind}</h2>
+                    {children}
+                    <label className="forge-field" htmlFor={`${prefix}-name`}>Circuit symbol
+                        <input id={`${prefix}-name`} value={draft.name} placeholder="Use the operation preview"
+                            onChange={event => onDraftChange({...draft, name:event.target.value})} />
+                    </label>
+                </div>
+                <div className="construction-preview" id={`${prefix}-canvas`} aria-busy={result.pending}>
+                    <h2>Preview</h2>
+                    {result.pending ? <p role="status">Updating preview…</p> : result.error ?
+                        <p className="field-error" role="alert">{result.error}</p> : result.value && <>
+                            <OperationPreview matrix={result.value.matrix} />
+                            {extraPreview}
+                            <GatePreview gate={result.value.gate} />
+                        </>}
+                </div>
+            </div>
+        </div>
+        <footer className="construction-actions">
+            <button type="button" onClick={onCancel}>Cancel</button>
+            <button id={`${prefix}-button`} type="submit" disabled={result.pending || !result.value}>Create {kind} Gate</button>
+        </footer>
+    </form>;
 }
-
-export { MatrixMethod };

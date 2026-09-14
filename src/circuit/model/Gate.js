@@ -640,7 +640,7 @@ class GateBuilder {
 
     /**
      * Makes the gate's button open the in-app parameter panel.
-     * @param {!{title: !string, message: !string,
+     * @param {!{title: !string, message: !string, angleUnit: (undefined|!string),
      *     applyText: !function(oldGate: !Gate, text: !string): !{gate: !Gate}|!{error: !string}}} paramDialog
      * @returns {!GateBuilder}
      */

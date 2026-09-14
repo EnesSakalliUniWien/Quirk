@@ -1,9 +1,6 @@
 
 
 /** Joins a method's inputs into one debounce key. */
-const inputKey = (...values) => values.join(" ");
+const inputKey = (...values) => JSON.stringify(values);
 
-/** An empty field means its placeholder, the way the forge has always read them. */
-const entered = (text, placeholder) => (text === "" ? placeholder : text);
-
-export { inputKey, entered };
+export { inputKey };

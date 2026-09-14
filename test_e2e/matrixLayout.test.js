@@ -121,17 +121,19 @@ test("Forge shares written matrices, preserves parsing and previews non-unitary 
     await withQuirkPage(browser, {cols: [["H"]]}, async page => {
         await page.click('#gate-forge-button');
         await waitForPanel(page, 'forge', true);
+        await page.$$eval('.construction-tabs [role="tab"]', tabs => tabs.find(tab => tab.textContent === 'Matrix').click());
         await page.waitForSelector('#gate-forge-matrix-canvas mtable');
-        assert.equal(await page.$$eval('.forge-operation-preview .rotation-figure', e => e.length), 2);
-        await page.click('#gate-forge-matrix-fix');
+        assert.equal(await page.$$eval('.forge-operation-preview .rotation-figure', e => e.length), 1);
+        await page.$$eval('.entry-modes button', buttons => buttons.find(button => button.textContent === 'Raw text').click());
+        await page.$eval('#gate-forge-matrix',element=>{element.focus();element.select();});
         await page.type('#gate-forge-matrix', '1, 0, 0, 2');
-        await page.waitForFunction(() => document.querySelector('#gate-forge-matrix-canvas').textContent.includes('NOT UNITARY'));
+        await page.waitForFunction(() => document.querySelector('#gate-forge-matrix-canvas').textContent.includes('Nonunitary operation'));
         assert.equal(await page.$eval('#gate-forge-matrix-button', e => e.disabled), false);
-        await page.click('#gate-forge-matrix', {clickCount: 3});
+        await page.$eval('#gate-forge-matrix',element=>{element.focus();element.select();});
         await page.keyboard.press('Backspace');
         await page.type('#gate-forge-matrix', 'invalid');
         await page.waitForFunction(() => document.querySelector('#gate-forge-matrix-button').disabled);
-        assert.ok(await page.$('#gate-forge-matrix-canvas [role="alert"]'));
+        await page.waitForSelector('#gate-forge-matrix-canvas [role="alert"]');
     });
 });
 

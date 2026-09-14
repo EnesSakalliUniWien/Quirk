@@ -67,6 +67,8 @@ const appStore = createStore((set) => ({
     /** @type {undefined|!{col: !int, row: !int, gate: !Gate}} The gate the parameter panel edits,
      *  set by the click that opens it. Transient, so it is not part of the dock's layout. */
     gateParamTarget: undefined,
+    forgeRange: undefined,
+    customGateFocus: undefined,
 
     /** @type {undefined|!{row: !int, col: (undefined|!int)}} The sphere the Bloch panel enlarges. */
     blochTarget: undefined,

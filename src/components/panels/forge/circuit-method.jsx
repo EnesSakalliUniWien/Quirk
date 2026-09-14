@@ -1,166 +1,54 @@
-import { useEffect, useRef, useState } from "react";
-import { CanvasTheme } from "../../../config/CanvasTheme.js";
-import { Point } from "../../../geometry/Point.js";
-import { Rect } from "../../../geometry/Rect.js";
-import { RenderSurface } from "../../../draw/surface/RenderSurface.js";
-import { fromJsonText_CircuitDefinition } from "../../../serialization/Serializer.js";
-import { drawCircuitTooltip } from "../../../editor/rendering/previews/CircuitPreview.js";
-import { drawingArea } from "../../../draw/scene/DisplayView.js";
-import { fitParagraph } from "../../../draw/text/TextLayout.js";
-import { rectangle } from "../../../draw/shapes/ShapeView.js";
-import { parseUserGateFromCircuitRange } from "../../../serialization/customGateParsing.js";
-import { useDebounced, PREVIEW_DEBOUNCE_MILLIS } from "./useDebounced.js";
-import { inputKey, entered } from "./inputs.js";
+import {useEffect} from 'react';
+import {fromJsonText_CircuitDefinition} from '../../../serialization/Serializer.js';
+import {appStore} from '../../../state/appStore.js';
+import {CircuitFigure} from '../../gate/circuit-figure.jsx';
+import {GatePreview} from '../../gate/gate-preview.jsx';
+import {useDraftPreview} from './useDraftPreview.js';
+import {validateCircuitRange,parseCircuitDraft} from './construction.js';
+import {inputKey} from './inputs.js';
 
-/**
- * The third method, which takes a range of the circuit on screen rather than a matrix: it previews
- * the gate the range would become, reports what it needs and what it costs, and animates while a
- * time-dependent gate is inside it.
- *
- * @param {!{deps: !Object, circuitJson: !string, onCreate: !function(!Gate, !Object): void}} props
- */
-function CircuitMethod({ deps, circuitJson, onCreate }) {
-  const canvasRef = useRef(null);
-  const [cols, setCols] = useState("");
-  const [rows, setRows] = useState("");
-  const [name, setName] = useState("");
-  const [stats, setStats] = useState({ inputs: "(none)", weight: "0" });
-  const [buildable, setBuildable] = useState(false);
-  const settled = useDebounced(
-    inputKey(cols, rows, name, circuitJson),
-    PREVIEW_DEBOUNCE_MILLIS,
-  );
-  // Held in a ref for the same reason as the matrix methods': the preview follows the settled
-  // inputs, not every keystroke's new closure.
-  const parseRef = useRef(undefined);
-  parseRef.current = () => {
-    const circuit = fromJsonText_CircuitDefinition(circuitJson);
-    const gate = parseUserGateFromCircuitRange(
-      circuit,
-      entered(cols, "1:∞"),
-      entered(rows, "1:∞"),
-      name.trim(),
-    );
-    return { gate, circuit };
-  };
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (canvas === null) {
-      return undefined;
-    }
-    const paint = (gate) => {
-      const painter = RenderSurface.forCanvas(canvas).beginFrame();
-      rectangle(painter, drawingArea(painter), { fill: CanvasTheme.surface.gate });
-      drawCircuitTooltip(
-        painter,
-        gate.knownCircuitNested,
-        new Rect(0, 0, canvas.width, canvas.height),
-        true,
-        deps.cycleTime(),
-      );
-    };
-
-    let gate;
-    try {
-      gate = parseRef.current().gate;
-      const keys = gate.getUnmetContextKeys();
-      setStats({
-        inputs:
-          keys.size === 0
-            ? "(none)"
-            : [...keys]
-                .map((e) =>
-                  e.replace("Input Range ", "").replace("Input NO_DEFAULT Range ", ""),
-                )
-                .join(", "),
-        weight: "" + gate.knownCircuit.gateWeight(),
-      });
-      setBuildable(true);
-      paint(gate);
-    } catch (ex) {
-      setStats({ inputs: "(err)", weight: "(err)" });
-      setBuildable(false);
-      const painter = RenderSurface.forCanvas(canvas).beginFrame();
-      rectangle(painter, drawingArea(painter), { fill: CanvasTheme.surface.gate });
-      fitParagraph(painter, ex + "", new Rect(0, 0, canvas.width, canvas.height), {
-        alignment: new Point(0.5, 0.5),
-        fill: CanvasTheme.error.text,
-        maxFontSize: 24,
-      });
-      return undefined;
-    }
-
-    // A gate that never changes needs one frame; one that does follows the circuit's own clock.
-    if (gate.stableDuration() === Infinity) {
-      return undefined;
-    }
-    let frame = requestAnimationFrame(function tick() {
-      paint(gate);
-      frame = requestAnimationFrame(tick);
+export function CircuitMethod({deps, circuitJson, draft, onDraftChange, onCreate, onCancel}) {
+    const result = useDraftPreview(inputKey(draft,circuitJson), () => {
+        const circuit = fromJsonText_CircuitDefinition(circuitJson);
+        return parseCircuitDraft(circuit,draft);
     });
-    return () => cancelAnimationFrame(frame);
-  }, [settled, deps]);
-
-  return (
-    <section className="forge-method">
-      <h2>From Circuit</h2>
-      <div className="forge-fields">
-        <label className="forge-field" htmlFor="gate-forge-circuit-cols">
-          <span>Column range</span>
-          <input
-            id="gate-forge-circuit-cols"
-            type="text"
-            placeholder="1:∞"
-            value={cols}
-            onChange={(event) => setCols(event.target.value)}
-          />
-        </label>
-        <label className="forge-field" htmlFor="gate-forge-circuit-rows">
-          <span>Wire range</span>
-          <input
-            id="gate-forge-circuit-rows"
-            type="text"
-            placeholder="1:∞"
-            value={rows}
-            onChange={(event) => setRows(event.target.value)}
-          />
-        </label>
-      </div>
-      <div className="forge-stats">
-        Inputs: <span id="gate-forge-circuit-inputs">{stats.inputs}</span>
-        <br />
-        Weight: <span id="gate-forge-circuit-weight">{stats.weight}</span>
-      </div>
-      <canvas id="gate-forge-circuit-canvas" ref={canvasRef} className="forge-preview" />
-      <label className="forge-field" htmlFor="gate-forge-circuit-name">
-        <span>Circuit symbol</span>
-        <input
-          id="gate-forge-circuit-name"
-          type="text"
-          placeholder="[the circuit]"
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-        />
-      </label>
-      <button
-        id="gate-forge-circuit-button"
-        type="button"
-        disabled={!buildable}
-        onClick={() => {
-          try {
-            const { gate, circuit } = parseRef.current();
-            onCreate(gate, circuit);
-          } catch (ex) {
-            // The button is about to be disabled, so no handling required.
-            console.warn(ex);
-          }
-        }}
-      >
-        Create Circuit Gate
-      </button>
-    </section>
-  );
+    const value = !result.pending ? result.value : undefined;
+    useEffect(() => {
+        appStore.setState({forgeRange:value ? {circuitJson, range:value.range} : undefined});
+        return () => appStore.setState({forgeRange:undefined});
+    }, [value,circuitJson]);
+    const nested = value?.gate.knownCircuitNested;
+    return <form className="forge-method" onSubmit={event => {
+        event.preventDefault();
+        if (!value) return;
+        validateCircuitRange(fromJsonText_CircuitDefinition(circuitJson), draft.cols, draft.rows);
+        onCreate(value.gate, circuitJson);
+    }}><div className="construction-scroll"><div className="construction-layout">
+        <div className="forge-fields"><h2>From Circuit</h2>
+            {['cols','rows'].map((field, index) => <label className="forge-field" key={field} htmlFor={`gate-forge-circuit-${field}`}>
+                {index === 0 ? 'Column range' : 'Wire range'}
+                <input id={`gate-forge-circuit-${field}`} value={draft[field]} onChange={e => onDraftChange({...draft,[field]:e.target.value})} />
+            </label>)}
+            <p className="field-description">1:3 includes 1 through 3. 1:∞ includes through the last. Every selected gate must fit completely.</p>
+            <label className="forge-field" htmlFor="gate-forge-circuit-name">Circuit symbol
+                <input id="gate-forge-circuit-name" value={draft.name} placeholder="Use the circuit preview" onChange={e => onDraftChange({...draft,name:e.target.value})} />
+            </label>
+            {value && <dl className="forge-stats">
+                <dt>Columns</dt><dd>{value.range.colStart + 1}–{value.range.colEnd}</dd>
+                <dt>Wires</dt><dd>{value.range.wireStart + 1}–{value.range.wireEnd}</dd>
+                <dt>Gate qubits</dt><dd>{value.gate.height}{value.gate.height < value.range.wireEnd-value.range.wireStart ? ' (unused trailing wires omitted)' : ''}</dd>
+                <dt>Gates</dt><dd>{nested.columns.reduce((n,c) => n+c.gates.filter(Boolean).length,0)}</dd>
+                <dt>Required input ranges</dt><dd>{[...value.gate.getUnmetContextKeys()].join(', ') || 'None'}</dd>
+                <dt title="Existing circuit gate-weight metric">Weight</dt><dd>{value.gate.knownCircuit.gateWeight()}</dd>
+            </dl>}
+        </div><div className="construction-preview" id="gate-forge-circuit-canvas" aria-busy={result.pending}>
+            <h2>Selected circuit</h2>
+            {result.pending ? <p role="status">Updating preview…</p> : result.error ? <p className="field-error" role="alert">{result.error}</p> : value && <>
+                <CircuitFigure circuit={nested} time={deps.cycleTime()} responsive animate={value.gate.stableDuration() !== Infinity} clock={deps.cycleTime} />
+                <GatePreview gate={value.gate} />
+            </>}
+        </div>
+    </div></div><footer className="construction-actions"><button type="button" onClick={onCancel}>Cancel</button>
+        <button id="gate-forge-circuit-button" type="submit" disabled={!value}>Create Circuit Gate</button></footer>
+    </form>;
 }
-
-export { CircuitMethod };

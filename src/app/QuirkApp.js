@@ -166,7 +166,7 @@ function startQuirk({canvas, canvasDiv, scrollSpacer, circuitOverlay, onReady,
     });
     appStore.setState({
         gateToolbox,
-        panelDeps: {revision, displayed, mostRecentStats, completed: simulator.completed, recorder,
+        panelDeps: {revision, displayed, mostRecentStats, completed: simulator.completed, recorder, syncArea,
                     cycleTime: () => simulator.cycleTime()},
     });
     initTitleSync(revision);

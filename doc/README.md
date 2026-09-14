@@ -43,6 +43,28 @@
 - **create custom gate**: click 'Make Gate' button
 - **remove custom gate**: [crummy support] have to use undo or clear all or manually edit URL
 
+**Constructing custom gates**
+
+Open **Make Gate**, choose Rotation, Matrix, or Circuit, and inspect the operation and gate
+preview. Drafts survive switching methods. **Create gate** adds the gate to Custom Gates and
+focuses it; press Enter to place it on the top wire, or drag it into the circuit.
+
+- **Rotation:** choose Y, enter `pi/3` in radians, and leave global phase at `0` for a
+  60-degree Y rotation. Switching radians/degrees converts the value. Global phase changes
+  the operator but does not change the Bloch rotation.
+- **Matrix:** edit a 2×2, 4×4, 8×8, or 16×16 grid, or choose Raw text. For example,
+  `1, 0, 0, 2` creates the entered nonunitary operation. **Make unitary** offers a comparison;
+  only **Use corrected matrix** selects the correction. Editing an entry clears that choice.
+- **Circuit:** enter one-based inclusive column and wire ranges, such as `1:3` and `1:1`.
+  `1:∞` includes the whole range. The highlighted selection must include every intersecting
+  gate in full; the preview shows the circuit that will become the custom gate.
+
+Use **Gate Parameter** to choose an existing parameter gate by wire and column, or click its
+edit indicator. Invalid angles cannot be applied. **Math input** provides optional mathematical
+notation and an explicit keyboard; **Raw expression** remains available. Unsupported notation
+is reported locally. Typing undo stays in the input; Cancel preserves the circuit. Created
+matrix and circuit gates retain their operation, not an editable construction draft.
+
 **Reading operation matrices**
 
 Open Algebra to follow each operation as its matrix times the expanded input state, alongside

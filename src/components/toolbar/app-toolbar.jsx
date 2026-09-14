@@ -119,6 +119,8 @@ function useRovingTabIndex(toolbarRef) {
 function useUndoRedoShortcuts() {
     useEffect(() => {
         const onKeyDown = e => {
+            if (e.defaultPrevented || e.composedPath().some(node =>
+                ['INPUT','TEXTAREA','MATH-FIELD'].includes(node.tagName) || node.isContentEditable)) return;
             // Control on Windows and Linux, command on macOS.
             if (!(e.ctrlKey || e.metaKey) || e.altKey) {
                 return;
@@ -180,6 +182,7 @@ function AppToolbar() {
                 disabled={!availability.canRedo}
                 onClick={() => circuitActions.redo()} />
             <PanelButton id="gate-forge-button" panel="forge" />
+            <PanelButton id="gate-parameter-button" panel="gate-param" />
             {/* Last, and pushed clear of the others by its auto margin: it discards custom gates
                 as well as the circuit, and sitting flush against the rest made it easy to hit
                 by mistake. Distinguished by colour, not by size. */}

@@ -7,6 +7,7 @@ import { setErrorBannerHost } from "../../../diagnostics/errorReporter.js";
 import { appStore } from "../../../state/appStore.js";
 import { openPanel } from "../../dock.jsx";
 import { GutterEditors } from "./gutter-editors.jsx";
+import { ForgeRangeHighlight } from './forge-range-highlight.jsx';
 
 /**
  * The circuit itself, as a dock panel: the scrolling cell, its canvas, the bar under it holding the
@@ -72,6 +73,7 @@ function CircuitPanel() {
         <div id="canvas-scroll-spacer" ref={scrollSpacerRef} aria-hidden="true" />
         {/* The rename box and the wire-label menu sit in the scroll content, over the drawing. */}
         <GutterEditors host={canvasDivRef} />
+        <ForgeRangeHighlight host={canvasDivRef} />
       </div>
       <div id="circuit-overlay" ref={circuitOverlayRef} />
       {/* The error banner floats over the circuit; errorReporter.js fills it. */}

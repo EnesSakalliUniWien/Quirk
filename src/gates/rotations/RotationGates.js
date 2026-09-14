@@ -16,7 +16,8 @@
 
 import {GateBuilder} from "../../circuit/model/Gate.js"
 import {paintBackground, paintOutline, paintGateButton} from '../../draw/gate/GateFrame.js';
-import {paintGateSymbol} from '../../draw/gate/GateSymbol.js';
+import {parseAngleExpression} from '../../engine/math/formula/AngleExpression.js';
+import {paintAngleGateLabel} from '../../draw/gate/AngleGateLabel.js';
 import {XExp, YExp, ZExp} from "./ExponentiatingGates.js"
 import {parseTimeFormula, makeUpdateFormulaFunc} from "./FormulaGateUtil.js"
 
@@ -43,7 +44,7 @@ function angleRotationRenderer(axisName) {
     return args => {
         paintBackground(args);
         paintOutline(args);
-        paintGateSymbol(args, `${axisName}(${args.gate.param})`, false);
+        paintAngleGateLabel(args);
         paintGateButton(args);
     };
 }
@@ -68,15 +69,18 @@ function badAngleFormulaDetector(args) {
  */
 function radianAngleDialog(axisName) {
     return {
-        title: `Enter an angle in radians for the ${axisName} gate's rotation.`,
+        title: `${axisName} angle`,
+        angleUnit: 'radians',
         message: "The angle can be a constant formula (e.g. pi/2 or 3pi/4).\n" +
-            "Invalid results will default to 0.\n" +
             "\n" +
             "Available constants: e, pi\n" +
             "Available functions: cos, sin, acos, asin, tan, atan, ln, sqrt, exp\n" +
             "Available operators: + * / - ^",
-        applyText: (oldGate, text) =>
-            ({gate: text.trim() === '' ? oldGate : oldGate.withParam(text)})
+        applyText: (oldGate, text) => {
+            if (text.trim() === '' || text === oldGate.param) return {gate: oldGate};
+            try { parseAngleExpression(text); } catch (error) { return {error: error.message}; }
+            return {gate: oldGate.withParam(text)};
+        }
     };
 }
 

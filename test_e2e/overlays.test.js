@@ -17,7 +17,8 @@
 // The panels the circuit and the toolbar open: export, gate forge, gate parameter, Bloch.
 
 import assert from 'node:assert/strict';
-import {circuitMetrics, test, withQuirkPage, waitForCircuit, waitForPanel, closePanel, TEST_TIMEOUT_MILLIS, circuitTopForWires, waitForCanvasViewport} from './harness.js';
+import {circuitMetrics, test, withQuirkPage, waitForCircuit, waitForPanel, closePanel, TEST_TIMEOUT_MILLIS, circuitTopForWires, waitForCanvasViewport, currentCircuit, exportedCircuit} from './harness.js';
+import {Matrix} from '../src/engine/math/matrix/Matrix.js';
 
 test('opens a Bloch sphere from its enlarged edge at different zoom levels', async browser => {
     await withQuirkPage(browser, {cols: [['H'], ['Bloch']]}, async page => {
@@ -63,7 +64,8 @@ test('opens and closes the export and gate forge panels', async browser => {
             methodCount: element.querySelectorAll('.forge-method').length
         }));
         assert.equal(forge.title, 'Make a gate');
-        assert.equal(forge.methodCount, 3);
+        assert.equal(forge.methodCount, 1);
+        assert.equal(await page.$$eval('.construction-tabs [role="tab"]', tabs => tabs.length), 3);
         await closePanel(page, 'forge');
     });
 });
@@ -231,5 +233,262 @@ test('panel controls remain distinct from their surfaces across panels', async b
                 assert.ok(control.surface >= 1.5, `${panel}: button surface distinguishable from panel`);
             }
         }
+    });
+});
+
+async function chooseConstruction(page, name) {
+    await page.$$eval('.construction-tabs [role="tab"]',(tabs,name) => tabs.find(tab => tab.textContent === name).click(),name);
+}
+async function replaceField(page, selector, text) {
+    await page.$eval(selector,element=>{element.focus();element.select();});
+    await page.keyboard.press('Backspace');
+    await page.type(selector,text);
+}
+async function namedButton(page, selector, text) {
+    await page.$$eval(selector,(buttons,text) => buttons.find(button => button.textContent.trim() === text).click(),text);
+}
+async function insertAndReopen(page, created) {
+    const id=created.gates[0].id;
+    await page.$eval(`[data-gate-id="${id}"]`,element=>element.focus());
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(id=>JSON.parse(document.querySelector('#drawCanvas').dataset.circuit).cols.some(c=>c.includes(id)),{},id);
+    const inserted=await currentCircuit(page);
+    assert.deepEqual(await exportedCircuit(page),inserted);
+    await page.click('#undo-button');await waitForCircuit(page,created);
+    await page.click('#redo-button');await waitForCircuit(page,inserted);
+    await page.reload();await waitForCircuit(page,inserted);
+}
+
+test('custom gate windows preserve drafts and fit docked panel widths', async browser => {
+    await withQuirkPage(browser,{cols:[['H']]},async page => {
+        await page.click('#gate-forge-button');
+        await page.waitForSelector('#gate-forge-rotation-button:not([disabled])');
+        await replaceField(page,'#gate-forge-rotation-angle','60');
+        await replaceField(page,'#gate-forge-rotation-name','Sixty');
+        await chooseConstruction(page,'Matrix');
+        await namedButton(page,'.entry-modes button','Raw text');
+        await replaceField(page,'#gate-forge-matrix','invalid');
+        await chooseConstruction(page,'Rotation');
+        assert.equal(await page.$eval('#gate-forge-rotation-angle',e=>e.value),'60');
+        assert.equal(await page.$eval('#gate-forge-rotation-name',e=>e.value),'Sixty');
+        for (const width of [340,419,720,830]) {
+            const rect = await page.$eval('[data-panel-id="forge"]',e=>e.getBoundingClientRect().toJSON());
+            await page.mouse.move(rect.left,rect.top+80);
+            await page.mouse.down();
+            await page.mouse.move(rect.right-width,rect.top+80,{steps:12});
+            await page.mouse.up();
+            await page.waitForFunction(width=>Math.abs(document.querySelector('[data-panel-id="forge"]').clientWidth-width)<3,{},width);
+            const layout = await page.$eval('[data-panel-id="forge"]',root => {
+                root.querySelector('.construction-scroll').scrollTop=10000;
+                const panel=root.getBoundingClientRect(),footer=root.querySelector('.construction-actions').getBoundingClientRect();
+                return {width:root.clientWidth,scroll:root.scrollWidth,footerInside:footer.bottom<=panel.bottom+1&&footer.top>=panel.top};
+            });
+            assert.ok(layout.scroll<=layout.width+1);
+            assert.ok(layout.footerInside);
+        }
+        await chooseConstruction(page,'Matrix');
+        assert.equal(await page.$eval('#gate-forge-matrix',e=>e.value),'invalid');
+        assert.equal(await page.$eval('#gate-forge-matrix-button',e=>e.disabled),true);
+    },{width:1600,height:900,deviceScaleFactor:1});
+});
+
+test('parameter validation and typing undo preserve circuit history', async browser => {
+    const initial={cols:[[{id:'Rx',arg:'pi/2'}]]};
+    await withQuirkPage(browser,initial,async page=>{
+        const open = async () => {
+            await page.click('#gate-parameter-button');
+            await page.waitForSelector('.parameter-targets button');
+            await page.click('.parameter-targets button');
+            await page.waitForSelector('#gate-param-input');
+        };
+        await open();
+        await replaceField(page,'#gate-param-input','not_an_angle');
+        assert.equal(await page.$eval('#gate-param-apply-button',e=>e.disabled),true);
+        assert.deepEqual(await currentCircuit(page),initial);
+        await replaceField(page,'#gate-param-input','3pi/4');
+        await page.keyboard.press('Enter');
+        const changed={cols:[[{id:'Rx',arg:'3pi/4'}]]};
+        await waitForCircuit(page,changed);
+        await open();
+        await replaceField(page,'#gate-param-input','pi/8');
+        const modifier=process.platform==='darwin'?'Meta':'Control';
+        await page.keyboard.down(modifier); await page.keyboard.press('z'); await page.keyboard.up(modifier);
+        assert.deepEqual(await currentCircuit(page),changed);
+        const footer = await page.$eval('[data-panel-id="gate-param"]',root=>root.querySelector('.construction-actions').getBoundingClientRect().bottom<=root.getBoundingClientRect().bottom+1);
+        assert.ok(footer);
+        await page.click('#gate-param-cancel-button');
+        await page.click('#undo-button');
+        await waitForCircuit(page,initial);
+    });
+});
+
+test('matrix creation preserves entered values unless correction is accepted', async browser => {
+    for(const correct of [false,true]) await withQuirkPage(browser,{cols:[['H']]},async page=>{
+        await page.click('#gate-forge-button'); await chooseConstruction(page,'Matrix');
+        await namedButton(page,'.entry-modes button','Raw text');
+        await replaceField(page,'#gate-forge-matrix','1,i,i,1');
+        await replaceField(page,'#gate-forge-matrix-name','Matrix example');
+        await page.waitForSelector('#gate-forge-matrix-button:not([disabled])');
+        if(correct) {
+            await namedButton(page,'.construction-preview button','Make unitary');
+            await page.waitForSelector('.matrix-correction');
+            await namedButton(page,'.matrix-correction button','Use corrected matrix');
+            await page.waitForSelector('#gate-forge-matrix-button:not([disabled])');
+        }
+        await page.click('#gate-forge-matrix-button'); await waitForPanel(page,'forge',false);
+        const created=await currentCircuit(page);
+        assert.equal(created.gates.length,1);
+        const matrix=Matrix.parse(created.gates[0].matrix);
+        assert.equal(matrix.isUnitary(0.00001),correct);
+        if(!correct) assert.equal(matrix.cell(0,0).real,1);
+        await page.waitForFunction(id=>document.activeElement?.dataset.gateId===id,{},created.gates[0].id);
+        await page.click('#undo-button'); await waitForCircuit(page,{cols:[['H']]});
+        await page.click('#redo-button'); await waitForCircuit(page,created);
+        await page.reload(); await page.waitForSelector(`[data-gate-id="${created.gates[0].id}"]`);
+        assert.deepEqual(await currentCircuit(page),created);
+        await insertAndReopen(page,created);
+    });
+});
+
+test('matrix grids keep dimension drafts and invalidate accepted corrections on edits', async browser=>{
+    await withQuirkPage(browser,{cols:[['H']]},async page=>{
+        await page.click('#gate-forge-button'); await chooseConstruction(page,'Matrix');
+        await replaceField(page,'.matrix-input-grid [aria-label="Row 1, column 1"]','2');
+        await page.select('[aria-label="Matrix dimension"]','4');
+        await page.waitForSelector('#gate-forge-matrix-button:not([disabled])');
+        assert.equal(await page.$$eval('.matrix-input-grid input',es=>es.length),16);
+        await page.select('[aria-label="Matrix dimension"]','2');
+        assert.equal(await page.$eval('.matrix-input-grid [aria-label="Row 1, column 1"]',e=>e.value),'2');
+        await page.waitForSelector('#gate-forge-matrix-button:not([disabled])');
+        await namedButton(page,'.construction-preview button','Make unitary');
+        await page.waitForSelector('.matrix-correction');
+        await namedButton(page,'.matrix-correction button','Use corrected matrix');
+        await replaceField(page,'.matrix-input-grid [aria-label="Row 1, column 1"]','3');
+        await page.waitForSelector('#gate-forge-matrix-button:not([disabled])');
+        assert.equal(await page.$('.matrix-correction'),null);
+        await replaceField(page,'.matrix-input-grid [aria-label="Row 1, column 1"]','');
+        await page.waitForFunction(()=>document.querySelector('#gate-forge-matrix-button').disabled);
+    });
+});
+
+test('circuit construction includes wide trailing gates and clears selection on method changes', async browser=>{
+    const initial={cols:[[{id:'Ry',arg:'pi/3'}],[],[{id:'Rz',arg:'pi/4'}]]};
+    await withQuirkPage(browser,initial,async page=>{
+        await page.click('#gate-forge-button'); await chooseConstruction(page,'Circuit');
+        await page.waitForSelector('#gate-forge-circuit-button:not([disabled])');
+        await page.waitForSelector('.forge-range-highlight');
+        for (const [zoom,buttons] of [[0.8,['Zoom out']],[1,[]],[1.5,['Zoom in','Zoom in']]]) {
+            await page.click('[aria-label="Reset zoom"]');
+            for (const label of buttons) await page.click(`[aria-label="${label}"]`);
+            await page.$eval('#canvasDiv',e=>e.scrollTo(0,0));
+            await waitForCanvasViewport(page);
+            const top=await circuitTopForWires(page,2,zoom);
+            const expected=(top+circuitMetrics.wireSpacing/2-circuitMetrics.gateSize/2+0.5)*zoom;
+            await page.waitForFunction(expected=>{
+                const host=document.querySelector('#canvasDiv'),rect=document.querySelector('.forge-range-highlight').getBoundingClientRect();
+                return Math.abs(rect.top-host.getBoundingClientRect().top+host.scrollTop-expected)<1;
+            },{},expected);
+        }
+        await replaceField(page,'#gate-forge-circuit-cols','1:1');
+        await page.waitForSelector('#gate-forge-circuit-canvas [role="alert"]');
+        assert.match(await page.$eval('#gate-forge-circuit-canvas',e=>e.textContent),/whole/);
+        assert.equal(await page.$('.forge-range-highlight'),null);
+        await replaceField(page,'#gate-forge-circuit-cols','1:∞');
+        await replaceField(page,'#gate-forge-circuit-name','Whole circuit');
+        await page.waitForSelector('#gate-forge-circuit-button:not([disabled])');
+        await chooseConstruction(page,'Rotation');
+        await page.waitForSelector('.forge-range-highlight',{hidden:true});
+        await chooseConstruction(page,'Circuit');
+        await page.waitForSelector('#gate-forge-circuit-button:not([disabled])');
+        await page.click('#gate-forge-circuit-button'); await waitForPanel(page,'forge',false);
+        const created=await currentCircuit(page);
+        assert.equal(created.gates.length,1);
+        assert.deepEqual(created.cols,initial.cols);
+        assert.deepEqual(created.gates[0].circuit.cols.filter(c=>c.length),initial.cols.filter(c=>c.length));
+        await insertAndReopen(page,created);
+    });
+});
+
+test('mathematical entry preserves raw expressions and validates rich edits', async browser=>{
+    await withQuirkPage(browser,{cols:[[{id:'Ry',arg:'pi/3'}]]},async page=>{
+        const requests=[]; page.on('request',request=>requests.push(request.url()));
+        await page.click('#gate-parameter-button'); await page.waitForSelector('.parameter-targets button'); await page.click('.parameter-targets button');
+        await namedButton(page,'[data-panel-id="gate-param"] .math-entry-actions button','Math input');
+        await page.waitForSelector('math-field#gate-param-input');
+        await namedButton(page,'[data-panel-id="gate-param"] .math-entry-actions button','Raw expression');
+        assert.equal(await page.$eval('#gate-param-input',e=>e.value),'pi/3');
+        await namedButton(page,'[data-panel-id="gate-param"] .math-entry-actions button','Math input');
+        await page.waitForSelector('math-field#gate-param-input');
+        await page.$eval('math-field',e=>{e.setValue(String.raw`\int_0^1 x`,{silenceNotifications:true});e.dispatchEvent(new InputEvent('input',{bubbles:true}));});
+        await page.waitForFunction(()=>document.querySelector('#gate-param-apply-button').disabled);
+        await page.$eval('math-field',e=>{e.setValue(String.raw`\frac{\pi}{4}`,{silenceNotifications:true});e.dispatchEvent(new InputEvent('input',{bubbles:true}));});
+        await page.waitForFunction(()=>!document.querySelector('#gate-param-apply-button').disabled);
+        await namedButton(page,'[data-panel-id="gate-param"] .math-entry-actions button','Math keyboard');
+        await page.waitForFunction(()=>window.mathVirtualKeyboard.visible);
+        await page.waitForFunction(()=>{
+            const keyboard=window.mathVirtualKeyboard.boundingRect;
+            const scroll=document.querySelector('.gate-param-panel .construction-scroll').getBoundingClientRect();
+            return keyboard.top>=scroll.top && keyboard.bottom<=scroll.bottom;
+        });
+        assert.ok(await page.$eval('[data-panel-id="gate-param"]',root=>root.querySelector('.construction-actions').getBoundingClientRect().bottom<=root.getBoundingClientRect().bottom+1));
+        await page.focus('math-field'); await page.keyboard.press('Escape');
+        assert.ok(await page.$('[data-panel-id="gate-param"]'));
+        await page.click('#gate-param-apply-button'); await waitForPanel(page,'gate-param',false);
+        const saved=await currentCircuit(page);
+        assert.match(saved.cols[0][0].arg,/pi/);
+        assert.ok(requests.every(url=>new URL(url).origin===new URL(page.url()).origin || url.startsWith('data:') || url.startsWith('blob:')),'Rich entry assets must be served locally.');
+    });
+});
+
+test('failed mathematical input loading retains usable raw entry',async browser=>{
+    await withQuirkPage(browser,{cols:[[{id:'Ry',arg:'pi/3'}]]},async page=>{
+        await page.setRequestInterception(true);
+        page.on('request',request=>/math-live-runtime.*\.js/.test(request.url()) ? request.abort() : request.continue());
+        await page.click('#gate-parameter-button');await page.waitForSelector('.parameter-targets button');await page.click('.parameter-targets button');
+        await namedButton(page,'.math-entry-actions button','Math input');
+        await page.waitForFunction(()=>document.querySelector('.math-entry').textContent.includes('could not load'));
+        assert.equal(await page.$eval('#gate-param-input',e=>e.value),'pi/3');
+        await replaceField(page,'#gate-param-input','pi/4');await page.click('#gate-param-apply-button');
+        await waitForCircuit(page,{cols:[[{id:'Ry',arg:'pi/4'}]]});
+    },undefined,[/Failed to load resource: net::ERR_FAILED/]);
+});
+
+test('rotation construction commits the inspected operation and places the new gate',async browser=>{
+    await withQuirkPage(browser,{cols:[['H']]},async page=>{
+        await page.click('#gate-forge-button');
+        await namedButton(page,'.axis-presets button','Y');
+        await replaceField(page,'#gate-forge-rotation-angle','60');
+        await replaceField(page,'#gate-forge-rotation-name','Y sixty');
+        await page.waitForSelector('#gate-forge-rotation-button:not([disabled])');
+        await page.click('#gate-forge-rotation-button');await waitForPanel(page,'forge',false);
+        const created=await currentCircuit(page),matrix=Matrix.parse(created.gates[0].matrix);
+        assert.ok(Math.abs(matrix.cell(0,0).real-Math.sqrt(3)/2)<0.00001);
+        assert.ok(Math.abs(matrix.cell(0,1).real-0.5)<0.00001);
+        await insertAndReopen(page,created);
+    });
+});
+
+test('parameter units, composition and stale targets preserve the current circuit',async browser=>{
+    const initial={cols:[[{id:'Ry',arg:'pi/3'}]]};
+    await withQuirkPage(browser,initial,async page=>{
+        const open=async()=>{await page.click('#gate-parameter-button');await page.waitForSelector('.parameter-targets button');await page.click('.parameter-targets button');await page.waitForSelector('#gate-param-input');};
+        await open();
+        await page.select('[aria-label="Angle unit"]','degrees');
+        assert.ok(Math.abs(Number(await page.$eval('#gate-param-input',e=>e.value))-60)<1e-10);
+        await page.select('[aria-label="Angle unit"]','radians');
+        assert.equal(await page.$eval('#gate-param-input',e=>e.value),'pi/3');
+        const prevented=await page.$eval('#gate-param-input',e=>!e.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',isComposing:true,bubbles:true,cancelable:true})));
+        assert.equal(prevented,true);
+        await page.select('[aria-label="Angle unit"]','degrees');
+        await page.click('#gate-param-apply-button');await waitForPanel(page,'gate-param',false);
+        assert.deepEqual(await currentCircuit(page),initial);
+        await open();await page.select('[aria-label="Angle unit"]','degrees');
+        await replaceField(page,'#gate-param-input','90');await page.click('#gate-param-apply-button');
+        await waitForPanel(page,'gate-param',false);
+        assert.ok(Math.abs(Number((await currentCircuit(page)).cols[0][0].arg)-Math.PI/2)<1e-10);
+        await open();await replaceField(page,'#gate-param-input','pi/8');
+        await page.click('#undo-button');await waitForCircuit(page,initial);
+        await page.click('#gate-param-apply-button');await waitForPanel(page,'gate-param',false);
+        assert.deepEqual(await currentCircuit(page),initial);
     });
 });
