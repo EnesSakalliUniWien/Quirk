@@ -1,4 +1,3 @@
-import {renderInspector} from '../src/editor/rendering/InspectorRendering.js';
 /**
  * Copyright 2017 Google Inc.
  *
@@ -15,6 +14,7 @@ import {renderInspector} from '../src/editor/rendering/InspectorRendering.js';
  * limitations under the License.
  */
 
+import {renderInspector} from '../src/editor/rendering/InspectorRendering.js';
 import { perfGoal, millis } from "./TestPerfUtil.js";
 import { CircuitDefinition } from "../src/circuit/model/CircuitDefinition.js";
 import { CircuitStats } from "../src/engine/simulation/CircuitStats.js";

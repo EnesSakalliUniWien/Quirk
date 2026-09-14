@@ -1,5 +1,3 @@
-import {BasisLabels} from '../../../src/draw/text/BasisLabels.js';
-import {drawText} from '../../../src/draw/text/TextLayout.js';
 /**
  * Copyright 2017 Google Inc.
  *
@@ -16,6 +14,8 @@ import {drawText} from '../../../src/draw/text/TextLayout.js';
  * limitations under the License.
  */
 
+import {BasisLabels} from '../../../src/draw/text/BasisLabels.js';
+import {drawText} from '../../../src/draw/text/TextLayout.js';
 import {PathGeometry} from '../../../src/draw/shapes/PathGeometry.js';
 import {drawPath, rectangle, circle, strokePath, polygon, frame, highlightRing, lineWidth} from '../../../src/draw/shapes/ShapeView.js';
 import {CanvasTheme} from '../../../src/config/CanvasTheme.js';

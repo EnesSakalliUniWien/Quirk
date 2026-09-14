@@ -1,4 +1,3 @@
-import {drawGraphics} from '../scene/DisplayView.js';
 /**
  * Copyright 2017 Google Inc.
  *
@@ -15,6 +14,7 @@ import {drawGraphics} from '../scene/DisplayView.js';
  * limitations under the License.
  */
 
+import {drawGraphics} from '../scene/DisplayView.js';
 import {frame, highlightRing, lineWidth, rectangle, strokePath} from '../shapes/ShapeView.js';
 import {fitText} from '../text/TextLayout.js';
 

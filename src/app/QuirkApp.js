@@ -1,5 +1,3 @@
-import {createEditorStore} from '../editor/state/editorStore.js';
-import {createValueStore, observeStore} from '../base/valueStore.js';
 /**
  * Copyright 2017 Google Inc.
  *
@@ -16,6 +14,8 @@ import {createValueStore, observeStore} from '../base/valueStore.js';
  * limitations under the License.
  */
 
+import {createEditorStore} from '../editor/state/editorStore.js';
+import {createValueStore, observeStore} from '../base/valueStore.js';
 import {CircuitStats} from "../engine/simulation/CircuitStats.js"
 import {EditorState} from "../editor/state/EditorState.js"
 import {Rect} from "../geometry/Rect.js"

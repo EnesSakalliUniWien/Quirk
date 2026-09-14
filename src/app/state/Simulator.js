@@ -1,4 +1,3 @@
-import {createValueStore} from '../../base/valueStore.js';
 /**
  * Copyright 2017 Google Inc.
  *
@@ -15,6 +14,7 @@ import {createValueStore} from '../../base/valueStore.js';
  * limitations under the License.
  */
 
+import {createValueStore} from '../../base/valueStore.js';
 /** @typedef {import("../../circuit/model/CircuitDefinition.js").CircuitDefinition} CircuitDefinition */
 import {Simulation} from "../../config/Simulation.js"
 import {CircuitStats} from "../../engine/simulation/CircuitStats.js"

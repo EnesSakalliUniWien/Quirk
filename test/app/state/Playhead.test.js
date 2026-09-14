@@ -1,4 +1,3 @@
-import {createValueStore, observeStore} from '../../../src/base/valueStore.js';
 /**
  * Copyright 2017 Google Inc.
  *
@@ -15,6 +14,7 @@ import {createValueStore, observeStore} from '../../../src/base/valueStore.js';
  * limitations under the License.
  */
 
+import {createValueStore, observeStore} from '../../../src/base/valueStore.js';
 import {Suite, assertThat} from "../../TestUtil.js"
 
 import {Playhead} from "../../../src/app/state/Playhead.js"

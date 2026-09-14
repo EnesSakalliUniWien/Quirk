@@ -1,4 +1,3 @@
-import {Point} from '../../../geometry/Point.js';
 /**
  * Copyright 2017 Google Inc.
  *
@@ -15,6 +14,7 @@ import {Point} from '../../../geometry/Point.js';
  * limitations under the License.
  */
 
+import {Point} from '../../../geometry/Point.js';
 import {findOpHalfColumnAt, indexOfDisplayedRowAt} from '../../interaction/CircuitHitTesting.js';
 import {GateColumn} from '../../../circuit/model/GateColumn.js';
 import {Layout} from '../../../config/Layout.js';

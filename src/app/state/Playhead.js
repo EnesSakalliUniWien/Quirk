@@ -1,4 +1,3 @@
-import {createValueStore, observeStore} from '../../base/valueStore.js';
 /**
  * Copyright 2017 Google Inc.
  *
@@ -15,6 +14,7 @@ import {createValueStore, observeStore} from '../../base/valueStore.js';
  * limitations under the License.
  */
 
+import {createValueStore, observeStore} from '../../base/valueStore.js';
 import {Playback} from "../../config/Playback.js"
 
 /**
