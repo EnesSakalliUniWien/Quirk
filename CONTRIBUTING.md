@@ -83,7 +83,9 @@ and performance suites each ship their own harness page beside them, `test/test.
 
 `scripts/` holds the Node tooling the npm scripts call: `run-browser-tests.js` drives either
 harness page under Puppeteer, `run-e2e-tests.js` runs the end-to-end registry, and
-`screenshot-circuit.js` renders the README screenshot. `server/` serves the built `out/`.
+`screenshot-circuit.js` renders the README screenshot. These scripts use Vite’s `preview()`
+API to serve `out/` on a temporary loopback port and close it when finished. Production
+deployments publish `out/` to static hosting; Vite preview is only for local verification.
 
 All submissions are reviewed through GitHub pull requests. Consult
 [GitHub Help](https://help.github.com/articles/about-pull-requests/) for more information on

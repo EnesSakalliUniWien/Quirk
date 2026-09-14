@@ -21,6 +21,14 @@ import {test, withQuirkPage, waitForQuirk, urlForCircuit, TEST_TIMEOUT_MILLIS} f
 
 const RECOVERY_CONSOLE_LINE = [/Recovered from unexpected error/];
 
+test('serves the app at root without the retired entry URL', async browser => {
+    await withQuirkPage(browser, {cols: [['H']]}, async page => {
+        assert.equal(new URL(page.url()).pathname, '/');
+        const response = await fetch(new URL('/quirk.html', page.url()), {redirect: 'manual'});
+        assert.equal(response.status, 404);
+    });
+});
+
 async function bannerState(page) {
     return page.evaluate(() => {
         const banner = document.getElementById('error-banner');

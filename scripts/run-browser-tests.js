@@ -18,7 +18,7 @@ import path from "node:path";
 
 import puppeteer from "puppeteer";
 
-import { startStaticServer } from "../server/staticServer.js";
+import { preview } from "vite";
 
 let browser;
 let serve;
@@ -43,10 +43,11 @@ try {
   });
 
   // Served over http rather than file://, because browsers refuse module scripts from disk.
-  serve = await startStaticServer({
-    root: path.join(import.meta.dirname, "..", "out"),
+  serve = await preview({
+    root: path.join(import.meta.dirname, ".."),
+    preview: { host: "127.0.0.1", port: 0, open: false },
   });
-  await page.goto(`${serve.origin}/${pageFile}`);
+  await page.goto(new URL(pageFile, serve.resolvedUrls.local[0]).href);
   await page.waitForSelector("#done", { timeout: 5 * 60 * 1000 });
   const result = await page.evaluate(() => ({
     anyFailures: __any_failures,
@@ -67,10 +68,9 @@ try {
   console.error("Error bubbled up into run-browser-tests.js: " + ex);
   process.exitCode = 1;
 } finally {
-  if (browser !== undefined) {
-    await browser.close();
-  }
-  if (serve !== undefined) {
-    await serve.close();
+  try {
+    await browser?.close();
+  } finally {
+    await serve?.close();
   }
 }

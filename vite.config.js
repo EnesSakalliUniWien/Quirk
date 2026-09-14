@@ -7,9 +7,11 @@ const projectRoot = import.meta.dirname;
 const pageForMode = {test: "test/test.html", perf: "test_perf/test_perf.html"};
 
 export default defineConfig(({mode}) => {
-    const input = pageForMode[mode] ?? "quirk.html";
-    const isApp = input === "quirk.html";
+    const input = pageForMode[mode] ?? "index.html";
+    const isApp = input === "index.html";
     return {
+        // Serve actual entry documents; removed URLs must not fall back to the app.
+        appType: 'mpa',
         plugins: [react()],
         resolve: {
             alias: {

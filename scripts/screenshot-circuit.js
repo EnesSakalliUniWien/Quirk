@@ -18,14 +18,19 @@ import path from "node:path";
 
 import puppeteer from "puppeteer";
 
-import { startStaticServer } from "../server/staticServer.js";
+import { preview } from "vite";
 
+import { waitForQuirk } from "../test_e2e/harness.js";
+
+let browser;
+let serve;
 try {
   // Served over http rather than file://, because browsers refuse module scripts from disk.
-  const serve = await startStaticServer({
-    root: path.join(import.meta.dirname, "..", "out"),
+  serve = await preview({
+    root: path.join(import.meta.dirname, ".."),
+    preview: { host: "127.0.0.1", port: 0, open: false },
   });
-  const browser = await puppeteer.launch();
+  browser = await puppeteer.launch();
   const page = await browser.newPage();
   let caughtPageError = false;
   page.on("console", (message) => console.log(message.text()));
@@ -35,18 +40,19 @@ try {
   });
   const circuitJson =
     '{"cols":[["H"],["Bloch"],["Amps1"],[],["Density"],["•","X"],["Chance2"]]}';
-  await page.goto(`${serve.origin}/quirk.html#circuit=` + circuitJson);
-  await page.waitForSelector("#loading-div", {
-    visible: false,
-    timeout: 5 * 1000,
-  });
+  await page.goto(`${serve.resolvedUrls.local[0]}#circuit=` + circuitJson);
+  await waitForQuirk(page);
   await page.screenshot({ path: "screenshot.png" });
   if (caughtPageError) {
     process.exitCode = 1;
   }
-  await browser.close();
-  await serve.close();
 } catch (ex) {
   console.error("Error bubbled up into screenshot-circuit.js: " + ex);
-  process.exit(1);
+  process.exitCode = 1;
+} finally {
+  try {
+    await browser?.close();
+  } finally {
+    await serve?.close();
+  }
 }

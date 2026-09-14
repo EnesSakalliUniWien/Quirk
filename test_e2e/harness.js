@@ -48,7 +48,7 @@ function test(name, body) {
 }
 
 function urlForCircuit(circuit) {
-    const url = new URL('/quirk.html', appOrigin);
+    const url = new URL('/', appOrigin);
     url.hash = 'circuit=' + encodeURIComponent(JSON.stringify(circuit));
     return url.href;
 }

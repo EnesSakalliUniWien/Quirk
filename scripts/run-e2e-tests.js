@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-// Runs the end-to-end specs in test_e2e/ against the built out/quirk.html. Importing a spec
+// Runs the end-to-end specs in test_e2e/ against the built out/index.html. Importing a spec
 // registers its tests with the harness; the loop below runs the registry.
 
 import path from "node:path";
 
 import puppeteer from "puppeteer";
 
-import { startStaticServer } from "../server/staticServer.js";
+import { preview } from "vite";
 import { tests, setAppOrigin } from "../test_e2e/harness.js";
 import "../test_e2e/circuit.test.js";
 import "../test_e2e/toolbar.test.js";
@@ -40,10 +40,11 @@ let serve;
 let completed = 0;
 try {
   // Served over http rather than file://, because browsers refuse module scripts from disk.
-  serve = await startStaticServer({
-    root: path.join(import.meta.dirname, "..", "out"),
+  serve = await preview({
+    root: path.join(import.meta.dirname, ".."),
+    preview: { host: "127.0.0.1", port: 0, open: false },
   });
-  setAppOrigin(serve.origin);
+  setAppOrigin(serve.resolvedUrls.local[0]);
   browser = await puppeteer.launch();
   console.log(`Running ${tests.length} end-to-end tests...`);
   for (const { name, body } of tests) {
@@ -65,10 +66,9 @@ try {
   console.error("Error bubbled up into run-e2e-tests.js: " + error.stack);
   process.exitCode = 1;
 } finally {
-  if (browser !== undefined) {
-    await browser.close();
-  }
-  if (serve !== undefined) {
-    await serve.close();
+  try {
+    await browser?.close();
+  } finally {
+    await serve?.close();
   }
 }

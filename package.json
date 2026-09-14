@@ -23,11 +23,9 @@
     "vite": "8.2.2"
   },
   "scripts": {
-    "dev": "vite --open /quirk.html",
+    "dev": "vite --open /",
     "build": "vite build",
-    "preview": "vite preview --open /quirk.html",
-    "start": "node server/index.js",
-    "serve": "npm run build && npm start",
+    "preview": "vite preview --open /",
     "check": "npm run lint && npm run knip && npm run test && npm run test:e2e && npm run test:perf",
     "lint": "eslint .",
     "typecheck": "tsc -p jsconfig.json",

@@ -72,14 +72,24 @@ The [user manual](doc/README.md) lists every action, display and gate with scree
 
     `npm run test:e2e`
 
-6. Build and serve the app.
+6. Build and preview the app locally.
 
-    `npm run serve`
+    `npm run build`
 
-    This builds into `out/` and serves it at <http://localhost:8080> (set `PORT` to change the
-    port). With an existing build, `npm start` serves without rebuilding. The built page loads
-    its scripts as ES modules, so it has to be served over http rather than opened from disk;
-    share a circuit by sharing its URL.
+    `npm run preview`
+
+    This builds into `out/` and previews it at <http://localhost:4173/>.
+    Use `npm run preview -- --port 8080` to select a different port. Preview serves an
+    existing build and is for local verification only.
+
+7. Deploy the production build.
+
+    Publish the contents of `out/` to a static hosting service. The app entry is
+    `index.html`, served at `/`. Use the host's normal directory-index handling;
+    do not configure an app fallback or compatibility redirects for removed URLs.
+    No application server is required. Do not use Vite preview as a production server.
+    Serve the files over HTTP or HTTPS so browser ES modules load correctly; share
+    a circuit by sharing its URL.
 
 # Disclaimer
 

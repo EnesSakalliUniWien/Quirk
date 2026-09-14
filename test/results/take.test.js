@@ -22,7 +22,7 @@ suite.testUsingWebGL("full JSON and album round trip preserve sampled results", 
     assertThat(parseTakes(takeJson(album([take])))).isEqualTo([take]);
     assertThat(restoreTake(loaded).stats.sampleOutcomes).isEqualTo(take.result.samples);
     assertTrue(takeCsv([take]).includes('"joint"'));
-    assertTrue(takeLink(take, "https://example.org/quirk.html").includes("#take="));
+    assertTrue(takeLink(take, "https://example.org/").includes("#take="));
 });
 
 suite.test("unavailable results round trip with zero padding only beyond simulated wires", () => {

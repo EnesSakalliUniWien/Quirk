@@ -55,7 +55,6 @@ export default [
   {
     files: [
       "scripts/**",
-      "server/**",
       "test_e2e/**",
       "vite.config.js",
       "eslint.config.js",

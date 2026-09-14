@@ -1,7 +1,6 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": [
-    "src/main.jsx",
     "test/test-entry.js",
     "test/**/*.test.js",
     "test_perf/test-entry.js",
@@ -14,8 +13,7 @@
     "test/**/*.js",
     "test_perf/**/*.js",
     "test_e2e/**/*.js",
-    "scripts/**/*.js",
-    "server/**/*.js"
+    "scripts/**/*.js"
   ],
   "ignoreDependencies": [
     "@fontsource-variable/geist"
