@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import { highlightStatusAt } from "../interaction/CircuitHighlightStatus.js";
-
 import {
   findGateOverlappingPos,
   findOpHalfColumnAt,
@@ -51,28 +49,8 @@ function editingContext(circuit) {
     findOpHalfColumnAt: (pos) => findOpHalfColumnAt(circuit.geometry(), pos),
     toColumnSpaceCoordinate: (x) => toColumnSpaceCoordinate(circuit.geometry(), x),
     findGateOverlappingPos: (pos) => findGateOverlappingPos(circuit.geometry(), pos),
-    highlightStatusAt: (col, row, points) =>
-      highlightStatusAt(
-        {
-          definition: circuit.circuitDefinition,
-          geometry: circuit.geometry(),
-          highlightedSlot: circuit._highlightedSlot,
-          findGateAt: (pos) => findGateOverlappingPos(circuit.geometry(), pos),
-        },
-        col,
-        row,
-        points,
-      ),
+    highlightStatusAt: (col, row, points) => circuit.highlightStatusAt(col, row, points),
   };
-}
-
-/**
- * Applies an edit through the displayed circuit's existing immutable updates.
- * Omitted fields preserve state; explicitly present undefined fields clear a drag marker.
- * The optional hand field is consumed by tryGrab, not by this adapter.
- */
-function applyEdit(circuit, edit) {
-  return circuit.withEdit(edit);
 }
 
 /**
@@ -91,7 +69,7 @@ function previewDrop(circuit, hand) {
     gate: previewDropMovedGate,
     resize: previewResizedGate
   };
-  return applyEdit(circuit, previews[hand.operation.type]?.(context, hand));
+  return circuit.withEdit(previews[hand.operation.type]?.(context, hand));
 }
 
 /**
@@ -113,10 +91,7 @@ function afterDropping(circuit, hand) {
  * @returns {!CircuitViewState}
  */
 function withJustEnoughWires(circuit, extraWireCount) {
-  return applyEdit(
-    circuit,
-    wireCountEdit(editingContext(circuit), extraWireCount),
-  );
+  return circuit.withEdit(wireCountEdit(editingContext(circuit), extraWireCount));
 }
 
 /**
@@ -168,7 +143,7 @@ function tryGrab(
     // A selected wire or grabbed resize tab already makes the hand busy.
     if (edit === undefined) edit = tryGrabGate(context, hand, duplicate, alt);
   }
-  return { newCircuit: applyEdit(circuit, edit), newHand: edit?.hand ?? hand };
+  return { newCircuit: circuit.withEdit(edit), newHand: edit?.hand ?? hand };
 }
 
 export { previewDrop, afterDropping, withJustEnoughWires, tryClick, tryGrab };

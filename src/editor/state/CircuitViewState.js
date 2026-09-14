@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-import {findWireWithInitialStateAreaContaining, indexOfDisplayedRowAt} from '../interaction/CircuitHitTesting.js';
+import {findGateOverlappingPos, findWireWithInitialStateAreaContaining, indexOfDisplayedRowAt} from '../interaction/CircuitHitTesting.js';
+import {highlightStatusAt} from '../interaction/CircuitHighlightStatus.js';
 import {tidyCircuit, afterDropping, previewDrop, tryClick, tryGrab, withJustEnoughWires} from '../editing/CircuitEditing.js';
 
 import {CircuitDefinition} from '../../circuit/model/CircuitDefinition.js';
@@ -177,6 +178,30 @@ class CircuitViewState {
      */
     gateRect(wireIndex, operationIndex, width=1, height=1) {
         return this.geometry().gateRect(wireIndex, operationIndex, width, height);
+    }
+
+    /**
+     * @returns {undefined|!{col: !int, row: undefined|!int, resizeStyle: !boolean}} The slot whose
+     *     gate or resize tab the current drag highlights.
+     */
+    get highlightedSlot() {
+        return this._highlightedSlot;
+    }
+
+    /**
+     * The hover and resize-tab state of the gate in a slot, for the pointer's focus points.
+     * @param {!int} col
+     * @param {!int} row
+     * @param {!Array.<!Point>} focusPoints
+     * @returns {!{isResizeShowing: !boolean, isResizeHighlighted: !boolean, isHighlighted: !boolean}}
+     */
+    highlightStatusAt(col, row, focusPoints) {
+        return highlightStatusAt({
+            definition: this.circuitDefinition,
+            geometry: this.geometry(),
+            highlightedSlot: this._highlightedSlot,
+            findGateAt: pos => findGateOverlappingPos(this.geometry(), pos),
+        }, col, row, focusPoints);
     }
 
     /**

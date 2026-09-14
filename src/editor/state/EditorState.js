@@ -1,4 +1,3 @@
-import {grabInEditor, previewEditorDrop, dropInEditor} from '../editing/EditorEditing.js';
 /**
  * Copyright 2017 Google Inc.
  *
@@ -28,12 +27,12 @@ import { Serializer } from "../../serialization/Serializer.js";
 class EditorState {
   /**
    * @param {!Rect} drawArea
-   * @param {!CircuitViewState} circuitWidget
+   * @param {!CircuitViewState} circuit
    * @param {!PointerInteractionState} hand
    */
-  constructor(drawArea, circuitWidget, hand) {
+  constructor(drawArea, circuit, hand) {
     /** @type {!CircuitViewState} */
-    this.displayedCircuit = circuitInArea(circuitWidget, drawArea);
+    this.displayedCircuit = circuitInArea(circuit, drawArea);
     /** @type {!PointerInteractionState} */
     this.hand = hand;
     /** @type {!Rect} */
@@ -84,7 +83,9 @@ class EditorState {
    * @returns {!EditorState}
    */
   afterGrabbing(duplicate = false, wholeCol = false, ignoreResizeTabs = false, alt = false) {
-    return grabInEditor(this, duplicate, wholeCol, ignoreResizeTabs, alt);
+    const {newCircuit, newHand} = this.displayedCircuit.tryGrab(
+      this.hand, duplicate, wholeCol, ignoreResizeTabs, alt);
+    return this.withChanges({circuit: newCircuit, hand: newHand});
   }
 
   /**
@@ -134,12 +135,21 @@ class EditorState {
   /**
    * @returns {!EditorState}
    */
-  previewDrop() { return previewEditorDrop(this); }
+  previewDrop() {
+    if (!this.hand.isBusy()) return this;
+    const circuit = this.displayedCircuit.previewDrop(this.hand);
+    const hand = circuit === this.displayedCircuit ? this.hand : this.hand.withDrop();
+    return this.withChanges({circuit, hand});
+  }
 
   /**
    * @returns {!EditorState}
    */
-  afterDropping() { return dropInEditor(this); }
+  afterDropping() {
+    return this.withChanges({
+      circuit: this.displayedCircuit.afterDropping(this.hand), hand: this.hand.withDrop()
+    });
+  }
 
   /**
    * @returns {Infinity|!number}

@@ -11,7 +11,7 @@ stroke, alpha and text properties in JavaScript. CSS styles the surrounding HTML
 | `scene/` | React scene descriptions, reconciliation and committed rendering | `DisplayView.js`, `ReactScene.js` |
 | `shapes/` | Shape primitives and path construction | `ShapeView.js`, `PathGeometry.js` |
 | `text/` | Text measurement, fitting and label descriptions | `TextLayout.js`, `LabelView.js`, `BasisLabels.js` |
-| `tooltips/` | Tooltip content, positioning and overlay descriptions | `TooltipView.js` |
+| `tooltips/` | Tooltip content, positioning and overlay descriptions | `TooltipView.js`, `MatrixTooltip.js` |
 | `displays/` | Amplitude, probability, density, sample and Bloch displays | Scientific display modules |
 | `gate/` | Gate grouping, frames, symbols and custom-gate rendering | Existing gate modules plus `GateView.js` |
 | `renderers/` | Shared data renderers, operator tiles and raster generation | Existing renderer modules |
@@ -19,7 +19,7 @@ stroke, alpha and text properties in JavaScript. CSS styles the surrounding HTML
 `displays/MatrixView.js` owns complex matrix rendering, `ComplexCellGeometry.js` owns shared amplitude marks,
 `ProbabilityView.js` owns probability displays, and `BlochGeometry.js` owns the Bloch projection axes.
 `tooltips/MatrixTooltip.js` maps matrix cells to tooltip content. Circuit viewport coordination lives in
-[`src/app/canvas/CircuitScene.js`](../app/canvas/CircuitScene.js); circuit composition remains in
+[`src/app/canvas/CircuitViewport.js`](../app/canvas/CircuitViewport.js); circuit composition remains in
 [`src/editor/rendering/`](../editor/rendering/README.md). Editor interaction output lives in
 [`src/editor/interaction/CircuitTargets.js`](../editor/interaction/CircuitTargets.js).
 
@@ -29,7 +29,7 @@ stroke, alpha and text properties in JavaScript. CSS styles the surrounding HTML
   reconciliation and scene-object disposal. `RenderSurface` submits frame descriptions through
   a Zustand store and waits for their committed render. Shared/offscreen surfaces use the same
   Application component in a detached React root. Pixi's automatic ticker stays off.
-- `src/app/canvas/CircuitScene.js` applies viewport position and passes editor state and existing simulation results
+- `src/app/canvas/CircuitViewport.js` applies viewport position and passes editor state and existing simulation results
   into `editor/rendering/InspectorRendering.js`, which composes the background, circuit and held gate.
   `CircuitRendering` supplies the circuit-specific rendering inputs.
 - `DisplayView` describes React elements. Named keys preserve layer and gate identity; unnamed

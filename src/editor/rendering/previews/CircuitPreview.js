@@ -21,7 +21,7 @@ import {CanvasTheme} from '../../../config/CanvasTheme.js';
 import {CircuitGeometry} from '../../geometry/CircuitGeometry.js';
 import {CircuitStats} from '../../../engine/simulation/CircuitStats.js';
 import {PointerInteractionState} from '../../interaction/PointerInteractionState.js';
-import {renderCircuit} from '../CircuitScene.js';
+import {renderCircuitLayers} from '../CircuitLayers.js';
 
 /** Renders circuit previews from a definition, without creating editor state. */
 export function drawCircuitTooltip(painter, circuitDefinition, rect, showWires, time) {
@@ -39,7 +39,7 @@ export function drawCircuitTooltip(painter, circuitDefinition, rect, showWires, 
     painter.group('circuit-preview', painter => {
         painter.position.set(rect.x, rect.y);
         painter.scale.set(Math.min(1, scaleX), Math.min(1, scaleY));
-        renderCircuit({definition: circuitDefinition, geometry,
+        renderCircuitLayers({definition: circuitDefinition, geometry,
             highlightedSlot: undefined,
             highlightStatusAt: () => ({isHighlighted: false, isResizeShowing: false, isResizeHighlighted: false})
         }, painter, PointerInteractionState.EMPTY, stats, true, showWires);

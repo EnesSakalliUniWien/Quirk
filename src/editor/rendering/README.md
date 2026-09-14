@@ -1,7 +1,7 @@
 # Circuit rendering
 
 `CircuitRendering.js` adapts the public circuit API to explicit rendering inputs.
-`CircuitScene.js` describes React elements in order: playhead, wires, columns,
+`CircuitLayers.js` describes React elements in order: playhead, wires, columns,
 outputs, captions, then row highlights. `@pixi/react` reconciles the retained objects and PixiJS renders them. The `paintCircuit()` adapter preserves its callable signature; state no longer has a rendering method.
 
 ## Responsibilities

@@ -32,7 +32,7 @@ The surrounding React panels, scroll viewport and DOM toolbox remain UI integrat
 Geometry queries remain available for editing previews without a mounted scene. Insertion
 choices belong to gate placement. Renderers consume explicit definition, geometry, pointer and
 simulation inputs; they do not run simulations. `paintCircuit` remains the rendering adapter;
-`CircuitScene` composes its scene. `InspectorRendering` composes background, circuit, held gates
+`CircuitLayers` orders the circuit's layers. `InspectorRendering` composes background, circuit, held gates
 and native interaction targets.
 
 Tests mirror these responsibilities under `test/editor/`. Run `npm run check` and

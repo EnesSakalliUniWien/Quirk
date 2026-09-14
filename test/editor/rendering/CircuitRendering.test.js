@@ -1,14 +1,14 @@
-import {paintCircuit} from '../../../../src/editor/rendering/CircuitRendering.js';
-import {Suite, assertThat} from '../../../TestUtil.js';
-import {DisplayView, scenePixels} from '../../../draw/scene/TestDisplayView.js';
-import {CircuitViewState} from '../../../../src/editor/state/CircuitViewState.js';
-import {CircuitDefinition} from '../../../../src/circuit/model/CircuitDefinition.js';
-import {CircuitStats} from '../../../../src/engine/simulation/CircuitStats.js';
-import {Gates} from '../../../../src/gates/AllGates.js';
-import {PointerInteractionState} from '../../../../src/editor/interaction/PointerInteractionState.js';
-import {drawCircuitTooltip} from '../../../../src/editor/rendering/previews/CircuitPreview.js';
-import {Rect} from '../../../../src/geometry/Rect.js';
-import {labelsIn} from '../RenderingTestUtil.js';
+import {paintCircuit} from '../../../src/editor/rendering/CircuitRendering.js';
+import {Suite, assertThat} from '../../TestUtil.js';
+import {DisplayView, scenePixels} from '../../draw/scene/TestDisplayView.js';
+import {CircuitViewState} from '../../../src/editor/state/CircuitViewState.js';
+import {CircuitDefinition} from '../../../src/circuit/model/CircuitDefinition.js';
+import {CircuitStats} from '../../../src/engine/simulation/CircuitStats.js';
+import {Gates} from '../../../src/gates/AllGates.js';
+import {PointerInteractionState} from '../../../src/editor/interaction/PointerInteractionState.js';
+import {drawCircuitTooltip} from '../../../src/editor/rendering/previews/CircuitPreview.js';
+import {Rect} from '../../../src/geometry/Rect.js';
+import {labelsIn} from './RenderingTestUtil.js';
 
 const suite = new Suite('CircuitRendering');
 

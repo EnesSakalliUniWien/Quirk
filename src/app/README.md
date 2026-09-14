@@ -20,6 +20,7 @@ app/
 │   ├── canvasPointer.js    click, grab, drag and drop editing on the canvas
 │   ├── toolboxDrag.js      bridges a grab in the DOM toolbox onto the canvas
 │   ├── minimap.js          the schematic overview of a wide circuit
+│   ├── CircuitViewport.js  one frame: the scroll offset, the circuit stamp and the editor scene
 │   └── redrawLoop.js       the frame pipeline: simulate, publish stats, size, paint
 └── session/        document-level lifecycle
     ├── boot.js             the reveal tick and GL context recovery

@@ -25,9 +25,9 @@ Before opening the pull request, keep the checks green:
 - `src/state/` — `appStore.js`, the zustand store the React chrome reads and the shell writes:
   the active overlay, zoom, dock modes, and the availability and playhead state mirrored from
   the models. It depends only on `src/base/`, so both `app` and `components` import it downward.
-- `src/editor/` — the canvas circuit editor's model: the displayed circuit, its geometry,
-  hit testing, painting, and drag state. Must never import from `src/app/` or
-  `src/components/`, and stays DOM-free (no `document`/`window` access).
+- `src/editor/` — the canvas circuit editor: view and pointer state, geometry, interaction,
+  editing and rendering; see [the editor guide](src/editor/README.md). Must never import from
+  `src/app/` or `src/components/`, and stays DOM-free (no `document`/`window` access).
 - `src/components/` — the React chrome (toolbar, transport bar, dialogs, gate toolbox), its
   `Button` and `ButtonGroup` primitives under `src/components/ui/` (styled by
   `src/styles/controls.css`), and `toolbox.js`, the vanilla helper module the gate toolbox drives.
@@ -52,9 +52,11 @@ Before opening the pull request, keep the checks green:
   interaction; see [the rendering guide](src/editor/rendering/README.md).
 - `src/draw/` — rendering grouped into surfaces, scenes, shapes, text, tooltips, scientific
   displays, gates and shared renderers; see [the directory guide](src/draw/README.md).
-  Circuit viewport coordination lives in `src/app/canvas/CircuitScene.js`. Scene descriptions
-  use the editor's `InteractionState` to collect cursor and touch blockers; circuit rendering
-  callbacks are supplied through `gate/CustomGateCircuitRenderer.js` and `CircuitPreview.js`.
+  Circuit viewport coordination lives in `src/app/canvas/CircuitViewport.js`. Gate renderers
+  receive the editor's `PointerInteractionState` as an argument, hit areas and cursors come from
+  `src/editor/interaction/CircuitTargets.js`, and there are no touch-blocker overlays. Circuit
+  rendering callbacks are supplied through `gate/CustomGateCircuitRenderer.js` and
+  `CircuitPreview.js`.
 - `src/engine/` — every calculation: pure numerics in `math/`, the WebGL2 abstraction in `webgl/`
   (`webgl/context/issues.js` owns the one shared GL context), and circuit evaluation in `simulation/`
   with its shader and texture utilities in `simulation/gpu/`. `math/` and `webgl/` are leaves;

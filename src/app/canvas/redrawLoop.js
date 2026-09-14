@@ -18,7 +18,7 @@ import {CooldownThrottle} from '../../base/CooldownThrottle.js';
 import {GateColumn} from '../../circuit/model/GateColumn.js';
 import {Rendering} from '../../config/Rendering.js';
 import {invalidateTextLayout} from '../../draw/text/TextLayout.js';
-import {CircuitScene} from './CircuitScene.js';
+import {CircuitViewport} from './CircuitViewport.js';
 import {RenderSurface} from '../../draw/surface/RenderSurface.js';
 import {Point} from '../../geometry/Point.js';
 import {RestartableRng} from '../../base/RestartableRng.js';
@@ -57,7 +57,7 @@ function initRedrawLoop(canvas,
                         desiredCanvasSizeFor,
                         syncArea, captureCommitted) {
     let hasStarted = false;
-    const scene = new CircuitScene(RenderSurface.forCanvas(canvas));
+    const viewport = new CircuitViewport(RenderSurface.forCanvas(canvas));
     // The scroll extent lives on this spacer, not the canvas: the canvas stays viewport-sized
     // while the spacer stretches to the content, so a wide circuit scrolls without the canvas's
     // backing store ever growing.
@@ -99,15 +99,15 @@ function initRedrawLoop(canvas,
         const cssH = canvasDiv.clientHeight;
         const backingW = Math.round(cssW * pixelRatio);
         const backingH = Math.round(cssH * pixelRatio);
-        scene.surface.resize(backingW, backingH);
-        scene.surface.presentation.setState({width: cssW, height: cssH});
+        viewport.surface.resize(backingW, backingH);
+        viewport.surface.presentation.setState({width: cssW, height: cssH});
         spacer.style.width = Math.round(size.w * zoom) + 'px';
         spacer.style.height = Math.round(size.h * zoom) + 'px';
 
         // The camera: the painter scales into circuit units, then shifts by the scroll so the
         // fixed viewport shows the scrolled-to part of the scene.
         shown = shown.withArea(new Rect(0, 0, size.w, size.h));
-        scene.update(shown, stats, playheadStep, {
+        viewport.update(shown, stats, playheadStep, {
             rng: graphicsRng.restarted(), resolution: pixelRatio * zoom,
             // Zoomed out, the circuit's lines widen in circuit units so they stay a CSS pixel wide.
             lineScale: 1 / Math.min(zoom, 1),
@@ -115,8 +115,8 @@ function initRedrawLoop(canvas,
         });
 
         const hand = displayed.getState().value.hand;
-        scene.surface.app.renderer.events.setCursor(hand.isHoldingSomething() ? 'move' :
-            hand.isBusy() ? 'ns-resize' : scene.surface.app.renderer.events.rootBoundary.cursor || 'auto');
+        viewport.surface.app.renderer.events.setCursor(hand.isHoldingSomething() ? 'move' :
+            hand.isBusy() ? 'ns-resize' : viewport.surface.app.renderer.events.rootBoundary.cursor || 'auto');
 
         const dt = displayed.getState().value.stableDuration();
         if (dt < Infinity && simulator.playing) {

@@ -18,9 +18,9 @@ function Range({deps,selection,zoom,host}) {
     },[host]);
     const shown = useStore(deps.displayed,s => s.value);
     const expected = useMemo(() => JSON.stringify(Serializer.toJson(fromJsonText_CircuitDefinition(selection.circuitJson))),[selection.circuitJson]);
+    if (shown.snapshot() !== expected || shown.hand.isBusy()) return null;
     const circuit = deps.syncArea(shown).displayedCircuit;
-    if (JSON.stringify(Serializer.toJson(circuit.circuitDefinition)) !== expected || shown.hand.isBusy()) return null;
     const {colStart,colEnd,wireStart,wireEnd} = selection.range;
-    const rect = circuit.geometry().gateRect(wireStart,colStart,colEnd-colStart,wireEnd-wireStart);
+    const rect = circuit.gateRect(wireStart,colStart,colEnd-colStart,wireEnd-wireStart);
     return <div className="forge-range-highlight" aria-hidden="true" style={{left:rect.x*zoom,top:rect.y*zoom,width:rect.w*zoom,height:rect.h*zoom}} />;
 }

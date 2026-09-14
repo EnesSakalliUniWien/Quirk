@@ -21,7 +21,7 @@ import {drawHintLabels} from './outputs/CircuitCaptions.js';
 import {drawPlayheadBand, drawRowDragHighlight} from './interaction/CircuitHighlights.js';
 
 /** Updates retained Pixi objects from prepared inputs; never reads or modifies CircuitViewState. */
-export function renderCircuit(context, painter, hand, stats, forTooltip=false, showWires=true, playheadStep=undefined) {
+export function renderCircuitLayers(context, painter, hand, stats, forTooltip=false, showWires=true, playheadStep=undefined) {
     if (!forTooltip) {
         painter.group('playhead', view => drawPlayheadBand(context, view, playheadStep));
     }
