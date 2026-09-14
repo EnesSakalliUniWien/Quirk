@@ -284,4 +284,14 @@ const EXAMPLE_CIRCUITS = [
     {name: 'Magic State Distillation', circuit: distillLink},
 ];
 
+// These literals are an acyclic JSON tree. Freeze every nested array and object so loading or
+// editing one example cannot change the menu's source data for the next load.
+function freezeExampleData(value) {
+    if (value !== null && typeof value === 'object') {
+        for (const child of Object.values(value)) freezeExampleData(child);
+        Object.freeze(value);
+    }
+}
+freezeExampleData(EXAMPLE_CIRCUITS);
+
 export {EXAMPLE_CIRCUITS}
