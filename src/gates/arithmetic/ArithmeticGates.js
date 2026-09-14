@@ -15,6 +15,7 @@
  */
 
 import { Gate } from "../../circuit/model/Gate.js";
+import { SECTIONED_RENDERER_MAKER } from "../../draw/gate/GateRenderers.js";
 import {
   ketArgs,
   ketShaderPermute,
@@ -23,6 +24,16 @@ import {
 import { WglArg } from "../../engine/webgl/shader/WglArg.js";
 
 const ArithmeticGates = {};
+
+const chunkedScaledAdditionPermutationMaker = (span, factor) => (e) => {
+  const sa = Math.floor(span / 2);
+  const sb = Math.ceil(span / 2);
+  const a = e & ((1 << sa) - 1);
+  let b = e >> sa;
+  b += a * factor;
+  b &= (1 << sb) - 1;
+  return a + (b << sa);
+};
 
 const ADDITION_SHADER = ketShaderPermute(
   `
@@ -34,6 +45,63 @@ const ADDITION_SHADER = ketShaderPermute(
         d *= factor;
         d = mod(d, span);
         return mod(out_id + span - d, span);`,
+);
+
+ArithmeticGates.Legacy_AdditionFamily = Gate.buildFamily(
+  2,
+  16,
+  (span, builder) =>
+    builder
+      .setSerializedId("add" + span)
+      .setSymbol("b+=a")
+      .setTitle("Addition Gate")
+      .setBlurb("Adds a little-endian number into another.")
+      .setRenderer(
+        SECTIONED_RENDERER_MAKER(
+          ["a", "b+=a"],
+          [Math.floor(span / 2) / span],
+        ),
+      )
+      .setActualEffectToUpdateFunc((ctx) =>
+        ArithmeticGates.PlusAFamily.ofSize(Math.ceil(span / 2)).customOperation(
+          ctx
+            .withRow(ctx.row + Math.floor(span / 2))
+            .withInputSetToRange("A", ctx.row, Math.floor(span / 2)),
+        ),
+      )
+      .setKnownEffectToPermutation(
+        chunkedScaledAdditionPermutationMaker(span, 1),
+      ),
+);
+
+ArithmeticGates.Legacy_SubtractionFamily = Gate.buildFamily(
+  2,
+  16,
+  (span, builder) =>
+    builder
+      .setAlternateFromFamily(ArithmeticGates.Legacy_AdditionFamily)
+      .setSerializedId("sub" + span)
+      .setSymbol("b-=a")
+      .setTitle("Subtraction Gate")
+      .setBlurb("Subtracts a little-endian number from another.")
+      .setRenderer(
+        SECTIONED_RENDERER_MAKER(
+          ["a", "b-=a"],
+          [Math.floor(span / 2) / span],
+        ),
+      )
+      .setActualEffectToUpdateFunc((ctx) =>
+        ArithmeticGates.MinusAFamily.ofSize(
+          Math.ceil(span / 2),
+        ).customOperation(
+          ctx
+            .withRow(ctx.row + Math.floor(span / 2))
+            .withInputSetToRange("A", ctx.row, Math.floor(span / 2)),
+        ),
+      )
+      .setKnownEffectToPermutation(
+        chunkedScaledAdditionPermutationMaker(span, -1),
+      ),
 );
 
 ArithmeticGates.PlusAFamily = Gate.buildFamily(1, 16, (span, builder) =>
@@ -74,6 +142,8 @@ ArithmeticGates.MinusAFamily = Gate.buildFamily(1, 16, (span, builder) =>
 );
 
 ArithmeticGates.all = [
+  ...ArithmeticGates.Legacy_AdditionFamily.all,
+  ...ArithmeticGates.Legacy_SubtractionFamily.all,
   ...ArithmeticGates.PlusAFamily.all,
   ...ArithmeticGates.MinusAFamily.all,
 ];
