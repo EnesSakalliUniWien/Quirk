@@ -544,3 +544,96 @@ test('construction tabs move focus with the arrow keys and activate with Enter o
         assert.ok(await page.$('#gate-forge-circuit-cols'));
     });
 });
+
+test('a renamed draft waits for its own preview and a double submit creates one gate', async browser => {
+    await withQuirkPage(browser, {cols: [['H']]}, async page => {
+        await page.click('#gate-forge-button');
+        await page.waitForSelector('#gate-forge-rotation-button:not([disabled])');
+        // Rename inside the page, then look before the 100ms debounce can settle.
+        const pending = await page.$eval('#gate-forge-rotation-name', async input => {
+            Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, 'Renamed');
+            input.dispatchEvent(new Event('input', {bubbles: true}));
+            await new Promise(resolve => setTimeout(resolve, 0));
+            return {
+                disabled: document.getElementById('gate-forge-rotation-button').disabled,
+                updating: document.getElementById('gate-forge-rotation-canvas').textContent.includes('Updating preview'),
+            };
+        });
+        assert.deepEqual(pending, {disabled: true, updating: true});
+        await page.waitForSelector('#gate-forge-rotation-button:not([disabled])');
+        await page.$eval('#gate-forge-rotation-button', button => {button.click(); button.click();});
+        await waitForPanel(page, 'forge', false);
+        assert.equal((await currentCircuit(page)).gates.length, 1);
+    });
+});
+
+test('editing Ry through a keyboard-chosen target moves the Bloch vector to the new angle', async browser => {
+    // Ry and Rz are each two columns wide, so the Bloch display sits in the fifth column.
+    const cols = rotation => [[{id: 'Ry', arg: rotation}], [], [{id: 'Rz', arg: 'pi/4'}], [], ['Bloch']];
+    await withQuirkPage(browser, {cols: cols('pi/3')}, async page => {
+        const canvasBounds = await page.$eval('#drawCanvas canvas', element => {
+            const bounds = element.getBoundingClientRect();
+            return {x: bounds.x, y: bounds.y};
+        });
+        let opened = false;
+        for (let attempt = 0; attempt < 3 && !opened; attempt++) {
+            await waitForCanvasViewport(page);
+            const circuitTop = await circuitTopForWires(page, 2);
+            await page.mouse.click(canvasBounds.x + 4 * circuitMetrics.columnSpacing + circuitMetrics.firstColumnLeft + circuitMetrics.gateSize / 2, canvasBounds.y + circuitTop + circuitMetrics.wireSpacing / 2);
+            opened = await page.waitForSelector('[data-panel-id="bloch"]', {visible: true, timeout: 2000}).
+                then(() => true, () => false);
+        }
+        assert.ok(opened, 'The Bloch sphere panel must open.');
+        await page.waitForFunction(() => document.getElementById('bloch-theta').textContent === '60.0°', {timeout: TEST_TIMEOUT_MILLIS});
+        const phi = await page.$eval('#bloch-phi', element => element.textContent);
+
+        // The toolbar opens the target list; the keyboard chooses Ry, the first parameter gate.
+        await page.$eval('#gate-parameter-button', button => button.click());
+        await page.waitForSelector('.parameter-targets button');
+        await page.focus('.parameter-targets button');
+        await page.keyboard.press('Enter');
+        await page.waitForSelector('#gate-param-input');
+        assert.equal(await page.$eval('#gate-param-input', element => element.value), 'pi/3');
+        await replaceField(page, '#gate-param-input', 'pi/2');
+        await page.keyboard.press('Enter');
+        await waitForCircuit(page, {cols: cols('pi/2')});
+        await page.waitForFunction(() => document.getElementById('bloch-theta').textContent === '90.0°', {timeout: TEST_TIMEOUT_MILLIS});
+        assert.equal(await page.$eval('#bloch-phi', element => element.textContent), phi);
+    });
+});
+
+test('a rotation gate edits from its indicator and not from its body at each zoom step', async browser => {
+    const circuit = {cols: [[{id: 'Rx', arg: 'pi/2'}]]};
+    await withQuirkPage(browser, circuit, async page => {
+        for (const [zoom, buttons] of [[0.8, ['Zoom out']], [1, []], [1.5, ['Zoom in', 'Zoom in']]]) {
+            await page.click('[aria-label="Reset zoom"]');
+            for (const label of buttons) await page.click(`[aria-label="${label}"]`);
+            await page.$eval('#canvasDiv', element => element.scrollTo(0, 0));
+            const gatePoint = async offsetFromWire => {
+                await waitForCanvasViewport(page);
+                const canvas = await page.$eval('#drawCanvas canvas', element => element.getBoundingClientRect().toJSON());
+                const top = await circuitTopForWires(page, 2, zoom);
+                return {x: canvas.x + (circuitMetrics.firstColumnLeft + circuitMetrics.gateSize / 2) * zoom,
+                        y: canvas.y + (top + circuitMetrics.wireSpacing / 2 + offsetFromWire) * zoom};
+            };
+            // Pressing the body, even with a small wobble, grabs the gate and puts it back.
+            const body = await gatePoint(-10);
+            await page.mouse.move(body.x, body.y);
+            await page.mouse.down();
+            await page.mouse.move(body.x + 3, body.y, {steps: 3});
+            await page.mouse.move(body.x, body.y, {steps: 3});
+            await page.mouse.up();
+            await waitForCircuit(page, circuit);
+            assert.equal(await page.$('[data-panel-id="gate-param"]'), null, `The body must not edit at ${zoom}x.`);
+            let opened = false;
+            for (let attempt = 0; attempt < 3 && !opened; attempt++) {
+                const indicator = await gatePoint(13);
+                await page.mouse.click(indicator.x, indicator.y);
+                opened = await page.waitForSelector('[data-panel-id="gate-param"]', {visible: true, timeout: 2000}).
+                    then(() => true, () => false);
+            }
+            assert.ok(opened, `The indicator must edit at ${zoom}x.`);
+            await closePanel(page, 'gate-param');
+        }
+    });
+});

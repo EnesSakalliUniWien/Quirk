@@ -6,6 +6,9 @@ import {rectForResizeTab} from '../../../src/draw/gate/GateRects.js';
 import {DisplayView, scenePixels} from '../scene/TestDisplayView.js';
 import {Rect} from '../../../src/geometry/Rect.js';
 import {Gates} from '../../../src/gates/AllGates.js';
+import {Layout} from '../../../src/config/Layout.js';
+import {angleLabelParts} from '../../../src/draw/gate/AngleGateLabel.js';
+import {labelsIn} from '../../editor/rendering/RenderingTestUtil.js';
 
 const suite = new Suite("GateRenderers");
 
@@ -77,5 +80,31 @@ suite.test("display gates always wear a frame, and a highlight ring outside it w
         const expected = [[10.5, 10.5, 80, 80, undefined, CanvasTheme.stroke.frame, 1]];
         if (isHighlighted) expected.push([9, 9, 83, 83, undefined, CanvasTheme.interaction.outline, 2]);
         assertThat(strokes).withInfo({isHighlighted}).isEqualTo(expected);
+    }
+});
+
+suite.test("rotation gates keep their symbol and angle inside the gate at each zoom step", async () => {
+    for (const gate of [Gates.RotationGates.Rx.withParam('pi/2'), Gates.RotationGates.Ry.withParam('3pi/4'),
+        Gates.RotationGates.Rz.withParam('-pi/8')]) {
+        for (const scale of [0.8, 1, 1.5]) {
+            const canvas = document.createElement('canvas');
+            const painter = new DisplayView(canvas);
+            const size = Layout.GATE_RADIUS * 2 * scale;
+            const rect = new Rect(30, 30, size, size);
+            gate.customRenderer({painter, rect, gate, isHighlighted: false, isResizeShowing: false,
+                hand: {isHoldingSomething: () => false}, focusPoints: [], stats: {time: 0}});
+            const pixels = (await scenePixels(canvas)).data;
+            const {symbol, parameter} = angleLabelParts(gate);
+            assertThat(labelsIn(painter).map(label => label.text)).withInfo({scale}).
+                isEqualTo([symbol, parameter, 'edit']);
+            let outside = 0;
+            for (let y = 0; y < canvas.height; y++) {
+                for (let x = 0; x < canvas.width; x++) {
+                    const near = x >= rect.x - 2 && x < rect.right() + 2 && y >= rect.y - 2 && y < rect.bottom() + 2;
+                    if (!near && pixels[(y * canvas.width + x) * 4 + 3] !== 0) outside++;
+                }
+            }
+            assertThat(outside).withInfo({gate: gate.symbol, scale}).isEqualTo(0);
+        }
     }
 });
