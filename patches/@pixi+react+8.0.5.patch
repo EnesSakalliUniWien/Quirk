@@ -1,0 +1,419 @@
+diff --git a/node_modules/@pixi/react/lib/components/Application.js b/node_modules/@pixi/react/lib/components/Application.js
+index 4d452e0..584ed7f 100644
+--- a/node_modules/@pixi/react/lib/components/Application.js
++++ b/node_modules/@pixi/react/lib/components/Application.js
+@@ -20,12 +20,14 @@ const ApplicationImplementation = react.forwardRef(function Application2(props,
+     defaultTextStyle,
+     extensions,
+     onInit,
++    onInitError,
+     resizeTo,
+     ...applicationProps
+   } = props;
+   const Bridge = itsFine.useContextBridge();
+   const applicationRef = react.useRef(null);
+   const canvasRef = react.useRef(null);
++  const initializationFailed = react.useRef(false);
+   const extensionsRef = react.useRef(/* @__PURE__ */ new Set());
+   react.useImperativeHandle(forwardedRef, () => ({
+     getApplication() {
+@@ -51,6 +53,12 @@ const ApplicationImplementation = react.forwardRef(function Application2(props,
+       }
+     }
+   }, [resizeTo]);
++  const handleInitError = react.useCallback((error) => {
++    if (initializationFailed.current) return;
++    initializationFailed.current = true;
++    if (onInitError) onInitError(error);
++    else console.error(error);
++  }, [onInitError]);
+   const handleInit = react.useCallback((application) => {
+     processUnmountQueue.processUnmountQueue();
+     applicationRef.current = application;
+@@ -77,17 +85,18 @@ const ApplicationImplementation = react.forwardRef(function Application2(props,
+   }, [extensions]);
+   useIsomorphicLayoutEffect.useIsomorphicLayoutEffect(() => {
+     const canvasElement = canvasRef.current;
+-    if (canvasElement) {
++    if (canvasElement && !initializationFailed.current) {
+       let root = roots.roots.get(canvasElement);
+       if (!root) {
+-        root = createRoot.createRoot(canvasElement, { onInit: handleInit });
++        root = createRoot.createRoot(canvasElement, { onInit: handleInit, onInitError: handleInitError });
+       }
+-      root.render(/* @__PURE__ */ jsxRuntime.jsx(Bridge, { children }), applicationProps);
++      root.render(/* @__PURE__ */ jsxRuntime.jsx(Bridge, { children }), applicationProps).catch(handleInitError);
+     }
+   }, [
+     applicationProps,
+     children,
+     handleInit,
++    handleInitError,
+     resizeTo
+   ]);
+   useIsomorphicLayoutEffect.useIsomorphicLayoutEffect(() => {
+diff --git a/node_modules/@pixi/react/lib/components/Application.mjs b/node_modules/@pixi/react/lib/components/Application.mjs
+index ecdf493..9850af9 100644
+--- a/node_modules/@pixi/react/lib/components/Application.mjs
++++ b/node_modules/@pixi/react/lib/components/Application.mjs
+@@ -18,12 +18,14 @@ const ApplicationImplementation = forwardRef(function Application2(props, forwar
+     defaultTextStyle,
+     extensions: extensions$1,
+     onInit,
++    onInitError,
+     resizeTo,
+     ...applicationProps
+   } = props;
+   const Bridge = useContextBridge();
+   const applicationRef = useRef(null);
+   const canvasRef = useRef(null);
++  const initializationFailed = useRef(false);
+   const extensionsRef = useRef(/* @__PURE__ */ new Set());
+   useImperativeHandle(forwardedRef, () => ({
+     getApplication() {
+@@ -49,6 +51,12 @@ const ApplicationImplementation = forwardRef(function Application2(props, forwar
+       }
+     }
+   }, [resizeTo]);
++  const handleInitError = useCallback((error) => {
++    if (initializationFailed.current) return;
++    initializationFailed.current = true;
++    if (onInitError) onInitError(error);
++    else console.error(error);
++  }, [onInitError]);
+   const handleInit = useCallback((application) => {
+     processUnmountQueue();
+     applicationRef.current = application;
+@@ -75,17 +83,18 @@ const ApplicationImplementation = forwardRef(function Application2(props, forwar
+   }, [extensions$1]);
+   useIsomorphicLayoutEffect(() => {
+     const canvasElement = canvasRef.current;
+-    if (canvasElement) {
++    if (canvasElement && !initializationFailed.current) {
+       let root = roots.get(canvasElement);
+       if (!root) {
+-        root = createRoot(canvasElement, { onInit: handleInit });
++        root = createRoot(canvasElement, { onInit: handleInit, onInitError: handleInitError });
+       }
+-      root.render(/* @__PURE__ */ jsx(Bridge, { children }), applicationProps);
++      root.render(/* @__PURE__ */ jsx(Bridge, { children }), applicationProps).catch(handleInitError);
+     }
+   }, [
+     applicationProps,
+     children,
+     handleInit,
++    handleInitError,
+     resizeTo
+   ]);
+   useIsomorphicLayoutEffect(() => {
+diff --git a/node_modules/@pixi/react/lib/core/createRoot.js b/node_modules/@pixi/react/lib/core/createRoot.js
+index 10cdaf5..b8d9625 100644
+--- a/node_modules/@pixi/react/lib/core/createRoot.js
++++ b/node_modules/@pixi/react/lib/core/createRoot.js
+@@ -10,6 +10,9 @@ var prepareInstance = require('../helpers/prepareInstance.js');
+ var reconciler = require('./reconciler.js');
+ var roots = require('./roots.js');
+ 
++var store = require('../store.js');
++var unmountRoot = require('../helpers/unmountRoot.js');
++
+ "use strict";
+ function createRoot(target, options = {}) {
+   let root = roots.roots.get(target);
+@@ -57,18 +60,33 @@ function createRoot(target, options = {}) {
+       target.appendChild(canvas);
+     }
+     internalState.canvas = canvas;
++    let initialization;
++    let renderVersion = 0;
+     const render = async (children, applicationOptions) => {
+-      if (!applicationState.app.renderer && !applicationState.isInitialised && !applicationState.isInitialising) {
++      const version = ++renderVersion;
++      if (applicationState.isUnmounted) return applicationState.app;
++      if (!initialization) {
+         applicationState.isInitialising = true;
+-        await applicationState.app.init({
+-          ...applicationOptions,
+-          canvas
++        initialization = Promise.resolve().then(async () => {
++          try {
++            await applicationState.app.init({...applicationOptions, canvas});
++            applicationState.isInitialised = true;
++          } catch (error) {
++            applicationState.initFailed = true;
++            await unmountRoot.unmountRoot(root);
++            options.onInitError?.(error);
++            throw error;
++          } finally {
++            applicationState.isInitialising = false;
++            if (applicationState.initFailed || store.store.unmountQueue.has(root)) {
++              await unmountRoot.unmountRoot(root);
++            }
++          }
++          if (!applicationState.isUnmounted) options.onInit?.(applicationState.app);
+         });
+-        applicationState.isInitialising = false;
+-        applicationState.isInitialised = true;
+-        applicationState = { ...applicationState };
+-        options.onInit?.(applicationState.app);
+       }
++      await initialization;
++      if (applicationState.isUnmounted || version !== renderVersion) return applicationState.app;
+       Object.entries(applicationOptions).forEach(([key, value]) => {
+         const typedKey = key;
+         if (isReadOnlyProperty.isReadOnlyProperty(
+@@ -80,7 +98,7 @@ function createRoot(target, options = {}) {
+         applicationState.app[typedKey] = value;
+       });
+       reconciler.reconciler.updateContainer(
+-        /* @__PURE__ */ jsxRuntime.jsx(Context.ContextProvider, { value: applicationState, children }),
++        /* @__PURE__ */ jsxRuntime.jsx(Context.ContextProvider, { value: { ...applicationState }, children }),
+         fiber,
+         null,
+         () => void 0
+diff --git a/node_modules/@pixi/react/lib/core/createRoot.mjs b/node_modules/@pixi/react/lib/core/createRoot.mjs
+index 7dec921..0342280 100644
+--- a/node_modules/@pixi/react/lib/core/createRoot.mjs
++++ b/node_modules/@pixi/react/lib/core/createRoot.mjs
+@@ -8,6 +8,9 @@ import { prepareInstance } from '../helpers/prepareInstance.mjs';
+ import { reconciler } from './reconciler.mjs';
+ import { roots } from './roots.mjs';
+ 
++import {store} from '../store.mjs';
++import {unmountRoot} from '../helpers/unmountRoot.mjs';
++
+ "use strict";
+ function createRoot(target, options = {}) {
+   let root = roots.get(target);
+@@ -55,18 +58,33 @@ function createRoot(target, options = {}) {
+       target.appendChild(canvas);
+     }
+     internalState.canvas = canvas;
++    let initialization;
++    let renderVersion = 0;
+     const render = async (children, applicationOptions) => {
+-      if (!applicationState.app.renderer && !applicationState.isInitialised && !applicationState.isInitialising) {
++      const version = ++renderVersion;
++      if (applicationState.isUnmounted) return applicationState.app;
++      if (!initialization) {
+         applicationState.isInitialising = true;
+-        await applicationState.app.init({
+-          ...applicationOptions,
+-          canvas
++        initialization = Promise.resolve().then(async () => {
++          try {
++            await applicationState.app.init({...applicationOptions, canvas});
++            applicationState.isInitialised = true;
++          } catch (error) {
++            applicationState.initFailed = true;
++            await unmountRoot(root);
++            options.onInitError?.(error);
++            throw error;
++          } finally {
++            applicationState.isInitialising = false;
++            if (applicationState.initFailed || store.unmountQueue.has(root)) {
++              await unmountRoot(root);
++            }
++          }
++          if (!applicationState.isUnmounted) options.onInit?.(applicationState.app);
+         });
+-        applicationState.isInitialising = false;
+-        applicationState.isInitialised = true;
+-        applicationState = { ...applicationState };
+-        options.onInit?.(applicationState.app);
+       }
++      await initialization;
++      if (applicationState.isUnmounted || version !== renderVersion) return applicationState.app;
+       Object.entries(applicationOptions).forEach(([key, value]) => {
+         const typedKey = key;
+         if (isReadOnlyProperty(
+@@ -78,7 +96,7 @@ function createRoot(target, options = {}) {
+         applicationState.app[typedKey] = value;
+       });
+       reconciler.updateContainer(
+-        /* @__PURE__ */ jsx(ContextProvider, { value: applicationState, children }),
++        /* @__PURE__ */ jsx(ContextProvider, { value: { ...applicationState }, children }),
+         fiber,
+         null,
+         () => void 0
+diff --git a/node_modules/@pixi/react/lib/helpers/processUnmountQueue.js b/node_modules/@pixi/react/lib/helpers/processUnmountQueue.js
+index a6b7ebe..def3c48 100644
+--- a/node_modules/@pixi/react/lib/helpers/processUnmountQueue.js
++++ b/node_modules/@pixi/react/lib/helpers/processUnmountQueue.js
+@@ -6,7 +6,7 @@ var unmountRoot = require('./unmountRoot.js');
+ "use strict";
+ function processUnmountQueue() {
+   for (const root of store.store.unmountQueue) {
+-    unmountRoot.unmountRoot(root);
++    if (!root.applicationState.isInitialising) unmountRoot.unmountRoot(root);
+   }
+ }
+ 
+diff --git a/node_modules/@pixi/react/lib/helpers/processUnmountQueue.mjs b/node_modules/@pixi/react/lib/helpers/processUnmountQueue.mjs
+index b9eb15f..ca01528 100644
+--- a/node_modules/@pixi/react/lib/helpers/processUnmountQueue.mjs
++++ b/node_modules/@pixi/react/lib/helpers/processUnmountQueue.mjs
+@@ -4,7 +4,7 @@ import { unmountRoot } from './unmountRoot.mjs';
+ "use strict";
+ function processUnmountQueue() {
+   for (const root of store.unmountQueue) {
+-    unmountRoot(root);
++    if (!root.applicationState.isInitialising) unmountRoot(root);
+   }
+ }
+ 
+diff --git a/node_modules/@pixi/react/lib/helpers/queueForUnmount.js b/node_modules/@pixi/react/lib/helpers/queueForUnmount.js
+index 9be40d2..9d61168 100644
+--- a/node_modules/@pixi/react/lib/helpers/queueForUnmount.js
++++ b/node_modules/@pixi/react/lib/helpers/queueForUnmount.js
+@@ -8,7 +8,7 @@ var unmountRoot = require('./unmountRoot.js');
+ function queueForUnmount(canvas) {
+   const root = roots.roots.get(canvas);
+   if (root) {
+-    if (root.applicationState.isInitialised) {
++    if (!root.applicationState.isInitialising) {
+       unmountRoot.unmountRoot(root);
+     } else {
+       store.store.unmountQueue.add(root);
+diff --git a/node_modules/@pixi/react/lib/helpers/queueForUnmount.mjs b/node_modules/@pixi/react/lib/helpers/queueForUnmount.mjs
+index d0d8cc3..42443d2 100644
+--- a/node_modules/@pixi/react/lib/helpers/queueForUnmount.mjs
++++ b/node_modules/@pixi/react/lib/helpers/queueForUnmount.mjs
+@@ -6,7 +6,7 @@ import { unmountRoot } from './unmountRoot.mjs';
+ function queueForUnmount(canvas) {
+   const root = roots.get(canvas);
+   if (root) {
+-    if (root.applicationState.isInitialised) {
++    if (!root.applicationState.isInitialising) {
+       unmountRoot(root);
+     } else {
+       store.unmountQueue.add(root);
+diff --git a/node_modules/@pixi/react/lib/helpers/unmountRoot.js b/node_modules/@pixi/react/lib/helpers/unmountRoot.js
+index 3bb4e83..435b9fd 100644
+--- a/node_modules/@pixi/react/lib/helpers/unmountRoot.js
++++ b/node_modules/@pixi/react/lib/helpers/unmountRoot.js
+@@ -7,15 +7,31 @@ var store = require('../store.js');
+ "use strict";
+ function unmountRoot(root) {
+   store.store.unmountQueue.delete(root);
++  if (root.unmountPromise) return root.unmountPromise;
++  root.applicationState.isUnmounted = true;
+   const fiber = root.fiber;
+-  if (fiber) {
++  root.unmountPromise = new Promise((resolve, reject) => {
+     reconciler.reconciler.updateContainer(null, fiber, null, () => {
+-      if (root.applicationState.app) {
+-        root.applicationState.app.destroy();
++      try {
++        const app = root.applicationState.app;
++        if (root.applicationState.isInitialised) app.destroy();
++        else {
++          // Application plugins may not have initialized, so their destroy hooks are unsafe.
++          app.stage?.destroy({children: true});
++          app.renderer?.destroy();
++          app.renderer = null;
++        }
++      } catch (error) {
++        reject(error);
++      } finally {
++        if (roots.roots.get(root.internalState.canvas) === root) {
++          roots.roots.delete(root.internalState.canvas);
++        }
++        resolve();
+       }
+-      roots.roots.delete(root.internalState.canvas);
+     });
+-  }
++  });
++  return root.unmountPromise;
+ }
+ 
+ exports.unmountRoot = unmountRoot;
+diff --git a/node_modules/@pixi/react/lib/helpers/unmountRoot.mjs b/node_modules/@pixi/react/lib/helpers/unmountRoot.mjs
+index 1b37917..c9c6510 100644
+--- a/node_modules/@pixi/react/lib/helpers/unmountRoot.mjs
++++ b/node_modules/@pixi/react/lib/helpers/unmountRoot.mjs
+@@ -5,15 +5,31 @@ import { store } from '../store.mjs';
+ "use strict";
+ function unmountRoot(root) {
+   store.unmountQueue.delete(root);
++  if (root.unmountPromise) return root.unmountPromise;
++  root.applicationState.isUnmounted = true;
+   const fiber = root.fiber;
+-  if (fiber) {
++  root.unmountPromise = new Promise((resolve, reject) => {
+     reconciler.updateContainer(null, fiber, null, () => {
+-      if (root.applicationState.app) {
+-        root.applicationState.app.destroy();
++      try {
++        const app = root.applicationState.app;
++        if (root.applicationState.isInitialised) app.destroy();
++        else {
++          // Application plugins may not have initialized, so their destroy hooks are unsafe.
++          app.stage?.destroy({children: true});
++          app.renderer?.destroy();
++          app.renderer = null;
++        }
++      } catch (error) {
++        reject(error);
++      } finally {
++        if (roots.get(root.internalState.canvas) === root) {
++          roots.delete(root.internalState.canvas);
++        }
++        resolve();
+       }
+-      roots.delete(root.internalState.canvas);
+     });
+-  }
++  });
++  return root.unmountPromise;
+ }
+ 
+ export { unmountRoot };
+diff --git a/node_modules/@pixi/react/types/typedefs/ApplicationProps.d.ts b/node_modules/@pixi/react/types/typedefs/ApplicationProps.d.ts
+index 6d07247..629cdfc 100644
+--- a/node_modules/@pixi/react/types/typedefs/ApplicationProps.d.ts
++++ b/node_modules/@pixi/react/types/typedefs/ApplicationProps.d.ts
+@@ -14,6 +14,8 @@ export interface BaseApplicationProps {
+     key?: Key;
+     /** @description Callback to be fired when the application finishes initializing. */
+     onInit?: (app: Application) => void;
++    /** Called once when initialization fails; children are not mounted. */
++    onInitError?: (error: unknown) => void;
+     /** @description An element (or React ref) to which the application's canvas will be resized. */
+     resizeTo?: HTMLElement | Window | RefObject<HTMLElement | null>;
+ }
+diff --git a/node_modules/@pixi/react/types/typedefs/ApplicationState.d.ts b/node_modules/@pixi/react/types/typedefs/ApplicationState.d.ts
+index ba04125..8acaa80 100644
+--- a/node_modules/@pixi/react/types/typedefs/ApplicationState.d.ts
++++ b/node_modules/@pixi/react/types/typedefs/ApplicationState.d.ts
+@@ -3,4 +3,6 @@ export interface ApplicationState {
+     app: Application;
+     isInitialised: boolean;
+     isInitialising: boolean;
++    initFailed?: boolean;
++    isUnmounted?: boolean;
+ }
+diff --git a/node_modules/@pixi/react/types/typedefs/CreateRootOptions.d.ts b/node_modules/@pixi/react/types/typedefs/CreateRootOptions.d.ts
+index 5ca53cb..6ca4574 100644
+--- a/node_modules/@pixi/react/types/typedefs/CreateRootOptions.d.ts
++++ b/node_modules/@pixi/react/types/typedefs/CreateRootOptions.d.ts
+@@ -2,4 +2,6 @@ import { type Application } from 'pixi.js';
+ export interface CreateRootOptions {
+     /** @description Callback to be fired when the application finishes initializing. */
+     onInit?: (app: Application) => void;
++    /** Called once when initialization fails; children are not mounted. */
++    onInitError?: (error: unknown) => void;
+ }
+diff --git a/node_modules/@pixi/react/types/typedefs/Root.d.ts b/node_modules/@pixi/react/types/typedefs/Root.d.ts
+index ec5934e..629b3f6 100644
+--- a/node_modules/@pixi/react/types/typedefs/Root.d.ts
++++ b/node_modules/@pixi/react/types/typedefs/Root.d.ts
+@@ -4,6 +4,7 @@ import { type ApplicationState } from './ApplicationState';
+ import { type InternalState } from './InternalState';
+ export interface Root {
+     fiber: Fiber;
++    unmountPromise?: Promise<void>;
+     root?: Container;
+     render: (...args: any[]) => any;
+     applicationState: ApplicationState;

@@ -15,10 +15,11 @@
  */
 
 import { gateStyle } from "../../config/CanvasTheme.js";
-import { circle, strokePath } from "../../draw/pixi/ShapeView.js";
+import { circle, strokePath } from "../../draw/shapes/ShapeView.js";
 
 import { GateBuilder } from "../../circuit/model/Gate.js";
-import { GatePainting } from "../../draw/gate/GatePainting.js";
+import {DEFAULT_RENDERER} from '../../draw/gate/GateRenderers.js';
+import {paintBackground, paintOutline} from '../../draw/gate/GateFrame.js';
 import { Point } from "../../geometry/Point.js";
 import {
   ketArgs,
@@ -38,14 +39,14 @@ const HalfTurnGates = {};
  */
 function NOT_RENDERER(args) {
   if (args.isHighlighted) {
-    GatePainting.DEFAULT_RENDERER(args);
+    DEFAULT_RENDERER(args);
     return;
   }
 
   // Show a box around the operation when it's not in the circuit.
   if (args.positionInCircuit === undefined) {
-    GatePainting.paintBackground(args);
-    GatePainting.paintOutline(args);
+    paintBackground(args);
+    paintOutline(args);
   }
 
   const drawArea = args.rect.scaledOutwardBy(0.6);

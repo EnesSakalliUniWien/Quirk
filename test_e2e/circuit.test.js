@@ -32,7 +32,7 @@ test("paints canvas colours directly while DOM controls use stylesheet colours",
     const read = () =>
       page.evaluate(() => {
         const style = getComputedStyle(document.documentElement);
-        const canvas = document.getElementById("drawCanvas");
+        const canvas = document.querySelector('#drawCanvas canvas');
         const copy = document.createElement("canvas");
         copy.width = canvas.width;
         copy.height = canvas.height;
@@ -72,7 +72,7 @@ test("paints canvas colours directly while DOM controls use stylesheet colours",
     // Legacy CSS variables and element backgrounds must not control painted canvas pixels.
     await page.evaluate(() => {
       document.documentElement.style.setProperty("--canvas-background", "red");
-      document.getElementById("drawCanvas").style.backgroundColor = "red";
+      document.querySelector('#drawCanvas canvas').style.backgroundColor = "red";
       window.dispatchEvent(new Event("resize"));
     });
     assert.deepEqual((await read()).pixel, afterFonts.pixel);
@@ -124,7 +124,7 @@ test("IQP-dark chips share the canvas assignment and Register clicks survive zoo
         );
         await waitForCanvasViewport(page);
         const top = await circuitTopForWires(page, 3, zoom);
-        const bounds = await page.$eval("#drawCanvas", (element) => {
+        const bounds = await page.$eval('#drawCanvas canvas', (element) => {
           const r = element.getBoundingClientRect();
           const div = document.getElementById("canvasDiv");
           return { x: r.x - div.scrollLeft, y: r.y - div.scrollTop };
@@ -154,7 +154,7 @@ test("IQP-dark chips share the canvas assignment and Register clicks survive zoo
 
 test("drags a gate onto a wire and supports undo, redo, and clear actions", async (browser) => {
   await withQuirkPage(browser, { cols: [] }, async (page) => {
-    const canvasBounds = await page.$eval("#drawCanvas", (element) => {
+    const canvasBounds = await page.$eval('#drawCanvas canvas', (element) => {
       const bounds = element.getBoundingClientRect();
       return {
         x: bounds.x,
@@ -260,7 +260,7 @@ test("keeps drops accurate while zoomed out and fits the circuit on demand", asy
     await page.click('.circuit-zoom-button[aria-label="Zoom out"]');
     assert.equal(await readout(), "80%");
 
-    const canvasBounds = await page.$eval("#drawCanvas", (element) => {
+    const canvasBounds = await page.$eval('#drawCanvas canvas', (element) => {
       const bounds = element.getBoundingClientRect();
       return { x: bounds.x, y: bounds.y };
     });
@@ -310,5 +310,96 @@ test("keeps drops accurate while zoomed out and fits the circuit on demand", asy
       },
       { timeout: TEST_TIMEOUT_MILLIS },
     );
+  });
+});
+
+test('minimap keeps gate blocks visible after zooming a vertically centered circuit', async browser => {
+  for (const deviceScaleFactor of [1, 2]) {
+    await withQuirkPage(browser,
+      {cols: [['H'], ['Bloch'], ['Amps1'], [], ['Density'], ['•', 'X'], ['Chance2']]},
+      async page => {
+        await page.click('[aria-label="Zoom out"]');
+        const color = CanvasTheme.stroke.guide.slice(1).match(/../g).map(value => Number.parseInt(value, 16));
+        await page.waitForFunction(([red, green, blue]) => {
+          const canvas = document.querySelector('.circuit-minimap');
+          if (!canvas || canvas.hidden) return false;
+          const pixels = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
+          let matches = 0;
+          for (let i = 0; i < pixels.length; i += 4) {
+            if (pixels[i] === red && pixels[i + 1] === green && pixels[i + 2] === blue) matches++;
+          }
+          return matches > 20;
+        }, {timeout: TEST_TIMEOUT_MILLIS}, color);
+      }, {width: 1200, height: 800, deviceScaleFactor});
+  }
+});
+
+test('Pixi touch gestures pan the empty canvas without DOM touch overlays', async browser => {
+  const circuit = {cols: [Array(12).fill('H')]};
+  await withQuirkPage(browser, circuit, async page => {
+    await waitForCanvasViewport(page);
+    const bounds = await page.$eval('#drawCanvas canvas', canvas => {
+      const r = canvas.getBoundingClientRect();
+      return {x: r.x, y: r.y, width: r.width, height: r.height};
+    });
+    const session = await page.createCDPSession();
+    try {
+      await session.send('Emulation.setTouchEmulationEnabled', {enabled: true, maxTouchPoints: 1});
+      const x = bounds.x + bounds.width - 10;
+      const y = bounds.y + Math.min(300, bounds.height - 20);
+      // A native cancellation must release the old pointer before the next touch gets a new id.
+      await session.send('Input.dispatchTouchEvent', {type: 'touchStart', touchPoints: [{x, y, id: 1}]});
+      await session.send('Input.dispatchTouchEvent', {type: 'touchCancel', touchPoints: []});
+      await session.send('Input.dispatchTouchEvent', {type: 'touchStart', touchPoints: [{x, y, id: 1}]});
+      await session.send('Input.dispatchTouchEvent', {type: 'touchMove', touchPoints: [{x, y: y - 80, id: 1}]});
+      await session.send('Input.dispatchTouchEvent', {type: 'touchEnd', touchPoints: []});
+      await page.waitForFunction(() => document.getElementById('canvasDiv').scrollTop > 0,
+        {timeout: TEST_TIMEOUT_MILLIS});
+      assert.deepEqual(await currentCircuit(page), circuit);
+      assert.equal(await page.$$eval('#canvasDiv > div', children =>
+        children.filter(child => child.style.opacity === '0.0001').length), 0);
+    } finally {
+      await session.detach();
+    }
+  });
+});
+
+test('cancelled touch gate drags preserve the circuit and history and allow the next drag', async browser => {
+  const circuit = {cols: [Array(12).fill('H')]};
+  await withQuirkPage(browser, circuit, async page => {
+    await waitForCanvasViewport(page);
+    const top = await circuitTopForWires(page, 12);
+    const bounds = await page.$eval('#drawCanvas canvas', canvas => {
+      const r = canvas.getBoundingClientRect();
+      return {x: r.x, y: r.y};
+    });
+    const x = bounds.x + circuitMetrics.firstColumnLeft + circuitMetrics.gateSize / 2;
+    const y = bounds.y + top + circuitMetrics.wireSpacing / 2;
+    const targetX = x + circuitMetrics.columnSpacing;
+    const undoDisabled = await page.$eval('#undo-button', button => button.disabled);
+    const session = await page.createCDPSession();
+    const touch = (type, atX = x) => session.send('Input.dispatchTouchEvent', {
+      type, touchPoints: type === 'touchEnd' || type === 'touchCancel' ? [] : [{x: atX, y, id: 1}]
+    });
+    try {
+      await session.send('Emulation.setTouchEmulationEnabled', {enabled: true, maxTouchPoints: 1});
+      await touch('touchStart');
+      await touch('touchMove', targetX);
+      await page.waitForFunction(original => document.getElementById('drawCanvas').dataset.circuit !== original,
+        {timeout: TEST_TIMEOUT_MILLIS}, JSON.stringify(circuit));
+      await touch('touchCancel');
+      await waitForCircuit(page, circuit);
+      assert.equal(await page.$eval('#undo-button', button => button.disabled), undoDisabled);
+
+      await touch('touchStart');
+      await touch('touchMove', targetX);
+      await touch('touchEnd');
+      const moved = {cols: [[1, ...Array(11).fill('H')], ['H']]};
+      await waitForCircuit(page, moved);
+      await page.click('#undo-button');
+      await waitForCircuit(page, circuit);
+      await page.click('#redo-button');
+      await waitForCircuit(page, moved);
+    } finally {await session.detach();}
   });
 });

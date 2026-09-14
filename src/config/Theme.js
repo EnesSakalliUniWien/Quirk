@@ -90,6 +90,13 @@ const CanvasTheme = Object.freeze({
     background: STATE_READOUT_BACKGROUND,
     vector: STATE_READOUT,
     mixed: MUTED,
+    // Both spheres' axes: each one's letter, its readout name, the projection triangle whose leg
+    // runs along it, and the plane triangle it stands normal to. They stay apart from each other,
+    // the vector, the guide lines they are drawn among, the highlight and errors, also under
+    // red-green colour blindness.
+    axisX: "#FCA9BB",
+    axisY: "#50FCEA",
+    axisZ: "#29C9FA",
   }),
   // Hover/focus have outlines; the playhead has a band and edge; drop targets have an outline.
   interaction: Object.freeze({
@@ -224,6 +231,9 @@ const dom = Object.freeze({
   "--state-probability-fill": CanvasTheme.probability.fill,
   "--state-probability-back": CanvasTheme.probability.background,
   "--operator": CanvasTheme.operation.fill,
+  "--bloch-axis-x": CanvasTheme.bloch.axisX,
+  "--bloch-axis-y": CanvasTheme.bloch.axisY,
+  "--bloch-axis-z": CanvasTheme.bloch.axisZ,
   "--phase-legend": `linear-gradient(to right, ${Array.from({length: 9}, (_, i) => phaseColor(-180 + i * 45)).join(", ")})`,
   "--app-font-sans": typography.DEFAULT_FONT_FAMILY,
   "--app-font-mono": typography.MONO_FONT_FAMILY,

@@ -1,49 +1,41 @@
-import { useEffect, useRef } from "react";
+import {useEffect, useRef, useState} from 'react';
+import {RenderCanvas} from '../../draw/surface/RenderCanvas.jsx';
+import {CanvasTheme} from '../../config/CanvasTheme.js';
+import {Rect} from '../../geometry/Rect.js';
+import {RenderSurface} from '../../draw/surface/RenderSurface.js';
+import {drawCircuitTooltip} from '../../editor/rendering/previews/CircuitPreview.js';
+import {drawingArea} from '../../draw/scene/DisplayView.js';
+import {rectangle} from '../../draw/shapes/ShapeView.js';
 
-import { CanvasTheme } from "../../config/CanvasTheme.js";
-import { Rect } from "../../geometry/Rect.js";
-import { RenderSurface } from "../../draw/pixi/RenderSurface.js";
-import { drawCircuitTooltip } from "../../editor/DisplayedCircuit.js";
-import { drawingArea } from "../../draw/pixi/DisplayView.js";
-import { rectangle } from "../../draw/pixi/ShapeView.js";
-
-/** The drawing's size in CSS pixels. Wide enough for a few columns without dwarfing the card. */
-const WIDTH = 300;
-const HEIGHT = 130;
-
-/**
- * A custom gate's own circuit, drawn by the same painter the circuit itself uses.
- *
- * This one stays a canvas: it is a circuit, and the app already knows how to draw circuits. The
- * rest of the card is HTML because the rest of the card is text.
- *
- * @param {!{circuit: !CircuitDefinition, time: !number}} props
- */
-function CircuitFigure({ circuit, time }) {
-  const canvasRef = useRef(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (canvas === null) {
-      return;
-    }
-    const ratio = window.devicePixelRatio || 1;
-    canvas.width = Math.round(WIDTH * ratio);
-    canvas.height = Math.round(HEIGHT * ratio);
-    const painter = RenderSurface.forCanvas(canvas).beginFrame(undefined, ratio);
-    rectangle(painter, drawingArea(painter), { fill: CanvasTheme.surface.gate });
-    drawCircuitTooltip(painter, circuit, new Rect(0, 0, WIDTH, HEIGHT), true, time);
-    painter.tooltips?.flush();
-  }, [circuit, time]);
-
-  return (
-    <canvas
-      ref={canvasRef}
-      className="circuit-figure"
-      style={{ width: `${WIDTH}px`, height: `${HEIGHT}px` }}
-      aria-label="The circuit this gate stands for"
-    />
-  );
+/** One retained circuit preview, with its animation and resize subscriptions owned by the view. */
+export function CircuitFigure({circuit, time, responsive = false, animate = false, clock}) {
+    const canvasRef = useRef(null);
+    const host = useRef(null);
+    const [ready,setReady] = useState(false);
+    const [width,setWidth] = useState(300);
+    const height = Math.max(100, Math.min(240, circuit.numWires * 45 + 40));
+    useEffect(() => {
+        if (!responsive) return;
+        const observer = new ResizeObserver(entries => setWidth(Math.max(1, Math.floor(entries[0].contentRect.width))));
+        observer.observe(host.current);
+        return () => observer.disconnect();
+    }, [responsive]);
+    useEffect(() => {
+        if (!ready || !canvasRef.current) return;
+        const ratio = window.devicePixelRatio || 1;
+        let frame;
+        const draw = () => {
+            const painter = RenderSurface.forCanvas(canvasRef.current).resize(width * ratio,height * ratio).beginFrame(undefined,ratio);
+            rectangle(painter,drawingArea(painter),{fill:CanvasTheme.surface.gate});
+            drawCircuitTooltip(painter,circuit,new Rect(0,0,width,height),true,clock ? clock() : time);
+            painter.tooltips?.flush();
+        };
+        draw();
+        if (animate) frame = requestAnimationFrame(function tick() {draw(); frame = requestAnimationFrame(tick);});
+        return () => cancelAnimationFrame(frame);
+    }, [ready,width,height,circuit,time,animate,clock]);
+    return <div ref={host} className={responsive ? 'responsive-circuit-figure' : undefined} style={{width:responsive ? '100%' : 300}}>
+        <RenderCanvas canvasRef={canvasRef} onReady={() => setReady(true)} className="circuit-figure"
+            style={{width,height}} label="The circuit this gate stands for" />
+    </div>;
 }
-
-export { CircuitFigure };

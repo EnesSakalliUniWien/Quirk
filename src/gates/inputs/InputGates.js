@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-import {fitText} from '../../draw/pixi/TextLayout.js';
-import {rectangle} from '../../draw/pixi/ShapeView.js';
+import {fitText} from '../../draw/text/TextLayout.js';
+import {rectangle} from '../../draw/shapes/ShapeView.js';
 
 import {CanvasTheme} from '../../config/CanvasTheme.js';
 import {Typography} from '../../config/Typography.js';
 import {Gate, GateBuilder} from '../../circuit/model/Gate.js';
-import {GatePainting} from '../../draw/gate/GatePainting.js';
+import {paintBackground, paintResizeTab, paintLocationIndependentFrame, paintGateButton} from '../../draw/gate/GateFrame.js';
+import {paintGateSymbol} from '../../draw/gate/GateSymbol.js';
 import {reverseShaderForSize} from '../ordering/ReverseBitsGate.js';
 
 const InputGates = {};
@@ -31,9 +32,9 @@ const InputGates = {};
  * @param {!boolean} reverse
  */
 function drawInputGate(args, key, reverse) {
-    GatePainting.paintBackground(args, CanvasTheme.surface.quiet);
+    paintBackground(args, CanvasTheme.surface.quiet);
     rectangle(args.painter, args.rect, {stroke: {color: CanvasTheme.stroke.guide, width: 1}});
-    GatePainting.paintResizeTab(args);
+    paintResizeTab(args);
 
     const {x, y} = args.rect.center();
     fitText(args.painter, 'input', {
@@ -92,9 +93,9 @@ const makeSetInputGate = key => new GateBuilder().
         sticky: true
     }]).
     setRenderer(args => {
-        GatePainting.paintLocationIndependentFrame(args, CanvasTheme.surface.quiet);
-        GatePainting.paintGateSymbol(args, `${key}=${args.gate.param}`);
-        GatePainting.paintGateButton(args);
+        paintLocationIndependentFrame(args, CanvasTheme.surface.quiet);
+        paintGateSymbol(args, `${key}=${args.gate.param}`);
+        paintGateButton(args);
     }).
     setParamDialog({
         title: `Enter new fallback value for input ${key}.`,

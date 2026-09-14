@@ -1,4 +1,5 @@
-import {ObservableValue} from "../../base/Obs.js";
+import {createValueStore} from '../../base/valueStore.js';
+
 import {Serializer} from "../../serialization/Serializer.js";
 import {createTake, restoreTake} from "../../results/take.js";
 import {freshSeed} from "../../engine/simulation/random.js";
@@ -9,32 +10,32 @@ class Recorder {
     constructor(revision, playhead, simulator, store, capture, {onRestore} = {}) {
         Object.assign(this, {revision, playhead, simulator, store, capture});
         this._onRestore = onRestore;
-        this.busy = new ObservableValue(false);
-        this.unsaved = new ObservableValue([]);
-        this.ghostsEnabled = new ObservableValue(true);
+        this.busy = createValueStore(false);
+        this.unsaved = createValueStore([]);
+        this.ghostsEnabled = createValueStore(true);
         this.batch = undefined;
         this.suppressGhost = false;
         this.restoring = false;
         revision.beforeCommit().subscribe(() => {
-            if (this.suppressGhost || !this.ghostsEnabled.get()) return;
+            if (this.suppressGhost || !this.ghostsEnabled.getState().value) return;
             const take = this.makeTake();
             store.write([take], {ghost: true}).catch(() => {});
         });
     }
 
     makeTake(result = this.capture()) {
-        const n = this.store.items.get().filter(r => !r.ghost).length + 1;
+        const n = this.store.items.getState().value.filter(r => !r.ghost).length + 1;
         return createTake(result, `take ${n}`, (n - 1) % 8);
     }
 
     async save(takes, options = {}) {
         const ids = new Set(takes.map(t => t.id));
-        this.unsaved.set([...this.unsaved.get().filter(t => !ids.has(t.id)), ...takes]);
+        this.unsaved.setState({value: [...this.unsaved.getState().value.filter(t => !ids.has(t.id)), ...takes]});
         try {await this.store.write(takes, options);} catch (error) {
-            if (options.signal?.aborted) this.unsaved.set(this.unsaved.get().filter(t => !ids.has(t.id)));
+            if (options.signal?.aborted) this.unsaved.setState({value: this.unsaved.getState().value.filter(t => !ids.has(t.id))});
             throw error;
         }
-        this.unsaved.set(this.unsaved.get().filter(t => !ids.has(t.id)));
+        this.unsaved.setState({value: this.unsaved.getState().value.filter(t => !ids.has(t.id))});
         return takes;
     }
 
@@ -43,13 +44,13 @@ class Recorder {
     }
 
     async recordRun() {
-        if (this.busy.get()) return;
+        if (this.busy.getState().value) return;
         this.playhead.pause();
         const initial = this.capture();
         const checkpoint = this.revision.peekActiveCommit();
         const token = new AbortController();
         this.batch = token;
-        this.busy.set(true);
+        this.busy.setState({value: true});
         try {
             const takes = [];
             let bytes = 0;
@@ -68,7 +69,7 @@ class Recorder {
             await this.save(takes, {signal: token.signal});
         } finally {
             this.batch = undefined;
-            this.busy.set(false);
+            this.busy.setState({value: false});
         }
     }
 
@@ -93,7 +94,7 @@ class Recorder {
     async importText(text) {
         const takes = parseTakes(text);
         await this.store.ready;
-        const existing = new Map(this.store.items.get().map(r => [r.id, r.take]));
+        const existing = new Map(this.store.items.getState().value.map(r => [r.id, r.take]));
         const imported = takes.map(t => existing.has(t.id) && JSON.stringify(existing.get(t.id)) !== JSON.stringify(t) ?
             {...t, id: freshSeed()} : t);
         await this.save(imported);

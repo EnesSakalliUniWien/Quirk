@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+import {setCustomGateCircuitRenderer} from './draw/gate/CustomGateCircuitRenderer.js';
+import {GATE_CIRCUIT_RENDERER} from './editor/rendering/previews/CircuitPreview.js';
+
 import { createRoot } from "react-dom/client";
 import { applyTheme } from "./browser/applyTheme.js";
 
@@ -28,6 +31,7 @@ import { webGl2SupportProblem } from "./engine/webgl/context/issues.js";
 import { App } from "./components/app.jsx";
 import "./styles/globals.css";
 
+setCustomGateCircuitRenderer(GATE_CIRCUIT_RENDERER);
 applyTheme();
 installErrorReporter();
 const gpuProblem = webGl2SupportProblem();

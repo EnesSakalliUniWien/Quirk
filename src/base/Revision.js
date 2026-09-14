@@ -1,3 +1,4 @@
+import {createValueStore, observeStore} from '../base/valueStore.js';
 /**
  * Copyright 2017 Google Inc.
  *
@@ -17,7 +18,7 @@
 import { describe } from "./Describe.js";
 import { equate } from "./Equate.js";
 import { DetailedError } from "./DetailedError.js";
-import { ObservableSource, ObservableValue } from "./Obs.js";
+import {ObservableSource} from "./Obs.js";
 
 /**
  * A simple linear revision history tracker, for supporting undo and redo functionality.
@@ -54,7 +55,7 @@ class Revision {
     this._changes = new ObservableSource();
     this._beforeCommit = new ObservableSource();
     /** @type {!ObservableSource} */
-    this._latestActiveCommit = new ObservableValue(this.history[this.index]);
+    this._latestActiveCommit = createValueStore(this.history[this.index]);
   }
 
   /**
@@ -70,7 +71,7 @@ class Revision {
   beforeCommit() {return this._beforeCommit.observable();}
 
   latestActiveCommit() {
-    return this._latestActiveCommit.observable();
+    return observeStore(this._latestActiveCommit);
   }
 
   /**
@@ -78,7 +79,7 @@ class Revision {
    * @returns {*}
    */
   peekActiveCommit() {
-    return this._latestActiveCommit.get();
+    return this._latestActiveCommit.getState().value;
   }
 
   /**
@@ -113,7 +114,7 @@ class Revision {
     this.index = 0;
     this.isWorkingOnCommit = false;
     this._changes.send(state);
-    this._latestActiveCommit.set(state);
+    this._latestActiveCommit.setState({value: state});
   }
 
   /**
@@ -135,7 +136,7 @@ class Revision {
     this.isWorkingOnCommit = false;
     const result = this.history[this.index];
     this._changes.send(result);
-    this._latestActiveCommit.set(result);
+    this._latestActiveCommit.setState({value: result});
     return result;
   }
 
@@ -155,7 +156,7 @@ class Revision {
     this.history.splice(this.index, this.history.length - this.index);
     this.history.push(newCheckpoint);
     this._changes.send(newCheckpoint);
-    this._latestActiveCommit.set(newCheckpoint);
+    this._latestActiveCommit.setState({value: newCheckpoint});
   }
 
   /**
@@ -173,7 +174,7 @@ class Revision {
     this.isWorkingOnCommit = false;
     const result = this.history[this.index];
     this._changes.send(result);
-    this._latestActiveCommit.set(result);
+    this._latestActiveCommit.setState({value: result});
     return result;
   }
 
@@ -189,7 +190,7 @@ class Revision {
     this.isWorkingOnCommit = false;
     const result = this.history[this.index];
     this._changes.send(result);
-    this._latestActiveCommit.set(result);
+    this._latestActiveCommit.setState({value: result});
     return result;
   }
 

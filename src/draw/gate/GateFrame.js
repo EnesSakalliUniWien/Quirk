@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { PathGeometry } from "../pixi/PathGeometry.js";
-import { drawPath, frame, highlightRing, lineWidth, rectangle } from "../pixi/ShapeView.js";
-import { fitText } from "../pixi/TextLayout.js";
+import { PathGeometry } from "../shapes/PathGeometry.js";
+import { drawPath, frame, highlightRing, lineWidth, rectangle } from "../shapes/ShapeView.js";
+import { fitText } from "../text/TextLayout.js";
 
 import { Layout } from "../../config/Layout.js";
 import { CanvasTheme, gateStyle } from "../../config/CanvasTheme.js";
@@ -189,7 +189,6 @@ export {
   paintOutline,
   paintBackground,
   paintResizeTab,
-  traceLocationIndependentOutline,
   paintLocationIndependentFrame,
   paintGateButton,
 };

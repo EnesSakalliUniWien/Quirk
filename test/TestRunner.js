@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {disposeTestScenes} from './draw/TestDisplayView.js';
+import {disposeTestScenes} from './draw/scene/TestDisplayView.js';
 import {Suite} from './TestUtil.js';
 
 const TEST_SUITE_NAME_FILTER = /** @type {!RegExp|undefined} */ undefined;
@@ -139,9 +139,10 @@ __testRunner__.start = () => {
     for (const later of [false, true]) {
         for (const suite of keptSuites) {
             chain = chain.then(() => new Promise(resolver => setTimeout(() => {
-                const suiteResult = Promise.all(
-                    suite.testsMatching(TEST_NAME_FILTER, later).
-                        map(e => promiseRepeatTest(suite, e[0], e[1], TEST_REPETITIONS)));
+                // React commits asynchronously into the shared test Application. Keep each test's frames together.
+                const suiteResult = suite.testsMatching(TEST_NAME_FILTER, later).reduce(
+                    (previous, e) => previous.then(() => promiseRepeatTest(suite, e[0], e[1], TEST_REPETITIONS)),
+                    Promise.resolve());
                 suiteResult.catch(() => console.error(`${suite.name} suite failed`));
                 suiteResult.finally(resolver);
             }, 0)));

@@ -1,9 +1,9 @@
+import {useStore} from 'zustand';
 import { useEffect, useRef, useState } from "react";
 import { openPanel } from "../../dock.jsx";
-import { useObservedValue } from "../../useObservedValue.js";
 
 function ReadyControls({recorder}) {
-    const busy = useObservedValue(recorder.busy.observable());
+    const busy = useStore(recorder.busy, state => state.value);
     const timer = useRef();
     const held = useRef(false);
     useEffect(() => () => clearTimeout(timer.current), []);

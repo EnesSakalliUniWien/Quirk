@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-import {paintBlochSphereDisplay} from '../../draw/pixi/displays/BlochView.js';
+import {paintBlochSphereDisplay} from '../../draw/displays/BlochView.js';
 
 import {GateBuilder} from "../../circuit/model/Gate.js"
-import {GatePainting} from "../../draw/gate/GatePainting.js"
+import {makeDisplayRenderer} from '../../draw/gate/GateRenderers.js';
 
 const BlochSphereDisplay = new GateBuilder().
     setSerializedIdAndSymbol("Bloch").
     setTitle("Bloch Sphere Display").
     setBlurb("Shows a wire's local state as a point on the Bloch Sphere.\nUse controls to see conditional states.").
     markAsRendererNeedsSingleQubitDensityStats().
-    setRenderer(GatePainting.makeDisplayRenderer(args => {
+    setRenderer(makeDisplayRenderer(args => {
         const {row, col} = args.positionInCircuit;
         const ρ = args.stats.qubitDensityMatrix(col, row);
         paintBlochSphereDisplay(args.painter, ρ, args.rect, args.focusPoints);

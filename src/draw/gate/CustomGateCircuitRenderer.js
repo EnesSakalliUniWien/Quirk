@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-import { GatePainting } from "./GatePainting.js";
+import {DEFAULT_RENDERER} from './GateRenderers.js';
 
 /**
  * The one renderer the serializer cannot import: a circuit-defined custom gate is drawn as its
  * little circuit, and that renderer lives up in the editor layer, whose modules import the
- * serializer right back. src/editor/DisplayedCircuit.js deposits the renderer here at load time,
+ * serializer right back. App and test entry points register the renderer explicitly,
  * and gates deserialized from a circuit resolve it lazily at paint time.
  *
- * Until it is deposited - as in tests that serialize circuits without ever drawing them - the
+ * Until it is registered - as in tests that serialize circuits without ever drawing them - the
  * fallback draws the gate like any other boxed gate.
  *
  * @type {undefined|!function(!GateRenderParams)}
@@ -42,7 +42,7 @@ function setCustomGateCircuitRenderer(renderer) {
  * @returns {void}
  */
 function renderCustomGateCircuit(args) {
-  (_circuitRenderer || GatePainting.DEFAULT_RENDERER)(args);
+  (_circuitRenderer || DEFAULT_RENDERER)(args);
 }
 
 export { setCustomGateCircuitRenderer, renderCustomGateCircuit };

@@ -15,10 +15,10 @@
  */
 
 import { gateStyle } from "../../config/CanvasTheme.js";
-import { strokePath } from "../../draw/pixi/ShapeView.js";
+import { strokePath } from "../../draw/shapes/ShapeView.js";
 
 import { GateBuilder } from "../../circuit/model/Gate.js";
-import { GatePainting } from "../../draw/gate/GatePainting.js";
+import {DEFAULT_RENDERER} from '../../draw/gate/GateRenderers.js';
 import { Matrix } from "../../engine/math/matrix/Matrix.js";
 import { Rect } from "../../geometry/Rect.js";
 
@@ -35,7 +35,7 @@ const SwapGateHalf = new GateBuilder()
   )
   .setRenderer((args) => {
     if (args.isHighlighted) {
-      GatePainting.DEFAULT_RENDERER(args);
+      DEFAULT_RENDERER(args);
       return;
     }
 

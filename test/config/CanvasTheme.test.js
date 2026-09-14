@@ -1,7 +1,18 @@
 import {Suite, assertThat} from "../TestUtil.js"
-import {CanvasTheme as theme, phaseColor, gateStyle} from "../../src/config/CanvasTheme.js"
+import {CanvasTheme as theme, phaseColor, phaseRgb, gateStyle} from "../../src/config/CanvasTheme.js"
 
 const suite = new Suite("CanvasTheme");
+
+suite.test("phase RGB agrees with the browser's independent OKLCH conversion", () => {
+    assertThat(CSS.supports('color', 'oklch(0.75 0.12 0)')).isEqualTo(true);
+    for (const angle of [-405, -180, -45, 0, 45, 90, 135, 180, 225, 270, 315, 360, 765]) {
+        const expected = rgb(`oklch(0.75 0.12 ${angle})`);
+        const actual = phaseRgb(angle);
+        // Allow one byte of rounding difference between the browser and the explicit matrices.
+        assertThat(actual.every((channel, i) => Math.abs(channel - expected[i]) <= 1)).
+            withInfo({angle, actual, expected}).isEqualTo(true);
+    }
+});
 
 suite.test("IQP-dark assigns operations by serialized ID including Quirk axis formulas", () => {
     for (const [ids, fill] of [
@@ -78,6 +89,7 @@ suite.test("each colour that carries a meaning carries only one", () => {
         phase: theme.iqp.phase, measure: theme.iqp.measure,
         stateReadout: theme.probability.fill, amplitude: theme.amplitude.fill, operator: theme.operation.fill,
         highlight: theme.interaction.outline, error: theme.error.text,
+        blochX: theme.bloch.axisX, blochY: theme.bloch.axisY, blochZ: theme.bloch.axisZ,
     };
     const owners = new Map();
     for (const [meaning, color] of Object.entries(meanings)) {
@@ -109,9 +121,44 @@ suite.test("the three look-alike displays stay apart, also with red-green colour
     }
 });
 
+suite.test("the Bloch axes stay apart from each other and the vector, also with red-green colour blindness", () => {
+    // The triangles and the vector share one picture, so colour is what says which axis is which.
+    const kinds = {x: theme.bloch.axisX, y: theme.bloch.axisY, z: theme.bloch.axisZ, vector: theme.bloch.vector};
+    const names = Object.keys(kinds);
+    for (let i = 0; i < names.length; i++) {
+        for (let j = i + 1; j < names.length; j++) {
+            const [a, b] = [kinds[names[i]], kinds[names[j]]];
+            const pair = `${names[i]}~${names[j]}`;
+            assertThat(difference(a, b) >= 15).withInfo({pair, normal: difference(a, b)}).isEqualTo(true);
+            for (const deficiency of Object.keys(DEFICIENCIES)) {
+                const d = difference(a, b, deficiency);
+                assertThat(d >= 8).withInfo({pair, deficiency, d}).isEqualTo(true);
+            }
+        }
+    }
+    for (const axis of [theme.bloch.axisX, theme.bloch.axisY, theme.bloch.axisZ]) {
+        const d = difference(axis, theme.error.text);
+        assertThat(d >= 15).withInfo({axis, d}).isEqualTo(true);
+        // A leg is drawn over the sphere's own meridians and axis lines.
+        for (const guide of [theme.stroke.guide, theme.stroke.faint]) {
+            assertThat(difference(axis, guide) >= 15).
+                withInfo({axis, guide, normal: difference(axis, guide)}).isEqualTo(true);
+            for (const deficiency of Object.keys(DEFICIENCIES)) {
+                const seen = difference(axis, guide, deficiency);
+                assertThat(seen >= 8).withInfo({axis, guide, deficiency, seen}).isEqualTo(true);
+            }
+        }
+        // Triangle legs on the sphere; letters beside it and readout names on the panel.
+        check(axis, theme.bloch.background, 3);
+        check(axis, theme.surface.background, 4.5);
+        check(axis, theme.surface.quiet, 4.5);
+    }
+});
+
 suite.test("the highlight stands apart from every colour that means something", () => {
     for (const color of [theme.iqp.hadamard, theme.iqp.not, theme.iqp.rotation, theme.iqp.phase,
-        theme.iqp.measure, theme.probability.fill, theme.amplitude.fill, theme.operation.fill, theme.error.text]) {
+        theme.iqp.measure, theme.probability.fill, theme.amplitude.fill, theme.operation.fill, theme.error.text,
+        theme.bloch.axisX, theme.bloch.axisY, theme.bloch.axisZ]) {
         const d = difference(theme.interaction.outline, color);
         assertThat(d >= 15).withInfo({color, d}).isEqualTo(true);
     }

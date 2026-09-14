@@ -16,7 +16,7 @@
 
 import {CanvasTheme} from "../../config/CanvasTheme.js"
 import {GateBuilder} from "../../circuit/model/Gate.js"
-import {GatePainting} from "../../draw/gate/GatePainting.js"
+import {makeLocationIndependentGateRenderer} from '../../draw/gate/GateRenderers.js';
 import {Matrix} from "../../engine/math/matrix/Matrix.js"
 
 /** @type {!Gate} */
@@ -24,7 +24,7 @@ const ZeroGate = new GateBuilder().
     setSerializedIdAndSymbol("0").
     setTitle("Nothing Gate").
     setBlurb("Destroys the universe.").
-    setRenderer(GatePainting.makeLocationIndependentGateRenderer(CanvasTheme.text.muted)).
+    setRenderer(makeLocationIndependentGateRenderer(CanvasTheme.text.muted)).
     setKnownEffectToMatrix(Matrix.square(0, 0, 0, 0)).
     gate;
 

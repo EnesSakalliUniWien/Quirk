@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import {fitLine} from '../../draw/pixi/TextLayout.js';
-import {circle, strokePath, rectangle} from '../../draw/pixi/ShapeView.js';
+import {fitLine} from '../../draw/text/TextLayout.js';
+import {circle, strokePath, rectangle} from '../../draw/shapes/ShapeView.js';
 
 import {GateBuilder} from '../../circuit/model/Gate.js';
-import {GatePainting} from '../../draw/gate/GatePainting.js';
+import {paintBackground, paintOutline} from '../../draw/gate/GateFrame.js';
 import {GateShaders} from '../../engine/simulation/gpu/GateShaders.js';
 import {HalfTurnGates} from '../rotations/HalfTurnGates.js';
 import {QuarterTurnGates} from '../rotations/QuarterTurnGates.js';
@@ -39,8 +39,8 @@ Controls.Control = new GateBuilder().
     promiseEffectIsUnitary().
     setRenderer(args => {
         if (args.isHighlighted) {
-            GatePainting.paintBackground(args);
-            GatePainting.paintOutline(args);
+            paintBackground(args);
+            paintOutline(args);
         }
         circle(args.painter, args.rect.center(), 5, {fill: CanvasTheme.text.primary});
     }).
@@ -56,8 +56,8 @@ Controls.AntiControl = new GateBuilder().
     promiseEffectIsUnitary().
     setRenderer(args => {
         if (args.isHighlighted) {
-            GatePainting.paintBackground(args);
-            GatePainting.paintOutline(args);
+            paintBackground(args);
+            paintOutline(args);
         }
         const p = args.rect.center();
         circle(args.painter, p, 5, {fill: CanvasTheme.surface.gate});
@@ -80,8 +80,8 @@ Controls.XAntiControl = new GateBuilder().
     promiseEffectIsUnitary().
     setRenderer(args => {
         if (args.isHighlighted) {
-            GatePainting.paintBackground(args);
-            GatePainting.paintOutline(args);
+            paintBackground(args);
+            paintOutline(args);
         }
         const p = args.rect.center();
         circle(args.painter, p, 5, {fill: CanvasTheme.surface.gate});
@@ -106,8 +106,8 @@ Controls.XControl = new GateBuilder().
     promiseEffectIsUnitary().
     setRenderer(args => {
         if (args.isHighlighted) {
-            GatePainting.paintBackground(args);
-            GatePainting.paintOutline(args);
+            paintBackground(args);
+            paintOutline(args);
         }
         const p = args.rect.center();
         circle(args.painter, p, 5, {fill: CanvasTheme.surface.gate});
@@ -132,8 +132,8 @@ Controls.YAntiControl = new GateBuilder().
     promiseEffectIsUnitary().
     setRenderer(args => {
         if (args.isHighlighted) {
-            GatePainting.paintBackground(args);
-            GatePainting.paintOutline(args);
+            paintBackground(args);
+            paintOutline(args);
         }
         const p = args.rect.center();
         circle(args.painter, p, 5, {fill: CanvasTheme.surface.gate});
@@ -141,7 +141,7 @@ Controls.YAntiControl = new GateBuilder().
         const r = 5*Math.sqrt(0.5)*1.1;
         strokePath(args.painter, [p.offsetBy(+r, -r), p.offsetBy(-r, +r)], CanvasTheme.text.primary, 1);
         if (args.isHighlighted) {
-            GatePainting.paintOutline(args);
+            paintOutline(args);
         }
     }).
     gate;
@@ -162,8 +162,8 @@ Controls.YControl = new GateBuilder().
     promiseEffectIsUnitary().
     setRenderer(ctx => {
         if (ctx.isHighlighted) {
-            GatePainting.paintBackground(ctx);
-            GatePainting.paintOutline(ctx);
+            paintBackground(ctx);
+            paintOutline(ctx);
         }
         const p = ctx.rect.center();
         ctx.painter.fillCircle(p, 5);
@@ -172,7 +172,7 @@ Controls.YControl = new GateBuilder().
         ctx.painter.strokeLine(p.offsetBy(+r, +r), p.offsetBy(-r, -r));
         ctx.painter.strokeLine(p.offsetBy(+r, -r), p.offsetBy(-r, +r));
         if (ctx.isHighlighted) {
-            GatePainting.paintOutline(ctx);
+            paintOutline(ctx);
         }
     }).
     gate;
@@ -222,8 +222,8 @@ function parityGatherScatter(ctx, order) {
 function parityRenderer(name) {
     return args => {
         if (args.isHighlighted) {
-            GatePainting.paintBackground(args);
-            GatePainting.paintOutline(args);
+            paintBackground(args);
+            paintOutline(args);
         }
         const center = args.rect.paddedBy(-10);
         rectangle(args.painter, center, {fill: CanvasTheme.surface.gate});

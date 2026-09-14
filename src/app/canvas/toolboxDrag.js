@@ -28,8 +28,8 @@ import {pointIntoCircuitCoords} from "./zoom.js"
  *
  * @param {!HTMLCanvasElement} canvas The element drag positions are measured against.
  * @param {!Revision} revision
- * @param {!ObservableValue.<!DisplayedInspector>} displayed
- * @param {!function(!DisplayedInspector): !DisplayedInspector} syncArea
+ * @param {import("zustand/vanilla").StoreApi<{value: !EditorState}>} displayed
+ * @param {!function(!EditorState): !EditorState} syncArea
  * @returns {!function(!Gate, !PointerEvent): void} Starts dragging the given gate from the
  *     press that took it. Passed to the toolbox as its onGrab callback.
  */
@@ -47,22 +47,22 @@ function initToolboxDrag(canvas, revision, displayed, syncArea) {
             revision.cancelCommitBeingWorkedOn();
         }
 
-        const handAt = source => displayed.get().hand.
+        const handAt = source => displayed.getState().value.hand.
             withPos(pointIntoCircuitCoords(eventPosRelativeTo(source, canvas))).
             withHeldGate(gate, new Point(Layout.GATE_RADIUS, Layout.GATE_RADIUS));
 
         revision.startedWorkingOnCommit();
         const grabbed = handAt(pointer);
-        displayed.set(syncArea(displayed.get().withHand(grabbed)).withJustEnoughWires(grabbed, 1));
+        displayed.setState({value: syncArea(displayed.getState().value.withHand(grabbed)).withJustEnoughWires(1)});
 
         const onMove = source => {
-            displayed.set(displayed.get().withHand(handAt(source)));
+            displayed.setState({value: displayed.getState().value.withHand(handAt(source))});
         };
         const onDrop = source => {
             stopDrag();
-            const dropped = syncArea(displayed.get().withHand(handAt(source))).afterDropping().afterTidyingUp();
-            const clearHand = dropped.hand.withPos(undefined);
-            revision.commit(dropped.withJustEnoughWires(clearHand, 0).snapshot());
+            const dropped = syncArea(displayed.getState().value.withHand(handAt(source))).afterDropping().afterTidyingUp();
+
+            revision.commit(dropped.withJustEnoughWires(0).snapshot());
         };
 
         const stopTracking = trackPointerUntilRelease(pointer, {
@@ -86,23 +86,23 @@ function initToolboxDrag(canvas, revision, displayed, syncArea) {
  * with the keyboard reaches the circuit.
  *
  * @param {!Revision} revision
- * @param {!ObservableValue.<!DisplayedInspector>} displayed
- * @param {!function(!DisplayedInspector): !DisplayedInspector} syncArea
+ * @param {import("zustand/vanilla").StoreApi<{value: !EditorState}>} displayed
+ * @param {!function(!EditorState): !EditorState} syncArea
  * @returns {!function(!Gate): void} Passed to initToolbox as its onPlace callback.
  */
 function initToolboxKeyboardPlace(revision, displayed, syncArea) {
     return gate => {
-        const cur = syncArea(displayed.get());
+        const cur = syncArea(displayed.getState().value);
         const endColumn = cur.displayedCircuit.circuitDefinition.columns.length;
         const pt = cur.displayedCircuit.gateRect(0, endColumn).center();
         const held = cur.hand.
             withPos(pt).
             withHeldGate(gate, new Point(Layout.GATE_RADIUS, Layout.GATE_RADIUS));
-        const dropped = syncArea(cur.withHand(held).withJustEnoughWires(held, 1)).
+        const dropped = syncArea(cur.withHand(held).withJustEnoughWires(1)).
             afterDropping().
             afterTidyingUp();
-        const clearHand = dropped.hand.withPos(undefined);
-        revision.commit(dropped.withJustEnoughWires(clearHand, 0).snapshot());
+
+        revision.commit(dropped.withJustEnoughWires(0).snapshot());
     };
 }
 

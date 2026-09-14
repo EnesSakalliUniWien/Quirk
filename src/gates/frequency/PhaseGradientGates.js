@@ -16,7 +16,7 @@
 
 import {Simulation} from "../../config/Simulation.js"
 import {Gate} from "../../circuit/model/Gate.js"
-import {GatePainting} from "../../draw/gate/GatePainting.js"
+import {makeCycleRenderer} from '../../draw/gate/GateRenderers.js';
 import {ketArgs, ketShaderPhase} from "../../engine/simulation/gpu/KetShaderUtil.js"
 import {MUL_STEP} from "../arithmetic/MultiplyAccumulateGates.js"
 import {WglArg} from "../../engine/webgl/shader/WglArg.js"
@@ -79,7 +79,7 @@ PhaseGradientGates.DynamicPhaseGradientFamily = Gate.buildFamily(1, 16, (span, b
         1 << span,
         k => Complex.polar(1, t * 2 * Math.PI * k))).
     promiseEffectOnlyPhases().
-    setRenderer(GatePainting.makeCycleRenderer(-1, -1, 1, -Math.PI / 2)));
+    setRenderer(makeCycleRenderer(-1, -1, 1, -Math.PI / 2)));
 
 PhaseGradientGates.DynamicPhaseDegradientFamily = Gate.buildFamily(1, 16, (span, builder) => builder.
     setAlternateFromFamily(PhaseGradientGates.DynamicPhaseGradientFamily).
@@ -94,7 +94,7 @@ PhaseGradientGates.DynamicPhaseDegradientFamily = Gate.buildFamily(1, 16, (span,
         1 << span,
         k => Complex.polar(1, t * 2 * Math.PI * -k))).
     promiseEffectOnlyPhases().
-    setRenderer(GatePainting.makeCycleRenderer(1, -1, 1, Math.PI / 2)));
+    setRenderer(makeCycleRenderer(1, -1, 1, Math.PI / 2)));
 
 PhaseGradientGates.all = [
     ...PhaseGradientGates.PhaseGradientFamily.all,

@@ -31,7 +31,7 @@ test('renders the circuit controls as a button toolbar', async browser => {
         assert.equal(await page.$eval('html', element => element.classList.contains('dark')), true);
         assert.equal(await page.$eval('html', element => getComputedStyle(element).colorScheme), 'dark');
         assert.equal(
-            await page.$eval('#drawCanvas', element => getComputedStyle(element).filter),
+            await page.$eval('#drawCanvas canvas', element => getComputedStyle(element).filter),
             'none');
         assert.equal(toolbar.label, 'Circuit controls');
         // The brand lives in the sidebar; the toolbar is circuit actions only.

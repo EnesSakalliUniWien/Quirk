@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {strokePath} from '../../draw/pixi/ShapeView.js';
+import {strokePath} from '../../draw/shapes/ShapeView.js';
 
 import {Layout} from '../../config/Layout.js';
 import {CanvasTheme} from '../../config/CanvasTheme.js';

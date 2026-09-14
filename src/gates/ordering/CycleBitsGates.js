@@ -15,7 +15,7 @@
  */
 
 import {CanvasTheme} from '../../config/CanvasTheme.js';
-import {strokePath} from '../../draw/pixi/ShapeView.js';
+import {strokePath} from '../../draw/shapes/ShapeView.js';
 
 import {Layout} from '../../config/Layout.js';
 import {Gate} from '../../circuit/model/Gate.js';

@@ -1,6 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { flushSync } from "react-dom";
 
+import {RenderCanvas} from '../../../draw/surface/RenderCanvas.jsx';
 import { startQuirk } from "../../../app/QuirkApp.js";
 import { setErrorBannerHost } from "../../../diagnostics/errorReporter.js";
 import { appStore } from "../../../state/appStore.js";
@@ -11,9 +12,9 @@ import { GutterEditors } from "./gutter-editors.jsx";
  * The circuit itself, as a dock panel: the scrolling cell, its canvas, the bar under it holding the
  * zoom and the overview, and the error banner that floats over them.
  *
- * The elements are React's; what happens inside them is not. On mount they are handed to
- * startQuirk, which drives them imperatively - which is what a WebGL surface wants - and publishes
- * what the rest of the shell needs through the app store. The ids are style and test hooks only.
+ * React owns the canvas, Pixi Application and retained scene. startQuirk connects editor state,
+ * simulation and frame scheduling, and publishes the shell's dependencies through the app store.
+ * The ids are style and test hooks only.
  */
 function CircuitPanel() {
   const canvasRef = useRef(null);
@@ -22,7 +23,7 @@ function CircuitPanel() {
   const circuitOverlayRef = useRef(null);
   const errorBannerRef = useRef(null);
 
-  useEffect(() => {
+  const start = () => {
     setErrorBannerHost(errorBannerRef.current);
     startQuirk({
       canvas: canvasRef.current,
@@ -57,7 +58,7 @@ function CircuitPanel() {
           },
         }),
     });
-  }, []);
+  };
 
   return (
     <div id="circuit-area">
@@ -66,7 +67,7 @@ function CircuitPanel() {
         ref={canvasDivRef}
         style={{ touchAction: "manipulation", position: "relative" }}
       >
-        <canvas id="drawCanvas" ref={canvasRef} />
+        <RenderCanvas id="drawCanvas" canvasRef={canvasRef} onReady={start} />
         {/* Carries the scroll extent, so the canvas can stay viewport-sized. */}
         <div id="canvas-scroll-spacer" ref={scrollSpacerRef} aria-hidden="true" />
         {/* The rename box and the wire-label menu sit in the scroll content, over the drawing. */}

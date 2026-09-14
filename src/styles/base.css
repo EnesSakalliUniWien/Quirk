@@ -253,3 +253,6 @@
         box-shadow: 0 0 0 3px var(--focus-shadow);
     }
 }
+
+/* Presentation belongs to React; Pixi owns the canvas backing dimensions. */
+.render-canvas > canvas { display: block; width: 100%; height: 100%; touch-action: none; }

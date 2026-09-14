@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { paintSampleDisplay } from "../../draw/pixi/displays/SampleView.js";
+import { paintSampleDisplay } from "../../draw/displays/SampleView.js";
 
 import { Gate } from "../../circuit/model/Gate.js";
-import { GatePainting } from "../../draw/gate/GatePainting.js";
+import {makeDisplayRenderer} from '../../draw/gate/GateRenderers.js';
 
 import {
   probabilityStatTexture,
@@ -46,7 +46,7 @@ const SampleDisplayFamily = Gate.buildFamily(1, 16, (span, builder) =>
     )
     .promiseHasNoNetEffectOnStateVectorButStillRequiresDynamicRedraw()
     .setProcessedStatsToJsonFunc(probabilityDataToJson)
-    .setRenderer(GatePainting.makeDisplayRenderer(paintSampleDisplay))
+    .setRenderer(makeDisplayRenderer(paintSampleDisplay))
     .setExtraDisableReasonFinder((args) =>
       args.isNested ? "can't\nnest\ndisplays\n(sorry)" : undefined,
     ),

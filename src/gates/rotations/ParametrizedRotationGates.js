@@ -15,7 +15,9 @@
  */
 
 import {GateBuilder} from "../../circuit/model/Gate.js"
-import {GatePainting} from "../../draw/gate/GatePainting.js"
+import {paintBackground, paintOutline, paintGateButton} from '../../draw/gate/GateFrame.js';
+import {paintGateSymbol} from '../../draw/gate/GateSymbol.js';
+import {paintCycleState} from '../../draw/gate/GateRenderers.js';
 import {ketArgs, ketShader, ketShaderPhase, ketInputGateShaderCode} from "../../engine/simulation/gpu/KetShaderUtil.js"
 import {WglArg} from "../../engine/webgl/shader/WglArg.js"
 import {Util} from "../../base/Util.js";
@@ -35,17 +37,17 @@ function configurableRotationRenderer(pattern, xyz, tScale) {
     const xScale = [1, 0.5, -1][xyz];
     const yScale = [1, 1, -0.5][xyz];
     return args => {
-        GatePainting.paintBackground(args);
-        GatePainting.paintOutline(args);
+        paintBackground(args);
+        paintOutline(args);
         const text = pattern.split('f(t)').join(args.gate.param);
-        GatePainting.paintGateSymbol(args, text, pattern.includes('^'));
+        paintGateSymbol(args, text, pattern.includes('^'));
 
         const isStable = args.gate.stableDuration() === Infinity;
         if (!isStable) {
             const rads = tScale * parseTimeFormula(args.gate.param, args.stats.time*2, false) || 0;
-            GatePainting.paintCycleState(args, rads, xScale, yScale);
+            paintCycleState(args, rads, xScale, yScale);
         }
-        GatePainting.paintGateButton(args);
+        paintGateButton(args);
     };
 }
 
@@ -56,9 +58,9 @@ function exponent_to_A_len_painter(args) {
     const v = args.getGateContext('Input Range A');
     const denom_exponent = v === undefined ? 'ⁿ' : Util.digits_to_superscript_digits('' + v.length);
     const symbol = args.gate.symbol.replace('ⁿ', denom_exponent);
-    GatePainting.paintBackground(args);
-    GatePainting.paintOutline(args);
-    GatePainting.paintGateSymbol(args, symbol);
+    paintBackground(args);
+    paintOutline(args);
+    paintGateSymbol(args, symbol);
 }
 
 const X_TO_A_SHADER = ketShader(

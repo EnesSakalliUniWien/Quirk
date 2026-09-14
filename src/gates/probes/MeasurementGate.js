@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-import {PathGeometry} from '../../draw/pixi/PathGeometry.js';
-import {drawPath} from '../../draw/pixi/ShapeView.js';
+import {PathGeometry} from '../../draw/shapes/PathGeometry.js';
+import {drawPath} from '../../draw/shapes/ShapeView.js';
 import {gateStyle} from '../../config/CanvasTheme.js';
 
 import {GateBuilder} from '../../circuit/model/Gate.js';
-import {GatePainting} from '../../draw/gate/GatePainting.js';
+import {paintBackground, paintOutline} from '../../draw/gate/GateFrame.js';
 
 /**
  * @param {!GateRenderParams} args
  */
 function drawMeasurementGate(args) {
     const style = gateStyle(args.gate);
-    GatePainting.paintBackground(args);
-    GatePainting.paintOutline(args);
+    paintBackground(args);
+    paintOutline(args);
 
     const τ = Math.PI * 2;
     const r = args.rect.w*0.4;

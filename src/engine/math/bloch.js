@@ -46,6 +46,12 @@ function blochAngles(vec) {
     return {r, theta, phi};
 }
 
+/** Rounded before signing, so a component that vanishes at this precision never reads -0.000. */
+const signed = v => {
+    const text = Math.abs(v).toFixed(3);
+    return (v < 0 && text !== '0.000' ? '-' : '+') + text;
+};
+
 /**
  * The ket the vector points at, as amplitude text, for states pure enough to have one.
  * @param {!number} theta
@@ -56,8 +62,57 @@ function pureStateText(theta, phi) {
     const a = Math.cos(theta / 2);
     const br = Math.sin(theta / 2) * Math.cos(phi);
     const bi = Math.sin(theta / 2) * Math.sin(phi);
-    const sign = v => (v >= 0 ? '+' : '-') + Math.abs(v).toFixed(3);
-    return `${a.toFixed(3)} |0⟩ + (${sign(br)}${sign(bi)}i) |1⟩`;
+    return `${a.toFixed(3)} |0⟩ + (${signed(br)}${signed(bi)}i) |1⟩`;
 }
 
-export {blochCoordinates, blochAngles, pureStateText}
+/** Above this length the state is pure, and its components need no |r| in front of them. */
+const PURE_STATE_LENGTH = 0.999;
+
+/**
+ * How each component reads off the angles: x and y run out with sin θ and divide by the azimuth,
+ * z stands up with cos θ, and a shorter vector scales all three.
+ * @param {!number} r The length of the Bloch vector.
+ * @returns {!{x: !string, y: !string, z: !string, radial: !string}}
+ */
+function componentFormulas(r) {
+    const scale = r > PURE_STATE_LENGTH ? '' : '|r| ';
+    return {
+        x: `${scale}sin θ cos ϕ`,
+        y: `${scale}sin θ sin ϕ`,
+        z: `${scale}cos θ`,
+        radial: `${scale}sin θ`,
+    };
+}
+
+/**
+ * The state as a unit quaternion: the rotation that turns the |0⟩ pole k onto the state's
+ * direction by the shortest way, a turn of theta about k × r in the equator. So q k q̄ = r / |r|.
+ * Its components are also the pure state's SU(2) amplitudes, with the global phase that makes
+ * |0⟩'s real: α = w and β = y - x i.
+ * @param {!number} theta
+ * @param {!number} phi
+ * @returns {!{w: !number, x: !number, y: !number, z: !number}}
+ */
+function blochQuaternion(theta, phi) {
+    const s = Math.sin(theta / 2);
+    return {w: Math.cos(theta / 2), x: -s * Math.sin(phi), y: s * Math.cos(phi), z: 0};
+}
+
+/**
+ * @param {!{x: !number, y: !number, z: !number}} v
+ * @returns {!string} The pure quaternion x i + y j + z k, as the Bloch vector is written.
+ */
+function pureQuaternionText(v) {
+    return `${signed(v.x)}i ${signed(v.y)}j ${signed(v.z)}k`;
+}
+
+/**
+ * @param {!{w: !number, x: !number, y: !number, z: !number}} q
+ * @returns {!string}
+ */
+function quaternionText(q) {
+    return `${q.w.toFixed(3)} ${pureQuaternionText(q)}`;
+}
+
+export {blochCoordinates, blochAngles, pureStateText, blochQuaternion, pureQuaternionText, quaternionText,
+    signed, componentFormulas}

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { fitText, measureText } from "../pixi/TextLayout.js";
+import { fitText, measureText } from "../text/TextLayout.js";
 import { gateStyle } from "../../config/CanvasTheme.js";
 import { Typography } from "../../config/Typography.js";
 
-/** @typedef {import('../pixi/DisplayView.js').DisplayView} DisplayView */
+/** @typedef {import('../scene/DisplayView.js').DisplayView} DisplayView */
 /** @typedef {import('./GateRenderParams.js').GateRenderParams} GateRenderParams */
 
 /**
@@ -208,7 +208,6 @@ function _paintSymbolHandleLines(painter, symbol, rect, ink) {
 }
 
 export {
-  GATE_SYMBOL_FONT,
   splitGateSymbol,
   fitGateSymbol,
   paintGateSymbol,

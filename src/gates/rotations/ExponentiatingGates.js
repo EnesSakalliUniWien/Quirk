@@ -15,7 +15,7 @@
  */
 
 import {GateBuilder} from "../../circuit/model/Gate.js"
-import {GatePainting} from "../../draw/gate/GatePainting.js"
+import {makeCycleRenderer} from '../../draw/gate/GateRenderers.js';
 import {Matrix} from "../../engine/math/matrix/Matrix.js"
 
 const ExponentiatingGates = {};
@@ -42,7 +42,7 @@ ExponentiatingGates.XForward = new GateBuilder().
     setSymbol("e^-i𝜏Xt").
     setTitle("X-Exponentiating Gate (forward)").
     setBlurb("Right-hand rotation around the X axis.\nPasses through ±iX instead of X.").
-    setRenderer(GatePainting.makeCycleRenderer(1, 1, 2)).
+    setRenderer(makeCycleRenderer(1, 1, 2)).
     setEffectToTimeVaryingMatrix(XExp).
     promiseEffectIsUnitary().
     gate;
@@ -53,7 +53,7 @@ ExponentiatingGates.XBackward = new GateBuilder().
     setSymbol("e^i𝜏Xt").
     setTitle("X-Exponentiating Gate (backward)").
     setBlurb("Left-hand rotation around the X axis.\nPasses through ±iX instead of X.").
-    setRenderer(GatePainting.makeCycleRenderer(-1, 1, 2)).
+    setRenderer(makeCycleRenderer(-1, 1, 2)).
     setEffectToTimeVaryingMatrix(t => XExp(-t)).
     promiseEffectIsUnitary().
     gate;
@@ -63,7 +63,7 @@ ExponentiatingGates.YForward = new GateBuilder().
     setSymbol("e^-i𝜏Yt").
     setTitle("Y-Exponentiating Gate (forward)").
     setBlurb("Right-hand rotation around the Y axis.\nPasses through ±iY instead of Y.").
-    setRenderer(GatePainting.makeCycleRenderer(0.5, 1, 2)).
+    setRenderer(makeCycleRenderer(0.5, 1, 2)).
     setEffectToTimeVaryingMatrix(YExp).
     promiseEffectIsUnitary().
     gate;
@@ -74,7 +74,7 @@ ExponentiatingGates.YBackward = new GateBuilder().
     setSymbol("e^i𝜏Yt").
     setTitle("Y-Exponentiating Gate (backward)").
     setBlurb("Left-hand rotation around the Y axis.\nPasses through ±iY instead of Y.").
-    setRenderer(GatePainting.makeCycleRenderer(-0.5, 1, 2)).
+    setRenderer(makeCycleRenderer(-0.5, 1, 2)).
     setEffectToTimeVaryingMatrix(t => YExp(-t)).
     promiseEffectIsUnitary().
     gate;
@@ -84,7 +84,7 @@ ExponentiatingGates.ZForward = new GateBuilder().
     setSymbol("e^-i𝜏Zt").
     setTitle("Z-Exponentiating Gate (forward)").
     setBlurb("Right-hand rotation around the Z axis.\nPasses through ±iZ instead of Z.").
-    setRenderer(GatePainting.makeCycleRenderer(-1, -0.5, 2)).
+    setRenderer(makeCycleRenderer(-1, -0.5, 2)).
     setEffectToTimeVaryingMatrix(ZExp).
     promiseEffectOnlyPhases().
     gate;
@@ -95,7 +95,7 @@ ExponentiatingGates.ZBackward = new GateBuilder().
     setSymbol("e^i𝜏Zt").
     setTitle("Z-Exponentiating Gate (backward)").
     setBlurb("Left-hand rotation around the Z axis.\nPasses through ±iZ instead of Z.").
-    setRenderer(GatePainting.makeCycleRenderer(1, -0.5, 2)).
+    setRenderer(makeCycleRenderer(1, -0.5, 2)).
     setEffectToTimeVaryingMatrix(t => ZExp(-t)).
     promiseEffectOnlyPhases().
     gate;

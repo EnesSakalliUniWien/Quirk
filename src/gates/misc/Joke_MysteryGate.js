@@ -16,7 +16,7 @@
 
 import { Complex } from "../../engine/math/complex/Complex.js";
 import { GateBuilder } from "../../circuit/model/Gate.js";
-import { GatePainting } from "../../draw/gate/GatePainting.js";
+import {MATRIX_RENDERER} from '../../draw/gate/GateRenderers.js';
 import { Matrix } from "../../engine/math/matrix/Matrix.js";
 import { MatrixDecomposition } from "../../engine/math/matrix/MatrixDecomposition.js";
 
@@ -27,7 +27,7 @@ const MysteryGateMakerWithMatrix = (matrix) =>
     .setSerializedIdAndSymbol(MysteryGateSymbol)
     .setTitle("Mystery Gate")
     .setBlurb("Different every time.\n(Use shift+drag to copy circuit gates.)")
-    .setRenderer(GatePainting.MATRIX_RENDERER)
+    .setRenderer(MATRIX_RENDERER)
     .setKnownEffectToMatrix(matrix).gate;
 
 const MysteryGateMaker = () =>

@@ -14,24 +14,25 @@
  * limitations under the License.
  */
 
-import {fitText} from '../../draw/pixi/TextLayout.js';
-import {rectangle} from '../../draw/pixi/ShapeView.js';
+import {fitText} from '../../draw/text/TextLayout.js';
+import {rectangle} from '../../draw/shapes/ShapeView.js';
 
 import {Complex} from '../../engine/math/complex/Complex.js';
 import {CanvasTheme} from '../../config/CanvasTheme.js';
 import {Typography} from '../../config/Typography.js';
 import {GateBuilder} from '../../circuit/model/Gate.js';
-import {GatePainting} from '../../draw/gate/GatePainting.js';
+import {DEFAULT_RENDERER} from '../../draw/gate/GateRenderers.js';
+import {paintGateSymbol} from '../../draw/gate/GateSymbol.js';
 import {Matrix} from '../../engine/math/matrix/Matrix.js';
 
 const PostSelectionGates = {};
 
 const POST_SELECT_RENDERER = args => {
     if (args.isHighlighted) {
-        GatePainting.DEFAULT_RENDERER(args);
+        DEFAULT_RENDERER(args);
     } else {
         rectangle(args.painter, args.rect, {fill: CanvasTheme.surface.gate});
-        GatePainting.paintGateSymbol(args);
+        paintGateSymbol(args);
     }
 
     const {x, y, w, h} = args.rect;

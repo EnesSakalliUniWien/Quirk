@@ -1,0 +1,23 @@
+import {Suite, assertThat} from '../../TestUtil.js';
+import {createEditorStore} from '../../../src/editor/state/editorStore.js';
+import {EditorState} from '../../../src/editor/state/EditorState.js';
+import {Point} from '../../../src/geometry/Point.js';
+import {Rect} from '../../../src/geometry/Rect.js';
+const suite = new Suite('editorStore');
+suite.test('pointer actions preserve circuit geometry and do not notify circuit selectors', () => {
+    const initial = EditorState.empty(new Rect(0, 0, 1000, 800));
+    const geometry = initial.displayedCircuit.geometry();
+    const store = createEditorStore(initial);
+    let circuitUpdates = 0;
+    let pointerUpdates = 0;
+    const stopCircuit = store.subscribe(state => state.value.displayedCircuit, () => circuitUpdates++);
+    const stopPointer = store.subscribe(state => state.value.hand, () => pointerUpdates++);
+    store.getState().setPointer(new Point(10, 20));
+    store.getState().setPointer(new Point(10, 20));
+    assertThat(store.getState().value.displayedCircuit.geometry() === geometry).isEqualTo(true);
+    assertThat(circuitUpdates).isEqualTo(0);
+    assertThat(pointerUpdates).isEqualTo(1);
+    const resized = store.getState().value.withArea(new Rect(0, 0, 1200, 800));
+    assertThat(resized.displayedCircuit.geometry() === geometry).isEqualTo(false);
+    stopCircuit(); stopPointer();
+});

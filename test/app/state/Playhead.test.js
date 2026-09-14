@@ -1,3 +1,4 @@
+import {createValueStore, observeStore} from '../../../src/base/valueStore.js';
 /**
  * Copyright 2017 Google Inc.
  *
@@ -15,7 +16,7 @@
  */
 
 import {Suite, assertThat} from "../../TestUtil.js"
-import {ObservableValue} from "../../../src/base/Obs.js"
+
 import {Playhead} from "../../../src/app/state/Playhead.js"
 
 const suite = new Suite("Playhead");
@@ -40,9 +41,9 @@ function fakeClock() {
 }
 
 function playheadOver(columnCount) {
-    const columns = new ObservableValue(columnCount);
+    const columns = createValueStore(columnCount);
     const clock = fakeClock();
-    const playhead = new Playhead(columns.observable(), clock.setInterval, clock.clearInterval);
+    const playhead = new Playhead(observeStore(columns), clock.setInterval, clock.clearInterval);
     return {playhead, columns, clock};
 }
 
@@ -154,9 +155,9 @@ suite.test("shortening the circuit pulls the playhead back to the new end", () =
     const {playhead, columns} = playheadOver(5);
     playhead.end();
 
-    columns.set(2);
+    columns.setState({value: 2});
     assertThat(playhead.step()).isEqualTo(2);
 
-    columns.set(6);
+    columns.setState({value: 6});
     assertThat(playhead.step()).isEqualTo(2);
 });

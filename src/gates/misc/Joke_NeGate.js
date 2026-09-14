@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-import {strokePath} from '../../draw/pixi/ShapeView.js';
+import {strokePath} from '../../draw/shapes/ShapeView.js';
 
 import {CanvasTheme} from '../../config/CanvasTheme.js';
 import {GateBuilder} from '../../circuit/model/Gate.js';
 import {Matrix} from '../../engine/math/matrix/Matrix.js';
 import {Point} from '../../geometry/Point.js';
-import {GatePainting} from '../../draw/gate/GatePainting.js';
+import {paintLocationIndependentFrame} from '../../draw/gate/GateFrame.js';
 
 const NeGate = new GateBuilder().
     setSerializedId("NeGate").
     setTitle("Ne-Gate").
     setBlurb("Negates all amplitudes.").
     setRenderer(args => {
-        GatePainting.paintLocationIndependentFrame(args);
+        paintLocationIndependentFrame(args);
         const {x, y} = args.rect.center();
         strokePath(args.painter, [new Point(x - 6, y), new Point(x + 6, y)], CanvasTheme.text.primary, 2);
     }).

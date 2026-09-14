@@ -1,3 +1,4 @@
+import {createValueStore} from '../../base/valueStore.js';
 /**
  * Copyright 2017 Google Inc.
  *
@@ -18,7 +19,7 @@
 import {Simulation} from "../../config/Simulation.js"
 import {CircuitStats} from "../../engine/simulation/CircuitStats.js"
 import {freshSeed} from "../../engine/simulation/random.js";
-import {ObservableValue} from "../../base/Obs.js";
+
 
 /**
  * Holds onto the last stats computed for one circuit, so redrawing an unchanging circuit doesn't
@@ -81,7 +82,7 @@ class Simulator {
         this._cycleTime = 0;
         this.playing = false;
         this.seed = freshSeed();
-        this.completed = new ObservableValue(undefined);
+        this.completed = createValueStore(undefined);
         this.restored = undefined;
         /**
          * @type {!number}
@@ -170,7 +171,7 @@ class Simulator {
         this._prevRealTime = this._nowMillis();
         this.seed = result.seed;
         this.restored = result;
-        this.completed.set(result);
+        this.completed.setState({value: result});
     }
 
     evaluate(circuit, wireCount, step, publish = true) {
@@ -179,7 +180,7 @@ class Simulator {
         if (publish && this.restored?.circuit.isEqualTo(circuit) && this.restored.step === step) {
             return this.restored;
         }
-        const previous = this.completed.get();
+        const previous = this.completed.getState().value;
         if (publish && previous?.circuit.isEqualTo(circuit) && previous.step === step &&
                 previous.phase === phase && previous.seed === this.seed && previous.wireCount === wireCount) return previous;
         const fullStats = this._wholeCircuitCache.statsFor(circuit, phase, this.seed);
@@ -187,7 +188,7 @@ class Simulator {
         const result = {circuit, wireCount, step, phase, seed: this.seed, fullStats, stats};
         if (publish) {
             this.restored = undefined;
-            this.completed.set(result);
+            this.completed.setState({value: result});
         }
         return result;
     }

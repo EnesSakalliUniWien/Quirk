@@ -17,21 +17,14 @@
 /**
  * Limits and time constants for simulating a circuit.
  */
-class Simulation {}
-
-// Each qubit (when actually used) doubles the cost of simulating each gate applied to the circuit.
-// Also each qubit tends to increase the amount of accuracy required.
-// I see obvious errors when I set this to 20, and things get pretty laggy past 16.
-// Beware setting it too high.
-Simulation.MAX_WIRE_COUNT = 16;
-Simulation.MIN_WIRE_COUNT = 2;
-Simulation.MIN_COL_COUNT = 5;
-Simulation.SIMPLE_SUPERPOSITION_DRAWING_WIRE_THRESHOLD = 14;
-// Time constants.
-Simulation.CYCLE_DURATION_MS = 8000; // How long it takes for evolving gates to cycle, in milliseconds.
-Simulation.TIME_CACHE_GRANULARITY = 196; // The number of buckets the cycle is divided into.
-Simulation.SEMI_STABLE_RANDOM_VALUE_LIFETIME_MILLIS = 300;
-// How long the playhead rests on a column while playing, in milliseconds.
-Simulation.PLAYHEAD_STEP_DURATION_MS = 600;
+const Simulation = Object.freeze({
+    // Each additional qubit doubles the state size; raising this limit also needs accuracy checks.
+    MAX_WIRE_COUNT: 16,
+    MIN_WIRE_COUNT: 2,
+    // How long evolving gates take to cycle, in milliseconds.
+    CYCLE_DURATION_MS: 8000,
+    TIME_CACHE_GRANULARITY: 196,
+    SEMI_STABLE_RANDOM_VALUE_LIFETIME_MILLIS: 300,
+});
 
 export { Simulation };

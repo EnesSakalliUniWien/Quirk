@@ -15,7 +15,8 @@
  */
 
 import {GateBuilder} from "../../circuit/model/Gate.js"
-import {GatePainting} from "../../draw/gate/GatePainting.js"
+import {paintBackground, paintOutline, paintGateButton} from '../../draw/gate/GateFrame.js';
+import {paintGateSymbol} from '../../draw/gate/GateSymbol.js';
 import {XExp, YExp, ZExp} from "./ExponentiatingGates.js"
 import {parseTimeFormula, makeUpdateFormulaFunc} from "./FormulaGateUtil.js"
 
@@ -40,10 +41,10 @@ function angleRotationRenderer(axisName) {
     // The label states the exact angle; the animation clock the time-varying gates paint
     // (paintCycleState) is meaningless for a constant angle and only obscured the label.
     return args => {
-        GatePainting.paintBackground(args);
-        GatePainting.paintOutline(args);
-        GatePainting.paintGateSymbol(args, `${axisName}(${args.gate.param})`, false);
-        GatePainting.paintGateButton(args);
+        paintBackground(args);
+        paintOutline(args);
+        paintGateSymbol(args, `${axisName}(${args.gate.param})`, false);
+        paintGateButton(args);
     };
 }
 

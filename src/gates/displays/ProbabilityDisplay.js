@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-import { paintMultiProbabilityDisplay } from "../../draw/pixi/displays/ProbabilityView.js";
+import {paintProbabilityBox, paintMultiProbabilityDisplay} from '../../draw/displays/ProbabilityView.js';
 
 import { Complex } from "../../engine/math/complex/Complex.js";
 
 import { Gate } from "../../circuit/model/Gate.js";
-import { GatePainting } from "../../draw/gate/GatePainting.js";
+import {makeDisplayRenderer} from '../../draw/gate/GateRenderers.js';
 import { GateShaders } from "../../engine/simulation/gpu/GateShaders.js";
-import { MathPainter } from "../../draw/MathPainter.js";
 import { Matrix } from "../../engine/math/matrix/Matrix.js";
 
 import { Shaders } from "../../engine/webgl/shader/Shaders.js";
@@ -166,7 +165,7 @@ function multiChanceGateMaker(span, builder) {
       probabilityPixelsToColumnVector(pixels, span),
     )
     .setProcessedStatsToJsonFunc(probabilityDataToJson)
-    .setRenderer(GatePainting.makeDisplayRenderer(paintMultiProbabilityDisplay));
+    .setRenderer(makeDisplayRenderer(paintMultiProbabilityDisplay));
 }
 
 /**
@@ -178,9 +177,9 @@ function singleChangeGateMaker(builder) {
     .setSerializedId("Chance")
     .markAsRendererNeedsSingleQubitDensityStats()
     .setRenderer(
-      GatePainting.makeDisplayRenderer((args) => {
+      makeDisplayRenderer((args) => {
         const { row, col } = args.positionInCircuit;
-        MathPainter.paintProbabilityBox(
+        paintProbabilityBox(
           args.painter,
           args.stats.controlledWireProbabilityJustAfter(row, col),
           args.rect,

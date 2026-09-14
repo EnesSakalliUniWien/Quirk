@@ -18,7 +18,7 @@ import {Suite, assertThat} from "../../TestUtil.js"
 import {Revision} from "../../../src/base/Revision.js"
 import {CircuitActions} from "../../../src/app/state/CircuitActions.js"
 import {RegisterActions} from "../../../src/app/state/RegisterActions.js"
-import {DisplayedInspector} from "../../../src/editor/DisplayedInspector.js"
+import {EditorState} from "../../../src/editor/state/EditorState.js"
 import {Rect} from "../../../src/geometry/Rect.js"
 import {fromJsonText_CircuitDefinition} from "../../../src/serialization/Serializer.js"
 
@@ -30,7 +30,7 @@ const suite = new Suite("RegisterActions");
  * @param {!object} json
  */
 function setup(json) {
-    let inspector = DisplayedInspector.empty(new Rect(0, 0, 800, 400)).
+    let inspector = EditorState.empty(new Rect(0, 0, 800, 400)).
         withCircuitDefinition(fromJsonText_CircuitDefinition(JSON.stringify(json)));
     const revision = Revision.startingAt(inspector.snapshot());
     revision.latestActiveCommit().subscribe(text => {
@@ -38,7 +38,7 @@ function setup(json) {
     });
     return {
         revision,
-        actions: new RegisterActions(revision, {get: () => inspector}),
+        actions: new RegisterActions(revision, {getState: () => ({value: inspector})}),
         registers: () => inspector.displayedCircuit.circuitDefinition.registers,
     };
 }

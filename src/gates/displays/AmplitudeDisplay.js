@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { AMPLITUDE_RENDERER_FROM_CUSTOM_STATS } from "../../draw/pixi/displays/AmplitudeView.js";
+import { AMPLITUDE_RENDERER_FROM_CUSTOM_STATS } from "../../draw/displays/AmplitudeView.js";
 
 import { CircuitShaders } from "../../engine/simulation/gpu/CircuitShaders.js";
 import { Gate } from "../../circuit/model/Gate.js";

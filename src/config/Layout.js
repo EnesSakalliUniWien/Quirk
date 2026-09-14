@@ -17,7 +17,7 @@
 /**
  * Sizes and spacings of the drawn circuit and its gate tiles.
  */
-class Layout {}
+const Layout = {};
 
 // One logical unit is an ordinary gate's diameter. Camera zoom scales all of these together.
 Layout.UNIT = 40;
@@ -41,7 +41,10 @@ Layout.WIRE_SPACING = 2 * (Layout.BLOCH_RADIUS + Layout.BLOCH_LABEL_MARGIN +
 // The least vertical margin above the circuit band; also the margin the band keeps when the
 // visible area is too short to center it.
 Layout.CIRCUIT_TOP_MARGIN = 24;
-Layout.REDRAW_COOLDOWN_MILLIS = 10; // Milliseconds. Rate-limit on redraws. Long draws pad this limit.
+Layout.MIN_COL_COUNT = 5;
 Layout.DEFAULT_STROKE_THICKNESS = 1;
+
+// Derived dimensions and their inputs must stay consistent for every consumer.
+Object.freeze(Layout);
 
 export {Layout}

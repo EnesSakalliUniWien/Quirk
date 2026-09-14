@@ -1,3 +1,4 @@
+import {createValueStore, observeStore} from '../../base/valueStore.js';
 /**
  * Copyright 2017 Google Inc.
  *
@@ -14,8 +15,7 @@
  * limitations under the License.
  */
 
-import {ObservableValue} from "../../base/Obs.js"
-import {Simulation} from "../../config/Simulation.js"
+import {Playback} from "../../config/Playback.js"
 
 /**
  * Which point in the circuit the transport controls are parked at, independent of DOM elements.
@@ -42,7 +42,7 @@ class Playhead {
         this._restartOnPlay = true;
         /** @type {undefined|*} */
         this._timer = undefined;
-        this._state = new ObservableValue(this._snapshot());
+        this._state = createValueStore(this._snapshot());
 
         obsColumnCount.subscribe(columnCount => {
             this._columnCount = Math.max(0, columnCount);
@@ -83,7 +83,7 @@ class Playhead {
      * @private
      */
     _publish() {
-        this._state.set(this._snapshot());
+        this._state.setState({value: this._snapshot()});
     }
 
     /**
@@ -97,7 +97,7 @@ class Playhead {
      * }>}
      */
     state() {
-        return this._state.observable();
+        return observeStore(this._state);
     }
 
     /**
@@ -200,7 +200,7 @@ class Playhead {
         if (this._step === 0 && this._restartOnPlay) this.generation++;
         this._restartOnPlay = false;
         this._playing = true;
-        this._timer = this._setInterval(() => this._seek(this._step + 1), Simulation.PLAYHEAD_STEP_DURATION_MS);
+        this._timer = this._setInterval(() => this._seek(this._step + 1), Playback.PLAYHEAD_STEP_DURATION_MS);
         this._publish();
     }
 

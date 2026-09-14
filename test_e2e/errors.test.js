@@ -59,7 +59,7 @@ test('recovers from a mangled circuit URL with a dismissible banner', async brow
             `Unexpected banner text: ${banner.text}`);
 
         // The app recovered: the circuit area is alive and interactive.
-        assert.notEqual(await page.$('#drawCanvas'), null);
+        assert.notEqual(await page.$('#drawCanvas canvas'), null);
 
         await page.click('.error-banner-dismiss');
         assert.equal((await bannerState(page)).visible, false);

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-/** @typedef {import('../pixi/DisplayView.js').DisplayView} DisplayView */
+/** @typedef {import('../scene/DisplayView.js').DisplayView} DisplayView */
 
 /**
  * Values used by the various gate drawing strategies.
@@ -26,7 +26,7 @@ class GateRenderParams {
   /**
    * Prefer the named factories; the positional constructor is their implementation.
    * @param {!DisplayView} painter
-   * @param {!Hand} hand
+   * @param {!PointerInteractionState} hand
    * @param {!boolean} isHighlighted
    * @param {!boolean} isResizeShowing
    * @param {!boolean} isResizeHighlighted
@@ -52,7 +52,7 @@ class GateRenderParams {
   ) {
     /** @type {!DisplayView} */
     this.painter = painter;
-    /** @type {!Hand} */
+    /** @type {!PointerInteractionState} */
     this.hand = hand;
     /** @type {!boolean} */
     this.isHighlighted = isHighlighted;
@@ -78,7 +78,7 @@ class GateRenderParams {
    * A gate drawn at its slot on the circuit.
    *
    * @param {!DisplayView} painter
-   * @param {!Hand} hand
+   * @param {!PointerInteractionState} hand
    * @param {!Rect} rect
    * @param {!Gate} gate
    * @param {!CircuitStats} stats
@@ -120,7 +120,7 @@ class GateRenderParams {
    * The gate riding the cursor: highlighted, resize tab showing, not yet anywhere.
    *
    * @param {!DisplayView} painter
-   * @param {!Hand} hand
+   * @param {!PointerInteractionState} hand
    * @param {!Rect} rect
    * @param {!Gate} gate
    * @param {!CircuitStats} stats

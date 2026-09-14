@@ -46,8 +46,15 @@ Before opening the pull request, keep the checks green:
   it does not own playback, recording workflow or browser download operations.
 - `src/gates/` — the gate catalogue, aggregated by `AllGates.js`; a gate missing from its
   lists silently stops serializing and disappears from the toolbox.
-- `src/draw/` — canvas painting primitives. Two seams let the editor hand renderers down
-  without `draw` importing it: `gate/CustomGateCircuitRenderer.js` and `CircuitPreview.js`.
+- `src/editor/editing/` — gate, column, row and register edits, coordinated by `CircuitEditing`;
+  see [the editing guide](src/editor/editing/README.md).
+- `src/editor/rendering/` — circuit scene updates grouped by wires, columns, outputs and
+  interaction; see [the rendering guide](src/editor/rendering/README.md).
+- `src/draw/` — rendering grouped into surfaces, scenes, shapes, text, tooltips, scientific
+  displays, gates and shared renderers; see [the directory guide](src/draw/README.md).
+  Circuit viewport coordination lives in `src/app/canvas/CircuitScene.js`. Scene descriptions
+  use the editor's `InteractionState` to collect cursor and touch blockers; circuit rendering
+  callbacks are supplied through `gate/CustomGateCircuitRenderer.js` and `CircuitPreview.js`.
 - `src/engine/` — every calculation: pure numerics in `math/`, the WebGL2 abstraction in `webgl/`
   (`webgl/context/issues.js` owns the one shared GL context), and circuit evaluation in `simulation/`
   with its shader and texture utilities in `simulation/gpu/`. `math/` and `webgl/` are leaves;

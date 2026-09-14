@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import {createStore} from 'zustand/vanilla';
+
 import { CooldownThrottle } from "./CooldownThrottle.js";
 
 /**
@@ -287,87 +289,14 @@ class Observable {
   }
 }
 
+/** Event streams use a fresh envelope so repeated events still notify. */
 class ObservableSource {
   constructor() {
-    /**
-     * @type {!Array.<!function(T):void>}
-     * @private
-     * @template T
-     */
-    this._observers = [];
-    /**
-     * @type {!Observable.<T>}
-     * @private
-     * @template T
-     */
-    this._observable = new Observable((observer) => {
-      this._observers.push(observer);
-      let didRun = false;
-      return () => {
-        if (!didRun) {
-          didRun = true;
-          this._observers.splice(this._observers.indexOf(observer), 1);
-        }
-      };
-    });
+    this._store = createStore(() => ({value: undefined}));
+    this._observable = new Observable(observer => this._store.subscribe(state => observer(state.value)));
   }
-
-  /**
-   * @returns {!Observable.<T>}
-   * @template T
-   */
-  observable() {
-    return this._observable;
-  }
-
-  /**
-   * @param {T} eventValue
-   * @template T
-   */
-  send(eventValue) {
-    for (const obs of this._observers) {
-      obs(eventValue);
-    }
-  }
+  observable() { return this._observable; }
+  send(value) { this._store.setState({value}); }
 }
 
-class ObservableValue {
-  /**
-   * @param {T=undefined} initialValue
-   * @template T
-   */
-  constructor(initialValue = undefined) {
-    this._value = initialValue;
-    this._source = new ObservableSource();
-    this._observable = new Observable((observer) => {
-      observer(this._value);
-      return this._source.observable().subscribe(observer);
-    });
-  }
-
-  /**
-   * @returns {!Observable}
-   */
-  observable() {
-    return this._observable;
-  }
-
-  /**
-   * @param {T} newValue
-   * @template T
-   */
-  set(newValue) {
-    this._value = newValue;
-    this._source.send(newValue);
-  }
-
-  /**
-   * @returns {T} The current value.
-   * @template T
-   */
-  get() {
-    return this._value;
-  }
-}
-
-export { Observable, ObservableSource, ObservableValue };
+export {Observable, ObservableSource};

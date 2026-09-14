@@ -40,7 +40,7 @@ async function runToEnd(page, columns) {
 
 /** Where a wire's label is on screen. Registers add a name column left of the labels. */
 async function wireLabelAt(page, wire, wireCount, named) {
-    const canvas = await page.$eval('#drawCanvas', element => {
+    const canvas = await page.$eval('#drawCanvas canvas', element => {
         const bounds = element.getBoundingClientRect();
         return {x: bounds.x, y: bounds.y};
     });

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import {polygon, strokePath, rectangle} from '../../draw/pixi/ShapeView.js';
+import {polygon, strokePath, rectangle} from '../../draw/shapes/ShapeView.js';
 
 import {CanvasTheme} from '../../config/CanvasTheme.js';
 import {Gate, GateBuilder} from '../../circuit/model/Gate.js';
-import {GatePainting} from '../../draw/gate/GatePainting.js';
+import {MAKE_HIGHLIGHTED_RENDERER} from '../../draw/gate/GateRenderers.js';
 import {Matrix} from '../../engine/math/matrix/Matrix.js';
 import {Point} from '../../geometry/Point.js';
 import {ketArgs} from '../../engine/simulation/gpu/KetShaderUtil.js';
@@ -45,7 +45,7 @@ const staircaseCurve = steps => {
 };
 
 const STAIRCASE_RENDERER = (timeOffset, steps, flip=false) => args => {
-    GatePainting.MAKE_HIGHLIGHTED_RENDERER(CanvasTheme.gate.time)(args);
+    MAKE_HIGHLIGHTED_RENDERER(CanvasTheme.gate.time)(args);
 
     const t = (args.stats.time + timeOffset) % 1;
     let yOn = args.rect.y + 3;

@@ -17,15 +17,16 @@
 import { GateBuilder } from "../../circuit/model/Gate.js";
 import { Matrix } from "../../engine/math/matrix/Matrix.js";
 import { Complex } from "../../engine/math/complex/Complex.js";
-import { GatePainting } from "../../draw/gate/GatePainting.js";
+import {paintLocationIndependentFrame} from '../../draw/gate/GateFrame.js';
+import {paintGateSymbol} from '../../draw/gate/GateSymbol.js';
 
 const ImaginaryGate = new GateBuilder()
   .setSerializedIdAndSymbol("i")
   .setTitle("Imaginary Gate")
   .setBlurb("Phases everything by i.")
   .setRenderer((args) => {
-    GatePainting.paintLocationIndependentFrame(args);
-    GatePainting.paintGateSymbol(args);
+    paintLocationIndependentFrame(args);
+    paintGateSymbol(args);
   })
   .setKnownEffectToMatrix(Matrix.square(Complex.I, 0, 0, Complex.I)).gate;
 
@@ -35,8 +36,8 @@ const AntiImaginaryGate = new GateBuilder()
   .setTitle("Anti-Imaginary Gate")
   .setBlurb("Phases everything by -i.")
   .setRenderer((args) => {
-    GatePainting.paintLocationIndependentFrame(args);
-    GatePainting.paintGateSymbol(args);
+    paintLocationIndependentFrame(args);
+    paintGateSymbol(args);
   })
   .setKnownEffectToMatrix(
     Matrix.square(Complex.I.neg(), 0, 0, Complex.I.neg()),
@@ -47,8 +48,8 @@ const SqrtImaginaryGate = new GateBuilder()
   .setTitle("Half Imaginary Gate")
   .setBlurb("Phases everything by √i.")
   .setRenderer((args) => {
-    GatePainting.paintLocationIndependentFrame(args);
-    GatePainting.paintGateSymbol(args);
+    paintLocationIndependentFrame(args);
+    paintGateSymbol(args);
   })
   .setKnownEffectToMatrix(
     Matrix.square(1, 0, 0, 1).times(
@@ -62,8 +63,8 @@ const AntiSqrtImaginaryGate = new GateBuilder()
   .setTitle("Half Anti-Imaginary Gate")
   .setBlurb("Phases everything by √-i.")
   .setRenderer((args) => {
-    GatePainting.paintLocationIndependentFrame(args);
-    GatePainting.paintGateSymbol(args);
+    paintLocationIndependentFrame(args);
+    paintGateSymbol(args);
   })
   .setKnownEffectToMatrix(
     Matrix.square(1, 0, 0, 1).times(

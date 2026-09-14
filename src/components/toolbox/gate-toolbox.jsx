@@ -1,3 +1,4 @@
+import {observeStore} from '../../base/valueStore.js';
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 
 import { AtomIcon, SearchIcon } from "lucide-react";
@@ -152,7 +153,7 @@ function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace }) {
   const latestTimeRef = useRef(0);
   useEffect(
     () =>
-      mostRecentStats.observable().subscribe((stats) => {
+      observeStore(mostRecentStats).subscribe((stats) => {
         latestTimeRef.current = stats.time;
       }),
     [mostRecentStats],

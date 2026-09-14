@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import {rectangle, strokePath} from '../../draw/pixi/ShapeView.js';
+import {rectangle, strokePath} from '../../draw/shapes/ShapeView.js';
 
-import {RenderSurface} from '../../draw/pixi/RenderSurface.js';
+import {RenderSurface} from '../../draw/surface/RenderSurface.js';
 import {Point} from '../../geometry/Point.js';
 import {Rect} from '../../geometry/Rect.js';
 import {CanvasTheme} from '../../config/CanvasTheme.js';
@@ -35,7 +35,7 @@ import {circuitZoom, onCircuitZoomChanged} from './zoom.js';
  *
  * @param {!HTMLElement} container The circuit overlay to add the minimap to.
  * @param {!HTMLElement} canvasDiv The circuit's scroll container.
- * @param {!ObservableValue.<!DisplayedInspector>} displayed
+ * @param {import("zustand/vanilla").StoreApi<{value: !EditorState}>} displayed
  * @returns {void}
  */
 function initMinimap(container, canvasDiv, displayed) {
@@ -45,7 +45,7 @@ function initMinimap(container, canvasDiv, displayed) {
     container.appendChild(canvas);
 
     const repaint = () => {
-        const inspector = displayed.get();
+        const inspector = displayed.getState().value;
         const geometry = inspector.displayedCircuit.geometry();
         const contentWidth = inspector.desiredWidth();
         const visibleWidth = canvasDiv.clientWidth / circuitZoom();
@@ -58,14 +58,13 @@ function initMinimap(container, canvasDiv, displayed) {
         const w = Math.max(1, canvas.clientWidth);
         const h = Math.max(1, canvas.clientHeight);
         const sx = w / contentWidth;
+        // The overview shows the circuit band, excluding its viewport-centering offset.
         const sy = h / geometry.desiredHeight();
         // At least a pixel each way, so a narrow gate in a long circuit still shows.
-        const squeezed = r => new Rect(r.x * sx, r.y * sy, Math.max(1, r.w * sx), Math.max(1, r.h * sy));
+        const squeezed = r => new Rect(r.x * sx, (r.y - geometry.top) * sy, Math.max(1, r.w * sx), Math.max(1, r.h * sy));
         const pixelRatio = window.devicePixelRatio || 1;
-        canvas.width = Math.round(w * pixelRatio);
-        canvas.height = Math.round(h * pixelRatio);
-
-        const view = RenderSurface.forCanvas(canvas).beginFrame(undefined, pixelRatio);
+        const view = RenderSurface.forCanvas(canvas).resize(w * pixelRatio, h * pixelRatio)
+            .beginFrame(undefined, pixelRatio);
         rectangle(view, new Rect(0, 0, w, h), {fill: CanvasTheme.surface.gate});
 
         // Wires.
@@ -74,7 +73,7 @@ function initMinimap(container, canvasDiv, displayed) {
         const wireEndX = geometry.rectForSuperpositionDisplay().x - 4;
 
         for (let row = 0; row < wireCount; row++) {
-            const y = geometry.wireRect(row).center().y * sy;
+            const y = (geometry.wireRect(row).center().y - geometry.top) * sy;
             strokePath(view, [new Point(0, y), new Point(wireEndX * sx, y)], CanvasTheme.stroke.faint, 1);
         }
 
@@ -102,7 +101,7 @@ function initMinimap(container, canvasDiv, displayed) {
 
     const scrollTo = ev => {
         const b = canvas.getBoundingClientRect();
-        const contentWidth = displayed.get().desiredWidth();
+        const contentWidth = displayed.getState().value.desiredWidth();
         const scale = canvas.clientWidth / contentWidth;
         const visibleWidth = canvasDiv.clientWidth / circuitZoom();
         const centerX = (ev.clientX - b.left - canvas.clientLeft) / scale;
@@ -126,7 +125,7 @@ function initMinimap(container, canvasDiv, displayed) {
     canvasDiv.addEventListener('scroll', repaint, {passive: true});
     // Sizes, including the jump from the pre-boot display:none to the real layout, arrive here.
     new ResizeObserver(repaint).observe(canvasDiv);
-    displayed.observable().subscribe(repaint);
+    displayed.subscribe(repaint);
     onCircuitZoomChanged(repaint);
 }
 

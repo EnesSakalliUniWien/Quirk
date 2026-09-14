@@ -25,7 +25,7 @@ import {Simulation} from "../../config/Simulation.js"
 class RegisterActions {
     /**
      * @param {!Revision} revision
-     * @param {!{get: function(): !DisplayedInspector}} displayed
+     * @param {!{get: function(): !EditorState}} displayed
      */
     constructor(revision, displayed) {
         this._revision = revision;
@@ -36,7 +36,7 @@ class RegisterActions {
      * @returns {!Registers} The circuit's registers now.
      */
     current() {
-        return this._displayed.get().displayedCircuit.circuitDefinition.registers;
+        return this._displayed.getState().value.displayedCircuit.circuitDefinition.registers;
     }
 
     /**
@@ -145,7 +145,7 @@ class RegisterActions {
             return problem;
         }
         const registers = new Registers(list);
-        const inspector = this._displayed.get();
+        const inspector = this._displayed.getState().value;
         const circuit = inspector.displayedCircuit.circuitDefinition;
         // A register may reach past the last wire; the circuit grows to hold it.
         const grown = circuit.withWireCount(Math.max(circuit.numWires, registers.minimumRequiredWireCount()));

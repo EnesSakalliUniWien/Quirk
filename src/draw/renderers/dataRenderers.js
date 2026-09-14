@@ -14,11 +14,15 @@
  * limitations under the License.
  */
 
+import {TooltipLayer} from '../tooltips/TooltipView.js';
+import {paintMatrixTooltip} from '../tooltips/MatrixTooltip.js';
+import {paintMatrix} from '../displays/MatrixView.js';
+import {drawGraphics} from '../scene/DisplayView.js';
 import {Color} from 'pixi.js';
-import {PathGeometry} from '../pixi/PathGeometry.js';
-import {drawPath, rectangle} from '../pixi/ShapeView.js';
-import {fitText, fitParagraph, measureText} from '../pixi/TextLayout.js';
-import {paintDensityMatrix} from '../pixi/displays/DensityMatrixView.js';
+import {PathGeometry} from '../shapes/PathGeometry.js';
+import {drawPath, rectangle} from '../shapes/ShapeView.js';
+import {fitText, fitParagraph, measureText} from '../text/TextLayout.js';
+import {paintDensityMatrix} from '../displays/DensityMatrixView.js';
 import {CanvasTheme} from '../../config/CanvasTheme.js';
 import {Typography} from '../../config/Typography.js';
 import {Format} from '../../base/Format.js';
@@ -28,7 +32,6 @@ import {ketLabel} from '../../circuit/registerLabels.js';
 import {Matrix} from '../../engine/math/matrix/Matrix.js';
 import {Point} from '../../geometry/Point.js';
 import {Rect} from '../../geometry/Rect.js';
-import {MathPainter} from '../MathPainter.js';
 
 /**
  * How each kind of data is drawn, whoever produced it.
@@ -58,16 +61,12 @@ function renderMatrix(view, matrix, rect, {style = "operator", focusPoints = []}
         paintDensityMatrix(view, matrix, rect, focusPoints);
         return;
     }
-    MathPainter.paintMatrix(
-        view,
-        matrix,
-        rect,
-        CanvasTheme.operation.fill,
-        CanvasTheme.text.primary,
-        undefined,
-        CanvasTheme.operation.background,
-        undefined,
-        CanvasTheme.transparent);
+    paintMatrix(view, matrix, rect, {
+        amplitudeCircleFillColor: CanvasTheme.operation.fill,
+        amplitudeCircleStrokeColor: CanvasTheme.text.primary,
+        backColor: CanvasTheme.operation.background,
+        showLogCircles: false
+    });
 }
 
 // ---- state --------------------------------------------------------------------------------------
@@ -152,15 +151,13 @@ function renderState(view, matrix, rect, {wireCount, focusPoints = [], coherent 
     const handColor = indicatorAlpha >= 1 ? CanvasTheme.text.primary :
         indicatorAlpha > 0 ? new Color(CanvasTheme.text.primary).setAlpha(indicatorAlpha).toRgbaString() :
         undefined;
-    MathPainter.paintMatrix(
-        view,
-        matrix,
-        rect,
-        CanvasTheme.amplitude.circle,
-        CanvasTheme.text.primary,
-        CanvasTheme.amplitude.fill,
-        CanvasTheme.amplitude.background,
-        () => handColor);
+    paintMatrix(view, matrix, rect, {
+        amplitudeCircleFillColor: CanvasTheme.amplitude.circle,
+        amplitudeCircleStrokeColor: CanvasTheme.text.primary,
+        amplitudeProbabilityFillColor: CanvasTheme.amplitude.fill,
+        backColor: CanvasTheme.amplitude.background,
+        phaseColorForDegrees: () => handColor
+    });
 
     const index = (c, r) => r*matrix.width() + c;
     const basis = i => ketLabel(registers, wireCount, i);
@@ -168,13 +165,13 @@ function renderState(view, matrix, rect, {wireCount, focusPoints = [], coherent 
 
     const forceSign = v => (v >= 0 ? '+' : '') + v.toFixed(2);
     if (!coherent) {
-        MathPainter.paintMatrixTooltip(view, matrix, rect, focusPoints,
+        paintMatrixTooltip(view, matrix, rect, focusPoints,
             (c, r) => `Chance of |${basis(index(c, r))}⟩ (decimal ${index(c, r)}) [amplitude not defined]`,
             (c, r, v) => `raw: ${(v.norm2()*100).toFixed(4)}%, log: ${(Math.log10(v.norm2())*10).toFixed(1)} dB`,
             () => '[entangled with other qubits]');
         return;
     }
-    MathPainter.paintMatrixTooltip(view, matrix, rect, focusPoints,
+    paintMatrixTooltip(view, matrix, rect, focusPoints,
         (c, r) => `Amplitude of |${basis(index(c, r))}⟩ (decimal ${index(c, r)})`,
         (c, r, v) => 'val:' + v.toString(Format.SIMPLIFIED),
         (c, r, v) => `mag²:${(v.norm2()*100).toFixed(4)}%, phase:${forceSign(v.phase() * 180 / Math.PI)}°`);
@@ -218,7 +215,7 @@ function probabilityBars(view, rect, probabilities, wireCount, colour = CanvasTh
     const n = 1 << wireCount;
     const d = h / n;
     const e = Math.max(d, 1);
-    const path = view.graphics();
+    drawGraphics(view, path => {
     path.moveTo(x, y);
     for (let i = 0; i < n; i++) {
         const p = probabilities.rawBuffer()[i * 2];
@@ -228,6 +225,7 @@ function probabilityBars(view, rect, probabilities, wireCount, colour = CanvasTh
     path.lineTo(x, y + h);
     path.lineTo(x, y);
     path.stroke({color: CanvasTheme.stroke.guide, width: 1}).fill(colour);
+    });
 }
 
 function probabilityLogarithmHints(view, rect, probabilities, wireCount) {
@@ -235,7 +233,7 @@ function probabilityLogarithmHints(view, rect, probabilities, wireCount) {
     const n = 1 << wireCount;
     const d = h / n;
     const e = Math.max(d, 1);
-    const path = view.graphics();
+    drawGraphics(view, path => {
     path.moveTo(x, y);
     const s = 1 / (4 + Math.max(8, wireCount));
     for (let i = 0; i < n; i++) {
@@ -246,6 +244,7 @@ function probabilityLogarithmHints(view, rect, probabilities, wireCount) {
     }
     path.lineTo(x, y + h);
     path.stroke({color: CanvasTheme.stroke.faint, width: 1});
+    });
 }
 
 function probabilityTooltips(view, rect, probabilities, wireCount, focusPoints) {
@@ -257,13 +256,13 @@ function probabilityTooltips(view, rect, probabilities, wireCount, focusPoints) 
         if (rect.containsPoint(pt) && k >= 0 && k < n) {
             const p = probabilities === undefined ? NaN : probabilities.rawBuffer()[k * 2];
             rectangle(view, new Rect(x, y + k * d, w, d), {stroke: {color: CanvasTheme.interaction.outline, width: 2}});
-            MathPainter.paintDeferredValueTooltip(
-                view,
-                x + w,
-                y + k * d,
-                `Chance of |${Util.bin(k, wireCount)}⟩ (decimal ${k}) if measured`,
-                'raw: ' + (p * 100).toFixed(4) + "%",
-                'log: ' + (Math.log10(p) * 10).toFixed(1) + " dB");
+            TooltipLayer.forView(view).show(view, {
+                x: x + w,
+                y: y + k * d,
+                labelText: `Chance of |${Util.bin(k, wireCount)}⟩ (decimal ${k}) if measured`,
+                valueText: 'raw: ' + (p * 100).toFixed(4) + "%",
+                valueText2: 'log: ' + (Math.log10(p) * 10).toFixed(1) + " dB"
+            });
         }
     }
 }

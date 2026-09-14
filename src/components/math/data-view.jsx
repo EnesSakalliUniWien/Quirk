@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-import { paintInto } from "../../draw/pixi/SharedPaintSurface.js";
+import { paintInto } from "../../draw/surface/SharedPaintSurface.js";
 import { DATA_RENDERERS } from "../../draw/renderers/dataRenderers.js";
 import { rasterMatrix } from "../../draw/renderers/rasters.js";
 import { Rect } from "../../geometry/Rect.js";
@@ -12,7 +12,7 @@ const PIXEL_RENDERERS = { matrix: rasterMatrix, state: rasterMatrix };
 
 /**
  * A piece of data drawn by its renderer - the same renderer the circuit's display gates use - on
- * the shared GPU surface (src/draw/pixi/SharedPaintSurface.js).
+ * the shared GPU surface (src/draw/surface/SharedPaintSurface.js).
  *
  * When the entries get smaller than MIN_MARK_PIXELS the view switches to pixels - one per entry,
  * or one per block of entries - so a state over 16 qubits still draws at once (src/draw/renderers/
@@ -59,6 +59,8 @@ function DataView({ kind, data, width, height, options, label, className }) {
       if (painted !== false && current) {
         canvas.dataset.painted = "true";
       }
+    }, () => {
+      // The rendering surface reports failures; leave this canvas unpainted for a later update.
     });
     return () => {
       current = false;

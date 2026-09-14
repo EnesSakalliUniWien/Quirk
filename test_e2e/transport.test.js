@@ -23,7 +23,7 @@ import {circuitMetrics, test, withQuirkPage, waitForPanel, TEST_TIMEOUT_MILLIS, 
 async function playheadBandPixels(page, columnLeft) {
     await waitForCanvasViewport(page);
     return page.evaluate((left, m, background, bandColor) => {
-        const canvas = document.getElementById('drawCanvas');
+        const canvas = document.querySelector('#drawCanvas canvas');
         const copy = document.createElement('canvas');
         copy.width = canvas.width; copy.height = canvas.height;
         const context = copy.getContext('2d');

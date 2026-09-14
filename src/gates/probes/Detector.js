@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import {drawPath, rectangle, circle, strokePath} from '../../draw/pixi/ShapeView.js';
-import {fitLine, fitText} from '../../draw/pixi/TextLayout.js';
+import {drawPath, rectangle, circle, strokePath} from '../../draw/shapes/ShapeView.js';
+import {fitLine, fitText} from '../../draw/text/TextLayout.js';
 
 import {GateBuilder} from '../../circuit/model/Gate.js';
 import {amplitudesToProbabilities} from '../displays/ProbabilityDisplay.js';
@@ -28,7 +28,7 @@ import {Controls} from '../../circuit/model/Controls.js';
 import {WglArg} from '../../engine/webgl/shader/WglArg.js';
 import {CanvasTheme} from '../../config/CanvasTheme.js';
 import {Typography} from '../../config/Typography.js';
-import {GatePainting} from '../../draw/gate/GatePainting.js';
+import {paintOutline} from '../../draw/gate/GateFrame.js';
 
 import {Matrix} from '../../engine/math/matrix/Matrix.js';
 import {GateShaders} from '../../engine/simulation/gpu/GateShaders.js';
@@ -179,7 +179,7 @@ function drawHighlight(args) {
     // Can't use the typical highlight function because the detector has no box outline.
     if (args.isHighlighted) {
         rectangle(args.painter, args.rect, {fill: CanvasTheme.gate.hover});
-        GatePainting.paintOutline(args);
+        paintOutline(args);
     }
 }
 

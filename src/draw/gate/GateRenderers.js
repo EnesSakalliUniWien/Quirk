@@ -1,3 +1,4 @@
+import {drawGraphics} from '../scene/DisplayView.js';
 /**
  * Copyright 2017 Google Inc.
  *
@@ -14,17 +15,15 @@
  * limitations under the License.
  */
 
-import {frame, highlightRing, lineWidth, rectangle, strokePath} from '../pixi/ShapeView.js';
-import {fitText} from '../pixi/TextLayout.js';
+import {frame, highlightRing, rectangle} from '../shapes/ShapeView.js';
 
 import {Layout} from '../../config/Layout.js';
 import {CanvasTheme} from '../../config/CanvasTheme.js';
 import {DATA_RENDERERS} from '../renderers/dataRenderers.js';
-import {Point} from '../../geometry/Point.js';
 import {Util} from '../../base/Util.js';
 
 import {paintBackground, paintOutline, paintResizeTab, paintLocationIndependentFrame} from './GateFrame.js';
-import {GATE_SYMBOL_FONT, paintGateSymbol} from './GateSymbol.js';
+import {paintGateSymbol} from './GateSymbol.js';
 
 /** @typedef {import('./GateRenderParams.js').GateRenderParams} GateRenderParams */
 
@@ -72,44 +71,6 @@ const makeLocationIndependentGateRenderer = normalFillColor => args => {
  * @param {!GateRenderParams} args
  */
 const LOCATION_INDEPENDENT_GATE_RENDERER = makeLocationIndependentGateRenderer(CanvasTheme.surface.gate);
-
-/**
- * @param {!Array.<!string>} labels
- * @param {!Array.<!number>} dividers
- * @returns {!function(!GateRenderParams)}
- */
-const SECTIONED_RENDERER_MAKER = (labels, dividers) => args => {
-    const backColor = args.isHighlighted ? CanvasTheme.gate.hover : CanvasTheme.surface.gate;
-    rectangle(args.painter, args.rect, {fill: backColor});
-    let p = 0;
-    for (let i = 0; i < labels.length; i++) {
-        let p2;
-        if (i < labels.length - 1) {
-            p2 = p + dividers[i];
-            const cy = args.rect.y + args.rect.h*p2;
-            strokePath(args.painter, [new Point(args.rect.x, cy), new Point(args.rect.right(), cy)],
-                CanvasTheme.stroke.faint, 1);
-        } else {
-            p2 = 1;
-        }
-        fitText(args.painter, labels[i], {
-            x: args.rect.x + args.rect.w/2,
-            y: args.rect.y + args.rect.h*(p + p2)/2,
-            align: 'center',
-            baseline: 'middle',
-            fill: CanvasTheme.text.primary,
-            font: GATE_SYMBOL_FONT,
-            width: args.rect.w - 2,
-            height: args.rect.h*(p2 - p)
-        });
-        p = p2;
-    }
-    rectangle(args.painter, args.rect, {stroke: {color: CanvasTheme.text.primary, width: lineWidth(args.painter, 1)}});
-    if (args.isHighlighted) {
-        highlightRing(args.painter, args.rect);
-    }
-    paintResizeTab(args);
-};
 
 const DISPLAY_GATE_DEFAULT_RENDERER = MAKE_HIGHLIGHTED_RENDERER();
 
@@ -175,13 +136,14 @@ function paintCycleState(args, angle, xScale = 1, yScale = 1, zeroAngle = 0) {
         painter.alpha = 0.4;
         painter.group('angle', painter => {
             painter.rotation = zeroAngle;
-            const path = painter.graphics();
+            drawGraphics(painter, path => {
             path.moveTo(0, 0);
             path.lineTo(0, r);
             path.arc(0, 0, r, Math.PI / 2, Math.PI / 2 + t, true);
             path.lineTo(0, 0);
             path.closePath();
             path.stroke({color: CanvasTheme.text.primary, width: 1}).fill(CanvasTheme.operation.fill);
+            });
         });
     });
 }
@@ -205,7 +167,6 @@ export {
     LABEL_RENDERER,
     makeLocationIndependentGateRenderer,
     LOCATION_INDEPENDENT_GATE_RENDERER,
-    SECTIONED_RENDERER_MAKER,
     makeDisplayRenderer,
     MATRIX_RENDERER,
     paintCycleState,

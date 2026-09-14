@@ -21,7 +21,7 @@
 import assert from 'node:assert/strict';
 import {CanvasTheme} from '../src/config/CanvasTheme.js';
 import {Layout} from '../src/config/Layout.js';
-import {CIRCUIT_OP_LEFT_SPACING, CIRCUIT_BOTTOM_MARGIN} from '../src/editor/CircuitLayoutConstants.js';
+import {CIRCUIT_OP_LEFT_SPACING, CIRCUIT_BOTTOM_MARGIN} from '../src/editor/geometry/CircuitLayoutConstants.js';
 
 const circuitMetrics = {
     wireSpacing: Layout.WIRE_SPACING, columnSpacing: Layout.COLUMN_SPACING,
@@ -57,8 +57,8 @@ async function waitForQuirk(page) {
     await page.waitForFunction(
         () => {
             const inspector = document.getElementById('inspectorDiv');
-            const canvas = document.getElementById('drawCanvas');
-            return inspector.style.visibility !== 'hidden' && canvas.width > 0 && canvas.height > 0 && canvas.dataset.renderer === 'pixijs';
+            const canvas = document.querySelector('#drawCanvas canvas');
+            return inspector.style.visibility !== 'hidden' && canvas.width > 0 && canvas.height > 0 && canvas.parentElement.dataset.renderer === 'pixijs';
         },
         {timeout: TEST_TIMEOUT_MILLIS});
 }
@@ -79,7 +79,8 @@ async function waitForCircuit(page, expectedCircuit) {
             const params = new URLSearchParams(document.location.hash.slice(1).replace(/\+/g, '%2B'));
             const jsonText = params.get('circuit');
             const actual = jsonText === null ? {cols: []} : JSON.parse(jsonText);
-            return JSON.stringify(actual) === expected;
+            return JSON.stringify(actual) === expected &&
+                document.getElementById('drawCanvas')?.dataset.circuit === expected;
         },
         {timeout: TEST_TIMEOUT_MILLIS},
         expectedJson);
@@ -167,7 +168,7 @@ async function withQuirkPage(browser, circuit, body, viewport=DEFAULT_VIEWPORT, 
 async function waitForCanvasViewport(page) {
     await page.waitForFunction(
         () => {
-            const canvas = document.getElementById('drawCanvas');
+            const canvas = document.querySelector('#drawCanvas canvas');
             const div = document.getElementById('canvasDiv');
             const dpr = window.devicePixelRatio || 1;
             return canvas.width === Math.round(div.clientWidth * dpr) &&
@@ -178,7 +179,7 @@ async function waitForCanvasViewport(page) {
 
 /**
  * Where the circuit band starts inside the canvas, in circuit units: centered in the visible
- * area, but never above the top margin. Mirrors DisplayedInspector.updateArea.
+ * area, but never above the top margin. Mirrors EditorState.updateArea.
  */
 async function circuitTopForWires(page, wireCount, zoom = 1) {
     return page.evaluate((wireCount, zoom, m) => {
@@ -195,7 +196,7 @@ async function circuitTopForWires(page, wireCount, zoom = 1) {
 async function canvasLayout(page) {
     await waitForCanvasViewport(page);
     return page.evaluate(m => {
-        const canvas = document.getElementById('drawCanvas');
+        const canvas = document.querySelector('#drawCanvas canvas');
         const copy = document.createElement('canvas');
         copy.width = canvas.width; copy.height = canvas.height;
         const context = copy.getContext('2d');

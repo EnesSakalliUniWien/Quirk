@@ -165,15 +165,15 @@ suite.test("IndexedDB admission is atomic and only evicts ghosts", async () => {
         await store.ready;
         await store.write([take]);
         for (let i = 0; i < 10; i++) await store.write([{...take, id: `ghost-${i}`}], {ghost: true});
-        assertThat(store.items.get().filter(r => r.ghost).length).isEqualTo(8);
-        assertTrue(store.items.get().some(r => r.id === take.id));
-        const before = store.items.get();
+        assertThat(store.items.getState().value.filter(r => r.ghost).length).isEqualTo(8);
+        assertTrue(store.items.getState().value.some(r => r.id === take.id));
+        const before = store.items.getState().value;
         store.cap = 1;
         let rejected = false;
         try {await store.write([{...take, id: "too-big"}]);} catch {rejected = true;}
         assertTrue(rejected);
         await store.refresh();
-        assertThat(store.items.get()).isEqualTo(before);
+        assertThat(store.items.getState().value).isEqualTo(before);
     } finally {
         (await store.db).close();
         indexedDB.deleteDatabase(name);

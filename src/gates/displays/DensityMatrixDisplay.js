@@ -17,7 +17,7 @@
 import {CircuitShaders} from "../../engine/simulation/gpu/CircuitShaders.js"
 /** @typedef {import("../../circuit/model/Gate.js").GateBuilder} GateBuilder */
 import {Gate} from "../../circuit/model/Gate.js"
-import {GatePainting} from "../../draw/gate/GatePainting.js"
+import {makeDisplayRenderer} from '../../draw/gate/GateRenderers.js';
 import {GateShaders} from "../../engine/simulation/gpu/GateShaders.js"
 import {DATA_RENDERERS} from "../../draw/renderers/dataRenderers.js"
 import {Matrix} from "../../engine/math/matrix/Matrix.js"
@@ -172,7 +172,7 @@ function singleDensityMatrixDisplayMaker(builder) {
     return densityMatrixDisplayMaker_shared(builder).
         setSerializedId("Density").
         markAsRendererNeedsSingleQubitDensityStats().
-        setRenderer(GatePainting.makeDisplayRenderer(args => {
+        setRenderer(makeDisplayRenderer(args => {
             const {col, row} = args.positionInCircuit;
             const ρ = args.stats.qubitDensityMatrix(col, row).transpose();
             DATA_RENDERERS.matrix(args.painter, ρ, args.rect, {style: "density", focusPoints: args.focusPoints});
@@ -200,7 +200,7 @@ function largeDensityMatrixDisplayMaker(span, builder) {
 /**
  * @param {!GateRenderParams} args
  */
-const DENSITY_MATRIX_RENDERER_FROM_CUSTOM_STATS = GatePainting.makeDisplayRenderer(args => {
+const DENSITY_MATRIX_RENDERER_FROM_CUSTOM_STATS = makeDisplayRenderer(args => {
     const n = args.gate.height;
     const ρ = args.customStats || Matrix.zero(1<<n, 1<<n).times(NaN);
     DATA_RENDERERS.matrix(args.painter, ρ, args.rect, {style: "density", focusPoints: args.focusPoints});

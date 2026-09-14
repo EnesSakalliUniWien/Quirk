@@ -37,93 +37,6 @@ function isPrimaryPress(ev) {
 }
 
 /**
- * Pointer capture fails for synthetic events and for pointers the browser no longer tracks; a
- * drag still works without it, just without following the pointer past the element.
- * @param {!Element} element
- * @param {!int} pointerId
- */
-function tryCapture(element, pointerId) {
-    try {
-        element.setPointerCapture(pointerId);
-    } catch {
-        // Nothing to do.
-    }
-}
-
-/**
- * Watches an element for grab, drag and drop gestures made with a mouse, a pen or a finger, using
- * Pointer Events. One gesture at a time: presses while a drag is in progress are ignored.
- *
- * The browser decides at touch time whether a finger scrolls or is delivered as a pointer, so an
- * element that must be draggable by touch needs `touch-action: none` on it or on an overlay.
- *
- * @param {!HTMLElement} element The element presses are listened on. It receives pointer capture,
- *     so a drag keeps reporting after the pointer leaves it.
- * @param {!{
- *     onGrab: !function(!Point, !PointerEvent): void,
- *     onDrag: !function(undefined|!Point, !PointerEvent): void,
- *     onDrop: !function(undefined|!Point, !PointerEvent): void,
- *     onCancel: !function(!PointerEvent): void
- * }} handlers Positions are relative to measureElement; undefined means the pointer was lost.
- * @param {!HTMLElement=} measureElement Positions are reported relative to this element instead of
- *     the listening element. Needed when the listening element is a scroll container, whose own
- *     corner stays put while its content moves.
- * @returns {!function(): void} Removes the listeners.
- */
-function watchPointerDrags(element, handlers, measureElement = element) {
-    /** @type {undefined|!int} */
-    let activePointerId = undefined;
-    const pos = ev => eventPosRelativeTo(ev, measureElement);
-    const end = () => { activePointerId = undefined; };
-
-    const onPointerDown = ev => {
-        if (activePointerId !== undefined || !isPrimaryPress(ev)) {
-            return;
-        }
-        activePointerId = ev.pointerId;
-        tryCapture(element, ev.pointerId);
-        handlers.onGrab(pos(ev), ev);
-    };
-    const onPointerMove = ev => {
-        if (ev.pointerId !== activePointerId) {
-            return;
-        }
-        if (ev.pointerType === 'mouse' && (ev.buttons & 1) === 0) {
-            // The button came up somewhere the page never heard about, e.g. over another window.
-            end();
-            handlers.onDrop(undefined, ev);
-            return;
-        }
-        handlers.onDrag(pos(ev), ev);
-    };
-    const onPointerUp = ev => {
-        if (ev.pointerId !== activePointerId) {
-            return;
-        }
-        end();
-        handlers.onDrop(pos(ev), ev);
-    };
-    const onPointerCancel = ev => {
-        if (ev.pointerId !== activePointerId) {
-            return;
-        }
-        end();
-        handlers.onCancel(ev);
-    };
-
-    element.addEventListener('pointerdown', onPointerDown);
-    element.addEventListener('pointermove', onPointerMove);
-    element.addEventListener('pointerup', onPointerUp);
-    element.addEventListener('pointercancel', onPointerCancel);
-    return () => {
-        element.removeEventListener('pointerdown', onPointerDown);
-        element.removeEventListener('pointermove', onPointerMove);
-        element.removeEventListener('pointerup', onPointerUp);
-        element.removeEventListener('pointercancel', onPointerCancel);
-    };
-}
-
-/**
  * Follows one pointer, already pressed, until it is released or lost. For drags that start on an
  * element that may be covered mid-gesture (a palette tab that gives way to the circuit when a gate
  * is taken), so the listeners sit on the document rather than on the element.
@@ -179,4 +92,4 @@ function trackPointerUntilRelease(startEvent, handlers) {
     return stop;
 }
 
-export {eventPosRelativeTo, isPrimaryPress, watchPointerDrags, trackPointerUntilRelease}
+export {eventPosRelativeTo, isPrimaryPress, trackPointerUntilRelease}

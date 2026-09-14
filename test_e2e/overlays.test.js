@@ -28,7 +28,7 @@ test('opens a Bloch sphere from its enlarged edge at different zoom levels', asy
             await page.$eval('#canvasDiv', element => element.scrollTo({left: 0, top: 0, behavior: 'instant'}));
             await waitForCanvasViewport(page);
             const top = await circuitTopForWires(page, 2, zoom);
-            const canvas = await page.$eval('#drawCanvas', element => {
+            const canvas = await page.$eval('#drawCanvas canvas', element => {
                 const rect = element.getBoundingClientRect();
                 return {x: rect.x, y: rect.y};
             });
@@ -75,7 +75,7 @@ test('opens and closes the export and gate forge panels', async browser => {
 
 test('edits a rotation gate angle through the parameter dialog', async browser => {
     await withQuirkPage(browser, {cols: [[{id: 'Rx', arg: 'pi/2'}]]}, async page => {
-        const canvasBounds = await page.$eval('#drawCanvas', element => {
+        const canvasBounds = await page.$eval('#drawCanvas canvas', element => {
             const bounds = element.getBoundingClientRect();
             return {x: bounds.x, y: bounds.y};
         });
@@ -108,7 +108,7 @@ test('edits a rotation gate angle through the parameter dialog', async browser =
 
 test('opens the enlarged Bloch sphere view from a Bloch display gate', async browser => {
     await withQuirkPage(browser, {cols: [['H'], ['Bloch']]}, async page => {
-        const canvasBounds = await page.$eval('#drawCanvas', element => {
+        const canvasBounds = await page.$eval('#drawCanvas canvas', element => {
             const bounds = element.getBoundingClientRect();
             return {x: bounds.x, y: bounds.y};
         });
@@ -125,7 +125,8 @@ test('opens the enlarged Bloch sphere view from a Bloch display gate', async bro
         }
         assert.ok(opened, 'The Bloch sphere panel must open.');
         await page.waitForFunction(
-            () => document.getElementById('bloch-subtitle').textContent !== '',
+            () => document.getElementById('bloch-subtitle').textContent !== '' &&
+                document.getElementById('bloch-x').textContent !== 'n/a',
             {timeout: TEST_TIMEOUT_MILLIS});
 
         // After the Hadamard the qubit is |+⟩: on the +x axis, pure, at θ 90°.
@@ -135,12 +136,62 @@ test('opens the enlarged Bloch sphere view from a Bloch display gate', async bro
             z: document.getElementById('bloch-z').textContent,
             theta: document.getElementById('bloch-theta').textContent,
             purity: document.getElementById('bloch-purity').textContent,
+            quaternion: document.getElementById('bloch-quaternion').textContent,
+            vector: document.getElementById('bloch-vector-quaternion').textContent,
         }));
         assert.equal(readout.subtitle, 'Qubit 1 · at column 2');
         assert.equal(readout.x, '+1.000');
         assert.equal(readout.z, '+0.000');
         assert.equal(readout.theta, '90.0°');
         assert.equal(readout.purity, '1.000');
+        // |+⟩ is |0⟩ turned a quarter turn about +y: q = cos 45° + sin 45° j, and q k q̄ = i.
+        assert.equal(readout.quaternion, '0.707 +0.000i +0.707j +0.000k');
+        assert.equal(readout.vector, '+1.000i +0.000j +0.000k');
+
+        // Sample the visible canvases between browser frames throughout layout changes and rotation.
+        await page.waitForFunction(() => {
+            const canvas = document.getElementById('bloch-canvas');
+            return canvas.getContext('2d').getImageData(1, 1, 1, 1).data[3] > 0;
+        });
+        await page.evaluate(() => {
+            const copy = document.createElement('canvas');
+            copy.width = copy.height = 1;
+            const ctx = copy.getContext('2d', {willReadFrequently: true});
+            const samples = {drawCanvas: {frames: 0, blank: 0}, 'bloch-canvas': {frames: 0, blank: 0}};
+            let active = true;
+            const sample = () => {
+                if (!active) return;
+                for (const [id, counts] of Object.entries(samples)) {
+                    const canvas = id === 'drawCanvas' ? document.querySelector('#drawCanvas canvas') : document.getElementById(id);
+                    ctx.clearRect(0, 0, 1, 1);
+                    ctx.drawImage(canvas, 1, 1, 1, 1, 0, 0, 1, 1);
+                    counts.frames++;
+                    if (ctx.getImageData(0, 0, 1, 1).data[3] === 0) counts.blank++;
+                }
+                requestAnimationFrame(sample);
+            };
+            window.stopCanvasSampling = () => {active = false; return samples;};
+            requestAnimationFrame(sample);
+        });
+        for (const deviceScaleFactor of [1, 2]) {
+            for (const width of [1180, 1300, 1200]) {
+                await page.setViewport({width, height: 760, deviceScaleFactor});
+                await waitForCanvasViewport(page);
+            }
+            const sphere = await page.$eval('#bloch-canvas', canvas => {
+                const r = canvas.getBoundingClientRect();
+                return {x: r.x + r.width / 2, y: r.y + r.height / 2};
+            });
+            await page.mouse.move(sphere.x, sphere.y);
+            await page.mouse.down();
+            await page.mouse.move(sphere.x + 70, sphere.y + 35, {steps: 15});
+            await page.mouse.up();
+        }
+        const samples = await page.evaluate(() => window.stopCanvasSampling());
+        for (const [id, counts] of Object.entries(samples)) {
+            assert.ok(counts.frames > 0, id + ' must be sampled during interaction');
+            assert.equal(counts.blank, 0, id + ' must keep its previous frame until the next render');
+        }
 
         await closePanel(page, 'bloch');
     });

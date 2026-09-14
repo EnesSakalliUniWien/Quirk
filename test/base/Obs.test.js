@@ -1,3 +1,4 @@
+import {createValueStore, observeStore} from '../../src/base/valueStore.js';
 /**
  * Copyright 2017 Google Inc.
  *
@@ -15,7 +16,7 @@
  */
 
 import {Suite, assertThat} from "../TestUtil.js"
-import {Observable, ObservableValue, ObservableSource} from "../../src/base/Obs.js"
+import {Observable, ObservableSource} from "../../src/base/Obs.js"
 
 const suite = new Suite("Obs");
 
@@ -142,45 +143,8 @@ suite.test("Observable.flatten", () => {
     stop();
     v1.send('c');
     v2.send('c');
-    c.send(new ObservableValue('c').observable());
+    c.send(observeStore(createValueStore('c')));
     assertThat(out).isEqualTo(['a', 'b', 'b']);
-});
-
-suite.test("ObservableValue_setVsGet", () => {
-    const v = new ObservableValue('a');
-    assertThat(v.get()).isEqualTo('a');
-    v.set('b');
-    assertThat(v.get()).isEqualTo('b');
-});
-
-suite.test("ObservableValue_observable", () => {
-    const v = new ObservableValue('a');
-    const {out, stop} = record(v.observable());
-    assertThat(out).isEqualTo(['a']);
-    v.set('b');
-    assertThat(out).isEqualTo(['a', 'b']);
-    v.set('c');
-    assertThat(out).isEqualTo(['a', 'b', 'c']);
-    stop();
-    v.set('d');
-    assertThat(out).isEqualTo(['a', 'b', 'c']);
-});
-
-suite.test("ObservableValue_observable_multiple", () => {
-    const v = new ObservableValue('a');
-    const {out: out1, stop: stop1} = record(v.observable());
-    const {out: out2, stop: stop2} = record(v.observable());
-    assertThat(out1).isEqualTo(['a']);
-    assertThat(out2).isEqualTo(['a']);
-    stop2();
-    assertThat(out1).isEqualTo(['a']);
-    assertThat(out2).isEqualTo(['a']);
-    v.set('b');
-    assertThat(out1).isEqualTo(['a', 'b']);
-    assertThat(out2).isEqualTo(['a']);
-    stop1();
-    assertThat(out1).isEqualTo(['a', 'b']);
-    assertThat(out2).isEqualTo(['a']);
 });
 
 suite.test("ObservableSource_observable", () => {

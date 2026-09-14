@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { rectangle, circle } from "../../draw/pixi/ShapeView.js";
+import { rectangle, circle } from "../../draw/shapes/ShapeView.js";
 
 import { CanvasTheme } from "../../config/CanvasTheme.js";
 import { GateBuilder } from "../../circuit/model/Gate.js";
-import { GatePainting } from "../../draw/gate/GatePainting.js";
+import {paintOutline} from '../../draw/gate/GateFrame.js';
 import { Rect } from "../../geometry/Rect.js";
 
 const SpacerGate = new GateBuilder()
@@ -31,7 +31,7 @@ const SpacerGate = new GateBuilder()
     // Drawn as an ellipsis.
     if (args.isHighlighted) {
       rectangle(args.painter, args.rect, { fill: CanvasTheme.gate.hover });
-      GatePainting.paintOutline(args);
+      paintOutline(args);
     } else {
       // Whitespace for the ellipsis.
       const { x, y } = args.rect.center();

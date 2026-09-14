@@ -20,7 +20,7 @@ import {createStore} from "zustand/vanilla"
  * The shell's UI state, in one zustand store that the React components read with `useStore` and
  * the plain modules read with `appStore.getState()` and `appStore.subscribe()`.
  *
- * The circuit itself is not here: it lives in the Revision and the DisplayedInspector observable.
+ * The circuit itself is not here: it lives in the Revision and the EditorState store.
  * Panel layout is not here either: it belongs to the layout manager.
  */
 const appStore = createStore((set) => ({
@@ -46,7 +46,7 @@ const appStore = createStore((set) => ({
 
     /** The gate palette's pipelines, read by the gates panel. Undefined until the circuit panel has
      *  started the circuit.
-     *  @type {undefined|!{obsCustomGateSet: !Observable, mostRecentStats: !ObservableValue,
+     *  @type {undefined|!{obsCustomGateSet: !Observable, mostRecentStats: import("zustand/vanilla").StoreApi,
      *      onGrab: !function(!Gate, !PointerEvent): void, onPlace: !function(!Gate): void}} */
     gateToolbox: undefined,
 
@@ -59,8 +59,8 @@ const appStore = createStore((set) => ({
     dock: undefined,
 
     /** What the panels read the circuit through. Published once by startQuirk.
-     *  @type {undefined|!{revision: !Revision, displayed: !ObservableValue,
-     *      mostRecentStats: !ObservableValue, completed: !ObservableValue, recorder: !Object,
+     *  @type {undefined|!{revision: !Revision, displayed: import("zustand/vanilla").StoreApi,
+     *      mostRecentStats: import("zustand/vanilla").StoreApi, completed: import("zustand/vanilla").StoreApi, recorder: !Object,
      *      cycleTime: !function(): !number}} */
     panelDeps: undefined,
 

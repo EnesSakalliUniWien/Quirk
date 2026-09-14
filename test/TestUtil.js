@@ -15,7 +15,7 @@
  */
 
 // Cheat a little bit on the testing library being independent from what it tests
-import {scenePixels} from './draw/TestDisplayView.js';
+import {scenePixels} from './draw/scene/TestDisplayView.js';
 import {describe} from '../src/base/Describe.js';
 import {equate} from '../src/base/Equate.js';
 import {WglTexturePool} from '../src/engine/webgl/texture/WglTexturePool.js';

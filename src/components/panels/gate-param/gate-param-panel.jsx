@@ -48,7 +48,7 @@ function GateParamPanel() {
 
   const apply = () => {
     const { col, row } = target;
-    const circuitDefinition = deps.displayed.get().displayedCircuit.circuitDefinition;
+    const circuitDefinition = deps.displayed.getState().value.displayedCircuit.circuitDefinition;
     const oldGate = circuitDefinition.gateInSlot(col, row);
     // The slot may not hold the clicked gate any more (e.g. the URL changed underneath the
     // panel); applying to whatever took its place would edit the wrong gate.
@@ -70,7 +70,7 @@ function GateParamPanel() {
       gates.splice(row, 1, result.gate);
       cols.splice(col, 1, new GateColumn(gates));
       const newInspector = deps.displayed
-        .get()
+        .getState().value
         .withCircuitDefinition(circuitDefinition.withColumns(cols));
       deps.revision.commit(newInspector.afterTidyingUp().snapshot());
     }

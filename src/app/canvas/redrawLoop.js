@@ -16,15 +16,14 @@
 
 import {CooldownThrottle} from '../../base/CooldownThrottle.js';
 import {GateColumn} from '../../circuit/model/GateColumn.js';
-import {Layout} from '../../config/Layout.js';
-import {invalidateTextLayout} from '../../draw/pixi/TextLayout.js';
-import {CircuitScene} from '../../draw/pixi/CircuitScene.js';
-import {RenderSurface} from '../../draw/pixi/RenderSurface.js';
+import {Rendering} from '../../config/Rendering.js';
+import {invalidateTextLayout} from '../../draw/text/TextLayout.js';
+import {CircuitScene} from './CircuitScene.js';
+import {RenderSurface} from '../../draw/surface/RenderSurface.js';
 import {Point} from '../../geometry/Point.js';
 import {RestartableRng} from '../../base/RestartableRng.js';
 import {Rect} from '../../geometry/Rect.js';
-import {TouchScrollBlocker} from '../../browser/TouchScrollBlocker.js';
-import {invalidateCircuitLabelCache} from '../../editor/CircuitPainting.js';
+import {invalidateCircuitLabelCache} from '../../editor/rendering/CircuitRendering.js';
 import {circuitZoom, onCircuitZoomChanged} from './zoom.js';
 
 /**
@@ -38,12 +37,12 @@ import {circuitZoom, onCircuitZoomChanged} from './zoom.js';
  * @param {!HTMLCanvasElement} canvas
  * @param {!HTMLElement} canvasDiv The canvas's container; scroll blocking and sizing track it.
  * @param {!HTMLElement} scrollSpacer Carries the scroll extent, so the canvas stays viewport-sized.
- * @param {!ObservableValue.<!DisplayedInspector>} displayed
+ * @param {import("zustand/vanilla").StoreApi<{value: !EditorState}>} displayed
  * @param {!Simulator} simulator
  * @param {!Playhead} playhead
- * @param {!ObservableValue.<!CircuitStats>} mostRecentStats Written every frame.
- * @param {!function(!DisplayedInspector): !{w: !number, h: !number}} desiredCanvasSizeFor
- * @param {!function(!DisplayedInspector): !DisplayedInspector} syncArea
+ * @param {import("zustand/vanilla").StoreApi<{value: !CircuitStats}>} mostRecentStats Written every frame.
+ * @param {!function(!EditorState): !{w: !number, h: !number}} desiredCanvasSizeFor
+ * @param {!function(!EditorState): !EditorState} syncArea
  * @param {!function(): !Object} captureCommitted Captures the committed circuit, separate from a drag preview.
  * @returns {!{start: !function(): void, trigger: !function(): void}} start paints the first frame
  *     and unlocks the loop; trigger asks for a redraw (cheap, rate-limited).
@@ -68,21 +67,21 @@ function initRedrawLoop(canvas,
     const graphicsRng = new RestartableRng();
 
     /** @type {!CooldownThrottle} */
-    const scrollBlocker = new TouchScrollBlocker(canvasDiv);
+
     const redrawNow = () => {
         if (!hasStarted) {
             return;
         }
 
-        let shown = syncArea(displayed.get()).previewDrop();
-        if (displayed.get().hand.isHoldingSomething() && !shown.hand.isHoldingSomething()) {
+        let shown = syncArea(displayed.getState().value).previewDrop();
+        if (displayed.getState().value.hand.isHoldingSomething() && !shown.hand.isHoldingSomething()) {
             shown = shown.withHand(shown.hand.withHeldGateColumn(new GateColumn([]), new Point(0, 0)))
         }
         const circuitDefinition = shown.displayedCircuit.circuitDefinition;
         const committed = captureCommitted();
         const stats = committed.circuit.withMinimumWireCount().isEqualTo(circuitDefinition.withMinimumWireCount()) ?
             committed.fullStats : simulator.simulate(circuitDefinition, committed.phase);
-        mostRecentStats.set(stats);
+        mostRecentStats.setState({value: stats});
 
         // The canvas keeps showing the whole circuit; the playhead only says which column comes
         // next, and what the state looks like up to there.
@@ -100,46 +99,32 @@ function initRedrawLoop(canvas,
         const cssH = canvasDiv.clientHeight;
         const backingW = Math.round(cssW * pixelRatio);
         const backingH = Math.round(cssH * pixelRatio);
-        if (canvas.width !== backingW || canvas.height !== backingH) {
-            canvas.width = backingW;
-            canvas.height = backingH;
-        }
-        const cssWidthStyle = cssW + 'px';
-        const cssHeightStyle = cssH + 'px';
-        if (canvas.style.width !== cssWidthStyle || canvas.style.height !== cssHeightStyle) {
-            canvas.style.width = cssWidthStyle;
-            canvas.style.height = cssHeightStyle;
-        }
+        scene.surface.resize(backingW, backingH);
+        scene.surface.presentation.setState({width: cssW, height: cssH});
         spacer.style.width = Math.round(size.w * zoom) + 'px';
         spacer.style.height = Math.round(size.h * zoom) + 'px';
 
         // The camera: the painter scales into circuit units, then shifts by the scroll so the
         // fixed viewport shows the scrolled-to part of the scene.
-        shown.updateArea(new Rect(0, 0, size.w, size.h));
-        const painter = scene.update(shown, stats, playheadStep, {
+        shown = shown.withArea(new Rect(0, 0, size.w, size.h));
+        scene.update(shown, stats, playheadStep, {
             rng: graphicsRng.restarted(), resolution: pixelRatio * zoom,
             // Zoomed out, the circuit's lines widen in circuit units so they stay a CSS pixel wide.
             lineScale: 1 / Math.min(zoom, 1),
             scrollX: canvasDiv.scrollLeft / zoom, scrollY: canvasDiv.scrollTop / zoom,
         });
 
-        displayed.get().hand.paintCursor(painter);
-        // The blockers live in the scroll container's CSS pixels, so they shrink with the zoom.
-        scrollBlocker.setBlockers(
-            painter.interaction.touchBlockers.map(b => ({
-                rect: new Rect(b.rect.x * zoom, b.rect.y * zoom, b.rect.w * zoom, b.rect.h * zoom),
-                cursor: b.cursor
-            })),
-            painter.interaction.cursor);
-        canvas.style.cursor = painter.interaction.cursor || 'auto';
+        const hand = displayed.getState().value.hand;
+        scene.surface.app.renderer.events.setCursor(hand.isHoldingSomething() ? 'move' :
+            hand.isBusy() ? 'ns-resize' : scene.surface.app.renderer.events.rootBoundary.cursor || 'auto');
 
-        const dt = displayed.get().stableDuration();
+        const dt = displayed.getState().value.stableDuration();
         if (dt < Infinity && simulator.playing) {
             window.requestAnimationFrame(() => redrawThrottle.trigger());
         }
     };
 
-    const redrawThrottle = new CooldownThrottle(redrawNow, Layout.REDRAW_COOLDOWN_MILLIS, 0.1, true);
+    const redrawThrottle = new CooldownThrottle(redrawNow, Rendering.REDRAW_COOLDOWN_MILLIS, 0.1, true);
     window.addEventListener('resize', () => redrawThrottle.trigger(), false);
     // The container can resize without the window (the sidebar folding, the state table growing),
     // and the fixed viewport must follow it.
@@ -178,7 +163,7 @@ function initRedrawLoop(canvas,
             redrawThrottle.trigger();
         });
     }
-    displayed.observable().subscribe(() => redrawThrottle.trigger());
+    displayed.subscribe(() => redrawThrottle.trigger());
     // Moving the playhead changes the band on the canvas and the state the panel reports, neither of
     // which the circuit itself knows about.
     playhead.state().subscribe(() => redrawThrottle.trigger());

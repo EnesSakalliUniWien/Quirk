@@ -1,25 +1,26 @@
+import {createValueStore} from '../base/valueStore.js';
 import {openDB} from "idb";
-import {ObservableValue} from "../base/Obs.js";
+
 import {MAX_FILE_BYTES} from "./takeFile.js";
 
 /** One transaction owns admission, ghost eviction and a batch's writes. */
 class TapeStore {
     constructor(name = "shadow-quant-tape", cap = MAX_FILE_BYTES) {
         this.cap = cap;
-        this.items = new ObservableValue([]);
-        this.error = new ObservableValue("");
+        this.items = createValueStore([]);
+        this.error = createValueStore("");
         this.db = openDB(name, 1, {
             upgrade: db => db.createObjectStore("takes", {keyPath: "id"}),
-            blocked: () => this.error.set("Close older app tabs to open Tape storage."),
+            blocked: () => this.error.setState({value: "Close older app tabs to open Tape storage."}),
             blocking: () => this.db.then(db => db.close()),
-            terminated: () => this.error.set("Tape storage closed unexpectedly. Reload to reopen it."),
+            terminated: () => this.error.setState({value: "Tape storage closed unexpectedly. Reload to reopen it."}),
         });
-        this.ready = this.refresh().catch(error => {this.error.set(error.message);});
+        this.ready = this.refresh().catch(error => {this.error.setState({value: error.message});});
     }
 
     async refresh() {
         const db = await this.db;
-        this.items.set((await db.getAll("takes")).sort((a,b) => a.order - b.order));
+        this.items.setState({value: (await db.getAll("takes")).sort((a,b) => a.order - b.order)});
     }
 
     async write(takes, {ghost = false, remove = [], signal} = {}) {
@@ -49,12 +50,12 @@ class TapeStore {
             for (const r of existing) if (!merged.has(r.id)) await tx.store.delete(r.id);
             for (const r of records) if (merged.has(r.id)) await tx.store.put(merged.get(r.id));
             await done;
-            this.error.set("");
+            this.error.setState({value: ""});
             await this.refresh();
         } catch (error) {
             try {tx.abort();} catch { /* Already aborted or completed. */ }
             await done.catch(() => {});
-            this.error.set(error.name === "QuotaExceededError" ? "Browser storage is full. Download your unsaved takes." : error.message);
+            this.error.setState({value: error.name === "QuotaExceededError" ? "Browser storage is full. Download your unsaved takes." : error.message});
             throw error;
         } finally {
             signal?.removeEventListener("abort", abort);

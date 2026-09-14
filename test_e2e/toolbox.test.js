@@ -172,7 +172,7 @@ test('keeps the gate palette in the dock beside the circuit, where it cannot be 
         // settles, so wait for the match rather than sampling it once.
         const viewportMatch = await page.waitForFunction(() => {
             const cell = document.getElementById('canvasDiv');
-            const canvas = document.getElementById('drawCanvas');
+            const canvas = document.querySelector('#drawCanvas canvas');
             return canvas.width === cell.clientWidth && canvas.height === cell.clientHeight;
         }, {timeout: TEST_TIMEOUT_MILLIS}).then(() => true, () => false);
         assert.ok(viewportMatch, 'The canvas must fill its scroll cell exactly.');
@@ -217,7 +217,7 @@ test('on a narrow screen the gate palette is a tab that gives way to the circuit
         assert.ok(start.circuitWidth > 690, `The circuit must keep the width, saw ${start.circuitWidth}px.`);
 
         await waitForCanvasViewport(page);
-        const canvasBounds = await page.$eval('#drawCanvas', element => {
+        const canvasBounds = await page.$eval('#drawCanvas canvas', element => {
             const bounds = element.getBoundingClientRect();
             return {x: bounds.x, y: bounds.y};
         });

@@ -16,7 +16,8 @@
 
 import {Gate, GateBuilder} from "../../circuit/model/Gate.js"
 import {CanvasTheme} from "../../config/CanvasTheme.js"
-import {GatePainting} from "../../draw/gate/GatePainting.js"
+import {paintBackground, paintOutline, paintGateButton} from '../../draw/gate/GateFrame.js';
+import {paintGateSymbol} from '../../draw/gate/GateSymbol.js';
 import {ComplexFormula} from "../../engine/math/formula/ComplexFormula.js"
 import {preparationMatrix} from "../../engine/math/preparedStates.js"
 import {GateShaders} from "../../engine/simulation/gpu/GateShaders.js"
@@ -105,11 +106,11 @@ const prepareShader = (head, body, span) => ketShader(
  * @returns {!function(!GateRenderParams)}
  */
 const prepareRenderer = (symbolOf, hasButton) => args => {
-    GatePainting.paintBackground(args, args.isHighlighted ? CanvasTheme.gate.hover : CanvasTheme.surface.quiet);
-    GatePainting.paintOutline(args);
-    GatePainting.paintGateSymbol(args, symbolOf(args.gate), false);
+    paintBackground(args, args.isHighlighted ? CanvasTheme.gate.hover : CanvasTheme.surface.quiet);
+    paintOutline(args);
+    paintGateSymbol(args, symbolOf(args.gate), false);
     if (hasButton) {
-        GatePainting.paintGateButton(args);
+        paintGateButton(args);
     }
 };
 

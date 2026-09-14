@@ -16,7 +16,18 @@
 - **scroll a big circuit**: drag the viewport box on the minimap that appears when the circuit
   overflows
 - **inspect a qubit's Bloch sphere**: click any Bloch sphere in the circuit or at a wire's end;
-  drag the enlarged sphere to rotate the view
+  drag the enlarged sphere to rotate the view. A triangle in an axis's colour drops the vector
+  along that axis, its coloured leg as long as the component; a fainter triangle in the same
+  colour resolves the projection in the plane normal to that axis, and the unit circle normal to
+  that axis carries the colour too. Arcs mark θ from |0⟩ and ϕ from |+⟩. The readout also writes
+  the state as the unit quaternion q that turns the |0⟩ pole k onto it, with r = |r| q k q̄;
+  switching **Quaternion** on draws the axis n of that turn and the path |0⟩ takes
+- **read one axis at a time**: in the enlarged view, hover an axis in the colour key to fade the
+  others, click it to keep it there, and use **Show** to draw only the constructions you are
+  asking about
+- **read a component face-on**: under the sphere, one section per axis looks straight down it at
+  the plane it is normal to, and draws the shadow the vector casts there with its two components
+  and its length
 - **open the gates on a narrow screen**: click the `Gates` button over the circuit's corner; the
   palette slides in as a drawer and closes when a gate is dragged out
 
@@ -66,3 +77,5 @@ the physical mixed state. An amplitude grid is a reshaped state vector, not an o
   - Yellow: change / varying
   - Orange: focused
   - Magenta: error / attention
+  - Pink / aqua / sky blue: the Bloch x / y / z axes — their letters, their readout names and the
+    triangles that measure each component, kept apart from the amplitude blue

@@ -17,7 +17,7 @@
 import { CanvasTheme } from "../../config/CanvasTheme.js";
 import { DetailedError } from "../../base/DetailedError.js";
 import { GateBuilder } from "../../circuit/model/Gate.js";
-import { GatePainting } from "../../draw/gate/GatePainting.js";
+import {MAKE_HIGHLIGHTED_RENDERER} from '../../draw/gate/GateRenderers.js';
 
 const ErrorInjectionGate = new GateBuilder()
   .setSerializedId("__error__")
@@ -26,7 +26,7 @@ const ErrorInjectionGate = new GateBuilder()
   .setBlurb(
     "Throws an exception during circuit stat computations, for testing error paths.",
   )
-  .setRenderer(GatePainting.MAKE_HIGHLIGHTED_RENDERER(CanvasTheme.error.background))
+  .setRenderer(MAKE_HIGHLIGHTED_RENDERER(CanvasTheme.error.background))
   .setActualEffectToUpdateFunc((ctx) => {
     throw new DetailedError("Applied an Error Injection Gate", {
       qubit: ctx.row,

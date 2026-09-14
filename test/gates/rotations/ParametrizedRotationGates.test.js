@@ -21,8 +21,8 @@ import {CircuitStats} from '../../../src/engine/simulation/CircuitStats.js';
 import {Complex} from '../../../src/engine/math/complex/Complex.js';
 import {Gates} from '../../../src/gates/AllGates.js';
 import {Matrix} from '../../../src/engine/math/matrix/Matrix.js';
-import {GatePainting} from '../../../src/draw/gate/GatePainting.js';
-import {DisplayView, scenePixels} from '../../draw/TestDisplayView.js';
+import {paintGateButton} from '../../../src/draw/gate/GateFrame.js';
+import {DisplayView, scenePixels} from '../../draw/scene/TestDisplayView.js';
 import { gateButtonRect } from '../../../src/draw/gate/GateRects.js';
 import {Rect} from '../../../src/geometry/Rect.js';
 
@@ -47,7 +47,7 @@ suite.test("formulaClock_doesNotCoverChangeButton", async () => {
             const button = gateButtonRect(args.rect).paddedBy(-1);
             const before = (await scenePixels(canvas, button.x, button.y, button.w, button.h)).data;
             // Repainting the opaque button must not change any pixel in its interior.
-            GatePainting.paintGateButton(args);
+            paintGateButton(args);
             const after = (await scenePixels(canvas, button.x, button.y, button.w, button.h)).data;
             assertThat(before).isEqualTo(after);
         }

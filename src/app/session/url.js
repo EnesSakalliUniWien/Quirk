@@ -69,7 +69,7 @@ function initUrlCircuitSync(revision, recorder, onTakeLoaded) {
                     loadingTake = true;
                     try {recorder.restore(takes[0]);} finally {loadingTake = false;}
                     onTakeLoaded?.();
-                }).catch(error => recorder.store.error.set(error.message));
+                }).catch(error => recorder.store.error.setState({value: error.message}));
                 return;
             }
             if (!params.has(AppInfo.URL_CIRCUIT_PARAM_KEY)) {

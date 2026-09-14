@@ -1,4 +1,4 @@
-import { projectPoint } from "../../draw/pixi/displays/BlochScene.js";
+import { projectPoint } from "../../draw/displays/BlochScene.js";
 
 /** The view the figure is drawn from: yawed and tilted so all three axes stay distinct. */
 const YAW = Math.PI * -0.15;

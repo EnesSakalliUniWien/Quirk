@@ -12,7 +12,7 @@ const SAMPLE_COOLDOWN_MILLIS = 100;
  * every frame; re-deriving a table, a chart or a list of matrices that often would spend the whole
  * frame budget on something nobody can read that fast.
  *
- * @param {!function(!Object): !ObservableValue} pick Which of the panel dependencies to follow.
+ * @param {!function(!Object): import("zustand/vanilla").StoreApi} pick Which of the panel dependencies to follow.
  * @returns {*} The latest sample, or undefined before the circuit has started.
  */
 function useSampled(pick) {
@@ -26,10 +26,10 @@ function useSampled(pick) {
     let active = true;
     let latest = undefined;
     const throttle = new CooldownThrottle(() => {if (active) setSample(latest);}, SAMPLE_COOLDOWN_MILLIS);
-    const unsubscribe = pick(deps).observable().subscribe((value) => {
+    const unsubscribe = pick(deps).subscribe(state => state.value, (value) => {
       latest = value;
       throttle.trigger();
-    });
+    }, {fireImmediately: true});
     return () => {active = false; unsubscribe();};
     // pick is a module-level constant at every call site, so deps is the only real dependency.
   }, [deps]);
