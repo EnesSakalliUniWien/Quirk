@@ -76,7 +76,7 @@ function createTake(result, name = "take", colour = 0) {
 function circuitFromJson(value) {
     if (!Array.isArray(value.cols) || value.cols.some(col => !Array.isArray(col) || col.length > 16)) throw new Error("Invalid circuit columns");
     const circuit = Serializer.fromJson(CircuitDefinition, value);
-    // Serializer is intentionally forgiving for legacy circuit links. Take imports must not
+    // Serializer recovers malformed circuit input with error gates. Take imports must not
     // silently repair or discard unknown gates, registers or fields.
     const stable = v => Array.isArray(v) ? v.map(stable) : v !== null && typeof v === "object" ?
         Object.fromEntries(Object.keys(v).sort().map(k => [k, stable(v[k])])) : v;

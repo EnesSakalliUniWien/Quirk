@@ -16,7 +16,6 @@
 
 import { Simulation } from "../../config/Simulation.js";
 import { Gate } from "../../circuit/model/Gate.js";
-import { GatePainting } from "../../draw/gate/GatePainting.js";
 import {
   ketArgs,
   ketShaderPermute,
@@ -25,23 +24,6 @@ import {
 import { WglArg } from "../../engine/webgl/shader/WglArg.js";
 
 const MultiplyAccumulateGates = {};
-
-const sectionSizes = (totalSize) => {
-  const c = Math.ceil(totalSize / 2);
-  const b = Math.ceil((totalSize - c) / 2);
-  const a = Math.max(totalSize - c - b, 1);
-  return [a, b, totalSize - a - b];
-};
-
-const makeScaledMultiplyAddPermutation = (span, scaleFactor) => (e) => {
-  const [sa, sb, sc] = sectionSizes(span);
-  const a = e & ((1 << sa) - 1);
-  const b = (e >> sa) & ((1 << sb) - 1);
-  let c = e >> (sa + sb);
-  c += a * b * scaleFactor;
-  c &= (1 << sc) - 1;
-  return a | (b << sa) | (c << (sa + sb));
-};
 
 const MUL_STEP = 6;
 const BIG_MUL_MOD_SHADER_CODE = `
@@ -72,69 +54,6 @@ const MULTIPLY_ACCUMULATE_SHADER = ketShaderPermute(
         float d2 = read_input_B();
         float d = floor(mod(big_mul_mod(d1, d2, span)*factor + 0.5, span));
         return mod(out_id + span - d, span);`,
-);
-
-MultiplyAccumulateGates.Legacy_MultiplyAddFamily = Gate.buildFamily(
-  3,
-  16,
-  (span, builder) =>
-    builder
-      .setSerializedId("c+=ab" + span)
-      .setSymbol("c+=ab")
-      .setTitle("Multiply-Add Gate")
-      .setBlurb("Adds the product of two numbers into a third.")
-      .setRenderer(
-        GatePainting.SECTIONED_RENDERER_MAKER(
-          ["a", "b", "c+=ab"],
-          sectionSizes(span)
-            .slice(0, 2)
-            .map((e) => e / span),
-        ),
-      )
-      .setActualEffectToUpdateFunc((ctx) => {
-        const [a, b, c] = sectionSizes(span);
-        return MultiplyAccumulateGates.MultiplyAddInputsFamily.ofSize(
-          c,
-        ).customOperation(
-          ctx
-            .withRow(ctx.row + a + b)
-            .withInputSetToRange("A", ctx.row, a)
-            .withInputSetToRange("B", ctx.row + a, b),
-        );
-      })
-      .setKnownEffectToPermutation(makeScaledMultiplyAddPermutation(span, +1)),
-);
-
-MultiplyAccumulateGates.Legacy_MultiplySubtractFamily = Gate.buildFamily(
-  3,
-  16,
-  (span, builder) =>
-    builder
-      .setAlternateFromFamily(MultiplyAccumulateGates.Legacy_MultiplyAddFamily)
-      .setSerializedId("c-=ab" + span)
-      .setSymbol("c-=ab")
-      .setTitle("Multiply-Subtract Gate")
-      .setBlurb("Subtracts the product of two numbers from a third.")
-      .setRenderer(
-        GatePainting.SECTIONED_RENDERER_MAKER(
-          ["a", "b", "c-=ab"],
-          sectionSizes(span)
-            .slice(0, 2)
-            .map((e) => e / span),
-        ),
-      )
-      .setActualEffectToUpdateFunc((ctx) => {
-        const [a, b, c] = sectionSizes(span);
-        return MultiplyAccumulateGates.MultiplySubtractInputsFamily.ofSize(
-          c,
-        ).customOperation(
-          ctx
-            .withRow(ctx.row + a + b)
-            .withInputSetToRange("A", ctx.row, a)
-            .withInputSetToRange("B", ctx.row + a, b),
-        );
-      })
-      .setKnownEffectToPermutation(makeScaledMultiplyAddPermutation(span, -1)),
 );
 
 MultiplyAccumulateGates.MultiplyAddInputsFamily = Gate.buildFamily(
@@ -232,8 +151,6 @@ MultiplyAccumulateGates.SquareSubtractInputFamily = Gate.buildFamily(
 );
 
 MultiplyAccumulateGates.all = [
-  ...MultiplyAccumulateGates.Legacy_MultiplyAddFamily.all,
-  ...MultiplyAccumulateGates.Legacy_MultiplySubtractFamily.all,
   ...MultiplyAccumulateGates.MultiplyAddInputsFamily.all,
   ...MultiplyAccumulateGates.MultiplySubtractInputsFamily.all,
   ...MultiplyAccumulateGates.SquareAddInputFamily.all,
