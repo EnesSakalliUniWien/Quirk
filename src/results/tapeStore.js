@@ -1,7 +1,7 @@
 import {createValueStore} from '../base/valueStore.js';
 import {openDB} from "idb";
 
-import {MAX_FILE_BYTES} from "./takeFile.js";
+import { MAX_FILE_BYTES } from "./files/limits.js";
 
 /** One transaction owns admission, ghost eviction and a batch's writes. */
 class TapeStore {

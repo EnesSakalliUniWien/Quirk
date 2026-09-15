@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import {Complex} from "../engine/math/complex/Complex.js"
-import {Format} from "../base/Format.js"
-import {Util} from "../base/Util.js"
+import { Complex } from "../engine/math/complex/Complex.js";
+import { Format } from "../base/Format.js";
+import { Util } from "../base/Util.js";
 
 /**
  * What a gate does, in words: the ket a basis state becomes, the axis a rotation turns around.
@@ -36,20 +36,24 @@ import {Util} from "../base/Util.js"
  * @returns {!string}
  */
 function describeKet(bitCount, bitMask, factor, format) {
-    factor = Complex.from(factor);
-    if (factor.isEqualTo(0)) {
-        return "";
-    }
-    const scaleFactorDesc =
-        factor.isEqualTo(1) ? "" :
-        factor.isEqualTo(-1) ? "-" :
-        factor.isEqualTo(Complex.I) ? "i" :
-        factor.isEqualTo(Complex.I.times(-1)) ? "-i" :
-        (factor.real === 0 || factor.imag === 0) && format !== Format.CONSISTENT ?
-            factor.toString(format) :
-            "(" + factor.toString(format) + ")·";
+  factor = Complex.from(factor);
+  if (factor.isEqualTo(0)) {
+    return "";
+  }
+  const scaleFactorDesc = factor.isEqualTo(1)
+    ? ""
+    : factor.isEqualTo(-1)
+      ? "-"
+      : factor.isEqualTo(Complex.I)
+        ? "i"
+        : factor.isEqualTo(Complex.I.times(-1))
+          ? "-i"
+          : (factor.real === 0 || factor.imag === 0) &&
+              format !== Format.CONSISTENT
+            ? factor.toString(format)
+            : "(" + factor.toString(format) + ")·";
 
-    return scaleFactorDesc + "|" + Util.bin(bitMask, bitCount) + "⟩";
+  return scaleFactorDesc + "|" + Util.bin(bitMask, bitCount) + "⟩";
 }
 
 /**
@@ -62,29 +66,33 @@ function describeKet(bitCount, bitMask, factor, format) {
  * @returns {!Array.<!string>}
  */
 function describeGateTransformations(matrix, format) {
-    const n = matrix.height();
-    const b = Math.round(Math.log2(n));
-    return Array.from({length: n}, (_, c) => {
-        const inputDescription = describeKet(b, c, 1, Format.SIMPLIFIED);
-        const col = matrix.getColumn(c);
-        if (col.every(e => e.isEqualTo(0))) {
-            return "discards " + inputDescription;
-        } else if (col.every((e, r) => e.isEqualTo(r === c ? 1 : 0))) {
-            if (format !== Format.CONSISTENT) {
-                return "doesn't affect " + inputDescription;
-            }
-        } else if (col.every((e, r) => r === c || e.isEqualTo(0))) {
-            const degs = (col[c].ln().imag * 180) / Math.PI;
-            return "phases " + inputDescription + " by " + format.formatFloat(degs) + "°";
-        }
-        const outputDescription = col.
-            map((e, c) => describeKet(b, c, e, format)).
-            filter(e => e !== "").
-            join(" + ").
-            split(" + -").join(" - ").
-            split(" + +").join(" + ");
-        return "transforms " + inputDescription + " into " + outputDescription;
-    });
+  const n = matrix.height();
+  const b = Math.round(Math.log2(n));
+  return Array.from({ length: n }, (_, c) => {
+    const inputDescription = describeKet(b, c, 1, Format.SIMPLIFIED);
+    const col = matrix.getColumn(c);
+    if (col.every((e) => e.isEqualTo(0))) {
+      return "discards " + inputDescription;
+    } else if (col.every((e, r) => e.isEqualTo(r === c ? 1 : 0))) {
+      if (format !== Format.CONSISTENT) {
+        return "doesn't affect " + inputDescription;
+      }
+    } else if (col.every((e, r) => r === c || e.isEqualTo(0))) {
+      const degs = (col[c].ln().imag * 180) / Math.PI;
+      return (
+        "phases " + inputDescription + " by " + format.formatFloat(degs) + "°"
+      );
+    }
+    const outputDescription = col
+      .map((e, c) => describeKet(b, c, e, format))
+      .filter((e) => e !== "")
+      .join(" + ")
+      .split(" + -")
+      .join(" - ")
+      .split(" + +")
+      .join(" + ");
+    return "transforms " + inputDescription + " into " + outputDescription;
+  });
 }
 
 /**
@@ -97,26 +105,26 @@ function describeGateTransformations(matrix, format) {
  * @returns {!string}
  */
 function describeAxis(unitAxis, format) {
-    const max = Math.max(...unitAxis.map(e => Math.abs(e)));
-    return unitAxis.
-        map(e => e / max).
-        map((val, i) => {
-            const name = ["X", "Y", "Z"][i];
-            if (val === 0) {
-                return "";
-            }
-            if (val === 1) {
-                return name;
-            }
-            if (val === -1) {
-                return "-" + name;
-            }
-            return format.formatFloat(val) + "·" + name;
-        }).
-        filter(e => e !== "").
-        join(" + ").
-        replace(" + -", " - ").
-        replace(" + +", " + ");
+  const max = Math.max(...unitAxis.map((e) => Math.abs(e)));
+  return unitAxis
+    .map((e) => e / max)
+    .map((val, i) => {
+      const name = ["X", "Y", "Z"][i];
+      if (val === 0) {
+        return "";
+      }
+      if (val === 1) {
+        return name;
+      }
+      if (val === -1) {
+        return "-" + name;
+      }
+      return format.formatFloat(val) + "·" + name;
+    })
+    .filter((e) => e !== "")
+    .join(" + ")
+    .replace(" + -", " - ")
+    .replace(" + +", " + ");
 }
 
-export {describeKet, describeGateTransformations, describeAxis}
+export { describeKet, describeGateTransformations, describeAxis };

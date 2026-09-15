@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-import {Axis} from '../engine/math/formula/Axis.js';
-import {CircuitDefinition} from '../circuit/model/CircuitDefinition.js';
-import {setGateBuilderEffectToCircuit} from '../engine/simulation/CircuitComputeUtil.js';
-import {Complex} from '../engine/math/complex/Complex.js';
-import {DetailedError} from '../base/DetailedError.js';
-import {Format} from '../base/Format.js';
-import {GateBuilder} from '../circuit/model/Gate.js';
-import {GateColumn} from '../circuit/model/GateColumn.js';
-import {Matrix} from '../engine/math/matrix/Matrix.js';
-import {Util} from '../base/Util.js';
-import {MatrixDecomposition} from '../engine/math/matrix/MatrixDecomposition.js';
-import {QubitMatrix} from '../engine/math/matrix/QubitMatrix.js';
-import {ComplexFormula} from '../engine/math/formula/ComplexFormula.js';
+import { Axis } from "../engine/math/formula/Axis.js";
+import { CircuitDefinition } from "../circuit/model/CircuitDefinition.js";
+import { setGateBuilderEffectToCircuit } from "../engine/simulation/CircuitComputeUtil.js";
+import { Complex } from "../engine/math/complex/Complex.js";
+import { DetailedError } from "../base/DetailedError.js";
+import { Format } from "../base/Format.js";
+import { GateBuilder } from "../circuit/model/Gate.js";
+import { GateColumn } from "../circuit/model/GateColumn.js";
+import { Matrix } from "../engine/math/matrix/Matrix.js";
+import { Util } from "../base/Util.js";
+import { MatrixDecomposition } from "../engine/math/matrix/MatrixDecomposition.js";
+import { QubitMatrix } from "../engine/math/matrix/QubitMatrix.js";
+import { ComplexFormula } from "../engine/math/formula/ComplexFormula.js";
 
 /**
  * Turns the text the gate forge accepts into operations and gates: rotation angles and axes,
@@ -38,20 +38,19 @@ import {ComplexFormula} from '../engine/math/formula/ComplexFormula.js';
  * @returns {!string} A serialized id unlikely to collide with any other custom gate's.
  */
 function randomCustomGateId() {
-    return '~' + Math.floor(Math.random()*(1 << 20)).toString(32);
+  return "~" + Math.floor(Math.random() * (1 << 20)).toString(32);
 }
-
 
 /**
  * @param {!string} text
  * @returns {!number}
  */
 function parseUserAngle(text) {
-    const c = ComplexFormula.parse(text);
-    if (c.imag !== 0 || Number.isNaN(c.imag)) {
-        throw new Error("You just had to make it complicated, didn't you?");
-    }
-    return c.real * Math.PI / 180;
+  const c = ComplexFormula.parse(text);
+  if (c.imag !== 0 || Number.isNaN(c.imag)) {
+    throw new Error("You just had to make it complicated, didn't you?");
+  }
+  return (c.real * Math.PI) / 180;
 }
 
 /**
@@ -59,7 +58,7 @@ function parseUserAngle(text) {
  * @returns {!Matrix}
  */
 function decreasePrecisionAndSerializedSize(matrix) {
-    return Matrix.parse(matrix.toString(new Format(true, 0.0000001, 7, ",")))
+  return Matrix.parse(matrix.toString(new Format(true, 0.0000001, 7, ",")));
 }
 
 /**
@@ -69,26 +68,31 @@ function decreasePrecisionAndSerializedSize(matrix) {
  * @returns {!Matrix}
  */
 function parseUserRotation(angleText, phaseText, axisText) {
-    const w = parseUserAngle(angleText);
-    const phase = parseUserAngle(phaseText);
-    let {x, y, z} = Axis.parse(axisText);
+  const w = parseUserAngle(angleText);
+  const phase = parseUserAngle(phaseText);
+  let { x, y, z } = Axis.parse(axisText);
 
-    const len = Math.sqrt(x*x + y*y + z*z);
-    x /= len;
-    y /= len;
-    z /= len;
+  const len = Math.sqrt(x * x + y * y + z * z);
+  x /= len;
+  y /= len;
+  z /= len;
 
-    const [I, X, Y, Z] = [Matrix.identity(2), QubitMatrix.PAULI_X, QubitMatrix.PAULI_Y, QubitMatrix.PAULI_Z];
-    const axisMatrix = X.times(x).plus(Y.times(y)).plus(Z.times(z));
+  const [I, X, Y, Z] = [
+    Matrix.identity(2),
+    QubitMatrix.PAULI_X,
+    QubitMatrix.PAULI_Y,
+    QubitMatrix.PAULI_Z,
+  ];
+  const axisMatrix = X.times(x).plus(Y.times(y)).plus(Z.times(z));
 
-    const result = I.times(Math.cos(w/2)).
-        plus(axisMatrix.times(Complex.I.neg()).times(Math.sin(w/2))).
-        times(Complex.polar(1, phase));
-    if (result.hasNaN()) {
-        throw new DetailedError("NaN", {x, y, z, result});
-    }
+  const result = I.times(Math.cos(w / 2))
+    .plus(axisMatrix.times(Complex.I.neg()).times(Math.sin(w / 2)))
+    .times(Complex.polar(1, phase));
+  if (result.hasNaN()) {
+    throw new DetailedError("NaN", { x, y, z, result });
+  }
 
-    return decreasePrecisionAndSerializedSize(result);
+  return decreasePrecisionAndSerializedSize(result);
 }
 
 /**
@@ -96,35 +100,40 @@ function parseUserRotation(angleText, phaseText, axisText) {
  * @returns {!Matrix}
  */
 function parseUserGateMatrix_noCorrection(text) {
-    // If brackets are present, use the normal parse method that enforces grouping.
-    if (text.match(/[{}[\]]/)) {
-        return Matrix.parse(text.split(/[{[]/).join('{').split(/[}\]]/).join('}'));
-    }
+  // If brackets are present, use the normal parse method that enforces grouping.
+  if (text.match(/[{}[\]]/)) {
+    return Matrix.parse(text.split(/[{[]/).join("{").split(/[}\]]/).join("}"));
+  }
 
-    // Newlines introduce a break if one isn't already present at that location and we aren't at the end.
-    text = text.split(/,?\s*\n\s*(?!$)/).join(',');
-    text = text.trim();
-    // Ignore trailing comma.
-    if (text.endsWith(',')) {
-        text = text.slice(0, Math.max(0, text.length - 1));
-    }
+  // Newlines introduce a break if one isn't already present at that location and we aren't at the end.
+  text = text.split(/,?\s*\n\s*(?!$)/).join(",");
+  text = text.trim();
+  // Ignore trailing comma.
+  if (text.endsWith(",")) {
+    text = text.slice(0, Math.max(0, text.length - 1));
+  }
 
-    const parts = text.split(',').map(e => e === '' ? 0 : ComplexFormula.parse(e));
+  const parts = text
+    .split(",")
+    .map((e) => (e === "" ? 0 : ComplexFormula.parse(e)));
 
-    // Expand singleton cell into a 2x2 global phase operation.
-    if (parts.length === 1) {
-        parts.push(0, 0, parts[0]);
-    }
+  // Expand singleton cell into a 2x2 global phase operation.
+  if (parts.length === 1) {
+    parts.push(0, 0, parts[0]);
+  }
 
-    // Pad with zeroes up to next size that makes sense.
-    let n = Math.max(4, 1 << (2*Math.max(1, Util.floorLg2(Math.sqrt(parts.length)))));
-    if (n < parts.length) {
-        n <<= 2;
-    }
-    if (n > (1<<8)) {
-        throw Error("Max custom matrix operation size is 4 qubits.")
-    }
-    return Matrix.square(...parts, ...new Array(n - parts.length).fill(0));
+  // Pad with zeroes up to next size that makes sense.
+  let n = Math.max(
+    4,
+    1 << (2 * Math.max(1, Util.floorLg2(Math.sqrt(parts.length)))),
+  );
+  if (n < parts.length) {
+    n <<= 2;
+  }
+  if (n > 1 << 8) {
+    throw Error("Max custom matrix operation size is 4 qubits.");
+  }
+  return Matrix.square(...parts, ...new Array(n - parts.length).fill(0));
 }
 
 /**
@@ -133,15 +142,20 @@ function parseUserGateMatrix_noCorrection(text) {
  * @returns {!Matrix}
  */
 function parseUserMatrix(text, ensureUnitary) {
-    let op = parseUserGateMatrix_noCorrection(text);
-    if (op.width() !== op.height() || op.width() < 2 || op.width() > 16 || !Util.isPowerOf2(op.width())) {
-        throw Error("Matrix must be 2x2, 4x4, 8x8, or 16x16.")
-    }
-    if (ensureUnitary && !op.hasNaN()) {
-        op = MatrixDecomposition.closestUnitary(op, 0.0001);
-        op = decreasePrecisionAndSerializedSize(op);
-    }
-    return op;
+  let op = parseUserGateMatrix_noCorrection(text);
+  if (
+    op.width() !== op.height() ||
+    op.width() < 2 ||
+    op.width() > 16 ||
+    !Util.isPowerOf2(op.width())
+  ) {
+    throw Error("Matrix must be 2x2, 4x4, 8x8, or 16x16.");
+  }
+  if (ensureUnitary && !op.hasNaN()) {
+    op = MatrixDecomposition.closestUnitary(op, 0.0001);
+    op = decreasePrecisionAndSerializedSize(op);
+  }
+  return op;
 }
 
 /**
@@ -150,23 +164,23 @@ function parseUserMatrix(text, ensureUnitary) {
  * @returns {{start: !int, end: !int}}
  */
 function parseRange(text, maxLen) {
-    const parts = text.split(":").map(e => e.trim());
-    if (parts.length > 2) {
-        throw new Error("Too many colons.");
-    }
-    const infinities = [undefined, "", "∞"];
-    const min = parseInt(parts[0] || "1");
-    const max = infinities.includes(parts[1]) ? Infinity : parseInt(parts[1]);
-    if (Number.isNaN(min)) {
-        throw new Error("Not a number: " + parts[0]);
-    }
-    if (Number.isNaN(max)) {
-        throw new Error("Not a number: " + parts[1]);
-    }
+  const parts = text.split(":").map((e) => e.trim());
+  if (parts.length > 2) {
+    throw new Error("Too many colons.");
+  }
+  const infinities = [undefined, "", "∞"];
+  const min = parseInt(parts[0] || "1");
+  const max = infinities.includes(parts[1]) ? Infinity : parseInt(parts[1]);
+  if (Number.isNaN(min)) {
+    throw new Error("Not a number: " + parts[0]);
+  }
+  if (Number.isNaN(max)) {
+    throw new Error("Not a number: " + parts[1]);
+  }
 
-    const start = Math.min(maxLen, Math.max(0, min - 1));
-    const end = Math.min(maxLen, Math.max(start, max));
-    return {start, end};
+  const start = Math.min(maxLen, Math.max(0, min - 1));
+  const end = Math.min(maxLen, Math.max(start, max));
+  return { start, end };
 }
 
 /**
@@ -174,13 +188,20 @@ function parseRange(text, maxLen) {
  * @returns {!CircuitDefinition}
  */
 function removeBrokenGates(circuit) {
-    const w = circuit.columns.length;
-    const h = circuit.numWires;
-    return circuit.withColumns(
-        circuit.columns.map(
-            (col, c) => new GateColumn(col.gates.map(
-                (gate, r) => gate === undefined || c + gate.width > w || r + gate.height > h ? undefined : gate
-            ))));
+  const w = circuit.columns.length;
+  const h = circuit.numWires;
+  return circuit.withColumns(
+    circuit.columns.map(
+      (col, c) =>
+        new GateColumn(
+          col.gates.map((gate, r) =>
+            gate === undefined || c + gate.width > w || r + gate.height > h
+              ? undefined
+              : gate,
+          ),
+        ),
+    ),
+  );
 }
 
 /**
@@ -190,37 +211,43 @@ function removeBrokenGates(circuit) {
  * @param {!string} nameText
  * @returns {!Gate}
  */
-function parseUserGateFromCircuitRange(circuit, colRangeText, wireRangeText, nameText) {
-    const colRange = parseRange(colRangeText, circuit.columns.length);
-    const rowRange = parseRange(wireRangeText, circuit.numWires);
-    if (rowRange.end === rowRange.start) {
-        throw new Error("Empty wire range.")
-    }
+function parseUserGateFromCircuitRange(
+  circuit,
+  colRangeText,
+  wireRangeText,
+  nameText,
+) {
+  const colRange = parseRange(colRangeText, circuit.columns.length);
+  const rowRange = parseRange(wireRangeText, circuit.numWires);
+  if (rowRange.end === rowRange.start) {
+    throw new Error("Empty wire range.");
+  }
 
-    const cols = circuit.columns.
-        slice(colRange.start, colRange.end).
-        map(col => new GateColumn(col.gates.slice(rowRange.start, rowRange.end)));
-    let gateCircuit = new CircuitDefinition(rowRange.end - rowRange.start, cols);
-    gateCircuit = removeBrokenGates(gateCircuit);
-    gateCircuit = gateCircuit.withUncoveredColumnsRemoved();
-    if (gateCircuit.columns.length === 0) {
-        throw new Error("No gates in included range.");
-    }
+  const cols = circuit.columns
+    .slice(colRange.start, colRange.end)
+    .map(
+      (col) => new GateColumn(col.gates.slice(rowRange.start, rowRange.end)),
+    );
+  let gateCircuit = new CircuitDefinition(rowRange.end - rowRange.start, cols);
+  gateCircuit = removeBrokenGates(gateCircuit);
+  gateCircuit = gateCircuit.withUncoveredColumnsRemoved();
+  if (gateCircuit.columns.length === 0) {
+    throw new Error("No gates in included range.");
+  }
 
-    const symbol = nameText;
-    const id = randomCustomGateId();
+  const symbol = nameText;
+  const id = randomCustomGateId();
 
-    return setGateBuilderEffectToCircuit(new GateBuilder(), gateCircuit).
-        setSerializedId(id).
-        setSymbol(symbol).
-        setTitle(id).
-        setBlurb('A custom gate.').
-        gate;
+  return setGateBuilderEffectToCircuit(new GateBuilder(), gateCircuit)
+    .setSerializedId(id)
+    .setSymbol(symbol)
+    .setTitle(id)
+    .setBlurb("A custom gate.").gate;
 }
 
 export {
-    randomCustomGateId,
-    parseUserRotation,
-    parseUserMatrix,
-    parseUserGateFromCircuitRange,
-}
+  randomCustomGateId,
+  parseUserRotation,
+  parseUserMatrix,
+  parseUserGateFromCircuitRange,
+};

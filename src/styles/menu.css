@@ -4,7 +4,7 @@
    Portalled to the body, so lifted over the dock the way the hover card is. Unlayered, like the
    dock's own rules, so it is not outranked by them. */
 .app-menu-positioner {
-    z-index: 1000;
+    z-index: var(--layer-menu);
 }
 
 .app-menu {

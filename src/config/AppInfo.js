@@ -18,8 +18,8 @@
  * Identity of the app and the shape of its URL.
  */
 const AppInfo = Object.freeze({
-    EMPTY_CIRCUIT_TITLE: "Shadow-Quant: Quantum Circuit Simulator",
-    URL_CIRCUIT_PARAM_KEY: "circuit",
+  EMPTY_CIRCUIT_TITLE: "Shadow-Quant: Quantum Circuit Simulator",
+  URL_CIRCUIT_PARAM_KEY: "circuit",
 });
 
 export { AppInfo };

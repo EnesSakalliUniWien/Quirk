@@ -3,11 +3,13 @@ import {useStore} from 'zustand';
 import {appStore} from '../../state/appStore.js';
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 
-import { AtomIcon, SearchIcon } from "lucide-react";
+import { AtomIcon, InfoIcon, SearchIcon } from "lucide-react";
 import { ScrollArea } from "@base-ui/react/scroll-area";
 import { PreviewCard } from "@base-ui/react/preview-card";
+import { Popover } from "@base-ui/react/popover";
+import { Button } from "../ui/button.jsx";
 
-import { GateHoverCard, gateHoverHandle } from "../gate/gate-hover.jsx";
+import { GateHoverCard, gateHoverHandle, gateDetailsHandle } from "../gate/gate-hover.jsx";
 
 
 import { useObservedValue } from "../useObservedValue.js";
@@ -81,36 +83,49 @@ function GateTile({
 }) {
   const gate = model.gate;
   return (
-    <PreviewCard.Trigger
-      handle={gateHoverHandle}
-      payload={gate}
-      render={<button type="button" />}
-      className="gate-tile"
-      data-slot="sidebar-menu-button"
-      data-gate-id={gate.serializedId}
-      data-tile-key={model.key}
-      aria-label={gate.name || gate.symbol || gate.serializedId}
-      hidden={hidden}
-      tabIndex={isStop ? 0 : -1}
-      ref={(element) => registerTile(model.key, element)}
-      onFocus={() => onFocusTile(model.key)}
-      onPointerDown={(ev) => {
-        if (ev.isPrimary && (ev.pointerType !== "mouse" || ev.button === 0)) {
-          onGrab(model, ev.nativeEvent);
-          ev.preventDefault();
-        }
-      }}
-      onClick={(ev) => {
-        // Enter and Space arrive as a click with no pointer behind it (detail 0). A pointer
-        // press has already gone through the drag path on pointerdown.
-        if (ev.detail === 0) {
-          onPlace(model);
-        }
-      }}
-    >
-      <GateChip gate={gate} />
-      <span className="gate-tile-name">{listNameOf(gate)}</span>
-    </PreviewCard.Trigger>
+    <div className="gate-tile-row" hidden={hidden}>
+      <PreviewCard.Trigger
+        handle={gateHoverHandle}
+        payload={gate}
+        render={<button type="button" />}
+        className="gate-tile"
+        data-slot="sidebar-menu-button"
+        data-gate-id={gate.serializedId}
+        data-tile-key={model.key}
+        aria-label={gate.name || gate.symbol || gate.serializedId}
+        hidden={hidden}
+        tabIndex={isStop ? 0 : -1}
+        ref={(element) => registerTile(model.key, element)}
+        onFocus={() => onFocusTile(model.key)}
+        onPointerDown={(ev) => {
+          if (ev.isPrimary && (ev.pointerType !== "mouse" || ev.button === 0)) {
+            onGrab(model, ev.nativeEvent);
+            ev.preventDefault();
+          }
+        }}
+        onClick={(ev) => {
+          // Enter and Space arrive as a click with no pointer behind it (detail 0). A pointer
+          // press has already gone through the drag path on pointerdown.
+          if (ev.detail === 0) {
+            onPlace(model);
+          }
+        }}
+      >
+        <GateChip gate={gate} />
+        <span className="gate-tile-name">{listNameOf(gate)}</span>
+      </PreviewCard.Trigger>
+      <Popover.Trigger
+        handle={gateDetailsHandle}
+        payload={gate}
+        render={<Button size="icon" />}
+        className="gate-details-trigger"
+        aria-label={`Details for ${gate.name || gate.symbol || gate.serializedId}`}
+        tabIndex={isStop ? 0 : -1}
+        onFocus={() => onFocusTile(model.key)}
+      >
+        <InfoIcon aria-hidden="true" />
+      </Popover.Trigger>
+    </div>
   );
 }
 
@@ -171,8 +186,8 @@ function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace }) {
   );
   const anyShown = models.some(matches);
 
-  // The tiles share one tab stop; Up and Down move between the visible ones. Without this the
-  // gates are over a hundred tab stops between the search box and the rest of the page.
+  // The active row has a placement stop and a details stop; Up and Down move between rows.
+  // This avoids hundreds of tab stops between search and the rest of the page.
   const tileElements = useRef(new Map());
   const customGateFocus = useStore(appStore, state => state.customGateFocus);
   useEffect(() => {
@@ -200,8 +215,9 @@ function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace }) {
     ? stopKey
     : visibleKeys[0];
   const onGroupsKeyDown = (ev) => {
+    const focusedTile = document.activeElement.closest('.gate-tile-row')?.querySelector('.gate-tile');
     const from = visibleKeys.findIndex(
-      (key) => tileElements.current.get(key) === document.activeElement,
+      (key) => tileElements.current.get(key) === focusedTile,
     );
     if (from === -1 || visibleKeys.length === 0) {
       return;

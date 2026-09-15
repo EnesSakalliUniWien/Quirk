@@ -41,8 +41,10 @@ strings, as before.
 
 ## Serialization
 
-JSON conversion lives in `src/serialization/Serializer.js`: it resolves gate ids against the
-catalogue, so it sits above this directory rather than inside it.
+JSON conversion lives in `src/serialization/`, grouped into numeric, gate and circuit
+modules, with `Serializer.js` providing type dispatch. It resolves gate ids against the
+catalogue, so it sits above this directory rather than inside it. See the
+[serialization guide](../serialization/README.md).
 
 ## Simulation
 

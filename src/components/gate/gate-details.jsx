@@ -12,7 +12,10 @@ import { decompositionOf } from "../../circuit/gateDecomposition.js";
 import { Matrix } from "../../engine/math/matrix/Matrix.js";
 import { QubitMatrix } from "../../engine/math/matrix/QubitMatrix.js";
 import { preparedStateVector } from "../../engine/math/preparedStates.js";
-import { columnStructure, structureMatrix } from "../../engine/simulation/columnStructure.js";
+import {
+  columnStructure,
+  structureMatrix,
+} from "../../engine/simulation/columnStructure.js";
 import { Serializer } from "../../serialization/Serializer.js";
 import { MatrixMath } from "../math/mathml.jsx";
 import { DataView } from "../math/data-view.jsx";
@@ -41,7 +44,11 @@ const MAX_WRITTEN_AMPLITUDES = 8;
  * @returns {!Matrix}
  */
 function preparedState(gate) {
-  return new Matrix(1, 1 << gate.height, preparedStateVector(gate.knownPreparation, gate.height));
+  return new Matrix(
+    1,
+    1 << gate.height,
+    preparedStateVector(gate.knownPreparation, gate.height),
+  );
 }
 
 /**
@@ -54,9 +61,20 @@ function preparedState(gate) {
  *     when the gate is disabled on its own, as a gate that reads inputs is.
  */
 function gateAlone(gate, time) {
-  const column = new GateColumn([gate, ...Array(gate.height - 1).fill(undefined)]);
-  const customGates = gate.serializedId.startsWith("~") ? new CustomGateSet(gate) : new CustomGateSet();
-  const circuit = new CircuitDefinition(gate.height, [column], 0, new Map(), customGates);
+  const column = new GateColumn([
+    gate,
+    ...Array(gate.height - 1).fill(undefined),
+  ]);
+  const customGates = gate.serializedId.startsWith("~")
+    ? new CustomGateSet(gate)
+    : new CustomGateSet();
+  const circuit = new CircuitDefinition(
+    gate.height,
+    [column],
+    0,
+    new Map(),
+    customGates,
+  );
   if (circuit.gateAtLocIsDisabledReason(0, 0) !== undefined) {
     return undefined;
   }
@@ -115,7 +133,7 @@ function turnsText(angle) {
  *
  * @param {!{gate: undefined|!Gate, time: !number}} props
  */
-function GateDetails({ gate, time }) {
+function GateDetails({ gate, time, title = <h2 className="gate-details-title">{gate?.name}</h2> }) {
   // Once per gate and moment: a tall gate's structure can hold a dense block of up to 10 qubits.
   const { matrix, alone } = useMemo(() => {
     if (gate === undefined || gate.definitelyHasNoEffect()) {
@@ -154,15 +172,20 @@ function GateDetails({ gate, time }) {
   return (
     <div className="gate-details">
       <header className="gate-details-header">
-        <h2 className="gate-details-title">{gate.name}</h2>
-        {gate.blurb !== "" && <p className="gate-details-blurb">{gate.blurb}</p>}
+        {title}
+        {gate.blurb !== "" && (
+          <p className="gate-details-blurb">{gate.blurb}</p>
+        )}
       </header>
 
       {gate.knownPreparation !== undefined && (
         <section className="gate-details-section">
           <h3>Prepares</h3>
-          {(1 << gate.height) <= MAX_WRITTEN_AMPLITUDES ? (
-            <MatrixMath model={stateModel(preparedState(gate))} label={`The state the ${gate.name} prepares`} />
+          {1 << gate.height <= MAX_WRITTEN_AMPLITUDES ? (
+            <MatrixMath
+              model={stateModel(preparedState(gate))}
+              label={`The state the ${gate.name} prepares`}
+            />
           ) : (
             <>
               <DataView
@@ -173,11 +196,14 @@ function GateDetails({ gate, time }) {
                 options={{ wireCount: gate.height }}
                 label={`The state the ${gate.name} prepares: state-vector amplitudes reshaped as a grid`}
               />
-              <p className="gate-details-legend">disc area is magnitude, the hand is phase</p>
+              <p className="gate-details-legend">
+                disc area is magnitude, the hand is phase
+              </p>
             </>
           )}
           <p className="gate-details-legend">
-            Its wires start in this state. Nothing may have acted on them before the box.
+            Its wires start in this state. Nothing may have acted on them before
+            the box.
           </p>
         </section>
       )}
@@ -185,9 +211,17 @@ function GateDetails({ gate, time }) {
       {(matrix !== undefined || alone?.structure !== undefined) && (
         <section className="gate-details-section">
           <h3>Matrix</h3>
-          <OperatorMatrix matrix={matrix} source={alone?.source} structure={alone?.structure}
-            size={DRAWN_MATRIX_SIZE} label={"The matrix of the " + gate.name} />
-          <p className="gate-details-legend">Rows: output basis states. Columns: input basis states. Basis order runs from |0…0⟩ to |1…1⟩.</p>
+          <OperatorMatrix
+            matrix={matrix}
+            source={alone?.source}
+            structure={alone?.structure}
+            size={DRAWN_MATRIX_SIZE}
+            label={"The matrix of the " + gate.name}
+          />
+          <p className="gate-details-legend">
+            Rows: output basis states. Columns: input basis states. Basis order
+            runs from |0…0⟩ to |1…1⟩.
+          </p>
         </section>
       )}
 
@@ -234,18 +268,21 @@ function GateDetails({ gate, time }) {
       {decomposition !== undefined && (
         <section className="gate-details-section">
           <h3>Stands for</h3>
-          <CircuitFigure circuit={decomposition} time={time} />
+          <CircuitFigure circuit={decomposition} time={time} responsive />
           <p className="gate-details-legend">
             gate weight {decomposition.gateWeight()}
           </p>
         </section>
       )}
 
-      {matrix === undefined && alone?.structure === undefined && decomposition === undefined && (
-        <p className="gate-details-note">
-          {alone?.reason ?? "This gate has no fixed matrix: what it does depends on its inputs."}
-        </p>
-      )}
+      {matrix === undefined &&
+        alone?.structure === undefined &&
+        decomposition === undefined && (
+          <p className="gate-details-note">
+            {alone?.reason ??
+              "This gate has no fixed matrix: what it does depends on its inputs."}
+          </p>
+        )}
     </div>
   );
 }

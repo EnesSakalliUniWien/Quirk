@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { distributions } from "../../../results/take.js";
+import { distributions } from "../../../results/take/distributions.js";
 import { COLOURS } from "./colours.js";
 import { Distribution } from "./distribution.jsx";
 

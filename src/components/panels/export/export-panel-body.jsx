@@ -1,5 +1,6 @@
-import { createTake } from "../../../results/take.js";
-import { takeJson, takeCsv } from "../../../results/takeFile.js";
+import { createTake } from "../../../results/take/snapshot.js";
+import { takeJson } from "../../../results/files/json.js";
+import { takeCsv } from "../../../results/files/csv.js";
 import { downloadFile } from "../../../browser/downloadFile.js";
 import { useMemo, useState } from "react";
 import { AppInfo } from "../../../config/AppInfo.js";

@@ -1,9 +1,10 @@
 import {createValueStore} from '../../base/valueStore.js';
 
 import {Serializer} from "../../serialization/Serializer.js";
-import {createTake, restoreTake} from "../../results/take.js";
+import { createTake, restoreTake } from "../../results/take/snapshot.js";
 import {freshSeed} from "../../engine/simulation/random.js";
-import {parseTakes, MAX_FILE_BYTES} from "../../results/takeFile.js";
+import { parseTakes } from "../../results/files/json.js";
+import { MAX_FILE_BYTES } from "../../results/files/limits.js";
 
 class Recorder {
     /** onRestore runs after the saved result is published, while restore guards are active. */

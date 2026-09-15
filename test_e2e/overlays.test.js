@@ -20,6 +20,131 @@ import assert from 'node:assert/strict';
 import {circuitMetrics, test, withQuirkPage, waitForCircuit, waitForPanel, closePanel, TEST_TIMEOUT_MILLIS, circuitTopForWires, waitForCanvasViewport, currentCircuit, exportedCircuit} from './harness.js';
 import {Matrix} from '../src/engine/math/matrix/Matrix.js';
 
+async function openBlochAt(page, column) {
+    for (let attempt = 0; attempt < 3; attempt++) {
+        await waitForCanvasViewport(page);
+        const top = await circuitTopForWires(page, 2);
+        const bounds = await page.$eval('#drawCanvas canvas', e => e.getBoundingClientRect().toJSON());
+        await page.mouse.click(bounds.x + column * circuitMetrics.columnSpacing +
+            circuitMetrics.firstColumnLeft + circuitMetrics.gateSize / 2,
+            bounds.y + top + circuitMetrics.wireSpacing / 2);
+        if (await page.waitForSelector('#bloch-x', {visible: true, timeout: 2000}).then(() => true, () => false)) break;
+    }
+    await page.waitForFunction(() => document.querySelectorAll('.bloch-strip-step').length > 0 &&
+        document.getElementById('bloch-x')?.textContent !== 'n/a');
+}
+
+test('Bloch Planes draws equatorial triangles independently and explains cos · sin', async browser => {
+    await withQuirkPage(browser, {cols: [['H'], ['Z^¼'], ['Bloch']]}, async page => {
+        await openBlochAt(page, 2);
+        const checks = await page.$$('.bloch-check');
+        // Use the visible checkbox, not Base UI's hidden input carrying the supplied id.
+        await checks[0].click();
+        assert.equal(await checks[0].evaluate(e => e.getAttribute('aria-checked')), 'false');
+        const settle = () => page.evaluate(() => new Promise(resolve =>
+            requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(resolve)))));
+        await settle();
+        const before = await page.$eval('#bloch-canvas', e => e.toDataURL());
+        await checks[1].click();
+        await page.waitForFunction(image => document.getElementById('bloch-canvas').toDataURL() !== image, {}, before);
+        assert.equal(await checks[1].evaluate(e => e.getAttribute('aria-checked')), 'true');
+        await checks[1].click();
+        await page.waitForFunction(image => document.getElementById('bloch-canvas').toDataURL() === image, {}, before);
+        assert.match(await checks[6].evaluate(e => document.getElementById(e.getAttribute('aria-describedby')).textContent),
+            /sphere labels require Components/);
+        const projection = await page.$eval('#bloch-equator-canvas', e => e.toDataURL());
+        await checks[6].click();
+        await page.waitForFunction(image => document.getElementById('bloch-equator-canvas').toDataURL() !== image, {}, projection);
+        assert.equal(await checks[0].evaluate(e => e.getAttribute('aria-checked')), 'false');
+    });
+});
+
+test('Bloch steps keep impossible postselection unavailable without losing earlier states', async browser => {
+    await withQuirkPage(browser, {cols: [['Bloch'], ['|1⟩⟨1|']]}, async page => {
+        await openBlochAt(page, 0);
+        assert.equal(await page.$eval('#bloch-z', e => e.textContent), '+1.000');
+        assert.equal(await page.$$eval('.bloch-strip-step', buttons => buttons.length), 3);
+        await page.$$eval('.bloch-strip-step', buttons => buttons[2].click());
+        await page.waitForFunction(() => document.getElementById('bloch-z')?.textContent === 'n/a');
+        assert.equal(await page.$eval('#bloch-tr-rho2', e => e.textContent), 'n/a');
+        await page.$$eval('.bloch-strip-step', buttons => buttons[0].click());
+        await page.waitForFunction(() => document.getElementById('bloch-z')?.textContent === '+1.000');
+        assert.equal(await page.$eval('#bloch-tr-rho2', e => e.textContent), '1.000');
+    });
+});
+
+test('Bloch steps preserve deferred measurement across display columns', async browser => {
+    await withQuirkPage(browser, {cols: [['H'], ['Measure'], ['Bloch'], ['X']]}, async page => {
+        await openBlochAt(page, 2);
+        await page.$$eval('.bloch-strip-step', buttons => buttons[3].click());
+        await page.waitForFunction(() => document.getElementById('bloch-subtitle').textContent.includes('after column 3'));
+        assert.equal(await page.$eval('#bloch-x', e => e.textContent), '+0.000');
+        assert.equal(await page.$eval('#bloch-tr-rho2', e => e.textContent), '0.500');
+        await page.$$eval('.bloch-strip-step', buttons => buttons[1].click());
+        await page.waitForFunction(() => document.getElementById('bloch-x').textContent === '+1.000');
+    });
+});
+
+test('Bloch source selection cancels an unfinished preset transition', async browser => {
+    await withQuirkPage(browser, {cols: [['H'], ['Bloch']]}, async page => {
+        await openBlochAt(page, 1);
+        for (const returnToCircuit of [true, false]) {
+            await page.$eval('#bloch-preset-1', button => button.click());
+            await page.waitForSelector('#bloch-back-to-circuit');
+            await page.evaluate(returnToCircuit => {
+                if (returnToCircuit) document.getElementById('bloch-back-to-circuit').click();
+                else document.querySelector('.bloch-strip-step').click();
+            }, returnToCircuit);
+            // Past the preset's duration, no remaining animation may replace the new source.
+            await new Promise(resolve => setTimeout(resolve, 400));
+            assert.equal(await page.$eval('#bloch-subtitle', e => e.textContent),
+                returnToCircuit ? 'Qubit 1 · at column 2' : 'Qubit 1 · before the first column');
+            assert.equal(await page.$eval(returnToCircuit ? '#bloch-x' : '#bloch-z', e => e.textContent), '+1.000');
+        }
+    });
+});
+
+test('Bloch views are equally sized squares with controls reachable before the figures', async browser => {
+    for (const viewport of [{width: 1440, height: 1000}, {width: 1024, height: 768}, {width: 390, height: 844}]) {
+        await withQuirkPage(browser, {cols: [['H'], ['Bloch']]}, async page => {
+            await openBlochAt(page, 1);
+            const layout = await page.$eval('[data-panel-id="bloch"]', panel => {
+                const bounds = panel.getBoundingClientRect();
+                const presets = panel.querySelector('.bloch-presets').getBoundingClientRect();
+                const figure = panel.querySelector('#bloch-canvas').getBoundingClientRect();
+                return {right: bounds.right, bottom: bounds.bottom,
+                    presetsVisible: presets.top >= bounds.top && presets.bottom <= bounds.bottom,
+                    sourceBeforeFigures: presets.bottom < figure.top,
+                    overflow: panel.scrollWidth - panel.clientWidth,
+                    views: [...panel.querySelectorAll('.bloch-figures canvas')].map(canvas => {
+                        const rect = canvas.getBoundingClientRect();
+                        return {width: rect.width, height: rect.height};
+                    })};
+            });
+            assert.ok(layout.right <= viewport.width, JSON.stringify(layout));
+            assert.ok(layout.bottom <= viewport.height, JSON.stringify(layout));
+            assert.ok(layout.presetsVisible && layout.sourceBeforeFigures, JSON.stringify(layout));
+            assert.equal(layout.overflow, 0);
+            assert.equal(layout.views.length, 3);
+            for (const view of layout.views) {
+                assert.ok(Math.abs(view.width - view.height) < 1, JSON.stringify(layout.views));
+                assert.ok(Math.abs(view.width - layout.views[0].width) < 1, JSON.stringify(layout.views));
+            }
+        }, viewport);
+    }
+});
+
+test('Bloch sliders show an unfilled track at zero', async browser => {
+    await withQuirkPage(browser, {cols: [['H'], ['Bloch']]}, async page => {
+        await openBlochAt(page, 1);
+        const tracks = await page.$$eval('.bloch-slider-track', elements => elements.map(e => ({
+            track: getComputedStyle(e).backgroundColor,
+            background: getComputedStyle(e.closest('.panel-section')).backgroundColor,
+        })));
+        for (const colors of tracks) assert.notEqual(colors.track, colors.background);
+    });
+});
+
 test('opens a Bloch sphere from its enlarged edge at different zoom levels', async browser => {
     await withQuirkPage(browser, {cols: [['H'], ['Bloch']]}, async page => {
         for (const [button, zoom] of [['Zoom out', 0.8], ['Zoom in', 1.25]]) {

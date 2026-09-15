@@ -31,10 +31,11 @@ import {blochCoordinates} from "../math/bloch.js"
  *
  * @param {!Matrix} state A column vector over `wireCount` qubits, as paddedState returns.
  * @param {!int} wireCount
+ * @param {!int=} measuredMask Deferred measurements at this step, from colIsMeasuredMask.
  * @returns {!Array.<!{wire: !int, probabilityOne: !number, bloch: !{x: !number, y: !number, z: !number},
  *     purity: !number}>}
  */
-function qubitMarginals(state, wireCount) {
+function qubitMarginals(state, wireCount, measuredMask = 0) {
     const buf = state.rawBuffer();
     const size = 1 << wireCount;
     const marginals = [];
@@ -58,7 +59,10 @@ function qubitMarginals(state, wireCount) {
         // Post-selection can leave less than a whole state; read the qubit relative to what is left.
         const norm = p0 + p1;
         const scale = norm > 1e-12 ? 1 / norm : 0;
-        const rho00 = p0 * scale, rho11 = p1 * scale, rho01r = cr * scale, rho01i = ci * scale;
+        // Deferred measurement leaves the simulation amplitudes coherent; the physical density
+        // matrix loses its off-diagonal entries on measured wires.
+        const coherence = (measuredMask & bit) === 0 ? scale : 0;
+        const rho00 = p0 * scale, rho11 = p1 * scale, rho01r = cr * coherence, rho01i = ci * coherence;
         const density = Matrix.square(
             new Complex(rho00, 0), new Complex(rho01r, rho01i),
             new Complex(rho01r, -rho01i), new Complex(rho11, 0));

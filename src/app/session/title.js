@@ -15,7 +15,7 @@
  */
 
 import {AppInfo} from "../../config/AppInfo.js"
-import {fromJsonText_CircuitDefinition} from "../../serialization/Serializer.js"
+import { fromJsonText_CircuitDefinition } from "../../serialization/circuits/text.js";
 
 /**
  * @param {!Revision} revision

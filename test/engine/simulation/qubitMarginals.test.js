@@ -37,6 +37,16 @@ const state = (...amplitudes) => Matrix.col(...amplitudes);
 
 const close = (actual, expected) => assertThat(actual).isApproximatelyEqualTo(expected, 1e-9);
 
+suite.test("deferred measurement removes only the measured qubit's coherence", () => {
+    // Two independent |+⟩ states, with q0 measured and q1 still coherent.
+    const [q0, q1] = qubitMarginals(state(0.5, 0.5, 0.5, 0.5), 2, 1);
+    close(q0.bloch.x, 0);
+    close(q0.probabilityOne, 0.5);
+    close(q0.purity, 0.5);
+    close(q1.bloch.x, 1);
+    close(q1.purity, 1);
+});
+
 suite.test("a single qubit in a basis state sits on the z axis", () => {
     const [zero] = qubitMarginals(state(1, 0), 1);
     close(zero.probabilityOne, 0);

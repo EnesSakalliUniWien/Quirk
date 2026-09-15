@@ -79,7 +79,12 @@ function RotationFigure({ axis, angle }) {
       role="img"
       aria-label={`Rotation of ${Math.round((angle * 180) / Math.PI)} degrees`}
     >
-      <circle cx={HALF} cy={HALF} r={RADIUS} className="rotation-figure-sphere" />
+      <circle
+        cx={HALF}
+        cy={HALF}
+        r={RADIUS}
+        className="rotation-figure-sphere"
+      />
       <path
         d={greatCirclePath((t) => [Math.cos(t), Math.sin(t), 0])}
         className="rotation-figure-guide"
@@ -132,7 +137,10 @@ function RotationFigure({ axis, angle }) {
           markerHeight="5"
           orient="auto"
         >
-          <path d="M0 0 L8 4 L0 8 z" className="rotation-figure-turn-head-fill" />
+          <path
+            d="M0 0 L8 4 L0 8 z"
+            className="rotation-figure-turn-head-fill"
+          />
         </marker>
       </defs>
     </svg>

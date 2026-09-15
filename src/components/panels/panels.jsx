@@ -99,7 +99,7 @@ const PANELS = {
     title: "Bloch Sphere",
     icon: GlobeIcon,
     component: BlochPanel,
-    floating: { width: 720, height: 700 },
+    floating: { width: 1180, height: 880 },
   },
 };
 

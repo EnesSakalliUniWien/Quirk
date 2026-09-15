@@ -22,4 +22,4 @@ class Diagnostics {}
 // Calling gl.getError forces a CPU/GPU sync. It's very expensive.
 Diagnostics.CHECK_WEB_GL_ERRORS_EVEN_ON_HOT_PATHS = false;
 
-export {Diagnostics}
+export { Diagnostics };

@@ -20,7 +20,7 @@ import {CircuitStats} from "../engine/simulation/CircuitStats.js"
 import {EditorState} from "../editor/state/EditorState.js"
 import {Rect} from "../geometry/Rect.js"
 import {Revision} from "../base/Revision.js"
-import {fromJsonText_CircuitDefinition} from "../serialization/Serializer.js"
+import { fromJsonText_CircuitDefinition } from "../serialization/circuits/text.js";
 import {Util} from "../base/Util.js"
 
 import {CircuitActions} from "./state/CircuitActions.js"

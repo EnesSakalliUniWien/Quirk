@@ -1,6 +1,7 @@
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {Tabs} from '@base-ui/react/tabs';
-import {Serializer, fromJsonText_CircuitDefinition} from '../../../serialization/Serializer.js';
+import { Serializer } from "../../../serialization/Serializer.js";
+import { fromJsonText_CircuitDefinition } from "../../../serialization/circuits/text.js";
 import {randomCustomGateId} from '../../../serialization/customGateParsing.js';
 import {appStore} from '../../../state/appStore.js';
 import {closePanel, openPanel} from '../../dock.jsx';

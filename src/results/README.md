@@ -1,11 +1,17 @@
 # Tape files and simulation results
 
-`take.js` owns take creation, validation, restoration and probability tables. It reads collected
-histories through `CircuitStats.snapshotData()`; the engine owns their internal storage. Tape
-owns number encoding and displayed-wire padding, and retains the existing circuit serializer.
-`takeFile.js` owns JSON/CSV/link formatting and import validation, with no DOM access;
-`takeLink(take, base)` receives its base URL from the caller. Its `LINK_LIMIT` is also used by
-the URL loader. `tapeStore.js` owns IndexedDB admission, eviction and atomic writes.
+`take/` groups take creation, validation, restoration and probability tables by responsibility:
+`schema.js` defines stored shapes, `values.js` encodes matrices and non-finite numbers,
+`snapshot.js` creates and restores snapshots, `validation.js` checks circuits and dimensions,
+`displays.js` validates display results and Sample outcomes, and `distributions.js` computes
+probability tables. Snapshots read collected histories through `CircuitStats.snapshotData()`;
+the engine owns their internal storage. Tape owns number encoding and displayed-wire padding,
+and retains the existing circuit serializer.
+
+`files/` contains `json.js` for take/album import and export, `csv.js` for probability CSV,
+`link.js` for portable links, and `limits.js` for shared size limits. These modules have no DOM
+access. `takeLink(take, base)` receives its base URL from the caller. `LINK_LIMIT` is also used
+by the URL loader. `tapeStore.js` owns IndexedDB admission, eviction and atomic writes.
 
 The application `Recorder` coordinates these operations. React panels own selection and editing
 controls, and use `src/browser/downloadFile.js` to download already formatted content.

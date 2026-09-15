@@ -4,13 +4,18 @@
     /* The card is portalled to the body, so it has to be lifted over the dock, whose groups make
        their own stacking contexts. */
     .gate-hover-positioner {
-        z-index: 1000;
+        z-index: var(--layer-preview);
     }
 
-    .gate-hover {
+    .gate-details-positioner {
+        z-index: var(--layer-popover);
+    }
+
+    .gate-hover,
+    .gate-details-popup {
         box-sizing: border-box;
         max-width: min(440px, calc(100vw - var(--spacing) * 8));
-        max-height: min(560px, calc(100vh - var(--spacing) * 8));
+        max-height: min(640px, calc(100dvh - 24px));
         overflow: auto;
         padding: calc(var(--spacing) * 4);
         color: var(--card-foreground);
@@ -18,10 +23,40 @@
         border: 1px solid var(--border);
         border-radius: 12px;
         box-shadow: 0 18px 48px var(--shadow-popup);
-        /* Reachable on purpose: the card scrolls when it is tall, and the plotted matrix answers
-           per-cell hover. A preview card is meant to be moved into, and it stays open when it is. */
+        /* Keep scrolling inside the window instead of moving the toolbox underneath it. */
         overscroll-behavior: contain;
     }
+
+    .gate-hover { max-width: min(300px, calc(100vw - 24px)); }
+    .gate-details-popup { width: min(440px, calc(100vw - 24px)); max-width: none; }
+    :where(.gate-details-popup) .ui-button {
+        background-color: transparent;
+        color: inherit;
+        font-family: inherit;
+    }
+    .gate-details-toolbar {
+        position: sticky;
+        top: -16px;
+        z-index: 1;
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+        gap: 12px;
+        padding-block: 8px;
+        background: var(--card);
+    }
+    .gate-details-popup .gate-details-section,
+    .gate-details-popup .gate-details-header { min-width: 0; }
+    .gate-details-popup .gate-details-title,
+    .gate-details-popup .gate-details-blurb { overflow-wrap: anywhere; }
+    .gate-details-popup .matrix-factor {
+        width: auto;
+        max-width: 100%;
+        overflow: auto;
+    }
+    .gate-details-popup .gate-details-facts { min-width: 0; }
+    .gate-details-popup .gate-details-facts dd { overflow-wrap: anywhere; }
+    .gate-details-popup .gate-details-vector { white-space: normal; }
 
     .gate-details {
         display: grid;

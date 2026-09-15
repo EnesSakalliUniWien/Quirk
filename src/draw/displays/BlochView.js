@@ -15,9 +15,10 @@
  */
 
 import {TooltipLayer} from '../tooltips/TooltipView.js';
-import {AXIS_COLOR, coordinateSystem} from './BlochGeometry.js';
-import {fitText, fitParagraph} from '../text/TextLayout.js';
-import {circle, strokePath, rectangle} from '../shapes/ShapeView.js';
+import {AXIS_COLOR} from './BlochGeometry.js';
+import {DEFAULT_VIEW, glanceBoxFor, paintBlochScene, projectPoint} from './BlochScene.js';
+import {fitText} from '../text/TextLayout.js';
+import {circle, rectangle} from '../shapes/ShapeView.js';
 
 /** @typedef {import('../scene/DisplayView.js').DisplayView} DisplayView */
 
@@ -26,93 +27,32 @@ import {Layout} from '../../config/Layout.js';
 import {Point} from '../../geometry/Point.js';
 import {Rect} from '../../geometry/Rect.js';
 import {Typography} from '../../config/Typography.js';
-import {QubitMatrix} from '../../engine/math/matrix/QubitMatrix.js';
+import {blochCoordinates, blochReading, degreesText} from '../../engine/math/bloch.js';
 
 const PURE_STATE_THRESHOLD = 0.999;
 
 /**
- * Below this sphere radius the dashed back guides go: at a gate's size seven lines in sixty pixels
- * hid the vector, and the front meridians and axes still say which way is which.
- */
-const DETAILED_SPHERE_RADIUS = 40;
-
-/**
+ * The hover ring and tooltip: the same reading the analyzer gives, with the same rules - an angle
+ * that does not exist reads "—" (RULE A, B) - in the conventional coordinates the analyzer uses.
  * @param {!DisplayView} painter
- * @param {!Rect} drawArea
- * @param {!number} x
- * @param {!number} y
- * @param {!number} z
+ * @param {!Point} c The sphere's centre.
+ * @param {!number} u The sphere's radius.
+ * @param {!{x: !number, y: !number, z: !number}} vec
  * @param {!Array.<!Point>} focusPoints
  */
-function _paintBlochSphereDisplay_tooltips(
-        painter,
-        drawArea,
-        x,
-        y,
-        z,
-        focusPoints) {
-    const c = drawArea.center();
-    const u = Math.min(drawArea.w, drawArea.h) / 2;
+function _paintBlochSphereDisplay_tooltips(painter, c, u, vec, focusPoints) {
     if (focusPoints.every(pt => pt.distanceTo(c) >= u)) {
         return;
     }
-
-    const τ = Math.PI * 2;
-    const deg = v => (v >= 0 ? '+' : '') + (v*360/τ).toFixed(2) + '°';
+    const {r, theta, phi} = blochReading(vec);
     const forceSign = v => (v >= 0 ? '+' : '') + v.toFixed(4);
-    const d = Math.sqrt(x*x + y*y + z*z);
-    const ϕ = Math.atan2(y, -x);
-    const θ = Math.max(0, Math.PI/2 - Math.atan2(-z, Math.sqrt(y*y + x*x)));
     circle(painter, c, u, {stroke: {color: CanvasTheme.interaction.outline, width: 2}});
     TooltipLayer.forView(painter).show(painter, {
         x: c.x+u*Math.sqrt(0.5),
         y: c.y-u*Math.sqrt(0.5),
         labelText: 'Bloch sphere representation of local state',
-        valueText: `r:${forceSign(d)}, ϕ:${deg(ϕ)}, θ:${deg(θ)}`,
-        valueText2: `x:${forceSign(-x)}, y:${forceSign(y)}, z:${forceSign(-z)}`
-    });
-}
-
-/**
- * @param {!DisplayView} painter
- * @param {!number} x
- * @param {!number} y
- * @param {!number} z
- * @param {!Rect} drawArea
- * @param {!string=} fillColor
- */
-function _paintBlochSphereDisplay_indicator(
-        painter,
-        x,
-        y,
-        z,
-        drawArea,
-        fillColor) {
-    const c = drawArea.center();
-    const u = Math.min(drawArea.w, drawArea.h) / 2;
-    const {dx, dy, dz} = coordinateSystem(u);
-
-    const p = c.plus(dx.times(x)).plus(dy.times(y)).plus(dz.times(z));
-    // Scales with the sphere so the indicator stays visible instead of being a fixed few pixels.
-    const r = u * 0.16 / (1 + x / 6);
-
-    // Draw state indicators (in not-quite-correct 3d).
-    strokePath(painter, [c, p], CanvasTheme.bloch.vector, u * 0.1);
-    circle(painter, p, r, {fill: fillColor});
-
-    painter.group('mixed-state-' + painter.order, painter => {
-        painter.alpha *= Math.min(1, Math.max(0, 1 - x * x - y * y - z * z));
-        circle(painter, p, r, {
-            fill: CanvasTheme.bloch.mixed
-        });
-    });
-
-    circle(painter, p, r, {stroke: {color: CanvasTheme.text.primary, width: 1}});
-
-    // Show depth by lerping the line from overlaying to being overlayd by the ball.
-    painter.group('depth-' + painter.order, painter => {
-        painter.alpha *= Math.min(1, Math.max(0, 0.5 + x * 5));
-        strokePath(painter, [c, p], CanvasTheme.text.primary, 2);
+        valueText: `r:${forceSign(r)}, θ:${degreesText(theta)}, ϕ:${degreesText(phi)}`,
+        valueText2: `x:${forceSign(vec.x)}, y:${forceSign(vec.y)}, z:${forceSign(vec.z)}`
     });
 }
 
@@ -149,76 +89,47 @@ function _paintBlochSphereDisplay_purity(painter, drawArea, r) {
 }
 
 /**
+ * A qubit's local state as a small sphere in the circuit.
+ *
+ * The sphere itself is paintBlochScene at glance size, the painter the analyzer uses, from the same
+ * default view: the circuit's sphere and the analyzer it opens cannot disagree about which way an
+ * axis points. Around it this adds what a circuit glyph needs: the axis letters, the |r| readout
+ * underneath and the hover tooltip.
+ *
  * @param {!DisplayView} painter
  * @param {!Matrix} qubitDensityMatrix
  * @param {!Rect} drawArea
  * @param {!Array.<!Point>=} focusPoints
- * @param {!string=} backgroundColor
- * @param {!string=} fillColor
  */
 function paintBlochSphereDisplay(
         painter,
         qubitDensityMatrix,
         drawArea,
-        focusPoints = [],
-        backgroundColor = CanvasTheme.bloch.background,
-        fillColor = CanvasTheme.bloch.vector) {
+        focusPoints = []) {
     const u = Math.min(
         drawArea.w * Layout.BLOCH_RADIUS / (2 * (Layout.BLOCH_RADIUS + Layout.BLOCH_LABEL_MARGIN)),
         drawArea.h * Layout.BLOCH_RADIUS /
             (2 * (Layout.BLOCH_RADIUS + Layout.BLOCH_LABEL_MARGIN) + Layout.BLOCH_READOUT_HEIGHT));
     const margin = u * Layout.BLOCH_LABEL_MARGIN / Layout.BLOCH_RADIUS;
     const c = new Point(drawArea.center().x, drawArea.y + margin + u);
-    const sphereArea = new Rect(c.x - u, c.y - u, 2 * u, 2 * u);
-    const {dx, dy, dz} = coordinateSystem(u);
 
     const hasNaN = qubitDensityMatrix.hasNaN();
-    const [x, y, z] = hasNaN ? [NaN, NaN, NaN] : QubitMatrix.densityMatrixToBlochVector(qubitDensityMatrix);
-    const r = hasNaN ? NaN : Math.min(1, Math.sqrt(x*x + y*y + z*z));
+    const vec = hasNaN ? undefined : blochCoordinates(qubitDensityMatrix);
+    const r = hasNaN ? NaN : Math.min(1, blochReading(vec).r);
 
-    // Draw sphere and axis lines (in not-quite-proper 3d).
-    circle(painter, c, u, {fill: backgroundColor});
+    // The shared painter, sized so its sphere has radius u about c, drawn in this painter's own
+    // coordinates and unfilled, so a hovered gate's tint shows around the sphere.
+    const size = glanceBoxFor(u);
+    paintBlochScene(painter, size, vec, DEFAULT_VIEW.yaw, DEFAULT_VIEW.pitch,
+        {origin: {x: c.x - size / 2, y: c.y - size / 2}, transparent: true});
 
-    const detailed = u >= DETAILED_SPHERE_RADIUS;
-    painter.group('sphere-guides-' + painter.order, painter => {
-        // The reference sphere stays equally visible for pure and mixed states.
-        circle(painter, c, u, {
-            stroke: {
-                color: CanvasTheme.stroke.guide,
-                width: u * 0.035
-            }
-        });
-        // Split the meridians by depth: internal positive x points away from the viewer.
-        for (const axis of [dy, dz]) {
-            for (const back of detailed ? [true, false] : [false]) {
-                const points = [];
-                for (let i = 0; i <= 32; i++) {
-                    const t = (back ? 0 : Math.PI) + i * Math.PI / 32;
-                    const p = c.plus(dx.times(Math.sin(t))).plus(axis.times(Math.cos(t)));
-                    points.push(p);
-                }
-                strokePath(painter, points, back ? CanvasTheme.stroke.guide : CanvasTheme.stroke.bright, u * 0.035, back ? [u * 0.1, u * 0.1] : []);
-            }
-        }
-        for (const d of [dy, dz]) {
-            strokePath(painter, [c.minus(d), c.plus(d)], CanvasTheme.stroke.guide, u * 0.03);
-        }
-        strokePath(painter, [c, c.minus(dx)], CanvasTheme.stroke.bright, u * 0.035);
-        if (detailed) {
-            strokePath(painter, [c, c.plus(dx)], CanvasTheme.stroke.guide, u * 0.03, [u * 0.1, u * 0.1]);
-        }
-    });
-
-    // Labels use conventional Bloch signs: +X is -dx and +Z points up. Each letter wears its axis's
-    // colour, the one the enlarged view gives that axis's triangles.
-    for (const [label, p, color] of [
-        ['X', c.minus(dx.times(2.4)), AXIS_COLOR.x],
-        ['Y', c.plus(dy.times(1.12)), AXIS_COLOR.y],
-        ['Z', c.minus(dz.times(1.12)), AXIS_COLOR.z]
-    ]) {
+    // Each positive axis named in its colour, where the analyzer puts the same axis's ket.
+    for (const [label, dir, color] of [['X', [1, 0, 0], AXIS_COLOR.x], ['Y', [0, 1, 0], AXIS_COLOR.y],
+            ['Z', [0, 0, 1], AXIS_COLOR.z]]) {
+        const p = projectPoint(...dir.map(v => v * 1.22), DEFAULT_VIEW.yaw, DEFAULT_VIEW.pitch);
         fitText(painter, label, {
-            x: p.x,
-            y: p.y,
+            x: c.x + p.sx * u,
+            y: c.y - p.sy * u,
             align: 'center',
             baseline: 'middle',
             fill: color,
@@ -228,17 +139,10 @@ function paintBlochSphereDisplay(
         });
     }
 
-    if (hasNaN) {
-        fitParagraph(painter, "NaN", drawArea, {
-            alignment: new Point(0.5, 0.5),
-            fill: CanvasTheme.error.text
-        });
-    } else {
-        _paintBlochSphereDisplay_indicator(painter, x, y, z, sphereArea, fillColor);
+    if (!hasNaN) {
         _paintBlochSphereDisplay_purity(painter, drawArea, r);
+        _paintBlochSphereDisplay_tooltips(painter, c, u, vec, focusPoints);
     }
-
-    _paintBlochSphereDisplay_tooltips(painter, sphereArea, x, y, z, focusPoints);
 }
 
 export {paintBlochSphereDisplay};

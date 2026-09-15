@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import {Util} from "../base/Util.js"
-import {Registers} from "./model/Registers.js"
+import { Util } from "../base/Util.js";
+import { Registers } from "./model/Registers.js";
 
 /**
  * How wires and basis states are written once wires have names. This is the one place a ket label
@@ -34,7 +34,7 @@ const SUBSCRIPT_DIGITS = "₀₁₂₃₄₅₆₇₈₉";
  * @returns {!string}
  */
 function subscript(n) {
-    return [...String(n)].map(d => SUBSCRIPT_DIGITS[Number(d)]).join("");
+  return [...String(n)].map((d) => SUBSCRIPT_DIGITS[Number(d)]).join("");
 }
 
 /**
@@ -43,8 +43,10 @@ function subscript(n) {
  * @returns {!string} a₀ for a register's first wire, q3 for a wire outside every register.
  */
 function wireLabel(registers, wire) {
-    const register = registers.at(wire);
-    return register === undefined ? `q${wire}` : `${register.name}${subscript(wire - register.start)}`;
+  const register = registers.at(wire);
+  return register === undefined
+    ? `q${wire}`
+    : `${register.name}${subscript(wire - register.start)}`;
 }
 
 /**
@@ -54,12 +56,17 @@ function wireLabel(registers, wire) {
  * @returns {!string} The register's name for exactly its wires; otherwise the first and last wire.
  */
 function wiresLabel(registers, first, count) {
-    const register = registers.at(first);
-    if (register !== undefined && register.start === first && register.length === count) {
-        return register.name;
-    }
-    return count === 1 ? wireLabel(registers, first) :
-        `${wireLabel(registers, first)}–${wireLabel(registers, first + count - 1)}`;
+  const register = registers.at(first);
+  if (
+    register !== undefined &&
+    register.start === first &&
+    register.length === count
+  ) {
+    return register.name;
+  }
+  return count === 1
+    ? wireLabel(registers, first)
+    : `${wireLabel(registers, first)}–${wireLabel(registers, first + count - 1)}`;
 }
 
 /**
@@ -68,7 +75,7 @@ function wiresLabel(registers, first, count) {
  * @returns {!int} The value the register holds in it.
  */
 function registerValue(register, index) {
-    return (index >> register.start) & ((1 << register.length) - 1);
+  return (index >> register.start) & ((1 << register.length) - 1);
 }
 
 /**
@@ -81,28 +88,32 @@ function registerValue(register, index) {
  * @returns {!Array.<!{name: !string, text: !string, register: (undefined|!Register)}>} In wire order.
  */
 function ketFields(registers, numWires, index) {
-    const fields = [];
-    let wire = 0;
-    while (wire < numWires) {
-        const register = registers.at(wire);
-        if (register !== undefined) {
-            fields.push({name: register.name, text: Registers.valueLabel(register, registerValue(register, index)), register});
-            wire = register.start + register.length;
-            continue;
-        }
-        let end = wire;
-        while (end < numWires && !registers.covers(end)) {
-            end++;
-        }
-        const count = end - wire;
-        fields.push({
-            name: count === 1 ? `q${wire}` : `q${wire}–q${end - 1}`,
-            text: Util.bin((index >> wire) & ((1 << count) - 1), count),
-            register: undefined,
-        });
-        wire = end;
+  const fields = [];
+  let wire = 0;
+  while (wire < numWires) {
+    const register = registers.at(wire);
+    if (register !== undefined) {
+      fields.push({
+        name: register.name,
+        text: Registers.valueLabel(register, registerValue(register, index)),
+        register,
+      });
+      wire = register.start + register.length;
+      continue;
     }
-    return fields;
+    let end = wire;
+    while (end < numWires && !registers.covers(end)) {
+      end++;
+    }
+    const count = end - wire;
+    fields.push({
+      name: count === 1 ? `q${wire}` : `q${wire}–q${end - 1}`,
+      text: Util.bin((index >> wire) & ((1 << count) - 1), count),
+      register: undefined,
+    });
+    wire = end;
+  }
+  return fields;
 }
 
 /**
@@ -113,10 +124,12 @@ function ketFields(registers, numWires, index) {
  *     registers, otherwise each group by name - a=6, b=3, q5=1.
  */
 function ketLabel(registers, numWires, index) {
-    if (registers.isEmpty()) {
-        return Util.bin(index, numWires);
-    }
-    return ketFields(registers, numWires, index).map(f => `${f.name}=${f.text}`).join(", ");
+  if (registers.isEmpty()) {
+    return Util.bin(index, numWires);
+  }
+  return ketFields(registers, numWires, index)
+    .map((f) => `${f.name}=${f.text}`)
+    .join(", ");
 }
 
 /**
@@ -126,19 +139,19 @@ function ketLabel(registers, numWires, index) {
  * @returns {!string} The bit string, highest wire first, with a · where one group of wires ends.
  */
 function ketBits(registers, numWires, index) {
-    const bits = Util.bin(index, numWires);
-    if (registers.isEmpty()) {
-        return bits;
+  const bits = Util.bin(index, numWires);
+  if (registers.isEmpty()) {
+    return bits;
+  }
+  const group = (wire) => registers.at(wire)?.name;
+  let out = "";
+  for (let wire = numWires - 1; wire >= 0; wire--) {
+    out += bits[numWires - 1 - wire];
+    if (wire > 0 && group(wire) !== group(wire - 1)) {
+      out += "·";
     }
-    const group = wire => registers.at(wire)?.name;
-    let out = "";
-    for (let wire = numWires - 1; wire >= 0; wire--) {
-        out += bits[numWires - 1 - wire];
-        if (wire > 0 && group(wire) !== group(wire - 1)) {
-            out += "·";
-        }
-    }
-    return out;
+  }
+  return out;
 }
 
 /**
@@ -147,32 +160,36 @@ function ketBits(registers, numWires, index) {
  * @returns {!string} Which wire each character of ketBits stands for, in its order: b₁b₀·a₂a₁a₀·q5.
  */
 function ketBitsHeader(registers, numWires) {
-    const groups = [];
-    let wire = numWires - 1;
-    while (wire >= 0) {
-        const register = registers.at(wire);
-        if (register !== undefined) {
-            groups.push(Array.from({length: register.length}, (_, i) =>
-                `${register.name}${subscript(register.length - 1 - i)}`).join(""));
-            wire = register.start - 1;
-            continue;
-        }
-        const labels = [];
-        while (wire >= 0 && !registers.covers(wire)) {
-            labels.push(`q${wire}`);
-            wire--;
-        }
-        groups.push(labels.join(" "));
+  const groups = [];
+  let wire = numWires - 1;
+  while (wire >= 0) {
+    const register = registers.at(wire);
+    if (register !== undefined) {
+      groups.push(
+        Array.from(
+          { length: register.length },
+          (_, i) => `${register.name}${subscript(register.length - 1 - i)}`,
+        ).join(""),
+      );
+      wire = register.start - 1;
+      continue;
     }
-    return groups.join("·");
+    const labels = [];
+    while (wire >= 0 && !registers.covers(wire)) {
+      labels.push(`q${wire}`);
+      wire--;
+    }
+    groups.push(labels.join(" "));
+  }
+  return groups.join("·");
 }
 
 export {
-    ketBits,
-    ketBitsHeader,
-    ketFields,
-    ketLabel,
-    registerValue,
-    wireLabel,
-    wiresLabel,
-}
+  ketBits,
+  ketBitsHeader,
+  ketFields,
+  ketLabel,
+  registerValue,
+  wireLabel,
+  wiresLabel,
+};

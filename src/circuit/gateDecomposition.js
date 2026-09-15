@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import {CircuitDefinition} from "./model/CircuitDefinition.js"
-import {GateColumn} from "./model/GateColumn.js"
-import {Controls} from "../gates/probes/Controls.js"
-import {HalfTurnGates} from "../gates/rotations/HalfTurnGates.js"
+import { CircuitDefinition } from "./model/CircuitDefinition.js";
+import { GateColumn } from "./model/GateColumn.js";
+import { Controls } from "../gates/probes/Controls.js";
+import { HalfTurnGates } from "../gates/rotations/HalfTurnGates.js";
 
 /**
  * The gates a built-in gate stands for.
@@ -41,20 +41,23 @@ import {HalfTurnGates} from "../gates/rotations/HalfTurnGates.js"
  * @returns {!CircuitDefinition}
  */
 function offsetCircuit(span, up) {
-    const columns = [];
-    // Incrementing carries upward, so the most-controlled flip comes first; decrementing is the
-    // same ladder in reverse, which is why the two gates are each other's inverse.
-    const targets = up ?
-        Array.from({length: span}, (_, i) => span - 1 - i) :
-        Array.from({length: span}, (_, i) => i);
-    for (const target of targets) {
-        const gates = Array.from({length: span}, (_, row) =>
-            row === target ? HalfTurnGates.X :
-            row < target ? Controls.Control :
-            undefined);
-        columns.push(new GateColumn(gates));
-    }
-    return new CircuitDefinition(span, columns);
+  const columns = [];
+  // Incrementing carries upward, so the most-controlled flip comes first; decrementing is the
+  // same ladder in reverse, which is why the two gates are each other's inverse.
+  const targets = up
+    ? Array.from({ length: span }, (_, i) => span - 1 - i)
+    : Array.from({ length: span }, (_, i) => i);
+  for (const target of targets) {
+    const gates = Array.from({ length: span }, (_, row) =>
+      row === target
+        ? HalfTurnGates.X
+        : row < target
+          ? Controls.Control
+          : undefined,
+    );
+    columns.push(new GateColumn(gates));
+  }
+  return new CircuitDefinition(span, columns);
 }
 
 /**
@@ -65,8 +68,14 @@ function offsetCircuit(span, up) {
  *     circuit: !function(!int): !CircuitDefinition}>}
  */
 const DECOMPOSITIONS = [
-    {matches: id => /^inc\d+$/.test(id), circuit: span => offsetCircuit(span, true)},
-    {matches: id => /^dec\d+$/.test(id), circuit: span => offsetCircuit(span, false)},
+  {
+    matches: (id) => /^inc\d+$/.test(id),
+    circuit: (span) => offsetCircuit(span, true),
+  },
+  {
+    matches: (id) => /^dec\d+$/.test(id),
+    circuit: (span) => offsetCircuit(span, false),
+  },
 ];
 
 /**
@@ -79,11 +88,13 @@ const DECOMPOSITIONS = [
  * @returns {undefined|!CircuitDefinition}
  */
 function decompositionOf(gate) {
-    if (gate.knownCircuitNested !== undefined) {
-        return gate.knownCircuitNested;
-    }
-    const known = DECOMPOSITIONS.find(entry => entry.matches(gate.serializedId));
-    return known === undefined ? undefined : known.circuit(gate.height);
+  if (gate.knownCircuitNested !== undefined) {
+    return gate.knownCircuitNested;
+  }
+  const known = DECOMPOSITIONS.find((entry) =>
+    entry.matches(gate.serializedId),
+  );
+  return known === undefined ? undefined : known.circuit(gate.height);
 }
 
-export {decompositionOf}
+export { decompositionOf };

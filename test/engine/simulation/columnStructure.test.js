@@ -16,7 +16,7 @@
 
 import {Suite, assertThat} from "../../TestUtil.js"
 import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
-import {fromJsonText_CircuitDefinition} from "../../../src/serialization/Serializer.js"
+import { fromJsonText_CircuitDefinition } from "../../../src/serialization/circuits/text.js";
 import {
     applyStructure,
     columnImage,

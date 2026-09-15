@@ -15,15 +15,15 @@
  */
 
 import {drawText, fitText} from '../text/TextLayout.js';
-import {strokePath, rectangle, circle, polygon} from '../shapes/ShapeView.js';
+import {strokePath, rectangle, circle, polygon, arrowHead} from '../shapes/ShapeView.js';
 
 import {CanvasTheme} from '../../config/CanvasTheme.js';
 import {Typography} from '../../config/Typography.js';
 import {RenderSurface} from '../surface/RenderSurface.js';
 import {Rect} from '../../geometry/Rect.js';
 import {Point} from '../../geometry/Point.js';
-import {AXIS_COLOR} from './BlochGeometry.js';
-import {blochAngles, componentFormulas} from '../../engine/math/bloch.js';
+import {AXIS_COLOR, PLOT_RADIUS} from './BlochGeometry.js';
+import {blochReading, componentFormulas, degreesText} from '../../engine/math/bloch.js';
 
 function projectPoint(x, y, z, yaw, pitch) {
     const cy = Math.cos(yaw);
@@ -68,15 +68,14 @@ function projectionTriangles(vec) {
 /**
  * The right triangles in the coordinate planes that resolve the vector's projection there into
  * its two components, x + iy in the equator among them: the centre, the foot on the first axis,
- * and the projection. Its hypotenuse is the base of the normal axis's projection triangle, which
- * draws it. When the normal component is zero the projection is the vector itself and the
- * triangle is that axis's own projection triangle, so it is left to it.
+ * and the projection. Each plane needs only its own two components: a zero normal component
+ * leaves a valid triangle in that plane, independently of the Components switch.
  * @param {!{x: !number, y: !number, z: !number}} vec
  * @returns {!Array.<!{axes: !Array.<!string>, normal: !string, foot: !Array.<!number>, tip: !Array.<!number>}>}
  */
 function coordinatePlaneTriangles(vec) {
     return [['x', 'y', 'z'], ['x', 'z', 'y'], ['y', 'z', 'x']].flatMap(([a, b, normal]) => {
-        if (['x', 'y', 'z'].some(axis => Math.abs(vec[axis]) <= DEGENERATE_LEG)) return [];
+        if ([a, b].some(axis => Math.abs(vec[axis]) <= DEGENERATE_LEG)) return [];
         return [{
             axes: [a, b],
             normal,
@@ -102,18 +101,16 @@ function drawRightAngle(view, foot, tip, project, color, scale) {
 }
 
 function drawAngles(view, vec, project) {
-    const {r, theta, phi} = blochAngles(vec);
-    const xy = Math.hypot(vec.x, vec.y);
-    // At the poles the azimuth is undefined; at the origin both angles are undefined.
-    if (r <= DEGENERATE_LEG || xy <= DEGENERATE_LEG) return;
+    const {rule, r, rxy: xy, theta, phi} = blochReading(vec);
+    // Without a direction neither angle exists (RULE A); on the z axis the plane θ turns in is not
+    // defined either, since it is the one ϕ names (RULE B). Only a general state gets its arcs.
+    if (rule !== 'general') return;
     const arc = (angle, pointAt, label) => {
         if (Math.abs(angle) <= DEGENERATE_LEG) return;
         const points = Array.from({length: 41}, (_, i) => project(...pointAt(angle * i / 40, 1)));
         strokePath(view, points, CanvasTheme.text.primary, 1.5);
         const p = project(...pointAt(angle / 2, 1.3));
-        drawText(view, label, {x: p.x, y: p.y, fill: CanvasTheme.text.primary,
-            font: {fontSize: 13, fontFamily: Typography.MONO_FONT_FAMILY},
-            align: 'center', baseline: 'middle'});
+        plateText(view, label, p.x, p.y, CanvasTheme.text.primary, 12);
     };
     const polarRadius = Math.min(0.28, r * 0.45);
     arc(theta, (t, k) => [
@@ -137,7 +134,45 @@ const UNIT_CIRCLES = [
  * the ones it does not need off; this is what the panel's switches set.
  */
 const DEFAULT_LAYERS = Object.freeze(
-    {circles: true, components: true, planes: true, angles: true, quaternion: true, trig: true});
+    {circles: true, grid: true, components: true, planes: true, angles: true, quaternion: true, trig: true});
+
+/** Above this size a sphere is read, not glanced at: it gets its labels, grid, triangles and formulas. */
+const DETAILED_SIZE = 100;
+
+/**
+ * How much of its box a glanced sphere's radius takes: it has no labels around it, so it fills the
+ * box. A read sphere takes PLOT_RADIUS, the unit circle every analyzer figure draws, which leaves
+ * room around it for its kets.
+ */
+const GLANCE_RADIUS = 0.46;
+
+/**
+ * The view every sphere opens at - yawed and tilted so all three axes are visibly distinct - so a
+ * circuit's small sphere and the analyzer it opens show a state pointing the same way.
+ */
+const DEFAULT_VIEW = Object.freeze({yaw: Math.PI * -0.15, pitch: Math.PI * 0.11});
+
+/** @param {!number} radius @returns {!number} The box a glanced sphere of this radius is painted in. */
+function glanceBoxFor(radius) {
+    return radius / GLANCE_RADIUS;
+}
+
+/** Where the positive axes stop, a little past the surface, so their heads clear it. */
+const AXIS_REACH = 1.12;
+
+/** Latitude and longitude every 30°, besides the unit circles: the grid a direction is read against. */
+const GRID_LINES = [
+    ...[-60, -30, 30, 60].map(latitude => {
+        const [z, rho] = [Math.sin(latitude * Math.PI / 180), Math.cos(latitude * Math.PI / 180)];
+        return t => [rho * Math.cos(t), rho * Math.sin(t), z];
+    }),
+    // A meridian at azimuth λ runs through both poles; 0° and 90° are unit circles already.
+    ...[30, 60, 120, 150].map(longitude => {
+        const [c, s] = [Math.cos(longitude * Math.PI / 180), Math.sin(longitude * Math.PI / 180)];
+        return t => [c * Math.cos(t), s * Math.cos(t), Math.sin(t)];
+    }),
+];
+
 
 function strokeGreatCircle(view, pointAt, cx, cy, scale, yaw, pitch, color) {
     for (const front of [false, true]) {
@@ -160,8 +195,9 @@ function strokeGreatCircle(view, pointAt, cx, cy, scale, yaw, pitch, color) {
  * to the state along the great circle of that turn. The turn's size is the θ arc the angles draw.
  */
 function drawQuaternion(view, vec, project) {
-    const {r, theta, phi} = blochAngles(vec);
-    if (r <= DEGENERATE_LEG || theta <= DEGENERATE_LEG) return;
+    const {rule, theta, phi} = blochReading(vec);
+    // The axis of the turn is k × r, which needs ϕ; at the poles it could be any in the equator.
+    if (rule !== 'general') return;
     const axis = [-Math.sin(phi), Math.cos(phi), 0];
     strokePath(view, [project(...axis.map(v => -v)), project(...axis)], CanvasTheme.text.muted, 1, [3, 3]);
     const end = project(...axis.map(v => v * 1.1));
@@ -172,6 +208,22 @@ function drawQuaternion(view, vec, project) {
     const label = along(theta / 2, 1.1);
     drawText(view, 'q', {x: label.x, y: label.y, fill: CanvasTheme.text.muted,
         font: {fontSize: 12, fontFamily: Typography.MONO_FONT_FAMILY}, align: 'center', baseline: 'middle'});
+}
+
+/** A label on a translucent plate, so it reads over whatever lines it crosses. */
+function plateText(view, text, x, y, fill, fontSize) {
+    fitText(view, text, {
+        x,
+        y,
+        align: 'center',
+        baseline: 'middle',
+        fill,
+        font: {fontSize, fontFamily: Typography.MONO_FONT_FAMILY},
+        beforeDraw: (w, h) => view.group(`plate-${text}-${Math.round(x)}-${Math.round(y)}`, plate => {
+            plate.alpha *= 0.78;
+            rectangle(plate, new Rect(x - w / 2 - 3, y - h / 2, w + 6, h), {fill: CanvasTheme.bloch.background}, 3);
+        }),
+    });
 }
 
 /** Writes a leg's formula alongside it, on the side away from the centre it runs out from. */
@@ -202,21 +254,28 @@ function labelSegment(view, from, to, text, color, project, center) {
 }
 
 /**
- * @param {!HTMLCanvasElement} canvas
+ * The one sphere painter: the analyzer's large sphere, its thumbnails and anything else that shows a
+ * qubit this way all come through here, so they cannot disagree about which way an axis points.
+ * It fills a size × size box at the view's origin; a caller places the view.
+ *
+ * @param {!DisplayView} view
+ * @param {!number} size Above DETAILED_SIZE the sphere is labelled, gridded and annotated; below it
+ *     only the frame, the axes and the vector are drawn.
  * @param {undefined|!{x: !number, y: !number, z: !number}} vec
  * @param {!number} yaw
  * @param {!number} pitch
- * @param {!{layers: (undefined|!Object), focusAxis: (undefined|!string)}=} options The
- *     constructions to draw, and the one axis to read, whose marks keep their full strength while
- *     the rest fade.
+ * @param {!{layers: (undefined|!Object), focusAxis: (undefined|!string), origin: (undefined|!{x: number, y: number}),
+ *     transparent: (undefined|boolean)}=} options The constructions to draw; the one axis to read,
+ *     whose marks keep their full strength while the rest fade; where the box's top-left corner is
+ *     in the view, so a caller can paint into its own coordinates; and whether to leave the box
+ *     unfilled, so what is behind it - a gate's hover tint - shows through.
  */
-function drawBlochScene(canvas, vec, yaw, pitch, {layers = DEFAULT_LAYERS, focusAxis} = {}) {
-    const size = canvas.clientWidth;
-    if (!size) return;
-    const dpr = window.devicePixelRatio || 1;
-    const view = RenderSurface.forCanvas(canvas).resize(size * dpr, size * dpr).beginFrame(undefined, dpr);
-    rectangle(view, new Rect(0, 0, size, size), {fill: CanvasTheme.surface.background});
-    const cx = size / 2, cy = size / 2, scale = size * 0.72 / 2;
+function paintBlochScene(view, size, vec, yaw, pitch,
+        {layers = DEFAULT_LAYERS, focusAxis, origin = {x: 0, y: 0}, transparent = false} = {}) {
+    const detailed = size > DETAILED_SIZE;
+    if (!transparent) rectangle(view, new Rect(origin.x, origin.y, size, size), {fill: CanvasTheme.surface.background});
+    const cx = origin.x + size / 2, cy = origin.y + size / 2;
+    const scale = size * (detailed ? PLOT_RADIUS : GLANCE_RADIUS);
     const center = new Point(cx, cy);
     const project = (x, y, z) => {
         const p = projectPoint(x, y, z, yaw, pitch);
@@ -229,6 +288,15 @@ function drawBlochScene(canvas, vec, yaw, pitch, {layers = DEFAULT_LAYERS, focus
     });
     circle(view, center, scale, {fill: CanvasTheme.bloch.background});
     circle(view, center, scale, {stroke: {color: CanvasTheme.stroke.guide, width: 1}});
+    if (detailed && layers.grid) {
+        view.group('grid', inner => {
+            // Back halves come out dashed; the whole grid sits well behind the data.
+            inner.alpha *= 0.35;
+            for (const pointAt of GRID_LINES) {
+                strokeGreatCircle(inner, pointAt, cx, cy, scale, yaw, pitch, CanvasTheme.stroke.guide);
+            }
+        });
+    }
     if (layers.circles) {
         for (const {axis, pointAt} of UNIT_CIRCLES) {
             forAxis('circle-' + axis, axis, inner => {
@@ -242,9 +310,13 @@ function drawBlochScene(canvas, vec, yaw, pitch, {layers = DEFAULT_LAYERS, focus
     for (const [dir, ket, letter] of [
         [[1,0,0], '|+⟩', 'x'], [[-1,0,0], '|−⟩', 'x'], [[0,1,0], '|+i⟩', 'y'],
         [[0,-1,0], '|−i⟩', 'y'], [[0,0,1], '|0⟩', 'z'], [[0,0,-1], '|1⟩', 'z']]) {
-        const tip = project(...dir);
+        // A positive axis runs a little past the surface to its head; a negative one stops at it.
+        const positive = dir.some(v => v > 0);
+        const tip = project(...dir.map(v => v * (detailed && positive ? AXIS_REACH : 1)));
 
         strokePath(view, [center, tip], tip.depth >= 0 ? CanvasTheme.stroke.guide : CanvasTheme.stroke.faint, 1, tip.depth >= 0 ? [] : [4, 4]);
+        if (!detailed) continue;
+        if (positive) forAxis('head-' + letter, letter, inner => arrowHead(inner, center, tip, AXIS_COLOR[letter], 6));
 
         const label = project(...dir.map(v => v * 1.22));
         drawText(view, ket, {
@@ -269,7 +341,7 @@ function drawBlochScene(canvas, vec, yaw, pitch, {layers = DEFAULT_LAYERS, focus
             x: cx,
             y: cy,
             fill: CanvasTheme.error.text,
-            font: {fontSize: 14, fontFamily: Typography.MONO_FONT_FAMILY},
+            font: {fontSize: detailed ? 14 : 10, fontFamily: Typography.MONO_FONT_FAMILY},
             align: 'center',
             baseline: 'middle'
         });
@@ -281,7 +353,7 @@ function drawBlochScene(canvas, vec, yaw, pitch, {layers = DEFAULT_LAYERS, focus
     // hypotenuse is that projection triangle's base, in the same colour but fainter. A solid leg
     // is always a component, in the colour of the axis it runs along.
     const vector = [vec.x, vec.y, vec.z];
-    const triangles = [
+    const triangles = !detailed ? [] : [
         ...(layers.components ? projectionTriangles(vec) : []).map(({axis, foot}) => ({
             key: 'projection-' + axis, foot, tip: vector, axis, fill: AXIS_COLOR[axis], alpha: 0.16,
             base: {axis, color: AXIS_COLOR[axis], dash: [4, 4]}, leg: {axis, color: AXIS_COLOR[axis]},
@@ -324,22 +396,57 @@ function drawBlochScene(canvas, vec, yaw, pitch, {layers = DEFAULT_LAYERS, focus
 
     // Each component's leg says which trigonometry it comes from; the z triangle's base is the
     // equatorial radius, which is where the sin θ in the other two comes from.
-    if (layers.trig) {
-        const formulas = componentFormulas(blochAngles(vec).r);
-        for (const triangle of triangles.filter(t => t.key.startsWith('projection-'))) {
+    if (detailed && layers.trig) {
+        const formulas = componentFormulas(blochReading(vec));
+        for (const triangle of triangles.filter(t => t.key.startsWith('projection-') && formulas[t.axis] !== undefined)) {
             forAxis('trig-' + triangle.key, triangle.axis, inner => labelSegment(inner, triangle.foot,
                 triangle.tip, formulas[triangle.axis], AXIS_COLOR[triangle.axis], project, center));
         }
         const equatorial = triangles.find(t => t.key === 'projection-z');
-        if (equatorial !== undefined) {
+        if (equatorial !== undefined && formulas.radial !== undefined) {
             forAxis('trig-radial', 'z', inner => labelSegment(inner, ORIGIN, equatorial.foot,
                 formulas.radial, CanvasTheme.text.muted, project, center));
         }
     }
-    if (layers.quaternion) drawQuaternion(view, vec, project);
-    if (layers.angles) drawAngles(view, vec, project);
-    strokePath(view, [center, tip], CanvasTheme.bloch.vector, 2);
-    circle(view, tip, 5, {fill: CanvasTheme.bloch.vector});
-    circle(view, tip, 5, {stroke: {color: CanvasTheme.text.primary, width: 1}});
+    if (detailed && layers.quaternion) drawQuaternion(view, vec, project);
+    if (detailed && layers.angles) drawAngles(view, vec, project);
+    // The angles' values, in the corner no axis, ket or leg reaches: θ wherever it exists, ϕ only
+    // off the z axis (RULE A, B).
+    if (detailed && layers.angles) {
+        const {theta, phi} = blochReading(vec);
+        const lines = [theta === undefined ? undefined : `θ ${degreesText(theta)}`,
+            phi === undefined ? undefined : `ϕ ${degreesText(phi)}`].filter(line => line !== undefined);
+        lines.forEach((line, index) => drawText(view, line, {x: 10, y: 14 + index * 18,
+            fill: CanvasTheme.text.primary, font: {fontSize: 12, fontFamily: Typography.MONO_FONT_FAMILY},
+            align: 'left', baseline: 'middle'}));
+    }
+
+    // The state vector, headed. Seen end-on its head would be a speck, so there it is a dot; with
+    // no direction at all (RULE A) the dot sits on the centre.
+    strokePath(view, [center, tip], CanvasTheme.bloch.vector, detailed ? 2.5 : 2);
+    if (Math.hypot(tip.x - cx, tip.y - cy) > (detailed ? 12 : 7)) {
+        arrowHead(view, center, tip, CanvasTheme.bloch.vector, detailed ? 8 : 5);
+    } else {
+        circle(view, tip, detailed ? 5 : 3.5, {fill: CanvasTheme.bloch.vector});
+        circle(view, tip, detailed ? 5 : 3.5, {stroke: {color: CanvasTheme.text.primary, width: 1}});
+    }
 }
-export {drawBlochScene, projectPoint, projectionTriangles, coordinatePlaneTriangles};
+
+/**
+ * Draws the sphere into its own canvas, as large as the canvas is wide.
+ * @param {!HTMLCanvasElement} canvas
+ * @param {undefined|!{x: !number, y: !number, z: !number}} vec
+ * @param {!number} yaw
+ * @param {!number} pitch
+ * @param {!Object=} options As for paintBlochScene.
+ */
+function drawBlochScene(canvas, vec, yaw, pitch, options = {}) {
+    const size = canvas.clientWidth;
+    if (!size) return;
+    const dpr = window.devicePixelRatio || 1;
+    const view = RenderSurface.forCanvas(canvas).resize(size * dpr, size * dpr).beginFrame(undefined, dpr);
+    paintBlochScene(view, size, vec, yaw, pitch, options);
+}
+
+export {drawBlochScene, paintBlochScene, glanceBoxFor, DEFAULT_VIEW, projectPoint, projectionTriangles,
+    coordinatePlaneTriangles};

@@ -15,19 +15,25 @@
 - **zoom the circuit**: use the `−` / `+` / `Fit` buttons over the circuit's corner
 - **scroll a big circuit**: drag the viewport box on the minimap that appears when the circuit
   overflows
-- **inspect a qubit's Bloch sphere**: click any Bloch sphere in the circuit or at a wire's end;
-  drag the enlarged sphere to rotate the view. A triangle in an axis's colour drops the vector
-  along that axis, its coloured leg as long as the component; a fainter triangle in the same
-  colour resolves the projection in the plane normal to that axis, and the unit circle normal to
-  that axis carries the colour too. Arcs mark θ from |0⟩ and ϕ from |+⟩. The readout also writes
-  the state as the unit quaternion q that turns the |0⟩ pole k onto it, with r = |r| q k q̄;
-  switching **Quaternion** on draws the axis n of that turn and the path |0⟩ takes
-- **read one axis at a time**: in the enlarged view, hover an axis in the colour key to fade the
-  others, click it to keep it there, and use **Show** to draw only the constructions you are
-  asking about
-- **read a component face-on**: under the sphere, one section per axis looks straight down it at
-  the plane it is normal to, and draws the shadow the vector casts there with its two components
-  and its length
+- **inspect a qubit's Bloch sphere**: click any Bloch sphere in the circuit or at a wire's end to
+  open the Bloch Sphere Analyzer. Its parts are grouped by what they do: Figures, Display, State
+  source, and beside them the readout's Bloch vector and Quantum state. The figures show the qubit
+  three ways: the sphere in perspective (drag to rotate), the meridian through the state, where θ
+  is measured, and the equator, where ϕ is. All three draw one unit circle, at one size and one
+  height, so a length reads the same in each. The two sections are drawn face on, with ticks, the
+  vector's shadow as an arrow, its two components dashed and its length at the tip. The Bloch
+  vector group lists the state vector (|r|, θ, ϕ), the Cartesian components with the formula each
+  comes from, and the quaternion q that turns |0⟩ onto the state; the Quantum state group lists the
+  amplitudes α and β, the purity Tr ρ² and the ket
+- **read what is and is not defined**: a maximally mixed qubit has no direction, so θ, ϕ, q and
+  every formula read —; on the z axis only ϕ is undefined. A note says which, and — is always
+  muted so it never passes for a zero
+- **read one axis at a time**: hover an axis in the colour key to fade the others, click it to keep
+  it there, and use **Show** to draw only the constructions you are asking about
+- **step through the circuit**: the strip under the figures holds the qubit after every column;
+  click a step, or use ← and →, to read that state
+- **explore without a circuit**: the presets |0⟩ … |−i⟩ and Mixed, and the θ and ϕ sliders, put a
+  free state in the analyzer, marked as not from the circuit; **Back to circuit** returns
 - **open the gates on a narrow screen**: click the `Gates` button over the circuit's corner; the
   palette slides in as a drawer and closes when a gate is dragged out
 

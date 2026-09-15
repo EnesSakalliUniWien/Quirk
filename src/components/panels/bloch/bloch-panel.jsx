@@ -1,349 +1,158 @@
-import {observeStore} from '../../../base/valueStore.js';
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useStore } from "zustand";
 
-import { drawBlochScene } from "../../../draw/displays/BlochScene.js";
-import { drawBlochSections } from "../../../draw/displays/BlochSections.js";
-import {
-  blochAngles,
-  blochCoordinates,
-  blochQuaternion,
-  pureQuaternionText,
-  pureStateText,
-  quaternionText,
-  signed,
-} from "../../../engine/math/bloch.js";
 import { appStore } from "../../../state/appStore.js";
 import { closePanel } from "../../dock.jsx";
-
-// The default view: yawed and tilted so all three axes are visibly distinct.
-const DEFAULT_YAW = Math.PI * -0.15;
-const DEFAULT_PITCH = Math.PI * 0.11;
-/** Above this length the state is pure enough to name as a ket. */
-const PURE_STATE_THRESHOLD = 0.999;
-
-/**
- * What a fresh reading draws: the components against the coloured frame. The constructions that
- * answer a narrower question - the planes, and the turn the quaternion names - are switched on when
- * they are the question, because all of them at once is a thicket rather than a diagnosis.
- */
-const INITIAL_LAYERS = {circles: true, components: true, planes: false, angles: true, quaternion: false,
-  sections: true, trig: true};
-const LAYERS = [
-  ["components", "Components"],
-  ["planes", "Planes"],
-  ["angles", "Angles θ ϕ"],
-  ["quaternion", "Quaternion"],
-  ["circles", "Unit circles"],
-  ["sections", "Sections"],
-  ["trig", "cos · sin"],
-];
-const AXES = [
-  ["x", "|+⟩ |−⟩"],
-  ["y", "|+i⟩ |−i⟩"],
-  ["z", "|0⟩ |1⟩"],
-];
-
-/** @param {!number} v @returns {!string} */
-const degrees = (v) => ((v * 180) / Math.PI).toFixed(1) + "°";
+import { AnalyzerFooter } from "./analyzer-footer.jsx";
+import { AnalyzerGroup } from "./analyzer-group.jsx";
+import { AnalyzerHeader } from "./analyzer-header.jsx";
+import { INITIAL_LAYERS, anglesOf, subtitleFor } from "./analyzerModel.js";
+import { AxisKey } from "./axis-key.jsx";
+import { BlochFigures } from "./bloch-figures.jsx";
+import { ExploreControls } from "./explore-controls.jsx";
+import { LayerSwitches } from "./layer-switches.jsx";
+import { ReadoutSidebar } from "./readout-sidebar.jsx";
+import { StepStrip } from "./step-strip.jsx";
+import { useBlochFigures } from "./useBlochFigures.js";
+import { useCircuitSteps } from "./useCircuitSteps.js";
+import { useExploreTransition } from "./useExploreTransition.js";
 
 /**
- * The single-qubit state the panel was opened for, or undefined if that sphere has gone: an undo
- * or a URL change can remove it underneath the panel, and showing some other slot's state would be
- * worse than closing.
+ * The Bloch Sphere Analyzer: one qubit read three ways - the sphere in perspective, the meridian
+ * that holds θ and the equator that holds ϕ, all face on - with every number beside them.
  *
- * @param {!Object} deps
- * @param {!{row: !int, col: (undefined|!int)}} target
- * @returns {undefined|!Matrix}
- */
-function densityMatrixOf(deps, target) {
-  const result = deps.completed.getState().value;
-  if (result === undefined) return undefined;
-  const circuitDefinition = result.circuit;
-  const stats = result.fullStats;
-  if (target.col !== undefined) {
-    const gate = circuitDefinition.gateInSlot(target.col, target.row);
-    if (gate === undefined || gate.serializedId !== "Bloch") {
-      return undefined;
-    }
-    return stats.qubitDensityMatrix(target.col, target.row);
-  }
-  if (target.row >= deps.displayed.getState().value.displayedCircuit.importantWireCount()) {
-    return undefined;
-  }
-  return stats.qubitDensityMatrix(Infinity, target.row);
-}
-
-/**
- * The enlarged Bloch sphere: the same single-qubit state the circuit paints in miniature, at a
- * size where the geometry is readable, rotatable by dragging, and printed as numbers.
+ * Usage: open it by clicking any Bloch sphere in the circuit; appStore.blochTarget says which
+ * ({row, col} for a Bloch gate, {row} for a wire's output). It takes no props.
  *
- * The sphere itself stays imperative - it is the circuit's own painter drawing into a canvas - so
- * the canvas is a ref and React never owns its pixels.
+ * This component owns the analyzer's state - which layers are drawn, which axis is read, which
+ * state is shown - and composes the parts that show it, grouped by responsibility: the figures,
+ * what they draw, which state they show, and the readout. Where each part comes from:
+ *   - the numbers and the rules about what is undefined: src/engine/math/bloch.js, formatted for
+ *     the panel by ./analyzerModel.js;
+ *   - the drawing: ./useBlochFigures.js, through the painters in src/draw/displays/;
+ *   - every colour: src/config/Theme.js, through CanvasTheme and the --bloch-axis-* variables;
+ *   - the controls: Base UI and the app's own Button.
  */
 function BlochPanel() {
   const deps = useStore(appStore, (s) => s.panelDeps);
   const target = useStore(appStore, (s) => s.blochTarget);
-  const canvasRef = useRef(null);
-  const sectionsRef = useRef(null);
-  const viewRef = useRef({ yaw: DEFAULT_YAW, pitch: DEFAULT_PITCH });
-  const [readout, setReadout] = useState(undefined);
   const [layers, setLayers] = useState(INITIAL_LAYERS);
   // Hovering an axis previews it; clicking keeps it, so a reading can be held while the sphere
   // is dragged with the other hand.
-  const [pinnedAxis, setPinnedAxis] = useState(undefined);
-  const [hoverAxis, setHoverAxis] = useState(undefined);
+  const [pinnedAxis, setPinnedAxis] = useState(
+    /** @type {string | undefined} */ (undefined),
+  );
+  const [hoverAxis, setHoverAxis] = useState(
+    /** @type {string | undefined} */ (undefined),
+  );
+  const [mode, setMode] = useState(
+    /** @type {import("./analyzerModel.js").ViewMode} */ ({ kind: "circuit" }),
+  );
   const focusAxis = hoverAxis ?? pinnedAxis;
-  const optionsRef = useRef({ layers: INITIAL_LAYERS, focusAxis: undefined });
 
-  // A fresh sphere gets the default view back.
+  const { steps, currentStep } = useCircuitSteps(target);
+  const figures = useBlochFigures({
+    deps,
+    target,
+    mode,
+    layers,
+    focusAxis,
+    steps,
+    currentStep,
+  });
+  const { explore, exploreAngles, cancel } = useExploreTransition(
+    setMode,
+    figures.shownVector,
+  );
+
+  // A fresh sphere shows the state it was opened for.
   useEffect(() => {
-    viewRef.current = { yaw: DEFAULT_YAW, pitch: DEFAULT_PITCH };
-  }, [target]);
+    cancel();
+    setMode({ kind: "circuit" });
+  }, [target, cancel]);
 
-  const repaint = useMemo(() => {
-    return () => {
-      const canvas = canvasRef.current;
-      if (canvas === null || deps === undefined || target === undefined) {
-        return;
-      }
-      const densityMatrix = densityMatrixOf(deps, target);
-      if (densityMatrix === undefined) {
-        appStore.setState({ blochTarget: undefined });
-        closePanel("bloch");
-        return;
-      }
-      const { yaw, pitch } = viewRef.current;
-      const sections = sectionsRef.current;
-      if (densityMatrix.hasNaN()) {
-        drawBlochScene(canvas, undefined, yaw, pitch, optionsRef.current);
-        if (sections !== null) drawBlochSections(sections, undefined, optionsRef.current);
-        setReadout(null);
-        return;
-      }
-      const vec = blochCoordinates(densityMatrix);
-      const { r, theta, phi } = blochAngles(vec);
-      drawBlochScene(canvas, vec, yaw, pitch, optionsRef.current);
-      if (sections !== null) drawBlochSections(sections, vec, optionsRef.current);
-      setReadout({
-        state:
-          r > PURE_STATE_THRESHOLD
-            ? pureStateText(theta, phi)
-            : "mixed — |r| < 1 (entangled or decohered)",
-        x: signed(vec.x),
-        y: signed(vec.y),
-        z: signed(vec.z),
-        theta: degrees(theta),
-        phi: degrees(phi),
-        purity: r.toFixed(3),
-        quaternion: quaternionText(blochQuaternion(theta, phi)),
-        vector: pureQuaternionText(vec),
-      });
-    };
-  }, [deps, target]);
-
-  // A switch or a held axis redraws the same frame with different weights.
-  useEffect(() => {
-    optionsRef.current = { layers, focusAxis };
-    repaint();
-  }, [layers, focusAxis, repaint]);
-
-  // Simulation frames keep arriving while a time-dependent circuit animates, and the panel can be
-  // resized without a stats tick; both mean repaint.
-  useEffect(() => {
-    if (deps === undefined) {
-      return undefined;
-    }
-    repaint();
-    const unsubscribe = observeStore(deps.completed).subscribe(repaint);
-    const observer =
-      typeof ResizeObserver === "undefined" ? undefined : new ResizeObserver(() => repaint());
-    for (const element of [canvasRef.current, sectionsRef.current]) {
-      if (observer !== undefined && element !== null) observer.observe(element);
-    }
-    return () => {
-      unsubscribe();
-      observer?.disconnect();
-    };
-  }, [deps, repaint]);
-
-  // Drag rotates the view; pointer events so touch drags work the same way.
-  const onPointerDown = (event) => {
-    if (!event.isPrimary || (event.pointerType === "mouse" && event.button !== 0)) {
-      return;
-    }
-    event.currentTarget.setPointerCapture(event.pointerId);
-    event.preventDefault();
+  const selectedStep =
+    mode.kind === "step"
+      ? mode.index
+      : mode.kind === "circuit"
+        ? currentStep
+        : undefined;
+  /** @param {number} index */
+  const selectStep = (index) => {
+    cancel();
+    setMode(index === currentStep ? { kind: "circuit" } : { kind: "step", index });
   };
-  const onPointerMove = (event) => {
-    const canvas = event.currentTarget;
-    if (!canvas.hasPointerCapture(event.pointerId)) {
-      return;
-    }
-    const cssSize = Math.max(1, canvas.clientWidth);
-    const view = viewRef.current;
-    view.yaw -= (event.movementX * Math.PI) / cssSize;
-    view.pitch = Math.max(
-      Math.PI * -0.49,
-      Math.min(Math.PI * 0.49, view.pitch + (event.movementY * Math.PI) / cssSize),
-    );
-    repaint();
+  const close = () => {
+    appStore.setState({ blochTarget: undefined });
+    closePanel("bloch");
   };
-
-  const na = readout === null || readout === undefined;
-  const value = (field) => (na ? "n/a" : readout[field]);
 
   return (
     <div className="panel-body bloch-panel" aria-labelledby="bloch-title">
-      <header className="panel-header">
-        <h2 id="bloch-title" className="bloch-title">
-          Bloch sphere
-        </h2>
-        <p id="bloch-subtitle" className="bloch-subtitle">
-          {target === undefined
-            ? "Click a Bloch sphere in the circuit."
-            : `Qubit ${target.row + 1} · ` +
-              (target.col === undefined ? "final output state" : `at column ${target.col + 1}`)}
-        </p>
-      </header>
+      <AnalyzerHeader subtitle={subtitleFor(mode, target)} />
 
-      <div className="bloch-layout">
-        {/* The canvas gets a wrapper, so what the layout sizes is the track and the canvas itself
-            stays square: the painter draws a square of its clientWidth. */}
-        <div className="bloch-stage">
-          <canvas
-            id="bloch-canvas"
-            ref={canvasRef}
-            className="bloch-canvas"
-            width="320"
-            height="320"
-            aria-label="Enlarged Bloch sphere view"
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-          />
-        </div>
-
-        <div className="bloch-analysis">
-          <p className="bloch-hint">
-            Drag to rotate. Each axis owns a unit circle, a colour and a solid leg as long as its
-            component; hover an axis to read it alone, click to keep it.
-          </p>
-
-          <ul className="bloch-legend" aria-label="Axis colours">
-            {AXES.map(([axis, kets]) => (
-              <li key={axis}>
-                <button
-                  type="button"
-                  id={`bloch-axis-${axis}-button`}
-                  className={`bloch-legend-axis bloch-axis-${axis}`}
-                  aria-pressed={pinnedAxis === axis}
-                  title={`Read the ${axis} axis on its own`}
-                  onClick={() => setPinnedAxis((pinned) => (pinned === axis ? undefined : axis))}
-                  onPointerEnter={() => setHoverAxis(axis)}
-                  onPointerLeave={() => setHoverAxis(undefined)}
-                  onFocus={() => setHoverAxis(axis)}
-                  onBlur={() => setHoverAxis(undefined)}
-                >
-                  <span className="bloch-swatch" aria-hidden="true" />
-                  {axis}
-                </button>
-                <span className="bloch-legend-kets">{kets}</span>
-              </li>
-            ))}
-          </ul>
-
-          <div className="bloch-layers" role="group" aria-label="Constructions to draw">
-            {LAYERS.map(([key, label]) => (
-              <label key={key} className="bloch-layer">
-                <input
-                  type="checkbox"
-                  id={`bloch-layer-${key}`}
-                  checked={layers[key]}
-                  onChange={(event) =>
-                    setLayers((current) => ({ ...current, [key]: event.target.checked }))
+      <div className="bloch-analyzer">
+        <div className="bloch-main">
+          <AnalyzerGroup
+            title="State source"
+            purpose="a step of the circuit, or a free state"
+          >
+            <div className="bloch-source-controls">
+              <StepStrip
+                steps={steps}
+                selected={selectedStep}
+                canvasRef={figures.stripRef}
+                onSelect={selectStep}
+              />
+              <div className="bloch-explore-controls">
+                <ExploreControls
+                  activePreset={mode.kind === "explore" ? mode.preset : undefined}
+                  canReturn={mode.kind !== "circuit" && target !== undefined}
+                  onPreset={(preset) =>
+                    explore(preset.vec, { preset: preset.name, glide: true })
                   }
+                  onReturn={() => {
+                    cancel();
+                    setMode({ kind: "circuit" });
+                  }}
+                  angles={anglesOf(figures.readout)}
+                  onAngles={exploreAngles}
                 />
-                {label}
-              </label>
-            ))}
-          </div>
+              </div>
+            </div>
+          </AnalyzerGroup>
 
-          <dl className="bloch-readout">
-            <div className="bloch-row">
-              <dt>|ψ⟩</dt>
-              <dd id="bloch-state">{value("state")}</dd>
-            </div>
-            <div className="bloch-row bloch-group-start">
-              <dt className="bloch-axis-x">x</dt>
-              <dd id="bloch-x">{value("x")}</dd>
-            </div>
-            <div className="bloch-row">
-              <dt className="bloch-axis-y">y</dt>
-              <dd id="bloch-y">{value("y")}</dd>
-            </div>
-            <div className="bloch-row">
-              <dt className="bloch-axis-z">z</dt>
-              <dd id="bloch-z">{value("z")}</dd>
-            </div>
-            <div className="bloch-row bloch-group-start">
-              <dt>θ</dt>
-              <dd id="bloch-theta">{value("theta")}</dd>
-            </div>
-            <div className="bloch-row">
-              <dt>ϕ</dt>
-              <dd id="bloch-phi">{value("phi")}</dd>
-            </div>
-            <div className="bloch-row">
-              <dt>|r|</dt>
-              <dd id="bloch-purity">{value("purity")}</dd>
-            </div>
-            <div className="bloch-row bloch-group-start">
-              <dt>q</dt>
-              <dd id="bloch-quaternion" className="bloch-quaternion-value">
-                {value("quaternion")}
-              </dd>
-            </div>
-            <div className="bloch-row">
-              <dt>r</dt>
-              <dd id="bloch-vector-quaternion" className="bloch-quaternion-value">
-                {value("vector")}
-              </dd>
-            </div>
-          </dl>
+          <AnalyzerGroup title="Figures" purpose="the qubit drawn three ways">
+            <BlochFigures
+              sphereRef={figures.sphereRef}
+              meridianRef={figures.meridianRef}
+              equatorRef={figures.equatorRef}
+              onPointerDown={figures.onPointerDown}
+              onPointerMove={figures.onPointerMove}
+            />
+          </AnalyzerGroup>
 
-          <p className="bloch-hint">
-            q = cos(θ/2) + sin(θ/2)(−sin ϕ i + cos ϕ j) turns |0⟩ onto the state, about the axis n
-            in the equator and through the angle θ; r = |r| q k q̄. Switch the quaternion on to see
-            n and that turn drawn on the sphere.
-          </p>
+          <AnalyzerGroup title="Display" purpose="what the figures draw">
+            <AxisKey
+              pinnedAxis={pinnedAxis}
+              onTogglePin={(axis) =>
+                setPinnedAxis((pinned) => (pinned === axis ? undefined : axis))
+              }
+              onPreview={setHoverAxis}
+            />
+            <LayerSwitches
+              layers={layers}
+              onChange={(key, checked) =>
+                setLayers((current) => ({ ...current, [key]: checked }))
+              }
+            />
+          </AnalyzerGroup>
         </div>
+
+        <ReadoutSidebar readout={figures.readout} />
       </div>
 
-      {/* Underneath the sphere, the same state read face-on: no perspective to allow for. */}
-      <div className="bloch-sections" hidden={!layers.sections}>
-        <p className="bloch-hint">
-          Looking down each axis: the shadow the vector casts in the plane normal to it.
-        </p>
-        <canvas
-          id="bloch-sections-canvas"
-          ref={sectionsRef}
-          className="bloch-sections-canvas"
-          aria-label="Sections along each axis"
-        />
-      </div>
-
-      <div className="panel-action-row bloch-actions">
-        <button
-          id="bloch-close-button"
-          type="button"
-          onClick={() => {
-            appStore.setState({ blochTarget: undefined });
-            closePanel("bloch");
-          }}
-        >
-          Close
-        </button>
-      </div>
+      <AnalyzerFooter onClose={close} />
     </div>
   );
 }

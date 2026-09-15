@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Point} from "../geometry/Point.js"
+import { Point } from "../geometry/Point.js";
 
 /**
  * @param {!MouseEvent|!PointerEvent|!Touch} ev Anything with clientX and clientY.
@@ -22,8 +22,8 @@ import {Point} from "../geometry/Point.js"
  * @returns {!Point}
  */
 function eventPosRelativeTo(ev, element) {
-    const b = element.getBoundingClientRect();
-    return new Point(ev.clientX - b.left, ev.clientY - b.top);
+  const b = element.getBoundingClientRect();
+  return new Point(ev.clientX - b.left, ev.clientY - b.top);
 }
 
 /**
@@ -33,7 +33,7 @@ function eventPosRelativeTo(ev, element) {
  * @returns {!boolean}
  */
 function isPrimaryPress(ev) {
-    return ev.isPrimary && (ev.pointerType !== 'mouse' || ev.button === 0);
+  return ev.isPrimary && (ev.pointerType !== "mouse" || ev.button === 0);
 }
 
 /**
@@ -50,46 +50,46 @@ function isPrimaryPress(ev) {
  * @returns {!function(): void} Stops following the pointer without firing any handler.
  */
 function trackPointerUntilRelease(startEvent, handlers) {
-    const id = startEvent.pointerId;
-    let stopped = false;
-    const stop = () => {
-        if (stopped) {
-            return;
-        }
-        stopped = true;
-        document.removeEventListener('pointermove', onMove);
-        document.removeEventListener('pointerup', onUp);
-        document.removeEventListener('pointercancel', onCancel);
-    };
-    const onMove = ev => {
-        if (ev.pointerId !== id) {
-            return;
-        }
-        if (ev.pointerType === 'mouse' && (ev.buttons & 1) === 0) {
-            stop();
-            handlers.onRelease(ev);
-            return;
-        }
-        handlers.onMove(ev);
-    };
-    const onUp = ev => {
-        if (ev.pointerId !== id) {
-            return;
-        }
-        stop();
-        handlers.onRelease(ev);
-    };
-    const onCancel = ev => {
-        if (ev.pointerId !== id) {
-            return;
-        }
-        stop();
-        handlers.onCancel(ev);
-    };
-    document.addEventListener('pointermove', onMove, {passive: false});
-    document.addEventListener('pointerup', onUp, {passive: false});
-    document.addEventListener('pointercancel', onCancel);
-    return stop;
+  const id = startEvent.pointerId;
+  let stopped = false;
+  const stop = () => {
+    if (stopped) {
+      return;
+    }
+    stopped = true;
+    document.removeEventListener("pointermove", onMove);
+    document.removeEventListener("pointerup", onUp);
+    document.removeEventListener("pointercancel", onCancel);
+  };
+  const onMove = (ev) => {
+    if (ev.pointerId !== id) {
+      return;
+    }
+    if (ev.pointerType === "mouse" && (ev.buttons & 1) === 0) {
+      stop();
+      handlers.onRelease(ev);
+      return;
+    }
+    handlers.onMove(ev);
+  };
+  const onUp = (ev) => {
+    if (ev.pointerId !== id) {
+      return;
+    }
+    stop();
+    handlers.onRelease(ev);
+  };
+  const onCancel = (ev) => {
+    if (ev.pointerId !== id) {
+      return;
+    }
+    stop();
+    handlers.onCancel(ev);
+  };
+  document.addEventListener("pointermove", onMove, { passive: false });
+  document.addEventListener("pointerup", onUp, { passive: false });
+  document.addEventListener("pointercancel", onCancel);
+  return stop;
 }
 
-export {eventPosRelativeTo, isPrimaryPress, trackPointerUntilRelease}
+export { eventPosRelativeTo, isPrimaryPress, trackPointerUntilRelease };

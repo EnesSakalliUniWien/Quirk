@@ -19,7 +19,7 @@ import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js
 import {CircuitStats} from "../../../src/engine/simulation/CircuitStats.js"
 import {Gates} from "../../../src/gates/AllGates.js"
 import {stateTableRows} from "../../../src/engine/simulation/stateTableRows.js"
-import {fromJsonText_CircuitDefinition} from "../../../src/serialization/Serializer.js"
+import { fromJsonText_CircuitDefinition } from "../../../src/serialization/circuits/text.js";
 
 const suite = new Suite("stateTable");
 

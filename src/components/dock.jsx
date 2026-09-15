@@ -182,7 +182,7 @@ function keepPaletteWidth(api) {
  * and takes the circuit with it. Its wanted size is a maximum, not a promise.
  *
  * @param {!{width: !int, height: !int}} wanted
- * @returns {!{width: !int, height: !int}}
+ * @returns {!{width: !int, height: !int, position?: {left: number, top: number}}}
  */
 function floatingSizeWithin(wanted) {
   const dock = document.querySelector(".app-dock");
@@ -190,9 +190,15 @@ function floatingSizeWithin(wanted) {
     return wanted;
   }
   const margin = 32;
+  const width = Math.min(wanted.width, Math.max(1, dock.clientWidth - margin));
+  const height = Math.min(wanted.height, Math.max(1, dock.clientHeight - margin));
   return {
-    width: Math.max(240, Math.min(wanted.width, dock.clientWidth - margin)),
-    height: Math.max(200, Math.min(wanted.height, dock.clientHeight - margin)),
+    width,
+    height,
+    position: {
+      left: (dock.clientWidth - width) / 2,
+      top: (dock.clientHeight - height) / 2,
+    },
   };
 }
 

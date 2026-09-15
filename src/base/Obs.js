@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {createStore} from 'zustand/vanilla';
+import { createStore } from "zustand/vanilla";
 
 import { CooldownThrottle } from "./CooldownThrottle.js";
 
@@ -292,11 +292,17 @@ class Observable {
 /** Event streams use a fresh envelope so repeated events still notify. */
 class ObservableSource {
   constructor() {
-    this._store = createStore(() => ({value: undefined}));
-    this._observable = new Observable(observer => this._store.subscribe(state => observer(state.value)));
+    this._store = createStore(() => ({ value: undefined }));
+    this._observable = new Observable((observer) =>
+      this._store.subscribe((state) => observer(state.value)),
+    );
   }
-  observable() { return this._observable; }
-  send(value) { this._store.setState({value}); }
+  observable() {
+    return this._observable;
+  }
+  send(value) {
+    this._store.setState({ value });
+  }
 }
 
-export {Observable, ObservableSource};
+export { Observable, ObservableSource };

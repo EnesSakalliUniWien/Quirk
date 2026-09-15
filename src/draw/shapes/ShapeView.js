@@ -76,6 +76,13 @@ export function polygon(view, points, style) {
     if (points.length) return drawPath(view, path => path.poly(points.flatMap(p => [p.x, p.y])), [style]);
 }
 
+/** A filled arrowhead at `tip`, pointing the way the line from `from` runs, in screen space. */
+export function arrowHead(view, from, tip, color, radius) {
+    const angle = Math.atan2(tip.y - from.y, tip.x - from.x);
+    return drawPath(view, path => PathGeometry.arrowHead(path, tip.x - Math.cos(angle) * radius * 0.5,
+        tip.y - Math.sin(angle) * radius * 0.5, radius, angle, Math.PI / 2.6), [{fill: color}]);
+}
+
 export function strokePath(view, points, color = CanvasTheme.text.primary, width = 1, dash = []) {
     if (points.length) return drawPath(view, path => PathGeometry.polyline(path, points, dash), [{stroke: {color, width}}]);
 }

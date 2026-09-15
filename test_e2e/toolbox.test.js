@@ -19,7 +19,7 @@
 import assert from 'node:assert/strict';
 import {test, withQuirkPage, waitForCircuit, TEST_TIMEOUT_MILLIS, canvasLayout, assertCircuitLayout, waitForCanvasViewport, circuitMetrics, circuitTopForWires} from './harness.js';
 
-test('searches the gate toolbox and documents a gate on hover', async browser => {
+test('searches the toolbox, previews on hover, and opens accessible gate details', async browser => {
     await withQuirkPage(browser, {cols: [['H']]}, async page => {
         const shown = () => page.evaluate(() => ({
             tiles: [...document.querySelectorAll('.gate-tile')].
@@ -87,7 +87,11 @@ test('searches the gate toolbox and documents a gate on hover', async browser =>
         });
         await page.mouse.move(tile.x, tile.y);
         await page.waitForSelector('.gate-hover', {visible: true, timeout: TEST_TIMEOUT_MILLIS});
-        const card = await page.$eval('.gate-hover', element => ({
+        assert.equal(await page.$('.gate-hover math'), null, 'Hover stays a short summary.');
+        await page.click('[aria-label="Details for Hadamard Gate"]');
+        await page.waitForSelector('.gate-details-popup', {visible: true});
+        await page.waitForSelector('.gate-hover', {hidden: true});
+        const card = await page.$eval('.gate-details-popup', element => ({
             title: element.querySelector('.gate-details-title').textContent,
             cells: element.querySelectorAll('math mtd').length,
             // Real typesetting, not glyphs: a stacked fraction over a radical.
@@ -113,7 +117,7 @@ test('searches the gate toolbox and documents a gate on hover', async browser =>
     });
 });
 
-test('documents a gate too tall to write out by drawing its matrix tile by tile', async browser => {
+test('opens interactive details for a gate too tall to write out', async browser => {
     // A custom gate built from a six-qubit circuit: its 64 x 64 matrix is never built whole.
     const TALL = {cols: [['~tall']], gates: [{id: '~tall', name: 'Tall', circuit: {cols: [['inc6'], ['H']]}}]};
     await withQuirkPage(browser, TALL, async page => {
@@ -125,18 +129,25 @@ test('documents a gate too tall to write out by drawing its matrix tile by tile'
             return {x: bounds.x + bounds.width/2, y: bounds.y + bounds.height/2};
         });
         await page.mouse.move(tile.x, tile.y);
-        await page.waitForSelector('.gate-hover', {visible: true, timeout: TEST_TIMEOUT_MILLIS});
+        await page.click('[aria-label="Details for Tall Gate [tall]"]');
+        await page.waitForSelector('.gate-details-popup', {visible: true, timeout: TEST_TIMEOUT_MILLIS});
         const card = await page.waitForFunction(() => {
-            const view = document.querySelector('.gate-hover .operator-view-canvas');
+            const view = document.querySelector('.gate-details-popup .operator-view-canvas');
             return view?.dataset.painted !== 'true' ? false : {
-                title: document.querySelector('.gate-hover .gate-details-title').textContent,
+                title: document.querySelector('.gate-details-popup .gate-details-title').textContent,
                 label: view.getAttribute('aria-label'),
-                note: document.querySelector('.gate-hover .gate-details-note')?.textContent ?? null,
+                note: document.querySelector('.gate-details-popup .gate-details-note')?.textContent ?? null,
             };
         }, {timeout: TEST_TIMEOUT_MILLIS}).then(handle => handle.jsonValue());
         assert.equal(card.title, 'Tall Gate [tall]');
         assert.match(card.label, /64 by 64$/);
         assert.equal(card.note, null, 'A tall gate must be drawn, not dismissed with a note.');
+        await page.keyboard.press('Tab');
+        assert.equal(await page.evaluate(() => document.activeElement.classList.contains('operator-view-canvas')), true);
+        await page.keyboard.press('Tab');
+        assert.equal(await page.evaluate(() => document.activeElement.getAttribute('aria-label')), 'Zoom in');
+        await page.keyboard.press('Enter');
+        assert.equal(await page.$eval('.gate-details-popup [aria-label="Zoom out"]', e => e.disabled), false);
     });
 });
 
@@ -256,4 +267,60 @@ test('on a narrow screen the gate palette is a tab that gives way to the circuit
         await page.mouse.up();
         await waitForCircuit(page, {cols: [['H']]});
     }, {width: 700, height: 480, deviceScaleFactor: 1});
+});
+
+
+test('opens gate details by keyboard and restores focus without placing a gate', async browser => {
+    await withQuirkPage(browser, {cols: [['X']]}, async page => {
+        await page.focus('[data-gate-id="H"]');
+        await page.keyboard.press('Tab');
+        assert.equal(await page.evaluate(() => document.activeElement.getAttribute('aria-label')), 'Details for Hadamard Gate');
+        await page.keyboard.press('Enter');
+        await page.waitForSelector('.gate-details-popup', {visible: true});
+        assert.equal(await page.$eval('.gate-details-popup', e => e.getAttribute('role')), 'dialog');
+        assert.equal(await page.$eval('.gate-details-popup', e => document.getElementById(e.getAttribute('aria-labelledby')).textContent), 'Hadamard Gate');
+        assert.equal(await page.evaluate(() => document.activeElement.getAttribute('aria-label')), 'Close gate details');
+        await page.keyboard.press('Escape');
+        await page.waitForSelector('.gate-details-popup', {hidden: true});
+        assert.equal(await page.evaluate(() => document.activeElement.getAttribute('aria-label')), 'Details for Hadamard Gate');
+        await waitForCircuit(page, {cols: [['X']]});
+        await page.keyboard.press('ArrowDown');
+        assert.equal(await page.evaluate(() => document.activeElement.classList.contains('gate-tile')), true);
+    });
+});
+
+test('opens and closes details by touch at phone width without horizontal popup overflow', async browser => {
+    const circuit = {cols: [['~three']], gates: [{id: '~three', name: 'Three', circuit: {cols: [['inc3']]}}]};
+    await withQuirkPage(browser, circuit, async page => {
+        const tab = await page.waitForFunction(() => {
+            const e = [...document.querySelectorAll('.dv-tab')].find(t => t.textContent.trim() === 'Gates');
+            const r = e.getBoundingClientRect();
+            return {x: r.x + r.width / 2, y: r.y + r.height / 2};
+        }).then(h => h.jsonValue());
+        await page.touchscreen.tap(tab.x, tab.y);
+        await page.tap('#gate-search');
+        await page.keyboard.type('Three');
+        // Wait until the dock has made the palette the hit-test target before tapping it.
+        const point = await page.waitForFunction(() => {
+            const e = document.querySelector('[aria-label="Details for Three Gate [three]"]');
+            const r = e.getBoundingClientRect();
+            const x = r.x + r.width / 2, y = r.y + r.height / 2;
+            return document.elementFromPoint(x, y)?.closest('.gate-details-trigger') === e ? {x, y} : false;
+        }).then(h => h.jsonValue());
+        await page.touchscreen.tap(point.x, point.y);
+        await page.waitForSelector('.gate-details-popup', {visible: true});
+        await page.waitForFunction(() => {
+            const e = document.querySelector('.gate-details-popup');
+            const r = e.getBoundingClientRect();
+            const v = visualViewport;
+            return r.left >= v.offsetLeft && r.right <= v.offsetLeft + v.width && r.top >= v.offsetTop && r.bottom <= v.offsetTop + v.height && e.scrollWidth <= e.clientWidth;
+        });
+        assert.equal(await page.$$eval('.gate-details-popup mtd', cells => cells.length), 64);
+        const close = await page.$eval('[aria-label="Close gate details"]', e => {
+            const r = e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};
+        });
+        await page.touchscreen.tap(close.x, close.y);
+        await page.waitForSelector('.gate-details-popup', {hidden: true});
+        await waitForCircuit(page, circuit);
+    }, {width: 360, height: 640, deviceScaleFactor: 1, isMobile: true, hasTouch: true});
 });

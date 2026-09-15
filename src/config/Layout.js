@@ -33,11 +33,16 @@ Layout.REGISTER_NAME_WIDTH = Layout.UNIT * 1.3;
 Layout.BLOCH_RADIUS = Layout.UNIT * 0.75;
 Layout.BLOCH_LABEL_MARGIN = Layout.UNIT * 0.15;
 Layout.BLOCH_READOUT_HEIGHT = Layout.UNIT * 0.45;
-Layout.COLUMN_SPACING = 2 * (Layout.BLOCH_RADIUS + Layout.BLOCH_LABEL_MARGIN) + Layout.UNIT * 0.2;
+Layout.COLUMN_SPACING =
+  2 * (Layout.BLOCH_RADIUS + Layout.BLOCH_LABEL_MARGIN) + Layout.UNIT * 0.2;
 // Leave room for the first column's half-slot insertion preview, including a Bloch display.
 Layout.REGISTER_WIRE_GAP = Layout.COLUMN_SPACING / 2 + Layout.UNIT * 0.6;
-Layout.WIRE_SPACING = 2 * (Layout.BLOCH_RADIUS + Layout.BLOCH_LABEL_MARGIN +
-    Layout.BLOCH_READOUT_HEIGHT) + Layout.UNIT * 0.1;
+Layout.WIRE_SPACING =
+  2 *
+    (Layout.BLOCH_RADIUS +
+      Layout.BLOCH_LABEL_MARGIN +
+      Layout.BLOCH_READOUT_HEIGHT) +
+  Layout.UNIT * 0.1;
 // The least vertical margin above the circuit band; also the margin the band keeps when the
 // visible area is too short to center it.
 Layout.CIRCUIT_TOP_MARGIN = 24;
@@ -47,4 +52,4 @@ Layout.DEFAULT_STROKE_THICKNESS = 1;
 // Derived dimensions and their inputs must stay consistent for every consumer.
 Object.freeze(Layout);
 
-export {Layout}
+export { Layout };

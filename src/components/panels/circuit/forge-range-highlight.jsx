@@ -1,6 +1,7 @@
 import {useStore} from 'zustand';
 import {appStore} from '../../../state/appStore.js';
-import {Serializer,fromJsonText_CircuitDefinition} from '../../../serialization/Serializer.js';
+import { Serializer } from "../../../serialization/Serializer.js";
+import { fromJsonText_CircuitDefinition } from "../../../serialization/circuits/text.js";
 import {useMemo,useEffect,useReducer} from 'react';
 
 export function ForgeRangeHighlight({host}) {

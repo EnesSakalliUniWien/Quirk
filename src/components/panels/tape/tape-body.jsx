@@ -1,6 +1,8 @@
 import {useStore} from 'zustand';
 import { useMemo, useState } from "react";
-import { album, takeJson, takeCsv, MAX_FILE_BYTES } from "../../../results/takeFile.js";
+import { album, takeJson } from "../../../results/files/json.js";
+import { takeCsv } from "../../../results/files/csv.js";
+import { MAX_FILE_BYTES } from "../../../results/files/limits.js";
 import { downloadFile } from "../../../browser/downloadFile.js";
 import { TakeCard } from "./take-card.jsx";
 import { Compare } from "./compare.jsx";

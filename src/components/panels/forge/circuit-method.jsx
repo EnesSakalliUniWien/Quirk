@@ -1,5 +1,5 @@
 import {useEffect} from 'react';
-import {fromJsonText_CircuitDefinition} from '../../../serialization/Serializer.js';
+import { fromJsonText_CircuitDefinition } from "../../../serialization/circuits/text.js";
 import {appStore} from '../../../state/appStore.js';
 import {CircuitFigure} from '../../gate/circuit-figure.jsx';
 import {GatePreview} from '../../gate/gate-preview.jsx';

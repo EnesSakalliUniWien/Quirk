@@ -12,6 +12,10 @@ import {installErrorReporter} from '../../../src/diagnostics/errorReporter.js';
 
 const suite = new Suite('RenderSurface initialization');
 const frame = () => new Promise(resolve => requestAnimationFrame(resolve));
+/** Frames until the condition holds; wrapped in bounded, so a condition that never holds still fails. */
+async function until(condition) {
+    while (!condition()) await frame();
+}
 async function bounded(promise) {
     let timer;
     try {
@@ -95,7 +99,9 @@ suite.test('concurrent Application renders wait for one initialization', async (
         assertThat(mounted).isEqualTo([]);
         proceed.resolve();
         await bounded(initialized.promise);
-        await frame();
+        // React commits the child after initialization, which takes more than one frame when earlier
+        // suites have left the page busy; wait for the commit rather than assume a frame.
+        await bounded(until(() => mounted.length > 0));
         assertThat(attempts).isEqualTo(1);
         assertThat(mounted).isEqualTo([{value: 'second', ready: true}]);
     } finally {

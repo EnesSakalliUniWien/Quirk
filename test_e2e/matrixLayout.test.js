@@ -147,9 +147,10 @@ test("gate details write out a complete eight-by-eight operator", async browser 
             return {x: b.left + b.width / 2, y: b.top + b.height / 2};
         });
         await page.mouse.move(point.x, point.y);
-        await page.waitForSelector('.gate-hover .operator-matrix mtable');
-        assert.equal(await page.$$eval('.gate-hover .operator-matrix mtd', cells => cells.length), 64);
-        assert.match(await page.$eval('.gate-hover figcaption', e => e.textContent), /8×8/);
+        await page.click('[aria-label="Details for Three Gate [three]"]');
+        await page.waitForSelector('.gate-details-popup .operator-matrix mtable');
+        assert.equal(await page.$$eval('.gate-details-popup .operator-matrix mtd', cells => cells.length), 64);
+        assert.match(await page.$eval('.gate-details-popup figcaption', e => e.textContent), /8×8/);
     });
 });
 

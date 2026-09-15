@@ -2,8 +2,19 @@
 @layer components {
     /* display:flex below outranks the browser's [hidden] rule, so fold it back in; without this
        a search paints the non-matching tiles of a partially-matching group. */
+    .gate-tile-row[hidden],
     .gate-tile[hidden] {
         display: none;
+    }
+
+    .gate-tile-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 32px;
+        align-items: center;
+    }
+
+    .gate-details-trigger {
+        touch-action: manipulation;
     }
 
     .gate-tile {

@@ -1,5 +1,6 @@
 import {Suite, assertThat, assertTrue} from '../../TestUtil.js';
-import {drawBlochScene, projectPoint, projectionTriangles, coordinatePlaneTriangles} from '../../../src/draw/displays/BlochScene.js';
+import {drawBlochScene, paintBlochScene, projectPoint, projectionTriangles, coordinatePlaneTriangles} from '../../../src/draw/displays/BlochScene.js';
+import {DisplayView} from '../scene/TestDisplayView.js';
 import {RenderSurface} from '../../../src/draw/surface/RenderSurface.js';
 import {CanvasTheme} from '../../../src/config/CanvasTheme.js';
 
@@ -57,13 +58,22 @@ suite.test('coordinate-plane triangles have perpendicular component legs in ever
         {axes: ['x', 'y'], normal: 'z', foot: [0.5, 0, 0], tip: [0.5, -0.5, 0]});
 });
 
-suite.test('a plane triangle is never the same triangle as a projection triangle', () => {
-    // With a zero component the plane projection is the vector itself, and the plane triangle
-    // would coincide with a projection triangle: then it is not created.
-    for (const vec of [{x: 0.6, y: -0.8, z: 0}, {x: 0, y: 0.6, z: 0.8}, {x: 0.6, y: 0, z: 0.8},
-        {x: 0, y: 0, z: 0}, {x: 1, y: 0, z: 0}, {x: 0, y: 0, z: -1}]) {
+suite.test('a plane triangle needs only the two components in that plane', () => {
+    for (const sign of [-1, 1]) {
+        for (const [vec, axes] of [
+            [{x: 0.6, y: sign * 0.8, z: 0}, ['x', 'y']],
+            [{x: 0.6, y: 0, z: sign * 0.8}, ['x', 'z']],
+            [{x: 0, y: 0.6, z: sign * 0.8}, ['y', 'z']],
+        ]) {
+            assertThat(coordinatePlaneTriangles(vec).map(t => t.axes)).isEqualTo([axes]);
+        }
+    }
+    for (const vec of [{x: 0, y: 0, z: 0}, {x: 1, y: 0, z: 0}, {x: 0, y: 0, z: -1}]) {
         assertThat(coordinatePlaneTriangles(vec)).isEqualTo([]);
     }
+});
+
+suite.test('off the coordinate planes, plane and projection triangles have different corners', () => {
     const vec = {x: 0.5, y: 0.5, z: Math.SQRT1_2};
     const corners = t => JSON.stringify([t.foot, t.tip]);
     const projections = new Set(projectionTriangles(vec).map(t => corners({foot: t.foot, tip: [vec.x, vec.y, vec.z]})));
@@ -219,4 +229,40 @@ suite.test('a layer that is switched off leaves the sphere, and reading one axis
         await surface.destroy();
         canvas.remove();
     }
+});
+
+/** Every label a painted sphere holds, read off its committed scene. */
+async function paintedTexts(size, vec) {
+    const view = new DisplayView(document.createElement('canvas'));
+    paintBlochScene(view, size, vec, Math.PI * -0.15, Math.PI * 0.11);
+    await view.commit();
+    const texts = [];
+    const collect = node => {
+        if (typeof node.text === 'string') texts.push(node.text);
+        for (const child of node.children || []) collect(child);
+    };
+    collect(view);
+    return texts;
+}
+
+suite.test('a thumbnail is glanced at: frame and vector only, no labels', async () => {
+    assertThat(await paintedTexts(80, {x: 0.5, y: 0.5, z: Math.SQRT1_2})).isEqualTo([]);
+    const full = await paintedTexts(320, {x: 0.5, y: 0.5, z: Math.SQRT1_2});
+    for (const label of ['|0⟩', '|1⟩', 'x', 'y', 'z', 'θ 45.0°', 'ϕ 45.0°', 'cos θ']) {
+        assertTrue(full.includes(label));
+    }
+});
+
+suite.test('without a direction the sphere draws no angle and no formula (RULE A)', async () => {
+    const texts = await paintedTexts(320, {x: 0, y: 0, z: 0});
+    assertTrue(texts.includes('|0⟩'));
+    assertTrue(!texts.some(t => t.includes('θ') || t.includes('ϕ')));
+});
+
+suite.test('on the z axis θ is still read, but no ϕ and no arc, since its plane is undefined (RULE B)', async () => {
+    const texts = await paintedTexts(320, {x: 0, y: 0, z: -1});
+    assertTrue(texts.includes('θ 180.0°'));
+    assertTrue(!texts.some(t => t.includes('ϕ')));
+    // The arcs' symbols stand alone on the sphere; without arcs there is no bare θ.
+    assertTrue(!texts.includes('θ'));
 });

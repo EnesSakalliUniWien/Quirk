@@ -20,7 +20,7 @@ import {CircuitActions} from "../../../src/app/state/CircuitActions.js"
 import {RegisterActions} from "../../../src/app/state/RegisterActions.js"
 import {EditorState} from "../../../src/editor/state/EditorState.js"
 import {Rect} from "../../../src/geometry/Rect.js"
-import {fromJsonText_CircuitDefinition} from "../../../src/serialization/Serializer.js"
+import { fromJsonText_CircuitDefinition } from "../../../src/serialization/circuits/text.js";
 
 const suite = new Suite("RegisterActions");
 

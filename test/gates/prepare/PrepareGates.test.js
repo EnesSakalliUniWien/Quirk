@@ -19,7 +19,7 @@ import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
 import {CircuitStats} from "../../../src/engine/simulation/CircuitStats.js"
 import {circuitAlgebra, paddedState} from "../../../src/engine/simulation/stepAlgebra.js"
 import {PrepareGates} from "../../../src/gates/prepare/PrepareGates.js"
-import {fromJsonText_CircuitDefinition} from "../../../src/serialization/Serializer.js"
+import { fromJsonText_CircuitDefinition } from "../../../src/serialization/circuits/text.js";
 
 const suite = new Suite("PrepareGates");
 

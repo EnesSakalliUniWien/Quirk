@@ -162,7 +162,9 @@ function phaseRgb(phaseDegrees) {
   ];
   return linear.map((v) => {
     const c = Math.min(1, Math.max(0, v));
-    return Math.round((c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055) * 255);
+    return Math.round(
+      (c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055) * 255,
+    );
   });
 }
 
@@ -192,6 +194,9 @@ const primary = "#E5E7EF";
 const dom = Object.freeze({
   "--forge-range-fill": `color-mix(in srgb, ${foreground} 8%, transparent)`,
   "--spacing": "0.25rem",
+  "--layer-preview": "1000",
+  "--layer-popover": "1010",
+  "--layer-menu": "1020",
   "--text-caption": "0.6875rem",
   "--text-small": "0.8125rem",
   "--text-body": "0.9375rem",
@@ -235,7 +240,7 @@ const dom = Object.freeze({
   "--bloch-axis-x": CanvasTheme.bloch.axisX,
   "--bloch-axis-y": CanvasTheme.bloch.axisY,
   "--bloch-axis-z": CanvasTheme.bloch.axisZ,
-  "--phase-legend": `linear-gradient(to right, ${Array.from({length: 9}, (_, i) => phaseColor(-180 + i * 45)).join(", ")})`,
+  "--phase-legend": `linear-gradient(to right, ${Array.from({ length: 9 }, (_, i) => phaseColor(-180 + i * 45)).join(", ")})`,
   "--app-font-sans": typography.DEFAULT_FONT_FAMILY,
   "--app-font-mono": typography.MONO_FONT_FAMILY,
   "--background": background,
@@ -326,8 +331,21 @@ const Theme = Object.freeze({
   typography,
   dom,
   dockProperties,
-  dock: Object.freeze({name: "shadow-quant", className: "dockview-theme-shadow-quant", colorScheme}),
-  tape: Object.freeze(["#66d9ef", "#ffb454", "#b8e986", "#ce93d8", "#ff8a80", "#80cbc4", "#fff176", "#aabfff"]),
+  dock: Object.freeze({
+    name: "shadow-quant",
+    className: "dockview-theme-shadow-quant",
+    colorScheme,
+  }),
+  tape: Object.freeze([
+    "#66d9ef",
+    "#ffb454",
+    "#b8e986",
+    "#ce93d8",
+    "#ff8a80",
+    "#80cbc4",
+    "#fff176",
+    "#aabfff",
+  ]),
 });
 
 export { Theme, CanvasTheme, phaseColor, phaseRgb, gateStyle };

@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
-import { distributions } from "../../../results/take.js";
-import { takeJson, takeCsv, takeLink } from "../../../results/takeFile.js";
+import { distributions } from "../../../results/take/distributions.js";
+import { takeJson } from "../../../results/files/json.js";
+import { takeCsv } from "../../../results/files/csv.js";
+import { takeLink } from "../../../results/files/link.js";
 import { downloadFile } from "../../../browser/downloadFile.js";
 import { COLOURS } from "./colours.js";
 import { Distribution } from "./distribution.jsx";
