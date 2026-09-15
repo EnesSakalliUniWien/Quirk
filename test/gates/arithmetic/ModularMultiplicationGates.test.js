@@ -30,7 +30,7 @@ import {CircuitStats} from "../../../src/engine/simulation/CircuitStats.js"
 import {GateColumn} from "../../../src/circuit/model/GateColumn.js"
 import {Gates} from "../../../src/gates/AllGates.js"
 import {Outputs, makePseudoShaderWithInputsAndOutputAndCode} from "../../../src/engine/webgl/coder/ShaderCoders.js"
-import {Util} from "../../../src/base/Util.js"
+import { modular_multiplicative_inverse } from "../../../src/engine/math/modularArithmetic.js";
 import {WglArg} from "../../../src/engine/webgl/shader/WglArg.js"
 
 const suite = new Suite("ModularMultiplicationGates");
@@ -48,7 +48,7 @@ suite.testUsingWebGL('MODULAR_INVERSE_SHADER_CODE', () => {
     const assertMatches = (modulus, rangePower) => {
         assertThat(testShader(WglArg.float('modulus', modulus)).readVecFloatOutputs(rangePower)).
         isEqualTo(Float32Array.from({length: 1<<rangePower}, (_, e) => {
-            const inv = Util.modular_multiplicative_inverse(e, modulus);
+            const inv = modular_multiplicative_inverse(e, modulus);
             return inv === undefined ? -1 : inv;
         }));
     };

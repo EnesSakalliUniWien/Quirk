@@ -1,0 +1,63 @@
+@layer components {
+    /* Shared MathML presentation. The surrounding window, never an individual factor, scrolls. */
+
+    .tensor-details { margin-top: 8px; font-size: var(--text-small); }
+
+    .tensor-details > summary { cursor: pointer; color: var(--muted-foreground); }
+
+    .tensor-details > summary:focus-visible { outline: var(--border-width-strong) solid var(--ring); outline-offset: 2px; }
+
+    .tensor-decomposition { display: grid; gap: 8px; margin-bottom: 12px; }
+
+    .tensor-product { display: flex; align-items: center; gap: 12px; width: max-content; }
+
+    .matrix-math {
+        margin: 0;
+        font-size: 1.05rem;
+        text-align: left;
+        white-space: nowrap;
+        overflow: visible;
+        flex: none;
+    }
+
+    .matrix-table mtd {
+        padding: 3px 8px;
+        height: var(--matrix-row-height, auto);
+        box-sizing: border-box;
+        vertical-align: middle;
+        white-space: nowrap;
+    }
+
+    .matrix-factor {
+        display: grid;
+        grid-template-rows: 1.75rem auto;
+        align-content: start;
+        justify-items: start;
+        margin: 0;
+        width: max-content;
+        flex: none;
+    }
+
+    .matrix-factor > figcaption {
+        font-size: var(--text-small);
+        color: var(--muted-foreground);
+        white-space: nowrap;
+    }
+
+    .equation-sign {
+        align-self: center;
+        font-size: 1.2rem;
+        padding-top: 1.75rem;
+    }
+
+    .algebra-equation:has(> .matrix-factor .matrix-math) > .equation-sign {
+        align-self: start;
+        margin-top: calc(1.75rem + var(--equation-matrix-height, 260px) / 2);
+        padding-top: 0;
+        transform: translateY(-50%);
+    }
+
+    .algebra-step-note { max-width: 36rem; align-self: start; margin: 0; color: var(--muted-foreground); font-size: var(--text-small); }
+
+    .matrix-grid-label { max-width: 180px; margin: 4px 0 0; font-size: var(--text-small); color: var(--muted-foreground); }
+}

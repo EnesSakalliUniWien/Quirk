@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Util } from "../../base/Util.js";
+import { isPowerOf2 } from "../../engine/math/powersOfTwo.js";
 import { GateBuilder } from "../../circuit/model/Gate.js";
 import { MysteryGateSymbol, MysteryGateMakerWithMatrix } from "../../gates/misc/Joke_MysteryGate.js";
 import { MATRIX_RENDERER, LABEL_RENDERER, LOCATION_INDEPENDENT_GATE_RENDERER } from "../../draw/gate/GateRenderers.js";
@@ -37,7 +37,7 @@ function _parseGateMatrix(matrixProp) {
   if (
     matrix.width() < 2 ||
     matrix.width() > 1 << 4 ||
-    !Util.isPowerOf2(matrix.width())
+    !isPowerOf2(matrix.width())
   ) {
     throw new Error("Supported gate matrix sizes are 2, 4, 8, and 16.");
   }

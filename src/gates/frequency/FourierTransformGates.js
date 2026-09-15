@@ -14,36 +14,45 @@
  * limitations under the License.
  */
 
-import {Complex} from "../../engine/math/complex/Complex.js"
-import {Gate} from "../../circuit/model/Gate.js"
-import {ketArgs, ketShaderPhase} from "../../engine/simulation/gpu/KetShaderUtil.js"
-import {Matrix} from "../../engine/math/matrix/Matrix.js"
-import {HalfTurnGates} from "../rotations/HalfTurnGates.js"
-import {reverseShaderForSize} from "../ordering/ReverseBitsGate.js"
-import {WglArg} from "../../engine/webgl/shader/WglArg.js"
+import { Complex } from "../../engine/math/complex/Complex.js";
+import { Gate } from "../../circuit/model/Gate.js";
+import {
+  ketArgs,
+  ketShaderPhase,
+} from "../../engine/simulation/gpu/KetShaderUtil.js";
+import { Matrix } from "../../engine/math/matrix/Matrix.js";
+import { HalfTurnGates } from "../rotations/HalfTurnGates.js";
+import { reverseShaderForSize } from "../ordering/ReverseBitsGate.js";
+import { WglArg } from "../../engine/webgl/shader/WglArg.js";
 
 /**
  * @param {!CircuitEvalContext} ctx
  * @param {!int} qubitSpan Size of the gate.
  * @param {!number=} factor Scaling factor for the applied phases.
  */
-function applyControlledPhaseGradient(ctx, qubitSpan, factor=1) {
-    ctx.applyOperation(CONTROLLED_PHASE_GRADIENT_SHADER.withArgs(
-        ...ketArgs(ctx, qubitSpan),
-        WglArg.float("factor", factor)));
+function applyControlledPhaseGradient(ctx, qubitSpan, factor = 1) {
+  ctx.applyOperation(
+    CONTROLLED_PHASE_GRADIENT_SHADER.withArgs(
+      ...ketArgs(ctx, qubitSpan),
+      WglArg.float("factor", factor),
+    ),
+  );
 }
 const CONTROLLED_PHASE_GRADIENT_SHADER = ketShaderPhase(
-    'uniform float factor;',
-    `
+  "uniform float factor;",
+  `
         float hold = floor(out_id * 2.0 / span);
         float step = mod(out_id, span / 2.0);
         return hold * step * factor * 6.2831853071795864769 / span;
-    `);
+    `,
+);
 
-const FOURIER_TRANSFORM_MATRIX_MAKER = span =>
-    Matrix.generate(1<<span, 1<<span, (r, c) => Complex.polar(Math.pow(0.5, span/2), Math.PI*2*r*c/(1<<span)));
-const INVERSE_FOURIER_TRANSFORM_MATRIX_MAKER = span =>
-    FOURIER_TRANSFORM_MATRIX_MAKER(span).adjoint();
+const FOURIER_TRANSFORM_MATRIX_MAKER = (span) =>
+  Matrix.generate(1 << span, 1 << span, (r, c) =>
+    Complex.polar(Math.pow(0.5, span / 2), (Math.PI * 2 * r * c) / (1 << span)),
+  );
+const INVERSE_FOURIER_TRANSFORM_MATRIX_MAKER = (span) =>
+  FOURIER_TRANSFORM_MATRIX_MAKER(span).adjoint();
 
 const FourierTransformGates = {};
 
@@ -52,15 +61,15 @@ const FourierTransformGates = {};
  * @param {!int} span
  */
 function applyForwardGradientShaders(ctx, span) {
-    if (span > 1) {
-        ctx.applyOperation(reverseShaderForSize(span));
+  if (span > 1) {
+    ctx.applyOperation(reverseShaderForSize(span));
+  }
+  for (let i = 0; i < span; i++) {
+    if (i > 0) {
+      applyControlledPhaseGradient(ctx, i + 1, +1);
     }
-    for (let i = 0; i < span; i++) {
-        if (i > 0) {
-            applyControlledPhaseGradient(ctx, i + 1, +1);
-        }
-        HalfTurnGates.H.customOperation(ctx.withRow(ctx.row + i));
-    }
+    HalfTurnGates.H.customOperation(ctx.withRow(ctx.row + i));
+  }
 }
 
 /**
@@ -68,40 +77,54 @@ function applyForwardGradientShaders(ctx, span) {
  * @param {!int} span
  */
 function applyBackwardGradientShaders(ctx, span) {
-    for (let i = span - 1; i >= 0; i--) {
-        HalfTurnGates.H.customOperation(ctx.withRow(ctx.row + i));
-        if (i > 0) {
-            applyControlledPhaseGradient(ctx, i + 1, -1);
-        }
+  for (let i = span - 1; i >= 0; i--) {
+    HalfTurnGates.H.customOperation(ctx.withRow(ctx.row + i));
+    if (i > 0) {
+      applyControlledPhaseGradient(ctx, i + 1, -1);
     }
-    if (span > 1) {
-        ctx.applyOperation(reverseShaderForSize(span));
-    }
+  }
+  if (span > 1) {
+    ctx.applyOperation(reverseShaderForSize(span));
+  }
 }
 
-FourierTransformGates.FourierTransformFamily = Gate.buildFamily(1, 16, (span, builder) => builder.
-    setSerializedId("QFT" + span).
-    setSymbol("QFT").
-    setTitle("Fourier Transform Gate").
-    setBlurb("Transforms to/from phase frequency space.").
-    setActualEffectToUpdateFunc(ctx => applyForwardGradientShaders(ctx, span)).
-    promiseEffectIsUnitary().
-    setTooltipMatrixFunc(() => FOURIER_TRANSFORM_MATRIX_MAKER(span)));
+FourierTransformGates.FourierTransformFamily = Gate.buildFamily(
+  1,
+  16,
+  (span, builder) =>
+    builder
+      .setSerializedId("QFT" + span)
+      .setSymbol("QFT")
+      .setTitle("Fourier Transform Gate")
+      .setBlurb("Transforms to/from phase frequency space.")
+      .setActualEffectToUpdateFunc((ctx) =>
+        applyForwardGradientShaders(ctx, span),
+      )
+      .promiseEffectIsUnitary()
+      .setTooltipMatrixFunc(() => FOURIER_TRANSFORM_MATRIX_MAKER(span)),
+);
 
-FourierTransformGates.InverseFourierTransformFamily = Gate.buildFamily(1, 16, (span, builder) => builder.
-    setSerializedId("QFT†" + span).
-    setSymbol("QFT^†").
-    setAlternateFromFamily(FourierTransformGates.FourierTransformFamily).
-    setTitle("Inverse Fourier Transform Gate").
-    setListName("Inverse Fourier Transform").
-    setBlurb("Transforms from/to phase frequency space.").
-    setActualEffectToUpdateFunc(ctx => applyBackwardGradientShaders(ctx, span)).
-    promiseEffectIsUnitary().
-    setTooltipMatrixFunc(() => INVERSE_FOURIER_TRANSFORM_MATRIX_MAKER(span)));
+FourierTransformGates.InverseFourierTransformFamily = Gate.buildFamily(
+  1,
+  16,
+  (span, builder) =>
+    builder
+      .setSerializedId("QFT†" + span)
+      .setSymbol("QFT^†")
+      .setAlternateFromFamily(FourierTransformGates.FourierTransformFamily)
+      .setTitle("Inverse Fourier Transform Gate")
+      .setListName("Inverse Fourier Transform")
+      .setBlurb("Transforms from/to phase frequency space.")
+      .setActualEffectToUpdateFunc((ctx) =>
+        applyBackwardGradientShaders(ctx, span),
+      )
+      .promiseEffectIsUnitary()
+      .setTooltipMatrixFunc(() => INVERSE_FOURIER_TRANSFORM_MATRIX_MAKER(span)),
+);
 
 FourierTransformGates.all = [
-    ...FourierTransformGates.FourierTransformFamily.all,
-    ...FourierTransformGates.InverseFourierTransformFamily.all
+  ...FourierTransformGates.FourierTransformFamily.all,
+  ...FourierTransformGates.InverseFourierTransformFamily.all,
 ];
 
-export {applyControlledPhaseGradient, FourierTransformGates}
+export { applyControlledPhaseGradient, FourierTransformGates };

@@ -17,13 +17,8 @@
 import {Suite, assertThat} from "../../TestUtil.js"
 import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
 import { fromJsonText_CircuitDefinition } from "../../../src/serialization/circuits/text.js";
-import {
-    applyStructure,
-    columnImage,
-    columnStructure,
-    structureFanOut,
-    structureMatrix,
-} from "../../../src/engine/simulation/columnStructure.js"
+import {columnStructure} from "../../../src/engine/simulation/columnStructure/columnStructure.js";
+import {applyStructure, columnImage, structureFanOut, structureMatrix} from "../../../src/engine/simulation/columnStructure/evaluation.js";
 import {engineColumnOperator} from "./engineColumnOperator.js"
 import {CircuitStats} from "../../../src/engine/simulation/CircuitStats.js"
 import {paddedState} from "../../../src/engine/simulation/stepAlgebra.js"
@@ -104,6 +99,31 @@ suite.test("gates built from circuits match the engine", () => {
 suite.test("time-dependent gates match the engine at the moment asked for", () => {
     assertMatchesEngine([["X^t"]], 1, 0.3);
     assertMatchesEngine([["•", "Z^t"]], 2, 0.7);
+});
+
+suite.test("nested initial-state operations precede columns and respect outer controls and offsets", () => {
+    for (const initial of [1, "+", "-", "i", "-i"]) {
+        const gate = {id: "~initial", circuit: {cols: [["Z"], ["X^t"]], init: [initial]}};
+        assertMatchesEngine([["~initial"]], 1, 0.3, [gate]);
+        assertMatchesEngine([[1, "~initial"]], 2, 0.3, [gate]);
+        assertMatchesEngine([["•", "~initial"]], 2, 0.3, [gate]);
+        assertMatchesEngine([["◦", "~initial"]], 2, 0.3, [gate]);
+        assertMatchesEngine([["⊕", "~initial"]], 2, 0.3, [gate]);
+    }
+});
+
+suite.test("initial-state operations survive empty and recursively nested circuits", () => {
+    const initial = {id: "~initial", circuit: {cols: [], init: ["i"]}};
+    const nested = {id: "~nested", circuit: {cols: [["~initial"], ["Z"]], init: [1]}};
+    assertMatchesEngine([["~initial"]], 1, 0, [initial]);
+    assertMatchesEngine([["•", "~nested"]], 2, 0, [initial, nested]);
+});
+
+suite.test("a top-level column does not repeat the circuit's initial-state operations", () => {
+    const circuit = fromJsonText_CircuitDefinition(JSON.stringify({cols: [["Z"]], init: [1]}));
+    const structure = columnStructure(circuit, 0, 1, 0);
+    assertThat(structure.ok).isEqualTo(true);
+    assertThat(structureMatrix(structure)).isApproximatelyEqualTo(Matrix.square(1, 0, 0, -1), 1e-9);
 });
 
 suite.test("a default input set by an earlier column is read from the column's context", () => {

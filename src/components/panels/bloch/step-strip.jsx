@@ -1,6 +1,6 @@
 import { useRef } from "react";
 
-import { STRIP_CELL, STRIP_GAP } from "../../../draw/displays/BlochStrip.js";
+import { STRIP_CELL, STRIP_GAP } from "../../../draw/displays/bloch/BlochStrip.js";
 import { FigureHeader } from "./figure-header.jsx";
 
 /**

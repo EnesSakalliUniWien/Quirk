@@ -32,6 +32,9 @@ import {QubitMatrix} from "./matrix/QubitMatrix.js"
  */
 const EPSILON = 1e-6;
 
+/** Above this Bloch radius, views present the state as pure. */
+const PURE_STATE_THRESHOLD = 0.999;
+
 /** What a reading prints where a quantity does not exist, and a zero would lie. */
 const UNDEFINED_TEXT = "—";
 
@@ -183,8 +186,8 @@ function blochAmplitudes(reading) {
  * @returns {undefined|!{w: !number, x: !number, y: !number, z: !number}} undefined without a
  *     direction to turn to.
  */
-function blochQuaternion(vec) {
-    const {theta, phi, rule} = blochReading(vec);
+function blochQuaternion(vec, reading = blochReading(vec)) {
+    const {theta, phi, rule} = reading;
     if (rule === "mixed") return undefined;
     // At |1⟩ every equatorial axis turns k onto −k. Take the one ϕ = 0 names, a half turn about +y,
     // so q agrees with the ket written beside it, whose β is then +1.
@@ -226,11 +229,10 @@ const POLAR_NOTE = "ϕ undefined — vector lies on z-axis";
  * rather than removed, so stepping between states never moves the ones below.
  * @param {!{x: !number, y: !number, z: !number}} vec
  */
-function analyzerReadout(vec) {
-    const reading = blochReading(vec);
+function analyzerReadout(vec, reading = blochReading(vec)) {
     const formulas = componentFormulas(reading);
     const {alpha, beta} = blochAmplitudes(reading);
-    const q = blochQuaternion(vec);
+    const q = blochQuaternion(vec, reading);
     // Full precision for a hover, where the rounded value leaves a reader wondering.
     const exact = radians => radians === undefined ? UNDEFINED_TEXT : `${radians * 180 / Math.PI}°`;
     return {
@@ -257,6 +259,6 @@ function analyzerReadout(vec) {
     };
 }
 
-export {EPSILON, UNDEFINED_TEXT, BLOCH_PRESETS, blochCoordinates, blochReading, vectorFromAngles,
+export {EPSILON, PURE_STATE_THRESHOLD, UNDEFINED_TEXT, BLOCH_PRESETS, blochCoordinates, blochReading, vectorFromAngles,
     degreesText, pureStateText, componentFormulas, blochAmplitudes, blochQuaternion,
     pureQuaternionText, quaternionText, analyzerReadout, MIXED_NOTE, POLAR_NOTE}

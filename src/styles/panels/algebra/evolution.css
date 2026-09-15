@@ -1,0 +1,59 @@
+@layer components {
+    /* The evolution chart: step numbers across the top, kets down the side, one square cell each. */
+
+    .evolution-grid {
+        display: grid;
+        grid-template-columns: auto;
+        grid-template-areas: "steps" "plot";
+        width: max-content;
+        color: var(--muted-foreground);
+        font-family: var(--font-mono);
+        font-size: 10px;
+    }
+
+    .evolution-grid.evolution-labelled {
+        grid-template-columns: 48px auto;
+        grid-template-areas: ". steps" "kets plot";
+    }
+
+    .evolution-steps {
+        grid-area: steps;
+        display: flex;
+        margin: 0 0 2px;
+        padding: 0;
+        list-style: none;
+    }
+
+    .evolution-steps li {
+        width: var(--evolution-cell);
+        text-align: center;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .evolution-kets {
+        grid-area: kets;
+        margin: 0;
+        padding: 0 6px 0 0;
+        list-style: none;
+        text-align: right;
+    }
+
+    .evolution-kets li {
+        height: var(--evolution-row);
+        line-height: var(--evolution-row);
+    }
+
+    .evolution-plot {
+        grid-area: plot;
+        position: relative;
+    }
+
+    .evolution-current {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        outline: var(--border-width) solid var(--foreground);
+        outline-offset: -1px;
+        pointer-events: none;
+    }
+}

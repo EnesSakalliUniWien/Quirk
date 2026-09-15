@@ -16,7 +16,7 @@
 
 import { Complex } from "../engine/math/complex/Complex.js";
 import { Format } from "../base/Format.js";
-import { Util } from "../base/Util.js";
+import { bin } from "../base/Format.js";
 
 /**
  * What a gate does, in words: the ket a basis state becomes, the axis a rotation turns around.
@@ -53,7 +53,7 @@ function describeKet(bitCount, bitMask, factor, format) {
             ? factor.toString(format)
             : "(" + factor.toString(format) + ")·";
 
-  return scaleFactorDesc + "|" + Util.bin(bitMask, bitCount) + "⟩";
+  return scaleFactorDesc + "|" + bin(bitMask, bitCount) + "⟩";
 }
 
 /**

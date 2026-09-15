@@ -1,0 +1,50 @@
+@layer components {
+    /* An operator drawn tile by tile, like a map: zoom with the buttons, ctrl+scroll or a pinch,
+       and drag to pan. */
+
+    .operator-view {
+        display: grid;
+        flex: 0 0 auto;
+        gap: calc(var(--spacing) * 1);
+        justify-items: start;
+    }
+
+    .operator-view-canvas {
+        display: block;
+        background: var(--operator-control-surface);
+        border-radius: var(--radius-small);
+        cursor: grab;
+        touch-action: none;
+    }
+
+    .operator-view-canvas:active {
+        cursor: grabbing;
+    }
+
+    .operator-view-canvas:focus-visible {
+        outline: var(--border-width-strong) solid var(--ring);
+        outline-offset: 2px;
+    }
+
+    .operator-view-bar {
+        display: flex;
+        align-items: center;
+        gap: calc(var(--spacing) * 2);
+        color: var(--muted-foreground);
+        font-family: var(--font-mono);
+        font-size: var(--text-small);
+        font-variant-numeric: tabular-nums;
+    }
+
+    /* Two lines' worth, so the card does not jump as the pointer moves over entries. */
+
+    .operator-view-readout {
+        min-height: 2.8em;
+        max-width: 100%;
+        margin: 0;
+        color: var(--muted-foreground);
+        font-family: var(--font-mono);
+        font-size: var(--text-small);
+        overflow-wrap: anywhere;
+    }
+}

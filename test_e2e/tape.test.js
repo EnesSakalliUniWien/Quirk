@@ -48,7 +48,7 @@ test("Tape records, compares, reloads, restores and downloads complete takes", a
             await waitSaved(page, 2);
             await page.click("#clear-circuit-button");
             await page.evaluate(id => [...document.querySelector(`[data-take-id="${id}"]`).querySelectorAll("button")].find(e => e.textContent === "Restore").click(), initial.id);
-            await page.waitForFunction(() => document.querySelector("#playhead-position").textContent.includes("gate 0 / 2"));
+            await page.waitForFunction(() => document.querySelector("#playhead-position").textContent.includes("operation 0 / 2"));
             await page.click("#undo-button");
             await page.waitForFunction(() => document.querySelector("#playhead-position").textContent.includes("/ 0"));
 
@@ -93,7 +93,7 @@ test("Tape whole run uses one phase and links import in a fresh browser context"
         await waitForPanel(page, "tape", true);
         await waitSaved(page, 1);
         assert.deepEqual((await records(page))[0].take, first);
-        assert.match(await page.$eval("#playhead-position", e => e.textContent), /gate 3 \/ 3/);
+        assert.match(await page.$eval("#playhead-position", e => e.textContent), /operation 2 \/ 2/);
         assert.match(await page.$eval(".take-card", e => e.textContent), /Sample 2:0:/);
     } finally {await fresh.close();}
 });

@@ -1,0 +1,31 @@
+@layer components {
+    .complex-display-panel {padding: 16px; max-width: 600px; margin-inline: auto;}
+
+    .complex-display-panel h2 {font-size: var(--text-heading);}
+
+    .complex-display-panel h3 {font-size: var(--text-body); overflow-wrap: anywhere;}
+
+    .complex-display-panel p {font-size: var(--text-small); color: var(--muted-foreground); line-height: 1.5;}
+
+    .complex-display-grid {display: block; width: 100%; max-width: 320px; aspect-ratio: 1; margin: 12px auto; cursor: crosshair;}
+
+    .complex-display-grid:focus-visible {outline: var(--border-width-strong) solid var(--foreground); outline-offset: 4px;}
+
+    .complex-phase-figure {display: block; width: 180px; height: 150px; margin: auto;}
+
+    .complex-cell-controls {display: flex; flex-wrap: wrap; gap: 12px;}
+
+    .complex-cell-controls input {width: 5em;}
+
+    .complex-phase-key {display: flex; flex-wrap: wrap; gap: 12px; font: var(--text-small) var(--font-mono);}
+
+    .complex-phase-key span {display: flex; align-items: center; gap: 4px;}
+
+    .complex-phase-key i {width: 12px; height: 12px; border-radius: 50%;}
+
+    .complex-display-panel dl {font-size: var(--text-small);}
+
+    .complex-display-panel dt {color: var(--muted-foreground); margin-top: 8px;}
+
+    .complex-display-panel dd {margin: 2px 0; font-family: var(--font-mono); overflow-wrap: anywhere;}
+}

@@ -1,0 +1,87 @@
+@layer components {
+    /* In a narrow panel the table keeps its columns and scrolls sideways, the qubit's name staying
+       in view. */
+
+    .qubits-table-scroll {
+        container-type: inline-size;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        scrollbar-width: thin;
+        scrollbar-color: var(--sidebar-scrollbar) transparent;
+    }
+
+    .qubits-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: var(--text-small);
+    }
+
+    .qubits-table th:first-child {
+        position: sticky;
+        left: 0;
+        background: var(--background);
+    }
+
+    @container (max-width: 440px) {
+        .qubits-table th,
+        .qubits-table td {
+            padding-inline: 6px;
+        }
+
+        .qubits-bar {
+            width: 28px;
+            margin-right: 6px;
+        }
+    }
+
+    .qubits-table th,
+    .qubits-table td {
+        padding: 5px calc(var(--spacing) * 2);
+        text-align: left;
+        border-bottom: var(--border-width) solid var(--border);
+    }
+
+    .qubits-table thead th {
+        color: var(--muted-foreground);
+        font-weight: 500;
+    }
+
+    .qubits-name {
+        font-family: var(--font-mono);
+        font-weight: 500;
+    }
+
+    .qubits-number {
+        font-family: var(--font-mono);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .qubits-bar {
+        display: inline-block;
+        width: 48px;
+        height: 6px;
+        margin-right: calc(var(--spacing) * 2);
+        vertical-align: middle;
+        background: var(--state-probability-back);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .qubits-bar-fill {
+        display: block;
+        height: 100%;
+        background: var(--state-probability-fill);
+    }
+
+    .qubits-purity {
+        font-family: var(--font-mono);
+        font-variant-numeric: tabular-nums;
+    }
+
+    /* The panel's point: a qubit no longer in a state of its own. */
+
+    .qubits-mixed {
+        color: var(--panel-heading);
+        font-weight: 650;
+    }
+}

@@ -24,7 +24,7 @@ import {PERMUTATION_RENDERER} from './PermutationRenderer.js';
 import {ketArgs, ketShaderPermute} from '../../engine/simulation/gpu/KetShaderUtil.js';
 import {Matrix} from '../../engine/math/matrix/Matrix.js';
 import {Point} from '../../geometry/Point.js';
-import {Util} from '../../base/Util.js';
+import { properMod } from "../../engine/math/modularArithmetic.js";
 import {WglArg} from '../../engine/webgl/shader/WglArg.js';
 
 const CycleBitsGates = {};
@@ -38,13 +38,13 @@ const CycleBitsGates = {};
 const cycleBitsShader = (ctx, qubitSpan, shiftAmount) =>
     CYCLE_SHADER.withArgs(
         ...ketArgs(ctx, qubitSpan),
-        WglArg.float("amount", 1 << Util.properMod(-shiftAmount, qubitSpan)));
+        WglArg.float("amount", 1 << properMod(-shiftAmount, qubitSpan)));
 const CYCLE_SHADER = ketShaderPermute(
     'uniform float amount;',
     'out_id *= amount; return mod(out_id, span) + floor(out_id / span);');
 
 const makeCycleBitsPermutation = (shift, span) => e => {
-    shift = Util.properMod(shift, span);
+    shift = properMod(shift, span);
     return ((e << shift) & ((1 << span) - 1)) | (e >> (span - shift));
 };
 const makeCycleBitsMatrix = (shift, span) => Matrix.generateTransition(1<<span, makeCycleBitsPermutation(shift, span));

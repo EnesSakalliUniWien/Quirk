@@ -216,3 +216,25 @@ Format.SIMPLIFIED = new Format(true, 0.0005, 3, ", ");
 Format.CONSISTENT = new Format(false, 0, 2, ", ");
 
 export { Format, UNICODE_FRACTIONS };
+
+/**
+ * Returns a big-endian binary representation of the given number, zero-padded and truncated to the given length.
+ * @param {!number|!int} number
+ * @param {!int} fixedLen
+ * @returns {!string}
+ */
+export function bin(number, fixedLen) {
+  if (fixedLen < 0) {
+    throw new RangeError("Binary label width must be non-negative.");
+  }
+  return number.toString(2).padStart(fixedLen, "0").slice(-fixedLen);
+}
+
+/**
+ * @param {!string} text
+ * @returns {!string}
+ */
+export function digits_to_superscript_digits(text) {
+  const superscript_digits = "⁰¹²³⁴⁵⁶⁷⁸⁹";
+  return text.replace(/[0-9]/g, digit => superscript_digits[Number(digit)]);
+}

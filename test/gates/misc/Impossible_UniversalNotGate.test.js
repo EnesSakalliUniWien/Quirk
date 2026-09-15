@@ -20,7 +20,7 @@ import {CircuitShaders} from "../../../src/engine/simulation/gpu/CircuitShaders.
 import {universalNot} from "../../../src/gates/misc/Impossible_UniversalNotGate.js"
 
 import {Controls} from "../../../src/circuit/model/Controls.js"
-import {Shaders} from "../../../src/engine/webgl/shader/Shaders.js"
+import {Shaders} from "../../../src/engine/webgl/operations/Shaders.js"
 import {WglTextureTrader} from "../../../src/engine/webgl/texture/WglTextureTrader.js"
 
 const suite = new Suite("Impossible_UniverseNotGate");

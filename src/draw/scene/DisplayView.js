@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import '@pixi/layout';
 import {createElement, useLayoutEffect, useRef} from 'react';
 import {extend} from '@pixi/react';
 import {Container, Graphics, Point} from 'pixi.js';

@@ -1,0 +1,34 @@
+@layer components {
+    /* The app's overall arrangement: the fixed-height shell, motion preferences, and the no-script
+   warning. Imported last so its media overrides win by source order over the feature files' own
+   rules within the components layer. */
+
+    /* The app shell: a fixed-height column - toolbar, dock, transport - in which only the dock's
+       own panels scroll. The toolbar and transport controls therefore never leave the screen. */
+
+    #inspectorDiv {
+        height: 100vh;
+        height: 100dvh;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            scroll-behavior: auto;
+            transition-duration: 0.01ms;
+        }
+    }
+
+    /* The only thing that shows when JavaScript is blocked. */
+
+    .noscript-warning {
+        position: absolute;
+        top: 25%;
+        left: 50%;
+        color: CanvasText;
+        background: Canvas;
+        font-size: 24px;
+        transform: translate(-50%, -50%);
+    }
+}

@@ -256,3 +256,27 @@ function equate_Objects(subject, other) {
 }
 
 export { equate, equate_Maps };
+
+/**
+ * Determines if the two given values are exactly the same, as determined by the `===` operator.
+ * @param {*} e1
+ * @param {*} e2
+ * @return {!boolean}
+ */
+export const STRICT_EQUALITY = (e1, e2) => e1 === e2;
+
+/**
+ * Uses the `isEqualTo` property of the first argument to determine equality with the second argument. Handles the case
+ * where both are null, returning true instead of throwing.
+ *
+ * @param {?T|*} e1
+ * @param {?T|*} e2
+ * @returns {!boolean}
+ * @template T
+ */
+export const CUSTOM_IS_EQUAL_TO_EQUALITY = (e1, e2) =>
+  e1 === null
+    ? e2 === null
+    : e1 === undefined
+      ? e2 === undefined
+      : e1.isEqualTo(e2);

@@ -1,5 +1,6 @@
 import {
   MIXED_NOTE,
+  PURE_STATE_THRESHOLD,
   UNDEFINED_TEXT,
   analyzerReadout,
   blochReading,
@@ -30,9 +31,6 @@ import {
  * @typedef {{ theta: number, phi: number, thetaDefined: boolean, phiDefined: boolean }} Angles
  *     The angles in degrees, and whether each exists for the state shown.
  */
-
-/** Above this length the state is pure enough to name as a ket. */
-const PURE_STATE_THRESHOLD = 0.999;
 
 /** How long a preset takes to arrive, in milliseconds. */
 const PRESET_TRANSITION = 300;
@@ -132,13 +130,13 @@ function subtitleFor(mode, target) {
 
 /**
  * @param {BlochVector} vec
+ * @param {import("../../../engine/math/bloch.js").BlochReading=} reading Reading for this vector.
  * @returns {PanelReadout}
  */
-function panelReadout(vec) {
-  const reading = blochReading(vec);
+function panelReadout(vec, reading = blochReading(vec)) {
   const toDegrees = (radians) => (radians * 180) / Math.PI;
   return {
-    ...analyzerReadout(vec),
+    ...analyzerReadout(vec, reading),
     // On the z axis ϕ is only a global phase, so the ket takes it as zero.
     state:
       reading.rule === "mixed"

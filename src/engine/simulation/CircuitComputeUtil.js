@@ -19,7 +19,7 @@ import { CircuitShaders } from "./gpu/CircuitShaders.js";
 import { KetTextureUtil } from "./gpu/KetTextureUtil.js";
 import { Controls } from "../../circuit/model/Controls.js";
 /** @typedef {import("../../circuit/model/Gate.js").GateBuilder} GateBuilder */
-import { Util } from "../../base/Util.js";
+import { mergeMaps } from "../../base/maps.js";
 
 /**
  * @param {!GateBuilder} builder
@@ -145,7 +145,7 @@ function _extractStateStatsNeededByCircuitColumn(ctx, circuitDefinition, col) {
       ctx.controlsTexture,
       ctx.controls,
       ctx.stateTrader,
-      Util.mergeMaps(
+      mergeMaps(
         ctx.customContextFromGates,
         circuitDefinition.colCustomContextFromGates(col, row),
       ),
@@ -200,7 +200,7 @@ function _advanceStateWithCircuitDefinitionColumn(
     ctx.wireCount,
   );
 
-  const colContext = Util.mergeMaps(
+  const colContext = mergeMaps(
     ctx.customContextFromGates,
     circuitDefinition.colCustomContextFromGates(col, ctx.row),
   );

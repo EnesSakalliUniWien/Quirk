@@ -15,7 +15,7 @@
  */
 
 import {paintMatrixTooltip} from '../../../draw/tooltips/MatrixTooltip.js';
-import {paintMatrix} from '../../../draw/displays/MatrixView.js';
+import {paintMatrix} from '../../../draw/displays/complex/MatrixView.js';
 import {frame} from '../../../draw/shapes/ShapeView.js';
 import {CanvasTheme} from '../../../config/CanvasTheme.js';
 import {Rendering} from '../../../config/Rendering.js';
@@ -42,7 +42,7 @@ function drawOutputSuperpositionDisplay(context, painter, stats, hand) {
         amplitudeProbabilityFillColor: numWire < Rendering.SIMPLE_SUPERPOSITION_DRAWING_WIRE_THRESHOLD ? CanvasTheme.amplitude.fill : undefined,
         backColor: CanvasTheme.amplitude.background
     });
-    frame(painter, gridRect);
+    frame(painter, gridRect, CanvasTheme.stroke.displayFrame);
     const forceSign = v => (v >= 0 ? '+' : '') + v.toFixed(2);
     paintMatrixTooltip(painter, amplitudeGrid, gridRect, hand.hoverPoints(),
         (c, r) => `Amplitude of |${ketLabel(context.definition.registers.fittingIn(numWire), numWire,

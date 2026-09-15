@@ -44,6 +44,10 @@ function CircuitPanel() {
         appStore.setState({ blochTarget: target });
         openPanel("bloch");
       },
+      openComplexDisplay: target => {
+        appStore.setState({complexDisplayTarget: target});
+        openPanel("complex-display");
+      },
       openTape: () => openPanel("tape"),
       openRegisterRename: (name, rect) => {
         appStore.setState({ registerRename: { name, rect: { x: rect.x, y: rect.y, w: rect.w, h: rect.h } } });

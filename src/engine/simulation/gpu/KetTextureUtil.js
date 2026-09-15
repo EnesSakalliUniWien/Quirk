@@ -18,8 +18,9 @@ import {CircuitShaders} from "./CircuitShaders.js"
 import {Controls} from "../../../circuit/model/Controls.js"
 import {DetailedError} from "../../../base/DetailedError.js"
 import {Matrix} from "../../math/matrix/Matrix.js"
-import {Shaders} from "../../webgl/shader/Shaders.js"
-import {Util} from "../../../base/Util.js"
+import {Shaders} from "../../webgl/operations/Shaders.js"
+import { ceilingPowerOf2, ceilLg2 } from "../../math/powersOfTwo.js";
+import { numberOfSetBits } from "../../math/bitOperations.js";
 import {WglTexture} from "../../webgl/texture/WglTexture.js"
 import {
     currentShaderCoder,
@@ -62,7 +63,7 @@ KetTextureUtil.tradeTextureForVec4Output = trader => {
  */
 KetTextureUtil.mergedReadFloats = textures => {
     const len = tex => tex.width === 0 ? 0 : 1 << currentShaderCoder().vec4.arrayPowerSizeOfTexture(tex);
-    const totalPowerSize = Math.round(Math.log2(Util.ceilingPowerOf2(
+    const totalPowerSize = Math.round(Math.log2(ceilingPowerOf2(
         textures.reduce((total, tex) => total + len(tex), 0))));
 
     const trader = new WglTextureTrader(Shaders.color(0, 0, 0, 0).toVec4Texture(totalPowerSize));
@@ -135,7 +136,7 @@ KetTextureUtil.superpositionToQubitDensities = (stateTex, controls, keptBitMask)
     }
 
     _superpositionTexToUnsummedQubitDensitiesTex(trader, keptBitMask);
-    const keptQubitCount = Util.numberOfSetBits(keptBitMask);
+    const keptQubitCount = numberOfSetBits(keptBitMask);
     _sumDownVec4(trader, keptQubitCount);
 
     return trader.currentTexture;
@@ -150,10 +151,10 @@ function _superpositionTexToUnsummedQubitDensitiesTex(trader, keptBitMask) {
         throw new DetailedError("keptBitMask === 0", {trader, keptBitMask});
     }
     const startingQubitCount = currentShaderCoder().vec2.arrayPowerSizeOfTexture(trader.currentTexture);
-    const remainingQubitCount = Util.numberOfSetBits(keptBitMask);
+    const remainingQubitCount = numberOfSetBits(keptBitMask);
     trader.shadeAndTrade(
         tex => CircuitShaders.qubitDensities(tex, keptBitMask),
-        WglTexturePool.takeVec4Tex(startingQubitCount - 1 + Util.ceilLg2(remainingQubitCount)));
+        WglTexturePool.takeVec4Tex(startingQubitCount - 1 + ceilLg2(remainingQubitCount)));
 }
 
 /**
@@ -163,7 +164,7 @@ function _superpositionTexToUnsummedQubitDensitiesTex(trader, keptBitMask) {
  */
 function _sumDownVec4(trader, outCount) {
     // When the number of kept qubits isn't a power of 2, we have some extra junk results interleaved to ignore.
-    const outputSizePower = Util.ceilLg2(outCount);
+    const outputSizePower = ceilLg2(outCount);
     let curSizePower = currentShaderCoder().vec4.arrayPowerSizeOfTexture(trader.currentTexture);
 
     while (curSizePower > outputSizePower) {

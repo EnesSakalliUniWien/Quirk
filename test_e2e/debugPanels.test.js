@@ -18,6 +18,7 @@
 // state the playhead has reached rather than the whole circuit's.
 
 import assert from 'node:assert/strict';
+import {readdirSync, readFileSync} from 'node:fs';
 import {test, withQuirkPage, waitForPanel, TEST_TIMEOUT_MILLIS} from './harness.js';
 
 const BELL = {cols: [['H'], ['•', 'X']]};
@@ -25,7 +26,7 @@ const BELL = {cols: [['H'], ['•', 'X']]};
 async function runToEnd(page) {
     await page.click('#playhead-end-button');
     await page.waitForFunction(
-        () => document.getElementById('playhead-position').textContent.trim() === 'gate 2 / 2',
+        () => document.getElementById('playhead-position').textContent.trim() === 'operation 2 / 2',
         {timeout: TEST_TIMEOUT_MILLIS});
 }
 
@@ -61,7 +62,7 @@ test('the algebra panel lists every operation with its matrix and the change it 
         // Choosing a step moves the playhead there, and the list marks it.
         await page.evaluate(() => document.querySelectorAll('[data-panel-id="algebra"] .algebra-step-header')[1].click());
         await page.waitForFunction(
-            () => document.getElementById('playhead-position').textContent.trim() === 'gate 1 / 2' &&
+            () => document.getElementById('playhead-position').textContent.trim() === 'operation 1 / 2' &&
                 document.querySelectorAll('[data-panel-id="algebra"] .algebra-step')[1].getAttribute('aria-current') === 'step',
             {timeout: TEST_TIMEOUT_MILLIS});
     });
@@ -168,6 +169,14 @@ test('every step of a large register is drawn as an operator that zooms to its e
     });
 });
 
+test('the operator tile worker ships without Pixi Layout and its Yoga engine', () => {
+    const assets = new URL('../out/assets/', import.meta.url);
+    const workers = readdirSync(assets).filter(name => /^operatorTiles\.worker-.+\.js$/.test(name));
+    assert.equal(workers.length, 1, 'One built operator tile worker.');
+    assert.doesNotMatch(readFileSync(new URL(workers[0], assets), 'utf8'), /yoga/i,
+        'The worker draws nothing, so its bundle must not carry the layout engine.');
+});
+
 test('the probabilities panel charts each possible outcome', async browser => {
     await withQuirkPage(browser, BELL, async page => {
         await runToEnd(page);
@@ -206,5 +215,42 @@ test('the qubits panel shows which qubits the circuit has entangled', async brow
             () => [...document.querySelectorAll('[data-panel-id="qubits"] .qubits-mixed')].length === 2,
             {timeout: TEST_TIMEOUT_MILLIS});
         assert.deepEqual(await readPurities(), ['0.500', '0.500']);
+    });
+});
+
+test('tensor factors are optional and coupled matrices stay whole', async browser => {
+    await withQuirkPage(browser, BELL, async page => {
+        await page.click('#algebra-button');
+        await waitForPanel(page, 'algebra', true);
+        const operator = '[data-panel-id="algebra"] [data-step="1"] .operator-matrix';
+        await page.waitForSelector(operator + ' summary');
+        assert.equal(await page.$$eval(operator + ' mtable', nodes=>nodes.length), 1);
+        await page.$eval(operator + ' summary', e=>e.click());
+        await page.waitForSelector(operator + ' .tensor-product');
+        assert.equal(await page.$$eval(operator + ' mtable', nodes=>nodes.length), 3);
+        assert.equal(await page.$eval(operator + ' mtable', e=>e.querySelectorAll('mtr').length), 4);
+        assert.ok(await page.$eval(operator + ' .tensor-product', e=>e.textContent.includes('⊗')));
+        await page.waitForFunction(selector => {
+            const figure = document.querySelector(selector);
+            const matrix = figure.querySelector('.matrix-math').getBoundingClientRect();
+            const sign = figure.nextElementSibling.getBoundingClientRect();
+            return Math.abs(matrix.y+matrix.height/2-sign.y-sign.height/2)<4;
+        }, {timeout: TEST_TIMEOUT_MILLIS}, operator);
+        assert.equal(await page.$$eval('[data-step="2"] .operator-matrix summary', nodes=>nodes.length), 0);
+        assert.equal(await page.$$eval('[data-step="2"] .state-factor:last-child summary', nodes=>nodes.length), 0);
+        await page.$eval(operator + ' summary', e=>e.click());
+        await page.waitForFunction(selector=>document.querySelectorAll(selector+' mtable').length===1, {}, operator);
+    });
+});
+
+test('five-qubit algebra retains all written matrix entries', async browser => {
+    await withQuirkPage(browser, {cols:[['inc5']]}, async page => {
+        await page.click('#algebra-button');
+        await waitForPanel(page, 'algebra', true);
+        const selector = '[data-step="1"] .operator-matrix';
+        await page.waitForSelector(selector+' mtable');
+        assert.equal(await page.$$eval(selector+' mtr', nodes=>nodes.length),32);
+        assert.equal(await page.$$eval(selector+' mtd', nodes=>nodes.length),1024);
+        assert.equal(await page.$$eval(selector+' canvas', nodes=>nodes.length),0);
     });
 });

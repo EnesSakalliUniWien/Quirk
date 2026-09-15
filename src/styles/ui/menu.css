@@ -1,0 +1,62 @@
+/* The app's popup menu: the look worn by the examples menu on the toolbar and by the menu a right
+   click on a wire label opens.
+
+   Portalled to the body, so lifted over the dock the way the hover card is. Unlayered, like the
+   dock's own rules, so it is not outranked by them. */
+.app-menu-positioner {
+    z-index: var(--layer-menu);
+}
+
+.app-menu {
+    box-sizing: border-box;
+    min-width: 200px;
+    padding: calc(var(--spacing) * 1);
+    color: var(--card-foreground);
+    background: var(--card);
+    border: var(--border-width) solid var(--border);
+    border-radius: 10px;
+    box-shadow: 0 12px 32px var(--shadow-popup);
+    font-size: var(--text-small);
+    outline: none;
+}
+
+.app-menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: calc(var(--spacing) * 3);
+    padding: 6px calc(var(--spacing) * 2);
+    border-radius: 6px;
+    cursor: default;
+    user-select: none;
+    outline: none;
+}
+
+.app-menu-item[data-highlighted] {
+    background: var(--accent);
+}
+
+.app-menu-item[data-checked]::after {
+    content: "✓";
+    color: var(--muted-foreground);
+}
+
+.app-menu-label {
+    padding: 6px calc(var(--spacing) * 2) 2px;
+    color: var(--muted-foreground);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.app-menu-separator {
+    height: 1px;
+    margin: calc(var(--spacing) * 1) 0;
+    background: var(--border);
+}
+
+.app-menu-item kbd {
+    color: var(--muted-foreground);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+}

@@ -1,0 +1,15 @@
+@layer components {
+    .math-entry { min-width: 0; display: grid; gap: 4px; }
+
+    .math-entry input, .math-entry math-field { width: 100%; min-width: 0; box-sizing: border-box; }
+
+    .math-entry math-field { padding: 7px; border: var(--border-width) solid var(--border); border-radius: 5px; background: var(--card); color: var(--foreground); font-size: 20px; }
+
+    .math-entry math-field::part(virtual-keyboard-toggle), .math-entry math-field::part(menu-toggle) { display: none; }
+
+    .math-entry-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .math-entry-actions button { font-size: 11px; padding: 3px 6px; }
+
+    .math-keyboard-host { position: relative; transform: translateZ(0); overflow: hidden; min-width: 0; }
+}

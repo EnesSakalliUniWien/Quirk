@@ -18,10 +18,10 @@ import {drawPath, rectangle, circle, strokePath} from '../../draw/shapes/ShapeVi
 import {fitLine, fitText} from '../../draw/text/TextLayout.js';
 
 import {GateBuilder} from '../../circuit/model/Gate.js';
-import {amplitudesToProbabilities} from '../displays/ProbabilityDisplay.js';
+import { amplitudesToProbabilities } from "../displays/probability/shaders/amplitudesToProbabilities.js";
 import {WglTexturePool} from '../../engine/webgl/texture/WglTexturePool.js';
 import {WglTextureTrader} from '../../engine/webgl/texture/WglTextureTrader.js';
-import {Shaders} from '../../engine/webgl/shader/Shaders.js';
+import {Shaders} from '../../engine/webgl/operations/Shaders.js';
 import {currentShaderCoder, Inputs, makePseudoShaderWithInputsAndOutputAndCode, Outputs} from '../../engine/webgl/coder/ShaderCoders.js';
 import {CircuitShaders} from '../../engine/simulation/gpu/CircuitShaders.js';
 import {Controls} from '../../circuit/model/Controls.js';

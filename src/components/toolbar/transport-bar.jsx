@@ -1,3 +1,4 @@
+import styles from './transport-bar.module.css';
 import {RecordControls} from "../panels/tape/record-controls.jsx";
 import { useEffect, useRef } from "react";
 import { useStore } from "zustand";
@@ -57,15 +58,15 @@ function useSpaceTogglesPlayback() {
  * The scrub slider is driven imperatively rather than as a controlled input: its value follows
  * the playhead through the DOM, and its native input event seeks. A controlled range input would
  * drop value writes made on the element itself, which is how tests and assistive tools drive it.
- * @param {!{step: !int, columnCount: !int, canPlay: !boolean}} state
+ * @param {!{operationIndex: !int, operationCount: !int, canPlay: !boolean}} state
  * @returns {!{current: null|!HTMLInputElement}}
  */
 function useScrub(state) {
   const scrubRef = useRef(null);
   useEffect(() => {
     const scrub = scrubRef.current;
-    scrub.max = String(state.columnCount);
-    scrub.value = String(state.step);
+    scrub.max = String(state.operationCount);
+    scrub.value = String(state.operationIndex);
     scrub.disabled = !state.canPlay;
   }, [state]);
   useEffect(() => {
@@ -73,7 +74,7 @@ function useScrub(state) {
     const onInput = () => {
       const { playhead } = appStore.getState();
       if (playhead !== undefined) {
-        playhead.seek(parseInt(scrub.value, 10));
+        playhead.seekOperation(parseInt(scrub.value, 10));
       }
     };
     scrub.addEventListener("input", onInput);
@@ -83,7 +84,7 @@ function useScrub(state) {
 }
 
 /**
- * Steps the circuit a column at a time.
+ * Steps between operation columns, skipping display-only and empty columns.
  *
  * This is a group rather than a toolbar: the toolbar pattern puts the whole strip on one tab stop
  * and moves between its controls with the arrow keys, which are the keys the scrub slider needs for
@@ -99,7 +100,7 @@ function TransportBar() {
   const scrubRef = useScrub(state);
 
   return (
-    <div className="transport-bar" role="group" aria-label="Playback controls">
+    <div className={`transport-bar ${styles.bar}`} role="group" aria-label="Playback controls">
       <ButtonGroup aria-label="Playhead">
         <TransportButton
           id="playhead-reset-button"
@@ -151,20 +152,18 @@ function TransportBar() {
       <RecordControls />
       <input
         id="playhead-scrub"
-        className="transport-scrub"
+        className={styles.scrub}
         type="range"
         min="0"
         max="0"
         step="1"
         defaultValue="0"
         ref={scrubRef}
-        aria-label="Scrub to a gate"
+        aria-label="Scrub to an operation"
         aria-describedby="playhead-position"
       />
-      {/* A column is what executes at once, and in practice holds a single gate, so ket's gate
-          counter reads the same here. */}
-      <span id="playhead-position" className="transport-position">
-        gate {state.step} / {state.columnCount}
+      <span id="playhead-position" className={styles.position}>
+        operation {state.operationIndex} / {state.operationCount}
       </span>
     </div>
   );

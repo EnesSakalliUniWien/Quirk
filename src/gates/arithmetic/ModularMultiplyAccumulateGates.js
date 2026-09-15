@@ -22,7 +22,7 @@ import {
   ketInputGateShaderCode,
 } from "../../engine/simulation/gpu/KetShaderUtil.js";
 import { modulusTooBigChecker } from "./ModularIncrementGates.js";
-import { Util } from "../../base/Util.js";
+import { properMod } from "../../engine/math/modularArithmetic.js";
 import { WglArg } from "../../engine/webgl/shader/WglArg.js";
 
 const ModularMultiplyAccumulateGates = {};
@@ -99,7 +99,7 @@ ModularMultiplyAccumulateGates.MinusABModRFamily = Gate.buildFamily(
         ),
       )
       .setKnownEffectToParametrizedPermutation((t, a, b, r) =>
-        t < r ? Util.properMod(t - a * b, r) : t,
+        t < r ? properMod(t - a * b, r) : t,
       ),
 );
 

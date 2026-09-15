@@ -28,7 +28,7 @@ import {Gates} from "../../../src/gates/AllGates.js"
 import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
 import {Point} from "../../../src/geometry/Point.js"
 import {Serializer} from "../../../src/serialization/Serializer.js"
-import {Util} from "../../../src/base/Util.js"
+import { mergeMaps } from "../../../src/base/maps.js";
 
 const suite = new Suite("CircuitDefinition");
 
@@ -88,7 +88,7 @@ const TEST_GATES = new Map([
     ['t', Gates.Exponentiating.XForward]
 ]);
 const circuit = (diagram, ...extraGates) => CircuitDefinition.fromTextDiagram(
-    Util.mergeMaps(TEST_GATES, new Map(extraGates)),
+    mergeMaps(TEST_GATES, new Map(extraGates)),
     diagram);
 
 /**

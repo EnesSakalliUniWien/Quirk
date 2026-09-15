@@ -16,6 +16,7 @@
 
 import {highlightRing, lineWidth, rectangle, strokePath} from '../../../draw/shapes/ShapeView.js';
 import {CanvasTheme} from '../../../config/CanvasTheme.js';
+import {operationColumns} from '../../../circuit/operationColumns.js';
 
 /**
  * Marks the column the playhead is about to execute, behind the wires and gates so they stay
@@ -33,7 +34,9 @@ function drawPlayheadBand(context, painter, playheadStep) {
         return;
     }
 
-    const rect = context.geometry.gateRect(0, playheadStep, 1, context.geometry.groundedWireCount()).paddedBy(3);
+    const nextColumn = operationColumns(context.definition).find(col => col >= playheadStep);
+    if (nextColumn === undefined) return;
+    const rect = context.geometry.gateRect(0, nextColumn, 1, context.geometry.groundedWireCount()).paddedBy(3);
     rectangle(painter, rect, {fill: CanvasTheme.interaction.playheadBand});
     strokePath(painter, [rect.topLeft(), rect.bottomLeft()], CanvasTheme.interaction.playhead, lineWidth(painter, 2));
 }

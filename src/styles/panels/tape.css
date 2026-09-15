@@ -1,0 +1,25 @@
+@layer components {
+    .tape-panel { padding: 16px; }
+
+    .tape-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; align-items: center; }
+
+    .tape-strip { display: flex; gap: 12px; overflow-x: auto; padding: 12px 0; }
+
+    .take-card { flex: 0 0 290px; border: var(--border-width-strong) solid var(--take-colour); border-radius: var(--radius-medium); padding: 12px; }
+
+    .take-card > label { display: block; color: var(--take-colour); margin-bottom: 8px; }
+
+    .take-card > input, .take-card textarea { width: 100%; }
+
+    .take-ghost { border-style: dashed; opacity: .7; }
+
+    .take-readings { max-height: 140px; overflow: auto; }
+
+    .tape-overlay { display: grid; width: 268px; }
+
+    .tape-overlay > div { grid-area: 1 / 1; border-left: 4px solid; }
+
+    .tape-overlay > div + div { opacity: .5; border-left: 0; border-right: 4px solid; }
+
+    .tape-differences { max-height: 160px; overflow: auto; overflow-wrap: anywhere; }
+}

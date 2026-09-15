@@ -1,2 +1,4 @@
-// Existing canvas consumers use the shared application theme through this entry point.
-export { CanvasTheme, phaseColor, phaseRgb, gateStyle } from "./Theme.js";
+// Drawing consumers do not import browser theme mappings.
+export {CanvasTheme} from '../draw/theme/CanvasTheme.js';
+export {phaseColor, phaseRgb} from '../appearance/formats/phase.js';
+export {gateStyle} from '../draw/theme/gateStyle.js';

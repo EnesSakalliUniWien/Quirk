@@ -12,12 +12,13 @@ stroke, alpha and text properties in JavaScript. CSS styles the surrounding HTML
 | `shapes/` | Shape primitives and path construction | `ShapeView.js`, `PathGeometry.js` |
 | `text/` | Text measurement, fitting and label descriptions | `TextLayout.js`, `LabelView.js`, `BasisLabels.js` |
 | `tooltips/` | Tooltip content, positioning and overlay descriptions | `TooltipView.js`, `MatrixTooltip.js` |
-| `displays/` | Amplitude, probability, density, sample and Bloch displays | Scientific display modules |
+| `displays/` | Scientific displays grouped by Bloch, amplitude, density, complex-cell and probability responsibilities | See [display responsibilities](displays/README.md) |
 | `gate/` | Gate grouping, frames, symbols and custom-gate rendering | Existing gate modules plus `GateView.js` |
 | `renderers/` | Shared data renderers, operator tiles and raster generation | Existing renderer modules |
 
-`displays/MatrixView.js` owns complex matrix rendering, `ComplexCellGeometry.js` owns shared amplitude marks,
-`ProbabilityView.js` owns probability displays, and `BlochGeometry.js` owns the Bloch projection axes.
+`displays/complex/MatrixView.js` owns complex matrix rendering, and its sibling `ComplexCellGeometry.js`
+owns shared amplitude marks. `displays/probability/ProbabilityView.js` owns probability displays,
+and `displays/bloch/BlochGeometry.js` owns the Bloch projection axes.
 `tooltips/MatrixTooltip.js` maps matrix cells to tooltip content. Circuit viewport coordination lives in
 [`src/app/canvas/CircuitViewport.js`](../app/canvas/CircuitViewport.js); circuit composition remains in
 [`src/editor/rendering/`](../editor/rendering/README.md). Editor interaction output lives in
@@ -41,6 +42,13 @@ stroke, alpha and text properties in JavaScript. CSS styles the surrounding HTML
   composed renderers from `gate/GateRenderers.js` and rectangle helpers from `gate/GateRects.js`.
 - `GateView` groups a gate's description. `GateRenderParams.withPainter` supplies that description
   while preserving gate-context access.
+- `GateLabel` uses `@pixi/layout` to arrange symbol and angle-label rows inside their existing gate rectangles.
+  `GateSymbol` owns notation parsing and preferred font sizes; Pixi Layout owns row and text-run positioning.
+  Long unbreakable labels still scale down to fit. Frames, circuit positions and hit areas keep their existing owners.
+  Layout is updated after React commits and before tooltip placement or rendering, with automatic updates and
+  throttling disabled so offscreen surfaces and rapid parameter changes do not need a ticker.
+  The operator tile worker draws nothing, so its build resolves `@pixi/layout` to an empty module
+  (see `vite.config.js`) and leaves the layout mixins and their Yoga engine out of its bundle.
 - `ShapeView` and `LabelView` are registered native Pixi primitives. React creates and removes them;
   their property setters avoid rebuilding unchanged graphics and text styles. `TextLayout` uses
   CanvasTextMetrics and native wrapping. `BasisLabels` uses React containers directly and memoizes

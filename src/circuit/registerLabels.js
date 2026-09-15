@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Util } from "../base/Util.js";
+import { bin } from "../base/Format.js";
 import { Registers } from "./model/Registers.js";
 
 /**
@@ -108,7 +108,7 @@ function ketFields(registers, numWires, index) {
     const count = end - wire;
     fields.push({
       name: count === 1 ? `q${wire}` : `q${wire}–q${end - 1}`,
-      text: Util.bin((index >> wire) & ((1 << count) - 1), count),
+      text: bin((index >> wire) & ((1 << count) - 1), count),
       register: undefined,
     });
     wire = end;
@@ -125,7 +125,7 @@ function ketFields(registers, numWires, index) {
  */
 function ketLabel(registers, numWires, index) {
   if (registers.isEmpty()) {
-    return Util.bin(index, numWires);
+    return bin(index, numWires);
   }
   return ketFields(registers, numWires, index)
     .map((f) => `${f.name}=${f.text}`)
@@ -139,7 +139,7 @@ function ketLabel(registers, numWires, index) {
  * @returns {!string} The bit string, highest wire first, with a · where one group of wires ends.
  */
 function ketBits(registers, numWires, index) {
-  const bits = Util.bin(index, numWires);
+  const bits = bin(index, numWires);
   if (registers.isEmpty()) {
     return bits;
   }

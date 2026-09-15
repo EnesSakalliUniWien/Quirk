@@ -19,7 +19,7 @@ import {assertThatCircuitShaderActsLikeMatrix} from "../../../CircuitOperationTe
 import {CircuitShaders} from "../../../../src/engine/simulation/gpu/CircuitShaders.js"
 
 import {Controls} from "../../../../src/circuit/model/Controls.js"
-import {Shaders} from "../../../../src/engine/webgl/shader/Shaders.js"
+import {Shaders} from "../../../../src/engine/webgl/operations/Shaders.js"
 import {Matrix} from "../../../../src/engine/math/matrix/Matrix.js"
 import {Outputs, makePseudoShaderWithInputsAndOutputAndCode} from "../../../../src/engine/webgl/coder/ShaderCoders.js"
 

@@ -17,7 +17,7 @@
 import {Suite, assertThat} from "../../TestUtil.js"
 import {Complex} from "../../../src/engine/math/complex/Complex.js"
 import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
-import {columnStructure} from "../../../src/engine/simulation/columnStructure.js"
+import {columnStructure} from "../../../src/engine/simulation/columnStructure/columnStructure.js";
 import { fromJsonText_CircuitDefinition } from "../../../src/serialization/circuits/text.js";
 import {TILE_SIZE, rasterMatrix, rasterOperatorTile} from "../../../src/draw/renderers/rasters.js"
 import {phaseRgb} from "../../../src/config/CanvasTheme.js"

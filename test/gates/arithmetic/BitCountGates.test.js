@@ -22,7 +22,7 @@ import {advanceStateWithCircuit} from "../../../src/engine/simulation/CircuitCom
 
 import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js"
 import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
-import {Util} from "../../../src/base/Util.js"
+import { numberOfSetBits } from "../../../src/engine/math/bitOperations.js";
 
 const suite = new Suite("BitCountGates");
 
@@ -48,7 +48,7 @@ suite.testUsingWebGL('PlusBitCountA', () => {
         Matrix.generateTransition(1<<5, i => {
             const a = i & 7;
             let t = (i >> 3) & 3;
-            t += Util.numberOfSetBits(a);
+            t += numberOfSetBits(a);
             t &= 3;
             return a | (t << 3);
         }));
@@ -68,7 +68,7 @@ suite.testUsingWebGL('MinusBitCountA', () => {
         Matrix.generateTransition(1<<5, i => {
             const a = i & 7;
             let t = (i >> 3) & 3;
-            t -= Util.numberOfSetBits(a);
+            t -= numberOfSetBits(a);
             t &= 3;
             return a | (t << 3);
         }));

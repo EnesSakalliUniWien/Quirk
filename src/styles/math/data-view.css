@@ -1,0 +1,8 @@
+@layer components {
+    /* Data drawn by the shared renderers: a plain canvas the GPU surface copies its pixels into. */
+
+    .data-view {
+        display: block;
+        flex: 0 0 auto;
+    }
+}

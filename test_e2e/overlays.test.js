@@ -20,6 +20,28 @@ import assert from 'node:assert/strict';
 import {circuitMetrics, test, withQuirkPage, waitForCircuit, waitForPanel, closePanel, TEST_TIMEOUT_MILLIS, circuitTopForWires, waitForCanvasViewport, currentCircuit, exportedCircuit} from './harness.js';
 import {Matrix} from '../src/engine/math/matrix/Matrix.js';
 
+test('density cell inspection supports keyboard selection without editing the circuit', async browser => {
+    const circuit = {cols: [['H'], ['Density']]};
+    await withQuirkPage(browser, circuit, async page => {
+        await waitForCanvasViewport(page);
+        const top = await circuitTopForWires(page, 2);
+        const bounds = await page.$eval('#drawCanvas canvas', e => e.getBoundingClientRect().toJSON());
+        await page.mouse.click(bounds.x + circuitMetrics.columnSpacing + circuitMetrics.firstColumnLeft + 10,
+            bounds.y + top + circuitMetrics.wireSpacing / 2);
+        await waitForPanel(page, 'complex-display', true);
+        await page.waitForSelector('.complex-display-grid');
+        await page.focus('.complex-display-grid');
+        await page.keyboard.press('ArrowRight');
+        await page.waitForFunction(() => document.querySelector('.complex-display-grid').getAttribute('aria-label').includes('column 1'));
+        const text = await page.$eval('.complex-display-panel', e => e.innerText);
+        assert.match(text, /Stored complex value/);
+        assert.match(text, /0\.5 \+ 0i/);
+        assert.match(text, /logarithmic scale/);
+        assert.deepEqual(await currentCircuit(page), circuit);
+        await closePanel(page, 'complex-display');
+    });
+});
+
 async function openBlochAt(page, column) {
     for (let attempt = 0; attempt < 3; attempt++) {
         await waitForCanvasViewport(page);

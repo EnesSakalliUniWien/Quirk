@@ -1,24 +1,47 @@
-/* The app's styling entry point. The layer order here is the precedence contract - components
-   beat base - and the file order below matters within each layer: layout.css comes last so its
-   shell and reflow media rules win by source order. */
-@layer base, components;
+/* Global stylesheet entry point. Components override base. Imports preserve rule precedence;
+   directory grouping does not imply alphabetical import order. See README.md. */
+@import "./layers.css";
 @import "@fontsource-variable/geist";
 /* Dockview supplies layout; Theme.js supplies its theme values. */
 @import "dockview-react/dist/styles/dockview.css";
 
-@import "./base.css";
-@import "./controls.css";
-@import "./toolbar.css";
-@import "./transport.css";
-@import "./sidebar/index.css";
-@import "./gate-details.css";
-@import "./panels.css";
-@import "./tape.css";
-@import "./state-panel.css";
-@import "./debug-panels.css";
-@import "./gutter.css";
-@import "./menu.css";
-@import "./forge.css";
-@import "./matrices.css";
-@import "./dock.css";
-@import "./layout.css";
+@import "./foundation/reset.css";
+@import "./foundation/document.css";
+@import "./shell/app-base.css";
+@import "./circuit/viewport.css";
+@import "./foundation/elements.css";
+@import "./ui/render-canvas.css";
+@import "./ui/buttons.css";
+@import "./shell/toolbar.css";
+@import "./gates/toolbox/index.css";
+@import "./gates/details.css";
+@import "./panels/shared/frame.css";
+@import "./panels/welcome.css";
+@import "./panels/examples.css";
+@import "./panels/gate-param.css";
+@import "./panels/bloch.css";
+@import "./panels/shared/sections.css";
+@import "./panels/export.css";
+@import "./panels/shared/responsive.css";
+@import "./panels/tape.css";
+@import "./panels/state.css";
+@import "./panels/complex-display.css";
+@import "./panels/shared/debug.css";
+@import "./panels/algebra/steps.css";
+@import "./panels/probabilities/chart.css";
+@import "./panels/qubits.css";
+@import "./math/data-view.css";
+@import "./math/operator-view.css";
+@import "./panels/algebra/evolution.css";
+@import "./panels/probabilities/labels.css";
+@import "./panels/registers.css";
+@import "./circuit/gutter.css";
+@import "./ui/menu.css";
+@import "./panels/forge/construction.css";
+@import "./math/matrices.css";
+@import "./math/operator-controls.css";
+@import "./panels/forge/operation-preview.css";
+@import "./math/entry.css";
+@import "./shell/dock.css";
+@import "./shell/layout.css";
+@import "./shell/error-banner.css";

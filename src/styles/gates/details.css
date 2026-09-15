@@ -1,0 +1,237 @@
+/* The gate details module and the hover card that carries it. The module is the same in both
+   hosts; only the card's frame and its width limit live here. */
+@layer components {
+    /* The card is portalled to the body, so it has to be lifted over the dock, whose groups make
+       their own stacking contexts. */
+    .gate-hover-positioner {
+        z-index: var(--layer-preview);
+    }
+
+    .gate-details-positioner {
+        z-index: var(--layer-popover);
+    }
+
+    .gate-hover,
+    .gate-details-popup {
+        box-sizing: border-box;
+        max-width: min(440px, calc(100vw - var(--spacing) * 8));
+        max-height: min(640px, calc(100dvh - 24px));
+        overflow: auto;
+        padding: calc(var(--spacing) * 4);
+        color: var(--card-foreground);
+        background: var(--card);
+        border: var(--border-width) solid var(--border);
+        border-radius: 12px;
+        box-shadow: 0 18px 48px var(--shadow-popup);
+        /* Keep scrolling inside the window instead of moving the toolbox underneath it. */
+        overscroll-behavior: contain;
+    }
+
+    .gate-hover { max-width: min(300px, calc(100vw - 24px)); }
+    .gate-details-popup { width: min(440px, calc(100vw - 24px)); max-width: none; }
+    :where(.gate-details-popup) .ui-button {
+        background-color: transparent;
+        color: inherit;
+        font-family: inherit;
+    }
+    .gate-details-toolbar {
+        position: sticky;
+        top: -16px;
+        z-index: 1;
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+        gap: 12px;
+        padding-block: 8px;
+        background: var(--card);
+    }
+    .gate-details-popup .gate-details-section,
+    .gate-details-popup .gate-details-header { min-width: 0; }
+    .gate-details-popup .gate-details-title,
+    .gate-details-popup .gate-details-blurb { overflow-wrap: anywhere; }
+    .gate-details-popup .matrix-factor {
+        width: auto;
+        max-width: 100%;
+        overflow: auto;
+    }
+    .gate-details-popup .gate-details-facts { min-width: 0; }
+    .gate-details-popup .gate-details-facts dd { overflow-wrap: anywhere; }
+    .gate-details-popup .gate-details-vector { white-space: normal; }
+
+    .gate-details {
+        display: grid;
+        gap: calc(var(--spacing) * 3);
+    }
+
+    /* The sentences carry the same fractions the matrix does, so they get room to breathe rather
+       than the cramped default line height. */
+    .gate-details-actions li {
+        font-size: 0.875rem;
+        line-height: 1.6;
+    }
+
+    .gate-details-title {
+        margin: 0;
+        color: var(--tooltip-title, var(--foreground));
+        font-size: 1rem;
+        font-weight: 650;
+        letter-spacing: -0.01em;
+    }
+
+    .gate-details-blurb,
+    .gate-details-note,
+    .gate-details-empty {
+        margin: 0;
+        color: var(--muted-foreground);
+        font-size: var(--text-small);
+        line-height: 1.45;
+    }
+
+    .gate-details-section {
+        display: grid;
+        gap: calc(var(--spacing) * 2);
+    }
+
+    .gate-details-section h3 {
+        margin: 0;
+        color: var(--panel-heading);
+        font-size: var(--text-caption);
+        font-weight: 650;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+
+    /* The matrix, as mathematics. The browser stacks the fractions, sizes the radicals and
+       stretches the brackets; all this has to do is set the type and give the cells room. */
+    .matrix-math {
+        /* MathML centres a block equation; the card reads as a left-aligned column. */
+        margin: 0;
+        text-align: left;
+        font-size: 1.05rem;
+        color: var(--foreground);
+    }
+
+    .matrix-math mtd {
+        padding: 2px calc(var(--spacing) * 2);
+    }
+
+    .matrix-math mo {
+        color: var(--muted-foreground);
+    }
+
+    .gate-details-legend {
+        margin: 0;
+        color: var(--muted-foreground);
+        font-size: var(--text-caption);
+    }
+
+    .gate-details-header {
+        display: grid;
+        gap: calc(var(--spacing) * 1);
+    }
+
+    .gate-details-actions {
+        display: grid;
+        gap: 3px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        font-size: var(--text-small);
+        line-height: 1.4;
+    }
+
+    .gate-details-rotation {
+        display: flex;
+        align-items: flex-start;
+        gap: calc(var(--spacing) * 3);
+        flex-wrap: wrap;
+    }
+
+    .gate-details-facts {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        align-items: baseline;
+        gap: 4px calc(var(--spacing) * 3);
+        margin: 0;
+        font-size: var(--text-small);
+    }
+
+    .gate-details-facts dt {
+        color: var(--muted-foreground);
+    }
+
+    .gate-details-facts dd {
+        margin: 0;
+        font-family: var(--font-mono);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .gate-details-aside {
+        color: var(--muted-foreground);
+    }
+
+    .gate-details-vector {
+        white-space: pre;
+    }
+
+    /* The rotation figure: big enough to read, and labelled, which the 65px canvas it replaces
+       was neither. */
+    .circuit-figure {
+        border: var(--border-width) solid var(--border);
+        border-radius: var(--radius-medium);
+    }
+
+    .rotation-figure {
+        width: 148px;
+        height: 148px;
+        flex: 0 0 auto;
+        overflow: visible;
+    }
+
+    .rotation-figure-sphere {
+        fill: var(--inset-surface);
+        stroke: var(--border);
+        stroke-width: 1;
+    }
+
+    .rotation-figure-guide {
+        fill: none;
+        stroke: var(--border);
+        stroke-width: 0.75;
+    }
+
+    .rotation-figure-axis {
+        stroke: var(--muted-foreground);
+        stroke-width: 0.75;
+        stroke-dasharray: 3 3;
+    }
+
+    .rotation-figure-axis-label {
+        fill: var(--muted-foreground);
+        font-family: var(--font-mono);
+        font-size: 9px;
+        text-anchor: middle;
+        dominant-baseline: middle;
+    }
+
+    .rotation-figure-turn-axis {
+        stroke: var(--brand-ink);
+        stroke-width: 2;
+        stroke-linecap: round;
+    }
+
+    .rotation-figure-turn {
+        fill: none;
+        stroke: var(--operator);
+        stroke-width: 2;
+        stroke-linecap: round;
+    }
+
+    .rotation-figure-turn-head {
+        stroke: none;
+    }
+
+    .rotation-figure-turn-head-fill {
+        fill: var(--operator);
+    }
+}

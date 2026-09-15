@@ -23,7 +23,7 @@ import { Format } from "../base/Format.js";
 import { GateBuilder } from "../circuit/model/Gate.js";
 import { GateColumn } from "../circuit/model/GateColumn.js";
 import { Matrix } from "../engine/math/matrix/Matrix.js";
-import { Util } from "../base/Util.js";
+import { floorLg2, isPowerOf2 } from "../engine/math/powersOfTwo.js";
 import { MatrixDecomposition } from "../engine/math/matrix/MatrixDecomposition.js";
 import { QubitMatrix } from "../engine/math/matrix/QubitMatrix.js";
 import { ComplexFormula } from "../engine/math/formula/ComplexFormula.js";
@@ -125,7 +125,7 @@ function parseUserGateMatrix_noCorrection(text) {
   // Pad with zeroes up to next size that makes sense.
   let n = Math.max(
     4,
-    1 << (2 * Math.max(1, Util.floorLg2(Math.sqrt(parts.length)))),
+    1 << (2 * Math.max(1, floorLg2(Math.sqrt(parts.length)))),
   );
   if (n < parts.length) {
     n <<= 2;
@@ -147,7 +147,7 @@ function parseUserMatrix(text, ensureUnitary) {
     op.width() !== op.height() ||
     op.width() < 2 ||
     op.width() > 16 ||
-    !Util.isPowerOf2(op.width())
+    !isPowerOf2(op.width())
   ) {
     throw Error("Matrix must be 2x2, 4x4, 8x8, or 16x16.");
   }

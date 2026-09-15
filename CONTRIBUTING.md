@@ -30,7 +30,7 @@ Before opening the pull request, keep the checks green:
   `src/app/` or `src/components/`, and stays DOM-free (no `document`/`window` access).
 - `src/components/` — the React chrome (toolbar, transport bar, dialogs, gate toolbox), its
   `Button` and `ButtonGroup` primitives under `src/components/ui/` (styled by
-  `src/styles/controls.css`), and `toolbox.js`, the vanilla helper module the gate toolbox drives.
+  `src/styles/ui/buttons.css`), and `toolbox.js`, the vanilla helper module the gate toolbox drives.
   Dock panels and their supporting components are grouped by responsibility under
   `src/components/panels/`; see the [panel directory guide](src/components/panels/README.md).
 - `src/circuit/` — the circuit model: `CircuitDefinition`, `GateColumn`, `Gate` and
@@ -66,7 +66,8 @@ Before opening the pull request, keep the checks green:
   it depends only on `src/base/`.
 - `src/base/`, `src/geometry/`, `src/browser/`, `src/config/` — dependency-light foundations:
   generic utilities, 2D points and rectangles, browser API wrappers, and shared constants.
-- `src/styles/` — all CSS, aggregated by `globals.css`.
+- `src/styles/` — global CSS grouped by responsibility, aggregated by `globals.css`; see
+  `src/styles/README.md`. HTML CSS Modules live beside their components.
 
 Dependencies flow downward:
 

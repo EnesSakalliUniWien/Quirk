@@ -14,93 +14,137 @@
  * limitations under the License.
  */
 
-import {Simulation} from "../../config/Simulation.js"
-import {Gate} from "../../circuit/model/Gate.js"
-import {makeCycleRenderer} from '../../draw/gate/GateRenderers.js';
-import {ketArgs, ketShaderPhase} from "../../engine/simulation/gpu/KetShaderUtil.js"
-import {MUL_STEP} from "../arithmetic/MultiplyAccumulateGates.js"
-import {WglArg} from "../../engine/webgl/shader/WglArg.js"
-import {Matrix} from "../../engine/math/matrix/Matrix.js";
-import {Complex} from "../../engine/math/complex/Complex.js";
+import { Simulation } from "../../config/Simulation.js";
+import { Gate } from "../../circuit/model/Gate.js";
+import { makeCycleRenderer } from "../../draw/gate/GateRenderers.js";
+import {
+  ketArgs,
+  ketShaderPhase,
+} from "../../engine/simulation/gpu/KetShaderUtil.js";
+import { MUL_STEP } from "../arithmetic/MultiplyAccumulateGates.js";
+import { WglArg } from "../../engine/webgl/shader/WglArg.js";
+import { Matrix } from "../../engine/math/matrix/Matrix.js";
+import { Complex } from "../../engine/math/complex/Complex.js";
 
 const PHASE_GRADIENT_SHADER = ketShaderPhase(
-    `
+  `
         uniform float factor;
 
         /// Scales an angle by an integer factor.
         /// Performs the multiplication gradually, to avoid losing precision.
         float angle_mul(float base_angle, float whole_factor) {
             float result = 0.0;
-            for (int k = 0; k < ${Math.ceil(Simulation.MAX_WIRE_COUNT/MUL_STEP)}; k++) {
-                result += base_angle * mod(whole_factor, ${1<<MUL_STEP}.0);
+            for (int k = 0; k < ${Math.ceil(Simulation.MAX_WIRE_COUNT / MUL_STEP)}; k++) {
+                result += base_angle * mod(whole_factor, ${1 << MUL_STEP}.0);
                 result = mod(result, 6.283185307179586476925286766559);
-                whole_factor = floor(whole_factor / ${1<<MUL_STEP}.0);
-                base_angle = mod(base_angle * ${1<<MUL_STEP}.0, 6.283185307179586476925286766559);
+                whole_factor = floor(whole_factor / ${1 << MUL_STEP}.0);
+                base_angle = mod(base_angle * ${1 << MUL_STEP}.0, 6.283185307179586476925286766559);
             }
             return result;
         }
     `,
-    `
+  `
         return angle_mul(factor, out_id);
-    `);
+    `,
+);
 
 const PhaseGradientGates = {};
 
-PhaseGradientGates.PhaseGradientFamily = Gate.buildFamily(1, 16, (span, builder) => builder.
-    setSerializedId("PhaseGradient" + span).
-    setSymbol("Grad^½").
-    setTitle("Half Gradient Gate").
-    setBlurb("Phases the target by an amount proportional its value.").
-    setActualEffectToShaderProvider(ctx => PHASE_GRADIENT_SHADER.withArgs(
-        ...ketArgs(ctx, span),
-        WglArg.float("factor", Math.PI / (1 << span)))).
-    setKnownEffectToPhaser(k => k / (2 << span)));
+PhaseGradientGates.PhaseGradientFamily = Gate.buildFamily(
+  1,
+  16,
+  (span, builder) =>
+    builder
+      .setSerializedId("PhaseGradient" + span)
+      .setSymbol("Grad^½")
+      .setTitle("Half Gradient Gate")
+      .setBlurb("Phases the target by an amount proportional its value.")
+      .setActualEffectToShaderProvider((ctx) =>
+        PHASE_GRADIENT_SHADER.withArgs(
+          ...ketArgs(ctx, span),
+          WglArg.float("factor", Math.PI / (1 << span)),
+        ),
+      )
+      .setKnownEffectToPhaser((k) => k / (2 << span)),
+);
 
-PhaseGradientGates.PhaseDegradientFamily = Gate.buildFamily(1, 16, (span, builder) => builder.
-    setAlternateFromFamily(PhaseGradientGates.PhaseGradientFamily).
-    setSerializedId("PhaseUngradient" + span).
-    setSymbol("Grad^-½").
-    setTitle("Inverse Half Gradient Gate").
-    setBlurb("Counter-phases the target by an amount proportional its value.").
-    setActualEffectToShaderProvider(ctx => PHASE_GRADIENT_SHADER.withArgs(
-        ...ketArgs(ctx, span),
-        WglArg.float("factor", -Math.PI / (1 << span)))).
-    setKnownEffectToPhaser(k => -k / (2 << span)));
+PhaseGradientGates.PhaseDegradientFamily = Gate.buildFamily(
+  1,
+  16,
+  (span, builder) =>
+    builder
+      .setAlternateFromFamily(PhaseGradientGates.PhaseGradientFamily)
+      .setSerializedId("PhaseUngradient" + span)
+      .setSymbol("Grad^-½")
+      .setTitle("Inverse Half Gradient Gate")
+      .setBlurb(
+        "Counter-phases the target by an amount proportional its value.",
+      )
+      .setActualEffectToShaderProvider((ctx) =>
+        PHASE_GRADIENT_SHADER.withArgs(
+          ...ketArgs(ctx, span),
+          WglArg.float("factor", -Math.PI / (1 << span)),
+        ),
+      )
+      .setKnownEffectToPhaser((k) => -k / (2 << span)),
+);
 
-PhaseGradientGates.DynamicPhaseGradientFamily = Gate.buildFamily(1, 16, (span, builder) => builder.
-    setSerializedId("grad^t" + span).
-    setSymbol("Grad^t'").
-    setTitle("Cycling Gradient Gate").
-    setBlurb("Phases the target by a cycling amount proportional its value.").
-    setActualEffectToShaderProvider(ctx => PHASE_GRADIENT_SHADER.withArgs(
-        ...ketArgs(ctx, span),
-        WglArg.float("factor", ctx.time * Math.PI * 2))).
-    setEffectToTimeVaryingMatrix(t => Matrix.generateDiagonal(
-        1 << span,
-        k => Complex.polar(1, t * 2 * Math.PI * k))).
-    promiseEffectOnlyPhases().
-    setRenderer(makeCycleRenderer(-1, -1, 1, -Math.PI / 2)));
+PhaseGradientGates.DynamicPhaseGradientFamily = Gate.buildFamily(
+  1,
+  16,
+  (span, builder) =>
+    builder
+      .setSerializedId("grad^t" + span)
+      .setSymbol("Grad^t'")
+      .setTitle("Cycling Gradient Gate")
+      .setBlurb("Phases the target by a cycling amount proportional its value.")
+      .setActualEffectToShaderProvider((ctx) =>
+        PHASE_GRADIENT_SHADER.withArgs(
+          ...ketArgs(ctx, span),
+          WglArg.float("factor", ctx.time * Math.PI * 2),
+        ),
+      )
+      .setEffectToTimeVaryingMatrix((t) =>
+        Matrix.generateDiagonal(1 << span, (k) =>
+          Complex.polar(1, t * 2 * Math.PI * k),
+        ),
+      )
+      .promiseEffectOnlyPhases()
+      .setRenderer(makeCycleRenderer(-1, -1, 1, -Math.PI / 2)),
+);
 
-PhaseGradientGates.DynamicPhaseDegradientFamily = Gate.buildFamily(1, 16, (span, builder) => builder.
-    setAlternateFromFamily(PhaseGradientGates.DynamicPhaseGradientFamily).
-    setSerializedId("grad^-t" + span).
-    setSymbol("Grad^-t'").
-    setTitle("Inverse Cycling Gradient Gate").
-    setBlurb("Counter-phases the target by a cycling amount proportional its value.").
-    setActualEffectToShaderProvider(ctx => PHASE_GRADIENT_SHADER.withArgs(
-        ...ketArgs(ctx, span),
-        WglArg.float("factor", -ctx.time * Math.PI * 2))).
-    setEffectToTimeVaryingMatrix(t => Matrix.generateDiagonal(
-        1 << span,
-        k => Complex.polar(1, t * 2 * Math.PI * -k))).
-    promiseEffectOnlyPhases().
-    setRenderer(makeCycleRenderer(1, -1, 1, Math.PI / 2)));
+PhaseGradientGates.DynamicPhaseDegradientFamily = Gate.buildFamily(
+  1,
+  16,
+  (span, builder) =>
+    builder
+      .setAlternateFromFamily(PhaseGradientGates.DynamicPhaseGradientFamily)
+      .setSerializedId("grad^-t" + span)
+      .setSymbol("Grad^-t'")
+      .setTitle("Inverse Cycling Gradient Gate")
+      .setBlurb(
+        "Counter-phases the target by a cycling amount proportional its value.",
+      )
+      .setActualEffectToShaderProvider((ctx) =>
+        PHASE_GRADIENT_SHADER.withArgs(
+          ...ketArgs(ctx, span),
+          WglArg.float("factor", -ctx.time * Math.PI * 2),
+        ),
+      )
+      .setEffectToTimeVaryingMatrix((t) =>
+        Matrix.generateDiagonal(1 << span, (k) =>
+          Complex.polar(1, t * 2 * Math.PI * -k),
+        ),
+      )
+      .promiseEffectOnlyPhases()
+      .setRenderer(makeCycleRenderer(1, -1, 1, Math.PI / 2)),
+);
 
 PhaseGradientGates.all = [
-    ...PhaseGradientGates.PhaseGradientFamily.all,
-    ...PhaseGradientGates.PhaseDegradientFamily.all,
-    ...PhaseGradientGates.DynamicPhaseGradientFamily.all,
-    ...PhaseGradientGates.DynamicPhaseDegradientFamily.all,
+  ...PhaseGradientGates.PhaseGradientFamily.all,
+  ...PhaseGradientGates.PhaseDegradientFamily.all,
+  ...PhaseGradientGates.DynamicPhaseGradientFamily.all,
+  ...PhaseGradientGates.DynamicPhaseDegradientFamily.all,
 ];
 
-export {PhaseGradientGates, PHASE_GRADIENT_SHADER}
+export { PhaseGradientGates, PHASE_GRADIENT_SHADER };

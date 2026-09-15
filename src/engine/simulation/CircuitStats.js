@@ -21,9 +21,8 @@ import {KetTextureUtil} from "./gpu/KetTextureUtil.js"
 import {Controls} from "../../circuit/model/Controls.js"
 import {DetailedError} from "../../base/DetailedError.js"
 import {Matrix} from "../math/matrix/Matrix.js"
-import {Shaders} from "../webgl/shader/Shaders.js"
+import {Shaders} from "../webgl/operations/Shaders.js"
 import {Serializer} from "../../serialization/Serializer.js"
-import {Util} from "../../base/Util.js"
 import {reportRecoveredError} from "../../diagnostics/errorReporter.js"
 import {advanceStateWithCircuit} from "./CircuitComputeUtil.js"
 import {currentShaderCoder} from "../webgl/coder/ShaderCoders.js"
@@ -265,7 +264,7 @@ class CircuitStats {
     }
 
     /**
-     * Returns the same density matrix, but without any diagonal terms related to qubits that have been measured.
+     * Returns the same density matrix, but without off-diagonal terms connecting different measured-bit values.
      * @param {!Matrix} densityMatrix
      * @param {!int} isMeasuredMask A bitmask where each 1 corresponds to a measured qubit position.
      * @returns {!Matrix}
@@ -360,36 +359,9 @@ class CircuitStats {
      */
     static _fromCircuitAtTime_noFallback(circuitDefinition, time, seed = undefined) {
         circuitDefinition = circuitDefinition.withMinimumWireCount();
-        const numWires = circuitDefinition.numWires;
+        const textures = collectCircuitStatsTextures(circuitDefinition, time, seed);
+        const pixelData = readCircuitStatsPixels(textures);
 
-        // Advance state while collecting stats into textures.
-        const stateTrader = new WglTextureTrader(CircuitShaders.classicalState(0).toVec2Texture(numWires));
-        const controlTex = CircuitShaders.controlMask(Controls.NONE).toBoolTexture(numWires);
-        const {colQubitDensities, colNorms, customStats, customStatsMap} = advanceStateWithCircuit(
-            new CircuitEvalContext(
-                time,
-                0,
-                numWires,
-                Controls.NONE,
-                controlTex,
-                Controls.NONE,
-                stateTrader,
-                new Map(), seed === undefined ? Math.random : randomFor(seed)),
-            circuitDefinition,
-            true);
-        controlTex.deallocByDepositingInPool("controlTex in _fromCircuitAtTime_noFallback");
-        if (currentShaderCoder().vec2.needRearrangingToBeInVec4Format) {
-            stateTrader.shadeHalveAndTrade(Shaders.packVec2IntoVec4);
-        }
-
-        // Read all texture data.
-        const pixelData = Util.objectifyArrayFunc(KetTextureUtil.mergedReadFloats)({
-            output: stateTrader.currentTexture,
-            colQubitDensities,
-            colNorms,
-            customStats});
-
-        // -- INTERPRET --
         const qubitDensities =
             CircuitStats._extractColumnQubitStatsFromPixelDatas(circuitDefinition, pixelData.colQubitDensities);
         const survivalRates =
@@ -398,28 +370,9 @@ class CircuitStats {
             pixelData.output,
             survivalRates.length === 0 ? 1 : survivalRates.at(-1));
 
-        const customStatsProcessed = new Map();
-        for (const {col, row, out} of customStatsMap) {
-            const func = circuitDefinition.gateInSlot(col, row).customStatPostProcesser || (e => e);
-            customStatsProcessed.set(col+":"+row, func(pixelData.customStats[out], circuitDefinition, col, row));
-        }
-
-        const sampleOutcomes = {};
-        for (const [location, data] of customStatsProcessed) {
-            const [col, row] = location.split(":").map(Number);
-            if (!/^Sample\d+$/.test(circuitDefinition.gateInSlot(col, row).serializedId)) continue;
-            const rng = randomFor(`${seed ?? time}:sample:${location}`);
-            let remaining = rng();
-            const buf = data.rawBuffer();
-            if (data.hasNaN()) continue;
-            for (let i = 0; i < data.height(); i++) {
-                remaining -= buf[i * 2];
-                if (remaining < 0 || i === data.height() - 1) {
-                    sampleOutcomes[location] = {i, p: buf[i * 2]};
-                    break;
-                }
-            }
-        }
+        const customStatsProcessed = processCustomStats(
+            circuitDefinition, textures.customStatsMap, pixelData.customStats);
+        const sampleOutcomes = collectSampleOutcomes(circuitDefinition, customStatsProcessed, time, seed);
         return new CircuitStats(
             circuitDefinition,
             time,
@@ -428,6 +381,91 @@ class CircuitStats {
             outputSuperposition,
             customStatsProcessed, seed, sampleOutcomes);
     }
+}
+
+/** Runs the circuit and packs the final state for a single combined texture readback. */
+function collectCircuitStatsTextures(circuitDefinition, time, seed) {
+    const numWires = circuitDefinition.numWires;
+
+    // Advance state while collecting stats into textures.
+    const stateTrader = new WglTextureTrader(CircuitShaders.classicalState(0).toVec2Texture(numWires));
+    const controlTex = CircuitShaders.controlMask(Controls.NONE).toBoolTexture(numWires);
+    const {colQubitDensities, colNorms, customStats, customStatsMap} = advanceStateWithCircuit(
+        new CircuitEvalContext(
+            time,
+            0,
+            numWires,
+            Controls.NONE,
+            controlTex,
+            Controls.NONE,
+            stateTrader,
+            new Map(), seed === undefined ? Math.random : randomFor(seed)),
+        circuitDefinition,
+        true);
+    controlTex.deallocByDepositingInPool("controlTex in _fromCircuitAtTime_noFallback");
+    if (currentShaderCoder().vec2.needRearrangingToBeInVec4Format) {
+        stateTrader.shadeHalveAndTrade(Shaders.packVec2IntoVec4);
+    }
+    return {output: stateTrader.currentTexture, colQubitDensities, colNorms, customStats, customStatsMap};
+}
+
+/** Reads and releases the collected textures; the location map stays on the CPU. */
+function readCircuitStatsPixels({output, colQubitDensities, colNorms, customStats}) {
+    // Preserve the original readback order, including each display's texture order.
+    const pixels = KetTextureUtil.mergedReadFloats([
+        ...colNorms, ...colQubitDensities, ...customStats.flat(), output
+    ])[Symbol.iterator]();
+    return {
+        colNorms: colNorms.map(() => pixels.next().value),
+        colQubitDensities: colQubitDensities.map(() => pixels.next().value),
+        customStats: customStats.map(stat => Array.isArray(stat)
+            ? stat.map(() => pixels.next().value)
+            : pixels.next().value),
+        output: pixels.next().value
+    };
+}
+
+/** Converts each custom display texture using its gate's postprocessor, in evaluation order. */
+function processCustomStats(circuitDefinition, customStatsMap, customStatsPixelData) {
+    const customStatsProcessed = new Map();
+    for (const {col, row, out} of customStatsMap) {
+        const func = circuitDefinition.gateInSlot(col, row).customStatPostProcesser || (e => e);
+        customStatsProcessed.set(col+":"+row, func(customStatsPixelData[out], circuitDefinition, col, row));
+    }
+    return customStatsProcessed;
+}
+
+/** Records Sample outcomes using a separate random stream for each display location. */
+function collectSampleOutcomes(circuitDefinition, customStatsProcessed, time, seed) {
+    const sampleOutcomes = {};
+    for (const [location, data] of customStatsProcessed) {
+        const [col, row] = location.split(":").map(Number);
+        if (!/^Sample\d+$/.test(circuitDefinition.gateInSlot(col, row).serializedId)) {
+            continue;
+        }
+        const rng = randomFor(`${seed ?? time}:sample:${location}`);
+        const outcome = sampleOutcome(data, rng);
+        if (outcome !== undefined) {
+            sampleOutcomes[location] = outcome;
+        }
+    }
+    return sampleOutcomes;
+}
+
+/** Selects one outcome from a probability column, or none when its data is unavailable. */
+function sampleOutcome(data, rng) {
+    let remaining = rng();
+    const buf = data.rawBuffer();
+    if (data.hasNaN()) {
+        return undefined;
+    }
+    for (let i = 0; i < data.height(); i++) {
+        remaining -= buf[i * 2];
+        if (remaining < 0 || i === data.height() - 1) {
+            return {i, p: buf[i * 2]};
+        }
+    }
+    return undefined;
 }
 
 /**

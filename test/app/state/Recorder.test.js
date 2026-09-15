@@ -7,12 +7,14 @@ import {Simulator} from "../../../src/app/state/Simulator.js";
 import {Recorder} from "../../../src/app/state/Recorder.js";
 import {Serializer} from "../../../src/serialization/Serializer.js";
 import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js";
+import {operationSchedule} from '../../../src/circuit/operationColumns.js';
 
 const suite = new Suite("Recorder");
 const initial = JSON.stringify({cols: [["H"], ["ZDetector"], ["Sample1"]]});
 function setup(options) {
     const revision = Revision.startingAt(initial);
-    const playhead = new Playhead(revision.latestActiveCommit().map(s => JSON.parse(s).cols.length));
+    const playhead = new Playhead(revision.latestActiveCommit().map(s =>
+        operationSchedule(Serializer.fromJson(CircuitDefinition, JSON.parse(s)))));
     const sim = new Simulator();
     const store = {items: createValueStore([]), write: async (takes, options = {}) => {
         store.items.setState({value: [...store.items.getState().value, ...takes.map(take => ({id: take.id, take, ghost: options.ghost === true}))]});

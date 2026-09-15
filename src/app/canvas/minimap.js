@@ -26,7 +26,7 @@ import {circuitZoom, onCircuitZoomChanged} from './zoom.js';
  * A schematic overview of the whole circuit with a box marking the visible part, shown only while
  * the circuit is wider than its scroll area. Clicking or dragging on it scrolls the circuit.
  *
- * Its size is the bar's to decide (see base.css): the circuit is squeezed into it on each axis
+ * Its size is the bar's to decide (see src/styles/circuit/viewport.css): the circuit is squeezed into it on each axis
  * separately, so a long circuit uses the overview's whole width instead of a sliver of it.
  *
  * The schematic is drawn from the same geometry the circuit itself uses — wires as lines, gates

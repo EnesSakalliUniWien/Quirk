@@ -21,7 +21,7 @@ import {EditorState} from "../editor/state/EditorState.js"
 import {Rect} from "../geometry/Rect.js"
 import {Revision} from "../base/Revision.js"
 import { fromJsonText_CircuitDefinition } from "../serialization/circuits/text.js";
-import {Util} from "../base/Util.js"
+import { CUSTOM_IS_EQUAL_TO_EQUALITY } from "../base/Equate.js";
 
 import {CircuitActions} from "./state/CircuitActions.js"
 import {RegisterActions} from "./state/RegisterActions.js"
@@ -39,6 +39,7 @@ import {circuitZoom, initZoomControls, attachCircuitScrollSource} from "./canvas
 import {initMinimap} from "./canvas/minimap.js"
 import {noteCircuitEdited} from "../diagnostics/errorReporter.js"
 import {appStore} from "../state/appStore.js"
+import {operationSchedule} from '../circuit/operationColumns.js';
 
 /**
  * Starts Quirk once the shell has mounted the circuit's elements. Must be called exactly once.
@@ -55,7 +56,7 @@ import {appStore} from "../state/appStore.js"
  * @returns {void}
  */
 function startQuirk({canvas, canvasDiv, scrollSpacer, circuitOverlay, onReady,
-                     openGateParamEditor, openBlochSphereView, openRegisterRename, openGutterMenu, openTape}) {
+                     openGateParamEditor, openBlochSphereView, openRegisterRename, openGutterMenu, openTape, openComplexDisplay}) {
     // The one simulator: the animation cycle's phase and the stats caches are app-wide state.
     const simulator = new Simulator();
 
@@ -67,8 +68,8 @@ function startQuirk({canvas, canvasDiv, scrollSpacer, circuitOverlay, onReady,
     const mostRecentStats = createValueStore(CircuitStats.EMPTY);
     const playhead = new Playhead(
         observeStore(displayed).
-            map(e => e.displayedCircuit.circuitDefinition.columns.length).
-            whenDifferent());
+            map(e => e.displayedCircuit.circuitDefinition).
+            whenDifferent().map(operationSchedule));
     /** @type {!Revision} */
     const revision = Revision.startingAt(displayed.getState().value.snapshot());
 
@@ -118,7 +119,7 @@ function startQuirk({canvas, canvasDiv, scrollSpacer, circuitOverlay, onReady,
     // A stale recovery message disappears once the user moves on; a live problem re-raises it.
     observeStore(displayed).
         map(e => e.displayedCircuit.circuitDefinition).
-        whenDifferent(Util.CUSTOM_IS_EQUAL_TO_EQUALITY).
+        whenDifferent(CUSTOM_IS_EQUAL_TO_EQUALITY).
         subscribe(() => noteCircuitEdited());
 
     const redrawLoop = initRedrawLoop(
@@ -137,7 +138,7 @@ function startQuirk({canvas, canvasDiv, scrollSpacer, circuitOverlay, onReady,
     attachCircuitScrollSource(canvasDiv);
     initCanvasPointer(
         canvas, canvasDiv, revision, displayed, syncArea, openGateParamEditor, openBlochSphereView,
-        openRegisterRename, openGutterMenu, (dx, dy) => canvasDiv.scrollBy(dx, dy));
+        openRegisterRename, openGutterMenu, (dx, dy) => canvasDiv.scrollBy(dx, dy), openComplexDisplay);
 
     const circuitActions = new CircuitActions(revision);
     const registerActions = new RegisterActions(revision, displayed);
@@ -159,7 +160,7 @@ function startQuirk({canvas, canvasDiv, scrollSpacer, circuitOverlay, onReady,
         // rebuilding the toolbox for each one would recreate every tile and drop keyboard focus.
         obsCustomGateSet: observeStore(displayed).
             map(e => e.displayedCircuit.circuitDefinition.customGateSet).
-            whenDifferent(Util.CUSTOM_IS_EQUAL_TO_EQUALITY),
+            whenDifferent(CUSTOM_IS_EQUAL_TO_EQUALITY),
         mostRecentStats,
         onGrab: initToolboxDrag(canvas, revision, displayed, syncArea),
         onPlace: initToolboxKeyboardPlace(revision, displayed, syncArea),

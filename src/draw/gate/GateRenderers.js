@@ -1,3 +1,4 @@
+import {Appearance} from '../../appearance/Appearance.js';
 /**
  * Copyright 2017 Google Inc.
  *
@@ -22,7 +23,7 @@ import {Layout} from '../../config/Layout.js';
 import {CanvasTheme} from '../../config/CanvasTheme.js';
 import {DATA_RENDERERS} from '../renderers/dataRenderers.js';
 import {Point} from '../../geometry/Point.js';
-import {Util} from '../../base/Util.js';
+import { properMod } from "../../engine/math/modularArithmetic.js";
 
 import {paintBackground, paintOutline, paintResizeTab, paintLocationIndependentFrame} from './GateFrame.js';
 import {GATE_SYMBOL_FONT, paintGateSymbol} from './GateSymbol.js';
@@ -105,7 +106,7 @@ const SECTIONED_RENDERER_MAKER = (labels, dividers) => args => {
         });
         p = p2;
     }
-    rectangle(args.painter, args.rect, {stroke: {color: CanvasTheme.text.primary, width: lineWidth(args.painter, 1)}});
+    rectangle(args.painter, args.rect, {stroke: {color: CanvasTheme.text.primary, width: lineWidth(args.painter, Appearance.borders.width.regular)}});
     if (args.isHighlighted) {
         highlightRing(args.painter, args.rect);
     }
@@ -126,9 +127,8 @@ const makeDisplayRenderer = statePainter => args => {
 
     statePainter(args);
 
-    // Every display wears the frame ink, not only while hovered: its dark fill is barely lighter
-    // than the canvas, so the frame is its edge.
-    frame(args.painter, args.rect);
+    // A distinct outer edge separates dark display surfaces from the canvas.
+    frame(args.painter, args.rect, CanvasTheme.stroke.displayFrame);
     if (args.isHighlighted) {
         highlightRing(args.painter, args.rect);
     }
@@ -166,7 +166,7 @@ const MATRIX_RENDERER = args => {
  * @param {!number=} zeroAngle
  */
 function paintCycleState(args, angle, xScale = 1, yScale = 1, zeroAngle = 0) {
-    const t = Util.properMod(-angle, 2 * Math.PI);
+    const t = properMod(-angle, 2 * Math.PI);
     const c = args.rect.center();
     const r = 16;
 

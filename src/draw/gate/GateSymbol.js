@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-import { fitText, measureText } from "../text/TextLayout.js";
+import { measureText } from "../text/TextLayout.js";
 import { gateStyle } from "../../config/CanvasTheme.js";
+import {paintGateLabel} from "./GateLabel.js";
 import { Typography } from "../../config/Typography.js";
 
 /** @typedef {import('../scene/DisplayView.js').DisplayView} DisplayView */
@@ -36,9 +37,8 @@ function gateSymbolFont(size) {
 const GATE_SYMBOL_FONT = gateSymbolFont(Typography.GATE_SYMBOL_FONT_SIZE);
 
 /**
- * The sizes a gate symbol is allowed to take. fitText shrinks text to whatever fits, with no
- * floor, which let a long symbol like Rz(f(t)) render at a few pixels beside a Z at sixteen. The
- * symbol steps down this ramp instead, and wraps once it reaches the bottom.
+ * Preferred gate symbol sizes. Try wrapping at the smallest size before Pixi Layout
+ * scales an overlong unbreakable label to keep it inside the gate.
  * @type {!Array.<!number>}
  */
 const GATE_SYMBOL_FONT_SIZES = [
@@ -93,123 +93,22 @@ function fitGateSymbol(text, maxWidth) {
   };
 }
 
-/**
- * @param {!GateRenderParams} args
- * @param {undefined|!string=undefined} symbolOverride
- * @param {!boolean=} allowExponent
- */
-function paintGateSymbol(
-  args,
-  symbolOverride = undefined,
-  allowExponent = true,
-) {
-  const painter = args.painter;
-  const ink = gateStyle(args.gate).text;
+/** Draw a symbol without changing the stored gate notation or its circuit footprint. */
+function paintGateSymbol(args, symbolOverride = args.gate.symbol, allowExponent = true) {
   const rect = args.rect.paddedBy(-2);
-  if (symbolOverride === undefined) {
-    symbolOverride = args.gate.symbol;
-  }
-  const { symbol, offsetY } = _paintSymbolHandleLines(
-    painter,
-    symbolOverride,
-    rect,
-    ink,
-  );
-
-  const splitIndex = allowExponent ? symbol.indexOf("^") : -1;
-  const parts =
-    splitIndex === -1
-      ? [symbol]
-      : [symbol.slice(0, Math.max(0, splitIndex)), symbol.slice(splitIndex + 1)];
-  if (parts.length !== 2 || parts[0] === "" || parts[1] === "") {
-    const { font, lines: symbolLines } = fitGateSymbol(symbol, rect.w);
-    const lineHeight = rect.h / symbolLines.length;
-    for (let i = 0; i < symbolLines.length; i++) {
-      fitText(painter, symbolLines[i], {
-        x: rect.x + rect.w / 2,
-        y:
-          rect.y +
-          rect.h / 2 +
-          offsetY +
-          (i - (symbolLines.length - 1) / 2) * lineHeight,
-        align: "center",
-        baseline: "middle",
-        fill: ink,
-        font,
-        width: rect.w,
-        height: lineHeight,
-      });
+  const rows = symbolOverride.split("\n").flatMap((line, index) => {
+    // Only the first explicit line uses exponent notation, matching existing gate symbols.
+    const splitIndex = allowExponent && index === 0 ? line.indexOf("^") : -1;
+    if (splitIndex > 0 && splitIndex < line.length - 1) {
+      const base = line.slice(0, splitIndex);
+      const exponent = line.slice(splitIndex + 1);
+      const {font} = fitGateSymbol(base + exponent, rect.w);
+      return [[{text: base, font}, {text: exponent, font, exponent: true}]];
     }
-    return;
-  }
-
-  let [baseText, expText] = parts;
-  const lines = baseText.split("\n");
-  baseText = lines[0];
-
-  // The same ramp as the plain branch, so a symbol with an exponent and one without come out at
-  // the same size rather than as two typographic systems side by side.
-  const { font: symbolFont } = fitGateSymbol(baseText + expText, rect.w);
-
-  const baseWidth = measureText(baseText, symbolFont).width;
-  const expWidth = measureText(expText, symbolFont).width;
-  const scaleDown =
-    Math.min(rect.w, baseWidth + expWidth) / (baseWidth + expWidth);
-  const divider = rect.w / 2 + ((baseWidth - expWidth) * scaleDown) / 2;
-  fitText(painter, baseText, {
-    x: rect.x + divider,
-    y: rect.y + rect.h / 2 + offsetY,
-    align: "right",
-    baseline: "hanging",
-    fill: ink,
-    font: symbolFont,
-    width: divider,
-    height: rect.h,
+    const {font, lines} = fitGateSymbol(line, rect.w);
+    return lines.map(text => [{text, font}]);
   });
-  fitText(painter, expText, {
-    x: rect.x + divider,
-    y: rect.y + rect.h / 2 + offsetY,
-    align: "left",
-    baseline: "alphabetic",
-    fill: ink,
-    font: symbolFont,
-    width: rect.w - divider,
-    height: rect.h,
-  });
+  paintGateLabel(args.painter, rect, rows, gateStyle(args.gate).text);
 }
 
-/**
- * Draws every line of the symbol after the first, and says how far up the first line moves to
- * make room.
- * @param {!DisplayView} painter
- * @param {!string} symbol
- * @param {!Rect} rect
- * @param {!string} ink
- * @returns {!{symbol: !string, offsetY: !int}} The symbol without any extra lines.
- * @private
- */
-function _paintSymbolHandleLines(painter, symbol, rect, ink) {
-  const lines = symbol.split("\n");
-
-  for (let i = 1; i < lines.length; i++) {
-    fitText(painter, lines[i], {
-      x: rect.x + rect.w / 2,
-      y: rect.y + rect.h / 2 + 9 * i,
-      align: "center",
-      baseline: "hanging",
-      fill: ink,
-      font: GATE_SYMBOL_FONT,
-      width: rect.w,
-      height: 16,
-    });
-  }
-
-  return { symbol: lines[0], offsetY: lines.length > 1 ? -5 : 0 };
-}
-
-export {
-  GATE_SYMBOL_FONT,
-  splitGateSymbol,
-  fitGateSymbol,
-  paintGateSymbol,
-};
+export {GATE_SYMBOL_FONT, splitGateSymbol, fitGateSymbol, paintGateSymbol};

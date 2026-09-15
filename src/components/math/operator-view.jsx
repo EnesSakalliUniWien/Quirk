@@ -2,7 +2,7 @@ import { ScanIcon, ZoomInIcon, ZoomOutIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Format } from "../../base/Format.js";
-import { Util } from "../../base/Util.js";
+import { bin } from "../../base/Format.js";
 import {
   TILE_SIZE,
   cancelTile,
@@ -11,7 +11,7 @@ import {
   tileKey,
 } from "../../draw/renderers/operatorTiles.js";
 import { Complex } from "../../engine/math/complex/Complex.js";
-import { columnImage } from "../../engine/simulation/columnStructure.js";
+import {columnImage} from "../../engine/simulation/columnStructure/evaluation.js";
 import { rasterMatrix } from "../../draw/renderers/rasters.js";
 import { Button } from "../ui/button.jsx";
 import { ButtonGroup } from "../ui/button-group.jsx";
@@ -285,7 +285,7 @@ function OperatorView({ source, structure, matrix, size, label, formatKet }) {
     const entry = hovered ?? {row: Math.min(side - 1, selected.row), col: Math.min(side - 1, selected.col)};
     const value = matrix === undefined ? undefined : matrix.cell(entry.col, entry.row);
     const [re, im] = value === undefined ? columnImage(structure, entry.col).get(entry.row) ?? [0, 0] : [value.real, value.imag];
-    const ket = formatKet ?? ((index) => Util.bin(index, wireCount));
+    const ket = formatKet ?? ((index) => bin(index, wireCount));
     return {
       entry: `⟨${ket(entry.row)}|U|${ket(entry.col)}⟩`,
       value: new Complex(re, im).toString(Format.SIMPLIFIED),

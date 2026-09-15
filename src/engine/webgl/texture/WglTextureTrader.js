@@ -60,8 +60,13 @@ class WglTextureTrader {
     const deallocSrc = !this._dontDeallocFlag;
     const dst = newTexture || WglTexturePool.takeSame(src);
 
-    const configuredShader =
-      shaderFunc instanceof WglConfiguredShader ? shaderFunc : shaderFunc(src);
+    let configuredShader;
+    try {
+      configuredShader = shaderFunc instanceof WglConfiguredShader ? shaderFunc : shaderFunc(src);
+    } catch (error) {
+      dst.deallocByDepositingInPool("WglTextureTrader configuration failure");
+      throw error;
+    }
     configuredShader.renderToElseDealloc(dst);
 
     this.currentTexture = dst;

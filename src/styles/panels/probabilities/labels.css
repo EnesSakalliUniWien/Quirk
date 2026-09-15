@@ -1,0 +1,25 @@
+@layer components {
+    /* Probabilities: ket labels beside the bars while the rows are tall enough to carry them. */
+
+    .probabilities-view {
+        display: flex;
+        align-items: flex-start;
+        gap: calc(var(--spacing) * 2);
+        min-width: 0;
+    }
+
+    .probabilities-kets {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        color: var(--muted-foreground);
+        font-family: var(--font-mono);
+        font-size: 11px;
+        text-align: right;
+    }
+
+    .probabilities-kets li {
+        height: var(--probability-row);
+        line-height: var(--probability-row);
+    }
+}

@@ -26,11 +26,11 @@ import { VariousYGates } from "./rotations/VariousYGates.js";
 import { VariousZGates } from "./rotations/VariousZGates.js";
 
 // Displays.
-import { AmplitudeDisplayFamily } from "./displays/AmplitudeDisplay.js";
-import { BlochSphereDisplay } from "./displays/BlochSphereDisplay.js";
-import { DensityMatrixDisplayFamily } from "./displays/DensityMatrixDisplay.js";
-import { ProbabilityDisplayFamily } from "./displays/ProbabilityDisplay.js";
-import { SampleDisplayFamily } from "./displays/SampleDisplay.js";
+import { AmplitudeDisplayFamily } from "./displays/amplitudes/AmplitudeDisplay.js";
+import { BlochSphereDisplay } from "./displays/bloch/BlochSphereDisplay.js";
+import { DensityMatrixDisplayFamily } from "./displays/density/DensityMatrixDisplay.js";
+import { ProbabilityDisplayFamily } from "./displays/probability/ProbabilityDisplay.js";
+import { SampleDisplayFamily } from "./displays/sample/SampleDisplay.js";
 
 // Probes.
 import { Controls } from "./probes/Controls.js";

@@ -26,7 +26,7 @@ import {CanvasTheme} from '../../config/CanvasTheme.js';
 import {Simulation} from '../../config/Simulation.js';
 import {ketArgs, ketShaderPermute} from '../../engine/simulation/gpu/KetShaderUtil.js';
 import {WglArg} from '../../engine/webgl/shader/WglArg.js';
-import {Util} from '../../base/Util.js';
+import { ceilLg2 } from "../../engine/math/powersOfTwo.js";
 
 const Controls = {};
 
@@ -209,7 +209,7 @@ function parityGatherScatter(ctx, order) {
     const isFirst = 1 << ctx.row === (c.parityMask & ~(c.parityMask - 1));
     if (order ? isLast : isFirst) {
         ctx.applyOperation(PARITY_SHADER.withArgs(
-            ...ketArgs(ctx.withRow(Util.ceilLg2(c.parityMask & c.inclusionMask))),
+            ...ketArgs(ctx.withRow(ceilLg2(c.parityMask & c.inclusionMask))),
             WglArg.float('parityMask', c.parityMask)
         ));
     }

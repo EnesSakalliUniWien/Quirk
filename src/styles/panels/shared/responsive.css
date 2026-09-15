@@ -1,0 +1,16 @@
+@layer components {
+    /* Narrow panels stack their columns and tighten their padding. */
+
+    @media (max-width: 760px) {
+        .panel-body,
+        .panel-stack,
+        .forge-panel {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .panel-body:not(.forge-panel):not(.gate-param-panel) {
+            padding: calc(var(--spacing) * 4);
+        }
+    }
+}

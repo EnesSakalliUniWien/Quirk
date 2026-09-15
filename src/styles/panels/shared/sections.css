@@ -1,0 +1,48 @@
+@layer components {
+    .panel-stack {
+        display: grid;
+        width: min(780px, calc(100vw - 48px));
+        gap: calc(var(--spacing) * 3);
+    }
+
+    .panel-stack > .panel-header {
+        margin-bottom: calc(var(--spacing) * 2);
+    }
+
+    .panel-section {
+        display: grid;
+        gap: calc(var(--spacing) * 3);
+        padding: calc(var(--spacing) * 4);
+        background: var(--inset-surface);
+        border: var(--border-width) solid var(--border);
+        border-radius: 10px;
+    }
+
+    .panel-section-heading {
+        color: var(--muted-foreground);
+        font-size: 0.875rem;
+    }
+
+    .panel-section-title {
+        color: var(--foreground);
+        font-size: 0.9375rem;
+        font-weight: 650;
+    }
+
+    .panel-section-body {
+        display: grid;
+        gap: calc(var(--spacing) * 2);
+    }
+
+    .panel-action-row,
+    .checkbox-row {
+        display: flex;
+        align-items: center;
+        gap: calc(var(--spacing) * 2);
+    }
+
+    .checkbox-row {
+        color: var(--muted-foreground);
+        font-size: 0.875rem;
+    }
+}

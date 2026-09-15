@@ -1,0 +1,46 @@
+/* The two editors that sit over the circuit's gutter: the box that renames a register in place,
+   and the menu a right click on a wire label opens. Both are React, inside the scroll content, so
+   they stay with the drawing as it scrolls. */
+@layer components {
+    /* Placed over the register's name at the drawing's zoom; the font follows the zoom too. */
+    .gutter-rename {
+        position: absolute;
+        z-index: 4;
+        box-sizing: border-box;
+        padding: 0 4px;
+        border: var(--border-width) solid var(--ring);
+        border-radius: 6px;
+        background: var(--card);
+        color: var(--foreground);
+        font-family: var(--font-mono);
+        font-weight: 600;
+        text-align: right;
+        outline: none;
+        box-shadow: 0 0 0 3px var(--focus-shadow);
+    }
+
+    .gutter-rename[aria-invalid="true"] {
+        border-color: var(--destructive);
+    }
+
+    .gutter-rename-error {
+        position: absolute;
+        z-index: 4;
+        max-width: 260px;
+        margin: 0;
+        padding: 4px 8px;
+        color: var(--destructive);
+        background: var(--card);
+        border: var(--border-width) solid var(--border);
+        border-radius: 6px;
+        font-size: 0.75rem;
+    }
+
+    /* The menu opens against this: a point where the pointer was. */
+    .gutter-menu-anchor {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        pointer-events: none;
+    }
+}

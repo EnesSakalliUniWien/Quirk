@@ -105,7 +105,7 @@ test('steps the circuit with the transport controls and reports the state at the
             ['state', 'probability', 'amplitude', 'phase (deg)']);
 
         // Nothing has run yet, so the state is the all-zero input and the band marks the first column.
-        await waitForPlayhead(page, 'gate 0 / 2', ['|00\u27E9']);
+        await waitForPlayhead(page, 'operation 0 / 2', ['|00\u27E9']);
         assert.equal(
             await page.$eval('#state-summary', e => e.textContent),
             '2 qubits \u00B7 4 amplitudes \u00B7 1 nonzero');
@@ -117,7 +117,7 @@ test('steps the circuit with the transport controls and reports the state at the
 
         // The Hadamard has run: an even superposition of the first wire, and the band has moved on.
         await page.click('#playhead-next-button');
-        await waitForPlayhead(page, 'gate 1 / 2', ['|00\u27E9', '|01\u27E9']);
+        await waitForPlayhead(page, 'operation 1 / 2', ['|00\u27E9', '|01\u27E9']);
         const afterHadamard = await stateTableRows(page);
         assert.deepEqual(afterHadamard.map(e => e.probability), [0.5, 0.5]);
         assert.deepEqual(afterHadamard.map(e => e.phase), [0, 0]);
@@ -128,15 +128,39 @@ test('steps the circuit with the transport controls and reports the state at the
 
         // And now the controlled not, which entangles the wires into a Bell pair.
         await page.click('#playhead-end-button');
-        await waitForPlayhead(page, 'gate 2 / 2', ['|00\u27E9', '|11\u27E9']);
+        await waitForPlayhead(page, 'operation 2 / 2', ['|00\u27E9', '|11\u27E9']);
         assert.deepEqual((await stateTableRows(page)).map(e => e.probability), [0.5, 0.5]);
         assert.equal(await page.$eval('#playhead-next-button', b => b.disabled), true);
         assert.ok(await playheadBandPixels(page, SECOND_COLUMN_LEFT) < UNBANDED_PIXELS,
             'A circuit that has fully run has no next column to mark.');
 
         await page.click('#playhead-reset-button');
-        await waitForPlayhead(page, 'gate 0 / 2', ['|00\u27E9']);
+        await waitForPlayhead(page, 'operation 0 / 2', ['|00\u27E9']);
         assert.equal(await page.$eval('#playhead-scrub', e => e.value), '0');
+    });
+});
+
+test('transport skips display columns in both directions and highlights the next operation', async browser => {
+    await withQuirkPage(browser, {cols: [['Amps1'], ['X'], ['Bloch'], [], ['X'], ['Sample1']]}, async page => {
+        await page.click('#state-button');
+        await waitForPanel(page, 'state', true);
+        await waitForPlayhead(page, 'operation 0 / 2', ['|00⟩']);
+        assert.equal(await page.$eval('#playhead-scrub', e => e.max), '2');
+        assert.ok(await playheadBandPixels(page, SECOND_COLUMN_LEFT) > BANDED_PIXELS);
+        assert.ok(await playheadBandPixels(page, FIRST_COLUMN_LEFT) < UNBANDED_PIXELS);
+        await page.click('#playhead-next-button');
+        await waitForPlayhead(page, 'operation 1 / 2', ['|01⟩']);
+        assert.ok(await playheadBandPixels(page, FIRST_COLUMN_LEFT + 4 * circuitMetrics.columnSpacing) > BANDED_PIXELS);
+        await page.click('#playhead-next-button');
+        await waitForPlayhead(page, 'operation 2 / 2', ['|00⟩']);
+        assert.equal(await page.$eval('#playhead-next-button', e => e.disabled), true);
+        await page.click('#playhead-prev-button');
+        await waitForPlayhead(page, 'operation 1 / 2', ['|01⟩']);
+        await page.$eval('#playhead-scrub', e => {
+            e.value = '0';
+            e.dispatchEvent(new Event('input', {bubbles: true}));
+        });
+        await waitForPlayhead(page, 'operation 0 / 2', ['|00⟩']);
     });
 });
 
@@ -172,9 +196,9 @@ test('scrubbing to a gate stops playback', async browser => {
             () => document.getElementById('playhead-play-label').textContent === 'Play',
             {timeout: TEST_TIMEOUT_MILLIS});
         await page.waitForFunction(
-            () => document.getElementById('playhead-position').textContent === 'gate 3 / 4',
+            () => document.getElementById('playhead-position').textContent === 'operation 3 / 4',
             {timeout: TEST_TIMEOUT_MILLIS});
-        assert.equal(await page.$eval('#playhead-position', e => e.textContent), 'gate 3 / 4');
+        assert.equal(await page.$eval('#playhead-position', e => e.textContent), 'operation 3 / 4');
     });
 });
 
@@ -196,7 +220,7 @@ test('houses the transport in the shell below the work area', async browser => {
 
         await page.click('#playhead-next-button');
         await page.waitForFunction(
-            () => document.getElementById('playhead-position').textContent.startsWith('gate 1'),
+            () => document.getElementById('playhead-position').textContent.startsWith('operation 1'),
             {timeout: 2000});
     });
 });

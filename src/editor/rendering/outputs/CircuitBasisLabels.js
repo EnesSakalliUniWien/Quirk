@@ -22,7 +22,7 @@ import {Layout} from '../../../config/Layout.js';
 import {CanvasTheme} from '../../../config/CanvasTheme.js';
 import {Typography} from '../../../config/Typography.js';
 import {Rect} from '../../../geometry/Rect.js';
-import {Util} from '../../../base/Util.js';
+import { bin } from "../../../base/Format.js";
 import {SUPERPOSITION_GRID_LABEL_SPAN} from '../../geometry/CircuitLayoutConstants.js';
 
 // One ellipsis stands in for the bits the other axis supplies, keeping labels short enough to read.
@@ -104,7 +104,7 @@ const _cachedRowLabelRenderer = new BasisLabels(
             drawingArea(painter).h / rowCount,
             rowCount,
             // One ellipsis stands in for the bits the column supplies, keeping the label short enough to stay legible.
-            i => Util.bin(i, rowWires) + SUPERPOSITION_GRID_LABEL_ELLIPSIS,
+            i => bin(i, rowWires) + SUPERPOSITION_GRID_LABEL_ELLIPSIS,
             SUPERPOSITION_GRID_LABEL_SPAN);
     });
 
@@ -131,7 +131,7 @@ const _cachedColLabelRenderer = new BasisLabels(
             dw,
             colCount,
             // One ellipsis stands in for the bits the row supplies, keeping the label short enough to stay legible.
-            i => SUPERPOSITION_GRID_LABEL_ELLIPSIS + Util.bin(colCount-1-i, colWires),
+            i => SUPERPOSITION_GRID_LABEL_ELLIPSIS + bin(colCount-1-i, colWires),
             SUPERPOSITION_GRID_LABEL_SPAN);
     });
 

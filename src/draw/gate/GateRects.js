@@ -30,17 +30,18 @@ function gateButtonRect(wholeRect) {
 }
 
 /**
- * The strip along a gate's bottom edge that drags to change its height.
+ * The strip along a gate's bottom edge that drags to change its height. It stays inside the gate
+ * and takes at most its bottom quarter, so the rest of a one-wire gate still moves the gate.
  * @param {!Rect} gateRect
  * @returns {!Rect}
  */
 function rectForResizeTab(gateRect) {
-  const overlap = Math.min(Layout.GATE_RADIUS, gateRect.h / 4);
+  const height = Math.min(Layout.GATE_RADIUS, gateRect.h / 4);
   return new Rect(
     gateRect.x,
-    gateRect.bottom() - overlap,
+    gateRect.bottom() - height,
     gateRect.w,
-    Layout.GATE_RADIUS * 2,
+    height,
   );
 }
 

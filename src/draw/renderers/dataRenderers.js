@@ -16,17 +16,17 @@
 
 import {TooltipLayer} from '../tooltips/TooltipView.js';
 import {paintMatrixTooltip} from '../tooltips/MatrixTooltip.js';
-import {paintMatrix} from '../displays/MatrixView.js';
+import {paintMatrix} from '../displays/complex/MatrixView.js';
 import {drawGraphics} from '../scene/DisplayView.js';
 import {Color} from 'pixi.js';
 import {PathGeometry} from '../shapes/PathGeometry.js';
 import {drawPath, rectangle} from '../shapes/ShapeView.js';
 import {fitText, fitParagraph, measureText} from '../text/TextLayout.js';
-import {paintDensityMatrix} from '../displays/DensityMatrixView.js';
+import {paintDensityMatrix} from '../displays/density/DensityMatrixView.js';
 import {CanvasTheme} from '../../config/CanvasTheme.js';
 import {Typography} from '../../config/Typography.js';
 import {Format} from '../../base/Format.js';
-import {Util} from '../../base/Util.js';
+import { bin } from "../../base/Format.js";
 import {Registers} from '../../circuit/model/Registers.js';
 import {ketLabel} from '../../circuit/registerLabels.js';
 import {Matrix} from '../../engine/math/matrix/Matrix.js';
@@ -152,6 +152,7 @@ function renderState(view, matrix, rect, {wireCount, focusPoints = [], coherent 
         indicatorAlpha > 0 ? new Color(CanvasTheme.text.primary).setAlpha(indicatorAlpha).toRgbaString() :
         undefined;
     paintMatrix(view, matrix, rect, {
+        wireCount,
         amplitudeCircleFillColor: CanvasTheme.amplitude.circle,
         amplitudeCircleStrokeColor: CanvasTheme.text.primary,
         amplitudeProbabilityFillColor: CanvasTheme.amplitude.fill,
@@ -259,7 +260,7 @@ function probabilityTooltips(view, rect, probabilities, wireCount, focusPoints) 
             TooltipLayer.forView(view).show(view, {
                 x: x + w,
                 y: y + k * d,
-                labelText: `Chance of |${Util.bin(k, wireCount)}⟩ (decimal ${k}) if measured`,
+                labelText: `Chance of |${bin(k, wireCount)}⟩ (decimal ${k}) if measured`,
                 valueText: 'raw: ' + (p * 100).toFixed(4) + "%",
                 valueText2: 'log: ' + (Math.log10(p) * 10).toFixed(1) + " dB"
             });
@@ -272,9 +273,19 @@ function probabilityTexts(view, rect, probabilities) {
     const d = h / probabilities.height();
     for (let i = 0; i < probabilities.height(); i++) {
         const p = probabilities.rawBuffer()[i * 2];
+        const bits = Math.round(Math.log2(probabilities.height()));
+        const label = `|${bin(i, bits)}⟩`;
+        const font = {fontSize: 10, fontFamily: Typography.MONO_FONT_FAMILY};
+        const sideBySide = w >= measureText(label + ' 100.0%', font).width + 4;
+        const stacked = !sideBySide && d >= 26;
+        if (sideBySide || stacked) fitText(view, label, {
+            x: sideBySide ? x+2 : x+w/2, y: y+d*(i+0.5)-(stacked ? 6 : 0),
+            align: sideBySide ? 'left' : 'center', baseline: 'middle', font,
+            fill: CanvasTheme.text.primary, width: sideBySide ? w/2 : w-4, height: 12,
+        });
         fitText(view, (p * 100).toFixed(1) + "%", {
             x: x + w - 2,
-            y: y + d * (i + 0.5),
+            y: y + d * (i + 0.5) + (stacked ? 6 : 0),
             align: 'right',
             baseline: 'middle',
             fill: CanvasTheme.text.primary,

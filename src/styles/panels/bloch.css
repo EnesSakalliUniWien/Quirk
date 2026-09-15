@@ -1,0 +1,524 @@
+@layer components {
+    /* The Bloch Sphere Analyzer: its parts grouped by responsibility - the figures, what they draw
+       and which state they show - with the readout's groups in a fixed column beside them. The dock-sized wrapper is the query container, so the
+       arrangement follows the panel's own width, the way the forge panel's does. Every colour here
+       is a theme variable set by src/config/Theme.js; this file defines none. */
+
+    .panel-scroll[data-panel-id="bloch"] {
+        container-type: inline-size;
+    }
+
+    .bloch-panel {
+        display: grid;
+        align-content: start;
+        gap: calc(var(--spacing) * 4);
+    }
+
+    .bloch-title {
+        margin: 0;
+        font-size: var(--text-heading);
+        font-weight: 650;
+    }
+
+    .bloch-subtitle {
+        margin: 0;
+        color: var(--muted-foreground);
+        font-size: var(--text-small);
+    }
+
+    /* One column until the readout fits beside the figures without squeezing them. */
+
+    .bloch-analyzer {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: calc(var(--spacing) * 5);
+        align-items: start;
+    }
+
+    /* Keep room for three readable figures before putting the readout beside them. */
+
+    @container (min-width: 1280px) {
+        .bloch-analyzer {
+            grid-template-columns: minmax(0, 1fr) 326px;
+        }
+    }
+
+    .bloch-main {
+        container: bloch-main / inline-size;
+        display: grid;
+        gap: calc(var(--spacing) * 4);
+        min-width: 0;
+    }
+
+    /* A group is the app's panel section, a little tighter, with its name and its purpose on one
+       line above the parts it holds. */
+
+    .bloch-panel .bloch-group {
+        min-width: 0;
+        padding: calc(var(--spacing) * 3);
+    }
+
+    .bloch-group-heading {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: calc(var(--spacing) * 2);
+        font-size: var(--text-caption);
+    }
+
+    .bloch-group-heading h3 {
+        margin: 0;
+        font-size: var(--text-small);
+    }
+
+    /* Three equal plots only when the main column can keep each about 280px wide. */
+
+    .bloch-figures {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: calc(var(--spacing) * 3);
+        align-items: start;
+    }
+
+    @container bloch-main (min-width: 900px) {
+        .bloch-figures {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+    }
+
+    /* All three figures use the same available width. */
+
+    .bloch-figure {
+        display: grid;
+        gap: calc(var(--spacing) * 1.5);
+        width: 100%;
+        max-width: 460px;
+        min-width: 0;
+        margin: 0;
+        justify-self: center;
+    }
+
+    /* Side by side, each figure takes its whole track; stacked, none grows past a readable size. */
+
+    @container bloch-main (min-width: 900px) {
+        .bloch-figure {
+            max-width: none;
+        }
+    }
+
+    /* A figure's title bar sits above its canvas, so no axis letter drawn inside can meet it. */
+
+    .bloch-figure-header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: calc(var(--spacing) * 2);
+        min-height: 20px;
+        padding: 0 2px;
+    }
+
+    .bloch-figure-header h4 {
+        margin: 0;
+        font-size: var(--text-small);
+        font-weight: 650;
+    }
+
+    .bloch-figure-axis {
+        color: var(--muted-foreground);
+        font-family: var(--font-mono);
+        font-size: var(--text-caption);
+    }
+
+    .bloch-canvas,
+    .bloch-projection-canvas,
+    .bloch-strip-canvas {
+        display: block;
+        box-sizing: border-box;
+        border: var(--border-width) solid var(--border);
+        border-radius: 12px;
+    }
+
+    /* Every view is square; each painter uses the same plot size. */
+
+    .bloch-canvas,
+    .bloch-projection-canvas {
+        width: 100%;
+        aspect-ratio: 1;
+    }
+
+    .bloch-canvas {
+        cursor: grab;
+        touch-action: none;
+    }
+
+    .bloch-canvas:active {
+        cursor: grabbing;
+    }
+
+    .bloch-hint {
+        margin: 0;
+        color: var(--muted-foreground);
+        font-size: 0.75rem;
+        line-height: 1.55;
+    }
+
+    .bloch-control-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: calc(var(--spacing) * 2) calc(var(--spacing) * 4);
+    }
+
+    .bloch-source-controls,
+    .bloch-explore-controls {
+        display: grid;
+        gap: calc(var(--spacing) * 3);
+        min-width: 0;
+        align-content: start;
+    }
+
+    @container bloch-main (min-width: 900px) {
+        .bloch-source-controls {
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: calc(var(--spacing) * 5);
+        }
+    }
+
+    .bloch-control-label {
+        min-width: 4.5rem;
+        color: var(--muted-foreground);
+        font-size: var(--text-caption);
+        font-weight: 650;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+    /* The key between the sphere's coloured letters and triangles and the rows of numbers. */
+
+    .bloch-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--spacing) calc(var(--spacing) * 4);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        font-family: var(--font-mono);
+        font-size: var(--text-caption);
+    }
+
+    .bloch-legend li {
+        display: flex;
+        align-items: center;
+        gap: calc(var(--spacing) * 1.5);
+    }
+
+    .bloch-swatch {
+        width: 9px;
+        height: 9px;
+        border-radius: 2px;
+        background: currentColor;
+    }
+
+    /* The key doubles as the control: hovering an axis reads it alone, clicking keeps it. */
+
+    .bloch-legend-axis {
+        display: flex;
+        align-items: center;
+        gap: calc(var(--spacing) * 1.5);
+        padding: 2px 5px;
+        color: inherit;
+        background: none;
+        border: var(--border-width) solid transparent;
+        border-radius: 5px;
+        cursor: pointer;
+        font: inherit;
+    }
+
+    .bloch-legend-axis:hover {
+        background: var(--button-ghost-hover);
+    }
+
+    .bloch-legend-axis[aria-pressed="true"] {
+        border-color: currentColor;
+    }
+
+    .bloch-legend-kets {
+        color: var(--muted-foreground);
+    }
+
+    /* Which constructions are drawn: a reading turns off whatever it is not asking about. */
+
+    .bloch-layer {
+        display: flex;
+        align-items: center;
+        gap: calc(var(--spacing) * 1.5);
+        color: var(--muted-foreground);
+        font-size: var(--text-caption);
+        cursor: pointer;
+    }
+
+    .bloch-check {
+        display: inline-grid;
+        place-items: center;
+        width: 14px;
+        height: 14px;
+        padding: 0;
+        background: var(--input-surface);
+        border: var(--border-width) solid var(--control-border);
+        border-radius: 3px;
+        cursor: pointer;
+    }
+
+    .bloch-check:focus-visible {
+        outline: var(--border-width-strong) solid var(--ring);
+        outline-offset: 1px;
+    }
+
+    .bloch-check-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 1px;
+        background: var(--foreground);
+    }
+
+    .bloch-presets .ui-button[aria-pressed="true"] {
+        color: var(--primary-foreground);
+        background: var(--primary);
+    }
+
+    /* An angle: its symbol, a slider and the same value as a number. */
+
+    .bloch-angle {
+        display: grid;
+        grid-template-columns: 1.2rem minmax(120px, 1fr) 4.8rem 0.6rem;
+        align-items: center;
+        gap: calc(var(--spacing) * 2);
+        min-width: 260px;
+        flex: 1 1 260px;
+        font-family: var(--font-mono);
+        font-size: var(--text-small);
+    }
+
+    .bloch-slider-control {
+        display: flex;
+        align-items: center;
+        height: 18px;
+        cursor: pointer;
+        touch-action: none;
+    }
+
+    .bloch-slider-track {
+        position: relative;
+        width: 100%;
+        height: 4px;
+        border-radius: 2px;
+        background: var(--control-border);
+    }
+
+    .bloch-slider-indicator {
+        border-radius: 2px;
+        background: var(--primary);
+    }
+
+    .bloch-slider-thumb {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--foreground);
+        outline: none;
+    }
+
+    .bloch-slider-thumb:focus-visible {
+        box-shadow: 0 0 0 3px var(--button-focus-shadow);
+    }
+
+    .bloch-number-input {
+        box-sizing: border-box;
+        width: 100%;
+        padding: 3px 6px;
+        color: var(--foreground);
+        background: var(--input-surface);
+        border: var(--border-width) solid var(--control-border);
+        border-radius: 5px;
+        font: inherit;
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .bloch-angle-unit {
+        color: var(--muted-foreground);
+    }
+
+    /* The qubit after each column: one canvas of spheres, with a button over each for focus, selection
+       and the arrow keys. It scrolls sideways when the circuit is longer than the panel is wide. */
+
+    .bloch-strip {
+        display: grid;
+        gap: calc(var(--spacing) * 1.5);
+        min-width: 0;
+    }
+
+    .bloch-strip-scroll {
+        overflow-x: auto;
+        padding-bottom: 4px;
+    }
+
+    .bloch-strip-track {
+        position: relative;
+        height: 100px;
+    }
+
+    .bloch-strip-canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        border: 0;
+        border-radius: var(--radius-medium);
+    }
+
+    .bloch-strip-step {
+        position: absolute;
+        top: 0;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        height: 100px;
+        padding: 0;
+        color: var(--muted-foreground);
+        background: none;
+        border: 0;
+        border-radius: var(--radius-medium);
+        cursor: pointer;
+        font-family: var(--font-mono);
+        font-size: var(--text-caption);
+    }
+
+    .bloch-strip-step[aria-pressed="true"] {
+        color: var(--foreground);
+    }
+
+    .bloch-strip-step:focus-visible {
+        outline: var(--border-width-strong) solid var(--ring);
+        outline-offset: 2px;
+    }
+
+    .bloch-strip-label {
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* The readout: two groups of sections, each row a symbol, the formula it comes from and its
+       value, the values right-aligned in one column so they scan down. */
+
+    .bloch-sidebar {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+        gap: calc(var(--spacing) * 4);
+        align-items: start;
+        align-content: start;
+        min-width: 0;
+    }
+
+    .bloch-readout-section {
+        display: grid;
+        gap: calc(var(--spacing) * 1.5);
+        padding-bottom: calc(var(--spacing) * 3);
+        border-bottom: var(--border-width) solid var(--border);
+    }
+
+    .bloch-readout-section:last-child {
+        padding-bottom: 0;
+        border-bottom: 0;
+    }
+
+    .bloch-readout-section h4 {
+        margin: 0;
+        color: var(--panel-heading);
+        font-size: var(--text-caption);
+        font-weight: 650;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+    .bloch-readout {
+        display: grid;
+        gap: 2px;
+        margin: 0;
+        font-family: var(--font-mono);
+        font-size: var(--text-small);
+    }
+
+    .bloch-row {
+        display: grid;
+        grid-template-columns: 3rem minmax(0, 1fr) 7.5rem;
+        align-items: baseline;
+        gap: calc(var(--spacing) * 2);
+    }
+
+    .bloch-readout-wide .bloch-row {
+        grid-template-columns: 3rem minmax(0, 1fr);
+    }
+
+    .bloch-readout dt {
+        color: var(--muted-foreground);
+    }
+
+    .bloch-readout dd {
+        margin: 0;
+    }
+
+    .bloch-formula code {
+        color: var(--muted-foreground);
+        font-family: var(--font-mono);
+        font-size: var(--text-caption);
+    }
+
+    .bloch-value {
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+        overflow-wrap: anywhere;
+    }
+
+    .bloch-readout-wide .bloch-value {
+        text-align: left;
+    }
+
+    /* A missing value is marked, never mistaken for a zero. */
+
+    .bloch-undefined {
+        color: var(--muted-foreground);
+    }
+
+    .bloch-note,
+    .bloch-state {
+        margin: 0;
+        color: var(--muted-foreground);
+        font-size: var(--text-small);
+    }
+
+    .bloch-state {
+        color: var(--foreground);
+        font-family: var(--font-mono);
+    }
+
+    /* Each axis is named in its own colour: the colour of the triangles that measure it and of
+       the letter the sphere paints at its poles, in the key and in the rows alike. */
+
+    .bloch-panel .bloch-axis-x {
+        color: var(--bloch-axis-x);
+    }
+
+    .bloch-panel .bloch-axis-y {
+        color: var(--bloch-axis-y);
+    }
+
+    .bloch-panel .bloch-axis-z {
+        color: var(--bloch-axis-z);
+    }
+
+    .bloch-actions {
+        justify-content: flex-end;
+    }
+}

@@ -31,11 +31,11 @@ const NAMED = {
     registers: [{name: 'a', wires: [0, 3]}, {name: 'b', wires: [3, 2], labels: {0: 'A', 3: 'D'}}],
 };
 
-async function runToEnd(page, columns) {
+async function runToEnd(page, operations) {
     await page.click('#playhead-end-button');
     await page.waitForFunction(
         text => document.getElementById('playhead-position').textContent.trim() === text,
-        {timeout: TEST_TIMEOUT_MILLIS}, `gate ${columns} / ${columns}`);
+        {timeout: TEST_TIMEOUT_MILLIS}, `operation ${operations} / ${operations}`);
 }
 
 /** Where a wire's label is on screen. Registers add a name column left of the labels. */
@@ -208,7 +208,7 @@ test('the palette offers prepare boxes, and one after a gate on its wires is dis
 
         // Disabled, so the run ignores it: H alone leaves |0⟩ and |1⟩ equally likely on the first of
         // the circuit's two wires. A box that ran would post-select and leave one outcome.
-        await runToEnd(page, 2);
+        await runToEnd(page, 1);
         await page.click('#probabilities-button');
         await waitForPanel(page, 'probabilities', true);
         const summary = await page.waitForFunction(() => {

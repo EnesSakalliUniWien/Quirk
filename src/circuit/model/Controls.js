@@ -16,7 +16,7 @@
 
 import {DetailedError} from "../../base/DetailedError.js"
 import {Seq} from "../../base/Seq.js"
-import {Util} from "../../base/Util.js"
+import { popcnt, numberOfSetBits } from "../../engine/math/bitOperations.js";
 
 /**
  * Stores a set of requirements that a state's bits must meet.
@@ -35,7 +35,7 @@ class Controls {
         if ((desiredValueMask & ~inclusionMask) !== 0) {
             throw new DetailedError("Desired un-included bits", {inclusionMask, desiredValueMask});
         }
-        if (parityMask !== 0 && Util.popcnt(inclusionMask & parityMask) !== 1) {
+        if (parityMask !== 0 && popcnt(inclusionMask & parityMask) !== 1) {
             throw new DetailedError("Exactly one parity bit must be in the inclusion mask",
                 {inclusionMask, parityMask});
         }
@@ -123,7 +123,7 @@ class Controls {
         if (this.inclusionMask < 0) {
             return Infinity;
         }
-        return Util.numberOfSetBits(this.inclusionMask);
+        return numberOfSetBits(this.inclusionMask);
     }
 
     /**

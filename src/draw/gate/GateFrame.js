@@ -1,3 +1,4 @@
+import {Appearance} from '../../appearance/Appearance.js';
 /**
  * Copyright 2017 Google Inc.
  *
@@ -31,7 +32,7 @@ import { gateButtonRect, rectForResizeTab } from "./GateRects.js";
  */
 function paintOutline(args) {
   rectangle(args.painter, args.rect, {
-    stroke: { color: CanvasTheme.text.primary, width: lineWidth(args.painter, 1) },
+    stroke: { color: CanvasTheme.text.primary, width: lineWidth(args.painter, Appearance.borders.width.regular) },
   });
   if (args.isHighlighted) {
     highlightRing(args.painter, args.rect);
@@ -54,9 +55,9 @@ function paintResizeTab(args) {
     return;
   }
 
-  const d = Layout.GATE_RADIUS;
   const rect = rectForResizeTab(args.rect);
-  const trimRect = rect.skipLeft(2).skipRight(2);
+  const trimRect = rect.paddedBy(-2);
+  const d = Math.min(trimRect.h / 2, trimRect.w / 4);
   const { x: cx, y: cy } = trimRect.center();
   const backColor = args.isResizeHighlighted
     ? CanvasTheme.gate.hover
@@ -69,14 +70,16 @@ function paintResizeTab(args) {
     rectangle(painter, trimRect, { fill: backColor });
     frame(painter, trimRect);
   });
-  fitText(args.painter, "resize", {
+  // A one-wire gate's strip is too short for the label; its arrows remain.
+  const showLabel = trimRect.w >= 64 && trimRect.h >= 16;
+  if (showLabel) fitText(args.painter, "resize", {
     x: cx,
     y: cy,
     align: "center",
     baseline: "middle",
     fill: foreColor,
-    font: { fontSize: 16, fontFamily: Typography.MONO_FONT_FAMILY },
-    width: trimRect.w - 4,
+    font: { fontSize: 12, fontFamily: Typography.MONO_FONT_FAMILY },
+    width: trimRect.w - 32,
     height: trimRect.h - 4,
   });
   drawPath(
@@ -87,12 +90,13 @@ function paintResizeTab(args) {
         args.gate.canDecreaseInSize() ? -1 : +1,
       ];
       const arrowOffsets = [+1, -1];
-      for (const sx of [-1, +1]) {
+      const centers = showLabel ? [trimRect.x + 8, trimRect.right() - 8] : [cx];
+      for (const x of centers) for (const sx of [-1, +1]) {
         for (let k = 0; k < 2; k++) {
           const by = cy + (d * arrowOffsets[k] * 5) / 8;
           const y1 = by + (d * arrowDirs[k]) / 8;
           const y2 = by - (d * arrowDirs[k]) / 8;
-          PathGeometry.line(tracer, cx, y1, cx + d * sx * 0.3, y2);
+          PathGeometry.line(tracer, x, y1, x + d * sx * 0.5, y2);
         }
       }
     },
@@ -150,7 +154,7 @@ function paintLocationIndependentFrame(
     (tracer) => traceLocationIndependentOutline(args, tracer),
     [
       { fill: backColor },
-      { stroke: { color: CanvasTheme.text.primary, width: lineWidth(args.painter, 1) } },
+      { stroke: { color: CanvasTheme.text.primary, width: lineWidth(args.painter, Appearance.borders.width.regular) } },
     ],
   );
 }
@@ -186,7 +190,7 @@ function paintGateButton(args) {
     height: buttonRect.h,
   });
   rectangle(args.painter, buttonRect, {
-    stroke: { color: CanvasTheme.text.primary, width: lineWidth(args.painter, 1) },
+    stroke: { color: CanvasTheme.text.primary, width: lineWidth(args.painter, Appearance.borders.width.regular) },
   });
 }
 

@@ -38,7 +38,7 @@ import {Point} from '../../geometry/Point.js';
  * @returns {void}
  */
 function initCanvasPointer(canvas, canvasDiv, revision, displayed, syncArea, openGateParamEditor,
-                           openBlochSphereView, openRegisterRename, openGutterMenu, panViewport) {
+                           openBlochSphereView, openRegisterRename, openGutterMenu, panViewport, openComplexDisplay) {
     // Positions arrive in the canvas's on-screen pixels; the hand and geometry live in circuit
     // coordinates, which differ from those by the zoom factor and the scroll.
     const surface = RenderSurface.forCanvas(canvas);
@@ -98,6 +98,10 @@ function initCanvasPointer(canvas, canvasDiv, revision, displayed, syncArea, ope
                 if (ev.detail === 2) {
                     renameRegister(register.name);
                 }
+                return;
+            }
+            if (target?.type === 'gate' && /^(Amps[0-9]+|Density[0-9]*)$/.test(target.gate.serializedId)) {
+                openComplexDisplay?.(target);
                 return;
             }
             const bloch = target?.type === 'bloch' ? {row: target.row, col: undefined} :

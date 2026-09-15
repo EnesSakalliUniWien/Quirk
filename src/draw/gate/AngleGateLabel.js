@@ -1,6 +1,6 @@
-import {fitLine} from '../text/TextLayout.js';
+import {paintGateLabel} from './GateLabel.js';
+import {GATE_SYMBOL_FONT} from './GateSymbol.js';
 import {gateStyle} from '../../config/CanvasTheme.js';
-import {Rect} from '../../geometry/Rect.js';
 
 /** Display notation only: never rewrite the stored parameter or the gate footprint. */
 export function angleLabelParts(gate) {
@@ -10,7 +10,9 @@ export function paintAngleGateLabel(args) {
     const {symbol,parameter} = angleLabelParts(args.gate);
     const {rect,painter} = args;
     const fill = gateStyle(args.gate).text;
-    fitLine(painter,symbol,new Rect(rect.x+3,rect.y+2,rect.w-6,rect.h*.45),{horizontal:.5,vertical:.5,fill,maxFontSize:17});
-    fitLine(painter,parameter.length > 28 ? parameter.slice(0,25)+'…' : parameter,
-        new Rect(rect.x+4,rect.y+rect.h*.48,rect.w-8,rect.h*.35),{horizontal:.5,vertical:.5,fill,maxFontSize:12});
+    paintGateLabel(painter, rect.paddedBy(-3), [
+        [{text: symbol, font: {...GATE_SYMBOL_FONT, fontSize: 17}}],
+        [{text: parameter.length > 28 ? parameter.slice(0,25)+'…' : parameter,
+            font: {...GATE_SYMBOL_FONT, fontSize: 12}}]
+    ], fill);
 }

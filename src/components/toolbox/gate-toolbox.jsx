@@ -25,7 +25,7 @@ import {
   searchTextOf,
 } from "./toolbox.js";
 
-/** A tile's height and the gap between them, from src/styles/sidebar/tiles.css and groups.css.
+/** A tile's height and the gap between them, from src/styles/gates/toolbox/tiles.css and groups.css.
  *  Used only to reserve space for a group whose rendering is skipped while it is off screen. */
 const TILE_HEIGHT = 32;
 const TILE_GAP = 2;

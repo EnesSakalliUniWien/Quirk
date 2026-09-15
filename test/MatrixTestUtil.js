@@ -17,7 +17,8 @@
 // Matrix and Complex operations that only the tests need. They used to live on the production
 // classes; they build expected values the CPU way so the GPU simulation has something to agree with.
 
-import {Util} from "../src/base/Util.js"
+import { need } from "../src/base/preconditions.js";
+import { snappedCosSin } from "../src/engine/math/trigonometry.js";
 import {Complex} from "../src/engine/math/complex/Complex.js"
 import {Matrix} from "../src/engine/math/matrix/Matrix.js"
 import {QubitMatrix} from "../src/engine/math/matrix/QubitMatrix.js"
@@ -139,7 +140,7 @@ function liftApply(m, complexFunction) {
  * @returns {!Complex}
  */
 function determinant(m) {
-    Util.need(m.width() === m.height(), "Must be square");
+    need(m.width() === m.height(), "Must be square");
     const n = m.width();
     if (n === 1) {
         return m.cell(0, 0);
@@ -268,12 +269,12 @@ function applyToStateVectorAtQubitWithControls(operation, stateVector, qubitInde
  */
 function fromAngleAxisPhaseRotation(angle, axis, phase) {
     const [x, y, z] = axis;
-    Util.need(Math.abs(x * x + y * y + z * z - 1) < 0.000001, "Not a unit axis.");
+    need(Math.abs(x * x + y * y + z * z - 1) < 0.000001, "Not a unit axis.");
 
     const vσ = QubitMatrix.PAULI_X.times(x).
         plus(QubitMatrix.PAULI_Y.times(y)).
         plus(QubitMatrix.PAULI_Z.times(z));
-    const [cos, sin] = Util.snappedCosSin(-angle / 2);
+    const [cos, sin] = snappedCosSin(-angle / 2);
     return Matrix.identity(2).times(cos).
         plus(vσ.times(new Complex(0, sin))).
         times(Complex.polar(1, phase));

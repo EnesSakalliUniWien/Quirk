@@ -11,7 +11,8 @@ const surfaces = new WeakMap();
 const sceneKeys = new WeakMap();
 let nextSceneKey = 0;
 export const applicationOptions = {preference: 'webgl', autoStart: false, sharedTicker: false,
-    antialias: true, backgroundAlpha: 0, preserveDrawingBuffer: true};
+    antialias: true, backgroundAlpha: 0, preserveDrawingBuffer: true,
+    layout: {autoUpdate: false, throttle: 0}};
 
 /** Submits frame descriptions. @pixi/react owns Applications and all scene-object lifetimes. */
 export class RenderSurface {

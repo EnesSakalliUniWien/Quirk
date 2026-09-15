@@ -15,7 +15,7 @@
  */
 
 import { DetailedError } from "../../../base/DetailedError.js";
-import { Util } from "../../../base/Util.js";
+import { isPowerOf2 } from "../../math/powersOfTwo.js";
 import { WglMortalValueSlot } from "../context/WglMortalValueSlot.js";
 import { initializedWglContext } from "../context/WglContext.js";
 import {
@@ -53,7 +53,7 @@ class WglTexture {
       return;
     }
 
-    if (!Util.isPowerOf2(width) || !Util.isPowerOf2(height)) {
+    if (!isPowerOf2(width) || !isPowerOf2(height)) {
       throw new DetailedError("Sizes must be a power of 2.", {
         width,
         height,

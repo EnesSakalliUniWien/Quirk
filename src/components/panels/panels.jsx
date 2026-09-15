@@ -12,6 +12,7 @@ import {
   WandSparklesIcon,
 } from "lucide-react";
 
+import {ComplexDisplayPanel} from "./complex-display/complex-display-panel.jsx";
 import {TapePanel} from "./tape/tape-panel.jsx";
 import { AlgebraPanel } from "./algebra/algebra-panel.jsx";
 import { BlochPanel } from "./bloch/bloch-panel.jsx";
@@ -95,6 +96,7 @@ const PANELS = {
     component: GateParamPanel,
     floating: { width: 420, height: 320 },
   },
+  "complex-display": {title: "Complex values", icon: BracketsIcon, component: ComplexDisplayPanel, floating: {width: 440, height: 820}},
   bloch: {
     title: "Bloch Sphere",
     icon: GlobeIcon,

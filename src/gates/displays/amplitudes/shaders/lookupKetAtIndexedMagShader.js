@@ -1,0 +1,28 @@
+/**
+ * Copyright 2017 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { Inputs, Outputs, makePseudoShaderWithInputsAndOutputAndCode } from "../../../../engine/webgl/coder/ShaderCoders.js";
+
+const LOOKUP_KET_AT_INDEXED_MAG_SHADER =
+  makePseudoShaderWithInputsAndOutputAndCode(
+    [Inputs.vec2("input"), Inputs.vec2("indexed_mag")],
+    Outputs.vec2(),
+    `vec2 outputFor(float k) {
+        return read_input(k + read_indexed_mag(0.0).x * len_output());
+    }`,
+  );
+
+export { LOOKUP_KET_AT_INDEXED_MAG_SHADER };

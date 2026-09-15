@@ -23,8 +23,36 @@ import {Gates} from "../../../src/gates/AllGates.js"
 import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
 import {Serializer} from "../../../src/serialization/Serializer.js"
 import {QubitMatrix} from "../../../src/engine/math/matrix/QubitMatrix.js"
+import {GateBuilder} from "../../../src/circuit/model/Gate.js"
+import {Shaders} from "../../../src/engine/webgl/operations/Shaders.js"
 
 const suite = new Suite("CircuitStats");
+
+suite.testUsingWebGL("batched readback preserves single, array and empty custom statistics", () => {
+    const statGate = (id, makeTextures) => new GateBuilder()
+        .setSerializedId(id)
+        .promiseHasNoNetEffectOnStateVector()
+        .setStatTexturesMaker(makeTextures)
+        .gate;
+    const single = statGate("readback-single", () => Shaders.color(2, 3, 4, 5).toVec4Texture(0));
+    const array = statGate("readback-array", () => [
+        Shaders.color(6, 7, 8, 9).toVec4Texture(0),
+        Shaders.color(10, 11, 12, 13).toVec4Texture(0)
+    ]);
+    const empty = statGate("readback-empty", () => []);
+    const definition = new CircuitDefinition(1, [
+        Gates.HalfTurns.H, single, array, empty, Gates.PostSelectionGates.PostSelectOn
+    ].map(gate => new GateColumn([gate])));
+    const stats = CircuitStats._fromCircuitAtTime_noFallback(definition, 0);
+    assertThat(stats.customStatsForSlot(1, 0)).isEqualTo(new Float32Array([2, 3, 4, 5]));
+    assertThat(stats.customStatsForSlot(2, 0)).isEqualTo([
+        new Float32Array([6, 7, 8, 9]), new Float32Array([10, 11, 12, 13])
+    ]);
+    assertThat(stats.customStatsForSlot(3, 0)).isEqualTo([]);
+    assertThat(stats.survivalRate(Infinity)).isApproximatelyEqualTo(0.5);
+    assertThat(stats.finalState).isApproximatelyEqualTo(Matrix.col(0, 1));
+    assertThat(stats.qubitDensityMatrix(Infinity, 0)).isApproximatelyEqualTo(Matrix.square(0, 0, 0, 1));
+});
 
 suite.test("snapshotData preserves histories without exposing their containers", () => {
     const stats = new CircuitStats(CircuitDefinition.EMPTY.withWireCount(1), 0.25,

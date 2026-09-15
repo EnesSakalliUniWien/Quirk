@@ -1,0 +1,15 @@
+@layer base {
+    html {
+        background: var(--background);
+        font-family: var(--font-sans);
+        font-size: var(--font-size-root);
+        line-height: 1.5;
+    }
+
+    body {
+        min-width: 320px;
+        margin: 0;
+        color: var(--foreground);
+        background: var(--background);
+    }
+}

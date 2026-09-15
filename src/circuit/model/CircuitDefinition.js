@@ -31,7 +31,7 @@ import {INITIAL_STATE_KEYS} from "./InitialStates.js"
 import {INPUT_LETTERS} from "./InputLetters.js"
 import {Registers} from "./Registers.js"
 import {Point} from "../../geometry/Point.js"
-import {Util} from "../../base/Util.js"
+import { CUSTOM_IS_EQUAL_TO_EQUALITY } from "../../base/Equate.js";
 
 /**
  * Defines a circuit layout, with wires and columns and gates.
@@ -293,7 +293,7 @@ class CircuitDefinition {
         return other instanceof CircuitDefinition &&
             this.numWires === other.numWires &&
             this.columns.length === other.columns.length &&
-            this.columns.every((e, i) => Util.CUSTOM_IS_EQUAL_TO_EQUALITY(e, other.columns[i])) &&
+            this.columns.every((e, i) => CUSTOM_IS_EQUAL_TO_EQUALITY(e, other.columns[i])) &&
             equate_Maps(this.customInitialValues, other.customInitialValues) &&
             this.registers.isEqualTo(other.registers);
     }

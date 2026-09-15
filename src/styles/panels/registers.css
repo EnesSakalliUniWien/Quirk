@@ -1,0 +1,212 @@
+@layer components {
+    /* The Registers panel: a row per register with its name, wires and input editable in place, the
+   values it holds at the playhead beside them, and its qubits under it. */
+
+    .registers-list,
+    .registers-qubits {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .registers-item {
+        padding: calc(var(--spacing) * 2) 0;
+        border-bottom: var(--border-width) solid var(--border);
+    }
+
+    /* The head line: swatch, name, wires, and the ungroup button at the far end. */
+
+    .registers-row {
+        display: flex;
+        align-items: center;
+        gap: calc(var(--spacing) * 2);
+        font-size: var(--text-small);
+    }
+
+    .registers-ungroup {
+        margin-left: auto;
+    }
+
+    /* The lines under the head start where the name does, past the swatch. */
+
+    .registers-settings,
+    .registers-values,
+    .registers-labels,
+    .registers-qubits {
+        margin-top: calc(var(--spacing) * 2);
+        padding-left: calc(10px + var(--spacing) * 2);
+    }
+
+    .registers-settings {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+        font-size: var(--text-small);
+    }
+
+    /* Registers are told apart by name, not colour: the swatch is a neutral mark in the frame ink,
+       the way the canvas draws a register's brace. */
+
+    .registers-swatch {
+        width: 10px;
+        height: 10px;
+        flex: none;
+        border-radius: 3px;
+        border: var(--border-width) solid var(--muted-foreground);
+    }
+
+    .registers-input {
+        box-sizing: border-box;
+        min-width: 0;
+        padding: 3px calc(var(--spacing) * 2);
+        font-size: var(--text-small);
+    }
+
+    .registers-input[aria-invalid="true"] {
+        border-color: var(--destructive);
+    }
+
+    .registers-name-input {
+        width: 5.5rem;
+        font-family: var(--font-mono);
+        font-weight: 600;
+    }
+
+    .registers-number {
+        width: 3.5rem;
+        font-family: var(--font-mono);
+    }
+
+    .registers-field {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--muted-foreground);
+    }
+
+    .registers-wires {
+        color: var(--muted-foreground);
+        font-family: var(--font-mono);
+    }
+
+    .registers-values {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .registers-value {
+        padding: 0 6px;
+        border: var(--border-width) solid var(--border);
+        border-radius: 5px;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .registers-values button {
+        cursor: pointer;
+    }
+
+    /* The register's value labels, and the form that adds one. */
+
+    .registers-labels {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: calc(var(--spacing) * 2);
+        font-size: var(--text-small);
+    }
+
+    .registers-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 1px 4px 1px 8px;
+        border: var(--border-width) solid var(--border);
+        border-radius: 6px;
+        font-family: var(--font-mono);
+    }
+
+    .registers-label b {
+        font-weight: 600;
+    }
+
+    .registers-label-value {
+        color: var(--muted-foreground);
+    }
+
+    .registers-label-remove {
+        padding: 0 4px;
+        border: 0;
+        background: transparent;
+        color: var(--muted-foreground);
+        font: inherit;
+        cursor: pointer;
+    }
+
+    .registers-label-remove:hover {
+        color: var(--foreground);
+    }
+
+    /* On a line of its own under the labels, so it never breaks up their row. */
+
+    .registers-label-form {
+        display: flex;
+        flex-basis: 100%;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: calc(var(--spacing) * 2);
+        margin: 0;
+    }
+
+    .registers-label-input {
+        width: 5rem;
+        font-family: var(--font-mono);
+    }
+
+    .registers-remove {
+        padding: 2px 8px;
+        border: var(--border-width) solid var(--border);
+        border-radius: 6px;
+        background: transparent;
+        color: var(--muted-foreground);
+        font: inherit;
+        font-size: var(--text-small);
+        cursor: pointer;
+    }
+
+    .registers-remove:hover {
+        color: var(--foreground);
+        background: var(--accent);
+    }
+
+    .registers-qubits {
+        display: grid;
+        gap: 2px;
+        color: var(--muted-foreground);
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+    }
+
+    .registers-qubit {
+        display: flex;
+        gap: calc(var(--spacing) * 3);
+    }
+
+    .registers-qubit b {
+        color: var(--foreground);
+        font-weight: 500;
+    }
+
+    .registers-error {
+        margin: 0;
+        color: var(--destructive);
+        font-size: 0.8125rem;
+    }
+
+    .registers-error:empty {
+        display: none;
+    }
+}

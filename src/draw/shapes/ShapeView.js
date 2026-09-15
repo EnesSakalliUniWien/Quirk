@@ -19,6 +19,7 @@ import {drawGraphics} from '../scene/DisplayView.js';
 import {Graphics, GraphicsPath} from 'pixi.js';
 import {CanvasTheme} from '../../config/CanvasTheme.js';
 import {PathGeometry} from './PathGeometry.js';
+import {Appearance} from '../../appearance/Appearance.js';
 
 /** Fixed shapes keep their GraphicsContext until geometry or colours change. */
 class ShapeView extends Graphics {
@@ -54,7 +55,7 @@ export function lineWidth(view, width) {
 
 /** The 1px frame every container wears: displays, kets, output boxes, the resize tab. */
 export function frame(view, r, color = CanvasTheme.stroke.frame) {
-    return rectangle(view, r, {stroke: {color, width: lineWidth(view, 1)}});
+    return rectangle(view, r, {stroke: {color, width: lineWidth(view, Appearance.borders.width.regular)}});
 }
 
 /**
@@ -63,8 +64,9 @@ export function frame(view, r, color = CanvasTheme.stroke.frame) {
  * also lands it on whole pixels.
  */
 export function highlightRing(view, r) {
-    return rectangle(view, r.paddedBy(lineWidth(view, 1.5)),
-        {stroke: {color: CanvasTheme.interaction.outline, width: lineWidth(view, 2)}});
+    const {regular, strong} = Appearance.borders.width;
+    return rectangle(view, r.paddedBy(lineWidth(view, (regular + strong) / 2)),
+        {stroke: {color: CanvasTheme.interaction.outline, width: lineWidth(view, strong)}});
 }
 
 export function circle(view, p, radius, style) {
@@ -83,7 +85,7 @@ export function arrowHead(view, from, tip, color, radius) {
         tip.y - Math.sin(angle) * radius * 0.5, radius, angle, Math.PI / 2.6), [{fill: color}]);
 }
 
-export function strokePath(view, points, color = CanvasTheme.text.primary, width = 1, dash = []) {
+export function strokePath(view, points, color = CanvasTheme.text.primary, width = Appearance.borders.width.regular, dash = []) {
     if (points.length) return drawPath(view, path => PathGeometry.polyline(path, points, dash), [{stroke: {color, width}}]);
 }
 

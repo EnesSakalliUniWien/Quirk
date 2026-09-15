@@ -15,9 +15,22 @@
  */
 
 import {Suite, assertThat, assertThrows} from "../TestUtil.js"
-import {Format} from "../../src/base/Format.js"
+import {Format, bin, digits_to_superscript_digits} from "../../src/base/Format.js"
 
 const suite = new Suite("Format");
+
+suite.test("binary labels preserve padding, truncation and zero-width behavior", () => {
+    assertThat(bin(5, 5)).isEqualTo("00101");
+    assertThat(bin(5, 2)).isEqualTo("01");
+    assertThat(bin(5, 0)).isEqualTo("101");
+    assertThat(bin(0, 3)).isEqualTo("000");
+    assertThrows(() => bin(5, -1));
+});
+
+suite.test("superscript digits preserve surrounding text", () => {
+    assertThat(digits_to_superscript_digits("x^-1023456789 + 22")).isEqualTo("x^-¹⁰²³⁴⁵⁶⁷⁸⁹ + ²²");
+    assertThat(digits_to_superscript_digits("")).isEqualTo("");
+});
 
 suite.test("formatFloat", () => {
     assertThat(Format.CONSISTENT.formatFloat(0)).isEqualTo("0.00");

@@ -18,7 +18,7 @@ import {Suite, assertThat, assertTrue} from "../../TestUtil.js"
 import {EPSILON, BLOCH_PRESETS, blochCoordinates, blochReading, vectorFromAngles, degreesText, pureStateText,
     blochQuaternion, blochAmplitudes, pureQuaternionText, quaternionText, componentFormulas,
     analyzerReadout} from "../../../src/engine/math/bloch.js"
-import {projectPoint} from "../../../src/draw/displays/BlochScene.js"
+import {projectPoint} from "../../../src/draw/displays/bloch/BlochScene.js"
 import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
 import {Complex} from "../../../src/engine/math/complex/Complex.js"
 

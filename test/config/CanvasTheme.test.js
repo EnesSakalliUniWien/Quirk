@@ -27,7 +27,7 @@ suite.test("IQP-dark assigns operations by serialized ID including Quirk axis fo
             check(style.text, style.fill, 4.5);
         }
     }
-    assertThat(theme.surface.background).isEqualTo('#262626');
+    assertThat(theme.surface.background).isEqualTo('#202630');
     assertThat(gateStyle({serializedId: '~custom', symbol: 'H'}).fill).isEqualTo(theme.surface.gate);
 });
 

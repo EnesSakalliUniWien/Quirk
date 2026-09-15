@@ -1,12 +1,16 @@
 # Math code
 
-Pure numeric code with no dependency on the circuit, editor or drawing layers. The three
-sub-namespaces layer strictly, each depending only on the ones listed before it and on `src/base/`.
-Class modules hold exactly one class; `bloch.js`, `preparedStates.js` and
-`formula/AngleExpression.js` hold related functions instead. Import the owning file directly.
+Pure numeric code with no dependency on the circuit, editor or drawing layers. Scalar functions
+depend only on `src/base/`; complex, formula and matrix code build on these functions in that order.
+Class modules hold exactly one class; function modules group related calculations.
+Import the owning file directly.
 
 ```text
 math/
+├── bitOperations.js            counting set bits
+├── powersOfTwo.js              binary sizes, integer logarithms and powers of two
+├── modularArithmetic.js        positive remainders, extended GCD and modular inverses
+├── trigonometry.js             cosine and sine snapped at multiples of pi/4
 ├── complex/
 │   └── Complex.js               the complex number value type
 ├── preparedStates.js            the states a prepare box puts its wires in, and its rank-one matrix
@@ -25,7 +29,8 @@ math/
 
 ## complex
 
-`Complex` is an immutable value type. Everything else in `src/engine/math/` builds on it.
+`Complex` is an immutable value type. Formula and matrix code build on it; scalar functions
+have no dependency on it.
 
 ## formula
 

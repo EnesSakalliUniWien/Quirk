@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
-import { Util } from "../../../base/Util.js";
+import { bin } from "../../../base/Format.js";
 import { Matrix } from "../../../engine/math/matrix/Matrix.js";
 import { DataView } from "../../math/data-view.jsx";
 import { useWheelScrollsSideways } from "./useWheelScrollsSideways.js";
@@ -85,7 +85,7 @@ function EvolutionChart({ states, wireCount, current, formatKet }) {
         {labelled && (
           <ol className="evolution-kets" aria-hidden="true">
             {Array.from({ length: size }, (_, i) => (
-              <li key={i}>{`|${formatKet === undefined ? Util.bin(i, wireCount) : formatKet(i)}⟩`}</li>
+              <li key={i}>{`|${formatKet === undefined ? bin(i, wireCount) : formatKet(i)}⟩`}</li>
             ))}
           </ol>
         )}

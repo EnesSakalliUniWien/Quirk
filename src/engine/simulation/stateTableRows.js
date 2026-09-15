@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Util} from "../../base/Util.js"
+import { bin } from "../../base/Format.js";
 import {Registers} from "../../circuit/model/Registers.js"
 import {ketBits, registerValue} from "../../circuit/registerLabels.js"
 
@@ -91,7 +91,7 @@ function stateTableRows(stats, wireCount, maxRows=MAX_ROWS) {
         if (rows.length < maxRows) {
             const values = registers.list.map(r => Registers.valueLabel(r, registerValue(r, i)));
             rows.push({
-                ket: Util.bin(i, wireCount),
+                ket: bin(i, wireCount),
                 bits: ketBits(registers, wireCount, i),
                 values,
                 // The registers read together: a sequence, when they are the letters of one.

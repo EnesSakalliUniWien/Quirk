@@ -12,10 +12,8 @@ import { decompositionOf } from "../../circuit/gateDecomposition.js";
 import { Matrix } from "../../engine/math/matrix/Matrix.js";
 import { QubitMatrix } from "../../engine/math/matrix/QubitMatrix.js";
 import { preparedStateVector } from "../../engine/math/preparedStates.js";
-import {
-  columnStructure,
-  structureMatrix,
-} from "../../engine/simulation/columnStructure.js";
+import {columnStructure} from "../../engine/simulation/columnStructure/columnStructure.js";
+import {structureMatrix} from "../../engine/simulation/columnStructure/evaluation.js";
 import { Serializer } from "../../serialization/Serializer.js";
 import { MatrixMath } from "../math/mathml.jsx";
 import { DataView } from "../math/data-view.jsx";

@@ -1,0 +1,51 @@
+@layer components {
+    /* Panel content: what the dock's panels render inside the space dockview gives them. The panel
+   window itself - its tab, its frame, where it sits - belongs to the dock, not here. */
+
+    /* Every panel scrolls inside its own cell rather than growing the dock. */
+
+    .panel-scroll {
+        overflow: auto;
+        height: 100%;
+    }
+
+    /* A panel's own content. The dock supplies the surface it sits on, so this is padding and
+       colour only - no card border, radius or drop shadow the way the floating windows had. */
+
+    .panel-body {
+        box-sizing: border-box;
+        color: var(--card-foreground);
+    }
+
+    .panel-body {
+        padding: calc(var(--spacing) * 6);
+    }
+
+    .panel-header {
+        display: grid;
+        gap: calc(var(--spacing) * 1);
+    }
+
+    .panel-eyebrow {
+        margin: 0;
+        color: var(--panel-heading);
+        font-size: var(--text-caption);
+        font-weight: 650;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+
+    .panel-title {
+        margin: 0;
+        font-size: var(--text-title);
+        font-weight: 650;
+        letter-spacing: -0.025em;
+        line-height: 1.15;
+    }
+
+    .panel-description {
+        margin: 0;
+        color: var(--muted-foreground);
+        font-size: var(--text-body);
+    }
+}

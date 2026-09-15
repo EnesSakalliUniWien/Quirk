@@ -20,7 +20,7 @@ import {assertThatGateActsLikePermutation, assertThatCircuitOutputsBasisKet} fro
 import {ModularAdditionGates} from "../../../src/gates/arithmetic/ModularAdditionGates.js"
 import {InputGates} from "../../../src/gates/inputs/InputGates.js"
 import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js"
-import {Util} from "../../../src/base/Util.js"
+import { properMod } from "../../../src/engine/math/modularArithmetic.js";
 
 const suite = new Suite("ModularAdditionGates");
 
@@ -44,17 +44,17 @@ suite.testUsingWebGL('plus_A_mod_R_permutation', () => {
 suite.testUsingWebGL('minus_A_mod_R_permutation', () => {
     assertThatGateActsLikePermutation(
         ModularAdditionGates.MinusAModRFamily.ofSize(2),
-        (t, a, b) => t < b ? Util.properMod(t - a, b) : t,
+        (t, a, b) => t < b ? properMod(t - a, b) : t,
         [2, 2]);
 
     assertThatGateActsLikePermutation(
         ModularAdditionGates.MinusAModRFamily.ofSize(3),
-        (t, a, b) => t < b ? Util.properMod(t - a, b) : t,
+        (t, a, b) => t < b ? properMod(t - a, b) : t,
         [1, 2]);
 
     assertThatGateActsLikePermutation(
         ModularAdditionGates.MinusAModRFamily.ofSize(2),
-        (t, a, b) => t < b ? Util.properMod(t - a, b) : t,
+        (t, a, b) => t < b ? properMod(t - a, b) : t,
         [3, 2]);
 });
 

@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-import {paintProbabilityBox} from '../../../draw/displays/ProbabilityView.js';
+import {paintProbabilityBox} from '../../../draw/displays/probability/ProbabilityView.js';
 import {frame} from '../../../draw/shapes/ShapeView.js';
+import {CanvasTheme} from '../../../config/CanvasTheme.js';
 import {CircuitGeometry} from '../../geometry/CircuitGeometry.js';
-import {paintBlochSphereDisplay} from '../../../gates/displays/BlochSphereDisplay.js';
+import { paintBlochSphereDisplay } from "../../../draw/displays/bloch/BlochView.js";
 import {drawOutputSuperpositionDisplay} from './CircuitAmplitudes.js';
 import {drawLocalStateCaption} from './CircuitCaptions.js';
 
@@ -42,7 +43,7 @@ function drawOutputDisplays(context, painter, stats, hand) {
             const blochRect = CircuitGeometry.blochDisplayRect(context.geometry.gateRect(i, blochCol));
             painter.group('bloch-' + i, view => {
                 paintBlochSphereDisplay(view, m, blochRect, hand.hoverPoints());
-                frame(view, blochRect);
+                frame(view, blochRect, CanvasTheme.stroke.displayFrame);
             });
         }
     }

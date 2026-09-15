@@ -1,0 +1,46 @@
+@layer components {
+    /* The playhead's debug panels: the algebra, the probabilities and the qubits. They share the state
+   panel's rhythm - a heading with a one-line summary, the content, then a note in small type. */
+
+    /* One column no wider than the panel: an auto column grows to its widest child, which pushed
+       the heading and the note past the panel's edge along with a wide table. */
+
+    .debug-panel {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: calc(var(--spacing) * 3);
+        padding: calc(var(--spacing) * 3) calc(var(--spacing) * 3) calc(var(--spacing) * 4);
+    }
+
+    .debug-panel-header {
+        display: flex;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: calc(var(--spacing) * 1) calc(var(--spacing) * 3);
+    }
+
+    .debug-panel-heading {
+        margin: 0;
+        font-size: var(--text-body);
+        font-weight: 650;
+        text-wrap: balance;
+    }
+
+    .debug-panel-summary {
+        color: var(--muted-foreground);
+        font-size: var(--text-small);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .debug-panel-note,
+    .debug-panel-empty {
+        margin: 0;
+        color: var(--muted-foreground);
+        font-size: var(--text-small);
+        text-wrap: pretty;
+    }
+
+    .debug-panel-empty {
+        padding: calc(var(--spacing) * 4);
+    }
+}

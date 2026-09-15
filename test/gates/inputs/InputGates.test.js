@@ -18,7 +18,7 @@ import {assertThat, Suite} from "../../TestUtil.js"
 import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js"
 import {CircuitStats} from "../../../src/engine/simulation/CircuitStats.js"
 import {Gates} from "../../../src/gates/AllGates.js"
-import {Util} from "../../../src/base/Util.js"
+import { mergeMaps } from "../../../src/base/maps.js";
 
 const suite = new Suite("InputGates");
 
@@ -36,7 +36,7 @@ const TEST_GATES = new Map([
     ['/', null],
 ]);
 const circuit = (diagram, ...extraGates) => CircuitDefinition.fromTextDiagram(
-    Util.mergeMaps(TEST_GATES, new Map(extraGates)),
+    mergeMaps(TEST_GATES, new Map(extraGates)),
     diagram);
 
 suite.testUsingWebGL('endianness', () => {

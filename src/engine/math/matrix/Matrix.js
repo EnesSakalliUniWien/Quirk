@@ -19,7 +19,7 @@ import { ComplexFormula } from "../formula/ComplexFormula.js";
 import { ReadableJson } from "./ReadableJson.js";
 import { DetailedError } from "../../../base/DetailedError.js";
 import { Format } from "../../../base/Format.js";
-import { Util } from "../../../base/Util.js";
+import { need } from "../../../base/preconditions.js";
 
 /**
  * A matrix of complex values.
@@ -102,12 +102,12 @@ class Matrix {
    * @param rows {!Array.<!Array.<Complex>>} The rows of complex coefficients making up the matrix.
    */
   static fromRows(rows) {
-    Util.need(
+    need(
       Array.isArray(rows) && rows.every(Array.isArray),
       "array rows",
       rows,
     );
-    Util.need(rows.length > 0, "non-zero height", {rows});
+    need(rows.length > 0, "non-zero height", {rows});
 
     const h = rows.length;
     const widths = new Set(rows.map((e) => e.length));
@@ -276,9 +276,9 @@ class Matrix {
    * @returns {!Matrix}
    */
   static square(...coefs) {
-    Util.need(Array.isArray(coefs), "Array.isArray(coefs)", {coefs});
+    need(Array.isArray(coefs), "Array.isArray(coefs)", {coefs});
     const n = Math.round(Math.sqrt(coefs.length));
-    Util.need(
+    need(
       n * n === coefs.length,
       "Matrix.square: non-square number of arguments",
     );
@@ -291,7 +291,7 @@ class Matrix {
    * @returns {!Matrix}
    */
   static col(...coefs) {
-    Util.need(Array.isArray(coefs), "Array.isArray(coefs)", {coefs});
+    need(Array.isArray(coefs), "Array.isArray(coefs)", {coefs});
     return Matrix.generate(1, coefs.length, (r) => coefs[r]);
   }
 
@@ -546,7 +546,7 @@ class Matrix {
   plus(other) {
     const { _width: w, _height: h, _buffer: b1 } = this;
     const b2 = other._buffer;
-    Util.need(
+    need(
       other._width === w && other._height === h,
       "Matrix.plus: compatible sizes",
     );
@@ -566,7 +566,7 @@ class Matrix {
   minus(other) {
     const { _width: w, _height: h, _buffer: b1 } = this;
     const b2 = other._buffer;
-    Util.need(
+    need(
       other._width === w && other._height === h,
       "Matrix.minus: compatible sizes",
     );
@@ -681,11 +681,11 @@ class Matrix {
    * @returns {!Matrix}
    */
   cross3(other) {
-    Util.need(
+    need(
       this.width() === 1 && this.height() === 3,
       "This isn't a 3d column vector.",
     );
-    Util.need(
+    need(
       other.width() === 1 && other.height() === 3,
       "Other's not a 3d column vector.",
     );
@@ -702,7 +702,7 @@ class Matrix {
    * @returns {!Array.<!Complex>}
    */
   getColumn(colIndex) {
-    Util.need(
+    need(
       colIndex >= 0 && colIndex <= this.width(),
       "colIndex >= 0 && colIndex <= this.width()",
     );

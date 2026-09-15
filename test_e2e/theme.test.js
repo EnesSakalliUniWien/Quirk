@@ -3,9 +3,35 @@ import {readdirSync, readFileSync} from "node:fs";
 import {Theme, gateStyle} from "../src/config/Theme.js";
 import {test, withQuirkPage, waitForQuirk, waitForPanel} from "./harness.js";
 
+test("shared appearance imports no renderer, browser, or CSS implementation", () => {
+    const seen = new Set();
+    const visit = (url, allowed = ['/src/appearance/']) => {
+        if (seen.has(url.href)) return;
+        seen.add(url.href);
+        const source = readFileSync(url, 'utf8');
+        for (const [, dependency] of source.matchAll(/(?:from\s*|import\s*)['"]([^'"]+)['"]/g)) {
+            assert.ok(dependency.startsWith('.'), `Shared appearance imports a package: ${dependency}`);
+            const next = new URL(dependency, url);
+            assert.ok(allowed.some(directory => next.pathname.includes(directory)), `Appearance imports implementation: ${next}`);
+            assert.ok(next.pathname.endsWith('.js'), `Shared appearance imports a stylesheet: ${next}`);
+            visit(next, allowed);
+        }
+    };
+    visit(new URL('../src/appearance/Appearance.js', import.meta.url));
+    assert.ok(seen.size >= 5);
+    // The drawing entry point must also remain independent of browser theme application.
+    visit(new URL('../src/config/CanvasTheme.js', import.meta.url), ['/src/appearance/', '/src/draw/theme/']);
+    const root = new URL('../src/', import.meta.url);
+    for (const path of readdirSync(root, {recursive: true}).filter(path => /\.[jt]sx?$/.test(path))) {
+        if (/\.module\.css['"]/.test(readFileSync(new URL(path, root), 'utf8'))) {
+            assert.ok(path.startsWith('components/'), `CSS Module imported outside HTML components: ${path}`);
+        }
+    }
+});
+
 test("JavaScript owns theme assignments at startup and across panels and gate chips", async browser => {
     // Prevent a second theme definition from creeping back into the app's own CSS.
-    const styles = new URL("../src/styles/", import.meta.url);
+    const styles = new URL("../src/", import.meta.url);
     for (const path of readdirSync(styles, {recursive: true}).filter(path => path.endsWith(".css"))) {
         const source = readFileSync(new URL(path, styles), "utf8");
         assert.doesNotMatch(source, /--[\w-]+\s*:/, `${path}: theme properties belong in JavaScript`);

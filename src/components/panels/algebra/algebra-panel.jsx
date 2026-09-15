@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useStore } from "zustand";
-import { Util } from "../../../base/Util.js";
+import { bin } from "../../../base/Format.js";
 import { ketLabel } from "../../../circuit/registerLabels.js";
 import { Serializer } from "../../../serialization/Serializer.js";
 import { appStore } from "../../../state/appStore.js";
@@ -112,7 +112,7 @@ function AlgebraPanel() {
             <StateFactor state={states[0]} step={0} wireCount={wireCount} formatKet={formatKet} label="Initial state" />
           </div>
           <p className="algebra-step-note">Basis order: {Array.from({length: Math.min(8, 1 << wireCount)}, (_, i) =>
-            "|" + (formatKet === undefined ? Util.bin(i, wireCount) : formatKet(i)) + "⟩").join(", ")}{wireCount > 3 ? ", …" : ""}.</p>
+            "|" + (formatKet === undefined ? bin(i, wireCount) : formatKet(i)) + "⟩").join(", ")}{wireCount > 3 ? ", …" : ""}.</p>
         </li>
         {steps.map((step, index) => (
           <StepCard

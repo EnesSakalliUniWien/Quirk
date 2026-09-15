@@ -22,7 +22,7 @@ function StepCard({ index, step, before, after, wireCount, current, onSeek, sour
     <div className="algebra-equation" role="group" aria-label={hasOperator ?
       "Step " + number + ": operator times input state, compared with simulated output state" :
       "Step " + number + ": simulated input and output; no matrix representation"}>
-      {hasOperator && <><OperatorMatrix matrix={step.matrix} source={source} structure={step.structure}
+      {hasOperator && <><OperatorMatrix showTensorFactors matrix={step.matrix} source={source} structure={step.structure}
         formatKet={formatKet} size={PLOT_SIZE} label={"Operator " + number} />
         <span className="equation-sign" aria-hidden="true">×</span></>}
       <StateFactor state={before} step={index} wireCount={wireCount} formatKet={formatKet} label="Input" />

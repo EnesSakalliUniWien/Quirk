@@ -17,7 +17,8 @@
 import { DetailedError } from "../../../base/DetailedError.js";
 import { Format } from "../../../base/Format.js";
 import { seq } from "../../../base/Seq.js";
-import { Util } from "../../../base/Util.js";
+import { snappedCosSin } from "../trigonometry.js";
+import { need } from "../../../base/preconditions.js";
 import { Complex } from "../complex/Complex.js";
 import { Matrix } from "./Matrix.js";
 
@@ -72,7 +73,7 @@ class QubitMatrix {
       .plus(QubitMatrix.PAULI_Z.times(z));
 
     /** @type {!Complex} */
-    const [cos, sin] = Util.snappedCosSin(s * theta);
+    const [cos, sin] = snappedCosSin(s * theta);
     const ci = new Complex(1 + cos, sin).times(0.5);
     /** @type {!Complex} */
     const cv = new Complex(
@@ -124,11 +125,11 @@ class QubitMatrix {
    * @returns {!{axis: !Array.<!number>, angle: !number, phase: !number}}
    */
   static operationToAngleAxisRotation(operation) {
-    Util.need(
+    need(
       operation.width() === 2 && operation.height() === 2,
       "Need a 2x2 matrix.",
     );
-    Util.need(operation.isUnitary(0.01), "Need a unitary matrix.");
+    need(operation.isUnitary(0.01), "Need a unitary matrix.");
 
     // Extract orthogonal components, adjusting for factors of i.
     const [a, b, c, d] = QubitMatrix._cells2x2(operation);

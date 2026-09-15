@@ -1,0 +1,5 @@
+@layer components {
+    .forge-operation-preview { display: grid; gap: 12px; min-width: 0; max-width: 100%; overflow: auto; }
+
+    .forge-operation-preview .rotation-figure { width: 180px; height: 180px; }
+}

@@ -45,6 +45,8 @@ const appStore = createStore((set) => ({
   playheadState: {
     step: 0,
     columnCount: 0,
+    operationIndex: 0,
+    operationCount: 0,
     playing: false,
     canPlay: false,
     canStepBack: false,
@@ -83,6 +85,7 @@ const appStore = createStore((set) => ({
 
   /** @type {undefined|!{row: !int, col: (undefined|!int)}} The sphere the Bloch panel enlarges. */
   blochTarget: undefined,
+  complexDisplayTarget: undefined,
 
   /** @type {undefined|!string} The register the Registers panel should show and focus, by name.
    *  Transient, like the targets above. */

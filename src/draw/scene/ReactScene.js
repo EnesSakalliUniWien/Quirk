@@ -31,6 +31,8 @@ function SceneContents({surface}) {
         app.stage.scale.set(request.ratio);
         app.stage.eventMode = 'static';
         app.stage.hitArea = new Rectangle(0, 0, request.width / request.ratio, request.height / request.ratio);
+        // Layout must be current before tooltip bounds are read, even with the ticker stopped.
+        app.renderer.layout.update(app.stage);
         if (request.tooltips.length && overlay?.request !== request) {
             setOverlay({request, element: request.view.tooltips.element(request.tooltips, app.stage)});
             return;

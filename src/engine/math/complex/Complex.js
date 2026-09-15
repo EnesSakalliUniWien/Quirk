@@ -16,7 +16,7 @@
 
 import { DetailedError } from "../../../base/DetailedError.js";
 import { Format } from "../../../base/Format.js";
-import { Util } from "../../../base/Util.js";
+import { snappedCosSin } from "../trigonometry.js";
 
 /**
  * Represents a complex number like `a + b i`, where `a` and `b` are real values and `i` is the square root of -1.
@@ -96,7 +96,7 @@ class Complex {
    * @returns {!Complex}
    */
   static polar(magnitude, phase) {
-    const [cos, sin] = Util.snappedCosSin(phase);
+    const [cos, sin] = snappedCosSin(phase);
     return new Complex(magnitude * cos, magnitude * sin);
   }
 

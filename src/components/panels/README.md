@@ -27,7 +27,7 @@ host. Recording controls live in `tape/` and are also used by the transport bar.
 Shared matrix renderers remain in `src/components/math/`, shared gate details in
 `src/components/gate/`, and toolbox components in `src/components/toolbox/`.
 Simulation and saved-result logic remain in their existing engine and results
-directories. Styles remain in `src/styles/`.
+directories. Panel styles live in `src/styles/panels/`, with shared panel rules in its `shared/` directory.
 
 To add a panel, create its directory and component, then register it in
 `panels.jsx`. Keep registry keys stable: Dockview persists those keys in layouts.

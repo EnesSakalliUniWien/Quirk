@@ -5,6 +5,15 @@ import {defineConfig} from "vite";
 
 const projectRoot = import.meta.dirname;
 const pageForMode = {test: "test/test.html", perf: "test_perf/test_perf.html"};
+const EMPTY_MODULE_ID = "\0empty-pixi-layout";
+
+/** Resolves the side-effect-only `@pixi/layout` import to an empty module. */
+const withoutPixiLayout = () => ({
+    name: "without-pixi-layout",
+    enforce: "pre",
+    resolveId: id => (id === "@pixi/layout" ? EMPTY_MODULE_ID : null),
+    load: id => (id === EMPTY_MODULE_ID ? "export {};" : null)
+});
 
 export default defineConfig(({mode}) => {
     const input = pageForMode[mode] ?? "index.html";
@@ -22,6 +31,8 @@ export default defineConfig(({mode}) => {
             // The operator tile worker loads the gate catalogue, which splits into chunks, and
             // only module workers can load chunks.
             format: "es",
+            // It draws nothing, so it leaves out Pixi Layout's Container mixins and Yoga WASM.
+            plugins: () => [withoutPixiLayout()],
             rollupOptions: {
                 output: {
                     keepNames: true

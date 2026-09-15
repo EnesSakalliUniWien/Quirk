@@ -18,7 +18,7 @@ import {Suite, assertThat} from "../../../TestUtil.js"
 
 import {BOOL_TYPE_CODER} from "../../../../src/engine/webgl/coder/ShaderCoderTypes.js"
 import {combinedShaderPartsWithCode, shaderWithOutputPartAndArgs} from "../../../../src/engine/webgl/coder/ShaderCoders.js"
-import {Shaders} from "../../../../src/engine/webgl/shader/Shaders.js"
+import {Shaders} from "../../../../src/engine/webgl/operations/Shaders.js"
 
 const suite = new Suite("ShaderCoderTypes");
 

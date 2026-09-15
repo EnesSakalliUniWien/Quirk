@@ -19,7 +19,7 @@ import {GateShaders} from "../../../../src/engine/simulation/gpu/GateShaders.js"
 import {assertThatCircuitUpdateActsLikeMatrix} from "../../../CircuitOperationTestUtil.js"
 
 import {Complex} from "../../../../src/engine/math/complex/Complex.js"
-import {Shaders} from "../../../../src/engine/webgl/shader/Shaders.js"
+import {Shaders} from "../../../../src/engine/webgl/operations/Shaders.js"
 import {Matrix} from "../../../../src/engine/math/matrix/Matrix.js"
 
 const suite = new Suite("GateShaders");

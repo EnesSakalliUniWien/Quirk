@@ -23,7 +23,7 @@ import {Gates} from "../../../src/gates/AllGates.js"
 
 import {Complex} from "../../../src/engine/math/complex/Complex.js"
 import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
-import {Util} from "../../../src/base/Util.js"
+import { popcnt } from "../../../src/engine/math/bitOperations.js";
 import {advanceStateWithCircuit} from "../../../src/engine/simulation/CircuitComputeUtil.js";
 import {
     assertThatCircuitUpdateActsLikeMatrix,
@@ -135,7 +135,7 @@ suite.testUsingWebGL('Z-parity', () => {
                 Gates.HalfTurns.Z])
             ]),
             false),
-        Matrix.generateDiagonal(1 << 4, i => Util.popcnt(i & 5) % 2 === 1 && ((i & 8) !== 0) ? -1 : 1));
+        Matrix.generateDiagonal(1 << 4, i => popcnt(i & 5) % 2 === 1 && ((i & 8) !== 0) ? -1 : 1));
 });
 
 suite.testUsingWebGL('X-parity', () => {
@@ -163,7 +163,7 @@ suite.testUsingWebGL('X-parity', () => {
                 ]),
             ]),
             false),
-        Matrix.generateDiagonal(1 << 4, i => Util.popcnt(i & 7) % 2 === 1 && ((i & 8) !== 0) ? -1 : 1));
+        Matrix.generateDiagonal(1 << 4, i => popcnt(i & 7) % 2 === 1 && ((i & 8) !== 0) ? -1 : 1));
 });
 
 suite.testUsingWebGL('X-parity', () => {
@@ -191,7 +191,7 @@ suite.testUsingWebGL('X-parity', () => {
                 ]),
             ]),
             false),
-        Matrix.generateDiagonal(1 << 4, i => Util.popcnt(i & 7) % 2 === 1 && ((i & 8) !== 0) ? -1 : 1));
+        Matrix.generateDiagonal(1 << 4, i => popcnt(i & 7) % 2 === 1 && ((i & 8) !== 0) ? -1 : 1));
 });
 
 suite.test('xyParityControlsDisabledByMeasurement', () => {

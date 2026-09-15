@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-import { DetailedError } from "../../../base/DetailedError.js";
-import { WglArg } from "./WglArg.js";
+import { WglCompiledShader } from "./WglCompiledShader.js";
+
+/** @typedef {import("./WglArg.js").WglArg} WglArg */
 import { initializedWglContext } from "../context/WglContext.js";
 import { WglMortalValueSlot } from "../context/WglMortalValueSlot.js";
 import {
@@ -53,24 +54,6 @@ const ENSURE_ATTRIBUTES_BOUND_SLOT = new WglMortalValueSlot(
     gl.deleteBuffer(indexBuffer);
   },
 );
-
-const VERTEX_SHADER_SOURCE = `#version 300 es
-precision highp float;
-precision highp int;
-in vec2 position;
-void main() {
-  gl_Position = vec4(position, 0, 1);
-}`;
-
-/**
- * Everything a fragment shader body gets for free: GLSL ES 3.00, high precision, and the output
- * variable `fragColor` to write into.
- */
-const FRAGMENT_SHADER_PRELUDE = `#version 300 es
-precision highp float;
-precision highp int;
-out vec4 fragColor;
-`;
 
 /**
  * A shader program definition, used to render outputs onto textures based on the given GLSL source code.
@@ -153,143 +136,6 @@ class WglShader {
 
   toString() {
     return `WglShader(fragmentShaderSource: ${this.fragmentShaderSourceGenerator()})`;
-  }
-}
-
-/**
- * A compiled shader program definition that can be bound to / used by a webgl context.
- */
-class WglCompiledShader {
-  /**
-   * @param {!string} fragmentShaderSource
-   * @param {!Array.<!string>|!Iterable.<!string>} uniformParameterNames
-   */
-  constructor(fragmentShaderSource, uniformParameterNames) {
-    const GL = WebGL2RenderingContext;
-    const gl = initializedWglContext().gl;
-    const glVertexShader = WglCompiledShader.compileShader(
-      gl,
-      GL.VERTEX_SHADER,
-      VERTEX_SHADER_SOURCE,
-    );
-    const glFragmentShader = WglCompiledShader.compileShader(
-      gl,
-      GL.FRAGMENT_SHADER,
-      FRAGMENT_SHADER_PRELUDE + fragmentShaderSource,
-    );
-
-    const program = gl.createProgram();
-    gl.attachShader(program, glVertexShader);
-    gl.attachShader(program, glFragmentShader);
-    gl.linkProgram(program);
-    // The program keeps what it needs; the shader objects can go either way.
-    gl.deleteShader(glVertexShader);
-    gl.deleteShader(glFragmentShader);
-
-    // Note: MDN says the result of getProgramInfoLog is always a DOMString, but a user reported an
-    // error where it returned null. So now we fallback to the empty string when getting a falsy value.
-    const warnings = (gl.getProgramInfoLog(program) || "").trim();
-    if (warnings !== "" && warnings !== "\0") {
-      // The lone NUL happened in Ubuntu with an NVIDIA GK107GL.
-      console.warn(
-        "Shader compile caused warnings",
-        "gl.getProgramInfoLog()",
-        warnings,
-      );
-    }
-
-    if (gl.getProgramParameter(program, GL.LINK_STATUS) === false) {
-      const validateStatus = gl.getProgramParameter(program, GL.VALIDATE_STATUS);
-      const error = gl.getError();
-      gl.deleteProgram(program);
-      throw new Error(
-        "Failed to link shader program." +
-          "\n\n" +
-          `gl.VALIDATE_STATUS: ${validateStatus}` +
-          "\n" +
-          `gl.getError(): ${error}`,
-      );
-    }
-
-    /** @type {!Map.<!string, !WebGLUniformLocation>} */
-    this.uniformLocations = new Map(
-      [...uniformParameterNames].map((e) => [
-        e,
-        gl.getUniformLocation(program, e),
-      ]),
-    );
-    /** @type {!int} */
-    this.positionAttributeLocation = gl.getAttribLocation(program, "position");
-    /** @type {!WebGLProgram} */
-    this.program = program;
-  }
-
-  /**
-   * @param {!(!WglArg[])} uniformArgs
-   * @return {void}
-   */
-  useWithArgs(uniformArgs) {
-    const ctx = initializedWglContext();
-    const gl = ctx.gl;
-    gl.useProgram(this.program);
-
-    const coop = { coopTextureUnit: 0 };
-    for (const arg of uniformArgs) {
-      const location = this.uniformLocations.get(arg.name);
-      if (location === undefined) {
-        throw new DetailedError("Unexpected uniform argument", {
-          arg,
-          uniformArgs,
-        });
-      }
-      WglArg.INPUT_ACTION_MAP.get(arg.type)(ctx, location, arg.value, coop);
-    }
-
-    gl.enableVertexAttribArray(this.positionAttributeLocation);
-    gl.vertexAttribPointer(
-      this.positionAttributeLocation,
-      2,
-      WebGL2RenderingContext.FLOAT,
-      false,
-      0,
-      0,
-    );
-  }
-
-  free() {
-    const gl = initializedWglContext().gl;
-    gl.deleteProgram(this.program);
-  }
-
-  /**
-   * @param {!WebGL2RenderingContext} gl
-   * @param {number} shaderType
-   * @param {!string} sourceCode
-   * @returns {!WebGLShader}
-   */
-  static compileShader(gl, shaderType, sourceCode) {
-    const shader = gl.createShader(shaderType);
-
-    gl.shaderSource(shader, sourceCode);
-    gl.compileShader(shader);
-
-    const info = gl.getShaderInfoLog(shader) || "";
-    if (info !== "") {
-      console.warn("WebGLShader: gl.getShaderInfoLog() wasn't empty: " + info);
-      console.warn("Source code was: " + sourceCode);
-    }
-
-    if (
-      gl.getShaderParameter(shader, WebGL2RenderingContext.COMPILE_STATUS) ===
-      false
-    ) {
-      gl.deleteShader(shader);
-      throw new Error(`WebGLShader: Shader compile failed.
-                Info: ${info}
-                Source: ${sourceCode}`);
-    }
-
-    return shader;
   }
 }
 

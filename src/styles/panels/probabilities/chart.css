@@ -1,0 +1,5 @@
+@layer components {
+    .probabilities-chart {
+        min-width: 0;
+    }
+}

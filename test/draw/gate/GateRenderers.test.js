@@ -33,6 +33,18 @@ suite.test("IQP-dark gate backgrounds and ink reach the painter and survive hove
     }
 });
 
+suite.test("resize tabs stay inside the bottom quarter of small, wide and tall gates", () => {
+    for (const [width, height] of [[40, 40], [120, 40], [120, 152], [280, 376]]) {
+        const gate = new Rect(10, 20, width, height);
+        const tab = rectForResizeTab(gate);
+        assertThat(tab.x >= gate.x && tab.right() <= gate.right()).isEqualTo(true);
+        assertThat(tab.y >= gate.y && tab.bottom() <= gate.bottom()).isEqualTo(true);
+        assertThat(tab.containsPoint(gate.bottomLeft().offsetBy(width / 2, 1))).isEqualTo(false);
+        // The rest of the gate still grabs the gate itself, even when it spans a single wire.
+        assertThat(tab.y >= gate.y + height * 3 / 4).withInfo({width, height}).isEqualTo(true);
+    }
+});
+
 suite.test("displayResizeTab_drawsOnceAboveContent", async () => {
     for (const highlighted of [false, true]) {
         const painter = new DisplayView(document.createElement('canvas'));
@@ -58,7 +70,7 @@ suite.test("displayResizeTab_drawsOnceAboveContent", async () => {
         collect(painter);
         assertThat(fills.length).isEqualTo(2);
         assertThat(fills[0].rect).isEqualTo(args.rect);
-        assertThat(fills[1].rect).isEqualTo(rectForResizeTab(args.rect).skipLeft(2).skipRight(2));
+        assertThat(fills[1].rect).isEqualTo(rectForResizeTab(args.rect).paddedBy(-2));
         assertThat(fills[1].alpha).isApproximatelyEqualTo(highlighted ? 1 : 0.7);
         assertThat(painter.alpha).isEqualTo(1);
     }
@@ -77,7 +89,7 @@ suite.test("display gates always wear a frame, and a highlight ring outside it w
             for (const child of node.children || []) collect(child);
         };
         collect(painter);
-        const expected = [[10.5, 10.5, 80, 80, undefined, CanvasTheme.stroke.frame, 1]];
+        const expected = [[10.5, 10.5, 80, 80, undefined, CanvasTheme.stroke.displayFrame, 1]];
         if (isHighlighted) expected.push([9, 9, 83, 83, undefined, CanvasTheme.interaction.outline, 2]);
         assertThat(strokes).withInfo({isHighlighted}).isEqualTo(expected);
     }

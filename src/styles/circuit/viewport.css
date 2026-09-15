@@ -1,0 +1,117 @@
+@layer base {
+    /* The circuit cell: the scroll container plus the overlay pinned to its visible corner. */
+
+    #circuit-area {
+        position: relative;
+        display: flex;
+        width: 100%;
+        min-width: 0;
+        flex-direction: column;
+    }
+
+    /* The circuit scrolls inside its own cell, so a wide or tall circuit never drags the whole
+       page along with it. The cell is a one-cell grid stacking the viewport canvas over the
+       scroll spacer: the spacer stretches to the content and provides the scroll extent, while
+       the canvas sticks to the visible corner and paints the scrolled-to part of the scene. */
+
+    #canvasDiv {
+        flex: 1 1 auto;
+        min-width: 0;
+        min-height: 0;
+        overflow: auto;
+        display: grid;
+        /* The canvas paints its own opaque background from CanvasTheme. */
+        box-shadow: inset 0 1px 0 var(--border);
+    }
+
+    #drawCanvas {
+        grid-area: 1 / 1;
+        position: sticky;
+        top: 0;
+        left: 0;
+        display: block;
+    }
+
+    #canvas-scroll-spacer {
+        grid-area: 1 / 1;
+    }
+
+    /* The zoom cluster and the overview sit in a bar under the circuit, not over it. Floating over
+       the drawing, they hid the output displays of a narrow circuit panel and caught the drops and
+       clicks meant for the wires beneath them. */
+
+    #circuit-overlay {
+        display: flex;
+        flex: none;
+        align-items: center;
+        justify-content: flex-end;
+        gap: calc(var(--spacing) * 3);
+        box-sizing: border-box;
+        min-height: 34px;
+        padding: 3px calc(var(--spacing) * 3);
+        border-top: var(--border-width) solid var(--border);
+        background: var(--background);
+    }
+
+    /* The overview's height, so the bar holds both on one even line. */
+
+    .circuit-zoom-controls {
+        display: flex;
+        box-sizing: border-box;
+        height: 26px;
+        overflow: hidden;
+        border: var(--border-width) solid var(--border);
+        border-radius: var(--radius-medium);
+        background: var(--card);
+    }
+
+    .circuit-zoom-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 9px;
+        border: 0;
+        background: transparent;
+        color: var(--muted-foreground);
+        cursor: pointer;
+        font-size: 0.75rem;
+        font-variant-numeric: tabular-nums;
+    }
+
+    /* The zoom icons are drawn on the 24px grid; here they sit on the buttons' text line. */
+
+    .circuit-zoom-button svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    .circuit-zoom-button:hover {
+        color: var(--foreground);
+        background: var(--accent);
+    }
+
+    /* The overview stretches along the bar, before the zoom cluster: the circuit's whole width
+       squeezed into the overview's, its wires into the overview's height. */
+
+    .circuit-minimap {
+        display: block;
+        flex: 1 1 0;
+        order: -1;
+        box-sizing: border-box;
+        min-width: 0;
+        max-width: 480px;
+        height: 26px;
+        border: var(--border-width) solid var(--border);
+        border-radius: var(--radius-small);
+        background: var(--card);
+        cursor: pointer;
+    }
+
+    .circuit-minimap[hidden] {
+        display: none;
+    }
+
+    #drawCanvas {
+        display: block;
+    }
+}

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {columnStructure} from '../../engine/simulation/columnStructure.js';
+import {columnStructure} from '../../engine/simulation/columnStructure/columnStructure.js';
 import { fromJsonText_CircuitDefinition } from "../../serialization/circuits/text.js";
 import {rasterOperatorTile} from './rasters.js';
 

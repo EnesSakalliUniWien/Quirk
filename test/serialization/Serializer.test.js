@@ -28,7 +28,7 @@ import {GateColumn} from "../../src/circuit/model/GateColumn.js"
 import {Gates} from "../../src/gates/AllGates.js"
 import {Matrix} from "../../src/engine/math/matrix/Matrix.js"
 import {MysteryGateMaker} from "../../src/gates/misc/Joke_MysteryGate.js"
-import {Util} from "../../src/base/Util.js"
+import { STRICT_EQUALITY } from "../../src/base/Equate.js";
 
 const suite = new Suite("Serializer");
 
@@ -66,9 +66,9 @@ suite.test("roundTrip_Matrix", () => {
 });
 
 suite.test("roundTrip_Gate", () => {
-    assertRoundTrip(Gate, Gates.HalfTurns.X, "X", Util.STRICT_EQUALITY);
+    assertRoundTrip(Gate, Gates.HalfTurns.X, "X", STRICT_EQUALITY);
     for (const g of Gates.KnownToSerializer) {
-        assertRoundTrip(Gate, g, g.serializedId, Util.STRICT_EQUALITY);
+        assertRoundTrip(Gate, g, g.serializedId, STRICT_EQUALITY);
     }
 
     const f = MysteryGateMaker();

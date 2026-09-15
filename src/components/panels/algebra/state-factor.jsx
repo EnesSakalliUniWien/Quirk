@@ -1,3 +1,4 @@
+import {TensorProduct} from "../../math/tensor-product.jsx";
 import { useMemo } from "react";
 import { stateGrid } from "../../../draw/renderers/dataRenderers.js";
 import { DataView } from "../../math/data-view.jsx";
@@ -12,7 +13,7 @@ function StateFactor({state, step, wireCount, formatKet, highlight, label}) {
   const model = useMemo(() => symbolic ? stateModel(state, formatKet) : undefined, [symbolic, state, formatKet]);
   return <figure className="matrix-factor state-factor">
     <figcaption>{label} ψ<sub>{step}</sub> · {1 << wireCount}×1</figcaption>
-    {symbolic ? <MatrixMath model={model} label={label} highlight={highlight} /> :
+    {symbolic ? <div><MatrixMath model={model} label={label} highlight={highlight} /><TensorProduct matrix={state} /></div> :
       <div><DataView kind="state" data={grid} {...plotSize(grid)} options={{wireCount}}
         label={label + ": state-vector amplitudes reshaped as a grid"} />
         <p className="matrix-grid-label">State-vector amplitudes · reshaped grid</p></div>}

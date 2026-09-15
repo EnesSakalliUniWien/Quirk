@@ -1,0 +1,32 @@
+@layer components {
+    .example-panel {
+        min-width: 260px;
+        padding: calc(var(--spacing) * 4);
+    }
+
+    .example-heading {
+        display: block;
+        margin: 0 0 calc(var(--spacing) * 3);
+        font-size: var(--text-heading);
+        font-weight: 650;
+    }
+
+    .example-links {
+        display: grid;
+        gap: 2px;
+    }
+
+    .example-links a {
+        padding: 7px calc(var(--spacing) * 2);
+        color: var(--muted-foreground);
+        border-radius: 7px;
+        font-size: 0.875rem;
+        text-decoration: none;
+        transition: background-color 140ms ease, color 140ms ease;
+    }
+
+    .example-links a:hover {
+        color: var(--foreground);
+        background: var(--accent);
+    }
+}

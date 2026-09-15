@@ -20,7 +20,7 @@ import {paintGateSymbol} from '../../draw/gate/GateSymbol.js';
 import {paintCycleState} from '../../draw/gate/GateRenderers.js';
 import {ketArgs, ketShader, ketShaderPhase, ketInputGateShaderCode} from "../../engine/simulation/gpu/KetShaderUtil.js"
 import {WglArg} from "../../engine/webgl/shader/WglArg.js"
-import {Util} from "../../base/Util.js";
+import { digits_to_superscript_digits } from "../../base/Format.js";
 import {XExp, YExp, ZExp} from "./ExponentiatingGates.js";
 import {parseTimeFormula, makeUpdateFormulaFunc, TIME_PROBE_VALUES} from "./FormulaGateUtil.js";
 import {QubitMatrix} from "../../engine/math/matrix/QubitMatrix.js"
@@ -56,7 +56,7 @@ function configurableRotationRenderer(pattern, xyz, tScale) {
  */
 function exponent_to_A_len_painter(args) {
     const v = args.getGateContext('Input Range A');
-    const denom_exponent = v === undefined ? 'ⁿ' : Util.digits_to_superscript_digits('' + v.length);
+    const denom_exponent = v === undefined ? 'ⁿ' : digits_to_superscript_digits('' + v.length);
     const symbol = args.gate.symbol.replace('ⁿ', denom_exponent);
     paintBackground(args);
     paintOutline(args);

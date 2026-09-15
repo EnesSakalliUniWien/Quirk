@@ -21,7 +21,7 @@ import {
   ketShaderPermute,
   ketInputGateShaderCode,
 } from "../../engine/simulation/gpu/KetShaderUtil.js";
-import { Util } from "../../base/Util.js";
+import { numberOfSetBits } from "../../engine/math/bitOperations.js";
 import { WglArg } from "../../engine/webgl/shader/WglArg.js";
 
 const BitCountGates = {};
@@ -58,7 +58,7 @@ BitCountGates.PlusBitCountAFamily = Gate.buildFamily(1, 16, (span, builder) =>
       ),
     )
     .setKnownEffectToParametrizedPermutation(
-      (t, a) => (t + Util.numberOfSetBits(a)) & ((1 << span) - 1),
+      (t, a) => (t + numberOfSetBits(a)) & ((1 << span) - 1),
     ),
 );
 
@@ -79,7 +79,7 @@ BitCountGates.MinusBitCountAFamily = Gate.buildFamily(1, 16, (span, builder) =>
       ),
     )
     .setKnownEffectToParametrizedPermutation(
-      (t, a) => (t - Util.numberOfSetBits(a)) & ((1 << span) - 1),
+      (t, a) => (t - numberOfSetBits(a)) & ((1 << span) - 1),
     ),
 );
 

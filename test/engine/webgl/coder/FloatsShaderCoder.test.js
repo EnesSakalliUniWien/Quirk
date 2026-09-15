@@ -16,7 +16,7 @@
 
 import {Suite, assertThat, assertThrows} from "../../../TestUtil.js"
 import {SHADER_CODER_FLOATS} from "../../../../src/engine/webgl/coder/FloatsShaderCoder.js"
-import {Shaders} from "../../../../src/engine/webgl/shader/Shaders.js"
+import {Shaders} from "../../../../src/engine/webgl/operations/Shaders.js"
 
 const suite = new Suite("FloatsShaderCoder");
 

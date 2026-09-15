@@ -18,8 +18,55 @@ import {createValueStore, observeStore} from '../../../src/base/valueStore.js';
 import {Suite, assertThat} from "../../TestUtil.js"
 
 import {Playhead} from "../../../src/app/state/Playhead.js"
+import {operationSchedule} from '../../../src/circuit/operationColumns.js';
+import {Serializer} from '../../../src/serialization/Serializer.js';
+import {CircuitDefinition} from '../../../src/circuit/model/CircuitDefinition.js';
 
 const suite = new Suite("Playhead");
+
+suite.test("operation stops skip displays and empty columns but retain measurements and mixed columns", () => {
+    const circuit = Serializer.fromJson(CircuitDefinition, {cols: [
+        ['Amps1'], [], ['H'], ['Bloch'], ['Density'], ['Chance'], ['Sample1'],
+        ['Measure'], ['Amps1', 'X'], ['Bloch']
+    ]});
+    const schedule = operationSchedule(circuit);
+    assertThat(schedule.operationColumns).isEqualTo([2, 7, 8]);
+    const clock = fakeClock();
+    const playhead = new Playhead(observeStore(createValueStore(schedule)), clock.setInterval, clock.clearInterval);
+    playhead.next();
+    assertThat(playhead.step()).isEqualTo(3);
+    playhead.next();
+    assertThat(playhead.step()).isEqualTo(8);
+    playhead.next();
+    assertThat(playhead.step()).isEqualTo(10);
+    playhead.previous();
+    assertThat(playhead.step()).isEqualTo(8);
+    playhead.seekOperation(1);
+    assertThat(playhead.step()).isEqualTo(3);
+    playhead.reset();
+    playhead.togglePlay();
+    clock.tick();
+    assertThat(playhead.step()).isEqualTo(3);
+    clock.tick();
+    assertThat(playhead.step()).isEqualTo(8);
+    clock.tick();
+    assertThat(playhead.step()).isEqualTo(10);
+    assertThat(clock.pendingCount()).isEqualTo(0);
+});
+
+suite.test("display-only circuits cannot play and same-length edits refresh the operation stops", () => {
+    const schedules = createValueStore({columnCount: 2, operationColumns: []});
+    const clock = fakeClock();
+    const playhead = new Playhead(observeStore(schedules), clock.setInterval, clock.clearInterval);
+    playhead.togglePlay();
+    assertThat(clock.pendingCount()).isEqualTo(0);
+    assertThat(playhead.state().snapshot()[0].canStepForward).isEqualTo(false);
+    schedules.setState({value: {columnCount: 2, operationColumns: [0]}});
+    assertThat(playhead.state().snapshot()[0].canStepForward).isEqualTo(true);
+    playhead.next();
+    assertThat(playhead.step()).isEqualTo(2);
+    assertThat(playhead.state().snapshot()[0].operationIndex).isEqualTo(1);
+});
 
 /**
  * Stands in for setInterval, so tests advance playback by hand instead of by waiting.
@@ -43,7 +90,9 @@ function fakeClock() {
 function playheadOver(columnCount) {
     const columns = createValueStore(columnCount);
     const clock = fakeClock();
-    const playhead = new Playhead(observeStore(columns), clock.setInterval, clock.clearInterval);
+    const playhead = new Playhead(observeStore(columns).map(count => ({
+        columnCount: count, operationColumns: Array.from({length: count}, (_, i) => i)
+    })), clock.setInterval, clock.clearInterval);
     return {playhead, columns, clock};
 }
 
@@ -54,6 +103,8 @@ suite.test("starts before the first column", () => {
     assertThat(playhead.state().snapshot()).isEqualTo([{
         step: 0,
         columnCount: 3,
+        operationIndex: 0,
+        operationCount: 3,
         playing: false,
         canPlay: true,
         canStepBack: false,

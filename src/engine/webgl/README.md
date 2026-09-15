@@ -3,7 +3,7 @@
 The only code in Quirk that talks to the browser's GPU API. It requires WebGL2 with
 `EXT_color_buffer_float` and high precision fragment floats; `context/issues.js` reports which of
 those is missing so the app can show a banner instead of failing later. Files are grouped by
-responsibility; a WebGPU backend would sit beside this directory with the same four concerns.
+responsibility; a WebGPU backend would sit beside this directory with the same concerns.
 
 ```text
 webgl/
@@ -14,9 +14,13 @@ webgl/
 │   └── WglUtil.js                gl.getError and framebuffer status checks
 ├── shader/                       programs and how they are run
 │   ├── WglArg.js                 a uniform argument passed to a shader
-│   ├── WglShader.js              compiles a GLSL ES 3.00 fragment shader body into a cached program
+│   ├── WglShader.js              caches programs, binds output textures and executes shaders
+│   ├── WglCompiledShader.js      compiles, links and releases programs; binds uniform arguments
 │   ├── WglConfiguredShader.js    a shader bound to its arguments, ready to render into a texture
-│   └── Shaders.js                the standard shaders: colour fill, passthrough, data upload, folds
+│   └── sources/                 shared vertex shader source and fragment prelude
+├── operations/                  general texture calculations, independent of quantum circuits
+│   ├── Shaders.js               configures colour fill, passthrough, data upload, packing and folds
+│   └── shaders/                 one definition per file, including linear overlay
 ├── texture/                      GPU memory
 │   ├── WglTexture.js             an RGBA32F or RGBA8 texture you can render into and read back
 │   ├── WglTexturePool.js         reuses textures by size and type instead of reallocating
@@ -29,7 +33,7 @@ webgl/
 
 ## Shader bodies
 
-A shader body is GLSL ES 3.00 without the version line: `WglShader` prepends `#version 300 es`,
+A shader body is GLSL ES 3.00 without the version line: `WglCompiledShader` prepends `#version 300 es`,
 `highp` precision and `out vec4 fragColor`. Bodies assembled through `Inputs` and `Outputs` get
 `read_<name>(k)` for each input, `len_<name>()`, `len_output()`, and must define `outputFor(k)`.
 Indices are floats because the gate shaders compute them with float arithmetic; addressing converts
@@ -42,6 +46,15 @@ each other: a configured shader renders into a texture, and a texture returns it
 These import cycles are safe because each side uses the other only inside methods. `coder` sits on
 top: `currentShaderCoder()` returns the single float coder, which the pool and the simulation kets
 consult when they size textures and build shaders.
+
+`operations` uses `shader`, `coder` and `context` for reusable texture calculations. Quantum
+operations remain in `simulation/gpu`: gate matrices in `gateShaders/`, and state initialization,
+controls, swaps and qubit densities in `circuitShaders/`. These use the WebGL modules; WebGL
+does not import simulation modules. `CircuitShaders.linearOverlay` keeps its existing method
+but imports its general texture shader from `operations/shaders/`.
+
+The existing shader/coder/texture import cycles are unchanged; directory grouping does not
+make these modules independent of one another.
 
 ## Tests
 

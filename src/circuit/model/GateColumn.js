@@ -17,7 +17,8 @@
 import {DetailedError} from "../../base/DetailedError.js"
 /** @typedef {import("./Gate.js").Gate} Gate */
 import {GateCheckArgs} from "./GateCheckArgs.js"
-import {Util} from "../../base/Util.js"
+import { STRICT_EQUALITY } from "../../base/Equate.js";
+import { mergeMaps } from "../../base/maps.js";
 
 /**
  * A column of gates in a circuit with many qubits.
@@ -45,7 +46,7 @@ class GateColumn {
         }
         return other instanceof GateColumn &&
             this.gates.length === other.gates.length &&
-            this.gates.every((e, i) => Util.STRICT_EQUALITY(e, other.gates[i]));
+            this.gates.every((e, i) => STRICT_EQUALITY(e, other.gates[i]));
     }
 
     /**
@@ -374,7 +375,7 @@ class GateColumn {
      * @returns {{allReasons: !Array.<undefined|!string>, stickyCtx: !Map<!string, *>}}
      */
     perRowDisabledReasons(inputMeasureMask, outerRowOffset, outerContext, prevStickyCtx, isNested, touchedMask = 0) {
-        const context = Util.mergeMaps(outerContext, prevStickyCtx);
+        const context = mergeMaps(outerContext, prevStickyCtx);
         const stickyCtx = new Map(prevStickyCtx);
         for (let row = this.gates.length - 1; row >= 0; row--) {
             const g = this.gates[row];

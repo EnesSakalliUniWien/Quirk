@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {columnImage, structureFanOut} from '../../engine/simulation/columnStructure.js';
+import {columnImage, structureFanOut} from '../../engine/simulation/columnStructure/evaluation.js';
 import {phaseRgb} from '../../config/CanvasTheme.js';
 
 /**

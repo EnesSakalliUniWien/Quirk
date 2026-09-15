@@ -23,7 +23,7 @@ import {
 } from "../../engine/simulation/gpu/KetShaderUtil.js";
 import { modulusTooBigChecker } from "./ModularIncrementGates.js";
 import { BIG_MUL_MOD_SHADER_CODE } from "./MultiplyAccumulateGates.js";
-import { Util } from "../../base/Util.js";
+import { properMod, extended_gcd, modular_multiplicative_inverse } from "../../engine/math/modularArithmetic.js";
 import { WglArg } from "../../engine/webgl/shader/WglArg.js";
 
 const ModularMultiplicationGates = {};
@@ -97,8 +97,8 @@ function modularMultiply(val, factor, modulus) {
   if (val >= modulus) {
     return val;
   }
-  factor = Util.properMod(factor, modulus);
-  if (factor === 0 || Util.extended_gcd(factor, modulus).gcd !== 1) {
+  factor = properMod(factor, modulus);
+  if (factor === 0 || extended_gcd(factor, modulus).gcd !== 1) {
     return val;
   }
   return (val * factor) % modulus;
@@ -118,12 +118,12 @@ function modularUnmultiply(val, factor, modulus) {
   if (val >= modulus) {
     return val;
   }
-  factor = Util.properMod(factor, modulus);
+  factor = properMod(factor, modulus);
   if (factor === 0) {
     return val;
   }
 
-  const inverse_factor = Util.modular_multiplicative_inverse(factor, modulus);
+  const inverse_factor = modular_multiplicative_inverse(factor, modulus);
   if (inverse_factor === undefined) {
     return val;
   }
@@ -141,8 +141,8 @@ function modularPowerMultiply(val, base, exponent, modulus) {
   if (val >= modulus) {
     return val;
   }
-  base = Util.properMod(base, modulus);
-  const inverse = Util.modular_multiplicative_inverse(base, modulus);
+  base = properMod(base, modulus);
+  const inverse = modular_multiplicative_inverse(base, modulus);
   if (inverse === undefined) {
     return val;
   }

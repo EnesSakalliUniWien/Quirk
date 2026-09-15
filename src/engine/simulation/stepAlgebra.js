@@ -14,18 +14,20 @@
  * limitations under the License.
  */
 
+import {Rendering} from "../../config/Rendering.js";
 import {equate_Maps} from "../../base/Equate.js"
 import {Registers} from "../../circuit/model/Registers.js"
 import {wiresLabel} from "../../circuit/registerLabels.js"
 import {Matrix} from "../math/matrix/Matrix.js"
 import {CircuitStats} from "./CircuitStats.js"
-import {applyStructure, columnStructure, structureMatrix} from "./columnStructure.js"
+import {columnStructure} from "./columnStructure/columnStructure.js";
+import {applyStructure, structureMatrix} from "./columnStructure/evaluation.js";
 
 /**
  * The circuit as algebra: every column as an operator, and the state before and after each one, so
  * `state[k+1] = U[k] · state[k]` can be read down the whole circuit.
  *
- * Each operator is its column's structure (src/engine/simulation/columnStructure.js): the pieces the
+ * Each operator is its column's structure (src/engine/simulation/columnStructure/columnStructure.js): the pieces the
  * engine applies, not a dense matrix, so it exists at every register size and a view asks it for
  * just the entries it shows. Small registers also get the dense matrix, for the views that write
  * out every entry. Each step is checked against the simulator: its operator applied to the state
@@ -33,7 +35,7 @@ import {applyStructure, columnStructure, structureMatrix} from "./columnStructur
  */
 
 /** Up to this many qubits a step's dense matrix - 32 x 32 at most - is built as well. */
-const DENSE_MATRIX_WIRES = 5;
+const DENSE_MATRIX_WIRES = Rendering.MATRIX_DETAIL_MAX_QUBITS;
 /** How many amplitude updates checking one step may take; a step past it goes unchecked. */
 const CHECK_BUDGET = 1 << 14;
 

@@ -1,7 +1,8 @@
-import { Util } from "../../base/Util.js";
+import {Rendering} from "../../config/Rendering.js";
+import { bin } from "../../base/Format.js";
 
-/** Written entries stay readable through three qubits; larger operators use the zoomable view. */
-const SYMBOLIC_MAX_ROWS = 8;
+/** Written entries stay readable through five qubits; larger operators use the zoomable view. */
+const SYMBOLIC_MAX_ROWS = 2 ** Rendering.MATRIX_DETAIL_MAX_QUBITS;
 
 /**
  * What a matrix view shows, described rather than drawn.
@@ -34,7 +35,7 @@ function operatorModel(matrix, formatKet, layout = {}) {
   const cols = matrix.width();
   const bits = Math.round(Math.log2(Math.max(rows, cols)));
   const columns = Array.from({ length: cols }, (_, c) => matrix.getColumn(c));
-  const ket = (i) => `|${formatKet === undefined ? Util.bin(i, bits) : formatKet(i)}⟩`;
+  const ket = (i) => `|${formatKet === undefined ? bin(i, bits) : formatKet(i)}⟩`;
   return {
     kind: "operator", layout,
     rows,
@@ -60,7 +61,7 @@ function stateModel(vector, formatKet, layout = {}) {
     rows,
     cols: 1,
     at: (row) => entries[row],
-    rowLabel: (i) => `|${formatKet === undefined ? Util.bin(i, bits) : formatKet(i)}⟩`,
+    rowLabel: (i) => `|${formatKet === undefined ? bin(i, bits) : formatKet(i)}⟩`,
     colLabel: () => "",
   };
 }

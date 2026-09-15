@@ -1,5 +1,5 @@
 /**
- * A row of buttons that share their inner edges. Styled by src/styles/controls.css.
+ * A row of buttons that share their inner edges. Styled by src/styles/ui/buttons.css.
  */
 function ButtonGroup({ className, ...props }) {
   return (

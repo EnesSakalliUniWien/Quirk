@@ -1,0 +1,2 @@
+/* Every HTML stylesheet entry establishes the same cascade order before declaring rules. */
+@layer base, components;

@@ -4,10 +4,10 @@ import { observeStore } from "../../../base/valueStore.js";
 import {
   DEFAULT_VIEW,
   drawBlochScene,
-} from "../../../draw/displays/BlochScene.js";
-import { drawBlochProjection } from "../../../draw/displays/BlochProjections.js";
-import { drawBlochStrip } from "../../../draw/displays/BlochStrip.js";
-import { blochCoordinates } from "../../../engine/math/bloch.js";
+} from "../../../draw/displays/bloch/BlochScene.js";
+import { drawBlochProjection } from "../../../draw/displays/bloch/BlochProjections.js";
+import { drawBlochStrip } from "../../../draw/displays/bloch/BlochStrip.js";
+import { blochCoordinates, blochReading } from "../../../engine/math/bloch.js";
 import { appStore } from "../../../state/appStore.js";
 import { closePanel } from "../../dock.jsx";
 import { densityMatrixOf, panelReadout } from "./analyzerModel.js";
@@ -92,7 +92,8 @@ function useBlochFigures({
       }
       shownVector.current = vec;
       const { yaw, pitch } = viewRef.current;
-      const options = optionsRef.current;
+      const reading = vec === undefined ? undefined : blochReading(vec);
+      const options = { ...optionsRef.current, reading };
       drawBlochScene(canvas, vec, yaw, pitch, options);
       if (meridianRef.current !== null) {
         drawBlochProjection(meridianRef.current, vec, "meridian", options);
@@ -113,7 +114,7 @@ function useBlochFigures({
           { selected, yaw, pitch },
         );
       }
-      setReadout(vec === undefined ? null : panelReadout(vec));
+      setReadout(vec === undefined ? null : panelReadout(vec, reading));
     };
   }, [deps, target, currentStep]);
 
