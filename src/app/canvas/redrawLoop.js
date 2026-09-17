@@ -79,8 +79,9 @@ function initRedrawLoop(canvas,
         }
         const circuitDefinition = shown.displayedCircuit.circuitDefinition;
         const committed = captureCommitted();
+        // A preview runs at the simulator's own phase, so a spinning gate held over a still circuit spins.
         const stats = committed.circuit.withMinimumWireCount().isEqualTo(circuitDefinition.withMinimumWireCount()) ?
-            committed.fullStats : simulator.simulate(circuitDefinition, committed.phase);
+            committed.fullStats : simulator.simulate(circuitDefinition);
         mostRecentStats.setState({value: stats});
 
         // The canvas keeps showing the whole circuit; the playhead only says which column comes
@@ -118,8 +119,9 @@ function initRedrawLoop(canvas,
         viewport.surface.app.renderer.events.setCursor(hand.isHoldingSomething() ? 'move' :
             hand.isBusy() ? 'ns-resize' : viewport.surface.app.renderer.events.rootBoundary.cursor || 'auto');
 
+        // Time-dependent gates animate whenever the cycle runs, not only while the transport plays.
         const dt = displayed.getState().value.stableDuration();
-        if (dt < Infinity && simulator.playing) {
+        if (dt < Infinity && simulator.clockRunning()) {
             window.requestAnimationFrame(() => redrawThrottle.trigger());
         }
     };

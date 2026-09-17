@@ -17,7 +17,8 @@
 import {Suite, assertThat} from '../../../TestUtil.js';
 import {DisplayView} from '../../scene/TestDisplayView.js';
 import {Color} from 'pixi.js';
-import {paintMatrix} from '../../../../src/draw/displays/complex/MatrixView.js';
+import {drawsAsPixels, paintMatrix} from '../../../../src/draw/displays/complex/MatrixView.js';
+import {traceAmplitudeLogarithmCircle, traceAmplitudePhaseDirection} from '../../../../src/draw/displays/complex/ComplexCellGeometry.js';
 import {Rect} from '../../../../src/geometry/Rect.js';
 import {Matrix} from '../../../../src/engine/math/matrix/Matrix.js';
 import {CanvasTheme, phaseColor} from '../../../../src/config/CanvasTheme.js';
@@ -79,4 +80,40 @@ suite.test('retainsGeometryAndInvalidatesMutableValuesLayoutAndOptions', async (
     await draw(matrix, new Rect(10, 0, 40, 40), {...options, showPhase: false});
     assertThat(graphic.context.instructions.filter(i => i.action === 'stroke').at(-1).data.style.color)
         .isEqualTo(new Color(CanvasTheme.stroke.grid).toNumber());
+});
+
+suite.test('past five qubits, cells too small for discs, rings and hands are drawn as pixels', () => {
+    // A twelve-qubit output grid keeps its marks; thirteen and fourteen qubits switch to pixels.
+    assertThat(drawsAsPixels(64, 64, new Rect(0, 0, 1272, 1272))).isEqualTo(false);
+    assertThat(drawsAsPixels(64, 128, new Rect(0, 0, 692, 1384))).isEqualTo(true);
+    assertThat(drawsAsPixels(128, 128, new Rect(0, 0, 1496, 1496))).isEqualTo(true);
+    // Up to five qubits always keep their marks.
+    assertThat(drawsAsPixels(32, 32, new Rect(0, 0, 100, 100))).isEqualTo(false);
+});
+
+suite.test('phase hands end on the logarithmic ring they are read against', () => {
+    const d = 40;
+    for (const [real, imag] of [[0.25, 0], [0, -0.5], [0.6, 0.8], [0.01, 0.02]]) {
+        let ring;
+        traceAmplitudeLogarithmCircle({circle: (x, y, r) => { ring = r; }}, real, imag, 0, 0, d);
+        let tip;
+        const path = {moveTo: () => path, lineTo: (x, y) => { tip = Math.hypot(x - d / 2, y - d / 2); return path; }};
+        traceAmplitudePhaseDirection(path, real, imag, 0, 0, d);
+        assertThat(tip).withInfo({real, imag}).isApproximatelyEqualTo(ring);
+    }
+});
+
+suite.test('logarithmic rings stay on cells down to twelve units', async () => {
+    const view = new DisplayView(document.createElement('canvas'));
+    const ring = new Color(CanvasTheme.stroke.logRing);
+    const ringsAt = async size => {
+        view.begin();
+        paintMatrix(view, Matrix.fromRows([[0.5, 0.5], [0.5, -0.5]]), new Rect(0, 0, size, size), {
+            amplitudeCircleFillColor: CanvasTheme.amplitude.circle, amplitudeCircleStrokeColor: CanvasTheme.text.primary});
+        await view.commit();
+        return view.children[0].context.instructions.some(i => i.action === 'stroke' &&
+            i.data.style.color === ring.toNumber() && Math.abs(i.data.style.alpha - ring.alpha) < 0.01);
+    };
+    assertThat(await ringsAt(28)).isEqualTo(true);
+    assertThat(await ringsAt(20)).isEqualTo(false);
 });

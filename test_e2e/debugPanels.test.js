@@ -23,11 +23,11 @@ import {test, withQuirkPage, waitForPanel, TEST_TIMEOUT_MILLIS} from './harness.
 
 const BELL = {cols: [['H'], ['•', 'X']]};
 
-async function runToEnd(page) {
+async function runToEnd(page, operations = 2) {
     await page.click('#playhead-end-button');
     await page.waitForFunction(
-        () => document.getElementById('playhead-position').textContent.trim() === 'operation 2 / 2',
-        {timeout: TEST_TIMEOUT_MILLIS});
+        count => document.getElementById('playhead-position').textContent.trim() === `operation ${count} / ${count}`,
+        {timeout: TEST_TIMEOUT_MILLIS}, operations);
 }
 
 test('the algebra panel lists every operation with its matrix and the change it makes', async browser => {
@@ -177,23 +177,112 @@ test('the operator tile worker ships without Pixi Layout and its Yoga engine', (
         'The worker draws nothing, so its bundle must not carry the layout engine.');
 });
 
-test('the probabilities panel charts each possible outcome', async browser => {
+/**
+ * The Probabilities panel's traces, once there are `count` of them: each one's title, its step
+ * numbers, which step is the playhead's, and every row's ket, then each step's percentage and mark
+ * ("" for a step the playhead has not reached).
+ */
+async function readStepTables(page, count) {
+    return page.waitForFunction(expected => {
+        const figures = [...document.querySelectorAll('[data-panel-id="probabilities"] .probabilities-group')];
+        return figures.length !== expected ? false : figures.map(figure => ({
+            title: figure.querySelector('.probabilities-group-title')?.textContent ?? null,
+            steps: [...figure.querySelectorAll('.probabilities-step-number')].map(e => e.textContent),
+            current: [...figure.querySelectorAll('thead th[data-step]')].findIndex(e => e.getAttribute('aria-current') === 'step'),
+            rows: [...figure.querySelectorAll('tbody tr')].map(row => [row.querySelector('th').textContent,
+                ...[...row.querySelectorAll('td')].map(cell =>
+                    (cell.querySelector('.probabilities-value')?.textContent ?? '') + (cell.querySelector('.probabilities-change')?.textContent ?? ''))]),
+            note: figure.querySelector('.debug-panel-note')?.textContent ?? null,
+        }));
+    }, {timeout: TEST_TIMEOUT_MILLIS}, count).then(handle => handle.jsonValue());
+}
+
+test('the probabilities panel traces every outcome through the steps the playhead has reached', async browser => {
     await withQuirkPage(browser, BELL, async page => {
         await runToEnd(page);
         await page.click('#probabilities-button');
         await waitForPanel(page, 'probabilities', true);
-        const chart = await page.waitForFunction(() => {
-            const root = document.querySelector('[data-panel-id="probabilities"]');
-            const chart = root?.querySelector('.probabilities-chart');
-            return chart?.dataset.painted !== 'true' ? false : {
-                label: root.querySelector('.probabilities-chart').getAttribute('aria-label'),
-                summary: root.querySelector('.debug-panel-summary').textContent,
-            };
-        }, {timeout: TEST_TIMEOUT_MILLIS}).then(handle => handle.jsonValue());
-        // A Bell pair only ever reads 00 or 11, half the time each.
-        assert.equal(chart.summary, '2 of 4 outcomes possible');
-        assert.match(chart.label, /\|00⟩ 50\.0%/);
-        assert.match(chart.label, /\|11⟩ 50\.0%/);
+        // H spreads q0 over 00 and 01; the CNOT then pairs them into 00 and 11. ▲ and ▼ mark what each step changed.
+        const [table] = await readStepTables(page, 1);
+        assert.deepEqual(table, {
+            title: null, steps: ['0', '1', '2'], current: 2, note: null, rows: [
+                ['|00⟩', '100', '50.0▼', '50.0'],
+                ['|01⟩', '0', '50.0▲', '0▼'],
+                ['|10⟩', '0', '0', '0'],
+                ['|11⟩', '0', '0', '50.0▲'],
+            ],
+        });
+        assert.equal(await page.$eval('[data-panel-id="probabilities"] .debug-panel-summary', e => e.textContent),
+            '2 of 4 outcomes possible · largest 50.0%');
+
+        // Back to step 1 through its header: the playhead follows, and the later step empties.
+        await page.$$eval('[data-panel-id="probabilities"] .probabilities-step-header', buttons => buttons[1].click());
+        await page.waitForFunction(() => document.getElementById('playhead-position').textContent.trim() === 'operation 1 / 2',
+            {timeout: TEST_TIMEOUT_MILLIS});
+        await page.waitForFunction(() => [...document.querySelectorAll('[data-panel-id="probabilities"] thead th[data-step]')]
+            .findIndex(e => e.getAttribute('aria-current') === 'step') === 1, {timeout: TEST_TIMEOUT_MILLIS});
+        const [earlier] = await readStepTables(page, 1);
+        assert.deepEqual(earlier.rows, [
+            ['|00⟩', '100', '50.0▼', ''],
+            ['|01⟩', '0', '50.0▲', ''],
+            ['|10⟩', '0', '0', ''],
+            ['|11⟩', '0', '0', ''],
+        ]);
+    });
+});
+
+test('the probabilities panel groups qubits correlated at any step, and splits off the independent ones', async browser => {
+    // A Bell pair on q0 q1, a fair coin on q2 and a wire turned about a tenth of the way to 1 on q3.
+    const circuit = {cols: [['H', 1, 'H', {id: 'Rx', arg: '0.64'}], ['•', 'X']]};
+    await withQuirkPage(browser, circuit, async page => {
+        await runToEnd(page);
+        await page.click('#probabilities-button');
+        await waitForPanel(page, 'probabilities', true);
+        await page.waitForSelector('#probabilities-layout-grouped', {timeout: TEST_TIMEOUT_MILLIS});
+        await page.click('#probabilities-layout-grouped');
+        const tables = await readStepTables(page, 3);
+        assert.deepEqual(tables.map(({title, rows}) => ({title, rows})), [
+            {title: 'q1 q0 · correlated', rows: [
+                ['|00⟩', '100', '50.0▼', '50.0'], ['|01⟩', '0', '50.0▲', '0▼'],
+                ['|10⟩', '0', '0', '0'], ['|11⟩', '0', '0', '50.0▲']]},
+            {title: 'q2 · independent', rows: [['|0⟩', '100', '50.0▼', '50.0'], ['|1⟩', '0', '50.0▲', '50.0']]},
+            {title: 'q3 · independent', rows: [['|0⟩', '100', '90.1▼', '90.1'], ['|1⟩', '0', '9.9▲', '9.9']]},
+        ]);
+        assert.equal(await page.$eval('#probabilities-layout-grouped', tab => tab.hasAttribute('data-active')), true);
+    });
+});
+
+test('the probabilities panel keeps a large state to the outcomes some step allows', async browser => {
+    // Eight wires: H on the first, a small Rx on the second, and Z, which changes no probability,
+    // keeping the other six in use.
+    const circuit = {cols: [['H', {id: 'Rx', arg: '0.2'}, 'Z', 'Z', 'Z', 'Z', 'Z', 'Z']]};
+    await withQuirkPage(browser, circuit, async page => {
+        await runToEnd(page, 1);
+        await page.click('#probabilities-button');
+        await waitForPanel(page, 'probabilities', true);
+        const [table] = await readStepTables(page, 1);
+        assert.deepEqual(table.rows, [
+            ['|00000000⟩', '100', '49.5▼'],
+            ['|00000001⟩', '0', '49.5▲'],
+            ['|00000010⟩', '0', '0.5▲'],
+            ['|00000011⟩', '0', '0.5▲'],
+        ]);
+        assert.match(table.note, /^252 more outcomes are not shown/);
+    });
+});
+
+test('spinning gates turn without the transport playing', async browser => {
+    // X^t turns its wire over the animation cycle; nothing here presses Play.
+    await withQuirkPage(browser, {cols: [['X^t']]}, async page => {
+        await runToEnd(page, 1);
+        await page.click('#qubits-button');
+        await waitForPanel(page, 'qubits', true);
+        const chanceOfOne = '[data-panel-id="qubits"] [data-qubit="0"] .qubits-number';
+        const first = await page.waitForFunction(selector => document.querySelector(selector)?.textContent,
+            {timeout: TEST_TIMEOUT_MILLIS}, chanceOfOne).then(handle => handle.jsonValue());
+        await page.waitForFunction((selector, before) => document.querySelector(selector).textContent !== before,
+            {timeout: TEST_TIMEOUT_MILLIS}, chanceOfOne, first);
+        assert.equal(await page.$eval('#playhead-play-button', button => button.getAttribute('aria-pressed')), 'false');
     });
 });
 

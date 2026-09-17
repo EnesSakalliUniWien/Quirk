@@ -15,7 +15,7 @@
  */
 
 import {Suite, assertThat, assertTrue} from "../../TestUtil.js"
-import {EPSILON, BLOCH_PRESETS, blochCoordinates, blochReading, vectorFromAngles, degreesText, pureStateText,
+import {EPSILON, BLOCH_PRESETS, blochCoordinates, blochReading, vectorFromAngles, blochVectorBetween, degreesText, pureStateText,
     blochQuaternion, blochAmplitudes, pureQuaternionText, quaternionText, componentFormulas,
     analyzerReadout} from "../../../src/engine/math/bloch.js"
 import {projectPoint} from "../../../src/draw/displays/bloch/BlochScene.js"
@@ -75,6 +75,32 @@ suite.test("a general state has both angles (RULE C)", () => {
     // The azimuth reads from 0 up to 2π, so −2.3 comes back as 2π − 2.3.
     assertThat(reading.phi).isApproximatelyEqualTo(2 * Math.PI - 2.3);
     assertThat(reading.purity).isApproximatelyEqualTo((1 + 0.36) / 2);
+});
+
+suite.test("a pure state moves between two others along the sphere, not through it", () => {
+    const close = (v, x, y, z) => [v.x - x, v.y - y, v.z - z].every(d => Math.abs(d) < 1e-9);
+    const zero = {x: 0, y: 0, z: 1}, plus = {x: 1, y: 0, z: 0}, one = {x: 0, y: 0, z: -1};
+    assertTrue(close(blochVectorBetween(zero, plus, 0), 0, 0, 1));
+    assertTrue(close(blochVectorBetween(zero, plus, 1), 1, 0, 0));
+    assertTrue(close(blochVectorBetween(zero, plus, 0.5), Math.SQRT1_2, 0, Math.SQRT1_2));
+    // Opposite poles take a half turn through the equator, keeping the arrow's full length.
+    for (let t = 0; t <= 1; t += 0.125) {
+        const v = blochVectorBetween(zero, one, t);
+        assertThat(Math.hypot(v.x, v.y, v.z)).isApproximatelyEqualTo(1);
+        assertThat(v.z).isApproximatelyEqualTo(Math.cos(Math.PI * t));
+    }
+    assertTrue(close(blochVectorBetween(zero, one, 0.5), 1, 0, 0));
+    assertTrue(close(blochVectorBetween(plus, {x: -1, y: 0, z: 0}, 0.5), 0, 1, 0));
+});
+
+suite.test("a mixed state's arrow turns the same way while its length changes evenly", () => {
+    const close = (v, x, y, z) => [v.x - x, v.y - y, v.z - z].every(d => Math.abs(d) < 1e-9);
+    // To and from the centre the direction stays that of the other end.
+    assertTrue(close(blochVectorBetween({x: 0, y: 0, z: 1}, {x: 0, y: 0, z: 0}, 0.5), 0, 0, 0.5));
+    assertTrue(close(blochVectorBetween({x: 0, y: 0, z: 0}, {x: 0, y: 1, z: 0}, 0.25), 0, 0.25, 0));
+    const half = blochVectorBetween({x: 0, y: 0, z: 0.5}, {x: 0.8, y: 0, z: 0}, 0.5);
+    assertThat(Math.hypot(half.x, half.y, half.z)).isApproximatelyEqualTo(0.65);
+    assertThat(half.x).isApproximatelyEqualTo(half.z);
 });
 
 suite.test("the presets are the six poles and the centre", () => {

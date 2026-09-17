@@ -47,8 +47,9 @@ function drawWires(context, painter, showLabels, hand) {
             const wireRect = context.geometry.wireRect(row);
             const y = Math.round(wireRect.center().y - 0.5) + 0.5;
             let lastX = showLabels ? context.geometry.wireInitialStateRect(row).right() : 5;
-            // Wires terminate at the superposition display instead of running to the canvas's right edge.
-            const wireEndX = showLabels ? context.geometry.rectForSuperpositionDisplay().x - 4 : Infinity;
+            // Wires terminate before the superposition display's row labels instead of running to the
+            // canvas's right edge.
+            const wireEndX = showLabels ? context.geometry.outputWireEndX() : Infinity;
             for (let col = 0; showLabels ? lastX < wireEndX : col <= context.definition.columns.length; col++) {
                 const x = Math.min(context.geometry.opRect(col).center().x, wireEndX);
                 if (context.definition.locIsMeasured(new Point(col, row))) {

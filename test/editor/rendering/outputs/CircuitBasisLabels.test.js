@@ -25,7 +25,7 @@ suite.test('basis labels preserve bit ordering and fit their row and column stri
         assertThat(cols.map(label => label.text)).isEqualTo(Array.from({length: 2 ** colBits}, (_,i) => '⋯' + i.toString(2).padStart(colBits, '0')));
         for (const label of rows) {
             const b = label.getBounds();
-            assertThat(b.x >= grid.right() - 0.01 && b.maxX <= grid.right() + SUPERPOSITION_GRID_LABEL_SPAN + 0.01 &&
+            assertThat(b.x >= grid.x - SUPERPOSITION_GRID_LABEL_SPAN - 0.01 && b.maxX <= grid.x + 0.01 &&
                 b.y >= grid.y - 0.01 && b.maxY <= grid.bottom() + 0.01).withInfo({wires, text:label.text, bounds:b}).isEqualTo(true);
         }
         for (const label of cols) {

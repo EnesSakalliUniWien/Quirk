@@ -23,6 +23,7 @@ import {Layout} from '../../config/Layout.js';
 import {CanvasTheme} from '../../config/CanvasTheme.js';
 import {DATA_RENDERERS} from '../renderers/dataRenderers.js';
 import {Point} from '../../geometry/Point.js';
+import {Rect} from '../../geometry/Rect.js';
 import { properMod } from "../../engine/math/modularArithmetic.js";
 
 import {paintBackground, paintOutline, paintResizeTab, paintLocationIndependentFrame} from './GateFrame.js';
@@ -116,7 +117,8 @@ const SECTIONED_RENDERER_MAKER = (labels, dividers) => args => {
 const DISPLAY_GATE_DEFAULT_RENDERER = MAKE_HIGHLIGHTED_RENDERER();
 
 /**
- * @param {!function(!GateRenderParams)} statePainter
+ * @param {!function(!GateRenderParams): (undefined|!Rect)} statePainter Returns what it occupied,
+ *     when that is less than the gate.
  * @returns {!function(!GateRenderParams)}
  */
 const makeDisplayRenderer = statePainter => args => {
@@ -125,12 +127,14 @@ const makeDisplayRenderer = statePainter => args => {
         return;
     }
 
-    statePainter(args);
+    const drawn = statePainter(args);
+    const content = drawn instanceof Rect ? drawn : args.rect;
 
-    // A distinct outer edge separates dark display surfaces from the canvas.
-    frame(args.painter, args.rect, CanvasTheme.stroke.displayFrame);
+    // A distinct outer edge separates dark display surfaces from the canvas. It follows what was
+    // drawn, so space the display leaves empty inside its gate does not read as part of it.
+    frame(args.painter, content, CanvasTheme.stroke.displayFrame);
     if (args.isHighlighted) {
-        highlightRing(args.painter, args.rect);
+        highlightRing(args.painter, content);
     }
 
     // Draw the tab once, above the display, with its normal/highlight opacity.

@@ -117,21 +117,6 @@ suite.testUsingWebGL("full and prefix detectors share outcomes", () => {
     }
 });
 
-suite.test("pause and resume exclude paused elapsed time", () => {
-    let now = 0;
-    const sim = new Simulator(() => now);
-    now = 1000;
-    assertThat(sim.cycleTime()).isEqualTo(0);
-    sim.setPlaying(true);
-    now += 250;
-    sim.setPlaying(false);
-    const phase = sim.cycleTime();
-    now += 100000;
-    assertThat(sim.cycleTime()).isEqualTo(phase);
-    sim.setPlaying(true);
-    assertThat(sim.cycleTime()).isEqualTo(phase);
-});
-
 suite.testUsingWebGL("sixteen qubits retain every amplitude", () => {
     const take = takeFor([[...new Array(15).fill(1), "H"]]);
     assertThat(take.result.amplitudes.length).isEqualTo(131072);

@@ -25,6 +25,7 @@ import {Point} from "../../../src/geometry/Point.js"
 import {findGateOverlappingPos, findWireWithInitialStateAreaContaining} from "../../../src/editor/interaction/CircuitHitTesting.js"
 import {Typography} from "../../../src/config/Typography.js"
 import {PointerInteractionState} from "../../../src/editor/interaction/PointerInteractionState.js"
+import {DISPLAY_CAPTION_WIDTH, SUPERPOSITION_GRID_LABEL_SPAN} from "../../../src/editor/geometry/CircuitLayoutConstants.js"
 
 const suite = new Suite("CircuitGeometry");
 
@@ -145,4 +146,15 @@ suite.test("the desired size contains every drawn rect", () => {
 
     assertTrue(g.desiredWidth() > grid.right());
     assertTrue(g.desiredHeight() >= g.wireRect(g.groundedWireCount() - 1).bottom() - g.top);
+});
+
+suite.test("the superposition grid's row labels sit between the Bloch column and the grid, clear of the wires", () => {
+    const g = plainGeometry(0);
+    const grid = g.rectForSuperpositionDisplay();
+    const bloch = CircuitGeometry.blochDisplayRect(g.gateRect(0, g.clampedCircuitColCount() + 2));
+
+    assertTrue(bloch.right() <= grid.x - SUPERPOSITION_GRID_LABEL_SPAN);
+    assertTrue(g.outputWireEndX() < grid.x - SUPERPOSITION_GRID_LABEL_SPAN);
+    // The key under a small grid is wider than the grid.
+    assertTrue(g.desiredWidth() >= grid.x + DISPLAY_CAPTION_WIDTH);
 });

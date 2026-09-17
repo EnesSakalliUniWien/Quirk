@@ -80,6 +80,12 @@ class Simulator {
          * @private
          */
         this._cycleTime = 0;
+        /**
+         * How many holdClock() calls are still in force.
+         * @type {!int}
+         * @private
+         */
+        this._holds = 0;
         this.playing = false;
         this.seed = freshSeed();
         this.completed = createValueStore(undefined);
@@ -110,16 +116,62 @@ class Simulator {
 
     /**
      * Advances the animation cycle to now and returns where it is, from 0 to 1. Time-dependent
-     * gates like X^t take their parameter from this.
+     * gates like X^t take their parameter from this. The cycle runs whether or not the transport
+     * is playing, and stands still while a restored take pins its phase or a hold is in force.
      *
      * @returns {!number}
      */
     cycleTime() {
         const nextRealTime = this._nowMillis();
-        const elapsed = (nextRealTime - this._prevRealTime) / Simulation.CYCLE_DURATION_MS;
-        if (this.playing) this._cycleTime += elapsed;
-        this._cycleTime %= 1;
+        if (this.clockRunning()) {
+            const elapsed = (nextRealTime - this._prevRealTime) / Simulation.CYCLE_DURATION_MS;
+            this._cycleTime = (this._cycleTime + elapsed) % 1;
+        }
         this._prevRealTime = nextRealTime;
+        return this._cycleTime;
+    }
+
+    /**
+     * @returns {!boolean} Whether the animation cycle is moving: no restored take pins its phase and
+     *     no hold is in force.
+     */
+    clockRunning() {
+        return this.restored === undefined && this._holds === 0;
+    }
+
+    /**
+     * Stands the animation cycle still until the returned function is called, for work that must
+     * see one phase throughout, like recording a whole run. The cycle resumes from where it stood.
+     *
+     * @returns {!function(): void} Releases the hold; calling it again does nothing.
+     */
+    holdClock() {
+        this._holds++;
+        let held = true;
+        return () => {
+            if (held) {
+                held = false;
+                this._holds--;
+                this._prevRealTime = this._nowMillis();
+            }
+        };
+    }
+
+    /**
+     * The phase to run a circuit at. A circuit with time-dependent gates runs at the moving cycle.
+     * Any other circuit runs where the cycle stands, without moving it, so its results stay equal
+     * from frame to frame and nothing republishes them for a phase they ignore.
+     *
+     * @param {!CircuitDefinition} circuit
+     * @returns {!number}
+     * @private
+     */
+    _phaseFor(circuit) {
+        if (circuit.stableDuration() < Infinity) {
+            return this.cycleTime();
+        }
+        // Resume from here when the circuit next animates, rather than jumping over the still time.
+        this._prevRealTime = this._nowMillis();
         return this._cycleTime;
     }
 
@@ -127,7 +179,7 @@ class Simulator {
      * @param {!CircuitDefinition} circuit
      * @returns {!CircuitStats}
      */
-    simulate(circuit, phase = this.cycleTime()) {
+    simulate(circuit, phase = this._phaseFor(circuit)) {
         return this._wholeCircuitCache.statsFor(circuit, phase, this.seed);
     }
 
@@ -153,8 +205,14 @@ class Simulator {
         }
         return this._playheadCache.statsFor(this._cachedTruncation.truncated, time, this.seed);
     }
+    /**
+     * Follows the transport. Playing no longer moves the animation cycle, which runs on its own, but
+     * a whole-run recording cancels if playback starts.
+     *
+     * @param {!boolean} playing
+     * @param {!boolean=} restart Whether playback starts a new run, with a fresh seed.
+     */
     setPlaying(playing, restart = false) {
-        this.cycleTime();
         this.playing = playing;
         if (restart) this.newRun();
         if (playing) this.restored = undefined;
@@ -175,7 +233,7 @@ class Simulator {
     }
 
     evaluate(circuit, wireCount, step, publish = true) {
-        const phase = this.cycleTime();
+        const phase = this._phaseFor(circuit);
         step = Math.min(circuit.columns.length, Math.max(0, step));
         if (publish && this.restored?.circuit.isEqualTo(circuit) && this.restored.step === step) {
             return this.restored;

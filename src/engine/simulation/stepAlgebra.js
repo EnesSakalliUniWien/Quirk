@@ -59,6 +59,24 @@ function paddedState(finalState, wireCount) {
 }
 
 /**
+ * The state after the circuit's first `step` columns, from a truncated run of the simulator at the
+ * stats' time and seed, so it is what the circuit really produces up to there.
+ *
+ * @param {!CircuitStats} stats The stats of the whole circuit.
+ * @param {!int} wireCount
+ * @param {!int} step How many columns have run, from 0 to the column count.
+ * @returns {!Matrix}
+ */
+function stateAtStep(stats, wireCount, step) {
+    const circuit = stats.circuitDefinition;
+    if (step >= circuit.columns.length) {
+        return paddedState(stats.finalState, wireCount);
+    }
+    const truncated = circuit.withColumns(circuit.columns.slice(0, step));
+    return paddedState(CircuitStats.fromCircuitAtTime(truncated, stats.time, stats.seed).finalState, wireCount);
+}
+
+/**
  * The largest difference between two states' amplitudes. Near zero means the operator on screen
  * does exactly what the simulator did.
  *
@@ -125,12 +143,7 @@ function describeColumn(column, registers = Registers.EMPTY) {
 function circuitAlgebra(stats, wireCount, previous = undefined) {
     const circuit = stats.circuitDefinition;
     const {columns} = circuit;
-    const states = [];
-    for (let k = 0; k < columns.length; k++) {
-        const truncated = circuit.withColumns(columns.slice(0, k));
-        states.push(paddedState(CircuitStats.fromCircuitAtTime(truncated, stats.time, stats.seed).finalState, wireCount));
-    }
-    states.push(paddedState(stats.finalState, wireCount));
+    const states = Array.from({length: columns.length + 1}, (_, k) => stateAtStep(stats, wireCount, k));
 
     const steps = columns.map((column, k) => {
         const reasons = Array.from({length: wireCount}, (_, row) => circuit.gateAtLocIsDisabledReason(k, row));
@@ -165,4 +178,4 @@ function circuitAlgebra(stats, wireCount, previous = undefined) {
     return {wireCount, states, steps};
 }
 
-export {circuitAlgebra, describeColumn, paddedState}
+export {circuitAlgebra, describeColumn, paddedState, stateAtStep}

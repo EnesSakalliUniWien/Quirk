@@ -70,7 +70,7 @@ function initMinimap(container, canvasDiv, displayed) {
         // Wires.
         const circuitDefinition = geometry.circuitDefinition;
         const wireCount = geometry.importantWireCount();
-        const wireEndX = geometry.rectForSuperpositionDisplay().x - 4;
+        const wireEndX = geometry.outputWireEndX();
 
         for (let row = 0; row < wireCount; row++) {
             const y = (geometry.wireRect(row).center().y - geometry.top) * sy;

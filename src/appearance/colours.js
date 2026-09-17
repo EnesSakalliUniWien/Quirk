@@ -29,6 +29,8 @@ const stroke = Object.freeze({
     grid: colour(125, 133, 153),
     guide: colour(139, 147, 166),
     faint: colour(125, 133, 153),
+    // The logarithmic scale a phase hand's tip ends on: quieter than the marks it measures.
+    logRing: colour(125, 133, 153, 0.55),
     bright: colour(211, 214, 224),
     frame: text.muted,
     displayFrame: colour(196, 203, 216),
@@ -43,11 +45,14 @@ const probability = Object.freeze({
     background: colour(15, 31, 20),
     fill: colour(34, 197, 94),
     outline: colour(112, 224, 154),
+    // The fill's hue, dark enough that white chance labels read over a bar as well as beside it.
+    bar: colour(19, 133, 61),
 });
 
+// The disc reads lighter than the probability bar beneath it, so the two encodings stay apart.
 const amplitude = Object.freeze({
     background: colour(14, 27, 30),
-    circle: colour(14, 116, 144),
+    circle: colour(56, 169, 196),
     fill: colour(22, 117, 138),
     phaseHalo: colour(20, 22, 29),
     reference: text.default,

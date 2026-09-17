@@ -315,8 +315,9 @@ test("keeps drops accurate while zoomed out and fits the circuit on demand", asy
 
 test('minimap keeps gate blocks visible after zooming a vertically centered circuit', async browser => {
   for (const deviceScaleFactor of [1, 2]) {
+    // The trailing columns keep the circuit wider than the viewport at 80%, so the minimap shows.
     await withQuirkPage(browser,
-      {cols: [['H'], ['Bloch'], ['Amps1'], [], ['Density'], ['•', 'X'], ['Chance2']]},
+      {cols: [['H'], ['Bloch'], ['Amps1'], [], ['Density'], ['•', 'X'], ['Chance2'], ['H'], ['H']]},
       async page => {
         await page.click('[aria-label="Zoom out"]');
         const color = CanvasTheme.stroke.guide.slice(1).match(/../g).map(value => Number.parseInt(value, 16));

@@ -11,7 +11,8 @@
 - **remove qubit**: re-arrange gates so that the bottom wire is unused
 - **show intermediate state**: `drag` a display gate onto the circuit
 - **view tips**: `hover` with mouse **OR** awkwardly tap-hold with finger
-- **play/pause the animation**: `space` **OR** click the transport's play button
+- **play/pause stepping through the circuit**: `space` **OR** click the transport's play button;
+  spinning and formula gates animate without it
 - **zoom the circuit**: use the `−` / `+` / `Fit` buttons over the circuit's corner
 - **scroll a big circuit**: drag the viewport box on the minimap that appears when the circuit
   overflows

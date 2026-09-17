@@ -1,25 +1,85 @@
 @layer components {
-    /* Probabilities: ket labels beside the bars while the rows are tall enough to carry them. */
+    /* Probabilities: the layout tabs, each group's name, and the step headers. The tabs are the
+       plain control buttons Forge's method tabs use, the active one filled. */
 
-    .probabilities-view {
-        display: flex;
-        align-items: flex-start;
-        gap: calc(var(--spacing) * 2);
+    .probabilities-layouts {
+        display: grid;
+        gap: calc(var(--spacing) * 3);
         min-width: 0;
     }
 
-    .probabilities-kets {
-        margin: 0;
-        padding: 0;
-        list-style: none;
-        color: var(--muted-foreground);
-        font-family: var(--font-mono);
-        font-size: 11px;
-        text-align: right;
+    .probabilities-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
     }
 
-    .probabilities-kets li {
-        height: var(--probability-row);
-        line-height: var(--probability-row);
+    .probabilities-tabs [data-active] {
+        color: var(--primary-foreground);
+        background: var(--primary);
+        border-color: var(--foreground);
+    }
+
+    .probabilities-tab-panel {
+        display: grid;
+        gap: calc(var(--spacing) * 4);
+        min-width: 0;
+    }
+
+    .probabilities-tab-panel[data-hidden] {
+        display: none;
+    }
+
+    .probabilities-group {
+        display: grid;
+        gap: calc(var(--spacing) * 1);
+        margin: 0;
+        min-width: 0;
+    }
+
+    .probabilities-group-title {
+        color: var(--muted-foreground);
+        font-size: var(--text-small);
+    }
+
+    /* A step's header reads like an algebra step's: its number, then the gates that got there. */
+    .probabilities-step-header {
+        display: grid;
+        justify-items: start;
+        gap: 1px;
+        width: 100%;
+        padding: 0;
+        color: var(--foreground);
+        background: none;
+        border: 0;
+        font: inherit;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .probabilities-step-header:hover .probabilities-step-gates {
+        text-decoration: underline;
+    }
+
+    .probabilities-step-header:focus-visible {
+        outline: var(--border-width-strong) solid var(--ring);
+        outline-offset: 2px;
+        border-radius: var(--radius-small);
+    }
+
+    .probabilities-step-number {
+        color: var(--muted-foreground);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .probabilities-step-gates {
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* A step the playhead has not reached yet is announced, not filled in. */
+    .probabilities-trace th[data-reached="false"] .probabilities-step-header {
+        color: var(--muted-foreground);
     }
 }

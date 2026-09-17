@@ -1,5 +1,8 @@
 import {Suite, assertThat} from '../../../TestUtil.js';
 import {DisplayView} from '../../scene/TestDisplayView.js';
+import {Color} from 'pixi.js';
+import {CanvasTheme} from '../../../../src/config/CanvasTheme.js';
+import {labelsIn} from '../../../editor/rendering/RenderingTestUtil.js';
 import {Matrix} from '../../../../src/engine/math/matrix/Matrix.js';
 import {Rect} from '../../../../src/geometry/Rect.js';
 import {paintDensityMatrix, densityGridRect} from '../../../../src/draw/displays/density/DensityMatrixView.js';
@@ -42,4 +45,26 @@ suite.test('five-qubit density retains cell geometry even below the old pixel-si
     await view.commit();
     const graphic = view.children.find(child=>child.previous !== undefined);
     assertThat(graphic.context.instructions.some(instruction=>instruction.action==='stroke')).isEqualTo(true);
+});
+
+suite.test('a two-qubit density display names every row and column', async () => {
+    const view = new DisplayView(document.createElement('canvas'));
+    paintDensityMatrix(view, Matrix.identity(4).times(1/4), new Rect(0, 0, 120, 152));
+    await view.commit();
+    const texts = labelsIn(view).map(label => label.text);
+    for (const basis of ['00', '01', '10', '11']) {
+        assertThat(texts.filter(text => text === basis).length).withInfo({basis, texts}).isEqualTo(2);
+    }
+});
+
+suite.test('dense density displays outline their diagonal and key their phase colours', async () => {
+    const view = new DisplayView(document.createElement('canvas'));
+    paintDensityMatrix(view, Matrix.generate(64, 64, () => 1/64), new Rect(0, 0, 240, 240));
+    await view.commit();
+    const guide = new Color(CanvasTheme.stroke.guide).toNumber();
+    const values = view.children.find(child => child.previous !== undefined);
+    assertThat(view.children.some(child => child !== values && (child.context?.instructions ?? []).some(i =>
+        i.action === 'stroke' && i.data.style.color === guide))).isEqualTo(true);
+    const texts = labelsIn(view).map(label => label.text);
+    assertThat(texts.includes('−180°') && texts.includes('180°')).withInfo({texts}).isEqualTo(true);
 });

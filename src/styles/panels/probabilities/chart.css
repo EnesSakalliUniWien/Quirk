@@ -1,5 +1,132 @@
 @layer components {
-    .probabilities-chart {
-        min-width: 0;
+    /* The trace: an outcome per row, a step per column. It scrolls sideways on its own when the
+       steps outgrow the panel, the outcomes staying in view. */
+    .probabilities-trace-scroll {
+        max-width: 100%;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        scroll-snap-type: x proximity;
+        scrollbar-width: thin;
+        scrollbar-color: var(--sidebar-scrollbar) transparent;
+    }
+
+    /* Every step is as wide as the others, and scrolling stops on a step's edge just clear of the
+       kets, so no column is left half hidden. */
+    .probabilities-trace thead th[data-step] {
+        box-sizing: border-box;
+        width: 5.25rem;
+        min-width: 5.25rem;
+        max-width: 5.25rem;
+        scroll-snap-align: start;
+    }
+
+    .probabilities-trace {
+        border-collapse: separate;
+        border-spacing: 0;
+        font-family: var(--font-mono);
+        font-size: 12px;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .probabilities-trace th,
+    .probabilities-trace td {
+        padding: 0;
+        white-space: nowrap;
+    }
+
+    .probabilities-trace thead th {
+        padding: 2px 6px 6px;
+        font-size: var(--text-small);
+        font-weight: 400;
+        text-align: left;
+        vertical-align: bottom;
+        border-bottom: var(--border-width) solid var(--border);
+    }
+
+    /* The playhead's step: a ring across its header, as an algebra step card has. */
+    .probabilities-trace thead th[aria-current="step"] {
+        box-shadow: inset 0 3px 0 var(--ring);
+    }
+
+    /* The kets stay in view while the steps scroll. */
+    .probabilities-trace .probabilities-corner,
+    .probabilities-trace .probabilities-ket {
+        position: sticky;
+        left: 0;
+        z-index: 1;
+        padding: 0 10px 0 0;
+        background: var(--card);
+        text-align: right;
+    }
+
+    .probabilities-trace .probabilities-corner {
+        color: var(--muted-foreground);
+        font-family: var(--font-sans);
+    }
+
+    .probabilities-trace .probabilities-ket {
+        font-weight: 400;
+    }
+
+    .probabilities-trace .probabilities-ket[data-possible="false"] {
+        color: var(--muted-foreground);
+    }
+
+    /* A cell: the percentage over a bar along its foot, and a mark when this step changed it. The
+       bars start at the same edge in every column, so reading along a row compares lengths. */
+    .probabilities-trace td {
+        position: relative;
+        height: 24px;
+        padding: 0 6px 4px;
+        vertical-align: middle;
+    }
+
+    .probabilities-trace td[data-current="true"] {
+        background: var(--button-ghost-hover);
+    }
+
+    .probabilities-bar {
+        position: absolute;
+        bottom: 3px;
+        left: 6px;
+        width: max(2px, calc((100% - 12px) * var(--fraction)));
+        height: 3px;
+        border-radius: 2px;
+        background: var(--state-probability-fill);
+    }
+
+    .probabilities-trace td[data-possible="false"] .probabilities-bar {
+        display: none;
+    }
+
+    .probabilities-value {
+        position: relative;
+        display: inline-block;
+        min-width: 3.25rem;
+        text-align: right;
+    }
+
+    .probabilities-change {
+        position: relative;
+        display: inline-block;
+        width: 1em;
+        margin-left: 2px;
+        font-size: 9px;
+        text-align: center;
+        vertical-align: 1px;
+    }
+
+    /* What a step changed stands out; what it left alone, and what cannot happen, step back. */
+    .probabilities-trace td[data-change="none"] .probabilities-value,
+    .probabilities-trace td[data-possible="false"] .probabilities-value {
+        color: var(--muted-foreground);
+    }
+
+    .probabilities-trace td[data-change="up"] .probabilities-change {
+        color: var(--state-probability-fill);
+    }
+
+    .probabilities-trace td[data-change="down"] .probabilities-change {
+        color: var(--foreground);
     }
 }

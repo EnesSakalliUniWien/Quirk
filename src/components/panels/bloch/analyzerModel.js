@@ -32,8 +32,39 @@ import {
  *     The angles in degrees, and whether each exists for the state shown.
  */
 
-/** How long a preset takes to arrive, in milliseconds. */
+/** How long a preset takes to arrive, in milliseconds; a jump to another step glides as long. */
 const PRESET_TRANSITION = 300;
+
+/** Ease in, then out: a glide starts and lands gently. @param {number} t in [0, 1] */
+const easeInOut = (t) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2);
+
+/**
+ * @typedef {{ target: (BlochTarget | undefined), kind: ViewMode["kind"], index: (number | undefined),
+ *     circuit: (import("../../../circuit/model/CircuitDefinition.js").CircuitDefinition | undefined) }}
+ *     ShownSource Where the state on screen comes from.
+ */
+
+/**
+ * @param {ShownSource | undefined} previous
+ * @param {ShownSource} next
+ * @returns {boolean} Whether the state shown moves to another at once - to another step, back from
+ *     a free state, or through an edit of the circuit - so the arrow glides there along the sphere.
+ *     A running circuit's own motion is no jump, and neither is a move into a free state, which
+ *     glides by itself; another sphere starts afresh.
+ */
+function glidesBetween(previous, next) {
+  if (previous === undefined || previous.target !== next.target || next.kind === "explore") {
+    return false;
+  }
+  if (previous.kind !== next.kind || previous.index !== next.index) {
+    return true;
+  }
+  return (
+    previous.circuit !== undefined &&
+    next.circuit !== undefined &&
+    !previous.circuit.isEqualTo(next.circuit)
+  );
+}
 
 /**
  * What a fresh reading draws: the components against the coloured frame. The constructions that
@@ -168,6 +199,8 @@ function anglesOf(readout) {
 
 export {
   PRESET_TRANSITION,
+  easeInOut,
+  glidesBetween,
   INITIAL_LAYERS,
   LAYERS,
   AXES,

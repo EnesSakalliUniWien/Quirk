@@ -28,31 +28,26 @@ const CIRCUIT_OP_LEFT_SPACING = 2 * Layout.REGISTER_MARGIN + Layout.REGISTER_IND
     Layout.REGISTER_KET_WIDTH + Layout.REGISTER_WIRE_GAP;
 
 /**
- * @type {!number} The strip beside and below the superposition grid where its binary labels draw;
- * the label painter scales its text down to fit this span, so the strip never needs to grow with
- * the wire count.
+ * @type {!number} The strips left of and below the superposition grid where its binary labels draw;
+ * the label painter scales its text down to fit this span, so the strips never need to grow with
+ * the wire count. Row labels sit left of the grid, so they stay on screen with its first columns.
  */
 const SUPERPOSITION_GRID_LABEL_SPAN = 50;
 
-/** @type {!number} The width the caption paragraphs beside the output displays wrap into. */
-const DISPLAY_CAPTION_WIDTH = 100;
+/** @type {!number} The least width the grid's key wraps into, under a grid narrower than that. */
+const DISPLAY_CAPTION_WIDTH = 160;
 
-/** @type {!number} The gap between the superposition grid and its captions. */
+/** @type {!number} The gap between the superposition grid's column labels and its key. */
 const DISPLAY_CAPTION_GAP = 3;
 
-/**
- * @type {!number} The space kept right of the superposition grid: the row labels and the
- * "Final amplitudes" caption both draw there, so the margin is whichever needs more.
- */
-const CIRCUIT_RIGHT_MARGIN = Math.max(
-    SUPERPOSITION_GRID_LABEL_SPAN,
-    DISPLAY_CAPTION_GAP + DISPLAY_CAPTION_WIDTH);
+/** @type {!number} The space kept right of the superposition grid, or of its key when that is wider. */
+const CIRCUIT_RIGHT_MARGIN = Layout.GATE_RADIUS;
 
 /**
- * @type {!number} The strip under the superposition grid's column labels where the measurement
- * and discard-rate warnings print.
+ * @type {!number} The strip under the superposition grid's column labels where its key, then the
+ * measurement and discard-rate warnings, print.
  */
-const DISPLAY_WARNING_STRIP_HEIGHT = 60;
+const DISPLAY_WARNING_STRIP_HEIGHT = 72;
 
 /**
  * @type {!number} The space kept below the superposition grid: first the column labels, then the
@@ -66,7 +61,6 @@ export {
     SUPERPOSITION_GRID_LABEL_SPAN,
     DISPLAY_CAPTION_WIDTH,
     DISPLAY_CAPTION_GAP,
-    DISPLAY_WARNING_STRIP_HEIGHT,
     CIRCUIT_RIGHT_MARGIN,
     CIRCUIT_BOTTOM_MARGIN,
 }

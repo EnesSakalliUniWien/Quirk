@@ -49,6 +49,12 @@ suite.test("more entries than pixels keeps the nonzero ones", () => {
     assertThat(pixel(pixels, 2, 1, 1)[3]).isEqualTo(0);
 });
 
+suite.test("a whole matrix's opacity is relative to its largest entry, so small amplitudes stay apart", () => {
+    // Every amplitude of a four-qubit state is under the visibility floor on an absolute scale.
+    const pixels = rasterMatrix(Matrix.col(0.25, 0.125, 0, 0.0625), 1, 4);
+    assertThat([0, 1, 2, 3].map(y => pixel(pixels, 1, 0, y)[3])).isEqualTo([255, 128, 0, 77]);
+});
+
 suite.test("an operator tile shows where each basis state goes, at any size", () => {
     // Increment over 16 qubits: |c> goes to |c+1>, just under the diagonal, and |65535> wraps to |0>.
     const structure = structureOf([["inc16"]], 16);

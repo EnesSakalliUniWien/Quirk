@@ -41,10 +41,9 @@ const circuit = diagram => CircuitDefinition.fromTextDiagram(new Map([
     ['-', undefined]
 ]), diagram);
 
-suite.test("cycleTime follows the injected clock and wraps at a full cycle", () => {
+suite.test("cycleTime follows the injected clock and wraps at a full cycle, with the transport stopped", () => {
     const clock = manualClock();
     const sim = new Simulator(clock.now);
-    sim.setPlaying(true);
 
     assertThat(sim.cycleTime()).isEqualTo(0);
 
@@ -62,7 +61,6 @@ suite.test("cycleTime follows the injected clock and wraps at a full cycle", () 
 suite.test("simulate reuses the computed stats while the circuit is unchanged", () => {
     const clock = manualClock();
     const sim = new Simulator(clock.now);
-    sim.setPlaying(true);
     // Both wires carry a gate, so withMinimumWireCount is an identity and a repeat is a cache hit.
     const c = circuit(`H-
                      -X`).withMinimumWireCount();
@@ -71,15 +69,14 @@ suite.test("simulate reuses the computed stats while the circuit is unchanged", 
     clock.advance(Simulation.CYCLE_DURATION_MS / 8);
     const second = sim.simulate(c);
 
-    // A cache hit hands back the same underlying state, re-stamped with the current time.
+    // A cache hit hands back the same underlying state. A still circuit leaves the cycle where it stands.
     assertTrue(second.finalState === first.finalState);
-    assertThat(second.time).isApproximatelyEqualTo(0.125);
+    assertThat(second.time).isEqualTo(first.time);
 });
 
-suite.test("simulate recomputes a time-dependent circuit every call", () => {
+suite.test("simulate recomputes a time-dependent circuit every call, with the transport stopped", () => {
     const clock = manualClock();
     const sim = new Simulator(clock.now);
-    sim.setPlaying(true);
     const c = circuit(`t-
                      --`);
 
@@ -88,12 +85,54 @@ suite.test("simulate recomputes a time-dependent circuit every call", () => {
     const second = sim.simulate(c);
 
     assertFalse(second.finalState === first.finalState);
+    assertThat(second.time).isApproximatelyEqualTo(0.125);
+});
+
+suite.test("a still circuit keeps the cycle where it stands, and a spinning one resumes from there", () => {
+    const clock = manualClock();
+    const sim = new Simulator(clock.now);
+    const spinning = circuit(`t-
+                            --`);
+    const still = circuit(`H-
+                         -X`);
+
+    clock.advance(Simulation.CYCLE_DURATION_MS / 4);
+    assertThat(sim.simulate(spinning).time).isApproximatelyEqualTo(0.25);
+    clock.advance(Simulation.CYCLE_DURATION_MS / 2);
+    assertThat(sim.simulate(still).time).isApproximatelyEqualTo(0.25);
+    // The time spent on the still circuit is skipped, not jumped over.
+    clock.advance(Simulation.CYCLE_DURATION_MS / 8);
+    assertThat(sim.simulate(spinning).time).isApproximatelyEqualTo(0.375);
+});
+
+suite.test("a hold or a restored take stands the cycle still", () => {
+    const clock = manualClock();
+    const sim = new Simulator(clock.now);
+    clock.advance(Simulation.CYCLE_DURATION_MS / 4);
+    assertThat(sim.cycleTime()).isApproximatelyEqualTo(0.25);
+
+    const release = sim.holdClock();
+    assertFalse(sim.clockRunning());
+    clock.advance(Simulation.CYCLE_DURATION_MS / 2);
+    assertThat(sim.cycleTime()).isApproximatelyEqualTo(0.25);
+    release();
+    release();
+    assertTrue(sim.clockRunning());
+    clock.advance(Simulation.CYCLE_DURATION_MS / 8);
+    assertThat(sim.cycleTime()).isApproximatelyEqualTo(0.375);
+
+    sim.restore({phase: 0.5, seed: "restored"});
+    clock.advance(Simulation.CYCLE_DURATION_MS / 4);
+    assertThat(sim.cycleTime()).isEqualTo(0.5);
+    // A new run lets go of the restored take, and the cycle moves on from its phase.
+    sim.newRun();
+    clock.advance(Simulation.CYCLE_DURATION_MS / 4);
+    assertThat(sim.cycleTime()).isApproximatelyEqualTo(0.75);
 });
 
 suite.test("simulateAtStep runs the truncated circuit without evicting the whole-circuit cache", () => {
     const clock = manualClock();
     const sim = new Simulator(clock.now);
-    sim.setPlaying(true);
     const c = circuit(`HX
                      --`).withMinimumWireCount();
 

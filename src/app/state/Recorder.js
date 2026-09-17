@@ -48,6 +48,8 @@ class Recorder {
         if (this.busy.getState().value) return;
         this.playhead.pause();
         const initial = this.capture();
+        // Every step records at the captured phase: the animation cycle stands still until the run ends.
+        const releaseClock = this.simulator.holdClock();
         const checkpoint = this.revision.peekActiveCommit();
         const token = new AbortController();
         this.batch = token;
@@ -69,6 +71,7 @@ class Recorder {
             }
             await this.save(takes, {signal: token.signal});
         } finally {
+            releaseClock();
             this.batch = undefined;
             this.busy.setState({value: false});
         }

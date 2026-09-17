@@ -13,7 +13,7 @@
 | `panels/` | Styles named for their panel: state, Bloch, Tape, export and others. |
 | `panels/shared/` | Panel frames, sections, debug headings and responsive rules. |
 | `panels/algebra/` | Algebra steps and the evolution chart. |
-| `panels/probabilities/` | Probability chart sizing and ket labels. |
+| `panels/probabilities/` | The step trace: layout tabs, step headers, cells and their marks. |
 | `panels/forge/` | Gate construction and operation previews. |
 
 ## Import order

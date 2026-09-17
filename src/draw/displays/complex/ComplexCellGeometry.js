@@ -18,18 +18,23 @@ import { PathGeometry } from "../../shapes/PathGeometry.js";
 
 export const PHASE_HAND_WIDTH = 2;
 export const LOG_RING_WIDTH = 1;
+/** How far an amplitude's probability bar stays in from each side of its cell. */
+const BAR_INSET = 0.15;
 
 export function traceAmplitudeProbabilitySquare(trace, real, imag, x, y, d) {
   const p = real * real + imag * imag;
   if (p > 0.001) {
+    // Inset bars stay one per cell instead of joining into a line across the row.
+    const left = x + d * BAR_INSET;
+    const right = x + d * (1 - BAR_INSET);
     trace.poly([
-      x,
+      left,
       y + d * (1 - p),
-      x + d,
+      right,
       y + d * (1 - p),
-      x + d,
+      right,
       y + d,
-      x,
+      left,
       y + d,
     ]);
   }
@@ -58,8 +63,13 @@ export function traceAmplitudeProbabilityCircle(trace, real, imag, x, y, d) {
   }
 }
 
+/** A squared magnitude on the logarithmic scale the ring and the hand share, in half-cells. */
+function logarithmicRadius(squaredMagnitude) {
+  return 1 + Math.log(squaredMagnitude) / 15;
+}
+
 export function traceAmplitudeLogarithmCircle(trace, real, imag, x, y, d) {
-  const g = 1 + Math.log(real * real + imag * imag) / 15;
+  const g = logarithmicRadius(real * real + imag * imag);
   if (g > 0) {
     trace.circle(x + d / 2, y + d / 2, (g * d) / 2);
   }
@@ -68,7 +78,8 @@ export function traceAmplitudeLogarithmCircle(trace, real, imag, x, y, d) {
 export function traceAmplitudePhaseDirection(trace, real, imag, x, y, d) {
   const mag = Math.sqrt(real * real + imag * imag);
   if (mag === 0) return;
-  const g = 1 + Math.log(mag) / 10;
+  // The hand ends on the logarithmic ring, so its tip and the ring read as one scale.
+  const g = logarithmicRadius(mag * mag);
   const r = Math.max(1, g / mag) * Math.max(d / 2, 5);
   if (r < 0.1) {
     return;

@@ -34,9 +34,10 @@ const SUPERPOSITION_GRID_LABEL_ELLIPSIS = '⋯';
  * @param {!int} n
  * @param {!function(!int) : !String} labeller
  * @param {!number} boundingWidth
+ * @param {!boolean=} alignEnd Whether labels end at the strip's far edge, to hug a grid on their right.
  * @private
  */
-function _drawLabelsReasonablyFast(painter, dy, n, labeller, boundingWidth) {
+function _drawLabelsReasonablyFast(painter, dy, n, labeller, boundingWidth, alignEnd = false) {
     painter.group('basis-text-' + painter.order, painter => {
         const font = {
             fontSize: 12,
@@ -49,22 +50,23 @@ function _drawLabelsReasonablyFast(painter, dy, n, labeller, boundingWidth) {
         // Row labels.
         const step = dy / scale;
         const pad = 1 / scale;
+        const offset = alignEnd ? boundingWidth / scale - (w + 2 * pad) : 0;
         painter.scale.set(scale, scale);
         painter.position.set(0, dy * 0.5 - scale * h * 0.5);
         if (h < step * 0.95) {
             for (let i = 0; i < n; i++) {
-                rectangle(painter, new Rect(0, step * i, w + 2 * pad, h), {
+                rectangle(painter, new Rect(offset, step * i, w + 2 * pad, h), {
                     fill: CanvasTheme.surface.gate
                 });
             }
         } else {
-            rectangle(painter, new Rect(0, 0, w + 2 * pad, step * n), {
+            rectangle(painter, new Rect(offset, 0, w + 2 * pad, step * n), {
                 fill: CanvasTheme.surface.gate
             });
         }
         for (let i = 0; i < n; i++) {
             drawText(painter, labeller(i), {
-                x: pad,
+                x: offset + pad,
                 y: h * 0.5 + step * i,
                 fill: CanvasTheme.text.primary,
                 font,
@@ -82,7 +84,8 @@ function _drawLabelsReasonablyFast(painter, dy, n, labeller, boundingWidth) {
 function drawOutputSuperpositionDisplay_labels(context, painter) {
     const gridRect = context.geometry.rectForSuperpositionDisplay();
     const numWire = context.geometry.importantWireCount();
-    _cachedRowLabelRenderer.paint(gridRect.right(), gridRect.y, painter, numWire);
+    // Row labels sit left of the grid, where they stay on screen with its first columns.
+    _cachedRowLabelRenderer.paint(gridRect.x - SUPERPOSITION_GRID_LABEL_SPAN, gridRect.y, painter, numWire);
     _cachedColLabelRenderer.paint(gridRect.x, gridRect.bottom(), painter, numWire);
 }
 
@@ -105,7 +108,8 @@ const _cachedRowLabelRenderer = new BasisLabels(
             rowCount,
             // One ellipsis stands in for the bits the column supplies, keeping the label short enough to stay legible.
             i => bin(i, rowWires) + SUPERPOSITION_GRID_LABEL_ELLIPSIS,
-            SUPERPOSITION_GRID_LABEL_SPAN);
+            SUPERPOSITION_GRID_LABEL_SPAN,
+            true);
     });
 
 const _cachedColLabelRenderer = new BasisLabels(

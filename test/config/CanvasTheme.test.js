@@ -121,6 +121,17 @@ suite.test("the three look-alike displays stay apart, also with red-green colour
     }
 });
 
+suite.test("an amplitude's disc stays apart from the probability bar beneath it", () => {
+    // Both size one cell's value, so they must not read as a single mark.
+    const [disc, bar] = [theme.amplitude.circle, theme.amplitude.fill];
+    assertThat(difference(disc, bar) >= 15).withInfo({normal: difference(disc, bar)}).isEqualTo(true);
+    for (const deficiency of Object.keys(DEFICIENCIES)) {
+        const d = difference(disc, bar, deficiency);
+        assertThat(d >= 8).withInfo({deficiency, d}).isEqualTo(true);
+    }
+    check(disc, theme.amplitude.background, 3);
+});
+
 suite.test("the Bloch axes stay apart from each other and the vector, also with red-green colour blindness", () => {
     // The triangles and the vector share one picture, so colour is what says which axis is which.
     const kinds = {x: theme.bloch.axisX, y: theme.bloch.axisY, z: theme.bloch.axisZ, vector: theme.bloch.vector};
@@ -174,6 +185,8 @@ suite.test("text contrasts on normal hover error and data-label surfaces", () =>
         check(theme.error.text, background, 4.5);
     }
     check(theme.error.text, theme.error.background, 4.5);
+    // Chance labels sit over their bars and beside them, in the same white.
+    check(theme.text.primary, theme.probability.bar, 4.5);
     for (const fill of [theme.probability.fill, theme.operation.fill,
         theme.interaction.button, theme.interaction.buttonFocus]) check(theme.text.onBright, fill, 4.5);
 });
@@ -186,6 +199,7 @@ suite.test("essential boundaries and Bloch guides contrast with dark surfaces", 
     }
     check(theme.bloch.vector, theme.bloch.background, 3);
     check(theme.probability.fill, theme.probability.background, 3);
+    check(theme.probability.bar, theme.probability.background, 3);
     check(theme.amplitude.fill, theme.amplitude.background, 3);
     check(theme.stroke.grid, theme.amplitude.phaseHalo, 3);
 });

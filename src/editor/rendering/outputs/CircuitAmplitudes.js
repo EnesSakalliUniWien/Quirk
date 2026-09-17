@@ -18,7 +18,6 @@ import {paintMatrixTooltip} from '../../../draw/tooltips/MatrixTooltip.js';
 import {paintMatrix} from '../../../draw/displays/complex/MatrixView.js';
 import {frame} from '../../../draw/shapes/ShapeView.js';
 import {CanvasTheme} from '../../../config/CanvasTheme.js';
-import {Rendering} from '../../../config/Rendering.js';
 import {Format} from '../../../base/Format.js';
 import {ketLabel} from '../../../circuit/registerLabels.js';
 import {drawOutputSuperpositionDisplay_labels} from './CircuitBasisLabels.js';
@@ -36,10 +35,11 @@ function drawOutputSuperpositionDisplay(context, painter, stats, hand) {
     const gridRect = context.geometry.rectForSuperpositionDisplay();
 
     const numWire = context.geometry.importantWireCount();
+    // Past the size where discs read, paintMatrix draws the grid as pixels on its own.
     paintMatrix(painter, amplitudeGrid, gridRect, {
-        amplitudeCircleFillColor: numWire < Rendering.SIMPLE_SUPERPOSITION_DRAWING_WIRE_THRESHOLD ? CanvasTheme.amplitude.circle : undefined,
+        amplitudeCircleFillColor: CanvasTheme.amplitude.circle,
         amplitudeCircleStrokeColor: CanvasTheme.text.primary,
-        amplitudeProbabilityFillColor: numWire < Rendering.SIMPLE_SUPERPOSITION_DRAWING_WIRE_THRESHOLD ? CanvasTheme.amplitude.fill : undefined,
+        amplitudeProbabilityFillColor: CanvasTheme.amplitude.fill,
         backColor: CanvasTheme.amplitude.background
     });
     frame(painter, gridRect, CanvasTheme.stroke.displayFrame);

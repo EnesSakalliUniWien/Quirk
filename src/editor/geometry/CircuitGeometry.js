@@ -23,6 +23,8 @@ import {
     CIRCUIT_OP_LEFT_SPACING,
     CIRCUIT_RIGHT_MARGIN,
     CIRCUIT_BOTTOM_MARGIN,
+    DISPLAY_CAPTION_WIDTH,
+    SUPERPOSITION_GRID_LABEL_SPAN,
 } from "./CircuitLayoutConstants.js"
 
 /** The chance and Bloch columns drawn after the circuit's last column. */
@@ -121,8 +123,9 @@ class CircuitGeometry {
         if (forTooltip) {
             return this.opRect(this.circuitDefinition.columns.length - 1).right() + CIRCUIT_OP_LEFT_SPACING;
         }
-        // The grid's row labels and captions draw right of it, inside the right margin.
-        return this.rectForSuperpositionDisplay().right() + CIRCUIT_RIGHT_MARGIN;
+        // The grid's key wraps under it and may be wider than a small grid.
+        const grid = this.rectForSuperpositionDisplay();
+        return Math.max(grid.right(), grid.x + DISPLAY_CAPTION_WIDTH) + CIRCUIT_RIGHT_MARGIN;
     }
 
     /**
@@ -231,8 +234,16 @@ class CircuitGeometry {
         const [colCount, rowCount] = [1 << colWires, 1 << rowWires];
         const topRect = this.gateRect(0, col);
         const bottomRect = this.gateRect(numWire-1, col);
-        const gridRect = new Rect(topRect.x, topRect.y, 0, bottomRect.bottom() - topRect.y);
+        // The row labels take the strip left of the grid.
+        const gridRect = new Rect(topRect.x + SUPERPOSITION_GRID_LABEL_SPAN, topRect.y, 0, bottomRect.bottom() - topRect.y);
         return gridRect.withW(gridRect.h * (colCount/rowCount));
+    }
+
+    /**
+     * @returns {!number} Where the wires stop: before the superposition grid's row labels.
+     */
+    outputWireEndX() {
+        return this.rectForSuperpositionDisplay().x - SUPERPOSITION_GRID_LABEL_SPAN - 4;
     }
 }
 

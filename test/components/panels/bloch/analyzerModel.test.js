@@ -1,7 +1,28 @@
 import {Suite, assertThat} from '../../../TestUtil.js';
-import {anglesOf, panelReadout, subtitleFor} from '../../../../src/components/panels/bloch/analyzerModel.js';
+import {anglesOf, easeInOut, glidesBetween, panelReadout, subtitleFor} from '../../../../src/components/panels/bloch/analyzerModel.js';
 
 const suite = new Suite('BlochAnalyzerModel');
+
+suite.test('the arrow glides when the state shown changes at once, and follows a running circuit directly', () => {
+    const target = {row: 0, col: 1};
+    const circuit = {isEqualTo: other => other === circuit || other === sameCircuit};
+    const sameCircuit = {isEqualTo: other => other === circuit || other === sameCircuit};
+    const edited = {isEqualTo: () => false};
+    const source = (kind, index = undefined, of = circuit, on = target) => ({target: on, kind, index, circuit: of});
+
+    // Another step, back to the circuit, or an edit: glide.
+    assertThat(glidesBetween(source('circuit'), source('step', 0))).isEqualTo(true);
+    assertThat(glidesBetween(source('step', 0), source('step', 2))).isEqualTo(true);
+    assertThat(glidesBetween(source('explore'), source('circuit'))).isEqualTo(true);
+    assertThat(glidesBetween(source('circuit'), source('circuit', undefined, edited))).isEqualTo(true);
+    // The same state source a frame later, a move into a free state, a first frame or another sphere: no glide.
+    assertThat(glidesBetween(source('circuit'), source('circuit', undefined, sameCircuit))).isEqualTo(false);
+    assertThat(glidesBetween(source('circuit'), source('explore'))).isEqualTo(false);
+    assertThat(glidesBetween(undefined, source('circuit'))).isEqualTo(false);
+    assertThat(glidesBetween(source('circuit'), source('step', 1, circuit, {row: 1, col: 1}))).isEqualTo(false);
+
+    assertThat([easeInOut(0), easeInOut(0.5), easeInOut(1)]).isEqualTo([0, 0.5, 1]);
+});
 
 suite.test('the subtitle says whose state is shown, and from where', () => {
     const gate = {row: 0, col: 1};

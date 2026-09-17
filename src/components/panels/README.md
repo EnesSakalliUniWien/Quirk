@@ -13,7 +13,7 @@ component has its own file, using the existing kebab-case naming convention.
 | `forge/` | Custom gate creation from matrices, rotations and circuit ranges |
 | `gate-param/` | Editing a selected gate's parameter |
 | `gates/` | Gate toolbox panel |
-| `probabilities/` | Playhead basis-state probabilities |
+| `probabilities/` | Basis-state probabilities traced step by step up to the playhead, in index order or grouped by correlated qubits |
 | `qubits/` | Per-qubit readings |
 | `registers/` | Register editing, value labels and readings |
 | `state/` | Playhead state table |

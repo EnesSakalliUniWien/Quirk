@@ -17,24 +17,53 @@
 import {Suite, assertThat} from '../../../TestUtil.js';
 import {DisplayView} from '../../scene/TestDisplayView.js';
 import {Color} from 'pixi.js';
-import {paintProbabilityBox, describeProbability} from '../../../../src/draw/displays/probability/ProbabilityView.js';
+import {paintProbabilityBox, describeProbability, paintMultiProbabilityDisplay} from '../../../../src/draw/displays/probability/ProbabilityView.js';
 import {Rect} from '../../../../src/geometry/Rect.js';
 import {CanvasTheme} from '../../../../src/config/CanvasTheme.js';
+import {Layout} from '../../../../src/config/Layout.js';
+import {Matrix} from '../../../../src/engine/math/matrix/Matrix.js';
+import {Registers} from '../../../../src/circuit/model/Registers.js';
+import {labelsIn} from '../../../editor/rendering/RenderingTestUtil.js';
 const suite = new Suite('ProbabilityView');
 
-suite.test("probabilityLabels_haveAnOpaquePlateForEveryFillLevel", async () => {
+/** The texts a four-wire Chance display draws, for a circuit that is still or one that animates. */
+async function chanceTexts(probabilities, stableDuration) {
+    const view = new DisplayView(document.createElement('canvas'));
+    paintMultiProbabilityDisplay({
+        painter: view, customStats: probabilities, gate: {height: 4}, positionInCircuit: {row: 0, col: 0},
+        rect: new Rect(0, 0, 40, 2 * Layout.GATE_RADIUS + 3 * Layout.WIRE_SPACING), focusPoints: [],
+        stats: {circuitDefinition: {registers: Registers.EMPTY, stableDuration: () => stableDuration}},
+    });
+    await view.commit();
+    return labelsIn(view).map(label => label.text);
+}
+
+suite.test("a Chance display gives independent wires their own blocks, and keys its bit order", async () => {
+    // A Bell pair on q0 q1, a fair coin on q2 and a 90/10 wire on q3.
+    const joint = Matrix.col(...[...Array(16).keys()].map(i =>
+        [0.5, 0, 0, 0.5][i & 3] * 0.5 * [0.9, 0.1][i >> 3]));
+    const still = await chanceTexts(joint, Infinity);
+    assertThat(still.filter(text => text === '⊗').length).withInfo({still}).isEqualTo(2);
+    assertThat(['|00⟩', '|11⟩', '|0⟩', '|1⟩', 'bits q3q2q1q0', 'full 90.0%', '⊗ independent'].
+        every(text => still.includes(text))).withInfo({still}).isEqualTo(true);
+
+    // An animated circuit keeps the joint rows, grouped by their leading bits since they are too thin for kets.
+    const animated = await chanceTexts(joint, 0);
+    assertThat(animated.includes('⊗')).withInfo({animated}).isEqualTo(false);
+    assertThat(['000⋯', '111⋯', 'full 22.5%'].every(text => animated.includes(text))).withInfo({animated}).isEqualTo(true);
+});
+
+suite.test("a probability box's label covers nothing, so the bar's top edge shows at every level", async () => {
     for (const probability of [0, 0.25, 0.5, 0.75, 1]) {
         const painter = new DisplayView(document.createElement('canvas'));
         paintProbabilityBox(painter, probability, new Rect(0, 0, 40, 40));
         await painter.commit();
-        const marks = painter.children.filter(child => child.context?.instructions.some(i => i.action === 'fill'));
-        const mark = marks.at(-1);
-        const fill = mark.context.instructions.find(i => i.action === 'fill');
-        const plate = {color: new Color(fill.data.style.color).toHex(), rect: new Rect(...mark.values.slice(1, 5))};
-        assertThat(plate.color).isEqualTo(new Color(CanvasTheme.surface.gate).toHex());
-        assertThat(plate.rect.center().x).isEqualTo(20);
-        assertThat(plate.rect.center().y).isEqualTo(20);
-        assertThat(plate.rect.w > 0 && plate.rect.h > 0).isEqualTo(true);
+        const fills = painter.children.flatMap(child => child.context?.instructions ?? []).
+            filter(i => i.action === 'fill').map(i => new Color(i.data.style.color).toHex());
+        assertThat(fills.includes(new Color(CanvasTheme.surface.gate).toHex())).withInfo({probability, fills}).isEqualTo(false);
+        if (probability > 0) {
+            assertThat(fills.includes(new Color(CanvasTheme.probability.bar).toHex())).withInfo({probability, fills}).isEqualTo(true);
+        }
     }
 });
 
@@ -53,37 +82,42 @@ suite.test("describeProbability_middle", async () => {
 });
 
 suite.test("describeProbability_borders", async () => {
+    // Off and On are only for a qubit that is certainly off or on.
     assertThat(describeProbability(0, 0)).isEqualTo("Off");
     assertThat(describeProbability(0, 1)).isEqualTo("Off");
     assertThat(describeProbability(0, 2)).isEqualTo("Off");
+    // Single-precision round-off where the chance is exactly zero or one.
+    assertThat(describeProbability(1e-14, 1)).isEqualTo("Off");
+    assertThat(describeProbability(1 - 1e-14, 1)).isEqualTo("On");
 
-    assertThat(describeProbability(0.00001, 0)).isEqualTo("Off");
-    assertThat(describeProbability(0.00001, 1)).isEqualTo("Off");
-    assertThat(describeProbability(0.00001, 2)).isEqualTo("Off");
+    // A chance that rounds to 0% or 100% still says it can go either way.
+    assertThat(describeProbability(0.00001, 0)).isEqualTo("<1%");
+    assertThat(describeProbability(0.00001, 1)).isEqualTo("<0.1%");
+    assertThat(describeProbability(0.00001, 2)).isEqualTo("<0.01%");
 
-    assertThat(describeProbability(0.004, 0)).isEqualTo("Off");
-    assertThat(describeProbability(0.0004, 0)).isEqualTo("Off");
-    assertThat(describeProbability(0.0004, 1)).isEqualTo("Off");
+    assertThat(describeProbability(0.004, 0)).isEqualTo("<1%");
+    assertThat(describeProbability(0.0004, 0)).isEqualTo("<1%");
+    assertThat(describeProbability(0.0004, 1)).isEqualTo("<0.1%");
     assertThat(describeProbability(0.0004, 2)).isEqualTo("0.04%");
 
     assertThat(describeProbability(0.006, 0)).isEqualTo("1%");
-    assertThat(describeProbability(0.0006, 0)).isEqualTo("Off");
+    assertThat(describeProbability(0.0006, 0)).isEqualTo("<1%");
     assertThat(describeProbability(0.0006, 1)).isEqualTo("0.1%");
     assertThat(describeProbability(0.0006, 2)).isEqualTo("0.06%");
 
-    assertThat(describeProbability(0.996, 0)).isEqualTo("On");
-    assertThat(describeProbability(0.9996, 0)).isEqualTo("On");
-    assertThat(describeProbability(0.9996, 1)).isEqualTo("On");
+    assertThat(describeProbability(0.996, 0)).isEqualTo(">99%");
+    assertThat(describeProbability(0.9996, 0)).isEqualTo(">99%");
+    assertThat(describeProbability(0.9996, 1)).isEqualTo(">99.9%");
     assertThat(describeProbability(0.9996, 2)).isEqualTo("99.96%");
 
     assertThat(describeProbability(0.994, 0)).isEqualTo("99%");
-    assertThat(describeProbability(0.9994, 0)).isEqualTo("On");
+    assertThat(describeProbability(0.9994, 0)).isEqualTo(">99%");
     assertThat(describeProbability(0.9994, 1)).isEqualTo("99.9%");
     assertThat(describeProbability(0.9994, 2)).isEqualTo("99.94%");
 
-    assertThat(describeProbability(0.99999, 0)).isEqualTo("On");
-    assertThat(describeProbability(0.99999, 1)).isEqualTo("On");
-    assertThat(describeProbability(0.99999, 2)).isEqualTo("On");
+    assertThat(describeProbability(0.99999, 0)).isEqualTo(">99%");
+    assertThat(describeProbability(0.99999, 1)).isEqualTo(">99.9%");
+    assertThat(describeProbability(0.99999, 2)).isEqualTo(">99.99%");
 
     assertThat(describeProbability(1, 0)).isEqualTo("On");
     assertThat(describeProbability(1, 1)).isEqualTo("On");

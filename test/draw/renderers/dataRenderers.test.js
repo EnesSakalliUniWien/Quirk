@@ -22,6 +22,8 @@ import {DisplayView} from "../scene/TestDisplayView.js"
 import {LabelView} from "../../../src/draw/text/LabelView.js"
 import {Registers} from "../../../src/circuit/model/Registers.js"
 import {DATA_RENDERERS, stateGrid} from "../../../src/draw/renderers/dataRenderers.js"
+import {CanvasTheme} from "../../../src/config/CanvasTheme.js"
+import {Color} from "pixi.js"
 
 const suite = new Suite("dataRenderers");
 
@@ -66,6 +68,67 @@ suite.test("a state is laid out the way the amplitude display lays it out", asyn
     const three = stateGrid(Matrix.generate(1, 8, r => r));
     assertThat(three.width()).isEqualTo(2);
     assertThat(three.height()).isEqualTo(4);
+});
+
+suite.test("probability bars measure against the largest outcome, with no second scale drawn over them", async () => {
+    const rect = new Rect(0, 0, 100, 200);
+    const view = new DisplayView(document.createElement("canvas"));
+    // 64%, 16%, nothing, 1e-6: bars of 1, 1/2, none and at least a pixel.
+    DATA_RENDERERS.probabilities(view, Matrix.col(0.64, 0.16, 0, 0.000001), rect, {wireCount: 2});
+    await view.commit();
+    const bar = new Color(CanvasTheme.probability.bar).toNumber();
+    const graphics = view.children.filter(child => child.context !== undefined);
+    const bars = graphics.find(child => child.context.instructions.some(i => i.action === "fill" && i.data.style.color === bar));
+    // Rows this tall get a bar each, short of the row's edges so equal neighbours stay apart.
+    const rects = bars.context.instructions.find(i => i.action === "fill").data.path.instructions.
+        filter(i => i.action === "rect").map(i => i.data.slice(0, 4));
+    assertThat(rects.map(([, , w]) => w)).withInfo({rects}).isEqualTo([100, 50, 1]);
+    assertThat(rects.map(([, y]) => Math.floor(y / 50))).isEqualTo([0, 1, 3]);
+    assertThat(rects.every(([, , , h]) => h < 50)).isEqualTo(true);
+    // Nothing else is stroked through every row: no logarithmic outline over the bars.
+    const outlines = graphics.filter(child => child.context.instructions.some(i =>
+        i.action === "stroke" && (i.data.path?.instructions ?? []).filter(step => step.action === "lineTo").length >= 4));
+    assertThat(outlines.length).isEqualTo(0);
+});
+
+suite.test("rows too thin for kets group by their leading bits, with the prefix beside each group", async () => {
+    const rect = new Rect(40, 0, 40, 200);
+    const view = new DisplayView(document.createElement("canvas"));
+    // 64 rows of 3.125 units: groups of 8 are the smallest 24 units tall, so the prefixes have 3 bits.
+    DATA_RENDERERS.probabilities(view, Matrix.generate(1, 64, () => 1 / 64), rect, {wireCount: 6, groupLabels: true});
+    await view.commit();
+    const labels = [];
+    const walk = node => {
+        if (node instanceof LabelView) labels.push(node);
+        for (const child of node.children ?? []) walk(child);
+    };
+    walk(view);
+    assertThat(labels.map(label => label.text)).isEqualTo(["000⋯", "001⋯", "010⋯", "011⋯", "100⋯", "101⋯", "110⋯", "111⋯"]);
+    assertThat(labels.every(label => label.getBounds().maxX <= rect.x)).isEqualTo(true);
+    // Each group's bars are one outline, broken where the groups meet.
+    const bar = new Color(CanvasTheme.probability.bar).toNumber();
+    const fill = view.children.flatMap(child => child.context?.instructions ?? []).
+        find(i => i.action === "fill" && i.data.style.color === bar);
+    assertThat(fill.data.path.instructions.filter(i => i.action === "moveTo").length).isEqualTo(8);
+    const guide = new Color(CanvasTheme.stroke.guide).toNumber();
+    assertThat(view.children.some(child => (child.context?.instructions ?? []).some(i =>
+        i.action === "stroke" && i.data.style.color === guide && i.data.style.width === 2))).isEqualTo(true);
+});
+
+suite.test("an impossible outcome reads 0% in muted ink beside its basis label", async () => {
+    const view = new DisplayView(document.createElement("canvas"));
+    DATA_RENDERERS.probabilities(view, Matrix.col(0.5, 0, 0, 0.5), new Rect(0, 0, 300, 120), {wireCount: 2});
+    await view.commit();
+    const labelled = [];
+    const walk = node => {
+        if (node instanceof LabelView) labelled.push(node);
+        for (const child of node.children ?? []) walk(child);
+    };
+    walk(view);
+    assertThat(labelled.map(label => label.text)).isEqualTo(["|00⟩", "50.0%", "|01⟩", "0%", "|10⟩", "0%", "|11⟩", "50.0%"]);
+    const zero = labelled.find(label => label.text === "0%");
+    const muted = new Color(CanvasTheme.text.muted).toNumber();
+    assertThat(new Color(zero.style?.fill ?? zero.fill).toNumber()).withInfo({style: zero.style}).isEqualTo(muted);
 });
 
 suite.test("every kind of data has a renderer that draws into a view", async () => {

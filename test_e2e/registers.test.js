@@ -75,12 +75,13 @@ test('prepare boxes start the registers, and every panel reads by register', asy
 
         await page.click('#probabilities-button');
         await waitForPanel(page, 'probabilities', true);
-        const label = await page.waitForFunction(() => {
-            const chart = document.querySelector('[data-panel-id="probabilities"] .probabilities-chart');
-            return chart?.dataset.painted === 'true' && chart.getAttribute('aria-label');
+        // Each outcome's row, named in the registers' words, with its chance after the last step.
+        const finals = await page.waitForFunction(() => {
+            const rows = [...document.querySelectorAll('[data-panel-id="probabilities"] .probabilities-trace tbody tr')];
+            return rows.length === 0 ? false : rows.map(row =>
+                [row.querySelector('th').textContent, [...row.querySelectorAll('.probabilities-value')].at(-1).textContent]);
         }, {timeout: TEST_TIMEOUT_MILLIS}).then(handle => handle.jsonValue());
-        assert.match(label, /\|a=6, b=A⟩ 50\.0%/);
-        assert.match(label, /\|a=6, b=D⟩ 50\.0%/);
+        assert.deepEqual(finals.filter(([, chance]) => chance !== '0'), [['|a=6, b=A⟩', '50.0'], ['|a=6, b=D⟩', '50.0']]);
 
         await page.click('#qubits-button');
         await waitForPanel(page, 'qubits', true);
@@ -213,9 +214,9 @@ test('the palette offers prepare boxes, and one after a gate on its wires is dis
         await waitForPanel(page, 'probabilities', true);
         const summary = await page.waitForFunction(() => {
             const root = document.querySelector('[data-panel-id="probabilities"]');
-            return root?.querySelector('.probabilities-chart')?.dataset.painted === 'true' &&
+            return root?.querySelector('.probabilities-trace') !== null && root?.querySelector('.probabilities-trace') !== undefined &&
                 root.querySelector('.debug-panel-summary').textContent;
         }, {timeout: TEST_TIMEOUT_MILLIS}).then(handle => handle.jsonValue());
-        assert.equal(summary, '2 of 4 outcomes possible');
+        assert.equal(summary, '2 of 4 outcomes possible · largest 50.0%');
     });
 });

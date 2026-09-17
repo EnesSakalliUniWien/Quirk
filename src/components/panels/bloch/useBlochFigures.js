@@ -7,10 +7,16 @@ import {
 } from "../../../draw/displays/bloch/BlochScene.js";
 import { drawBlochProjection } from "../../../draw/displays/bloch/BlochProjections.js";
 import { drawBlochStrip } from "../../../draw/displays/bloch/BlochStrip.js";
-import { blochCoordinates, blochReading } from "../../../engine/math/bloch.js";
+import { blochCoordinates, blochReading, blochVectorBetween } from "../../../engine/math/bloch.js";
 import { appStore } from "../../../state/appStore.js";
 import { closePanel } from "../../dock.jsx";
-import { densityMatrixOf, panelReadout } from "./analyzerModel.js";
+import {
+  PRESET_TRANSITION,
+  densityMatrixOf,
+  easeInOut,
+  glidesBetween,
+  panelReadout,
+} from "./analyzerModel.js";
 
 /**
  * @typedef {object} BlochFiguresInputs
@@ -29,6 +35,10 @@ import { densityMatrixOf, panelReadout } from "./analyzerModel.js";
  * frame, a resize, a switch, a held axis, a chosen step or an explored state, and while the sphere
  * is dragged round. The canvases stay imperative, their painters drawing into them, so React only
  * holds their refs. What the painters show comes back as the readout.
+ *
+ * When the state shown changes at once - another step, back from a free state, an edited circuit -
+ * the arrow glides to it along the sphere over PRESET_TRANSITION, landing on the state as it is
+ * then, so a running circuit's arrow is caught up with rather than left behind.
  *
  * Closes the panel when the sphere it was opened for has gone from the circuit.
  *
@@ -56,6 +66,16 @@ function useBlochFigures({
   const modeRef = useRef(mode);
   const stepsRef = useRef(steps);
   const optionsRef = useRef({ layers, focusAxis });
+  const sourceRef = useRef(
+    /** @type {import("./analyzerModel.js").ShownSource | undefined} */ (undefined),
+  );
+  const glideRef = useRef(
+    /** @type {{ from: import("./analyzerModel.js").BlochVector, start: number } | undefined} */ (
+      undefined
+    ),
+  );
+  const glideFrame = useRef(/** @type {number | undefined} */ (undefined));
+  const repaintRef = useRef(() => {});
   const [readout, setReadout] = useState(
     /** @type {import("./analyzerModel.js").PanelReadout | null | undefined} */ (
       undefined
@@ -90,6 +110,30 @@ function useBlochFigures({
               ? undefined
               : blochCoordinates(densityMatrix);
       }
+
+      const source = {
+        target,
+        kind: shown.kind,
+        index: shown.kind === "step" ? shown.index : undefined,
+        circuit: deps.completed.getState().value?.circuit,
+      };
+      if (glidesBetween(sourceRef.current, source) && shownVector.current !== undefined && vec !== undefined) {
+        glideRef.current = { from: shownVector.current, start: performance.now() };
+      }
+      sourceRef.current = source;
+      const glide = glideRef.current;
+      const progress = glide === undefined ? 1 : Math.min(1, (performance.now() - glide.start) / PRESET_TRANSITION);
+      if (glide !== undefined && vec !== undefined && progress < 1) {
+        vec = blochVectorBetween(glide.from, vec, easeInOut(progress));
+        if (glideFrame.current === undefined) {
+          glideFrame.current = requestAnimationFrame(() => {
+            glideFrame.current = undefined;
+            repaintRef.current();
+          });
+        }
+      } else {
+        glideRef.current = undefined;
+      }
       shownVector.current = vec;
       const { yaw, pitch } = viewRef.current;
       const reading = vec === undefined ? undefined : blochReading(vec);
@@ -117,6 +161,12 @@ function useBlochFigures({
       setReadout(vec === undefined ? null : panelReadout(vec, reading));
     };
   }, [deps, target, currentStep]);
+  repaintRef.current = repaint;
+
+  // A glide still under way stops with the panel.
+  useEffect(() => () => {
+    if (glideFrame.current !== undefined) cancelAnimationFrame(glideFrame.current);
+  }, []);
 
   // A switch, a held axis, a chosen step or an explored state redraws the same figures.
   useEffect(() => {

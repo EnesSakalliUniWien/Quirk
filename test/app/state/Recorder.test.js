@@ -11,8 +11,8 @@ import {operationSchedule} from '../../../src/circuit/operationColumns.js';
 
 const suite = new Suite("Recorder");
 const initial = JSON.stringify({cols: [["H"], ["ZDetector"], ["Sample1"]]});
-function setup(options) {
-    const revision = Revision.startingAt(initial);
+function setup(options, circuitJson = initial) {
+    const revision = Revision.startingAt(circuitJson);
     const playhead = new Playhead(revision.latestActiveCommit().map(s =>
         operationSchedule(Serializer.fromJson(CircuitDefinition, JSON.parse(s)))));
     const sim = new Simulator();
@@ -51,6 +51,16 @@ suite.test("whole run is fixed-phase, atomic and cancellable", async () => {
     try {await pending;} catch {cancelled = true;}
     assertTrue(cancelled);
     assertThat(store.items.getState().value.length).isEqualTo(4);
+});
+
+suite.test("a whole run of a spinning circuit records every step at one phase", async () => {
+    // The animation cycle runs on the real clock here; the recording must hold it still between steps.
+    const {recorder, store, sim} = setup(undefined, JSON.stringify({cols: [["X^t"], ["H"]]}));
+    await recorder.recordRun();
+    const takes = store.items.getState().value.map(r => r.take);
+    assertThat(takes.map(t => t.step)).isEqualTo([0, 1, 2]);
+    assertThat(new Set(takes.map(t => t.phase)).size).isEqualTo(1);
+    assertTrue(sim.clockRunning());
 });
 
 suite.test("restore retains saved outcomes without creating a ghost", async () => {

@@ -15,6 +15,7 @@
  */
 
 import { fitText, fitParagraph } from "../../../draw/text/TextLayout.js";
+import { drawsAsPixels, paintPhaseKey } from "../../../draw/displays/complex/MatrixView.js";
 import { CanvasTheme } from "../../../config/CanvasTheme.js";
 import { Typography } from "../../../config/Typography.js";
 import { Point } from "../../../geometry/Point.js";
@@ -23,8 +24,10 @@ import {
   SUPERPOSITION_GRID_LABEL_SPAN,
   DISPLAY_CAPTION_WIDTH,
   DISPLAY_CAPTION_GAP,
-  DISPLAY_WARNING_STRIP_HEIGHT,
 } from "../../geometry/CircuitLayoutConstants.js";
+
+/** The phase key's widest extent under a wide grid. */
+const PHASE_KEY_MAX_WIDTH = 220;
 
 /** Caption below the per-wire probability and Bloch outputs. */
 function drawLocalStateCaption(context, painter, numWire, chanceCol) {
@@ -47,7 +50,8 @@ function drawLocalStateCaption(context, painter, numWire, chanceCol) {
 }
 
 /**
- * Renders the state-vector caption and measurement/survival warnings.
+ * Renders the state-vector grid's key and the measurement/survival warnings. The key starts under
+ * the grid's left column labels, so it stays on screen whenever any of the grid does.
  *
  * @param {!Object} context Rendering inputs supplied by CircuitRendering.
  * @param {!DisplayView} painter
@@ -55,49 +59,51 @@ function drawLocalStateCaption(context, painter, numWire, chanceCol) {
  */
 function drawHintLabels(context, painter, stats) {
   const gridRect = context.geometry.rectForSuperpositionDisplay();
+  const numWire = context.geometry.importantWireCount();
+  const pixels = drawsAsPixels(1 << Math.floor(numWire / 2), 1 << Math.ceil(numWire / 2), gridRect);
+  const x = gridRect.x;
+  const width = Math.max(gridRect.w, DISPLAY_CAPTION_WIDTH);
+  let y = gridRect.bottom() + SUPERPOSITION_GRID_LABEL_SPAN + DISPLAY_CAPTION_GAP;
 
-  // Amplitude hint.
   fitText(painter, "State-vector grid", {
-    x: gridRect.right() + DISPLAY_CAPTION_GAP,
-    y: gridRect.bottom() + 3,
+    x,
+    y,
     align: "left",
     baseline: "top",
     fill: CanvasTheme.text.muted,
     font: { fontSize: 12, fontFamily: Typography.DEFAULT_FONT_FAMILY },
-    width: DISPLAY_CAPTION_WIDTH,
-    height: 20,
+    width,
+    height: 16,
   });
+  y += 16;
 
-  // Says what each cell's glyphs encode, which is otherwise only discoverable by hovering.
+  // Says what each cell's marks encode, which is otherwise only discoverable by hovering.
   fitParagraph(
     painter,
-    "area = chance\nline = phase",
-    new Rect(
-      gridRect.right() + DISPLAY_CAPTION_GAP,
-      gridRect.bottom() + 18,
-      DISPLAY_CAPTION_WIDTH,
-      26,
-    ),
+    pixels
+      ? "colour = phase · opacity = magnitude vs largest"
+      : "area = chance · ring = log chance · line = phase",
+    new Rect(x, y, width, 24),
     {
       alignment: new Point(0, 0),
       fill: CanvasTheme.text.muted,
       maxFontSize: 10,
     },
   );
+  y += 24;
+  if (pixels) {
+    paintPhaseKey(painter, new Rect(x, y, Math.min(width, PHASE_KEY_MAX_WIDTH), 10));
+    y += 12;
+  }
 
   // Deferred measurement warning.
   if (context.definition.colIsMeasuredMask(Infinity) !== 0) {
     fitParagraph(
       painter,
       "(assuming measurement deferred)",
-      new Rect(
-        gridRect.right() + DISPLAY_CAPTION_GAP,
-        gridRect.bottom() + 48,
-        DISPLAY_CAPTION_WIDTH,
-        DISPLAY_WARNING_STRIP_HEIGHT,
-      ),
+      new Rect(x, y, width, 14),
       {
-        alignment: new Point(0.5, 0),
+        alignment: new Point(0, 0),
         fill: CanvasTheme.error.text,
       },
     );

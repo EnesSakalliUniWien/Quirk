@@ -23,7 +23,9 @@ import {phaseRgb} from '../../config/CanvasTheme.js';
  * 65,536 x 65,536 operator be looked at at all - HiGlass draws genome contact matrices the same
  * way. The hue is the phase, on the wheel the disc renderers use (phaseColor in
  * src/config/CanvasTheme.js); the opacity is the magnitude. A block shows its largest entry, so
- * a single nonzero entry among thousands of zeros still shows.
+ * a single nonzero entry among thousands of zeros still shows. A whole matrix scales opacity to
+ * its largest entry, so a large register's small amplitudes do not all sit on the visibility
+ * floor; an operator tile sees only part of its operator and keeps the absolute scale.
  *
  * Plain functions over plain arrays: the operator tile worker uses them as well as the page.
  */
@@ -62,14 +64,15 @@ function pixelSpan(index, count, entries, pixels) {
  * @param {!Uint8ClampedArray} pixels RGBA.
  * @param {!Float32Array} best The magnitude each pixel shows.
  * @param {!int} stride Pixels per row.
+ * @param {!number=} scale What a magnitude is multiplied by before it becomes opacity.
  */
-function paintBlock(pixels, best, stride, x0, x1, y0, y1, re, im) {
+function paintBlock(pixels, best, stride, x0, x1, y0, y1, re, im, scale = 1) {
     const magnitude = Math.hypot(re, im);
     if (magnitude < 1e-9) {
         return;
     }
     const degree = ((Math.round(Math.atan2(im, re) * 180 / Math.PI) % 360) + 360) % 360;
-    const alpha = Math.round(255 * Math.min(1, Math.max(MIN_ALPHA, magnitude)));
+    const alpha = Math.round(255 * Math.min(1, Math.max(MIN_ALPHA, magnitude * scale)));
     for (let y = y0; y < y1; y++) {
         for (let x = x0; x < x1; x++) {
             const i = y * stride + x;
@@ -98,13 +101,18 @@ function rasterMatrix(matrix, pixelWidth, pixelHeight) {
     const buffer = matrix.rawBuffer();
     const pixels = new Uint8ClampedArray(pixelWidth * pixelHeight * 4);
     const best = new Float32Array(pixelWidth * pixelHeight);
+    let largest = 0;
+    for (let k = 0; k < buffer.length; k += 2) {
+        largest = Math.max(largest, Math.hypot(buffer[k], buffer[k + 1]));
+    }
+    const scale = largest > 0 ? 1 / largest : 1;
     for (let row = 0; row < height; row++) {
         const [y0, y1] = pixelSpan(row, 1, height, pixelHeight);
         for (let col = 0; col < width; col++) {
             const k = (row * width + col) * 2;
             if (buffer[k] !== 0 || buffer[k + 1] !== 0) {
                 const [x0, x1] = pixelSpan(col, 1, width, pixelWidth);
-                paintBlock(pixels, best, pixelWidth, x0, x1, y0, y1, buffer[k], buffer[k + 1]);
+                paintBlock(pixels, best, pixelWidth, x0, x1, y0, y1, buffer[k], buffer[k + 1], scale);
             }
         }
     }

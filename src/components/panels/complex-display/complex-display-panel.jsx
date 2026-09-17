@@ -4,7 +4,7 @@ import {appStore} from '../../../state/appStore.js';
 import {useCompletedResult} from '../shared/usePlayheadStats.js';
 import {displayData} from './displayData.js';
 import {paintInto} from '../../../draw/surface/SharedPaintSurface.js';
-import {DATA_RENDERERS} from '../../../draw/renderers/dataRenderers.js';
+import {DATA_RENDERERS, stateGridRect} from '../../../draw/renderers/dataRenderers.js';
 import {densityGridRect} from '../../../draw/displays/density/DensityMatrixView.js';
 import {rectangle, circle, strokePath} from '../../../draw/shapes/ShapeView.js';
 import {drawText} from '../../../draw/text/TextLayout.js';
@@ -58,12 +58,12 @@ function DisplayInspector({data}) {
         <h3>How to read the display</h3>
         <p>The enlarged circle shows phase direction only; its radius is normalized.</p>
         <p>{kind === 'density' ? 'Diagonal bar height is probability. Circle radius is the magnitude of the density-matrix entry.' :
-            'Circle area and bar height show probability; circle radius shows amplitude magnitude.'} A hand shows phase. Faint rings make small nonzero values visible on a logarithmic scale.</p>
-        <p>Dense grids use colour for phase and opacity for magnitude, with a visibility floor for small values. Select a cell for its stored value.</p>
+            'Circle area and bar height show probability; circle radius shows amplitude magnitude.'} A hand shows phase and ends on a faint ring that makes small nonzero values visible on a logarithmic scale.</p>
+        <p>Dense grids use colour for phase and opacity for magnitude relative to the largest entry, with a visibility floor for small values. Select a cell for its stored value.</p>
         {coherent && <div className="complex-phase-key" aria-label="Phase colour key">
             {[0,90,180,270].map(degrees => <span key={degrees}><i aria-hidden="true" style={{backgroundColor: phaseColor(degrees)}} />{degrees}°</span>)}
         </div>}
-        {!coherent && <p>Entanglement with other qubits makes local amplitudes and phase undefined. This view shows probabilities. Dense cells use one colour, with opacity based on the square root of probability.</p>}
+        {!coherent && <p>Entanglement with other qubits makes local amplitudes and phase undefined. This view shows probabilities. Dense cells use one colour, with opacity based on the square root of probability relative to the largest entry.</p>}
         {kind === 'amplitudes' && coherent && phaseLockIndex !== undefined && <p>Phase reference: |{ketLabel(registers, wireCount, phaseLockIndex)}⟩.</p>}
         <p>Values are the simulator’s stored floating-point results, not symbolic expressions.</p>
     </div>;
@@ -73,7 +73,7 @@ function DisplayGrid({data, row, col, select}) {
     const canvas = useRef(null);
     const {matrix, kind} = data;
     const area = new Rect(0, 0, SIZE, SIZE);
-    const grid = kind === 'density' ? densityGridRect(matrix, area) : area;
+    const grid = kind === 'density' ? densityGridRect(matrix, area) : stateGridRect(matrix, area).grid;
     const cell = Math.min(grid.w/matrix.width(), grid.h/matrix.height());
     useEffect(() => {
         let active = true;

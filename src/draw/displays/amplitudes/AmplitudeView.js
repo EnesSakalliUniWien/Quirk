@@ -24,10 +24,14 @@ import { Point } from "../../../geometry/Point.js";
 import { Rect } from "../../../geometry/Rect.js";
 import { ketLabel } from "../../../circuit/registerLabels.js";
 import { DATA_RENDERERS } from "../../renderers/dataRenderers.js";
+import { drawsAsPixels, paintPhaseKey } from "../complex/MatrixView.js";
 
 /** Room under the gate for the caption: two lines at the default size. */
 const CAPTION_HEIGHT = 30;
 const CAPTION_GAP = 2;
+/** Room above the caption for the phase colours, when the cells are pixels. */
+const PHASE_KEY_HEIGHT = 12;
+const PHASE_KEY_MAX_WIDTH = 200;
 
 /**
  * @type {!function(!GateRenderParams)}
@@ -46,8 +50,6 @@ const AMPLITUDE_RENDERER_FROM_CUSTOM_STATS = makeDisplayRenderer((args) => {
 
   const isIncoherent = !isAmplitudeCoherent(quality);
   const matrix = isIncoherent ? incoherentKet : ket;
-  const dw = args.rect.w - (args.rect.h * ket.width()) / ket.height();
-  const drawRect = args.rect.skipLeft(dw / 2).skipRight(dw / 2);
   const indicatorAlpha = isIncoherent ? 0 : 1;
   // The gate's wires may be some of a register's: its basis states read in the words of the
   // registers as its wires see them.
@@ -56,8 +58,9 @@ const AMPLITUDE_RENDERER_FROM_CUSTOM_STATS = makeDisplayRenderer((args) => {
     n,
   );
   // The drawing is the shared state renderer's (src/draw/renderers/dataRenderers.js); this gate
-  // only decides which amplitudes, where, and how sure it is of their phases.
-  DATA_RENDERERS.state(args.painter, matrix, drawRect, {
+  // only decides which amplitudes, where, and how sure it is of their phases. The renderer fits
+  // the cells inside the gate, and the gate's frame follows what it drew.
+  const { grid, block } = DATA_RENDERERS.state(args.painter, matrix, args.rect, {
     wireCount: n,
     focusPoints: args.focusPoints,
     coherent: !isIncoherent,
@@ -66,20 +69,32 @@ const AMPLITUDE_RENDERER_FROM_CUSTOM_STATS = makeDisplayRenderer((args) => {
     registers,
   });
 
-  paintCaption(args, indicatorAlpha, phaseLockIndex, registers);
+  const phaseKey = !isIncoherent && !matrix.hasNaN() &&
+    drawsAsPixels(matrix.width(), matrix.height(), grid, n);
+  paintCaption(args, indicatorAlpha, phaseLockIndex, registers, phaseKey);
+  return block;
 });
 
 /**
- * What the picture leaves unsaid, on a line under the gate: that a measurement is taken as
- * deferred, that the phases are not defined, and which cell's phase was taken as zero. These are
- * caveats on a display that is working, so they wear the muted ink, not the error's.
+ * What the picture leaves unsaid, on a line under the gate: which colour is which phase when the
+ * cells are pixels, that a measurement is taken as deferred, that the phases are not defined, and
+ * which cell's phase was taken as zero. These are caveats on a display that is working, so they
+ * wear the muted ink, not the error's.
  *
  * @param {!GateRenderParams} args
  * @param {!number} indicatorAlpha
  * @param {undefined|!int} phaseLockIndex
  * @param {!Registers} registers
+ * @param {!boolean} phaseKey
  */
-function paintCaption(args, indicatorAlpha, phaseLockIndex, registers) {
+function paintCaption(args, indicatorAlpha, phaseLockIndex, registers, phaseKey) {
+  if (phaseKey) {
+    const width = Math.min(args.rect.w, PHASE_KEY_MAX_WIDTH);
+    paintPhaseKey(
+      args.painter,
+      new Rect(args.rect.center().x - width / 2, args.rect.bottom() + CAPTION_GAP, width, PHASE_KEY_HEIGHT),
+    );
+  }
   const parts = [];
   const { col, row } = args.positionInCircuit;
   const measured =
@@ -107,7 +122,7 @@ function paintCaption(args, indicatorAlpha, phaseLockIndex, registers) {
     parts.join(" · "),
     new Rect(
       args.rect.x,
-      args.rect.bottom() + CAPTION_GAP,
+      args.rect.bottom() + CAPTION_GAP + (phaseKey ? PHASE_KEY_HEIGHT : 0),
       args.rect.w,
       CAPTION_HEIGHT,
     ),

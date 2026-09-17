@@ -174,6 +174,10 @@ test('opens a Bloch sphere from its enlarged edge at different zoom levels', asy
             await page.click(`[aria-label="${button}"]`);
             // Zoom preserves the viewport centre and can scroll the first columns out of view.
             await page.$eval('#canvasDiv', element => element.scrollTo({left: 0, top: 0, behavior: 'instant'}));
+            // The scene's camera follows the scroll on a throttled redraw; clicking before it lands
+            // hits the scene where the zoom had scrolled it.
+            await page.evaluate(() => new Promise(resolve =>
+                requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(resolve)))));
             await waitForCanvasViewport(page);
             const top = await circuitTopForWires(page, 2, zoom);
             const canvas = await page.$eval('#drawCanvas canvas', element => {

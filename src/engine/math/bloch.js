@@ -99,6 +99,49 @@ function vectorFromAngles(theta, phi, r = 1) {
     };
 }
 
+/**
+ * The point a fraction t of the way from one Bloch vector to another, moving the way a state does:
+ * the direction turns along the great circle between the two, and the length changes evenly, so a
+ * pure state's arrow stays on the sphere instead of cutting through it. Opposite poles have no
+ * single great circle; the turn then passes through the direction nearest +x (+y from the x axis).
+ * A vector with no length has no direction, so the other end's direction is kept.
+ *
+ * @param {!{x: !number, y: !number, z: !number}} from
+ * @param {!{x: !number, y: !number, z: !number}} to
+ * @param {!number} t 0 at from, 1 at to.
+ * @returns {!{x: !number, y: !number, z: !number}}
+ */
+function blochVectorBetween(from, to, t) {
+    const lengthOf = v => Math.hypot(v.x, v.y, v.z);
+    const [rFrom, rTo] = [lengthOf(from), lengthOf(to)];
+    const r = rFrom + (rTo - rFrom) * t;
+    if (rFrom < EPSILON && rTo < EPSILON) {
+        return {x: 0, y: 0, z: 0};
+    }
+    const unit = (v, length) => ({x: v.x / length, y: v.y / length, z: v.z / length});
+    const a = unit(rFrom < EPSILON ? to : from, rFrom < EPSILON ? rTo : rFrom);
+    const b = unit(rTo < EPSILON ? from : to, rTo < EPSILON ? rFrom : rTo);
+    const cross = (u, v) => ({x: u.y * v.z - u.z * v.y, y: u.z * v.x - u.x * v.z, z: u.x * v.y - u.y * v.x});
+    const dot = a.x * b.x + a.y * b.y + a.z * b.z;
+    let axis = cross(a, b);
+    let sinAngle = lengthOf(axis);
+    if (sinAngle < EPSILON) {
+        if (dot > 0) {
+            return {x: a.x * r, y: a.y * r, z: a.z * r};
+        }
+        // Opposite directions: turn about an axis square to a, toward +x (or +y from the x axis).
+        axis = cross(a, Math.abs(a.x) < 0.9 ? {x: 1, y: 0, z: 0} : {x: 0, y: 1, z: 0});
+        sinAngle = 0;
+    }
+    axis = unit(axis, lengthOf(axis));
+    const angle = Math.atan2(sinAngle, dot) * t;
+    // Rodrigues' rotation of a about an axis square to it: a cos θ + (axis × a) sin θ.
+    const side = cross(axis, a);
+    const c = Math.cos(angle) * r;
+    const s = Math.sin(angle) * r;
+    return {x: a.x * c + side.x * s, y: a.y * c + side.y * s, z: a.z * c + side.z * s};
+}
+
 /** The six poles and the centre, for exploring the sphere away from any circuit. */
 const BLOCH_PRESETS = Object.freeze([
     Object.freeze({name: "|0⟩", vec: Object.freeze({x: 0, y: 0, z: 1})}),
@@ -260,5 +303,6 @@ function analyzerReadout(vec, reading = blochReading(vec)) {
 }
 
 export {EPSILON, PURE_STATE_THRESHOLD, UNDEFINED_TEXT, BLOCH_PRESETS, blochCoordinates, blochReading, vectorFromAngles,
+    blochVectorBetween,
     degreesText, pureStateText, componentFormulas, blochAmplitudes, blochQuaternion,
     pureQuaternionText, quaternionText, analyzerReadout, MIXED_NOTE, POLAR_NOTE}

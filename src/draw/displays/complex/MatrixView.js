@@ -17,10 +17,12 @@
 import {Rendering} from "../../../config/Rendering.js";
 import { extend } from "@pixi/react";
 import { Color, Graphics, GraphicsPath } from "pixi.js";
-import { CanvasTheme } from "../../../config/CanvasTheme.js";
+import { CanvasTheme, phaseColor } from "../../../config/CanvasTheme.js";
 import { Typography } from "../../../config/Typography.js";
+import { Rect } from "../../../geometry/Rect.js";
+import { drawGraphics } from "../../scene/DisplayView.js";
 import { PathGeometry } from "../../shapes/PathGeometry.js";
-import { fitText } from "../../text/TextLayout.js";
+import { drawText, fitText, measureText } from "../../text/TextLayout.js";
 import {rasterMatrix} from '../../renderers/rasters.js';
 import {
   traceAmplitudeProbabilitySquare,
@@ -31,6 +33,13 @@ import {
   PHASE_HAND_WIDTH,
   LOG_RING_WIDTH,
 } from "./ComplexCellGeometry.js";
+
+/** Below this many units a side, discs, rings and hands stop reading, so larger registers draw pixels. */
+const PIXEL_CELL_SIZE = 16;
+/** Below this many units a side, a logarithmic ring has no room to differ from its disc. */
+const MIN_LOG_RING_CELL_SIZE = 12;
+const PHASE_KEY_FONT = { fontSize: 8, fontFamily: Typography.MONO_FONT_FAMILY };
+const PHASE_KEY_STEPS = 36;
 
 /** React owns this Graphics and its context. Compare values because Matrix buffers are mutable. */
 class MatrixGraphics extends Graphics {
@@ -63,10 +72,10 @@ class MatrixGraphics extends Graphics {
       logCircleStrokeColor,
       showLogCircles,
       density,
-      detailed,
+      asPixels,
     ] = values;
     this.rect(x, y, diam * numCols, diam * numRows).fill(backColor);
-    if (!hasNaN && !detailed && diam < 10) {
+    if (asPixels) {
       const width = Math.max(1, Math.min(numCols, Math.ceil(diam * numCols)));
       const height = Math.max(1, Math.min(numRows, Math.ceil(diam * numRows)));
       const pixels = rasterMatrix({width: () => numCols, height: () => numRows, rawBuffer: () => buf}, width, height);
@@ -120,7 +129,7 @@ class MatrixGraphics extends Graphics {
           { fill: amplitudeCircleFillColor },
           { stroke: { color: amplitudeCircleStrokeColor, width: 0.5 } },
         ]);
-        if (showLogCircles && diam >= 24) {
+        if (showLogCircles && diam >= MIN_LOG_RING_CELL_SIZE) {
           path(cells(traceAmplitudeLogarithmCircle), [
             { stroke: { color: logCircleStrokeColor, width: LOG_RING_WIDTH } },
           ]);
@@ -184,7 +193,7 @@ export function paintMatrix(
     amplitudeProbabilityFillColor,
     backColor = CanvasTheme.probability.background,
     phaseColorForDegrees = () => amplitudeCircleStrokeColor,
-    logCircleStrokeColor = CanvasTheme.stroke.faint,
+    logCircleStrokeColor = CanvasTheme.stroke.logRing,
     showPhase = true,
     showLogCircles = true,
     density = false,
@@ -224,7 +233,7 @@ export function paintMatrix(
         logCircleStrokeColor,
         showLogCircles,
         density,
-        (wireCount ?? Math.log2(Math.max(numRows, numCols))) <= Rendering.MATRIX_DETAIL_MAX_QUBITS,
+        !hasNaN && drawsAsPixels(numCols, numRows, drawArea, wireCount),
       ],
       buf,
       colors,
@@ -242,4 +251,34 @@ export function paintMatrix(
       height: diam * numRows,
     });
   }
+}
+
+/**
+ * Whether paintMatrix draws a matrix of this shape as pixels - hue for phase, opacity for
+ * magnitude - rather than discs, rings and hands. A matrix over at most MATRIX_DETAIL_MAX_QUBITS
+ * qubits always keeps its marks.
+ */
+export function drawsAsPixels(numCols, numRows, drawArea, wireCount = undefined) {
+  const diam = Math.min(drawArea.w / numCols, drawArea.h / numRows);
+  const detailed = (wireCount ?? Math.log2(Math.max(numRows, numCols))) <= Rendering.MATRIX_DETAIL_MAX_QUBITS;
+  return !detailed && diam < PIXEL_CELL_SIZE;
+}
+
+/** The phase wheel that pixel views colour by, from −180° to 180°, for the captions beside them. */
+export function paintPhaseKey(painter, rect) {
+  const ends = ["−180°", "180°"];
+  const [left, right] = ends.map((text) => measureText(text, PHASE_KEY_FONT).width + 3);
+  const strip = new Rect(rect.x + left, rect.center().y - 3, Math.max(0, rect.w - left - right), 6);
+  drawGraphics(painter, (graphics) => {
+    for (let i = 0; i < PHASE_KEY_STEPS; i++) {
+      // Each step overlaps the next by half a unit, so no seam shows between them.
+      graphics
+        .rect(strip.x + (strip.w * i) / PHASE_KEY_STEPS, strip.y, strip.w / PHASE_KEY_STEPS + 0.5, strip.h)
+        .fill(phaseColor(-180 + ((i + 0.5) * 360) / PHASE_KEY_STEPS));
+    }
+  });
+  const y = rect.center().y;
+  drawText(painter, ends[0], { x: rect.x, y, baseline: "middle", font: PHASE_KEY_FONT, fill: CanvasTheme.text.muted });
+  drawText(painter, ends[1], { x: rect.right(), y, align: "right", baseline: "middle", font: PHASE_KEY_FONT,
+    fill: CanvasTheme.text.muted });
 }
