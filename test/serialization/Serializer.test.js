@@ -90,6 +90,38 @@ suite.test("roundTrip_Gate", () => {
     assertThat(g.symbol).isEqualTo(g2.symbol);
 });
 
+suite.test("roundTrip_DeactivatedGate", () => {
+    // A switched-off gate is its active form plus the flag, in every form the active gate takes.
+    const x = Gates.HalfTurns.X.withDeactivated(true);
+    assertThat(Serializer.toJson(x)).isEqualTo({id: "X", off: true});
+    const x2 = Serializer.fromJson(Gate, {id: "X", off: true});
+    assertThat(x2.deactivated).isEqualTo(true);
+    assertThat(x2.withDeactivated(false)).is(Gates.HalfTurns.X);
+
+    const rx = Gates.RotationGates.Rx.withParam("1").withDeactivated(true);
+    assertThat(Serializer.toJson(rx)).isEqualTo({id: "Rx", arg: "1", off: true});
+    const rx2 = Serializer.fromJson(Gate, {id: "Rx", arg: "1", off: true});
+    assertThat(rx2.deactivated).isEqualTo(true);
+    assertThat(rx2.param).isEqualTo("1");
+
+    const custom = Gate.fromKnownMatrix("custom_id", Matrix.square(Complex.I, -1, 2, 3)).withDeactivated(true);
+    const json = Serializer.toJson(custom);
+    assertThat(json).isEqualTo({id: "custom_id", matrix: "{{i,-1},{2,3}}", off: true});
+    const custom2 = Serializer.fromJson(Gate, json);
+    assertThat(custom2.deactivated).isEqualTo(true);
+    assertThat(custom2.knownMatrixAt(0)).isEqualTo(custom.knownMatrixAt(0));
+
+    // Absent or anything but true, the gate is on.
+    assertThat(Serializer.fromJson(Gate, {id: "X", off: false}).deactivated).isEqualTo(false);
+    assertThat(Serializer.fromJson(Gate, "X").deactivated).isEqualTo(false);
+
+    // In a circuit the gate keeps its slot and the simulation skips it, as it skips a disabled gate.
+    const circuit = Serializer.fromJson(CircuitDefinition, {cols: [[{id: "X", off: true}, "X"]]});
+    assertThat(circuit.gateAtLocIsDisabledReason(0, 0)).isEqualTo(Gate.DEACTIVATED_REASON);
+    assertThat(circuit.gateAtLocIsDisabledReason(0, 1)).isEqualTo(undefined);
+    assertThat(Serializer.toJson(circuit)).isEqualTo({cols: [[{id: "X", off: true}, "X"]]});
+});
+
 suite.test("roundTrip_CircuitDefinitionWithCustomGate", () => {
     const customGate = new GateBuilder().
         setSerializedId("~test").
@@ -220,6 +252,9 @@ const IDS_THAT_SHOULD_BE_KNOWN = [
     "Sample1", "Sample2", "Sample3", "Sample4", "Sample5", "Sample6", "Sample7", "Sample8", "Sample9", "Sample10", "Sample11", "Sample12", "Sample13", "Sample14", "Sample15", "Sample16",
     "Density", "Density2", "Density3", "Density4", "Density5", "Density6", "Density7", "Density8",
     "Bloch",
+    "assert-sup1", "assert-sup2", "assert-sup3", "assert-sup4", "assert-sup5", "assert-sup6", "assert-sup7", "assert-sup8",
+    "assert-ent2", "assert-ent3", "assert-ent4", "assert-ent5", "assert-ent6", "assert-ent7", "assert-ent8",
+    "assert-eq1", "assert-eq2", "assert-eq3", "assert-eq4",
     "inc1", "inc2", "inc3", "inc4", "inc5", "inc6", "inc7", "inc8", "inc9", "inc10", "inc11", "inc12", "inc13", "inc14", "inc15", "inc16",
     "dec1", "dec2", "dec3", "dec4", "dec5", "dec6", "dec7", "dec8", "dec9", "dec10", "dec11", "dec12", "dec13", "dec14", "dec15", "dec16",
     "incmodR1", "incmodR2", "incmodR3", "incmodR4", "incmodR5", "incmodR6", "incmodR7", "incmodR8", "incmodR9", "incmodR10", "incmodR11", "incmodR12", "incmodR13", "incmodR14", "incmodR15", "incmodR16",

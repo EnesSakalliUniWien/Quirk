@@ -81,6 +81,23 @@ test('Bloch Planes draws equatorial triangles independently and explains cos · 
     });
 });
 
+test('Bloch Shadow draws the state\'s shadow and leaves the sphere as it was when switched off', async browser => {
+    await withQuirkPage(browser, {cols: [['H'], ['Z^¼'], ['Bloch']]}, async page => {
+        await openBlochAt(page, 2);
+        const checks = await page.$$('.bloch-check');
+        assert.equal(await checks[7].evaluate(e => e.getAttribute('aria-checked')), 'false');
+        const settle = () => page.evaluate(() => new Promise(resolve =>
+            requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(resolve)))));
+        await settle();
+        const before = await page.$eval('#bloch-canvas', e => e.toDataURL());
+        await checks[7].click();
+        await page.waitForFunction(image => document.getElementById('bloch-canvas').toDataURL() !== image, {}, before);
+        assert.equal(await checks[7].evaluate(e => e.getAttribute('aria-checked')), 'true');
+        await checks[7].click();
+        await page.waitForFunction(image => document.getElementById('bloch-canvas').toDataURL() === image, {}, before);
+    });
+});
+
 test('Bloch steps keep impossible postselection unavailable without losing earlier states', async browser => {
     await withQuirkPage(browser, {cols: [['Bloch'], ['|1⟩⟨1|']]}, async page => {
         await openBlochAt(page, 0);
@@ -164,6 +181,37 @@ test('Bloch sliders show an unfilled track at zero', async browser => {
             background: getComputedStyle(e.closest('.panel-section')).backgroundColor,
         })));
         for (const colors of tracks) assert.notEqual(colors.track, colors.background);
+    });
+});
+
+test('closing the Bloch panel releases its figures\' render surfaces', async browser => {
+    await withQuirkPage(browser, {cols: [['H'], ['Bloch']]}, async page => {
+        // Each surface listens for pointer moves on the whole document, and holds a WebGL context
+        // beside it. Left behind, a few openings cost the circuit its own context.
+        const session = await page.createCDPSession();
+        const pointerMoveListeners = async () => {
+            const {result} = await session.send('Runtime.evaluate', {expression: 'document'});
+            const {listeners} = await session.send('DOMDebugger.getEventListeners', {objectId: result.objectId});
+            await session.send('Runtime.releaseObject', {objectId: result.objectId});
+            return listeners.filter(listener => listener.type === 'pointermove').length;
+        };
+        const settled = async expected => {
+            const deadline = Date.now() + TEST_TIMEOUT_MILLIS;
+            let count = await pointerMoveListeners();
+            while (count !== expected && Date.now() < deadline) {
+                await new Promise(resolve => setTimeout(resolve, 50));
+                count = await pointerMoveListeners();
+            }
+            return count;
+        };
+        const closed = await pointerMoveListeners();
+        await openBlochAt(page, 1);
+        assert.ok(await pointerMoveListeners() > closed, 'The open figures must hold surfaces to release.');
+        for (let opening = 0; opening < 3; opening++) {
+            if (opening > 0) await openBlochAt(page, 1);
+            await closePanel(page, 'bloch');
+            assert.equal(await settled(closed), closed);
+        }
     });
 });
 
@@ -443,6 +491,42 @@ test('custom gate windows preserve drafts and fit docked panel widths', async br
     },{width:1600,height:900,deviceScaleFactor:1});
 });
 
+test('an equality assertion is edited an amplitude at a time, or taken from the state at the gate', async browser => {
+    await withQuirkPage(browser, {cols: [['H'], ['assert-eq1']]}, async page => {
+        const open = async () => {
+            await page.click('#gate-parameter-button');
+            await page.waitForSelector('.parameter-targets button');
+            await page.click('.parameter-targets button');
+            await page.waitForSelector('.amplitudes-editor input');
+        };
+        const fields = () => page.$$eval('.amplitudes-editor input', inputs => inputs.map(input => input.value));
+        const claimed = async () => (await currentCircuit(page)).cols[1][0].arg.flat();
+        const near = (actual, expected) => actual.every((value, i) => Math.abs(value - expected[i]) < 1e-6);
+        const s = Math.SQRT1_2;
+
+        await open();
+        assert.deepEqual(await page.$$eval('.amplitudes-editor-ket', kets => kets.map(ket => ket.textContent)), ['|0⟩', '|1⟩']);
+        assert.deepEqual(await fields(), ['1', '0']);
+        await page.click('#amplitudes-use-state-button');
+        await page.waitForFunction(() => document.querySelector('.amplitudes-editor input').value !== '1');
+        assert.deepEqual(await fields(), ['0.707107', '0.707107']);
+        await page.click('#gate-param-apply-button');
+        await waitForPanel(page, 'gate-param', false);
+        assert.ok(near(await claimed(), [s, 0, s, 0]));
+
+        // Typed formulas are scaled to unit length, and a mistake stays in the editor.
+        await open();
+        await replaceField(page, '[aria-label="Amplitude of |0⟩"]', '1');
+        await replaceField(page, '[aria-label="Amplitude of |1⟩"]', 'nonsense');
+        await page.click('#gate-param-apply-button');
+        await page.waitForSelector('#gate-param-error:not([hidden])');
+        await replaceField(page, '[aria-label="Amplitude of |1⟩"]', '-i');
+        await page.click('#gate-param-apply-button');
+        await waitForPanel(page, 'gate-param', false);
+        assert.ok(near(await claimed(), [s, 0, 0, -s]));
+    });
+});
+
 test('parameter validation and typing undo preserve circuit history', async browser => {
     const initial={cols:[[{id:'Rx',arg:'pi/2'}]]};
     await withQuirkPage(browser,initial,async page=>{
@@ -523,7 +607,8 @@ test('matrix grids keep dimension drafts and invalidate accepted corrections on 
 });
 
 test('circuit construction includes wide trailing gates and clears selection on method changes', async browser=>{
-    const initial={cols:[[{id:'Ry',arg:'pi/3'}],[],[{id:'Rz',arg:'pi/4'}]]};
+    // A rotation gate is three columns wide: its box, and the dial beside it.
+    const initial={cols:[[{id:'Ry',arg:'pi/3'}],[],[],[{id:'Rz',arg:'pi/4'}]]};
     await withQuirkPage(browser,initial,async page=>{
         await page.click('#gate-forge-button'); await chooseConstruction(page,'Circuit');
         await page.waitForSelector('#gate-forge-circuit-button:not([disabled])');
@@ -719,8 +804,8 @@ test('a renamed draft waits for its own preview and a double submit creates one 
 });
 
 test('editing Ry through a keyboard-chosen target moves the Bloch vector to the new angle', async browser => {
-    // Ry and Rz are each two columns wide, so the Bloch display sits in the fifth column.
-    const cols = rotation => [[{id: 'Ry', arg: rotation}], [], [{id: 'Rz', arg: 'pi/4'}], [], ['Bloch']];
+    // Ry and Rz are each three columns wide, box and dial, so the Bloch display sits in the seventh column.
+    const cols = rotation => [[{id: 'Ry', arg: rotation}], [], [], [{id: 'Rz', arg: 'pi/4'}], [], [], ['Bloch']];
     await withQuirkPage(browser, {cols: cols('pi/3')}, async page => {
         const canvasBounds = await page.$eval('#drawCanvas canvas', element => {
             const bounds = element.getBoundingClientRect();
@@ -730,7 +815,7 @@ test('editing Ry through a keyboard-chosen target moves the Bloch vector to the 
         for (let attempt = 0; attempt < 3 && !opened; attempt++) {
             await waitForCanvasViewport(page);
             const circuitTop = await circuitTopForWires(page, 2);
-            await page.mouse.click(canvasBounds.x + 4 * circuitMetrics.columnSpacing + circuitMetrics.firstColumnLeft + circuitMetrics.gateSize / 2, canvasBounds.y + circuitTop + circuitMetrics.wireSpacing / 2);
+            await page.mouse.click(canvasBounds.x + 6 * circuitMetrics.columnSpacing + circuitMetrics.firstColumnLeft + circuitMetrics.gateSize / 2, canvasBounds.y + circuitTop + circuitMetrics.wireSpacing / 2);
             opened = await page.waitForSelector('[data-panel-id="bloch"]', {visible: true, timeout: 2000}).
                 then(() => true, () => false);
         }
@@ -784,6 +869,12 @@ test('a rotation gate edits from its indicator and not from its body at each zoo
                     then(() => true, () => false);
             }
             assert.ok(opened, `The indicator must edit at ${zoom}x.`);
+            // The dial sits in the column past the gate's box, on its wire, at the drawing's zoom.
+            const dial = await page.$eval('.wire-dial', element => element.getBoundingClientRect().toJSON());
+            const wire = await gatePoint(0);
+            const expectedLeft = wire.x + (2 * circuitMetrics.columnSpacing - circuitMetrics.gateSize / 2) * zoom;
+            assert.ok(Math.abs(dial.left - expectedLeft) < 2 * zoom, `The dial must sit past the box at ${zoom}x: ${dial.left} vs ${expectedLeft}.`);
+            assert.ok(Math.abs((dial.top + dial.height / 2) - wire.y) < 2 * zoom, `The dial must sit on the wire at ${zoom}x.`);
             await closePanel(page, 'gate-param');
         }
     });

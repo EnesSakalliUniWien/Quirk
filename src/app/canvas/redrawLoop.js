@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {clock} from '../../base/Clock.js';
 import {CooldownThrottle} from '../../base/CooldownThrottle.js';
 import {GateColumn} from '../../circuit/model/GateColumn.js';
 import {Rendering} from '../../config/Rendering.js';
@@ -66,7 +67,22 @@ function initRedrawLoop(canvas,
     // Decorative randomness is stable across redraws. Measurement outcomes live in CircuitStats.
     const graphicsRng = new RestartableRng();
 
-    /** @type {!CooldownThrottle} */
+    // A divider dragged across the dock resizes the cell every frame, and fitting the backing store
+    // to each size would reallocate the canvas's GPU buffers every frame. A size change that follows
+    // another within RESIZE_SETTLE_MILLIS is such a drag: the store then only grows, with slack, and
+    // the canvas's element clips what the cell does not show. Once the size has held still the store
+    // is fitted exactly again. A lone change - a panel opening - is fitted at once, as ever.
+    /** @type {undefined|!{w: !number, h: !number}} */
+    let lastCellSize = undefined;
+    let lastCellResize = -Infinity;
+    let resizing = false;
+    let overAllocated = false;
+    /** @type {undefined|!function(): void} */
+    let cancelSettle = undefined;
+    const backingLength = (allocated, fitted, pixelRatio) =>
+        !resizing ? fitted :
+        allocated >= fitted ? allocated :
+        fitted + Math.round(Rendering.RESIZE_SLACK_PIXELS * pixelRatio);
 
     const redrawNow = () => {
         if (!hasStarted) {
@@ -98,8 +114,22 @@ function initRedrawLoop(canvas,
         // the content's extent, which is what actually scrolls.
         const cssW = canvasDiv.clientWidth;
         const cssH = canvasDiv.clientHeight;
-        const backingW = Math.round(cssW * pixelRatio);
-        const backingH = Math.round(cssH * pixelRatio);
+        if (lastCellSize !== undefined && (lastCellSize.w !== cssW || lastCellSize.h !== cssH)) {
+            const now = clock.now();
+            resizing = resizing || now - lastCellResize < Rendering.RESIZE_SETTLE_MILLIS;
+            lastCellResize = now;
+            cancelSettle?.();
+            cancelSettle = clock.after(Rendering.RESIZE_SETTLE_MILLIS, () => {
+                resizing = false;
+                if (overAllocated) redrawThrottle.trigger();
+            });
+        }
+        lastCellSize = {w: cssW, h: cssH};
+        const fittedW = Math.round(cssW * pixelRatio);
+        const fittedH = Math.round(cssH * pixelRatio);
+        const backingW = backingLength(viewport.surface.size.width, fittedW, pixelRatio);
+        const backingH = backingLength(viewport.surface.size.height, fittedH, pixelRatio);
+        overAllocated = backingW !== fittedW || backingH !== fittedH;
         viewport.surface.resize(backingW, backingH);
         viewport.surface.presentation.setState({width: cssW, height: cssH});
         spacer.style.width = Math.round(size.w * zoom) + 'px';
@@ -113,6 +143,7 @@ function initRedrawLoop(canvas,
             // Zoomed out, the circuit's lines widen in circuit units so they stay a CSS pixel wide.
             lineScale: 1 / Math.min(zoom, 1),
             scrollX: canvasDiv.scrollLeft / zoom, scrollY: canvasDiv.scrollTop / zoom,
+            breakpoints: playhead.breakpoints(),
         });
 
         const hand = displayed.getState().value.hand;
@@ -122,11 +153,11 @@ function initRedrawLoop(canvas,
         // Time-dependent gates animate whenever the cycle runs, not only while the transport plays.
         const dt = displayed.getState().value.stableDuration();
         if (dt < Infinity && simulator.clockRunning()) {
-            window.requestAnimationFrame(() => redrawThrottle.trigger());
+            clock.after(0, () => redrawThrottle.trigger());
         }
     };
 
-    const redrawThrottle = new CooldownThrottle(redrawNow, Rendering.REDRAW_COOLDOWN_MILLIS, 0.1, true);
+    const redrawThrottle = new CooldownThrottle(redrawNow, Rendering.REDRAW_COOLDOWN_MILLIS, 0.1);
     window.addEventListener('resize', () => redrawThrottle.trigger(), false);
     // The container can resize without the window (the sidebar folding, the state table growing),
     // and the fixed viewport must follow it.

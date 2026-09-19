@@ -34,6 +34,20 @@ suite.test('parameter dialog rejects invalid and nonfinite angles before applyin
     }
 });
 
+suite.test('a dialled angle gate keeps two columns for its box and one for its dial, whatever its formula', () => {
+    for (const gate of Gates.RotationGates.all) {
+        assertThat(gate.hasAngleDial()).isEqualTo(true);
+        assertThat(gate.width).isEqualTo(3);
+        assertThat(gate.withParam('acos(1/sqrt(3))+pi/7').width).isEqualTo(3);
+        assertThat(gate.withParam('0').width).isEqualTo(3);
+    }
+    // A formula gate has no dial, and still widens with its text.
+    const formula = Gates.ParametrizedRotationGates.FormulaicRotationRx;
+    assertThat(formula.hasAngleDial()).isEqualTo(false);
+    assertThat(formula.withParam('pi t^2').width).isEqualTo(2);
+    assertThat(formula.withParam('sin(pi t) + cos(pi t)').width).isEqualTo(5);
+});
+
 suite.test("rx_matrix_matches_angle", () => {
     const rx = angle => Gates.RotationGates.Rx.withParam(angle).knownMatrixAt(0.1);
 

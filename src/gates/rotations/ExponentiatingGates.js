@@ -16,11 +16,18 @@
 
 import {GateBuilder} from "../../circuit/model/Gate.js"
 import {makeCycleRenderer} from '../../draw/gate/GateRenderers.js';
+import {DIAL_AXIS} from '../../draw/gate/TimeDial.js';
 import {Matrix} from "../../engine/math/matrix/Matrix.js"
 
 const ExponentiatingGates = {};
 
 const τ = Math.PI * 2;
+
+// One turnsAt per gate, set on the gate itself and read by its matrix (setEffectFromTurns) and its
+// dial alike. These gates pass through ±i times their Pauli rather than the Pauli itself, so they
+// come round twice over the cycle, and half a turn of the dial is the matrix's own parameter.
+const FORWARD = t => 2 * t;
+const BACKWARD = t => -2 * t;
 const XExp = t => {
     const c = Math.cos(τ * t);
     const s = Math.sin(τ * t);
@@ -42,8 +49,9 @@ ExponentiatingGates.XForward = new GateBuilder().
     setSymbol("e^-i𝜏Xt").
     setTitle("X-Exponentiating Gate (forward)").
     setBlurb("Right-hand rotation around the X axis.\nPasses through ±iX instead of X.").
-    setRenderer(makeCycleRenderer(1, 1, 2)).
-    setEffectToTimeVaryingMatrix(XExp).
+    setTurnsAt(FORWARD).
+    setRenderer(makeCycleRenderer(DIAL_AXIS.X)).
+    setEffectFromTurns(turns => XExp(turns / 2)).
     promiseEffectIsUnitary().
     gate;
 
@@ -53,8 +61,9 @@ ExponentiatingGates.XBackward = new GateBuilder().
     setSymbol("e^i𝜏Xt").
     setTitle("X-Exponentiating Gate (backward)").
     setBlurb("Left-hand rotation around the X axis.\nPasses through ±iX instead of X.").
-    setRenderer(makeCycleRenderer(-1, 1, 2)).
-    setEffectToTimeVaryingMatrix(t => XExp(-t)).
+    setTurnsAt(BACKWARD).
+    setRenderer(makeCycleRenderer(DIAL_AXIS.X)).
+    setEffectFromTurns(turns => XExp(turns / 2)).
     promiseEffectIsUnitary().
     gate;
 
@@ -63,8 +72,9 @@ ExponentiatingGates.YForward = new GateBuilder().
     setSymbol("e^-i𝜏Yt").
     setTitle("Y-Exponentiating Gate (forward)").
     setBlurb("Right-hand rotation around the Y axis.\nPasses through ±iY instead of Y.").
-    setRenderer(makeCycleRenderer(0.5, 1, 2)).
-    setEffectToTimeVaryingMatrix(YExp).
+    setTurnsAt(FORWARD).
+    setRenderer(makeCycleRenderer(DIAL_AXIS.Y)).
+    setEffectFromTurns(turns => YExp(turns / 2)).
     promiseEffectIsUnitary().
     gate;
 
@@ -74,8 +84,9 @@ ExponentiatingGates.YBackward = new GateBuilder().
     setSymbol("e^i𝜏Yt").
     setTitle("Y-Exponentiating Gate (backward)").
     setBlurb("Left-hand rotation around the Y axis.\nPasses through ±iY instead of Y.").
-    setRenderer(makeCycleRenderer(-0.5, 1, 2)).
-    setEffectToTimeVaryingMatrix(t => YExp(-t)).
+    setTurnsAt(BACKWARD).
+    setRenderer(makeCycleRenderer(DIAL_AXIS.Y)).
+    setEffectFromTurns(turns => YExp(turns / 2)).
     promiseEffectIsUnitary().
     gate;
 
@@ -84,8 +95,9 @@ ExponentiatingGates.ZForward = new GateBuilder().
     setSymbol("e^-i𝜏Zt").
     setTitle("Z-Exponentiating Gate (forward)").
     setBlurb("Right-hand rotation around the Z axis.\nPasses through ±iZ instead of Z.").
-    setRenderer(makeCycleRenderer(-1, -0.5, 2)).
-    setEffectToTimeVaryingMatrix(ZExp).
+    setTurnsAt(FORWARD).
+    setRenderer(makeCycleRenderer(DIAL_AXIS.Z)).
+    setEffectFromTurns(turns => ZExp(turns / 2)).
     promiseEffectOnlyPhases().
     gate;
 
@@ -95,8 +107,9 @@ ExponentiatingGates.ZBackward = new GateBuilder().
     setSymbol("e^i𝜏Zt").
     setTitle("Z-Exponentiating Gate (backward)").
     setBlurb("Left-hand rotation around the Z axis.\nPasses through ±iZ instead of Z.").
-    setRenderer(makeCycleRenderer(1, -0.5, 2)).
-    setEffectToTimeVaryingMatrix(t => ZExp(-t)).
+    setTurnsAt(BACKWARD).
+    setRenderer(makeCycleRenderer(DIAL_AXIS.Z)).
+    setEffectFromTurns(turns => ZExp(turns / 2)).
     promiseEffectOnlyPhases().
     gate;
 

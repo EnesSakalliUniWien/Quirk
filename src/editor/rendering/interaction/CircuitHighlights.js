@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-import {highlightRing, lineWidth, rectangle, strokePath} from '../../../draw/shapes/ShapeView.js';
+import {circle, highlightRing, lineWidth, rectangle, strokePath} from '../../../draw/shapes/ShapeView.js';
 import {CanvasTheme} from '../../../config/CanvasTheme.js';
+import {Point} from '../../../geometry/Point.js';
 import {operationColumns} from '../../../circuit/operationColumns.js';
 
 /**
@@ -39,6 +40,21 @@ function drawPlayheadBand(context, painter, playheadStep) {
     const rect = context.geometry.gateRect(0, nextColumn, 1, context.geometry.groundedWireCount()).paddedBy(3);
     rectangle(painter, rect, {fill: CanvasTheme.interaction.playheadBand});
     strokePath(painter, [rect.topLeft(), rect.bottomLeft()], CanvasTheme.interaction.playhead, lineWidth(painter, 2));
+}
+
+/**
+ * Marks each column a run halts before with a debugger's dot, above the column's top wire.
+ *
+ * @param {!Object} context Rendering inputs supplied by CircuitRendering.
+ * @param {!DisplayView} painter
+ * @param {!Array.<!int>} breakpoints
+ */
+function drawBreakpoints(context, painter, breakpoints) {
+    for (const col of breakpoints) {
+        if (col >= context.definition.columns.length) continue;
+        const rect = context.geometry.gateRect(0, col, 1, 1);
+        circle(painter, new Point(rect.center().x, rect.y - 9), 5, {fill: CanvasTheme.interaction.breakpoint});
+    }
 }
 
 function drawColumnDragHighlight(context, painter, col) {
@@ -68,4 +84,4 @@ function drawRowDragHighlight(context, painter) {
     }
 }
 
-export {drawPlayheadBand, drawColumnDragHighlight, drawRowDragHighlight};
+export {drawBreakpoints, drawPlayheadBand, drawColumnDragHighlight, drawRowDragHighlight};

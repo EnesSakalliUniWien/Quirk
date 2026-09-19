@@ -7,6 +7,8 @@ import { setErrorBannerHost } from "../../../diagnostics/errorReporter.js";
 import { appStore } from "../../../state/appStore.js";
 import { openPanel } from "../../dock.jsx";
 import { GutterEditors } from "./gutter-editors.jsx";
+import { GateMenu } from "./gate-menu.jsx";
+import { WireDials } from "./wire-dial.jsx";
 import { ForgeRangeHighlight } from './forge-range-highlight.jsx';
 
 /**
@@ -62,6 +64,8 @@ function CircuitPanel() {
             y,
           },
         }),
+      // A right click on a gate: the gate, its slot and where the pointer was, for the gate menu.
+      openGateMenu: (target) => appStore.setState({ gateMenu: target }),
     });
   };
 
@@ -77,6 +81,9 @@ function CircuitPanel() {
         <div id="canvas-scroll-spacer" ref={scrollSpacerRef} aria-hidden="true" />
         {/* The rename box and the wire-label menu sit in the scroll content, over the drawing. */}
         <GutterEditors host={canvasDivRef} />
+        {/* The gate menu and the rotation gates' dials sit in the scroll content too, at their gate. */}
+        <GateMenu host={canvasDivRef} />
+        <WireDials />
         <ForgeRangeHighlight host={canvasDivRef} />
       </div>
       <div id="circuit-overlay" ref={circuitOverlayRef} />

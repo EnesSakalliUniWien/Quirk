@@ -40,6 +40,8 @@ const appStore = createStore((set) => ({
   circuitActions: undefined,
   /** @type {undefined|!RegisterActions} Edits to the registers, each one commit. Set once by startQuirk. */
   registerActions: undefined,
+  /** @type {undefined|!GateActions} Edits to one gate in its slot, each one commit. Set once by startQuirk. */
+  gateActions: undefined,
 
   /** Where the transport is parked and what it may do. Mirrored from Playhead. */
   playheadState: {
@@ -47,6 +49,8 @@ const appStore = createStore((set) => ({
     columnCount: 0,
     operationIndex: 0,
     operationCount: 0,
+    breakpoints: [],
+    nextColumn: undefined,
     playing: false,
     canPlay: false,
     canStepBack: false,
@@ -54,6 +58,12 @@ const appStore = createStore((set) => ({
   },
   /** @type {undefined|!Playhead} Set once by startQuirk. */
   playhead: undefined,
+  /** @type {!boolean} Whether the circuit is being debugged: a transport command has stopped the
+   *  animation, and t moves only with the playhead's steps. Mirrored from Simulator. */
+  debugging: false,
+  /** @type {undefined|!function(): void} Ends the debugging: the playhead returns to the start and
+   *  the animation runs again. Set once by startQuirk. */
+  stopDebugging: undefined,
   /** @type {undefined|!Object} Records and restores completed simulation results. */
   recorder: undefined,
 
@@ -101,6 +111,10 @@ const appStore = createStore((set) => ({
    *  The wire label whose menu is open, its register's name rect in circuit coordinates when it
    *  has one, and where the pointer was, in client coordinates. */
   gutterMenu: undefined,
+
+  /** @type {undefined|!{col: !int, row: !int, gate: !Gate, x: !number, y: !number}}
+   *  The gate whose menu is open, by its slot, and where the pointer was, in client coordinates. */
+  gateMenu: undefined,
 }));
 
 export { appStore };

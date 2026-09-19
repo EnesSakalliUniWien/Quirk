@@ -105,6 +105,37 @@ suite.test("an unchanged time-independent column keeps its matrix", () => {
     assertThat(second.steps.length).isEqualTo(3);
 });
 
+suite.test("the states before the first time-dependent column are kept while time moves", () => {
+    const spin = Gates.Powering.XForward;
+    const circuit = circuitOf(2, [H, undefined], [C, X], [spin, undefined], [undefined, H]);
+    const first = circuitAlgebra(CircuitStats.fromCircuitAtTime(circuit, 0.125), 2);
+    const second = circuitAlgebra(CircuitStats.fromCircuitAtTime(circuit, 0.25), 2, first);
+    // Reused, not recomputed: the same objects, up to the state the spinning column starts from.
+    for (const k of [0, 1, 2]) {
+        assertThat(second.states[k] === first.states[k]).withInfo({k}).isEqualTo(true);
+    }
+    // From the spinning column on, every state is the simulator's at the new time.
+    const fresh = circuitAlgebra(CircuitStats.fromCircuitAtTime(circuit, 0.25), 2);
+    for (const k of [3, 4]) {
+        assertThat(second.states[k] === first.states[k]).withInfo({k}).isEqualTo(false);
+        assertThat(second.states[k]).withInfo({k}).isApproximatelyEqualTo(fresh.states[k], 0.0001);
+    }
+    assertThat(second.states[3]).isNotApproximatelyEqualTo(first.states[3], 0.0001);
+});
+
+suite.test("an edited column, another seed or other wires drop the states that depended on them", () => {
+    const circuit = circuitOf(2, [H, undefined], [C, X]);
+    const first = circuitAlgebra(CircuitStats.fromCircuitAtTime(circuit, 0, "a"), 2);
+    const edited = circuit.withColumns([circuit.columns[0], new GateColumn([undefined, X])]);
+    const second = circuitAlgebra(CircuitStats.fromCircuitAtTime(edited, 0, "a"), 2, first);
+    assertThat(second.states[1] === first.states[1]).isEqualTo(true);
+    assertThat(second.states[2] === first.states[2]).isEqualTo(false);
+    const reseeded = circuitAlgebra(CircuitStats.fromCircuitAtTime(circuit, 0, "b"), 2, first);
+    assertThat(reseeded.states[0] === first.states[0]).isEqualTo(false);
+    const widened = circuitAlgebra(CircuitStats.fromCircuitAtTime(circuit, 0, "a"), 3, first);
+    assertThat(widened.states[0] === first.states[0]).isEqualTo(false);
+});
+
 suite.test("a column is described by what acts where, and on what condition", () => {
     const text = describeColumn(new GateColumn([C, X]));
     assertThat(text.includes(X.name + " on q1")).isEqualTo(true);

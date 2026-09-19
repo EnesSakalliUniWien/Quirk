@@ -83,14 +83,15 @@ suite.test("display gates always wear a frame, and a highlight ring outside it w
         makeDisplayRenderer(() => {})({painter, rect, isHighlighted, isResizeShowing: false,
             positionInCircuit: {row: 0, col: 0}, gate: {canChangeInSize: () => false}});
         await painter.commit();
+        // Frames and rings are rounded tiles; the ring's corner follows the frame's, outside it.
         const strokes = [];
         const collect = node => {
-            if (node.values?.[0] === 'rect' && node.values[6] !== undefined) strokes.push(node.values.slice(1));
+            if (node.values?.[0] === 'roundRect' && node.values[7] !== undefined) strokes.push(node.values.slice(1));
             for (const child of node.children || []) collect(child);
         };
         collect(painter);
-        const expected = [[10.5, 10.5, 80, 80, undefined, CanvasTheme.stroke.displayFrame, 1]];
-        if (isHighlighted) expected.push([9, 9, 83, 83, undefined, CanvasTheme.interaction.outline, 2]);
+        const expected = [[10.5, 10.5, 80, 80, 6, undefined, CanvasTheme.stroke.displayFrame, 1]];
+        if (isHighlighted) expected.push([9, 9, 83, 83, 7.5, undefined, CanvasTheme.interaction.outline, 2]);
         assertThat(strokes).withInfo({isHighlighted}).isEqualTo(expected);
     }
 });

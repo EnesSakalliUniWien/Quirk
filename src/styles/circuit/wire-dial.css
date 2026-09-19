@@ -1,0 +1,49 @@
+/* The dial beside a rotation gate, on its wire: React, inside the scroll content, at the drawing's
+   zoom, so it stays with the gate. An encoder seen from above: a pale face, a dark core, and an arc
+   round the face from the top to the angle, in the axis's tone, along a quiet track. The colours
+   come from the theme (src/browser/theme/dom.js); the dial names only the arc's tone. */
+@layer components {
+    .wire-dial {
+        position: absolute;
+        z-index: 4;
+        box-sizing: border-box;
+        border: var(--border-width) solid var(--dial-ring);
+        border-radius: 50%;
+        background: var(--dial-face);
+        box-shadow: 0 0 0 var(--border-width) var(--dial-face);
+        transform-origin: top left;
+        cursor: grab;
+        touch-action: none;
+        user-select: none;
+        outline: none;
+    }
+
+    .wire-dial:active { cursor: grabbing; }
+
+    .wire-dial-core {
+        position: absolute;
+        inset: 30%;
+        border-radius: 50%;
+        background: var(--dial-core);
+    }
+
+    /* The arc: a ring whose sweep from the top is the angle, the rest of it the track. The face
+       itself never turns, so the dial stays put. */
+    .wire-dial-index {
+        position: absolute;
+        inset: 10%;
+        border-radius: 50%;
+        background: conic-gradient(var(--knob-index) 0deg, var(--knob-index) var(--arc), var(--dial-track) var(--arc), var(--dial-track) 360deg);
+        mask: radial-gradient(circle, transparent 58%, black 59%);
+        -webkit-mask: radial-gradient(circle, transparent 58%, black 59%);
+    }
+
+    /* A negative angle sweeps the other way. */
+    .wire-dial[data-negative="true"] .wire-dial-index { transform: scaleX(-1); }
+
+    .wire-dial:focus-visible {
+        box-shadow: 0 0 0 var(--border-width-focus) var(--ring);
+    }
+
+    .wire-dial[data-valid="false"] .wire-dial-index { opacity: 0.35; }
+}

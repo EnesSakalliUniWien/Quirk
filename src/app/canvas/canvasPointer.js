@@ -35,10 +35,15 @@ import {Point} from '../../geometry/Point.js';
  *     over the register's name, whose place in circuit coordinates is `rect`.
  * @param {!function(target: !{wire: !int, register: (undefined|!string), rect: (undefined|!Rect),
  *     x: !number, y: !number}): void} openGutterMenu Opens the menu for a wire label, at the client position.
+ * @param {!function(dx: !number, dy: !number): void} panViewport
+ * @param {undefined|!function(target: !{col: !int, row: !int, gate: !Gate}): void} openComplexDisplay
+ * @param {!function(target: !{col: !int, row: !int, gate: !Gate, x: !number, y: !number}): void} openGateMenu
+ *     Opens the menu for a gate in its slot, at the client position.
  * @returns {void}
  */
 function initCanvasPointer(canvas, canvasDiv, revision, displayed, syncArea, openGateParamEditor,
-                           openBlochSphereView, openRegisterRename, openGutterMenu, panViewport, openComplexDisplay) {
+                           openBlochSphereView, openRegisterRename, openGutterMenu, panViewport, openComplexDisplay,
+                           openGateMenu) {
     // Positions arrive in the canvas's on-screen pixels; the hand and geometry live in circuit
     // coordinates, which differ from those by the zoom factor and the scroll.
     const surface = RenderSurface.forCanvas(canvas);
@@ -220,8 +225,30 @@ function initCanvasPointer(canvas, canvasDiv, revision, displayed, syncArea, ope
     }, circuitPosOf);
     // Pixi forwards pointer releases but does not forward native pointercancel.
     canvas.addEventListener('pointercancel', gestures.cancel);
+
+    // A right click on a gate, its change button or its resize tab opens the gate's menu; on a wire
+    // label, the label's. The browser's own menu would open over either, and on macOS it fires on
+    // the press, before Pixi's rightclick, so the press remembers what it landed on.
+    const isGateMenuTarget = target =>
+        target?.type === 'gate' || target?.type === 'button' || target?.type === 'resize';
+    const isMenuTarget = target => isGateMenuTarget(target) || target?.type === 'wire' || target?.type === 'register';
+    let rightPressTarget = undefined;
+    stage.on('pointerdown', ev => {
+        if (ev.button === 2) {
+            rightPressTarget = ev.target.circuitTarget;
+        }
+    });
+    const suppressNativeMenu = ev => {
+        if (isMenuTarget(rightPressTarget)) {
+            ev.preventDefault();
+        }
+        rightPressTarget = undefined;
+    };
+    canvas.addEventListener('contextmenu', suppressNativeMenu);
+
     stage.once('destroyed', () => {
         canvas.removeEventListener('pointercancel', gestures.cancel);
+        canvas.removeEventListener('contextmenu', suppressNativeMenu);
         gestures.dispose();
     });
 
@@ -252,13 +279,17 @@ function initCanvasPointer(canvas, canvasDiv, revision, displayed, syncArea, ope
         }
     });
 
-    // A right click on a wire label opens its menu: group the wire, or rename, feed or ungroup its
-    // register. Elsewhere the browser's own menu stays.
+    // A right click on a gate opens its menu: switch it off or on, edit its parameter, or delete it.
+    // On a wire label, the label's menu: group the wire, or rename, feed or ungroup its register.
+    // Elsewhere the browser's own menu stays.
     stage.on('rightclick', ev => {
-
-
         const circuit = syncArea(displayed.getState().value).displayedCircuit;
         const target = ev.target.circuitTarget;
+        if (isGateMenuTarget(target)) {
+            openGateMenu({col: target.col, row: target.row, gate: target.gate, x: ev.clientX, y: ev.clientY});
+            ev.preventDefault();
+            return;
+        }
         const found = target?.type === 'wire' || target?.type === 'register' ? {
             wire: circuit.indexOfDisplayedRowAt(circuitPosOf(ev).y),
             register: circuit.circuitDefinition.registers.at(target.row)

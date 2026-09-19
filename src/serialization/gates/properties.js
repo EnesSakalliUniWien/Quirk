@@ -37,13 +37,14 @@ function _getGateId(json) {
 
 /**
  * @param {object} json
- * @returns {!{id: !String, matrix: *, circuit: *, symbol: *, name: *, param: *}}
+ * @returns {!{id: !String, matrix: *, circuit: *, symbol: *, name: *, param: *, off: !boolean}}
  */
 function fromJson_Gate_props(json) {
   const id = _getGateId(json);
   const matrix = json["matrix"];
   const circuit = json["circuit"];
   const param = json["arg"];
+  const off = json["off"] === true;
   const symbol =
     json.name !== undefined ? json.name : id.startsWith("~") ? "" : id;
   const name = id.startsWith("~")
@@ -51,7 +52,7 @@ function fromJson_Gate_props(json) {
     : symbol !== ""
       ? symbol
       : id;
-  return { id, matrix, circuit, symbol, name, param };
+  return { id, matrix, circuit, symbol, name, param, off };
 }
 
 export { fromJson_Gate_props };

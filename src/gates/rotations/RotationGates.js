@@ -40,7 +40,7 @@ function angleInRadians(param) {
  */
 function angleRotationRenderer(axisName) {
     // The label states the exact angle; the animation clock the time-varying gates paint
-    // (paintCycleState) is meaningless for a constant angle and only obscured the label.
+    // (paintTimeDial) is meaningless for a constant angle and only obscured the label.
     return args => {
         paintBackground(args);
         paintOutline(args);

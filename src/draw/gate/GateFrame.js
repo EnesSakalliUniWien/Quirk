@@ -33,7 +33,7 @@ import { gateButtonRect, rectForResizeTab } from "./GateRects.js";
 function paintOutline(args) {
   rectangle(args.painter, args.rect, {
     stroke: { color: CanvasTheme.text.primary, width: lineWidth(args.painter, Appearance.borders.width.regular) },
-  });
+  }, Appearance.borders.radius.tile);
   if (args.isHighlighted) {
     highlightRing(args.painter, args.rect);
   }
@@ -44,7 +44,7 @@ function paintOutline(args) {
  * @param {!string=} fillColor
  */
 function paintBackground(args, fillColor = gateStyle(args.gate).fill) {
-  rectangle(args.painter, args.rect, { fill: fillColor });
+  rectangle(args.painter, args.rect, { fill: fillColor }, Appearance.borders.radius.tile);
 }
 
 /**
@@ -184,7 +184,9 @@ function paintGateButton(args) {
     y: buttonRect.center().y,
     align: "center",
     baseline: "middle",
-    fill: CanvasTheme.text.onBright,
+    fill: buttonFocus
+      ? CanvasTheme.interaction.buttonFocusText
+      : CanvasTheme.interaction.buttonText,
     font: { fontSize: 12, fontFamily: Typography.DEFAULT_FONT_FAMILY },
     width: buttonRect.w,
     height: buttonRect.h,

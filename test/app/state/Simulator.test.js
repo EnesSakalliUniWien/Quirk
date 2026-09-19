@@ -17,7 +17,7 @@
 import {Suite, assertThat, assertTrue, assertFalse} from "../../TestUtil.js"
 import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js"
 import {Gates} from "../../../src/gates/AllGates.js"
-import {Simulation} from "../../../src/config/Simulation.js"
+import {Animation} from "../../../src/config/Animation.js"
 import {Simulator} from "../../../src/app/state/Simulator.js"
 
 const suite = new Suite("Simulator");
@@ -47,14 +47,14 @@ suite.test("cycleTime follows the injected clock and wraps at a full cycle, with
 
     assertThat(sim.cycleTime()).isEqualTo(0);
 
-    clock.advance(Simulation.CYCLE_DURATION_MS / 4);
+    clock.advance(Animation.CYCLE_DURATION_MS / 4);
     assertThat(sim.cycleTime()).isApproximatelyEqualTo(0.25);
 
-    clock.advance(Simulation.CYCLE_DURATION_MS / 4);
+    clock.advance(Animation.CYCLE_DURATION_MS / 4);
     assertThat(sim.cycleTime()).isApproximatelyEqualTo(0.5);
 
     // A full further cycle lands back on the same phase.
-    clock.advance(Simulation.CYCLE_DURATION_MS);
+    clock.advance(Animation.CYCLE_DURATION_MS);
     assertThat(sim.cycleTime()).isApproximatelyEqualTo(0.5);
 });
 
@@ -66,7 +66,7 @@ suite.test("simulate reuses the computed stats while the circuit is unchanged", 
                      -X`).withMinimumWireCount();
 
     const first = sim.simulate(c);
-    clock.advance(Simulation.CYCLE_DURATION_MS / 8);
+    clock.advance(Animation.CYCLE_DURATION_MS / 8);
     const second = sim.simulate(c);
 
     // A cache hit hands back the same underlying state. A still circuit leaves the cycle where it stands.
@@ -81,7 +81,7 @@ suite.test("simulate recomputes a time-dependent circuit every call, with the tr
                      --`);
 
     const first = sim.simulate(c);
-    clock.advance(Simulation.CYCLE_DURATION_MS / 8);
+    clock.advance(Animation.CYCLE_DURATION_MS / 8);
     const second = sim.simulate(c);
 
     assertFalse(second.finalState === first.finalState);
@@ -96,38 +96,62 @@ suite.test("a still circuit keeps the cycle where it stands, and a spinning one 
     const still = circuit(`H-
                          -X`);
 
-    clock.advance(Simulation.CYCLE_DURATION_MS / 4);
+    clock.advance(Animation.CYCLE_DURATION_MS / 4);
     assertThat(sim.simulate(spinning).time).isApproximatelyEqualTo(0.25);
-    clock.advance(Simulation.CYCLE_DURATION_MS / 2);
+    clock.advance(Animation.CYCLE_DURATION_MS / 2);
     assertThat(sim.simulate(still).time).isApproximatelyEqualTo(0.25);
     // The time spent on the still circuit is skipped, not jumped over.
-    clock.advance(Simulation.CYCLE_DURATION_MS / 8);
+    clock.advance(Animation.CYCLE_DURATION_MS / 8);
     assertThat(sim.simulate(spinning).time).isApproximatelyEqualTo(0.375);
 });
 
 suite.test("a hold or a restored take stands the cycle still", () => {
     const clock = manualClock();
     const sim = new Simulator(clock.now);
-    clock.advance(Simulation.CYCLE_DURATION_MS / 4);
+    clock.advance(Animation.CYCLE_DURATION_MS / 4);
     assertThat(sim.cycleTime()).isApproximatelyEqualTo(0.25);
 
     const release = sim.holdClock();
     assertFalse(sim.clockRunning());
-    clock.advance(Simulation.CYCLE_DURATION_MS / 2);
+    clock.advance(Animation.CYCLE_DURATION_MS / 2);
     assertThat(sim.cycleTime()).isApproximatelyEqualTo(0.25);
     release();
     release();
     assertTrue(sim.clockRunning());
-    clock.advance(Simulation.CYCLE_DURATION_MS / 8);
+    clock.advance(Animation.CYCLE_DURATION_MS / 8);
     assertThat(sim.cycleTime()).isApproximatelyEqualTo(0.375);
 
     sim.restore({phase: 0.5, seed: "restored"});
-    clock.advance(Simulation.CYCLE_DURATION_MS / 4);
+    clock.advance(Animation.CYCLE_DURATION_MS / 4);
     assertThat(sim.cycleTime()).isEqualTo(0.5);
     // A new run lets go of the restored take, and the cycle moves on from its phase.
     sim.newRun();
-    clock.advance(Simulation.CYCLE_DURATION_MS / 4);
+    clock.advance(Animation.CYCLE_DURATION_MS / 4);
     assertThat(sim.cycleTime()).isApproximatelyEqualTo(0.75);
+});
+
+suite.test("a stopped animation stands still and moves only by the increments it is given", () => {
+    const clock = manualClock();
+    const sim = new Simulator(clock.now);
+    clock.advance(Animation.CYCLE_DURATION_MS / 4);
+    sim.setAnimationStopped(true);
+    assertFalse(sim.clockRunning());
+    assertThat(sim.cycleTime()).isApproximatelyEqualTo(0.25);
+
+    clock.advance(Animation.CYCLE_DURATION_MS / 2);
+    assertThat(sim.cycleTime()).isApproximatelyEqualTo(0.25);
+    sim.advanceCycle(2 * Animation.DEBUG_STEP_CYCLE_INCREMENT);
+    assertThat(sim.simulate(circuit('t')).time).isApproximatelyEqualTo(0.25 + 2 * Animation.DEBUG_STEP_CYCLE_INCREMENT);
+    // Backwards wraps below zero like forwards wraps past one.
+    sim.advanceCycle(-0.5);
+    assertThat(sim.cycleTime()).isApproximatelyEqualTo(0.75 + 2 * Animation.DEBUG_STEP_CYCLE_INCREMENT);
+
+    // Resumed, the cycle moves on from where it stood, not from where the clock went meanwhile.
+    clock.advance(Animation.CYCLE_DURATION_MS / 2);
+    sim.setAnimationStopped(false);
+    assertTrue(sim.clockRunning());
+    clock.advance(Animation.CYCLE_DURATION_MS / 8);
+    assertThat(sim.cycleTime()).isApproximatelyEqualTo(0.875 + 2 * Animation.DEBUG_STEP_CYCLE_INCREMENT);
 });
 
 suite.test("simulateAtStep runs the truncated circuit without evicting the whole-circuit cache", () => {

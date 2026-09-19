@@ -18,12 +18,13 @@ import {drawWires} from './wires/CircuitWires.js';
 import {drawColumn} from './columns/CircuitColumns.js';
 import {drawOutputDisplays} from './outputs/CircuitOutputs.js';
 import {drawHintLabels} from './outputs/CircuitCaptions.js';
-import {drawPlayheadBand, drawRowDragHighlight} from './interaction/CircuitHighlights.js';
+import {drawBreakpoints, drawPlayheadBand, drawRowDragHighlight} from './interaction/CircuitHighlights.js';
 
 /** Updates retained Pixi objects from prepared inputs; never reads or modifies CircuitViewState. */
-export function renderCircuitLayers(context, painter, hand, stats, forTooltip=false, showWires=true, playheadStep=undefined) {
+export function renderCircuitLayers(context, painter, hand, stats, forTooltip=false, showWires=true, playheadStep=undefined, breakpoints=[]) {
     if (!forTooltip) {
         painter.group('playhead', view => drawPlayheadBand(context, view, playheadStep));
+        painter.group('breakpoints', view => drawBreakpoints(context, view, breakpoints));
     }
 
     if (showWires) {

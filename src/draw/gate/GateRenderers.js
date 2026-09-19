@@ -15,7 +15,6 @@ import {Appearance} from '../../appearance/Appearance.js';
  * limitations under the License.
  */
 
-import {drawGraphics} from '../scene/DisplayView.js';
 import {frame, highlightRing, lineWidth, rectangle, strokePath} from '../shapes/ShapeView.js';
 import {fitText} from '../text/TextLayout.js';
 
@@ -24,10 +23,10 @@ import {CanvasTheme} from '../../config/CanvasTheme.js';
 import {DATA_RENDERERS} from '../renderers/dataRenderers.js';
 import {Point} from '../../geometry/Point.js';
 import {Rect} from '../../geometry/Rect.js';
-import { properMod } from "../../engine/math/modularArithmetic.js";
 
 import {paintBackground, paintOutline, paintResizeTab, paintLocationIndependentFrame} from './GateFrame.js';
 import {GATE_SYMBOL_FONT, paintGateSymbol} from './GateSymbol.js';
+import {paintTimeDial} from './TimeDial.js';
 
 /** @typedef {import('./GateRenderParams.js').GateRenderParams} GateRenderParams */
 
@@ -119,9 +118,11 @@ const DISPLAY_GATE_DEFAULT_RENDERER = MAKE_HIGHLIGHTED_RENDERER();
 /**
  * @param {!function(!GateRenderParams): (undefined|!Rect)} statePainter Returns what it occupied,
  *     when that is less than the gate.
+ * @param {!{framed: (undefined|!boolean)}=} options framed is false for a display that is its own
+ *     shape, like the Bloch sphere, which wears no box around it.
  * @returns {!function(!GateRenderParams)}
  */
-const makeDisplayRenderer = statePainter => args => {
+const makeDisplayRenderer = (statePainter, {framed = true} = {}) => args => {
     if (args.positionInCircuit === undefined) {
         DISPLAY_GATE_DEFAULT_RENDERER(args);
         return;
@@ -132,7 +133,9 @@ const makeDisplayRenderer = statePainter => args => {
 
     // A distinct outer edge separates dark display surfaces from the canvas. It follows what was
     // drawn, so space the display leaves empty inside its gate does not read as part of it.
-    frame(args.painter, content, CanvasTheme.stroke.displayFrame);
+    if (framed) {
+        frame(args.painter, content, CanvasTheme.stroke.displayFrame);
+    }
     if (args.isHighlighted) {
         highlightRing(args.painter, content);
     }
@@ -163,46 +166,17 @@ const MATRIX_RENDERER = args => {
 };
 
 /**
- * @param {!GateRenderParams} args
- * @param {!number} angle
- * @param {!number=} xScale
- * @param {!number=} yScale
- * @param {!number=} zeroAngle
- */
-function paintCycleState(args, angle, xScale = 1, yScale = 1, zeroAngle = 0) {
-    const t = properMod(-angle, 2 * Math.PI);
-    const c = args.rect.center();
-    const r = 16;
-
-    args.painter.group('cycle-' + args.painter.order, painter => {
-        painter.position.set(c.x, c.y);
-        painter.scale.set(-xScale, -yScale);
-        painter.alpha = 0.4;
-        painter.group('angle', painter => {
-            painter.rotation = zeroAngle;
-            drawGraphics(painter, path => {
-            path.moveTo(0, 0);
-            path.lineTo(0, r);
-            path.arc(0, 0, r, Math.PI / 2, Math.PI / 2 + t, true);
-            path.lineTo(0, 0);
-            path.closePath();
-            path.stroke({color: CanvasTheme.text.primary, width: 1}).fill(CanvasTheme.operation.fill);
-            });
-        });
-    });
-}
-
-/**
- * @param {!number=} xScale
- * @param {!number=} yScale
- * @param {!number=} tScale
- * @param {!number=} zeroAngle
+ * A gate drawn with the dial beside it, reading the gate's own turnsAt - the very number its effect
+ * is built from, so the dial cannot show one thing while the simulation does another.
+ *
+ * @param {!{xScale: (undefined|!number), yScale: (undefined|!number), zeroAngle: (undefined|!number)}} axis
+ *     The dial's face; see DIAL_AXIS.
  * @returns {!function(!GateRenderParams)}
  */
-const makeCycleRenderer = (xScale = 1, yScale = 1, tScale = 1, zeroAngle = 0) => args => {
-    // The clock marks time dependence while the fill retains the operation family.
+const makeCycleRenderer = axis => args => {
+    // The dial marks time dependence while the fill retains the operation family.
     DEFAULT_RENDERER(args);
-    paintCycleState(args, args.stats.time * 2 * Math.PI * tScale, xScale, yScale, zeroAngle);
+    paintTimeDial(args, args.gate.turnsAt(args.stats.time, args.gate.param), axis);
 };
 
 export {
@@ -214,6 +188,5 @@ export {
     SECTIONED_RENDERER_MAKER,
     makeDisplayRenderer,
     MATRIX_RENDERER,
-    paintCycleState,
     makeCycleRenderer
 }

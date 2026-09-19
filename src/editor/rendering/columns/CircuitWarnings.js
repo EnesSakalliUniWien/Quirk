@@ -19,6 +19,7 @@ import {fitText, fitParagraph} from '../../../draw/text/TextLayout.js';
 import {CanvasTheme} from '../../../config/CanvasTheme.js';
 import {Typography} from '../../../config/Typography.js';
 import {Point} from '../../../geometry/Point.js';
+import {Gate} from '../../../circuit/model/Gate.js';
 /** @typedef {import('../../../geometry/Rect.js').Rect} Rect */
 
 /**
@@ -33,6 +34,10 @@ function drawGate_disabledReason(context, painter, col, row, gateRect) {
     if (isDisabledReason === undefined) {
         return;
     }
+    if (isDisabledReason === Gate.DEACTIVATED_REASON) {
+        drawGate_deactivated(painter, gateRect);
+        return;
+    }
 
     // Keep the reason opaque and readable, including while the disabled gate is hovered.
     const area = gateRect.paddedBy(5);
@@ -41,6 +46,30 @@ function drawGate_disabledReason(context, painter, col, row, gateRect) {
     fitParagraph(painter, isDisabledReason, area, {
         alignment: new Point(0.5, 0.5),
         fill: CanvasTheme.error.text
+    });
+}
+
+/**
+ * A gate switched off from its menu is not a mistake, so it wears no warning: a veil of the
+ * circuit's background dims it in its slot, and a small "off" says why it does nothing.
+ * @param {!DisplayView} painter
+ * @param {!Rect} gateRect
+ */
+function drawGate_deactivated(painter, gateRect) {
+    painter.group('deactivated-' + painter.order, veil => {
+        veil.alpha *= 0.62;
+        rectangle(veil, gateRect.paddedBy(1), {fill: CanvasTheme.surface.background});
+    });
+    rectangle(painter, gateRect, {stroke: {color: CanvasTheme.text.muted, width: 1}});
+    fitText(painter, 'off', {
+        x: gateRect.x + 3,
+        y: gateRect.y + 2,
+        align: 'left',
+        baseline: 'top',
+        fill: CanvasTheme.text.muted,
+        font: {fontSize: 10, fontFamily: Typography.MONO_FONT_FAMILY},
+        width: gateRect.w - 6,
+        height: 12
     });
 }
 

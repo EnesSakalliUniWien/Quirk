@@ -27,6 +27,23 @@ suite.test("toString_runsWithoutFailing", () => {
     assertThat(g.toString()).isNotEqualTo(null);
 });
 
+suite.test("withDeactivated", () => {
+    const g = Gate.fromKnownMatrix("symbol", QubitMatrix.HADAMARD, "name", "blurb");
+    assertThat(g.deactivated).isEqualTo(false);
+    assertThat(g.withDeactivated(false)).is(g);
+
+    const off = g.withDeactivated(true);
+    assertThat(off.deactivated).isEqualTo(true);
+    assertThat(off).isNotEqualTo(g);
+    // Everything else rides along, so switching back on gives the same gate as before.
+    assertThat(off.symbol).isEqualTo(g.symbol);
+    assertThat(off.knownMatrixAt(0)).isEqualTo(g.knownMatrixAt(0));
+    assertThat(off.withDeactivated(true)).is(off);
+    assertThat(off.withDeactivated(false).deactivated).isEqualTo(false);
+    // A parameter change keeps the flag.
+    assertThat(off.withParam(3).deactivated).isEqualTo(true);
+});
+
 suite.test("stableDuration", () => {
     const m0 = Gate.fromKnownMatrix("symbol", QubitMatrix.HADAMARD, "name", "blurb");
     const mt = new GateBuilder().setEffectToTimeVaryingMatrix(t => Matrix.square(t, 0, 0, 0)).gate;

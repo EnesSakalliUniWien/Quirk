@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-import {Appearance} from '../Appearance.js';
-const {lightness: PHASE_LIGHTNESS, chroma: PHASE_CHROMA} = Appearance.phase;
+import { Appearance } from "../Appearance.js";
 
-function phaseRgb(phaseDegrees) {
+/** The phase wheel for one scheme's `phase` settings; the active scheme's by default. */
+function phaseRgb(phaseDegrees, { lightness, chroma } = Appearance.phase) {
   const hue = ((((phaseDegrees % 360) + 360) % 360) * Math.PI) / 180;
-  const a = PHASE_CHROMA * Math.cos(hue);
-  const b = PHASE_CHROMA * Math.sin(hue);
+  const a = chroma * Math.cos(hue);
+  const b = chroma * Math.sin(hue);
   // OKLab to linear sRGB (Ottosson), then the sRGB transfer curve.
-  const l = (PHASE_LIGHTNESS + 0.3963377774 * a + 0.2158037573 * b) ** 3;
-  const m = (PHASE_LIGHTNESS - 0.1055613458 * a - 0.0638541728 * b) ** 3;
-  const s = (PHASE_LIGHTNESS - 0.0894841775 * a - 1.291485548 * b) ** 3;
+  const l = (lightness + 0.3963377774 * a + 0.2158037573 * b) ** 3;
+  const m = (lightness - 0.1055613458 * a - 0.0638541728 * b) ** 3;
+  const s = (lightness - 0.0894841775 * a - 1.291485548 * b) ** 3;
   const linear = [
     4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
     -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
@@ -39,9 +39,9 @@ function phaseRgb(phaseDegrees) {
 }
 
 /** Cyclic phase scale in degrees, as a CSS colour; the number beside a swatch is the cue. */
-function phaseColor(phaseDegrees, alpha = 1) {
-  const [r, g, b] = phaseRgb(phaseDegrees);
+function phaseColor(phaseDegrees, alpha = 1, phase = Appearance.phase) {
+  const [r, g, b] = phaseRgb(phaseDegrees, phase);
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-export {phaseRgb, phaseColor};
+export { phaseRgb, phaseColor };

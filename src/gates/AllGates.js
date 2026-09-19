@@ -27,6 +27,7 @@ import { VariousZGates } from "./rotations/VariousZGates.js";
 
 // Displays.
 import { AmplitudeDisplayFamily } from "./displays/amplitudes/AmplitudeDisplay.js";
+import { AssertionGates } from "./assertions/AssertionGates.js";
 import { BlochSphereDisplay } from "./displays/bloch/BlochSphereDisplay.js";
 import { DensityMatrixDisplayFamily } from "./displays/density/DensityMatrixDisplay.js";
 import { ProbabilityDisplayFamily } from "./displays/probability/ProbabilityDisplay.js";
@@ -93,6 +94,7 @@ Gates.Special = {
  * Gates that display information without affecting the state.
  * (In reality these would require multiple runs of the circuit to do tomography.)
  */
+Gates.Assertions = AssertionGates;
 Gates.Displays = {
   AmplitudeDisplayFamily: AmplitudeDisplayFamily,
   ProbabilityDisplayFamily: ProbabilityDisplayFamily,
@@ -182,6 +184,7 @@ Gates.KnownToSerializer = [
   ...SampleDisplayFamily.all,
   ...DensityMatrixDisplayFamily.all,
   BlochSphereDisplay,
+  ...AssertionGates.all,
 
   ...HalfTurnGates.all,
   ...QuarterTurnGates.all,
@@ -251,6 +254,14 @@ Gates.TopToolboxGroups = [
       BlochSphereDisplay,
       ProbabilityDisplayFamily.ofSize(1),
       AmplitudeDisplayFamily.ofSize(2),
+    ],
+  },
+  {
+    hint: "Assertions",
+    gates: [
+      AssertionGates.SuperpositionFamily.ofSize(1),
+      AssertionGates.EntanglementFamily.ofSize(2),
+      AssertionGates.EqualityFamily.ofSize(1),
     ],
   },
   {

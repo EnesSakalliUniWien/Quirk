@@ -271,8 +271,10 @@ test('the probabilities panel keeps a large state to the outcomes some step allo
     });
 });
 
-test('spinning gates turn without the transport playing', async browser => {
-    // X^t turns its wire over the animation cycle; nothing here presses Play.
+test('spinning gates stand still once the transport debugs the circuit', async browser => {
+    // X^t turns its wire over the animation cycle, until a transport command starts the debugging:
+    // from then on t moves only with the playhead's steps. (test_e2e/transport.test.js covers the
+    // increments, and the cycle running again once the debugging is stopped.)
     await withQuirkPage(browser, {cols: [['X^t']]}, async page => {
         await runToEnd(page, 1);
         await page.click('#qubits-button');
@@ -280,9 +282,9 @@ test('spinning gates turn without the transport playing', async browser => {
         const chanceOfOne = '[data-panel-id="qubits"] [data-qubit="0"] .qubits-number';
         const first = await page.waitForFunction(selector => document.querySelector(selector)?.textContent,
             {timeout: TEST_TIMEOUT_MILLIS}, chanceOfOne).then(handle => handle.jsonValue());
-        await page.waitForFunction((selector, before) => document.querySelector(selector).textContent !== before,
-            {timeout: TEST_TIMEOUT_MILLIS}, chanceOfOne, first);
-        assert.equal(await page.$eval('#playhead-play-button', button => button.getAttribute('aria-pressed')), 'false');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        assert.equal(await page.$eval(chanceOfOne, cell => cell.textContent), first);
+        assert.equal(await page.$eval('#debug-stop-button', button => button.disabled), false);
     });
 });
 

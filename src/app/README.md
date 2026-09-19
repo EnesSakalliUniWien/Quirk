@@ -12,12 +12,13 @@ app/
 │   │                   they are mirrored into lives in src/state/appStore.js)
 │   ├── CircuitActions.js   undo, redo and clearing over the circuit revision
 │   ├── RegisterActions.js  edits to the circuit's registers - name, wires, input - each one commit
+│   ├── GateActions.js      edits to one gate in its slot - switch it off or on, delete - each one commit
 │   ├── Playhead.js         where the transport controls are parked in the circuit
 │   ├── Simulator.js        runs circuits against one clock and publishes completed results
 │   └── Recorder.js         records, imports and restores takes; coordinates whole-run batches
 ├── canvas/         the circuit canvas
 │   ├── zoom.js             the camera: zoom factor plus scroll offset
-│   ├── canvasPointer.js    click, grab, drag and drop editing on the canvas
+│   ├── canvasPointer.js    click, grab, drag and drop editing on the canvas, and the right-click menus
 │   ├── toolboxDrag.js      bridges a grab in the DOM toolbox onto the canvas
 │   ├── minimap.js          the schematic overview of a wide circuit
 │   ├── CircuitViewport.js  one frame: the scroll offset, the circuit stamp and the editor scene

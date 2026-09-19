@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { clock } from "../../base/Clock.js";
 import { RenderCanvas } from "../../draw/surface/RenderCanvas.jsx";
 import { CanvasTheme } from "../../config/CanvasTheme.js";
 import { Rect } from "../../geometry/Rect.js";
@@ -13,7 +14,7 @@ export function CircuitFigure({
   time,
   responsive = false,
   animate = false,
-  clock,
+  cycleTime,
 }) {
   const canvasRef = useRef(null);
   const host = useRef(null);
@@ -31,7 +32,6 @@ export function CircuitFigure({
   useEffect(() => {
     if (!ready || !canvasRef.current) return;
     const ratio = window.devicePixelRatio || 1;
-    let frame;
     const draw = () => {
       const painter = RenderSurface.forCanvas(canvasRef.current)
         .resize(width * ratio, height * ratio)
@@ -44,18 +44,13 @@ export function CircuitFigure({
         circuit,
         new Rect(0, 0, width, height),
         true,
-        clock ? clock() : time,
+        cycleTime ? cycleTime() : time,
       );
       painter.tooltips?.flush();
     };
     draw();
-    if (animate)
-      frame = requestAnimationFrame(function tick() {
-        draw();
-        frame = requestAnimationFrame(tick);
-      });
-    return () => cancelAnimationFrame(frame);
-  }, [ready, width, height, circuit, time, animate, clock]);
+    return animate ? clock.onFrame(draw) : undefined;
+  }, [ready, width, height, circuit, time, animate, cycleTime]);
   return (
     <div
       ref={host}

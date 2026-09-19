@@ -41,6 +41,7 @@ test('renders the circuit controls as a button toolbar', async browser => {
         // Clear All comes last, away from Clear Circuit; the row has no button groups.
         assert.deepEqual(toolbar.buttonIds, [
             'examples-button',
+            'colour-scheme-button',
             'export-button', 'tape-button',
             'state-button',
             'algebra-button',
@@ -58,7 +59,7 @@ test('renders the circuit controls as a button toolbar', async browser => {
         const labels = await page.$$eval('.app-toolbar [data-slot="button"]',
             els => els.map(el => el.getAttribute('aria-label')));
         assert.deepEqual(labels,
-            ['Examples', 'Export', 'Tape', 'State', 'Algebra', 'Probabilities', 'Qubits', 'Registers',
+            ['Examples', 'Colour scheme: dark. Open menu to change.', 'Export', 'Tape', 'State', 'Algebra', 'Probabilities', 'Qubits', 'Registers',
              'Clear Circuit', 'Undo', 'Redo', 'Make Gate', 'Gate Parameter', 'Clear All']);
 
         // The destructive action takes the row's slack: never flush against Clear Circuit, and

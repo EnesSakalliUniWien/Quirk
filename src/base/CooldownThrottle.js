@@ -14,24 +14,29 @@
  * limitations under the License.
  */
 
+import { clock as appClock } from "./Clock.js";
+
 /**
  * Performs an action when triggered, but defers the action if it happens too soon after the last one.
  *
  * Triggering multiple times during the cooldown period only results in one action being performed.
+ *
+ * The cooldown runs on the app's clock, like everything else that waits: a deferred action comes
+ * back on the first of the clock's frames after the cooldown.
  */
 class CooldownThrottle {
   /**
    * @param {!function() : void} action
    * @param {!number} cooldownMs
    * @param {!number} slowActionCooldownPumpUpFactor
-   * @param {!boolean=false} waitWithRequestAnimationFrame
+   * @param {!Clock} clock
    * @constructor
    */
   constructor(
     action,
     cooldownMs,
     slowActionCooldownPumpUpFactor = 0,
-    waitWithRequestAnimationFrame = false,
+    clock = appClock,
   ) {
     /** @type {!function() : void} */
     this.action = action;
@@ -39,8 +44,8 @@ class CooldownThrottle {
     this.cooldownDuration = cooldownMs;
     /** @type {!number} */
     this.slowActionCooldownPumpupFactor = slowActionCooldownPumpUpFactor;
-    /** @type {!boolean} */
-    this._waitWithRequestAnimationFrame = waitWithRequestAnimationFrame;
+    /** @type {!Clock} */
+    this._clock = clock;
 
     /**
      * @type {!string}
@@ -57,7 +62,7 @@ class CooldownThrottle {
   _triggerIdle() {
     // Still cooling down?
     const remainingCooldownDuration =
-      this.cooldownDuration - (performance.now() - this._cooldownStartTime);
+      this.cooldownDuration - (this._clock.now() - this._cooldownStartTime);
     if (remainingCooldownDuration > 0) {
       this._forceIdleTriggerAfter(remainingCooldownDuration);
       return;
@@ -65,13 +70,13 @@ class CooldownThrottle {
 
     // Go go go!
     this._state = "running";
-    const t0 = performance.now();
+    const t0 = this._clock.now();
     try {
       this.action();
     } finally {
-      const dt = performance.now() - t0;
+      const dt = this._clock.now() - t0;
       this._cooldownStartTime =
-        performance.now() + dt * this.slowActionCooldownPumpupFactor;
+        this._clock.now() + dt * this.slowActionCooldownPumpupFactor;
       // Were there any triggers while we were running?
       if (this._state === "running-and-triggered") {
         this._forceIdleTriggerAfter(this.cooldownDuration);
@@ -110,28 +115,11 @@ class CooldownThrottle {
    */
   _forceIdleTriggerAfter(duration) {
     this._state = "waiting";
-
-    // setTimeout seems to refuse to run while I'm scrolling with my mouse wheel on chrome in windows.
-    // So, for stuff that really has to come back in that case, we also support requestAnimationFrame looping.
-    if (this._waitWithRequestAnimationFrame) {
-      const start = performance.now();
-      const iter = () => {
-        if (performance.now() < start + duration) {
-          requestAnimationFrame(iter);
-          return;
-        }
-        this._state = "idle";
-        this._cooldownStartTime = -Infinity;
-        this.trigger();
-      };
-      iter();
-    } else {
-      setTimeout(() => {
-        this._state = "idle";
-        this._cooldownStartTime = -Infinity;
-        this.trigger();
-      }, duration);
-    }
+    this._clock.after(duration, () => {
+      this._state = "idle";
+      this._cooldownStartTime = -Infinity;
+      this.trigger();
+    });
   }
 }
 

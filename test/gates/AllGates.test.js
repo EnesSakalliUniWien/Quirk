@@ -203,6 +203,10 @@ suite.test("knownDoNothingGateFamilies", () => {
         'Sample1',
         'Density',
         'Bloch',
+        // Assertions judge the state and leave it alone.
+        'assert-sup1',
+        'assert-ent2',
+        'assert-eq1',
         // Spacer gate.
         '…'
     ]));

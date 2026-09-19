@@ -30,7 +30,7 @@ export function renderCircuitTargets(view, {definition, geometry}, hand) {
             if (gate.canChangeInSize()) target(`resize-${col}-${row}`, rectForResizeTab(rect),
                 {type: 'resize', col, row, gate}, 'ns-resize');
             if (gate.paramDialog) target(`button-${col}-${row}`,
-                gateButtonRect(geometry.gateRect(row, col, gate.width, gate.height)),
+                gateButtonRect(geometry.gateRect(row, col, CircuitGeometry.drawnWidth(gate), gate.height)),
                 {type: 'button', col, row, gate});
         }
     }

@@ -123,6 +123,30 @@ function describeColumn(column, registers = Registers.EMPTY) {
 }
 
 /**
+ * How many of `previous`'s leading states still hold: state k holds while the first k columns are
+ * time-independent and unchanged, run from the same wires, initial values and seed.
+ *
+ * @param {!CircuitStats} stats
+ * @param {!int} wireCount
+ * @param {undefined|!CircuitAlgebra} previous
+ * @returns {!int}
+ */
+function reusableStateCount(stats, wireCount, previous) {
+    const circuit = stats.circuitDefinition;
+    if (previous === undefined || previous.wireCount !== wireCount || previous.seed !== stats.seed ||
+            previous.circuit.numWires !== circuit.numWires ||
+            !equate_Maps(previous.circuit.customInitialValues, circuit.customInitialValues)) {
+        return 0;
+    }
+    const unchanged = circuit.columns.findIndex((column, k) =>
+        column.stableDuration() !== Infinity ||
+        k >= previous.circuit.columns.length ||
+        !previous.circuit.columns[k].isEqualTo(column));
+    // State 0 precedes every column. With every column kept, the final state is kept too.
+    return (unchanged === -1 ? circuit.columns.length : unchanged) + 1;
+}
+
+/**
  * The whole circuit as a list of steps.
  *
  * States come from the simulator, one truncated run per step, so every one is what the circuit
@@ -130,12 +154,16 @@ function describeColumn(column, registers = Registers.EMPTY) {
  * which of its gates are enabled and the inputs earlier columns set are unchanged - reading the
  * list while a time-dependent gate spins elsewhere then only rebuilds that gate's step.
  *
+ * The states before the first time-dependent column do not depend on the time either, so they are
+ * reused from `previous` too, while the columns before them, the wires, the initial values and the
+ * seed are unchanged. A spinning gate then only reruns the steps from its own column on.
+ *
  * @param {!CircuitStats} stats The stats of the whole circuit.
  * @param {!int} wireCount
  * @param {undefined|!CircuitAlgebra} previous
  * @returns {!CircuitAlgebra}
  *
- * @typedef {!{wireCount: !int, states: !Array.<!Matrix>, steps: !Array.<!{
+ * @typedef {!{wireCount: !int, circuit: !CircuitDefinition, seed: *, states: !Array.<!Matrix>, steps: !Array.<!{
  *     column: !GateColumn, reasons: !Array.<undefined|!string>, context: !Map.<!string, *>,
  *     description: !string, structure: (undefined|!ColumnStructure), matrix: (undefined|!Matrix),
  *     reason: (undefined|!string), residual: (undefined|!number)}>}} CircuitAlgebra
@@ -143,7 +171,9 @@ function describeColumn(column, registers = Registers.EMPTY) {
 function circuitAlgebra(stats, wireCount, previous = undefined) {
     const circuit = stats.circuitDefinition;
     const {columns} = circuit;
-    const states = Array.from({length: columns.length + 1}, (_, k) => stateAtStep(stats, wireCount, k));
+    const kept = reusableStateCount(stats, wireCount, previous);
+    const states = Array.from({length: columns.length + 1}, (_, k) =>
+        k < kept ? previous.states[k] : stateAtStep(stats, wireCount, k));
 
     const steps = columns.map((column, k) => {
         const reasons = Array.from({length: wireCount}, (_, row) => circuit.gateAtLocIsDisabledReason(k, row));
@@ -175,7 +205,7 @@ function circuitAlgebra(stats, wireCount, previous = undefined) {
             residual: predicted === undefined ? undefined : stateDistance(predicted, states[k + 1]),
         };
     });
-    return {wireCount, states, steps};
+    return {wireCount, circuit, seed: stats.seed, states, steps};
 }
 
 export {circuitAlgebra, describeColumn, paddedState, stateAtStep}

@@ -22,7 +22,8 @@ import {
  *     | { kind: "explore", vec: BlochVector, preset: (string | undefined) }} ViewMode Which state
  *     is shown: the one opened for, one of the circuit's earlier steps, or a free one explored.
  * @typedef {{ circles: boolean, grid: boolean, components: boolean, planes: boolean,
- *     angles: boolean, quaternion: boolean, trig: boolean }} Layers The constructions drawn.
+ *     angles: boolean, quaternion: boolean, trig: boolean, shadow: boolean }} Layers The
+ *     constructions drawn; shadow is where the vector falls on the equator and on the surface.
  * @typedef {{ vec: (BlochVector | undefined), label: string }} Step The qubit after one column,
  *     and the gates that column holds.
  * @typedef {ReturnType<typeof analyzerReadout> & { state: string, thetaDegrees: number,
@@ -31,12 +32,6 @@ import {
  * @typedef {{ theta: number, phi: number, thetaDefined: boolean, phiDefined: boolean }} Angles
  *     The angles in degrees, and whether each exists for the state shown.
  */
-
-/** How long a preset takes to arrive, in milliseconds; a jump to another step glides as long. */
-const PRESET_TRANSITION = 300;
-
-/** Ease in, then out: a glide starts and lands gently. @param {number} t in [0, 1] */
-const easeInOut = (t) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2);
 
 /**
  * @typedef {{ target: (BlochTarget | undefined), kind: ViewMode["kind"], index: (number | undefined),
@@ -80,6 +75,7 @@ const INITIAL_LAYERS = {
   angles: true,
   quaternion: false,
   trig: false,
+  shadow: false,
 };
 
 /** @type {Array<[keyof Layers, string]>} Each layer's switch, in the order they are offered. */
@@ -91,6 +87,7 @@ const LAYERS = [
   ["circles", "Unit circles"],
   ["grid", "Grid 30°"],
   ["trig", "cos · sin"],
+  ["shadow", "Shadow"],
 ];
 
 /** @type {Array<[string, string]>} Each axis, with the two kets at its poles. */
@@ -101,16 +98,17 @@ const AXES = [
 ];
 
 /**
- * The single-qubit state the panel was opened for, or undefined if that sphere has gone: an undo
- * or a URL change can remove it underneath the panel, and showing some other slot's state would be
- * worse than closing.
+ * The single-qubit state the panel was opened for in one completed simulation, or undefined if
+ * that sphere is not in it: an undo or a URL change can remove it underneath the panel, and showing
+ * some other slot's state would be worse than closing.
  *
  * @param {!Object} deps
+ * @param {Object | undefined} result The completed simulation to read: the sample the panel
+ *     follows, or the simulator's newest.
  * @param {BlochTarget} target
  * @returns {undefined|!import("../../../engine/math/matrix/Matrix.js").Matrix}
  */
-function densityMatrixOf(deps, target) {
-  const result = deps.completed.getState().value;
+function densityMatrixOf(deps, result, target) {
   if (result === undefined) return undefined;
   const circuitDefinition = result.circuit;
   const stats = result.fullStats;
@@ -198,8 +196,6 @@ function anglesOf(readout) {
 }
 
 export {
-  PRESET_TRANSITION,
-  easeInOut,
   glidesBetween,
   INITIAL_LAYERS,
   LAYERS,

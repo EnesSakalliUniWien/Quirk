@@ -4,6 +4,7 @@ import {GateColumn} from '../../../circuit/model/GateColumn.js';
 import {appStore} from '../../../state/appStore.js';
 import {closePanel} from '../../dock.jsx';
 import {AngleField} from '../../math/angle-field.jsx';
+import {AmplitudesEditor} from './amplitudes-editor.jsx';
 import {AngleUnit, parseAngleExpression} from '../../../engine/math/formula/AngleExpression.js';
 
 export function GateParamPanel() {
@@ -32,6 +33,7 @@ function ParameterEditor({deps,target}) {
     const openingControl = useRef(document.activeElement);
     const closing = useRef(false);
     const isAngle = target.gate.paramDialog.angleUnit === AngleUnit.RADIANS;
+    const isAmplitudes = target.gate.paramDialog.editor === 'amplitudes';
     let parsed,validation;
     if (isAngle) {
         try {parsed = parseAngleExpression(text,unit);} catch (e) {validation = e.message;}
@@ -59,6 +61,8 @@ function ParameterEditor({deps,target}) {
         const definition = deps.displayed.getState().value.displayedCircuit.circuitDefinition;
         const oldGate = definition.gateInSlot(target.col,target.row);
         if (oldGate !== target.gate || !oldGate.paramDialog) {close(); return;}
+        // Amplitudes left as they were have no text to apply: the param is not one.
+        if (isAmplitudes && !edited) {close(); return;}
         const value = !edited ? String(oldGate.param ?? '') : isAngle && unit === AngleUnit.DEGREES ? String(parsed.radians) : text;
         const result = oldGate.paramDialog.applyText(oldGate,value);
         if (result.error) {setError(result.error); return;}
@@ -92,7 +96,9 @@ function ParameterEditor({deps,target}) {
                         group.api.setSize({height:Math.max(group.api.height,Math.min(560,available))});
                     }
                 }}
-                onChange={text => {setText(text); setEdited(true); setError('');}} onUnitChange={(unit,text) => {setUnit(unit); setText(text);}} /> : <>
+                onChange={text => {setText(text); setEdited(true); setError('');}} onUnitChange={(unit,text) => {setUnit(unit); setText(text);}} /> : isAmplitudes ?
+                <AmplitudesEditor target={target} deps={deps} inputRef={inputRef}
+                    onChange={text => {setText(text); setEdited(true); setError('');}} /> : <>
                 <p className="gate-param-message">{target.gate.paramDialog.message}</p>
                 <input id="gate-param-input" ref={inputRef} className="gate-param-input" aria-label="Parameter value" value={text}
                     onChange={e => {setText(e.target.value); setEdited(true); setError('');}} />

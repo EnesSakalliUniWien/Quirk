@@ -97,7 +97,7 @@ test('steps the circuit with the transport controls and reports the state at the
         await waitForPanel(page, 'state', true);
         assert.equal(transport.label, 'Playback controls');
         // ket writes its arrows as ASCII; here they are drawn glyphs, so the labels are the words.
-        assert.deepEqual(transport.buttonLabels, ['Reset', 'Prev', 'Play', 'Next', 'End']);
+        assert.deepEqual(transport.buttonLabels, ['Reset', 'Prev', 'Play', 'Next', 'End', 'Breakpoint', 'Stop debugging']);
         assert.equal(transport.scrubMax, '2');
 
         assert.deepEqual(
@@ -161,6 +161,119 @@ test('transport skips display columns in both directions and highlights the next
             e.dispatchEvent(new Event('input', {bubbles: true}));
         });
         await waitForPlayhead(page, 'operation 0 / 2', ['|00⟩']);
+    });
+});
+
+test('a transport command starts the debugging, where t moves only with the playhead, an increment a step', async browser => {
+    // Each recorded take keeps the phase it was taken at, in full; a context of its own keeps the
+    // tape to this test's takes.
+    const context = await browser.createBrowserContext();
+    try {
+        await withQuirkPage(context, {cols: [['H'], [{id: 'Rzft', arg: 'pi t'}], ['X']]}, async page => {
+            let taken = 0;
+            const phase = async () => {
+                await page.click('#record-take');
+                taken++;
+                await page.waitForFunction(
+                    expected => document.querySelectorAll('.take-card:not(.take-ghost)').length === expected,
+                    {timeout: TEST_TIMEOUT_MILLIS}, taken);
+                return page.evaluate(name => new Promise((resolve, reject) => {
+                    const request = indexedDB.open('shadow-quant-tape', 1);
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => {
+                        const db = request.result;
+                        const read = db.transaction('takes').objectStore('takes').getAll();
+                        read.onsuccess = () => {
+                            db.close();
+                            resolve(read.result.find(r => !r.ghost && r.take.name === name).take.phase);
+                        };
+                        read.onerror = () => {db.close(); reject(read.error);};
+                    };
+                }), `take ${taken}`);
+            };
+            const position = text => page.waitForFunction(
+                expected => document.getElementById('playhead-position').textContent.startsWith(expected),
+                {timeout: 2000}, text);
+            const apart = (a, b) => Math.abs((((a - b) % 1) + 1.5) % 1 - 0.5);
+
+            // Nothing is debugged until the transport is used, and there is nothing to stop.
+            assert.equal(await page.$eval('#debug-stop-button', b => b.disabled), true);
+            await page.click('#playhead-next-button');
+            await position('operation 1');
+            await page.waitForSelector('#debug-stop-button:not([disabled])');
+            const parked = await phase();
+            await new Promise(resolve => setTimeout(resolve, 300));
+            assert.equal(await phase(), parked, 'A debugged circuit must not move on its own.');
+
+            await page.click('#playhead-next-button');
+            await position('operation 2');
+            assert.ok(apart(await phase(), parked + 1 / 32) < 1e-9, 'A step moves t by one increment.');
+            await page.click('#playhead-prev-button');
+            await position('operation 1');
+            assert.ok(apart(await phase(), parked) < 1e-9, 'A step back shows the step as it was.');
+
+            // Stopping returns to the start, an increment below the first step, and runs on from there.
+            await page.click('#debug-stop-button');
+            await position('operation 0');
+            await page.waitForSelector('#debug-stop-button[disabled]');
+            await new Promise(resolve => setTimeout(resolve, 300));
+            assert.ok(apart(await phase(), parked - 1 / 32) > 1e-3, 'A circuit no longer debugged moves on its own.');
+        });
+    } finally {
+        await context.close();
+    }
+});
+
+test('a run halts before a breakpoint and before an assertion that fails', async browser => {
+    // Wire 1 is never put in superposition, so the assertion on it fails.
+    await withQuirkPage(browser, {cols: [['H'], ['X'], ['Z'], [1, 'assert-sup1'], ['Y']]}, async page => {
+        const position = text => page.waitForFunction(
+            expected => document.getElementById('playhead-position').textContent.trim() === expected,
+            {timeout: 2000}, text);
+        // The breakpoint goes on the operation the playhead stands before: Next, then the X column.
+        await page.click('#playhead-next-button');
+        await position('operation 1 / 4');
+        assert.equal(await page.$eval('#breakpoint-toggle-button', b => b.getAttribute('aria-pressed')), 'false');
+        await page.click('#breakpoint-toggle-button');
+        await page.waitForSelector('#breakpoint-toggle-button[aria-pressed="true"]');
+
+        await page.click('#playhead-reset-button');
+        await position('operation 0 / 4');
+        await page.click('#playhead-end-button');
+        await position('operation 1 / 4');
+        // On from the breakpoint, the failing assertion on wire 1 halts the run before its column.
+        await page.click('#playhead-end-button');
+        await position('operation 3 / 4');
+        await page.click('#playhead-end-button');
+        await position('operation 4 / 4');
+    });
+});
+
+test('breakpoints travel in the link, beside the circuit and outside the history', async browser => {
+    await withQuirkPage(browser, {cols: [['H'], ['X'], ['Z']]}, async page => {
+        const position = text => page.waitForFunction(
+            expected => document.getElementById('playhead-position').textContent.trim() === expected,
+            {timeout: 2000}, text);
+        const entries = await page.evaluate(() => history.length);
+        const app = await page.evaluate(() => document.location.origin + document.location.pathname);
+
+        await page.click('#playhead-next-button');
+        await position('operation 1 / 3');
+        await page.click('#breakpoint-toggle-button');
+        await page.waitForFunction(() => document.location.hash.endsWith('&breakpoints=1'), {timeout: 2000});
+        assert.equal(await page.evaluate(() => history.length), entries, 'A breakpoint is no step in the history.');
+
+        // The link alone brings the breakpoint back: a run from the start halts before the X.
+        await page.goto('about:blank');
+        // Column 7 holds no operation, and is skipped.
+        await page.goto(`${app}#circuit={"cols":[["H"],["X"],["Z"]]}&breakpoints=1,7`);
+        await page.waitForSelector('#playhead-end-button:not([disabled])');
+        await page.click('#playhead-end-button');
+        await position('operation 1 / 3');
+        await page.waitForSelector('#breakpoint-toggle-button[aria-pressed="true"]');
+
+        await page.click('#breakpoint-toggle-button');
+        await page.waitForFunction(() => !document.location.hash.includes('breakpoints'), {timeout: 2000});
     });
 });
 

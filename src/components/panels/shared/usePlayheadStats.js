@@ -2,11 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import { useStore } from "zustand";
 
 import { CooldownThrottle } from "../../../base/CooldownThrottle.js";
+import { Animation } from "../../../config/Animation.js";
 import { appStore } from "../../../state/appStore.js";
 import { usePanelVisibility } from "./usePanelVisibility.js";
 
-/** Milliseconds. Panels re-derive far slower than the canvas redraws, and nobody reads faster. */
-const SAMPLE_COOLDOWN_MILLIS = 100;
 
 /**
  * One of the simulator's outputs, sampled no faster than a panel can be read. The circuit redraws
@@ -44,7 +43,7 @@ function useSampled(pick) {
       missed = false;
       setSample(latest);
     };
-    const throttle = new CooldownThrottle(deliver, SAMPLE_COOLDOWN_MILLIS);
+    const throttle = new CooldownThrottle(deliver, Animation.PANEL_SAMPLE_COOLDOWN_MS);
     shownRef.current = () => {if (missed) throttle.trigger();};
     const unsubscribe = pick(deps).subscribe(state => state.value, (value) => {
       latest = value;

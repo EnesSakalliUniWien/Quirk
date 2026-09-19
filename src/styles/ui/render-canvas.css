@@ -1,3 +1,5 @@
-/* Presentation belongs to React; Pixi owns the canvas backing dimensions. */
+/* Presentation belongs to React; Pixi owns the canvas backing dimensions. The scene sets the
+   canvas's own size from its backing store, which may outgrow the element while it resizes, so the
+   element clips it. */
+.render-canvas { overflow: hidden; }
 .render-canvas > canvas { display: block; width: 100%; height: 100%; touch-action: none; }
-

@@ -133,26 +133,6 @@ class Observable {
   }
 
   /**
-   * Returns an observable that keeps requesting animations frame callbacks and calling observers when they arrive.
-   * @returns {!Observable.<undefined>}
-   */
-  static requestAnimationTicker() {
-    return new Observable((observer) => {
-      let isDone = false;
-      const iter = () => {
-        if (!isDone) {
-          observer(undefined);
-          window.requestAnimationFrame(iter);
-        }
-      };
-      iter();
-      return () => {
-        isDone = true;
-      };
-    });
-  }
-
-  /**
    * @returns {!Observable.<T>} An observable that subscribes to each sub-observables arriving on this observable
    * in turns, only forwarding items from the latest sub-observable.
    * @template T

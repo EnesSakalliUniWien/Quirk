@@ -187,8 +187,10 @@ suite.test("text contrasts on normal hover error and data-label surfaces", () =>
     check(theme.error.text, theme.error.background, 4.5);
     // Chance labels sit over their bars and beside them, in the same white.
     check(theme.text.primary, theme.probability.bar, 4.5);
-    for (const fill of [theme.probability.fill, theme.operation.fill,
-        theme.interaction.button, theme.interaction.buttonFocus]) check(theme.text.onBright, fill, 4.5);
+    check(theme.text.onBright, theme.operation.fill, 4.5);
+    check(theme.probability.fillText, theme.probability.fill, 4.5);
+    check(theme.interaction.buttonText, theme.interaction.button, 4.5);
+    check(theme.interaction.buttonFocusText, theme.interaction.buttonFocus, 4.5);
 });
 
 suite.test("essential boundaries and Bloch guides contrast with dark surfaces", () => {

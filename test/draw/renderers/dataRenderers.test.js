@@ -73,18 +73,18 @@ suite.test("a state is laid out the way the amplitude display lays it out", asyn
 suite.test("probability bars measure against the largest outcome, with no second scale drawn over them", async () => {
     const rect = new Rect(0, 0, 100, 200);
     const view = new DisplayView(document.createElement("canvas"));
-    // 64%, 16%, nothing, 1e-6: bars of 1, 1/2, none and at least a pixel.
+    // 64%, 16%, nothing, 1e-6: bars of 1, 1/2, none and at least a dot.
     DATA_RENDERERS.probabilities(view, Matrix.col(0.64, 0.16, 0, 0.000001), rect, {wireCount: 2});
     await view.commit();
-    const bar = new Color(CanvasTheme.probability.bar).toNumber();
+    const bar = new Color(CanvasTheme.probability.fill).toNumber();
     const graphics = view.children.filter(child => child.context !== undefined);
     const bars = graphics.find(child => child.context.instructions.some(i => i.action === "fill" && i.data.style.color === bar));
-    // Rows this tall get a bar each, short of the row's edges so equal neighbours stay apart.
+    // Rows this tall carry a thin bar each along a track at the row's foot, inset from its edges.
     const rects = bars.context.instructions.find(i => i.action === "fill").data.path.instructions.
-        filter(i => i.action === "rect").map(i => i.data.slice(0, 4));
-    assertThat(rects.map(([, , w]) => w)).withInfo({rects}).isEqualTo([100, 50, 1]);
+        filter(i => i.action === "roundRect").map(i => i.data.slice(0, 4));
+    assertThat(rects.map(([, , w]) => w)).withInfo({rects}).isEqualTo([94, 47, 4]);
     assertThat(rects.map(([, y]) => Math.floor(y / 50))).isEqualTo([0, 1, 3]);
-    assertThat(rects.every(([, , , h]) => h < 50)).isEqualTo(true);
+    assertThat(rects.every(([, y, , h]) => h === 4 && (y + h) % 50 === 47)).withInfo({rects}).isEqualTo(true);
     // Nothing else is stroked through every row: no logarithmic outline over the bars.
     const outlines = graphics.filter(child => child.context.instructions.some(i =>
         i.action === "stroke" && (i.data.path?.instructions ?? []).filter(step => step.action === "lineTo").length >= 4));
@@ -106,7 +106,7 @@ suite.test("rows too thin for kets group by their leading bits, with the prefix 
     assertThat(labels.map(label => label.text)).isEqualTo(["000⋯", "001⋯", "010⋯", "011⋯", "100⋯", "101⋯", "110⋯", "111⋯"]);
     assertThat(labels.every(label => label.getBounds().maxX <= rect.x)).isEqualTo(true);
     // Each group's bars are one outline, broken where the groups meet.
-    const bar = new Color(CanvasTheme.probability.bar).toNumber();
+    const bar = new Color(CanvasTheme.probability.fill).toNumber();
     const fill = view.children.flatMap(child => child.context?.instructions ?? []).
         find(i => i.action === "fill" && i.data.style.color === bar);
     assertThat(fill.data.path.instructions.filter(i => i.action === "moveTo").length).isEqualTo(8);

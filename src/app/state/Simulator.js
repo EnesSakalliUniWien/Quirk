@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
+import {clock} from '../../base/Clock.js';
 import {createValueStore} from '../../base/valueStore.js';
 /** @typedef {import("../../circuit/model/CircuitDefinition.js").CircuitDefinition} CircuitDefinition */
-import {Simulation} from "../../config/Simulation.js"
+import {Animation} from "../../config/Animation.js"
 import {CircuitStats} from "../../engine/simulation/CircuitStats.js"
 import {freshSeed} from "../../engine/simulation/random.js";
 
@@ -66,9 +67,9 @@ class StatsCache {
 class Simulator {
     /**
      * @param {!function(): !number} nowMillisFunc Wall-clock milliseconds; the default is the
-     *     real clock.
+     *     app's clock.
      */
-    constructor(nowMillisFunc = () => performance.now()) {
+    constructor(nowMillisFunc = () => clock.now()) {
         /**
          * @type {!function(): !number}
          * @private
@@ -86,6 +87,11 @@ class Simulator {
          * @private
          */
         this._holds = 0;
+        /**
+         * Whether the animation is stopped. While it is, the cycle stands still between calls to
+         * advanceCycle, which is how the playhead's steps move it.
+         */
+        this.animationStopped = createValueStore(false);
         this.playing = false;
         this.seed = freshSeed();
         this.completed = createValueStore(undefined);
@@ -124,7 +130,7 @@ class Simulator {
     cycleTime() {
         const nextRealTime = this._nowMillis();
         if (this.clockRunning()) {
-            const elapsed = (nextRealTime - this._prevRealTime) / Simulation.CYCLE_DURATION_MS;
+            const elapsed = (nextRealTime - this._prevRealTime) / Animation.CYCLE_DURATION_MS;
             this._cycleTime = (this._cycleTime + elapsed) % 1;
         }
         this._prevRealTime = nextRealTime;
@@ -132,11 +138,34 @@ class Simulator {
     }
 
     /**
-     * @returns {!boolean} Whether the animation cycle is moving: no restored take pins its phase and
-     *     no hold is in force.
+     * @returns {!boolean} Whether the animation cycle is moving: the animation is not stopped, no
+     *     restored take pins its phase and no hold is in force.
      */
     clockRunning() {
-        return this.restored === undefined && this._holds === 0;
+        return !this.animationStopped.getState().value && this.restored === undefined && this._holds === 0;
+    }
+
+    /**
+     * Stops or resumes the animation. Stopped, the cycle keeps its phase; resumed, it moves on from
+     * there, without jumping over the time it stood still.
+     *
+     * @param {!boolean} stopped
+     */
+    setAnimationStopped(stopped) {
+        if (stopped === this.animationStopped.getState().value) return;
+        this.cycleTime();
+        this.animationStopped.setState({value: stopped});
+        this._prevRealTime = this._nowMillis();
+    }
+
+    /**
+     * Moves the cycle by hand, forwards or backwards, wrapping at a full cycle. The playhead's steps
+     * move a stopped animation this way, an increment a step.
+     *
+     * @param {!number} delta A fraction of the cycle.
+     */
+    advanceCycle(delta) {
+        this._cycleTime = (((this.cycleTime() + delta) % 1) + 1) % 1;
     }
 
     /**

@@ -36,6 +36,12 @@ import { toJson_CircuitDefinition, fromJson_CircuitDefinition } from "../circuit
  * @returns {!object}
  */
 function toJson_Gate(gate, context = new CustomGateSet()) {
+  // A switched-off gate is its active self plus the flag, whatever form that self takes.
+  if (gate.deactivated) {
+    const active = toJson_Gate(gate.withDeactivated(false), context);
+    return { ...(typeof active === "string" ? { id: active } : active), off: true };
+  }
+
   const found = Gates.findKnownGateById(gate.serializedId, context);
   if (found === gate) {
     return gate.serializedId;
@@ -101,7 +107,18 @@ function fromJson_Gate_Circuit(props, context) {
  */
 function fromJson_Gate(json, context = new CustomGateSet()) {
   const props = fromJson_Gate_props(json);
+  const gate = fromJson_ActiveGate(json, props, context);
+  return props.off ? gate.withDeactivated(true) : gate;
+}
 
+/**
+ * The gate as it works when switched on; the caller applies `off`.
+ * @param {!object} json
+ * @param {!{id: !String, matrix: *, circuit: *, symbol: *, name: *, param: *, off: !boolean}} props
+ * @param {!CustomGateSet} context
+ * @returns {!Gate}
+ */
+function fromJson_ActiveGate(json, props, context) {
   try {
     if (props.matrix !== undefined) {
       return fromJson_Gate_Matrix(props);

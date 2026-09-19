@@ -38,32 +38,37 @@ async function chanceTexts(probabilities, stableDuration) {
     return labelsIn(view).map(label => label.text);
 }
 
-suite.test("a Chance display gives independent wires their own blocks, and keys its bit order", async () => {
+suite.test("a Chance display gives independent wires their own blocks, and keeps its key for the hover card", async () => {
     // A Bell pair on q0 q1, a fair coin on q2 and a 90/10 wire on q3.
     const joint = Matrix.col(...[...Array(16).keys()].map(i =>
         [0.5, 0, 0, 0.5][i & 3] * 0.5 * [0.9, 0.1][i >> 3]));
     const still = await chanceTexts(joint, Infinity);
     assertThat(still.filter(text => text === '⊗').length).withInfo({still}).isEqualTo(2);
-    assertThat(['|00⟩', '|11⟩', '|0⟩', '|1⟩', 'bits q3q2q1q0', 'full 90.0%', '⊗ independent'].
-        every(text => still.includes(text))).withInfo({still}).isEqualTo(true);
+    assertThat(['|00⟩', '|11⟩', '|0⟩', '|1⟩'].every(text => still.includes(text))).withInfo({still}).isEqualTo(true);
+    // The bit order and the bars' scale are said by every row's hover card, not drawn under the gate.
+    assertThat(still.some(text => text.startsWith('bits') || text.startsWith('full'))).withInfo({still}).isEqualTo(false);
 
     // An animated circuit keeps the joint rows, grouped by their leading bits since they are too thin for kets.
     const animated = await chanceTexts(joint, 0);
     assertThat(animated.includes('⊗')).withInfo({animated}).isEqualTo(false);
-    assertThat(['000⋯', '111⋯', 'full 22.5%'].every(text => animated.includes(text))).withInfo({animated}).isEqualTo(true);
+    assertThat(['000⋯', '111⋯'].every(text => animated.includes(text))).withInfo({animated}).isEqualTo(true);
 });
 
-suite.test("a probability box's label covers nothing, so the bar's top edge shows at every level", async () => {
+suite.test("a probability box is a readout tile: the number above a thin bar on its track, never on the bar", async () => {
     for (const probability of [0, 0.25, 0.5, 0.75, 1]) {
         const painter = new DisplayView(document.createElement('canvas'));
         paintProbabilityBox(painter, probability, new Rect(0, 0, 40, 40));
         await painter.commit();
         const fills = painter.children.flatMap(child => child.context?.instructions ?? []).
             filter(i => i.action === 'fill').map(i => new Color(i.data.style.color).toHex());
-        assertThat(fills.includes(new Color(CanvasTheme.surface.gate).toHex())).withInfo({probability, fills}).isEqualTo(false);
-        if (probability > 0) {
-            assertThat(fills.includes(new Color(CanvasTheme.probability.bar).toHex())).withInfo({probability, fills}).isEqualTo(true);
-        }
+        assertThat(fills[0]).withInfo({probability, fills}).isEqualTo(new Color(CanvasTheme.surface.readout).toHex());
+        assertThat(fills.includes(new Color(CanvasTheme.probability.track).toHex())).withInfo({probability, fills}).isEqualTo(true);
+        assertThat(fills.includes(new Color(CanvasTheme.probability.fill).toHex())).withInfo({probability, fills}).isEqualTo(probability > 0);
+        // The bar is a strip at the tile's foot, under the number, and a possible outcome keeps a dot of it.
+        const bars = painter.children.map(child => child.values).filter(values => values?.[0] === 'roundRect' && values[6] !== undefined && values[5] === 2);
+        assertThat(bars.length).withInfo({probability}).isEqualTo(probability > 0 ? 2 : 1);
+        assertThat(bars.every(([, , y, , h]) => y >= 30 && y + h <= 40)).withInfo({probability, bars}).isEqualTo(true);
+        if (probability > 0) assertThat(bars[1][3]).withInfo({probability}).isEqualTo(Math.max(4, 28 * probability));
     }
 });
 

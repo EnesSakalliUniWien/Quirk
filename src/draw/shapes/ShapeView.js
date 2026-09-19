@@ -53,9 +53,11 @@ export function lineWidth(view, width) {
     return width * view.lineScale;
 }
 
-/** The 1px frame every container wears: displays, kets, output boxes, the resize tab. */
+/** The 1px frame every container wears: displays, kets, output boxes, the resize tab. Its corners
+ * are the tile's, like a gate's, so every box on the circuit is one shape. */
 export function frame(view, r, color = CanvasTheme.stroke.frame) {
-    return rectangle(view, r, {stroke: {color, width: lineWidth(view, Appearance.borders.width.regular)}});
+    return rectangle(view, r, {stroke: {color, width: lineWidth(view, Appearance.borders.width.regular)}},
+        Appearance.borders.radius.tile);
 }
 
 /**
@@ -66,7 +68,8 @@ export function frame(view, r, color = CanvasTheme.stroke.frame) {
 export function highlightRing(view, r) {
     const {regular, strong} = Appearance.borders.width;
     return rectangle(view, r.paddedBy(lineWidth(view, (regular + strong) / 2)),
-        {stroke: {color: CanvasTheme.interaction.outline, width: lineWidth(view, strong)}});
+        {stroke: {color: CanvasTheme.interaction.outline, width: lineWidth(view, strong)}},
+        Appearance.borders.radius.tile + lineWidth(view, (regular + strong) / 2));
 }
 
 export function circle(view, p, radius, style) {

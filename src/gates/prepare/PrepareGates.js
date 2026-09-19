@@ -342,4 +342,4 @@ PrepareGates.all = [
     ...PrepareGates.AmplitudesFamily.all,
 ];
 
-export {PrepareGates}
+export {PrepareGates, parseAmplitudes, MAX_AMPLITUDE_WIRES}

@@ -98,6 +98,24 @@ class HistoryPusher {
       document.location.hash = stateUrlHash;
     }
   }
+
+  /**
+   * Rewrites the current history entry's URL without touching what is memorable: for state that
+   * belongs to the link but is no step in the history, like a debugger's breakpoints.
+   * @param {!string} stateUrlHash
+   */
+  replaceHash(stateUrlHash) {
+    if (this._historyActionsNotWorking) {
+      document.location.hash = stateUrlHash;
+      return;
+    }
+    try {
+      history.replaceState(history.state, "", stateUrlHash);
+    } catch {
+      this._historyActionsNotWorking = true;
+      document.location.hash = stateUrlHash;
+    }
+  }
 }
 
 export { HistoryPusher };

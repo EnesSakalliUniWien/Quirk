@@ -18,18 +18,18 @@ import {CanvasTheme} from './CanvasTheme.js';
 
 function gateStyle(gate) {
   const id = gate.serializedId || "";
-  const p = CanvasTheme.iqp;
-  let fill;
-  if (id === "H") fill = p.hadamard;
-  else if (id === "X" || id === "Swap") fill = p.not;
-  else if (id === "Measure") fill = p.measure;
-  else if (/^(Z($|\^)|Rz($|ft$)|e\^[-+]?iZt$)/.test(id)) fill = p.phase;
+  // The IQP family, which names both the fill and the label drawn on it.
+  let family;
+  if (id === "H") family = "hadamard";
+  else if (id === "X" || id === "Swap") family = "not";
+  else if (id === "Measure") family = "measure";
+  else if (/^(Z($|\^)|Rz($|ft$)|e\^[-+]?iZt$)/.test(id)) family = "phase";
   else if (/^(Y$|[XY]\^|R[xy]($|ft$)|e\^[-+]?i[XY]t$)/.test(id))
-    fill = p.rotation;
-  return {
-    fill: fill || CanvasTheme.surface.gate,
-    text: fill ? CanvasTheme.text.onBright : CanvasTheme.text.primary,
-  };
+    family = "rotation";
+  if (family === undefined) {
+    return {fill: CanvasTheme.surface.gate, text: CanvasTheme.text.primary};
+  }
+  return {fill: CanvasTheme.iqp[family], text: CanvasTheme.iqpText[family]};
 }
 
 

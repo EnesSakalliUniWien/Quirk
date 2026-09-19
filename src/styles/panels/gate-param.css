@@ -35,6 +35,24 @@
         padding: 7px calc(var(--spacing) * 2);
     }
 
+    .amplitudes-editor {
+        display: grid;
+        gap: 6px;
+        margin: 8px 0;
+    }
+
+    .amplitudes-editor-row {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        align-items: center;
+        gap: 8px;
+    }
+
+    .amplitudes-editor-ket {
+        font-family: var(--font-mono);
+        font-size: 0.8125rem;
+    }
+
     .gate-param-error {
         margin: 0;
         color: var(--destructive);

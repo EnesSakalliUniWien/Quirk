@@ -36,6 +36,7 @@
 @import "./panels/probabilities/labels.css";
 @import "./panels/registers.css";
 @import "./circuit/gutter.css";
+@import "./circuit/wire-dial.css";
 @import "./ui/menu.css";
 @import "./panels/forge/construction.css";
 @import "./math/matrices.css";

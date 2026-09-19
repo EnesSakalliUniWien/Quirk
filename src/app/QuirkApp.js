@@ -25,6 +25,7 @@ import { CUSTOM_IS_EQUAL_TO_EQUALITY } from "../base/Equate.js";
 
 import {CircuitActions} from "./state/CircuitActions.js"
 import {RegisterActions} from "./state/RegisterActions.js"
+import {GateActions} from "./state/GateActions.js"
 import {Playhead} from "./state/Playhead.js"
 import {initToolboxDrag, initToolboxKeyboardPlace} from "./canvas/toolboxDrag.js"
 import {initRedrawLoop} from "./canvas/redrawLoop.js"
@@ -35,10 +36,12 @@ import {initTitleSync} from "./session/title.js"
 import {Recorder} from "./state/Recorder.js";
 import {TapeStore} from "../results/tapeStore.js";
 import {Simulator} from "./state/Simulator.js"
+import {Animation} from "../config/Animation.js"
 import {circuitZoom, initZoomControls, attachCircuitScrollSource} from "./canvas/zoom.js"
 import {initMinimap} from "./canvas/minimap.js"
 import {noteCircuitEdited} from "../diagnostics/errorReporter.js"
 import {appStore} from "../state/appStore.js"
+import {failingAssertionColumns} from '../gates/assertions/AssertionGates.js';
 import {operationSchedule} from '../circuit/operationColumns.js';
 
 /**
@@ -52,11 +55,13 @@ import {operationSchedule} from '../circuit/operationColumns.js';
  *     circuitOverlay: !HTMLElement, onReady: !function(): void,
  *     openGateParamEditor: !function(!{col: !int, row: !int, gate: !Gate}): void,
  *     openBlochSphereView: !function(!{row: !int, col: (undefined|!int)}): void,
+ *     openGateMenu: !function(!{col: !int, row: !int, gate: !Gate, x: !number, y: !number}): void,
  *     openTape: !function(): void}} shell
  * @returns {void}
  */
 function startQuirk({canvas, canvasDiv, scrollSpacer, circuitOverlay, onReady,
-                     openGateParamEditor, openBlochSphereView, openRegisterRename, openGutterMenu, openTape, openComplexDisplay}) {
+                     openGateParamEditor, openBlochSphereView, openRegisterRename, openGutterMenu, openGateMenu,
+                     openTape, openComplexDisplay}) {
     // The one simulator: the animation cycle's phase and the stats caches are app-wide state.
     const simulator = new Simulator();
 
@@ -75,7 +80,10 @@ function startQuirk({canvas, canvasDiv, scrollSpacer, circuitOverlay, onReady,
 
     const captureCommitted = () => {
         const circuit = fromJsonText_CircuitDefinition(revision.peekActiveCommit());
-        return simulator.evaluate(circuit, circuit.numWires, playhead.step());
+        const result = simulator.evaluate(circuit, circuit.numWires, playhead.step());
+        // A run halts before an assertion that fails, as it does before a breakpoint.
+        playhead.setHaltColumns(failingAssertionColumns(result.fullStats));
+        return result;
     };
     const tapeStore = new TapeStore();
     const recorder = new Recorder(revision, playhead, simulator, tapeStore, captureCommitted,
@@ -138,23 +146,46 @@ function startQuirk({canvas, canvasDiv, scrollSpacer, circuitOverlay, onReady,
     attachCircuitScrollSource(canvasDiv);
     initCanvasPointer(
         canvas, canvasDiv, revision, displayed, syncArea, openGateParamEditor, openBlochSphereView,
-        openRegisterRename, openGutterMenu, (dx, dy) => canvasDiv.scrollBy(dx, dy), openComplexDisplay);
+        openRegisterRename, openGutterMenu, (dx, dy) => canvasDiv.scrollBy(dx, dy), openComplexDisplay,
+        openGateMenu);
 
     const circuitActions = new CircuitActions(revision);
     const registerActions = new RegisterActions(revision, displayed);
+    const gateActions = new GateActions(revision, displayed);
     // The toolbar and transport components act on these through the store, and show what they
     // may do from the mirrored availability and playhead state.
-    appStore.setState({circuitActions, playhead, registerActions, recorder});
+    appStore.setState({circuitActions, playhead, registerActions, gateActions, recorder});
     circuitActions.availability().subscribe(circuitAvailability => appStore.setState({circuitAvailability}));
     let generation = playhead.generation;
+    let operationsStepped = playhead.operationsStepped();
     playhead.state().subscribe(playheadState => {
         simulator.setPlaying(playheadState.playing, generation !== playhead.generation);
         generation = playhead.generation;
+        // A debugger's program never runs on its own: from the first transport command on, the
+        // animation stands still and t is part of the debugged state, an increment for each operation
+        // stepped over and back again when the playhead steps back. Every step then shows the same
+        // state however often it is visited. A restored take brings its own phase.
+        const stepped = playhead.operationsStepped() - operationsStepped;
+        operationsStepped = playhead.operationsStepped();
+        if (stepped !== 0 || playheadState.playing) simulator.setAnimationStopped(true);
+        if (simulator.animationStopped.getState().value && !recorder.restoring) {
+            simulator.advanceCycle(stepped * Animation.DEBUG_STEP_CYCLE_INCREMENT);
+        }
         if (!recorder.restoring) captureCommitted();
         appStore.setState({playheadState});
         redrawLoop.trigger();
     });
-    initUrlCircuitSync(revision, recorder, openTape);
+    // Stopping the debugger is a debugger's terminate: the playhead returns to the start, taking its
+    // increments back, and the circuit runs on its own again.
+    appStore.setState({stopDebugging: () => {
+        playhead.reset();
+        simulator.setAnimationStopped(false);
+    }});
+    simulator.animationStopped.subscribe(({value: debugging}) => {
+        appStore.setState({debugging});
+        redrawLoop.trigger();
+    });
+    initUrlCircuitSync(revision, recorder, playhead, openTape);
     const gateToolbox = /** @type {!Object} */ ({
         // Compared by content, not identity: every commit deserializes a fresh CustomGateSet, and
         // rebuilding the toolbox for each one would recreate every tile and drop keyboard focus.

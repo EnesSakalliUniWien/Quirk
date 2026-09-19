@@ -23,9 +23,9 @@ import {DEFAULT_RENDERER} from '../../draw/gate/GateRenderers.js';
 import {heldGateRect} from '../geometry/InspectorLayout.js';
 
 /** Compose the background, circuit and held gate from snapshot inputs. */
-export function renderInspector({drawArea, displayedCircuit, hand}, view, stats, playheadStep) {
+export function renderInspector({drawArea, displayedCircuit, hand}, view, stats, playheadStep, breakpoints = []) {
     rectangle(view, drawArea, {fill: CanvasTheme.surface.background});
-    view.group('circuit', child => paintCircuit(displayedCircuit, child, hand, stats, false, true, playheadStep));
+    view.group('circuit', child => paintCircuit(displayedCircuit, child, hand, stats, false, true, playheadStep, breakpoints));
     view.group('held-gates', child => {
         if (hand.pos === undefined || hand.heldGate === undefined) return;
         const gate = hand.heldGate;

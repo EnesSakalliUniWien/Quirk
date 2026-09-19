@@ -3,6 +3,7 @@ import { useStore } from "zustand";
 
 import { appStore } from "../../../state/appStore.js";
 import { closePanel } from "../../dock.jsx";
+import { useCompletedResult } from "../shared/usePlayheadStats.js";
 import { AnalyzerFooter } from "./analyzer-footer.jsx";
 import { AnalyzerGroup } from "./analyzer-group.jsx";
 import { AnalyzerHeader } from "./analyzer-header.jsx";
@@ -50,9 +51,12 @@ function BlochPanel() {
   );
   const focusAxis = hoverAxis ?? pinnedAxis;
 
-  const { steps, currentStep } = useCircuitSteps(target);
+  // One sample of the simulation for the steps and the figures alike, so they change together.
+  const completed = useCompletedResult();
+  const { steps, currentStep } = useCircuitSteps(target, completed);
   const figures = useBlochFigures({
     deps,
+    completed,
     target,
     mode,
     layers,

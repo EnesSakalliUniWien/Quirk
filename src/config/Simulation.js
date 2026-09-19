@@ -15,14 +15,12 @@
  */
 
 /**
- * Limits and time constants for simulating a circuit.
+ * Limits and time constants for simulating a circuit. How the cycle animates is in Animation.js.
  */
 const Simulation = Object.freeze({
   // Each additional qubit doubles the state size; raising this limit also needs accuracy checks.
   MAX_WIRE_COUNT: 16,
   MIN_WIRE_COUNT: 2,
-  // How long evolving gates take to cycle, in milliseconds.
-  CYCLE_DURATION_MS: 8000,
   TIME_CACHE_GRANULARITY: 196,
   SEMI_STABLE_RANDOM_VALUE_LIFETIME_MILLIS: 300,
 });

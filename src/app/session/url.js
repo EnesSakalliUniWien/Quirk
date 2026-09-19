@@ -22,19 +22,38 @@ import { Serializer } from "../../serialization/Serializer.js";
 import { fromJsonText_CircuitDefinition } from "../../serialization/circuits/text.js";
 import { LINK_LIMIT } from "../../results/files/limits.js";
 
-function urlWithCircuitHash(jsonText) {
+/**
+ * @param {!string} jsonText
+ * @param {!Array.<!int>} breakpoints The columns with a breakpoint; they follow the circuit in the
+ *     link, and are left out when there are none.
+ * @returns {!string}
+ */
+function urlWithCircuitHash(jsonText, breakpoints = []) {
     if (jsonText.includes('%') || jsonText.includes('&')) {
         jsonText = encodeURIComponent(jsonText);
     }
-    return "#" + AppInfo.URL_CIRCUIT_PARAM_KEY + "=" + jsonText;
+    return "#" + AppInfo.URL_CIRCUIT_PARAM_KEY + "=" + jsonText +
+        (breakpoints.length === 0 ? "" : "&" + AppInfo.URL_BREAKPOINTS_PARAM_KEY + "=" + breakpoints.join(","));
+}
+
+/**
+ * @param {undefined|!string} text
+ * @returns {!Array.<!int>} The columns a link names; whatever is no column is skipped, and the
+ *     playhead keeps only those with an operation.
+ */
+function parseBreakpoints(text) {
+    return (text ?? "").split(",").
+        filter(part => /^\d+$/.test(part.trim())).
+        map(part => parseInt(part.trim(), 10));
 }
 
 /**
  * @param {!Revision} revision
  * @param {!Recorder} recorder
+ * @param {!Playhead} playhead Holds the breakpoints, which the link carries beside the circuit.
  * @param {undefined|!function(): void} onTakeLoaded Called after the current URL take is restored.
  */
-function initUrlCircuitSync(revision, recorder, onTakeLoaded) {
+function initUrlCircuitSync(revision, recorder, playhead, onTakeLoaded) {
     let loadingTake = false;
     let loadVersion = 0;
     // Pull initial circuit out of URL '#x=y' arguments.
@@ -83,10 +102,11 @@ function initUrlCircuitSync(revision, recorder, onTakeLoaded) {
             const circuitDef = fromJsonText_CircuitDefinition(jsonText);
             const cleanedJson = JSON.stringify(Serializer.toJson(circuitDef));
             revision.clear(cleanedJson);
+            playhead.setBreakpoints(parseBreakpoints(params.get(AppInfo.URL_BREAKPOINTS_PARAM_KEY)));
             if (circuitDef.isEmpty() && params.size === 1) {
                 historyPusher.currentStateIsNotMemorable();
             } else {
-                const urlHash = urlWithCircuitHash(jsonText);
+                const urlHash = urlWithCircuitHash(jsonText, playhead.breakpoints());
                 historyPusher.stateChange(jsonText, urlHash);
             }
         } catch (ex) {
@@ -101,8 +121,15 @@ function initUrlCircuitSync(revision, recorder, onTakeLoaded) {
     loadCircuitFromUrl();
 
     revision.latestActiveCommit().whenDifferent().skip(1).subscribe(jsonText => {
-        if (!loadingTake) historyPusher.stateChange(jsonText, urlWithCircuitHash(jsonText));
+        if (!loadingTake) historyPusher.stateChange(jsonText, urlWithCircuitHash(jsonText, playhead.breakpoints()));
+    });
+    // Breakpoints are no step in the history: they rewrite the current entry's link, the way a
+    // debugger keeps them beside the source rather than in it.
+    playhead.state().map(state => state.breakpoints.join(",")).whenDifferent().skip(1).subscribe(() => {
+        if (!loadingTake && !document.location.hash.includes("take=")) {
+            historyPusher.replaceHash(urlWithCircuitHash(revision.peekActiveCommit(), playhead.breakpoints()));
+        }
     });
 }
 
-export {initUrlCircuitSync}
+export {initUrlCircuitSync, urlWithCircuitHash, parseBreakpoints}

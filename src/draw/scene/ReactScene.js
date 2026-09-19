@@ -41,6 +41,17 @@ function SceneContents({surface}) {
             if (app.canvas.width !== request.width || app.canvas.height !== request.height) {
                 app.renderer.resize(request.width, request.height, 1);
             }
+            if (!surface.copyPixels) {
+                // Shown one backing pixel per device pixel, set in the same commit as the resize: a
+                // store kept larger than its element while the element resizes is clipped by the
+                // element, not squeezed. The scene's ratio also carries the circuit's zoom, so the
+                // device's is used.
+                const deviceRatio = window.devicePixelRatio || 1;
+                const width = `${request.width / deviceRatio}px`;
+                const height = `${request.height / deviceRatio}px`;
+                if (app.canvas.style.width !== width) app.canvas.style.width = width;
+                if (app.canvas.style.height !== height) app.canvas.style.height = height;
+            }
             app.render();
             if (surface.copyPixels) {
                 // Resize and copy in the same commit, so a cleared canvas is never presented.

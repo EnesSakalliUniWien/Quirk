@@ -7,7 +7,7 @@
 | `foundation/` | Scoped resets, document defaults, native elements and focus styles. |
 | `shell/` | App sizing, toolbar, Dockview layout, motion preferences and error banner. |
 | `ui/` | Shared buttons, popup menus and HTML canvas sizing. |
-| `circuit/` | Circuit viewport, zoom controls, minimap and gutter editors. |
+| `circuit/` | Circuit viewport, zoom controls, minimap, gutter editors and the dial on a rotation gate's wire. |
 | `gates/` | Gate details and the toolbox, including search, groups and tiles. |
 | `math/` | MathML matrices, data views, operator controls and math entry fields. |
 | `panels/` | Styles named for their panel: state, Bloch, Tape, export and others. |

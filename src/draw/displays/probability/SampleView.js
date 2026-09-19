@@ -56,7 +56,7 @@ function _paintSampleDisplay_result(args) {
             y: startY+d*i,
             align: 'center',
             baseline: 'middle',
-            fill: bit ? CanvasTheme.text.onBright : CanvasTheme.text.primary,
+            fill: bit ? CanvasTheme.probability.fillText : CanvasTheme.text.primary,
             font: {fontSize: 16, fontFamily: Typography.DEFAULT_FONT_FAMILY},
             width: w,
             height: rowHeight

@@ -20,6 +20,13 @@ export class RenderSurface {
         if (!surfaces.has(canvas)) new RenderSurface(canvas);
         return surfaces.get(canvas);
     }
+    /**
+     * Destroys the surface forCanvas made for a canvas, if it made one. Until then the surface keeps
+     * its WebGL context and its document-wide pointer listeners, whether or not the canvas is shown.
+     */
+    static release(canvas) {
+        return surfaces.get(canvas)?.destroy();
+    }
     constructor(canvas, app) {
         this.canvas = canvas;
         this.size = {width: canvas.width, height: canvas.height};

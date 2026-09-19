@@ -15,7 +15,7 @@
  */
 
 import {DetailedError} from "../../base/DetailedError.js"
-/** @typedef {import("./Gate.js").Gate} Gate */
+import {Gate} from "./Gate.js"
 import {GateCheckArgs} from "./GateCheckArgs.js"
 import { STRICT_EQUALITY } from "../../base/Equate.js";
 import { mergeMaps } from "../../base/maps.js";
@@ -141,6 +141,10 @@ class GateColumn {
         const g = this.gates[row];
         if (g === undefined) {
             return undefined;
+        }
+
+        if (g.deactivated) {
+            return Gate.DEACTIVATED_REASON;
         }
 
         const args = new GateCheckArgs(g, this, outerRowOffset + row, inputMeasureMask, context, isNested, touchedMask);

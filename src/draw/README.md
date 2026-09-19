@@ -39,7 +39,8 @@ and `displays/bloch/BlochGeometry.js` owns the Bloch projection axes.
   still use `add` and `group`; React components can supply elements directly. Coordinate conversion
   uses the committed native container. There is no separate `finish` step.
 - Gate callers import frames from `gate/GateFrame.js`, symbols from `gate/GateSymbol.js`,
-  composed renderers from `gate/GateRenderers.js` and rectangle helpers from `gate/GateRects.js`.
+  composed renderers from `gate/GateRenderers.js`, the time dial from `gate/TimeDial.js` and
+  rectangle helpers from `gate/GateRects.js`.
 - `GateView` groups a gate's description. `GateRenderParams.withPainter` supplies that description
   while preserving gate-context access.
 - `GateLabel` uses `@pixi/layout` to arrange symbol and angle-label rows inside their existing gate rectangles.

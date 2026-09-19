@@ -32,8 +32,9 @@ suite.test('amplitude cells fit inside their gate, and the frame follows the cel
     const [x, y, diam, cols, rows] = view.children.find(child => child.previous).previous.values;
     assertThat(x >= rect.x && y >= rect.y && x + diam*cols <= rect.right() && y + diam*rows <= rect.bottom()).isEqualTo(true);
     const frames = [];
+    // Frames are rounded tiles: their stroke colour sits after the corner radius.
     const collect = node => {
-        if (node.values?.[0] === 'rect' && node.values[6] === CanvasTheme.stroke.displayFrame) frames.push(node.values.slice(1, 5));
+        if (node.values?.[0] === 'roundRect' && node.values[7] === CanvasTheme.stroke.displayFrame) frames.push(node.values.slice(1, 5));
         for (const child of node.children ?? []) collect(child);
     };
     collect(view);

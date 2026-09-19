@@ -9,6 +9,7 @@ import {appStore} from "../../state/appStore.js";
 import {openPanel} from "../dock.jsx";
 import {PANELS} from "../panels/panels.jsx";
 import {ExamplesMenu} from "./examples-menu.jsx";
+import {ColourSchemeMenu} from "./colour-scheme-menu.jsx";
 
 // The stroke comes from the app's IconProvider (src/components/ui/icon.jsx), so no icon here
 // carries a weight of its own.
@@ -156,6 +157,7 @@ function AppToolbar() {
     return (
         <header className="app-toolbar" role="toolbar" aria-label="Circuit controls" ref={toolbarRef}>
             <ExamplesMenu />
+            <ColourSchemeMenu />
             <PanelButton id="export-button" panel="export" />
                 <PanelButton id="tape-button" panel="tape" />
             <PanelButton id="state-button" panel="state" />

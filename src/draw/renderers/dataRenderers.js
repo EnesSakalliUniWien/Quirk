@@ -272,20 +272,29 @@ const GROUP_GAP = 3;
 const PREFIX_LABEL_WIDTH = 36;
 const PREFIX_FONT = {fontSize: 9, fontFamily: Typography.MONO_FONT_FAMILY};
 const KET_FONT = {fontSize: 10, fontFamily: Typography.MONO_FONT_FAMILY};
+const PERCENT_FONT = {fontSize: Typography.LABEL_FONT_SIZE, fontFamily: Typography.MONO_FONT_FAMILY};
+/** Rows at least this tall carry a thin bar along a track under their text, rather than a filled row. */
+const TEXT_ROW_HEIGHT = 14;
+/** Rows at least this tall carry their ket above their percentage. */
+const STACKED_ROW_HEIGHT = 26;
+/** The thin bar's height, and the room it keeps from the row's edges. */
+const THIN_BAR_HEIGHT = 4;
+const THIN_BAR_INSET = 3;
 
 /**
- * @returns {undefined|"side"|"stacked"} Where the rows carry their kets, if they have room: beside the
- *     percentage in a wide chart, or above it in a tall row.
+ * @returns {undefined|"side"|"stacked"|"percent"} What the rows carry above their bars, if they have
+ *     room: ket and percentage on one line in a wide chart, the ket above the percentage in a tall
+ *     row, or the percentage alone.
  */
 function ketLayout(rect, wireCount) {
     const d = rect.h / (1 << wireCount);
-    if (d <= 8) {
+    if (d < TEXT_ROW_HEIGHT) {
         return undefined;
     }
-    if (rect.w >= measureText(`|${bin(0, wireCount)}⟩ 100.0%`, KET_FONT).width + 4) {
+    if (rect.w >= measureText(`|${bin(0, wireCount)}⟩ 100.0%`, KET_FONT).width + 8) {
         return "side";
     }
-    return d >= 26 ? "stacked" : undefined;
+    return d >= STACKED_ROW_HEIGHT ? "stacked" : "percent";
 }
 
 /**
@@ -305,7 +314,7 @@ function probabilityGrid(view, rect, wireCount, groupRows) {
     const {x, y, w, h} = rect;
     const n = 1 << wireCount;
     const d = h / n;
-    rectangle(view, rect, {fill: CanvasTheme.probability.background});
+    rectangle(view, rect, {fill: CanvasTheme.surface.readout});
     if (d >= MIN_DIVIDED_ROW_HEIGHT) {
         drawPath(view, tracer => {
             for (let i = 1; i < n; i++) {
@@ -321,7 +330,7 @@ function probabilityGrid(view, rect, wireCount, groupRows) {
     rectangle(view, rect, {stroke: {color: CanvasTheme.stroke.grid, width: 1}});
 }
 
-function probabilityBars(view, rect, probabilities, wireCount, largest, groupRows, colour = CanvasTheme.probability.bar) {
+function probabilityBars(view, rect, probabilities, wireCount, largest, groupRows, colour = CanvasTheme.probability.fill) {
     const {x, y, w, h} = rect;
     const n = 1 << wireCount;
     const d = h / n;
@@ -330,6 +339,29 @@ function probabilityBars(view, rect, probabilities, wireCount, largest, groupRow
     const length = i => buffer[i * 2] > ZERO_PROBABILITY ?
         Math.max(MIN_BAR_LENGTH, w * probabilityBarFraction(buffer[i * 2], largest)) : 0;
     const groupEdge = i => i > 0 && i < n && i % groupRows === 0;
+    if (d >= TEXT_ROW_HEIGHT) {
+        // A tall row: its text above, and a thin bar along a track at its foot, so the text never
+        // sits on the bar.
+        const barX = x + THIN_BAR_INSET;
+        const barW = w - 2 * THIN_BAR_INSET;
+        const barLength = i => buffer[i * 2] > ZERO_PROBABILITY ?
+            Math.max(THIN_BAR_HEIGHT, barW * probabilityBarFraction(buffer[i * 2], largest)) : 0;
+        drawGraphics(view, graphics => {
+            for (let i = 0; i < n; i++) {
+                graphics.roundRect(barX, y + d * (i + 1) - THIN_BAR_INSET - THIN_BAR_HEIGHT, barW, THIN_BAR_HEIGHT, THIN_BAR_HEIGHT / 2);
+            }
+            graphics.fill(CanvasTheme.probability.track);
+        });
+        drawGraphics(view, graphics => {
+            for (let i = 0; i < n; i++) {
+                if (barLength(i) > 0) {
+                    graphics.roundRect(barX, y + d * (i + 1) - THIN_BAR_INSET - THIN_BAR_HEIGHT, barLength(i), THIN_BAR_HEIGHT, THIN_BAR_HEIGHT / 2);
+                }
+            }
+            graphics.fill(colour);
+        });
+        return;
+    }
     drawGraphics(view, graphics => {
         if (d >= MIN_DIVIDED_ROW_HEIGHT) {
             // A bar per row, short of the row's dividers, so equal neighbours still read as two rows.
@@ -377,7 +409,7 @@ function probabilityGroupLabels(view, rect, wireCount, groupRows) {
     }
 }
 
-function probabilityTooltips(view, rect, probabilities, wireCount, focusPoints, wireNames) {
+function probabilityTooltips(view, rect, probabilities, wireCount, focusPoints, wireNames, key) {
     const {x, y, w, h} = rect;
     const n = 1 << wireCount;
     const d = h / n;
@@ -392,36 +424,49 @@ function probabilityTooltips(view, rect, probabilities, wireCount, focusPoints, 
                 labelText: wireNames === undefined ?
                     `Chance of |${bin(k, wireCount)}⟩ (decimal ${k}) if measured` :
                     `Chance of |${bin(k, wireCount)}⟩ on ${wireNames.join('')} if measured`,
-                valueText: 'raw: ' + (p * 100).toFixed(4) + "%",
-                valueText2: 'log: ' + (Math.log10(p) * 10).toFixed(1) + " dB"
+                valueText: `raw ${(p * 100).toFixed(4)}% · log ${(Math.log10(p) * 10).toFixed(1)} dB`,
+                valueText2: key,
             });
         }
     }
 }
 
-function probabilityTexts(view, rect, probabilities, kets) {
+/**
+ * The text a row carries above its thin bar: its ket and percentage side by side, the ket above
+ * the percentage, or the percentage alone, as the layout allows.
+ */
+function probabilityTexts(view, rect, probabilities, layout) {
     const {x, y, w, h} = rect;
     const n = probabilities.height();
     const bits = Math.round(Math.log2(n));
     const d = h / n;
-    const stacked = kets === "stacked";
+    // The text's band: the row less its bar and the bar's room.
+    const bandHeight = d - THIN_BAR_HEIGHT - 2 * THIN_BAR_INSET;
     for (let i = 0; i < n; i++) {
         const p = probabilities.rawBuffer()[i * 2];
-        if (kets !== undefined) fitText(view, `|${bin(i, bits)}⟩`, {
-            x: stacked ? x+w/2 : x+2, y: y+d*(i+0.5)-(stacked ? 6 : 0),
-            align: stacked ? 'center' : 'left', baseline: 'middle', font: KET_FONT,
-            fill: CanvasTheme.text.primary, width: stacked ? w-4 : w/2, height: 12,
-        });
+        const bandTop = y + d * i + THIN_BAR_INSET;
+        const ket = `|${bin(i, bits)}⟩`;
+        if (layout === "side") {
+            fitText(view, ket, {
+                x: x + THIN_BAR_INSET, y: bandTop + bandHeight / 2, align: 'left', baseline: 'middle',
+                font: KET_FONT, fill: CanvasTheme.text.primary, width: w / 2, height: bandHeight,
+            });
+        } else if (layout === "stacked") {
+            fitText(view, ket, {
+                x: x + w / 2, y: bandTop + bandHeight / 4, align: 'center', baseline: 'middle',
+                font: KET_FONT, fill: CanvasTheme.text.primary, width: w - 4, height: bandHeight / 2,
+            });
+        }
         // An impossible outcome's 0% steps back, so the outcomes that can happen stand out.
         fitText(view, formatProbability(p), {
-            x: x + w - 2,
-            y: y + d * (i + 0.5) + (stacked ? 6 : 0),
-            align: 'right',
+            x: layout === "side" ? x + w - THIN_BAR_INSET : x + w / 2,
+            y: layout === "stacked" ? bandTop + bandHeight * 3 / 4 : bandTop + bandHeight / 2,
+            align: layout === "side" ? 'right' : 'center',
             baseline: 'middle',
             fill: p > ZERO_PROBABILITY ? CanvasTheme.text.primary : CanvasTheme.text.muted,
-            font: {fontSize: 10.666666666666666, fontFamily: Typography.MONO_FONT_FAMILY},
-            width: w - 4,
-            height: d
+            font: PERCENT_FONT,
+            width: w - 2 * THIN_BAR_INSET,
+            height: layout === "stacked" ? bandHeight / 2 : bandHeight,
         });
     }
 }
@@ -439,30 +484,33 @@ function probabilityTexts(view, rect, probabilities, kets) {
  * @param {undefined|!Matrix} probabilities A column whose real parts are the probabilities.
  * @param {!Rect} rect
  * @param {!{wireCount: !int, focusPoints: (undefined|!Array.<!Point>), largest: (undefined|!number),
- *     groupLabels: (undefined|!boolean), wireNames: (undefined|!Array.<!string>)}} options
+ *     groupLabels: (undefined|!boolean), wireNames: (undefined|!Array.<!string>), key: (undefined|!string)}} options
  *     largest sets what a full bar stands for, so distributions drawn over each other share a scale.
  *     groupLabels draws each group's prefix left of the chart, outside rect.
  *     wireNames, highest wire first, says in tooltips which wires the kets are over.
+ *     key is the line every row's tooltip ends with: the bit order and the bars' scale.
  */
 function renderProbabilities(view, probabilities, rect, {wireCount, focusPoints = [], colour,
-        transparent = false, largest, groupLabels = false, wireNames}) {
-    const kets = ketLayout(rect, wireCount);
+        transparent = false, largest, groupLabels = false, wireNames, key}) {
+    const layout = ketLayout(rect, wireCount);
     const n = 1 << wireCount;
-    const groupRows = kets === undefined ? groupRowCount(rect, wireCount) : n;
+    // Rows without their kets group by their leading bits, so a prefix beside each group still says
+    // which outcomes the rows are.
+    const groupRows = layout === undefined || layout === "percent" ? groupRowCount(rect, wireCount) : n;
     if (!transparent) probabilityGrid(view, rect, wireCount, groupRows);
     if (probabilities === undefined || probabilities.hasNaN()) {
         fitParagraph(view, "NaN", rect, {alignment: new Point(0.5, 0.5), fill: CanvasTheme.error.text});
     } else {
         probabilityBars(view, rect, probabilities, wireCount, largest ?? largestProbability(probabilities),
             groupRows, colour);
-        if (rect.h / probabilities.height() > 8) {
-            probabilityTexts(view, rect, probabilities, kets);
+        if (layout !== undefined) {
+            probabilityTexts(view, rect, probabilities, layout);
         }
         if (groupLabels && groupRows < n) {
             probabilityGroupLabels(view, rect, wireCount, groupRows);
         }
     }
-    probabilityTooltips(view, rect, probabilities, wireCount, focusPoints, wireNames);
+    probabilityTooltips(view, rect, probabilities, wireCount, focusPoints, wireNames, key);
 }
 
 /**

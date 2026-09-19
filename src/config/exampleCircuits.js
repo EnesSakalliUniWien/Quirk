@@ -397,6 +397,73 @@ const distillLink = {
   ],
 };
 
+// U(t) = V · Rz(pi t) · V† with V = Rz(pi/4) · Ry(pi/3), as five rotations in time order:
+// Rz(-pi/4), Ry(-pi/3), Rz(pi t), Ry(pi/3), Rz(pi/4). Rz(pi t) holds the eigenvalues
+// e^(∓i pi t/2), and V turns the z axis to the eigenvector axis at polar angle pi/3 and azimuth
+// pi/4. From state 0 or 1, the Bloch vector turns about that axis by pi t, the difference between
+// the eigenvalue phases. Each constant rotation is two columns wide, so an empty column follows it.
+const twoStateUnitaryLink = {
+  init: [0, 1],
+  cols: [
+    [
+      { id: "Rz", arg: "-pi/4" },
+      { id: "Rz", arg: "-pi/4" },
+    ],
+    [],
+    [
+      { id: "Ry", arg: "-pi/3" },
+      { id: "Ry", arg: "-pi/3" },
+    ],
+    [],
+    [
+      { id: "Rzft", arg: "pi t" },
+      { id: "Rzft", arg: "pi t" },
+    ],
+    ["Bloch", "Bloch"],
+    [
+      { id: "Ry", arg: "pi/3" },
+      { id: "Ry", arg: "pi/3" },
+    ],
+    [],
+    [
+      { id: "Rz", arg: "pi/4" },
+      { id: "Rz", arg: "pi/4" },
+    ],
+    [],
+    ["Bloch", "Bloch"],
+  ],
+};
+
+// A dag with roots A and B and children C, D and E, one wire each. The roots get amplitudes from
+// Ry(pi/3) and Ry(pi/4), and the children start empty. Each edge copies its parent into its child
+// with a CNOT: A → C, A → D, B → D, B → E. D has two parents, so it holds A ⊕ B. The copies
+// entangle the children with the roots, so the four root amplitudes move to the basis states
+// where C = A, D = A ⊕ B and E = B. An Amps5 display is three columns wide.
+const dagCopyLink = {
+  cols: [
+    [
+      { id: "Ry", arg: "pi/3" },
+      { id: "Ry", arg: "pi/4" },
+    ],
+    [],
+    ["Amps5"],
+    [],
+    [],
+    ["•", 1, "X"],
+    ["•", 1, 1, "X"],
+    [1, "•", 1, "X"],
+    [1, "•", 1, 1, "X"],
+    ["Amps5"],
+  ],
+  registers: [
+    { name: "A", wires: [0, 1] },
+    { name: "B", wires: [1, 1] },
+    { name: "C", wires: [2, 1] },
+    { name: "D", wires: [3, 1] },
+    { name: "E", wires: [4, 1] },
+  ],
+};
+
 /** @type {!Array.<!{name: !string, circuit: !object}>} */
 const EXAMPLE_CIRCUITS = [
   { name: "Grover Search", circuit: groverLink },
@@ -409,6 +476,8 @@ const EXAMPLE_CIRCUITS = [
   { name: "Quantum Fourier Transform", circuit: qftLink },
   { name: "Reversible Addition", circuit: additionLink },
   { name: "Magic State Distillation", circuit: distillLink },
+  { name: "Two State Model Unitary from Eigenvalues", circuit: twoStateUnitaryLink },
+  { name: "Amplitudes Copied into DAG Children", circuit: dagCopyLink },
 ];
 
 // These literals are an acyclic JSON tree. Freeze every nested array and object so loading or

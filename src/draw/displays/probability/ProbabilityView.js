@@ -26,11 +26,13 @@ import {wireLabel} from '../../../circuit/registerLabels.js';
 import {Rectangle} from 'pixi.js';
 import {DATA_RENDERERS} from '../../renderers/dataRenderers.js';
 import {independentBlocks} from './ProbabilityBlocks.js';
-import {formatProbability, largestProbability} from './ProbabilityScale.js';
+import {ZERO_PROBABILITY, formatProbability, largestProbability} from './ProbabilityScale.js';
+import {Appearance} from '../../../appearance/Appearance.js';
 
-const KEY_FONT = {fontSize: 9, fontFamily: Typography.MONO_FONT_FAMILY};
-const KEY_GAP = 3;
-const KEY_LINE_HEIGHT = 11;
+/** The thin bar under a readout's number, and the room it keeps from the tile's edge. */
+const READOUT_BAR_HEIGHT = 4;
+const READOUT_BAR_INSET = 6;
+
 /** The key names every wire of a display this short, and only the first and last of a taller one. */
 const KEY_WIRES_NAMED = 4;
 /** The band between two independent blocks, which carries their ⊗. */
@@ -47,7 +49,7 @@ const PRODUCT_FONT = {fontSize: 10, fontFamily: Typography.MONO_FONT_FAMILY};
  * is their product. Every block's bars share one scale. A circuit that animates keeps the joint
  * distribution, so a state passing through independence does not flash into blocks for a frame.
  *
- * Under the gate, a key names the bit order and says what a bar measures: the square root of its
+ * Every row's hover card names the bit order and says what a bar measures: the square root of its
  * share of the largest probability, which it names.
  *
  * @param {!GateRenderParams} args
@@ -63,6 +65,7 @@ function paintMultiProbabilityDisplay(args) {
         [{start: 0, length: wireCount, probabilities}];
     const largest = valid ? Math.max(...blocks.map(block => largestProbability(block.probabilities))) : undefined;
     const namesOf = (start, length) => Array.from({length}, (_, i) => wireLabel(registers, row + start + length - 1 - i));
+    const key = valid ? chartKey(namesOf(0, wireCount), largest, blocks.length > 1) : undefined;
 
     for (const block of blocks) {
         DATA_RENDERERS.probabilities(args.painter, block.probabilities, blockRect(args.rect, wireCount, block), {
@@ -71,6 +74,7 @@ function paintMultiProbabilityDisplay(args) {
             largest,
             groupLabels: true,
             wireNames: blocks.length > 1 ? namesOf(block.start, block.length) : undefined,
+            key,
         });
     }
     for (const {start} of blocks.slice(1)) {
@@ -81,18 +85,19 @@ function paintMultiProbabilityDisplay(args) {
         return;
     }
 
-    const names = namesOf(0, wireCount);
-    const lines = [
-        `bits ${wireCount <= KEY_WIRES_NAMED ? names.join('') : `${names[0]}…${names.at(-1)}`}`,
-        '√ scale',
-        `full ${formatProbability(largest)}`,
-        ...(blocks.length > 1 ? ['⊗ independent'] : []),
-    ];
-    lines.forEach((text, i) => fitText(args.painter, text, {
-        x: args.rect.center().x, y: args.rect.bottom() + KEY_GAP + i * KEY_LINE_HEIGHT, align: 'center',
-        baseline: 'top', font: KEY_FONT, fill: CanvasTheme.text.muted, width: Layout.COLUMN_SPACING - 4,
-        height: KEY_LINE_HEIGHT,
-    }));
+}
+
+/**
+ * What the key under the display used to say, now told by the hover card of every row: the bit
+ * order, and what a bar measures.
+ * @param {!Array.<!string>} names The wire names, highest wire first.
+ * @param {!number} largest The probability a full bar stands for.
+ * @param {!boolean} split Whether independent wires are drawn as separate blocks.
+ * @returns {!string}
+ */
+function chartKey(names, largest, split) {
+    const bits = names.length <= KEY_WIRES_NAMED ? names.join('') : `${names[0]}…${names.at(-1)}`;
+    return `bits ${bits} · bars √ of ${formatProbability(largest)}${split ? ' · ⊗ independent' : ''}`;
 }
 
 /**
@@ -130,40 +135,50 @@ export function describeProbability(p, fractionalDigits) {
     return text === "0%" ? "Off" : text === "100%" ? "On" : text;
 }
 
+/**
+ * A single wire's chance, as a readout tile: the number above, in the readout size, and a thin bar
+ * along a track below it. The number never sits on the bar, so it reads at every level.
+ */
 export function paintProbabilityBox(painter,
                            probability,
                            drawArea,
                            focusPoints = [],
-                           backgroundColor = CanvasTheme.probability.background,
-                           fillColor = CanvasTheme.probability.bar) {
-    rectangle(painter, drawArea, {fill: backgroundColor});
+                           backgroundColor = CanvasTheme.surface.readout,
+                           fillColor = CanvasTheme.probability.fill) {
+    rectangle(painter, drawArea, {fill: backgroundColor}, Appearance.borders.radius.tile);
     const cen = drawArea.center();
     if (Number.isNaN(probability)) {
-        rectangle(painter, drawArea, {fill: CanvasTheme.error.background});
+        rectangle(painter, drawArea, {fill: CanvasTheme.error.background}, Appearance.borders.radius.tile);
         fitText(painter, "NaN", {
             x: cen.x,
             y: cen.y,
             align: 'center',
             baseline: 'middle',
             fill: CanvasTheme.error.text,
-            font: {fontSize: 12, fontFamily: Typography.DEFAULT_FONT_FAMILY},
+            font: {fontSize: Typography.READOUT_FONT_SIZE, fontFamily: Typography.MONO_FONT_FAMILY},
             width: drawArea.w,
             height: drawArea.h
         });
     } else {
-        rectangle(painter, drawArea.takeBottomProportion(probability), {fill: fillColor});
-        // No plate behind the label: white reads on the bar and on the ground alike, and the bar's
-        // top edge stays visible at every level.
+        const {x, y, w, h} = drawArea;
+        const track = new Rect(x + READOUT_BAR_INSET, y + h - READOUT_BAR_INSET - READOUT_BAR_HEIGHT,
+            w - 2 * READOUT_BAR_INSET, READOUT_BAR_HEIGHT);
         fitText(painter, describeProbability(probability, 1), {
             x: cen.x,
-            y: cen.y,
+            y: y + (track.y - y) / 2,
             align: 'center',
             baseline: 'middle',
             fill: CanvasTheme.text.primary,
-            font: {fontSize: 12, fontFamily: Typography.DEFAULT_FONT_FAMILY},
-            width: drawArea.w,
-            height: drawArea.h,
+            font: {fontSize: Typography.READOUT_FONT_SIZE, fontFamily: Typography.MONO_FONT_FAMILY},
+            width: w - 4,
+            height: track.y - y,
         });
+        rectangle(painter, track, {fill: CanvasTheme.probability.track}, READOUT_BAR_HEIGHT / 2);
+        if (probability > ZERO_PROBABILITY) {
+            // A possible outcome keeps a dot of bar, so it never looks like an impossible one.
+            rectangle(painter, new Rect(track.x, track.y, Math.max(READOUT_BAR_HEIGHT, track.w * probability), track.h),
+                {fill: fillColor}, READOUT_BAR_HEIGHT / 2);
+        }
     }
 
     frame(painter, drawArea, CanvasTheme.stroke.displayFrame);

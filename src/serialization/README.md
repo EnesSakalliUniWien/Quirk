@@ -33,7 +33,10 @@ a mutable registry or startup configuration. Custom-gate definitions are read an
 in order, with each definition able to refer to preceding definitions.
 
 Keep packed numeric strings, gate ids and arguments, register labels, sparse initial
-states and the existing circuit JSON representation unchanged. The gate reader deliberately
+states and the existing circuit JSON representation unchanged. A gate switched off in
+place is written as its active form plus `off: true` - `"X"` becomes `{id: "X", off: true}`
+and `{id: "Rx", arg: "1"}` gains the key - and read back as that gate with `deactivated`
+set, whatever form the active gate takes. The gate reader deliberately
 recovers unsupported gate definitions as disabled Parse Error gates and preserves their
 original JSON. Strict take imports separately reject any circuit that changes during
 that round trip; recovery here must not replace that validation.

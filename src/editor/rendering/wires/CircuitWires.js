@@ -24,6 +24,13 @@ import {Typography} from '../../../config/Typography.js';
 import {Point} from '../../../geometry/Point.js';
 import {drawWireLabels} from './CircuitGutter.js';
 
+/** The wire's width: a line rather than a hairline, so it reads at any zoom. */
+const WIRE_WIDTH = 1.5;
+/** A measured wire is one heavier line, not two hairlines. */
+const CLASSICAL_WIRE_WIDTH = 3;
+/** The tick across the wire where it turns classical, just past the gate that measured it. */
+const CLASSICAL_TICK_HEIGHT = 12;
+
 /**
  * @param {!Object} context Rendering inputs supplied by CircuitRendering.
  * @param {!DisplayView} painter
@@ -37,39 +44,41 @@ function drawWires(context, painter, showLabels, hand) {
         drawWireLabels(context, painter, hand, drawnWireCount);
     }
 
-    // Wires (doubled-up for measured sections).
+    // Wires: a muted line, heavier and in the classical colour once measured, with a tick where the
+    // wire turns classical.
     for (let row = 0; row < drawnWireCount; row++) {
         painter.group('wire-' + row, painter => {
             painter.alpha = row >= context.geometry.extraWireStartIndex ? 0.5 : 1;
             const segments = [[], []];
-            // A measured wire's double line keeps its gap when zoomed out, as its width does.
-            const gap = lineWidth(painter, 1);
+            const ticks = [];
             const wireRect = context.geometry.wireRect(row);
             const y = Math.round(wireRect.center().y - 0.5) + 0.5;
             let lastX = showLabels ? context.geometry.wireInitialStateRect(row).right() : 5;
             // Wires terminate before the superposition display's row labels instead of running to the
             // canvas's right edge.
             const wireEndX = showLabels ? context.geometry.outputWireEndX() : Infinity;
+            let wasMeasured = false;
             for (let col = 0; showLabels ? lastX < wireEndX : col <= context.definition.columns.length; col++) {
                 const x = Math.min(context.geometry.opRect(col).center().x, wireEndX);
-                if (context.definition.locIsMeasured(new Point(col, row))) {
-                    // Measured wire.
-                    segments[1].push([lastX, y - gap, x, y - gap]);
-                    segments[1].push([lastX, y + gap, x, y + gap]);
-                } else {
-                    // Unmeasured wire.
-                    segments[0].push([lastX, y, x, y]);
+                const measured = context.definition.locIsMeasured(new Point(col, row));
+                segments[measured ? 1 : 0].push([lastX, y, x, y]);
+                if (measured && !wasMeasured) {
+                    // The segment starts under the gate that measured; the tick sits just past it.
+                    ticks.push(lastX + Layout.GATE_RADIUS + 3);
                 }
+                wasMeasured = measured;
                 lastX = x;
             }
-            for (const [i, color] of [CanvasTheme.text.primary, CanvasTheme.iqp.classicalWire].entries()) {
-                drawPath(painter, trace => segments[i].forEach(segment => PathGeometry.line(trace, ...segment)), [{
-                    stroke: {
-                        color: color,
-                        width: lineWidth(painter, 1)
-                    }
-                }]);
+            const strokes = [
+                {color: CanvasTheme.stroke.wire, width: lineWidth(painter, WIRE_WIDTH)},
+                {color: CanvasTheme.iqp.classicalWire, width: lineWidth(painter, CLASSICAL_WIRE_WIDTH)},
+            ];
+            for (const [i, stroke] of strokes.entries()) {
+                drawPath(painter, trace => segments[i].forEach(segment => PathGeometry.line(trace, ...segment)), [{stroke}]);
             }
+            drawPath(painter, trace => ticks.forEach(x =>
+                PathGeometry.line(trace, x, y - CLASSICAL_TICK_HEIGHT / 2, x, y + CLASSICAL_TICK_HEIGHT / 2)),
+            [{stroke: strokes[1]}]);
         });
     }
 

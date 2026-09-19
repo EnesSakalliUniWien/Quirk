@@ -9,6 +9,8 @@ Import functions from their owning file directly.
 | `Equate.js` | Value equality, strict equality and `isEqualTo` comparisons |
 | `Format.js` | Numeric formatting and parsing, binary labels and superscript digits |
 | `maps.js` | Merge maps |
+| `Clock.js` | The app's one clock: the time, and callbacks on its frames; every wait and every animation runs on it |
+| `CooldownThrottle.js` | Rate-limits an action, waiting on the clock |
 
 Equality and formatting keep their distinct existing behavior: `equate`, `STRICT_EQUALITY`
 and `CUSTOM_IS_EQUAL_TO_EQUALITY` are different comparisons.

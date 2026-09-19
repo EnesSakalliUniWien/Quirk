@@ -23,7 +23,7 @@ import {RenderSurface} from '../../surface/RenderSurface.js';
 import {Rect} from '../../../geometry/Rect.js';
 import {Point} from '../../../geometry/Point.js';
 import {AXIS_COLOR, PLOT_RADIUS} from './BlochGeometry.js';
-import {blochReading, componentFormulas, degreesText} from '../../../engine/math/bloch.js';
+import {PURE_STATE_THRESHOLD, blochReading, componentFormulas, degreesText} from '../../../engine/math/bloch.js';
 
 function projectPoint(x, y, z, yaw, pitch) {
     const cy = Math.cos(yaw);
@@ -85,6 +85,132 @@ function coordinatePlaneTriangles(vec) {
     });
 }
 
+/**
+ * Where the vector casts its shadow: on the equator, lit from |0⟩, and on the surface along its
+ * direction. A state inside the sphere is mixed, and the surface point is the pure state it falls
+ * short of. Without a direction (RULE A) there is no shadow; on the z axis the equator shadow is
+ * the centre.
+ * @param {!{x: !number, y: !number, z: !number}} vec
+ * @param {!import('../../../engine/math/bloch.js').BlochReading=} reading Reading for this vector.
+ * @returns {!{foot: (undefined|!Array.<!number>), surface: (undefined|!Array.<!number>), inside: !boolean}}
+ */
+function shadowOf(vec, reading = blochReading(vec)) {
+    if (reading.rule === 'mixed') return {foot: undefined, surface: undefined, inside: true};
+    const {r} = reading;
+    return {
+        foot: [vec.x, vec.y, 0],
+        surface: [vec.x / r, vec.y / r, vec.z / r],
+        inside: r < PURE_STATE_THRESHOLD,
+    };
+}
+
+/**
+ * The shadow each projection triangle casts on the sphere, lit square to its own face from both
+ * sides. A point of the triangle is carried along the face's normal until it meets the surface, so
+ * the shadow is the triangle lifted onto the sphere: a curved triangle over it on each cap, whose
+ * corners are the pole of the face, the lifted foot and the tip. A pure state's tip is on the
+ * surface already, so every shadow meets it there.
+ * @param {!{x: !number, y: !number, z: !number}} vec
+ * @returns {!Array.<!{axis: !string, normal: !Array.<!number>, foot: !Array.<!number>,
+ *     tip: !Array.<!number>}>}
+ */
+function faceShadows(vec) {
+    const tip = [vec.x, vec.y, vec.z];
+    return projectionTriangles(vec).map(({axis, foot}) => {
+        // The face holds the axis and the foot, so its normal is the axis crossed with the foot.
+        const along = ['x', 'y', 'z'].map(a => a === axis ? 1 : 0);
+        const cross = [
+            along[1] * foot[2] - along[2] * foot[1],
+            along[2] * foot[0] - along[0] * foot[2],
+            along[0] * foot[1] - along[1] * foot[0],
+        ];
+        const length = Math.hypot(...cross);
+        return {axis, normal: cross.map(v => v / length), foot, tip};
+    });
+}
+
+/**
+ * Where light square to a face carries a point of it onto the sphere.
+ * @param {!Array.<!number>} point A point in the face, inside the sphere.
+ * @param {!Array.<!number>} normal The face's unit normal.
+ * @param {!number} side +1 or −1: which cap the light throws it onto.
+ * @returns {!Array.<!number>}
+ */
+function liftOntoSphere(point, normal, side) {
+    const rise = side * Math.sqrt(Math.max(0, 1 - Math.hypot(...point) ** 2));
+    return point.map((v, i) => v + rise * normal[i]);
+}
+
+/** Where the chord between two points of the sphere crosses the silhouette, put back on the surface. */
+function silhouetteCrossing(a, b, depthA, depthB) {
+    const t = depthA / (depthA - depthB);
+    const crossing = a.map((v, i) => v + (b[i] - v) * t);
+    const length = Math.hypot(...crossing);
+    return crossing.map(v => v / length);
+}
+
+/** The points strictly between two unit vectors along the shorter great-circle arc. */
+function arcBetween(from, to) {
+    const dot = Math.max(-1, Math.min(1, from.reduce((sum, v, i) => sum + v * to[i], 0)));
+    const angle = Math.acos(dot);
+    if (angle < 1e-6 || Math.PI - angle < 1e-6) return [];
+    const count = Math.max(1, Math.ceil(angle * 12));
+    return Array.from({length: count - 1}, (_, i) => {
+        const t = (i + 1) / count;
+        const [wa, wb] = [Math.sin((1 - t) * angle), Math.sin(t * angle)];
+        return from.map((v, k) => (wa * v + wb * to[k]) / Math.sin(angle));
+    });
+}
+
+/**
+ * A closed curve on the sphere cut at the silhouette, where the view's depth is zero: the runs of
+ * it on the near side and on the far side, each ending exactly on the silhouette, and the region it
+ * bounds on the near side, closed along the silhouette wherever the curve passes behind. A region
+ * drawn from the whole curve would fold its hidden part over the front of the sphere.
+ * @param {!Array.<!Array.<!number>>} loop Unit vectors round the region, the first not repeated.
+ * @param {function(!Array.<!number>): !{depth: !number}} project
+ * @returns {!{near: !Array.<!Array.<!Array.<!number>>>, far: !Array.<!Array.<!Array.<!number>>>,
+ *     region: !Array.<!Array.<!number>>}}
+ */
+function cutAtSilhouette(loop, project) {
+    const n = loop.length;
+    const depths = loop.map(point => project(point).depth);
+    const nearAt = i => depths.at(i % n) >= 0;
+    const crossingBefore = i => silhouetteCrossing(loop.at(i - 1), loop[i % n], depths.at(i - 1), depths[i % n]);
+    // Started at a crossing, every run begins and ends on the silhouette; without one the whole
+    // curve is one run, closed on itself.
+    const first = depths.findIndex((_, i) => nearAt(i - 1) !== nearAt(i));
+    const start = Math.max(0, first);
+    const near = [], far = [], vertices = [];
+    let run = [], runNear = nearAt(start);
+    const flush = () => {
+        if (run.length > 1) (runNear ? near : far).push(run);
+        run = [];
+    };
+    const cross = crossing => {
+        run.push(crossing);
+        flush();
+        run.push(crossing);
+        vertices.push({point: crossing, onRim: true});
+    };
+    if (first >= 0) cross(crossingBefore(first));
+    for (let step = 0; step < n; step++) {
+        const i = (start + step) % n;
+        if (step > 0 && nearAt(i - 1) !== nearAt(i)) cross(crossingBefore(i));
+        runNear = nearAt(i);
+        run.push(loop[i]);
+        if (runNear) vertices.push({point: loop[i], onRim: false});
+    }
+    run.push(first >= 0 ? crossingBefore(first) : loop[start]);
+    flush();
+    // Where the curve left the near side and came back, the region follows the silhouette between.
+    const region = vertices.flatMap(({point, onRim}, i) => {
+        const next = vertices[(i + 1) % vertices.length];
+        return onRim && next.onRim ? [point, ...arcBetween(point, next.point)] : [point];
+    });
+    return {near, far, region};
+}
+
 /** Construct the right-angle mark in 3D before projecting it with the triangle. */
 function drawRightAngle(view, foot, tip, project, color, scale) {
     const aLength = Math.hypot(...foot);
@@ -134,7 +260,8 @@ const UNIT_CIRCLES = [
  * the ones it does not need off; this is what the panel's switches set.
  */
 const DEFAULT_LAYERS = Object.freeze(
-    {circles: true, grid: true, components: true, planes: true, angles: true, quaternion: true, trig: true});
+    {circles: true, grid: true, components: true, planes: true, angles: true, quaternion: true, trig: true,
+        shadow: false});
 
 /** Above this size a sphere is read, not glanced at: it gets its labels, grid, triangles and formulas. */
 const DETAILED_SIZE = 100;
@@ -350,6 +477,58 @@ function paintBlochScene(view, size, vec, yaw, pitch,
     reading ??= blochReading(vec);
     const tip = project(vec.x, vec.y, vec.z);
 
+    // The shadow sits under every construction: the equator shadow is the z reading's, and a
+    // mixed state's surface point is where its direction would put the pure state.
+    if (detailed && layers.shadow) {
+        const {foot, surface, inside} = shadowOf(vec, reading);
+        if (foot !== undefined) {
+            const base = project(...foot);
+            forAxis('shadow-equator', 'z', inner => {
+                inner.alpha *= 0.5;
+                strokePath(inner, [tip, base], CanvasTheme.stroke.guide, 1, [2, 3]);
+                strokePath(inner, [center, base], CanvasTheme.bloch.vector, 2, base.depth >= 0 ? [] : [4, 4]);
+                circle(inner, base, 3.5, {fill: CanvasTheme.bloch.vector});
+            });
+        }
+        // Each triangle's shadow on the cap either side of its face, in its axis's colour. Only what
+        // lies on the near side of the sphere is filled, cut at the silhouette; the rest of its
+        // outline is dashed through the sphere, as the unit circles' far halves are.
+        const edge = (from, to) => Array.from({length: 16}, (_, i) => from.map((v, j) => v + (to[j] - v) * i / 16));
+        const onSphere = point => project(...point);
+        for (const {axis, normal, foot, tip: corner} of faceShadows(vec)) {
+            const outline = [...edge(ORIGIN, foot), ...edge(foot, corner), ...edge(corner, ORIGIN)];
+            for (const side of [1, -1]) {
+                const cap = cutAtSilhouette(outline.map(p => liftOntoSphere(p, normal, side)), onSphere);
+                forAxis(`shadow-face-${axis}${side > 0 ? '+' : '-'}`, axis, inner => {
+                    if (cap.region.length > 2) {
+                        inner.group('fill', fill => {
+                            fill.alpha *= 0.34;
+                            polygon(fill, cap.region.map(onSphere), {fill: AXIS_COLOR[axis]});
+                        });
+                    }
+                    inner.group('near', lines => {
+                        lines.alpha *= 0.6;
+                        for (const run of cap.near) strokePath(lines, run.map(onSphere), AXIS_COLOR[axis], 1.25);
+                    });
+                    inner.group('far', lines => {
+                        lines.alpha *= 0.3;
+                        for (const run of cap.far) strokePath(lines, run.map(onSphere), AXIS_COLOR[axis], 1, [4, 4]);
+                    });
+                });
+            }
+        }
+        if (surface !== undefined && inside) {
+            const mark = project(...surface);
+            view.group('shadow-surface', inner => {
+                inner.alpha *= mark.depth >= 0 ? 0.8 : 0.45;
+                strokePath(inner, [tip, mark], CanvasTheme.bloch.vector, 1, [1, 3]);
+                // Marked as the end-on vector is: it is the pure state along the same direction.
+                circle(inner, mark, 4, {fill: CanvasTheme.bloch.vector});
+                circle(inner, mark, 4, {stroke: {color: CanvasTheme.text.primary, width: 1}});
+            });
+        }
+    }
+
     // A projection triangle is tinted in its axis's colour; the plane triangle under it, whose
     // hypotenuse is that projection triangle's base, in the same colour but fainter. A solid leg
     // is always a component, in the colour of the axis it runs along.
@@ -450,4 +629,4 @@ function drawBlochScene(canvas, vec, yaw, pitch, options = {}) {
 }
 
 export {drawBlochScene, paintBlochScene, glanceBoxFor, DEFAULT_VIEW, projectPoint, projectionTriangles,
-    coordinatePlaneTriangles};
+    coordinatePlaneTriangles, shadowOf, faceShadows, liftOntoSphere, cutAtSilhouette};

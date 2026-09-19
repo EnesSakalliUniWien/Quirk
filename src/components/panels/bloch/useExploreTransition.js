@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef } from "react";
 
 import { blochVectorBetween, vectorFromAngles } from "../../../engine/math/bloch.js";
-import { PRESET_TRANSITION, easeInOut } from "./analyzerModel.js";
+import { clock } from "../../../base/Clock.js";
+import { Animation } from "../../../config/Animation.js";
 
 /**
  * Moves the analyzer to a free, explored state: at once for a slider, or gliding there over
- * PRESET_TRANSITION for a preset. The glide turns the arrow along the sphere rather than through it
+ * Animation.GLIDE_DURATION_MS for a preset. The glide turns the arrow along the sphere rather than through it
  * (blochVectorBetween). A new move cancels one still under way, and so does unmounting.
  *
  * @param {(mode: import("./analyzerModel.js").ViewMode) => void} setMode
@@ -13,9 +14,9 @@ import { PRESET_TRANSITION, easeInOut } from "./analyzerModel.js";
  *     vector on screen now, where a glide starts from.
  */
 function useExploreTransition(setMode, shownVector) {
-  const animation = useRef(/** @type {number | undefined} */ (undefined));
+  const animation = useRef(/** @type {(() => void) | undefined} */ (undefined));
   const cancel = useCallback(() => {
-    if (animation.current !== undefined) cancelAnimationFrame(animation.current);
+    animation.current?.();
     animation.current = undefined;
   }, []);
 
@@ -32,14 +33,13 @@ function useExploreTransition(setMode, shownVector) {
       setMode({ kind: "explore", vec: to, preset });
       return;
     }
-    const start = performance.now();
-    const frame = (now) => {
-      const t = Math.min(1, (now - start) / PRESET_TRANSITION);
-      const vec = blochVectorBetween(from, to, easeInOut(t));
+    const start = clock.now();
+    animation.current = clock.onFrame((now) => {
+      const t = Math.min(1, (now - start) / Animation.GLIDE_DURATION_MS);
+      const vec = blochVectorBetween(from, to, Animation.GLIDE_EASING(t));
       setMode({ kind: "explore", vec: t < 1 ? vec : to, preset });
-      if (t < 1) animation.current = requestAnimationFrame(frame);
-    };
-    animation.current = requestAnimationFrame(frame);
+      if (t >= 1) cancel();
+    });
   };
 
   /** @param {number} thetaDegrees @param {number} phiDegrees */

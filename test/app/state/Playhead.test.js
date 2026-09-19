@@ -105,6 +105,8 @@ suite.test("starts before the first column", () => {
         columnCount: 3,
         operationIndex: 0,
         operationCount: 3,
+        breakpoints: [],
+        nextColumn: 0,
         playing: false,
         canPlay: true,
         canStepBack: false,
@@ -191,6 +193,112 @@ suite.test("moving the playhead by hand stops playback", () => {
     assertThat(clock.pendingCount()).isEqualTo(0);
 });
 
+
+suite.test("counts the operations stepped over, forwards less backwards, but not an edit's pull", () => {
+    const {playhead, columns, clock} = playheadOver(4);
+    assertThat(playhead.operationsStepped()).isEqualTo(0);
+    playhead.next();
+    playhead.next();
+    assertThat(playhead.operationsStepped()).isEqualTo(2);
+    playhead.previous();
+    assertThat(playhead.operationsStepped()).isEqualTo(1);
+    playhead.end();
+    assertThat(playhead.operationsStepped()).isEqualTo(4);
+
+    // Playing from the end steps back to the start first, then on a tick at a time.
+    playhead.togglePlay();
+    assertThat(playhead.operationsStepped()).isEqualTo(0);
+    clock.tick();
+    assertThat(playhead.operationsStepped()).isEqualTo(1);
+    playhead.end();
+
+    columns.setState({value: 2});
+    assertThat(playhead.step()).isEqualTo(2);
+    assertThat(playhead.operationsStepped()).isEqualTo(4);
+});
+
+suite.test("a run halts before a breakpoint, and a single step does not care", () => {
+    const {playhead, clock} = playheadOver(5);
+    playhead.toggleBreakpoint(2);
+    playhead.toggleBreakpoint(4);
+    playhead.toggleBreakpoint(7);
+    assertThat(playhead.state().snapshot()[0].breakpoints).isEqualTo([2, 4]);
+
+    // End is a debugger's continue: to the next breakpoint, and from one on to the one after.
+    playhead.end();
+    assertThat(playhead.step()).isEqualTo(2);
+    playhead.end();
+    assertThat(playhead.step()).isEqualTo(4);
+    playhead.end();
+    assertThat(playhead.step()).isEqualTo(5);
+
+    playhead.reset();
+    playhead.next();
+    playhead.next();
+    playhead.next();
+    assertThat(playhead.step()).isEqualTo(3);
+
+    playhead.reset();
+    playhead.togglePlay();
+    clock.tick();
+    clock.tick();
+    assertThat(playhead.step()).isEqualTo(2);
+    assertThat(playhead.state().snapshot()[0].playing).isEqualTo(false);
+    assertThat(clock.pendingCount()).isEqualTo(0);
+
+    // Cleared, it holds nothing back; a halt column from elsewhere halts the same way.
+    playhead.toggleBreakpoint(2);
+    playhead.toggleBreakpoint(4);
+    playhead.setHaltColumns([3]);
+    playhead.end();
+    assertThat(playhead.step()).isEqualTo(3);
+});
+
+suite.test("a breakpoint stands before its column's operation, whatever displays lie between", () => {
+    const circuit = Serializer.fromJson(CircuitDefinition, {cols: [['H'], ['Bloch'], [], ['X'], ['Bloch']]});
+    const clock = fakeClock();
+    const playhead = new Playhead(
+        observeStore(createValueStore(operationSchedule(circuit))), clock.setInterval, clock.clearInterval);
+    playhead.toggleBreakpoint(1);
+    assertThat(playhead.state().snapshot()[0].breakpoints).isEqualTo([]);
+    playhead.toggleBreakpoint(3);
+    playhead.end();
+    assertThat(playhead.step()).isEqualTo(1);
+    assertThat(playhead.state().snapshot()[0].nextColumn).isEqualTo(3);
+    // A halt column after the last operation halts once every operation has run.
+    playhead.toggleBreakpoint(3);
+    playhead.setHaltColumns([4]);
+    playhead.reset();
+    playhead.end();
+    assertThat(playhead.step()).isEqualTo(5);
+});
+
+suite.test("breakpoints set at once keep the operation columns, in order and once each", () => {
+    const circuit = Serializer.fromJson(CircuitDefinition, {cols: [['H'], ['Bloch'], ['X'], ['Z']]});
+    const clock = fakeClock();
+    const playhead = new Playhead(
+        observeStore(createValueStore(operationSchedule(circuit))), clock.setInterval, clock.clearInterval);
+    playhead.setBreakpoints([3, 1, 0, 3, 9]);
+    assertThat(playhead.breakpoints()).isEqualTo([0, 3]);
+    assertThat(playhead.state().snapshot()[0].breakpoints).isEqualTo([0, 3]);
+});
+
+suite.test("breakpoints follow their columns through an edit", () => {
+    const schedule = createValueStore(operationSchedule(Serializer.fromJson(CircuitDefinition, {cols: [['H'], ['X'], ['Z']]})));
+    const clock = fakeClock();
+    const playhead = new Playhead(observeStore(schedule), clock.setInterval, clock.clearInterval);
+    playhead.setBreakpoints([1, 2]);
+
+    // A column inserted before them shifts them; one edited in place keeps its breakpoint.
+    schedule.setState({value: operationSchedule(Serializer.fromJson(CircuitDefinition, {cols: [['Y'], ['H'], ['X', 'Y'], ['Z']]}))});
+    assertThat(playhead.breakpoints()).isEqualTo([2, 3]);
+    // A removed column takes its breakpoint along.
+    schedule.setState({value: operationSchedule(Serializer.fromJson(CircuitDefinition, {cols: [['Y'], ['H'], ['Z']]}))});
+    assertThat(playhead.breakpoints()).isEqualTo([2]);
+    // One that turns into a display column is no operation, and loses it.
+    schedule.setState({value: operationSchedule(Serializer.fromJson(CircuitDefinition, {cols: [['Y'], ['H'], ['Bloch']]}))});
+    assertThat(playhead.breakpoints()).isEqualTo([]);
+});
 
 suite.test("an empty circuit has nothing to play", () => {
     const {playhead, clock} = playheadOver(0);

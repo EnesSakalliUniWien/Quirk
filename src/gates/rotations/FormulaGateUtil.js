@@ -59,8 +59,11 @@ function makeUpdateFormulaFunc(symbolOverheadChars=1, allowTimeDependence=true) 
             TIME_PROBE_VALUES.some(t => parseTimeFormula(gate.param, t, false) !== undefined);
         gate._stableDuration = dynamic ? 0 : Infinity;
 
+        // A dialled angle keeps its box two columns wide, so the dial in the column beside it stays
+        // put as the angle's text grows and shrinks; other formulas widen with their text.
+        const dial = gate.hasAngleDial() ? 1 : 0;
         if (typeof gate.param === 'string') {
-            gate.width = Math.ceil((gate.param.length + symbolOverheadChars) / 5);
+            gate.width = (dial ? 2 : Math.ceil((gate.param.length + symbolOverheadChars) / 5)) + dial;
             gate.alternate = gate._copy();
             gate.alternate.alternate = gate;
             if (gate.param.startsWith('-(') && gate.param.endsWith(')')) {
@@ -69,7 +72,7 @@ function makeUpdateFormulaFunc(symbolOverheadChars=1, allowTimeDependence=true) 
                 gate.alternate.param = '-(' + gate.param + ')';
             }
         } else {
-            gate.width = 1;
+            gate.width = 1 + dial;
             gate.alternate = gate;
         }
     };

@@ -17,7 +17,7 @@
 import {GateBuilder} from "../../circuit/model/Gate.js"
 import {paintBackground, paintOutline, paintGateButton} from '../../draw/gate/GateFrame.js';
 import {paintGateSymbol} from '../../draw/gate/GateSymbol.js';
-import {paintCycleState} from '../../draw/gate/GateRenderers.js';
+import {DIAL_AXIS, paintTimeDial} from '../../draw/gate/TimeDial.js';
 import {ketArgs, ketShader, ketShaderPhase, ketInputGateShaderCode} from "../../engine/simulation/gpu/KetShaderUtil.js"
 import {WglArg} from "../../engine/webgl/shader/WglArg.js"
 import { digits_to_superscript_digits } from "../../base/Format.js";
@@ -33,9 +33,7 @@ const ParametrizedRotationGates = {};
  * @param {!number} tScale
  * @returns {!function(args: !GateRenderParams)}
  */
-function configurableRotationRenderer(pattern, xyz, tScale) {
-    const xScale = [1, 0.5, -1][xyz];
-    const yScale = [1, 1, -0.5][xyz];
+function configurableRotationRenderer(pattern, axis) {
     return args => {
         paintBackground(args);
         paintOutline(args);
@@ -44,12 +42,19 @@ function configurableRotationRenderer(pattern, xyz, tScale) {
 
         const isStable = args.gate.stableDuration() === Infinity;
         if (!isStable) {
-            const rads = tScale * parseTimeFormula(args.gate.param, args.stats.time*2, false) || 0;
-            paintCycleState(args, rads, xScale, yScale);
+            paintTimeDial(args, args.gate.turnsAt(args.stats.time, args.gate.param), axis);
         }
         paintGateButton(args);
     };
 }
+
+// One turnsAt per formula gate, set on the gate itself and read by its matrix and its dial alike.
+// The formula's own t runs from 0 to 2 over the cycle, and a formula that goes below zero turns the
+// gate the other way.
+/** @param {!number} time @param {*} formula @returns {!number} */
+const exponentTurns = (time, formula) => (parseTimeFormula(formula, time * 2, false) || 0) / 2;
+/** @param {!number} time @param {*} formula @returns {!number} */
+const radianTurns = (time, formula) => (parseTimeFormula(formula, time * 2, false) || 0) / (2 * Math.PI);
 
 /**
  * @param {!GateRenderParams} args
@@ -242,14 +247,12 @@ ParametrizedRotationGates.FormulaicRotationX = new GateBuilder().
     setSerializedIdAndSymbol("X^ft").
     setTitle("Formula X Rotation").
     setBlurb("Rotates around X by an amount determined by a formula.").
-    setRenderer(configurableRotationRenderer('X^f(t)', 0, Math.PI)).
+    setTurnsAt(exponentTurns).
+    setRenderer(configurableRotationRenderer('X^f(t)', DIAL_AXIS.X)).
     setWidth(2).
     setExtraDisableReasonFinder(badFormulaDetector).
     setParamDialog(angleFormulaDialog("X gate's exponent")).
-    setEffectToTimeVaryingMatrix((t, formula) => {
-        const exponent = parseTimeFormula(formula, t*2, true) || 0;
-        return QubitMatrix.fromPauliRotation(exponent/2, 0, 0);
-    }).
+    setEffectFromTurns(turns => QubitMatrix.fromPauliRotation(turns, 0, 0)).
     setWithParamPropertyRecomputeFunc(updateUsingFormula).
     promiseEffectIsUnitary().
     gate.withParam('sin(pi t)');
@@ -258,14 +261,12 @@ ParametrizedRotationGates.FormulaicRotationY = new GateBuilder().
     setSerializedIdAndSymbol("Y^ft").
     setTitle("Formula Y Rotation").
     setBlurb("Rotates around Y by an amount determined by a formula.").
-    setRenderer(configurableRotationRenderer('Y^f(t)', 1, Math.PI)).
+    setTurnsAt(exponentTurns).
+    setRenderer(configurableRotationRenderer('Y^f(t)', DIAL_AXIS.Y)).
     setWidth(2).
     setExtraDisableReasonFinder(badFormulaDetector).
     setParamDialog(angleFormulaDialog("Y gate's exponent")).
-    setEffectToTimeVaryingMatrix((t, formula) => {
-        const exponent = parseTimeFormula(formula, t*2, true) || 0;
-        return QubitMatrix.fromPauliRotation(0, exponent/2, 0);
-    }).
+    setEffectFromTurns(turns => QubitMatrix.fromPauliRotation(0, turns, 0)).
     setWithParamPropertyRecomputeFunc(updateUsingFormula).
     promiseEffectIsUnitary().
     gate.withParam('sin(pi t)');
@@ -274,14 +275,12 @@ ParametrizedRotationGates.FormulaicRotationZ = new GateBuilder().
     setSerializedIdAndSymbol("Z^ft").
     setTitle("Formula Z Rotation").
     setBlurb("Rotates around Z by an amount determined by a formula.").
-    setRenderer(configurableRotationRenderer('Z^f(t)', 2, Math.PI)).
+    setTurnsAt(exponentTurns).
+    setRenderer(configurableRotationRenderer('Z^f(t)', DIAL_AXIS.Z)).
     setWidth(2).
     setExtraDisableReasonFinder(badFormulaDetector).
     setParamDialog(angleFormulaDialog("Z gate's exponent")).
-    setEffectToTimeVaryingMatrix((t, formula) => {
-        const exponent = parseTimeFormula(formula, t*2, true) || 0;
-        return QubitMatrix.fromPauliRotation(0, 0, exponent/2);
-    }).
+    setEffectFromTurns(turns => QubitMatrix.fromPauliRotation(0, 0, turns)).
     setWithParamPropertyRecomputeFunc(updateUsingFormula).
     promiseEffectOnlyPhases().
     gate.withParam('sin(pi t)');
@@ -290,11 +289,12 @@ ParametrizedRotationGates.FormulaicRotationRx = new GateBuilder().
     setSerializedIdAndSymbol("Rxft").
     setTitle("Formula Rx Gate").
     setBlurb("Rotates around X by an angle in radians determined by a formula.").
-    setRenderer(configurableRotationRenderer('Rx(f(t))', 0, 1)).
+    setTurnsAt(radianTurns).
+    setRenderer(configurableRotationRenderer('Rx(f(t))', DIAL_AXIS.X)).
     setWidth(2).
     setExtraDisableReasonFinder(badFormulaDetector).
     setParamDialog(angleFormulaDialog("Rx gate's angle in radians")).
-    setEffectToTimeVaryingMatrix((t, formula) => XExp((parseTimeFormula(formula, t*2, true) || 0) / Math.PI / 4)).
+    setEffectFromTurns(turns => XExp(turns / 2)).
     setWithParamPropertyRecomputeFunc(updateUsingFormula).
     promiseEffectIsUnitary().
     gate.withParam('pi t^2');
@@ -303,11 +303,12 @@ ParametrizedRotationGates.FormulaicRotationRy = new GateBuilder().
     setSerializedIdAndSymbol("Ryft").
     setTitle("Formula Ry Gate").
     setBlurb("Rotates around Y by an angle in radians determined by a formula.").
-    setRenderer(configurableRotationRenderer('Ry(f(t))', 1, 1)).
+    setTurnsAt(radianTurns).
+    setRenderer(configurableRotationRenderer('Ry(f(t))', DIAL_AXIS.Y)).
     setWidth(2).
     setExtraDisableReasonFinder(badFormulaDetector).
     setParamDialog(angleFormulaDialog("Ry gate's angle in radians")).
-    setEffectToTimeVaryingMatrix((t, formula) => YExp((parseTimeFormula(formula, t*2, true) || 0) / Math.PI / 4)).
+    setEffectFromTurns(turns => YExp(turns / 2)).
     setWithParamPropertyRecomputeFunc(updateUsingFormula).
     promiseEffectIsUnitary().
     gate.withParam('pi t^2');
@@ -316,11 +317,12 @@ ParametrizedRotationGates.FormulaicRotationRz = new GateBuilder().
     setSerializedIdAndSymbol("Rzft").
     setTitle("Formula Rz Gate").
     setBlurb("Rotates around Z by an angle in radians determined by a formula.").
-    setRenderer(configurableRotationRenderer('Rz(f(t))', 2, 1)).
+    setTurnsAt(radianTurns).
+    setRenderer(configurableRotationRenderer('Rz(f(t))', DIAL_AXIS.Z)).
     setWidth(2).
     setExtraDisableReasonFinder(badFormulaDetector).
     setParamDialog(angleFormulaDialog("Rz gate's angle in radians")).
-    setEffectToTimeVaryingMatrix((t, formula) => ZExp((parseTimeFormula(formula, t*2, true) || 0) / Math.PI / 4)).
+    setEffectFromTurns(turns => ZExp(turns / 2)).
     setWithParamPropertyRecomputeFunc(updateUsingFormula).
     promiseEffectOnlyPhases().
     gate.withParam('pi t^2');

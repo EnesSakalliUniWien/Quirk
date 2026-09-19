@@ -8,7 +8,7 @@ component has its own file, using the existing kebab-case naming convention.
 | --- | --- |
 | `algebra/` | Operation equations, step cards, state factors and evolution chart |
 | `bloch/` | Enlarged Bloch sphere and its readings |
-| `circuit/` | Circuit canvas host, gutter rename box and gutter menu |
+| `circuit/` | Circuit canvas host, gutter rename box, gutter menu, the gate menu and the dial on a rotation gate's wire |
 | `export/` | Circuit and simulation exports, including copy feedback |
 | `forge/` | Custom gate creation from matrices, rotations and circuit ranges |
 | `gate-param/` | Editing a selected gate's parameter |

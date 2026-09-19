@@ -219,8 +219,27 @@ class CircuitGeometry {
         return new Rect(c.x - half, c.y - half, 2 * half, 2 * half + Layout.BLOCH_READOUT_HEIGHT);
     }
 
+    /**
+     * @param {!Gate} gate
+     * @returns {!int} The columns the gate's box is drawn over: its width, less the column its
+     *     dial takes when it has one. The whole width is the gate's footprint on the circuit.
+     */
+    static drawnWidth(gate) {
+        return gate.width - (gate.hasAngleDial() ? 1 : 0);
+    }
+
+    /**
+     * @param {!int} row
+     * @param {!int} col
+     * @param {!Gate} gate
+     * @returns {!Rect} Where the dial beside the gate sits: the last column of its footprint.
+     */
+    dialRect(row, col, gate) {
+        return this.gateRect(row, col + gate.width - 1);
+    }
+
     gateDrawRect(row, col, gate) {
-        const rect = this.gateRect(row, col, gate.width, gate.height);
+        const rect = this.gateRect(row, col, CircuitGeometry.drawnWidth(gate), gate.height);
         return gate.serializedId === 'Bloch' ? CircuitGeometry.blochDisplayRect(rect) : rect;
     }
 

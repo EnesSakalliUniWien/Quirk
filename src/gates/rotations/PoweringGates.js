@@ -16,11 +16,18 @@
 
 import {GateBuilder} from "../../circuit/model/Gate.js"
 import {makeCycleRenderer} from '../../draw/gate/GateRenderers.js';
+import {DIAL_AXIS} from '../../draw/gate/TimeDial.js';
 import {Matrix} from "../../engine/math/matrix/Matrix.js"
 
 const PoweringGates = {};
 
 const τ = Math.PI * 2;
+
+// One turnsAt per gate, set on the gate itself: how far round its cycle it has come at a time, in
+// turns. Its matrix is built from that number (setEffectFromTurns) and its dial is drawn from it, so
+// the two can never drift apart. A backward gate turns the other way, which is its negative sign.
+const FORWARD = t => t;
+const BACKWARD = t => -t;
 const XPow = t => {
     const c = Math.cos(τ * t) / 2;
     const s = Math.sin(τ * t) / 2;
@@ -41,8 +48,9 @@ PoweringGates.XForward = new GateBuilder().
     setSerializedIdAndSymbol("X^t").
     setTitle("X-Raising Gate (forward)").
     setBlurb("Right-handed cycle from no-op to X.").
-    setRenderer(makeCycleRenderer(1, 1)).
-    setEffectToTimeVaryingMatrix(XPow).
+    setTurnsAt(FORWARD).
+    setRenderer(makeCycleRenderer(DIAL_AXIS.X)).
+    setEffectFromTurns(XPow).
     promiseEffectIsUnitary().
     gate;
 
@@ -51,8 +59,9 @@ PoweringGates.XBackward = new GateBuilder().
     setSerializedIdAndSymbol("X^-t").
     setTitle("X-Raising Gate (backward)").
     setBlurb("Left-handed cycle from no-op to X.").
-    setRenderer(makeCycleRenderer(-1, 1)).
-    setEffectToTimeVaryingMatrix(t => XPow(-t)).
+    setTurnsAt(BACKWARD).
+    setRenderer(makeCycleRenderer(DIAL_AXIS.X)).
+    setEffectFromTurns(XPow).
     promiseEffectIsUnitary().
     gate;
 
@@ -60,8 +69,9 @@ PoweringGates.YForward = new GateBuilder().
     setSerializedIdAndSymbol("Y^t").
     setTitle("Y-Raising Gate (forward)").
     setBlurb("Right-handed cycle from no-op to Y.").
-    setRenderer(makeCycleRenderer(0.5, 1)).
-    setEffectToTimeVaryingMatrix(YPow).
+    setTurnsAt(FORWARD).
+    setRenderer(makeCycleRenderer(DIAL_AXIS.Y)).
+    setEffectFromTurns(YPow).
     promiseEffectIsUnitary().
     gate;
 
@@ -70,8 +80,9 @@ PoweringGates.YBackward = new GateBuilder().
     setSerializedIdAndSymbol("Y^-t").
     setTitle("Y-Raising Gate (backward)").
     setBlurb("Left-handed cycle from no-op to Y.").
-    setRenderer(makeCycleRenderer(-0.5, 1)).
-    setEffectToTimeVaryingMatrix(t => YPow(-t)).
+    setTurnsAt(BACKWARD).
+    setRenderer(makeCycleRenderer(DIAL_AXIS.Y)).
+    setEffectFromTurns(YPow).
     promiseEffectIsUnitary().
     gate;
 
@@ -79,8 +90,9 @@ PoweringGates.ZForward = new GateBuilder().
     setSerializedIdAndSymbol("Z^t").
     setTitle("Z-Raising Gate (forward)").
     setBlurb("Right-handed cycle from no-op to Z.").
-    setRenderer(makeCycleRenderer(-1, -0.5)).
-    setEffectToTimeVaryingMatrix(ZPow).
+    setTurnsAt(FORWARD).
+    setRenderer(makeCycleRenderer(DIAL_AXIS.Z)).
+    setEffectFromTurns(ZPow).
     promiseEffectOnlyPhases().
     gate;
 
@@ -89,8 +101,9 @@ PoweringGates.ZBackward = new GateBuilder().
     setSerializedIdAndSymbol("Z^-t").
     setTitle("Z-Raising Gate (backward)").
     setBlurb("Left-handed cycle from no-op to Z.").
-    setRenderer(makeCycleRenderer(1, -0.5)).
-    setEffectToTimeVaryingMatrix(t => ZPow(-t)).
+    setTurnsAt(BACKWARD).
+    setRenderer(makeCycleRenderer(DIAL_AXIS.Z)).
+    setEffectFromTurns(ZPow).
     promiseEffectOnlyPhases().
     gate;
 

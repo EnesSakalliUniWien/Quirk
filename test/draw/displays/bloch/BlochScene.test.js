@@ -1,5 +1,6 @@
 import {Suite, assertThat, assertTrue} from '../../../TestUtil.js';
-import {drawBlochScene, paintBlochScene, projectPoint, projectionTriangles, coordinatePlaneTriangles} from '../../../../src/draw/displays/bloch/BlochScene.js';
+import {drawBlochScene, paintBlochScene, projectPoint, projectionTriangles, coordinatePlaneTriangles,
+    shadowOf, faceShadows, liftOntoSphere, cutAtSilhouette} from '../../../../src/draw/displays/bloch/BlochScene.js';
 import {DisplayView} from '../../scene/TestDisplayView.js';
 import {RenderSurface} from '../../../../src/draw/surface/RenderSurface.js';
 import {CanvasTheme} from '../../../../src/config/CanvasTheme.js';
@@ -56,6 +57,99 @@ suite.test('coordinate-plane triangles have perpendicular component legs in ever
     }
     assertThat(coordinatePlaneTriangles({x: 0.5, y: -0.5, z: Math.SQRT1_2})[0]).isEqualTo(
         {axes: ['x', 'y'], normal: 'z', foot: [0.5, 0, 0], tip: [0.5, -0.5, 0]});
+});
+
+suite.test('the shadow falls on the equator, and a mixed state marks the surface it falls short of', () => {
+    const near = (actual, expected) => actual.every((v, i) => Math.abs(v - expected[i]) < 1e-12);
+    const equator = shadowOf({x: 1, y: 0, z: 0});
+    assertTrue(near(equator.foot, [1, 0, 0]) && near(equator.surface, [1, 0, 0]) && !equator.inside);
+    // On the z axis the shadow is the centre.
+    assertTrue(near(shadowOf({x: 0, y: 0, z: 1}).foot, [0, 0, 0]));
+    const general = shadowOf({x: 0.5, y: -0.5, z: Math.SQRT1_2});
+    assertTrue(near(general.foot, [0.5, -0.5, 0]) && !general.inside);
+    const mixed = shadowOf({x: 0.3, y: 0, z: 0.4});
+    assertTrue(near(mixed.foot, [0.3, 0, 0]) && near(mixed.surface, [0.6, 0, 0.8]) && mixed.inside);
+    // Without a direction there is nothing to cast (RULE A).
+    assertThat(shadowOf({x: 0, y: 0, z: 0})).isEqualTo({foot: undefined, surface: undefined, inside: true});
+});
+
+suite.test('each triangle, lit face on, casts itself onto both caps of the sphere', () => {
+    const near = (actual, expected) => actual.every((v, i) => Math.abs(v - expected[i]) < 1e-12);
+    const dot = (u, v) => u.reduce((sum, value, i) => sum + value * v[i], 0);
+    const shadows = faceShadows({x: 0.6, y: 0, z: 0.8});
+    assertThat(shadows.map(s => s.axis)).isEqualTo(['x', 'z']);
+    assertTrue(near(shadows[0].normal, [0, -1, 0]) && near(shadows[1].normal, [0, 1, 0]));
+    for (const {normal, foot, tip} of faceShadows({x: 0.3, y: -0.5, z: 0.6})) {
+        // The light is square to the face: to its axis leg, its foot and its tip.
+        assertTrue(Math.abs(dot(normal, foot)) < 1e-12 && Math.abs(dot(normal, tip)) < 1e-12);
+        // Every point of the face lands on the surface, on either cap.
+        for (const point of [[0, 0, 0], foot, tip, foot.map((v, i) => (v + tip[i]) / 3)]) {
+            for (const side of [1, -1]) {
+                assertTrue(Math.abs(Math.hypot(...liftOntoSphere(point, normal, side)) - 1) < 1e-12);
+            }
+        }
+    }
+    // The centre lands on the face's pole, and a pure state's tip stays where it is.
+    const [x] = shadows;
+    assertTrue(near(liftOntoSphere([0, 0, 0], x.normal, 1), [0, -1, 0]));
+    assertTrue(near(liftOntoSphere(x.tip, x.normal, -1), [0.6, 0, 0.8]));
+    // Only the triangles that exist cast a shadow.
+    assertThat(faceShadows({x: 1, y: 0, z: 0})).isEqualTo([]);
+    assertThat(faceShadows({x: 0, y: 0, z: 0})).isEqualTo([]);
+});
+
+suite.test('a curve on the sphere is cut at the silhouette, and its near side is closed along it', () => {
+    const [yaw, pitch] = [-0.6, 0.9];
+    const project = p => {
+        const q = projectPoint(...p, yaw, pitch);
+        return {x: q.sx, y: -q.sy, depth: q.depth};
+    };
+    // The direction the view looks along has depth 1; a direction square to it lies on the silhouette.
+    const toward = [Math.cos(yaw) * Math.cos(pitch), Math.sin(yaw) * Math.cos(pitch), -Math.sin(pitch)];
+    assertTrue(Math.abs(project(toward).depth - 1) < 1e-12);
+    const rim = [-Math.sin(yaw), Math.cos(yaw), 0];
+    assertTrue(Math.abs(project(rim).depth) < 1e-12);
+    // A small circle of the given angular radius round a direction, as 24 unit vectors.
+    const ring = (centre, radius) => {
+        const helper = Math.abs(centre[2]) < 0.9 ? [0, 0, 1] : [1, 0, 0];
+        const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+        const unit = v => v.map(x => x / Math.hypot(...v));
+        const u = unit(cross(centre, helper)), v = unit(cross(centre, u));
+        return Array.from({length: 24}, (_, i) => {
+            const t = i * Math.PI * 2 / 24;
+            return centre.map((c, k) => Math.cos(radius) * c + Math.sin(radius) * (Math.cos(t) * u[k] + Math.sin(t) * v[k]));
+        });
+    };
+    const onSphere = p => Math.abs(Math.hypot(...p) - 1) < 1e-9;
+
+    // Wholly near: the region is the curve itself, and nothing is far.
+    const front = ring(toward, 0.5);
+    const seen = cutAtSilhouette(front, project);
+    assertThat(seen.region).isEqualTo(front);
+    assertThat(seen.far).isEqualTo([]);
+    assertThat(seen.near.length).isEqualTo(1);
+
+    // Wholly far: no region, and one run of far outline.
+    const hidden = cutAtSilhouette(ring(toward.map(v => -v), 0.5), project);
+    assertThat(hidden.region).isEqualTo([]);
+    assertThat(hidden.near).isEqualTo([]);
+    assertThat(hidden.far.length).isEqualTo(1);
+
+    // Across the silhouette: each run ends on it, the region never reaches behind, and where the
+    // curve is behind the region follows the silhouette instead.
+    const cut = cutAtSilhouette(ring(rim, 0.6), project);
+    assertTrue(cut.near.length > 0 && cut.far.length > 0);
+    for (const run of cut.near) for (const p of run) assertTrue(project(p).depth >= -1e-9 && onSphere(p));
+    for (const run of cut.far) for (const p of run) assertTrue(project(p).depth <= 1e-9 && onSphere(p));
+    for (const run of [...cut.near, ...cut.far]) {
+        assertTrue(Math.abs(project(run[0]).depth) < 1e-9 && Math.abs(project(run.at(-1)).depth) < 1e-9);
+    }
+    for (const p of cut.region) assertTrue(project(p).depth >= -1e-9 && onSphere(p));
+    const alongRim = cut.region.filter(p => Math.abs(project(p).depth) < 1e-9);
+    assertTrue(alongRim.length > 2);
+    // The rim closure spans the silhouette between the two crossings, so it is longer than the two
+    // crossing points alone and lies on the outline circle of the projection.
+    for (const p of alongRim) assertTrue(Math.abs(Math.hypot(project(p).x, project(p).y) - 1) < 1e-9);
 });
 
 suite.test('a plane triangle needs only the two components in that plane', () => {
@@ -225,6 +319,56 @@ suite.test('a layer that is switched off leaves the sphere, and reading one axis
         const faded = await draw({focusAxis: other});
         assertTrue(faded < shown / 2);
         assertTrue(await draw({focusAxis: found.triangle.axis}) > shown * 0.9);
+    } finally {
+        await surface.destroy();
+        canvas.remove();
+    }
+});
+
+suite.test('the shadow layer draws the equator shadow and the surface mark, and leaves when off', async () => {
+    const canvas = document.createElement('canvas');
+    canvas.style.width = '320px';
+    canvas.style.height = '320px';
+    document.body.appendChild(canvas);
+    const surface = RenderSurface.forCanvas(canvas);
+    try {
+        const vec = {x: 0.3, y: 0.2, z: 0.4};
+        const [yaw, pitch] = [-0.6, 0.9];
+        const at = point => {
+            const p = projectPoint(...point, yaw, pitch);
+            return {x: p.sx, y: -p.sy};
+        };
+        const {foot, surface: mark} = shadowOf(vec);
+        const sample = sampler(canvas);
+        const sphere = rgbOf(CanvasTheme.bloch.background);
+        const only = {circles: false, components: false, planes: false, angles: false, quaternion: false};
+        const draw = async shadow => {
+            drawBlochScene(canvas, vec, yaw, pitch, {layers: {...only, shadow}});
+            await surface.render();
+            return [at(foot), at(mark)].map(p => rgbDistance(sample(p), sphere));
+        };
+        for (const distance of await draw(true)) assertTrue(distance > 8);
+        for (const distance of await draw(false)) assertTrue(distance < 3);
+
+        // A pure state on no coordinate plane casts all three triangles; each covers the sphere
+        // over the middle of its face, on whichever cap shows it. From this view the x face's middle
+        // is behind on both caps, so it is left unfilled and the other two are checked.
+        const pure = {x: 0.6, y: 0.48, z: 0.64};
+        const depth = p => projectPoint(...p, yaw, pitch).depth;
+        const middles = faceShadows(pure).flatMap(({normal, foot, tip}) => {
+            const middle = foot.map((v, i) => (v + tip[i]) / 3);
+            const [lifted] = [1, -1].map(side => liftOntoSphere(middle, normal, side))
+                .sort((p, q) => depth(q) - depth(p));
+            return depth(lifted) > 0.05 ? [at(lifted)] : [];
+        });
+        assertThat(middles.length).isEqualTo(2);
+        const paint = async shadow => {
+            drawBlochScene(canvas, pure, yaw, pitch, {layers: {...only, shadow}});
+            await surface.render();
+            return middles.map(sample);
+        };
+        const lit = await paint(true), dark = await paint(false);
+        lit.forEach((pixel, i) => assertTrue(rgbDistance(pixel, dark[i]) > 8));
     } finally {
         await surface.destroy();
         canvas.remove();

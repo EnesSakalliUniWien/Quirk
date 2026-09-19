@@ -1,5 +1,6 @@
 import {Suite, assertThat} from '../../../TestUtil.js';
-import {anglesOf, easeInOut, glidesBetween, panelReadout, subtitleFor} from '../../../../src/components/panels/bloch/analyzerModel.js';
+import {easeInOut} from '../../../../src/config/Animation.js';
+import {anglesOf, glidesBetween, panelReadout, subtitleFor} from '../../../../src/components/panels/bloch/analyzerModel.js';
 
 const suite = new Suite('BlochAnalyzerModel');
 

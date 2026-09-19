@@ -23,6 +23,13 @@ import {Matrix} from "../../engine/math/matrix/Matrix.js"
  * Describes a quantum operation that may vary with time.
  */
 class Gate {
+    /**
+     * The disabled reason a deactivated gate reports, so the simulation skips it the way it skips a
+     * disabled gate; the circuit draws it muted rather than as an error.
+     * @type {!string}
+     */
+    static DEACTIVATED_REASON = 'off';
+
     constructor() {
         /** @type {!string} The text shown when drawing the gate. */
         this.symbol = '';
@@ -68,6 +75,26 @@ class Gate {
         this.paramDialog = undefined;
         /** @type {undefined|*} Used to stash error information when parsing goes bad. */
         this.tag = undefined;
+        /**
+         * Switched off in place: the gate keeps its slot, drawn muted, and the simulation skips it
+         * the way it skips a disabled gate. Saved with the circuit as `off`.
+         * @type {!boolean}
+         */
+        this.deactivated = false;
+        /**
+         * The gate this one was switched off from, so switching it back on gives that very gate:
+         * a catalogue gate stays the catalogue's own object, which the serializer knows by identity.
+         * @type {undefined|!Gate}
+         * @private
+         */
+        this._activeGate = undefined;
+        /**
+         * How far round its own cycle a time-dependent gate has come at a time, in turns. Its matrix
+         * is built from this number and its dial is drawn from it, so the gate on screen and the gate
+         * in the simulation can never disagree. Below zero the gate turns the other way.
+         * @type {undefined|!function(time: !number, param: *): !number}
+         */
+        this.turnsAt = undefined;
         /**
          * An operation applied during the 'setup' phase of computing a column.
          * NOT AFFECTED BY CONTROLS.
@@ -313,6 +340,9 @@ class Gate {
         g.serializedId = this.serializedId;
         g.paramDialog = this.paramDialog;
         g.tag = this.tag;
+        g.deactivated = this.deactivated;
+        g._activeGate = this._activeGate;
+        g.turnsAt = this.turnsAt;
         g.param = this.param;
         g.customRenderer = this.customRenderer;
         g.knownPreparation = this.knownPreparation;
@@ -360,9 +390,31 @@ class Gate {
      * @returns {!Gate}
      */
     withParam(value) {
+        // A switched-off gate is its active self with the flag, so the parameter goes to that self.
+        if (this.deactivated) {
+            return this._activeGate.withParam(value).withDeactivated(true);
+        }
         const g = this._copy();
         g.param = value;
         g._withParamRecomputeFunc(g);
+        return g;
+    }
+
+    /**
+     * @param {!boolean} deactivated
+     * @returns {!Gate} This gate switched off or back on; the same gate when nothing changes, and
+     *     the very gate it was switched off from when switched back on.
+     */
+    withDeactivated(deactivated) {
+        if (deactivated === this.deactivated) {
+            return this;
+        }
+        if (!deactivated) {
+            return this._activeGate;
+        }
+        const g = this._copy();
+        g.deactivated = true;
+        g._activeGate = this;
         return g;
     }
 
@@ -484,6 +536,14 @@ class Gate {
         return this._effectCreatesSuperpositions !== undefined ? this._effectCreatesSuperpositions :
             this._knownMatrix !== undefined ? !this._knownMatrix.isPhasedPermutation() :
             true;
+    }
+
+    /**
+     * @returns {!boolean} Whether the gate's parameter is a constant angle, turned by a dial that
+     *     takes the last column of the gate's width, beside its box on the wire.
+     */
+    hasAngleDial() {
+        return this.paramDialog?.angleUnit !== undefined;
     }
 
     /**
@@ -821,6 +881,30 @@ class GateBuilder {
      * @param {!function(time : !number, gateParam: *) : !Matrix} timeToMatrixFunc
      * @returns {!GateBuilder}
      */
+    /**
+     * Declares how far round its cycle the gate is at a time, for its dial and its matrix alike.
+     * @param {!function(time: !number, param: *): !number} turnsAt
+     * @returns {!GateBuilder}
+     */
+    setTurnsAt(turnsAt) {
+        this.gate.turnsAt = turnsAt;
+        return this;
+    }
+
+    /**
+     * Sets the gate's effect as a matrix of how far round it is, which `setTurnsAt` must already
+     * have said. The dial reads the same turns, so the drawing and the effect stay one statement.
+     * @param {!function(turns: !number): !Matrix} turnsToMatrixFunc
+     * @returns {!GateBuilder}
+     */
+    setEffectFromTurns(turnsToMatrixFunc) {
+        const {turnsAt} = this.gate;
+        if (turnsAt === undefined) {
+            throw new DetailedError("setEffectFromTurns needs setTurnsAt first.", {gate: this.gate});
+        }
+        return this.setEffectToTimeVaryingMatrix((t, param) => turnsToMatrixFunc(turnsAt(t, param)));
+    }
+
     setEffectToTimeVaryingMatrix(timeToMatrixFunc) {
         this.gate._stableDuration = 0;
         this.gate._knownMatrixFunc = timeToMatrixFunc;

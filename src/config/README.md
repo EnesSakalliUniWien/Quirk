@@ -7,7 +7,9 @@ change their definitions and reload the app instead of mutating them at runtime.
 - `Layout.js`: circuit dimensions and minimum displayed column count. Derived dimensions are
   calculated before freezing the object so they stay consistent with `UNIT`.
 - `Simulation.js`: wire limits and simulation time constants.
-- `Playback.js`: the playhead's time per column.
+- `Animation.js`: how everything that moves on screen moves - the gates' cycle and its increment
+  per debug step, the playhead's time per operation, the Bloch glide and its easing, and how
+  often the panels sample the simulation.
 - `Rendering.js`: redraw cooldown and the amplitude drawing detail threshold.
 - `Diagnostics.js`: intentionally mutable WebGL debugging switch. `test/TestUtil.js` enables
   hot-path checks for the entire browser test environment; do not freeze this switch.

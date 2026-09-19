@@ -20,7 +20,7 @@ import {renderCircuitLayers} from './CircuitLayers.js';
 export {invalidateCircuitLabelCache} from './outputs/CircuitBasisLabels.js';
 
 /** Adapts the public circuit API to explicit scene inputs. Rendering only updates Pixi objects. */
-export function paintCircuit(circuit, painter, hand, stats, forTooltip=false, showWires=true, playheadStep=undefined) {
+export function paintCircuit(circuit, painter, hand, stats, forTooltip=false, showWires=true, playheadStep=undefined, breakpoints=[]) {
     const geometry = circuit.geometry();
     const context = {
         definition: circuit.circuitDefinition,
@@ -29,5 +29,5 @@ export function paintCircuit(circuit, painter, hand, stats, forTooltip=false, sh
         highlightStatusAt: (col, row, points) => circuit.highlightStatusAt(col, row, points),
         outputStateAsMatrix: () => outputStateAsMatrix(stats, geometry.importantWireCount())
     };
-    renderCircuitLayers(context, painter, hand, stats, forTooltip, showWires, playheadStep);
+    renderCircuitLayers(context, painter, hand, stats, forTooltip, showWires, playheadStep, breakpoints);
 }

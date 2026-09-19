@@ -27,6 +27,6 @@ const BLOCH_SPHERE_RENDERER = makeDisplayRenderer(args => {
         fitText(args.painter, '↗', {x: args.rect.right()-2, y: args.rect.y+2,
             align: 'right', baseline: 'top', width: 10, height: 10,
             fill: CanvasTheme.text.muted});
-    });
+    }, {framed: false});
 
 export { BLOCH_SPHERE_RENDERER };

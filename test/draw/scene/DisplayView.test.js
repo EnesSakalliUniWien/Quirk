@@ -381,8 +381,9 @@ suite.test('a frame sits on its edge and the highlight ring just outside it, on 
     const view = new DisplayView(document.createElement('canvas'));
     const r = new Rect(10.5, 20.5, 40, 30);
     const edge = frame(view, r); const ring = highlightRing(view, r); await view.commit();
-    assertThat(edge.native.values).isEqualTo(['rect', 10.5, 20.5, 40, 30, undefined, CanvasTheme.stroke.frame, 1]);
-    assertThat(ring.native.values).isEqualTo(['rect', 9, 19, 43, 33, undefined, CanvasTheme.interaction.outline, 2]);
+    // Both are rounded tiles; the ring's corner grows by what it is padded by, so it stays concentric.
+    assertThat(edge.native.values).isEqualTo(['roundRect', 10.5, 20.5, 40, 30, 6, undefined, CanvasTheme.stroke.frame, 1]);
+    assertThat(ring.native.values).isEqualTo(['roundRect', 9, 19, 43, 33, 7.5, undefined, CanvasTheme.interaction.outline, 2]);
     view.begin(undefined, 1, 2); const zoomed = highlightRing(view, r); await view.commit();
-    assertThat(zoomed.native.values).isEqualTo(['rect', 7.5, 17.5, 46, 36, undefined, CanvasTheme.interaction.outline, 4]);
+    assertThat(zoomed.native.values).isEqualTo(['roundRect', 7.5, 17.5, 46, 36, 9, undefined, CanvasTheme.interaction.outline, 4]);
 });

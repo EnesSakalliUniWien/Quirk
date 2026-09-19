@@ -2,20 +2,20 @@ import { useMemo } from "react";
 
 import { qubitMarginals } from "../../../engine/simulation/qubitMarginals.js";
 import { useCircuitAlgebra } from "../algebra/useCircuitAlgebra.js";
-import { useCompletedResult } from "../shared/usePlayheadStats.js";
 
 /**
  * The qubit after every column of the circuit, for the strip of thumbnails, and which of those
  * steps is the one the analyzer was opened for.
  *
  * @param {import("./analyzerModel.js").BlochTarget | undefined} target
+ * @param {Object | undefined} completed The completed simulation as panels sample it
+ *     (useCompletedResult).
  * @returns {{
  *   steps: import("./analyzerModel.js").Step[],
  *   currentStep: (number | undefined),
  * }}
  */
-function useCircuitSteps(target) {
-  const completed = useCompletedResult();
+function useCircuitSteps(target, completed) {
   const algebra = useCircuitAlgebra(
     completed?.fullStats,
     completed?.wireCount,

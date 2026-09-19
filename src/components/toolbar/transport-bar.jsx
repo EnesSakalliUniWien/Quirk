@@ -8,6 +8,8 @@ import {
   ChevronLastIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  CircleDotIcon,
+  CircleStopIcon,
   PauseIcon,
   PlayIcon,
 } from "lucide-react";
@@ -97,6 +99,8 @@ function TransportBar() {
   useSpaceTogglesPlayback();
   const state = useStore(appStore, (s) => s.playheadState);
   const playhead = useStore(appStore, (s) => s.playhead);
+  const debugging = useStore(appStore, (s) => s.debugging);
+  const stopDebugging = useStore(appStore, (s) => s.stopDebugging);
   const scrubRef = useScrub(state);
 
   return (
@@ -149,6 +153,28 @@ function TransportBar() {
           End
         </TransportButton>
       </ButtonGroup>
+      {/* A breakpoint goes on the operation the playhead stands before - the banded column - the way
+          a debugger's toggle goes on the current line. Play and End halt before it. */}
+      <Button
+        id="breakpoint-toggle-button"
+        size="default"
+        disabled={state.nextColumn === undefined}
+        aria-pressed={state.breakpoints.includes(state.nextColumn)}
+        onClick={() => playhead.toggleBreakpoint(state.nextColumn)}
+      >
+        <CircleDotIcon data-icon="inline-start" />
+        Breakpoint
+      </Button>
+      {/* Any transport command starts the debugging, and only this ends it: there is no running on
+          while the playhead is parked, as there is none in a debugger. */}
+      <TransportButton
+        id="debug-stop-button"
+        icon={CircleStopIcon}
+        disabled={!debugging}
+        onClick={() => stopDebugging()}
+      >
+        Stop debugging
+      </TransportButton>
       <RecordControls />
       <input
         id="playhead-scrub"
