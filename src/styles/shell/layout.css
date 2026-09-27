@@ -3,8 +3,9 @@
    warning. Imported last so its media overrides win by source order over the feature files' own
    rules within the components layer. */
 
-    /* The app shell: a fixed-height column - toolbar, dock, transport - in which only the dock's
-       own panels scroll. The toolbar and transport controls therefore never leave the screen. */
+    /* The app shell: a fixed-height column - toolbar, transport, dock - in which only the dock's
+       own panels scroll. The toolbar and transport controls therefore never leave the screen, and
+       both sit at its top edge. */
 
     #inspectorDiv {
         height: 100vh;

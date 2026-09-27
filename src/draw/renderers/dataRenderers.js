@@ -138,7 +138,7 @@ function stateCellLabels(view, matrix, rect, label) {
 
 /** Edge labels need a view at least this large on its shorter side; smaller views keep tooltips only. */
 const MIN_EDGE_LABELLED_SIDE = 100;
-const EDGE_LABEL_FONT = {fontSize: 9, fontFamily: Typography.MONO_FONT_FAMILY};
+const EDGE_LABEL_FONT = {fontSize: Typography.LABEL_FONT_SIZE, fontFamily: Typography.MONO_FONT_FAMILY};
 
 /** A state grid's rows carry the high bits of the basis state and its columns the low bits. */
 function stateAxisBits(matrix) {
@@ -270,8 +270,8 @@ const MIN_GROUP_HEIGHT = 24;
 const GROUP_GAP = 3;
 /** The strip left of the chart that a group's prefix label may take. */
 const PREFIX_LABEL_WIDTH = 36;
-const PREFIX_FONT = {fontSize: 9, fontFamily: Typography.MONO_FONT_FAMILY};
-const KET_FONT = {fontSize: 10, fontFamily: Typography.MONO_FONT_FAMILY};
+const PREFIX_FONT = {fontSize: Typography.LABEL_FONT_SIZE, fontFamily: Typography.MONO_FONT_FAMILY};
+const KET_FONT = {fontSize: Typography.LABEL_FONT_SIZE, fontFamily: Typography.MONO_FONT_FAMILY};
 const PERCENT_FONT = {fontSize: Typography.LABEL_FONT_SIZE, fontFamily: Typography.MONO_FONT_FAMILY};
 /** Rows at least this tall carry a thin bar along a track under their text, rather than a filled row. */
 const TEXT_ROW_HEIGHT = 14;

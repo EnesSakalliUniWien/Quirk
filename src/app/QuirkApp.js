@@ -26,6 +26,7 @@ import { CUSTOM_IS_EQUAL_TO_EQUALITY } from "../base/Equate.js";
 import {CircuitActions} from "./state/CircuitActions.js"
 import {RegisterActions} from "./state/RegisterActions.js"
 import {GateActions} from "./state/GateActions.js"
+import {SelectionActions} from "./state/SelectionActions.js"
 import {Playhead} from "./state/Playhead.js"
 import {initToolboxDrag, initToolboxKeyboardPlace} from "./canvas/toolboxDrag.js"
 import {initRedrawLoop} from "./canvas/redrawLoop.js"
@@ -40,6 +41,7 @@ import {Animation} from "../config/Animation.js"
 import {circuitZoom, initZoomControls, attachCircuitScrollSource} from "./canvas/zoom.js"
 import {initMinimap} from "./canvas/minimap.js"
 import {noteCircuitEdited} from "../diagnostics/errorReporter.js"
+import {onReducedMotionChange, prefersReducedMotion} from "../browser/reducedMotion.js"
 import {appStore} from "../state/appStore.js"
 import {failingAssertionColumns} from '../gates/assertions/AssertionGates.js';
 import {operationSchedule} from '../circuit/operationColumns.js';
@@ -56,12 +58,13 @@ import {operationSchedule} from '../circuit/operationColumns.js';
  *     openGateParamEditor: !function(!{col: !int, row: !int, gate: !Gate}): void,
  *     openBlochSphereView: !function(!{row: !int, col: (undefined|!int)}): void,
  *     openGateMenu: !function(!{col: !int, row: !int, gate: !Gate, x: !number, y: !number}): void,
+ *     openSelectionMenu: !function(!{x: !number, y: !number}): void,
  *     openTape: !function(): void}} shell
  * @returns {void}
  */
 function startQuirk({canvas, canvasDiv, scrollSpacer, circuitOverlay, onReady,
                      openGateParamEditor, openBlochSphereView, openRegisterRename, openGutterMenu, openGateMenu,
-                     openTape, openComplexDisplay}) {
+                     openSelectionMenu, openTape, openComplexDisplay}) {
     // The one simulator: the animation cycle's phase and the stats caches are app-wide state.
     const simulator = new Simulator();
 
@@ -139,7 +142,16 @@ function startQuirk({canvas, canvasDiv, scrollSpacer, circuitOverlay, onReady,
         playhead,
         mostRecentStats,
         desiredCanvasSizeFor,
-        syncArea, captureCommitted);
+        syncArea, captureCommitted, () => appStore.getState().circuitSelection);
+
+    // Registered after the subscription that shows each commit, so it compares with the new circuit.
+    const selectionActions = new SelectionActions(revision, displayed, appStore);
+    revision.latestActiveCommit().subscribe(() => selectionActions.forgetIfChanged());
+    appStore.subscribe((state, previous) => {
+        if (state.circuitSelection !== previous.circuitSelection) {
+            redrawLoop.trigger();
+        }
+    });
 
     // The canvas is pinned to the scroll container's visible corner, so pointer positions only
     // become circuit coordinates after the container's scroll is added back.
@@ -147,14 +159,14 @@ function startQuirk({canvas, canvasDiv, scrollSpacer, circuitOverlay, onReady,
     initCanvasPointer(
         canvas, canvasDiv, revision, displayed, syncArea, openGateParamEditor, openBlochSphereView,
         openRegisterRename, openGutterMenu, (dx, dy) => canvasDiv.scrollBy(dx, dy), openComplexDisplay,
-        openGateMenu);
+        openGateMenu, selectionActions, openSelectionMenu);
 
     const circuitActions = new CircuitActions(revision);
     const registerActions = new RegisterActions(revision, displayed);
     const gateActions = new GateActions(revision, displayed);
     // The toolbar and transport components act on these through the store, and show what they
     // may do from the mirrored availability and playhead state.
-    appStore.setState({circuitActions, playhead, registerActions, gateActions, recorder});
+    appStore.setState({circuitActions, playhead, registerActions, gateActions, selectionActions, recorder});
     circuitActions.availability().subscribe(circuitAvailability => appStore.setState({circuitAvailability}));
     let generation = playhead.generation;
     let operationsStepped = playhead.operationsStepped();
@@ -185,6 +197,20 @@ function startQuirk({canvas, canvasDiv, scrollSpacer, circuitOverlay, onReady,
         appStore.setState({debugging});
         redrawLoop.trigger();
     });
+    // Reduce Motion stands the time-dependent gates' cycle still, the way recording a take does.
+    // The playhead's steps still move t, so the gates can be read one phase at a time.
+    let releaseMotionHold = undefined;
+    const followReducedMotion = reduce => {
+        if (reduce && releaseMotionHold === undefined) {
+            releaseMotionHold = simulator.holdClock();
+        } else if (!reduce && releaseMotionHold !== undefined) {
+            releaseMotionHold();
+            releaseMotionHold = undefined;
+        }
+        redrawLoop.trigger();
+    };
+    followReducedMotion(prefersReducedMotion());
+    onReducedMotionChange(followReducedMotion);
     initUrlCircuitSync(revision, recorder, playhead, openTape);
     const gateToolbox = /** @type {!Object} */ ({
         // Compared by content, not identity: every commit deserializes a fresh CustomGateSet, and

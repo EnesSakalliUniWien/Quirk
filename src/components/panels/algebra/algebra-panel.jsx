@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useStore } from "zustand";
 import { bin } from "../../../base/Format.js";
+import { prefersReducedMotion } from "../../../browser/reducedMotion.js";
 import { ketLabel } from "../../../circuit/registerLabels.js";
 import { Serializer } from "../../../serialization/Serializer.js";
 import { appStore } from "../../../state/appStore.js";
@@ -61,7 +62,7 @@ function AlgebraPanel() {
       const right = left + card.offsetWidth;
       if (left < track.scrollLeft || right > track.scrollLeft + track.clientWidth) {
         track.scrollTo({left: card.offsetWidth > track.clientWidth ? left : Math.max(0, right - track.clientWidth),
-          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});
+          behavior: prefersReducedMotion() ? "auto" : "smooth"});
       }
     }
   }, [current, ready]);

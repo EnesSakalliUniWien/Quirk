@@ -4,7 +4,8 @@ import {CircuitGeometry} from '../geometry/CircuitGeometry.js';
 
 /** Semantic targets use the same geometry as rendering; Pixi owns containment and ordering. */
 export function renderCircuitTargets(view, {definition, geometry}, hand) {
-    const activeCursor = hand.isHoldingSomething() ? 'move' : hand.isBusy() ? 'ns-resize' : undefined;
+    const activeCursor = hand.isHoldingSomething() ? 'move' : hand.selectingRangeFrom !== undefined ? 'crosshair' :
+        hand.isBusy() ? 'ns-resize' : undefined;
     const target = (key, rect, data, cursor = 'pointer') => view.add('pixiSceneContainer', {
         eventMode: 'static', hitArea: new Rectangle(rect.x, rect.y, rect.w, rect.h),
         circuitTarget: data, cursor: activeCursor ?? cursor

@@ -35,6 +35,8 @@ import "../test_e2e/gateMenu.test.js";
 import "../test_e2e/tape.test.js";
 import "../test_e2e/matrixLayout.test.js";
 import "../test_e2e/theme.test.js";
+import "../test_e2e/selection.test.js";
+import "../test_e2e/accessibility.test.js";
 
 let browser;
 let serve;

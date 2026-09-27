@@ -280,6 +280,14 @@ function Dock() {
       }
     }
     addMissingPermanentPanels(api);
+    // A saved layout remembers each tab's title; the registry's is the one to show, so a panel
+    // renamed since the layout was saved shows its new name.
+    for (const panel of api.panels) {
+      const title = PANELS[panel.id]?.title;
+      if (title !== undefined && panel.title !== title) {
+        panel.api.setTitle(title);
+      }
+    }
     // Subscribed after the restore, so the half-built states dockview reports while it rebuilds
     // are never written back.
     api.onDidLayoutChange(() => saveLayout(api));

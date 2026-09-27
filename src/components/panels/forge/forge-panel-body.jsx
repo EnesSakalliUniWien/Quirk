@@ -1,4 +1,5 @@
 import {useEffect, useMemo, useRef, useState} from 'react';
+import {useStore} from 'zustand';
 import {Tabs} from '@base-ui/react/tabs';
 import { Serializer } from "../../../serialization/Serializer.js";
 import { fromJsonText_CircuitDefinition } from "../../../serialization/circuits/text.js";
@@ -36,6 +37,14 @@ export function ForgePanelBody({deps}) {
         return () => cancelAnimationFrame(frame);
     }, []);
     useEffect(() => () => {appStore.setState({forgeRange:undefined});}, []);
+    // "Make a gate of it" on a selection: its columns and wires, on the Circuit tab.
+    const circuitRequest = useStore(appStore, s => s.forgeCircuitDraft);
+    useEffect(() => {
+        if (circuitRequest === undefined) return;
+        setMethod('circuit');
+        setCircuit(draft => ({...draft, cols:circuitRequest.cols, rows:circuitRequest.rows}));
+        appStore.setState({forgeCircuitDraft:undefined});
+    }, [circuitRequest]);
     const close = () => {
         closePanel('forge');
         requestAnimationFrame(() => document.getElementById('gate-forge-button')?.focus());

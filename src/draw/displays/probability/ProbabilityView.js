@@ -37,7 +37,7 @@ const READOUT_BAR_INSET = 6;
 const KEY_WIRES_NAMED = 4;
 /** The band between two independent blocks, which carries their ⊗. */
 const BLOCK_GAP = 12;
-const PRODUCT_FONT = {fontSize: 10, fontFamily: Typography.MONO_FONT_FAMILY};
+const PRODUCT_FONT = {fontSize: Typography.LABEL_FONT_SIZE, fontFamily: Typography.MONO_FONT_FAMILY};
 
 /**
  * The multi-qubit probability display: the shared probabilities renderer, fed from the gate's

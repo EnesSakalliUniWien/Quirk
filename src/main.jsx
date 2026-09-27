@@ -18,7 +18,9 @@ import {setCustomGateCircuitRenderer} from './draw/gate/CustomGateCircuitRendere
 import {GATE_CIRCUIT_RENDERER} from './editor/rendering/previews/CircuitPreview.js';
 
 import { createRoot } from "react-dom/client";
+import { colourScheme } from "./appearance/colourScheme.js";
 import { applyTheme } from "./browser/applyTheme.js";
+import { followSystemColourScheme } from "./browser/systemColourScheme.js";
 
 // The error reporter installs first, so a failure anywhere in startup still reaches the banner.
 // It has nowhere to paint one until the shell mounts and hands it a host; a report raised before
@@ -33,6 +35,7 @@ import "./styles/globals.css";
 
 setCustomGateCircuitRenderer(GATE_CIRCUIT_RENDERER);
 applyTheme();
+followSystemColourScheme(colourScheme);
 installErrorReporter();
 const gpuProblem = webGl2SupportProblem();
 if (gpuProblem !== undefined) {

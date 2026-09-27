@@ -61,14 +61,14 @@ function ExportPanelBody({ deps }) {
 
         <section className="panel-section">
           <div className="panel-section-heading">
-            <strong className="panel-section-title">Escaped Link</strong> — Link to the
+            <strong className="panel-section-title">Escaped link</strong> — Link to the
             current circuit without special characters that confuse forums.
           </div>
           <div className="panel-section-body">
             <CopyButton
               id="export-link-copy-button"
               resultId="export-link-copy-result"
-              label="Copy to Clipboard"
+              label="Copy to clipboard"
               text={() => escapedLink}
             />
             <div className="output-box">
@@ -88,7 +88,7 @@ function ExportPanelBody({ deps }) {
             <CopyButton
               id="export-json-copy-button"
               resultId="export-json-copy-result"
-              label="Copy to Clipboard"
+              label="Copy to clipboard"
               text={() => prettyCircuitJson(jsonText ?? "")}
             />
             <pre id="export-circuit-json-pre" className="output-box">
@@ -99,14 +99,14 @@ function ExportPanelBody({ deps }) {
 
         <section className="panel-section">
           <div className="panel-section-heading">
-            <strong className="panel-section-title">Simulation Data JSON</strong> — Output
+            <strong className="panel-section-title">Simulation data JSON</strong> — Output
             amplitudes, detector results, display data, and related values.
           </div>
           <div className="panel-section-body">
             <CopyButton
               id="export-amplitudes-button"
               resultId="export-amplitudes-result"
-              label="Generate and Copy to Clipboard"
+              label="Generate and copy to clipboard"
               text={simulationJson}
             />
             <label className="checkbox-row">

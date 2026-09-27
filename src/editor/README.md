@@ -5,7 +5,7 @@
 | `state/` | Immutable `CircuitViewState` and `EditorState` snapshots; Zustand editor actions and subscriptions |
 | `editing/` | Gate placement, resizing, column and row edits, register selection and temporary wires |
 | `geometry/` | Circuit rectangles, layout constants, centering and geometry derivation |
-| `interaction/` | Zod-validated pointer operations, Pixi targets and gestures, geometry queries for previews |
+| `interaction/` | Zod-validated pointer operations, Pixi targets and gestures, geometry queries for previews and selection boxes |
 | `rendering/` | Circuit and inspector scene descriptions, outputs, warnings and previews |
 
 `CircuitViewState` contains circuit display state and immutable update methods. Editing methods
@@ -16,7 +16,9 @@ identity when layout is unchanged, so pointer updates reuse the WeakMap geometry
 explicit `undefined` clears them. Circuit equality still excludes available width; editor equality
 includes draw area. Definitions retain their established immutable model-update conventions.
 
-`PointerInteractionState` stores one operation: idle, gate, column, row, resize or wire selection.
+`PointerInteractionState` stores one operation: idle, gate, column, row, resize, wire selection or
+a selection box. `RangeSelection` turns a box into the whole-gate range it selects and places the
+selection's outline; the selection itself is UI state, kept by `src/app/state/SelectionActions.js`.
 Zod strict discriminated unions validate new operations. Validated, frozen operations are reused
 across pointer moves. Operation-specific getters support existing editing and scientific renderers.
 The Zustand `editorStore` owns pointer publication; selectors can observe circuit or pointer state

@@ -41,8 +41,14 @@
         font-family: var(--font-mono);
     }
 
+    /* Buttons and the report link alike are at least the 28-point target a touch or a click can
+       land on without care. */
     .error-banner-button {
+        display: inline-flex;
         flex-shrink: 0;
+        align-items: center;
+        box-sizing: border-box;
+        min-height: 28px;
         padding: 3px calc(var(--spacing) * 2);
         border: var(--border-width) solid var(--border);
         border-radius: 7px;
@@ -59,8 +65,7 @@
     }
 
     .error-banner-dismiss {
-        display: inline-flex;
-        align-items: center;
+        min-width: 28px;
         justify-content: center;
         border: none;
         line-height: 1;

@@ -111,7 +111,7 @@
         display: inline-block;
         width: 1em;
         margin-left: 2px;
-        font-size: 9px;
+        font-size: var(--text-caption);
         text-align: center;
         vertical-align: 1px;
     }

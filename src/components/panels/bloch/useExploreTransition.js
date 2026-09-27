@@ -2,12 +2,14 @@ import { useCallback, useEffect, useRef } from "react";
 
 import { blochVectorBetween, vectorFromAngles } from "../../../engine/math/bloch.js";
 import { clock } from "../../../base/Clock.js";
+import { prefersReducedMotion } from "../../../browser/reducedMotion.js";
 import { Animation } from "../../../config/Animation.js";
 
 /**
  * Moves the analyzer to a free, explored state: at once for a slider, or gliding there over
  * Animation.GLIDE_DURATION_MS for a preset. The glide turns the arrow along the sphere rather than through it
- * (blochVectorBetween). A new move cancels one still under way, and so does unmounting.
+ * (blochVectorBetween). With Reduce Motion on, a preset lands at once too. A new move cancels one
+ * still under way, and so does unmounting.
  *
  * @param {(mode: import("./analyzerModel.js").ViewMode) => void} setMode
  * @param {{ current: (import("./analyzerModel.js").BlochVector | undefined) }} shownVector The
@@ -29,7 +31,7 @@ function useExploreTransition(setMode, shownVector) {
   const explore = (to, { preset, glide = false } = {}) => {
     cancel();
     const from = shownVector.current ?? to;
-    if (!glide) {
+    if (!glide || prefersReducedMotion()) {
       setMode({ kind: "explore", vec: to, preset });
       return;
     }

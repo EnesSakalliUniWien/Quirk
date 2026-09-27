@@ -38,7 +38,7 @@ import {
 const PIXEL_CELL_SIZE = 16;
 /** Below this many units a side, a logarithmic ring has no room to differ from its disc. */
 const MIN_LOG_RING_CELL_SIZE = 12;
-const PHASE_KEY_FONT = { fontSize: 8, fontFamily: Typography.MONO_FONT_FAMILY };
+const PHASE_KEY_FONT = { fontSize: Typography.LABEL_FONT_SIZE, fontFamily: Typography.MONO_FONT_FAMILY };
 const PHASE_KEY_STEPS = 36;
 
 /** React owns this Graphics and its context. Compare values because Matrix buffers are mutable. */

@@ -55,15 +55,17 @@
         white-space: nowrap;
     }
 
+    /* A raised part, smaller than the symbol but never below the smallest size text takes. */
     .gate-chip sup {
-        font-size: 0.66em;
+        font-size: max(0.75em, var(--text-caption));
         line-height: 1;
     }
 
-    /* Sized by how much symbol has to fit; the name beside the chip always carries the rest. */
+    /* Sized by how much symbol has to fit, and never below the smallest size text takes: a symbol
+       too long for that ends in an ellipsis, and the name beside the chip always carries the rest. */
     .gate-chip[data-fit="large"] { font-size: 14px; }
-    .gate-chip[data-fit="medium"] { font-size: 11px; }
-    .gate-chip[data-fit="small"] { font-size: 9.5px; }
+    .gate-chip[data-fit="medium"],
+    .gate-chip[data-fit="small"] { font-size: var(--text-caption); }
 
     .gate-tile-name {
         overflow: hidden;

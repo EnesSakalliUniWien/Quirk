@@ -18,6 +18,7 @@ import {circle, highlightRing, lineWidth, rectangle, strokePath} from '../../../
 import {CanvasTheme} from '../../../config/CanvasTheme.js';
 import {Point} from '../../../geometry/Point.js';
 import {operationColumns} from '../../../circuit/operationColumns.js';
+import {rangeBetween, selectionRect} from '../../interaction/RangeSelection.js';
 
 /**
  * Marks the column the playhead is about to execute, behind the wires and gates so they stay
@@ -57,6 +58,28 @@ function drawBreakpoints(context, painter, breakpoints) {
     }
 }
 
+/**
+ * Marks the selected part of the circuit, behind the wires and gates like the playhead's band. While
+ * a box is being dragged, the range it would select is outlined dashed instead.
+ *
+ * @param {!Object} context Rendering inputs supplied by CircuitRendering.
+ * @param {!DisplayView} painter
+ * @param {undefined|!CircuitRange} selection
+ * @param {!PointerInteractionState} hand
+ */
+function drawSelection(context, painter, selection, hand) {
+    const from = hand.selectingRangeFrom;
+    const dragging = from !== undefined && hand.pos !== undefined;
+    const range = dragging ? rangeBetween(context.definition, context.geometry, from, hand.pos) : selection;
+    if (range === undefined) {
+        return;
+    }
+    const rect = selectionRect(context.geometry, range);
+    rectangle(painter, rect, {fill: CanvasTheme.interaction.selection});
+    strokePath(painter, [rect.topLeft(), rect.topRight(), rect.bottomRight(), rect.bottomLeft(), rect.topLeft()],
+        CanvasTheme.interaction.selectionEdge, lineWidth(painter, 1.5), dragging ? [5, 4] : []);
+}
+
 function drawColumnDragHighlight(context, painter, col) {
     if (context.highlightedSlot !== undefined &&
         context.highlightedSlot.col === col &&
@@ -84,4 +107,4 @@ function drawRowDragHighlight(context, painter) {
     }
 }
 
-export {drawBreakpoints, drawPlayheadBand, drawColumnDragHighlight, drawRowDragHighlight};
+export {drawBreakpoints, drawPlayheadBand, drawSelection, drawColumnDragHighlight, drawRowDragHighlight};

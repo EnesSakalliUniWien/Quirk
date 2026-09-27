@@ -4,8 +4,9 @@ import { appStore } from "../../../state/appStore.js";
 import { openPanel } from "../../dock.jsx";
 
 /**
- * The wire label's menu. On a wire outside every register: group it. On a register's wire: rename
- * the register, choose the input it feeds, or ungroup it.
+ * The wire label's menu, opened by a right click or a touch and hold on the label. On a wire outside
+ * every register: group it. On a register's wire: rename the register, choose the input it feeds,
+ * or ungroup it. The Registers panel offers each of these too.
  */
 function GutterMenu({ menu, host, actions }) {
   const close = () => appStore.setState({ gutterMenu: undefined });
@@ -39,7 +40,7 @@ function GutterMenu({ menu, host, actions }) {
                   }
                 }}
               >
-                {`Group q${menu.wire} into a register`}
+                {`Group q${menu.wire} into Register`}
               </Menu.Item>
             ) : (
               <>
@@ -48,10 +49,9 @@ function GutterMenu({ menu, host, actions }) {
                   onClick={() => (menu.rect === undefined ? undefined : renameHere(register.name, menu.rect))}
                 >
                   {`Rename ${register.name}…`}
-                  <kbd>double-click</kbd>
                 </Menu.Item>
                 <Menu.Group>
-                  <Menu.GroupLabel className="app-menu-label">Feeds input</Menu.GroupLabel>
+                  <Menu.GroupLabel className="app-menu-label">Feeds Input</Menu.GroupLabel>
                   <Menu.RadioGroup
                     value={register.input ?? ""}
                     onValueChange={(value) => actions.feed(register.name, value === "" ? undefined : value)}

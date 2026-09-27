@@ -27,7 +27,7 @@ export function CircuitMethod({deps, circuitJson, draft, onDraftChange, onCreate
         validateCircuitRange(fromJsonText_CircuitDefinition(circuitJson), draft.cols, draft.rows);
         onCreate(value.gate, circuitJson);
     }}><div className="construction-scroll"><div className="construction-layout">
-        <div className="forge-fields"><h2>From Circuit</h2>
+        <div className="forge-fields"><h2>From circuit</h2>
             {['cols','rows'].map((field, index) => <label className="forge-field" key={field} htmlFor={`gate-forge-circuit-${field}`}>
                 {index === 0 ? 'Column range' : 'Wire range'}
                 <input id={`gate-forge-circuit-${field}`} value={draft[field]} onChange={e => onDraftChange({...draft,[field]:e.target.value})} />

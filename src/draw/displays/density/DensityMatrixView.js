@@ -8,7 +8,7 @@ import {Point} from '../../../geometry/Point.js';
 import {Rect} from '../../../geometry/Rect.js';
 import {bin, Format} from '../../../base/Format.js';
 
-const LABEL_FONT = {fontSize: 9, fontFamily: Typography.MONO_FONT_FAMILY};
+const LABEL_FONT = {fontSize: Typography.LABEL_FONT_SIZE, fontFamily: Typography.MONO_FONT_FAMILY};
 
 /** One occupied rectangle for values, dividers, basis labels and cell lookup. */
 export function densityGridRect(matrix, area) {

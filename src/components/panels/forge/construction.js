@@ -7,6 +7,7 @@ import {MATRIX_RENDERER,LABEL_RENDERER,LOCATION_INDEPENDENT_GATE_RENDERER} from 
 import {renderCustomGateCircuit} from '../../../draw/gate/CustomGateCircuitRenderer.js';
 import {setGateBuilderEffectToCircuit} from '../../../engine/simulation/CircuitComputeUtil.js';
 import {parseUserRotation, parseUserMatrix, parseUserGateFromCircuitRange} from '../../../serialization/customGateParsing.js';
+import {gatesMeetingRange, occupiedColumns} from '../../../circuit/circuitRange.js';
 
 export function normalizedAxis(text) {
     let axis;
@@ -68,10 +69,6 @@ function strictRange(text, max, label) {
     return [start - 1, end];
 }
 
-function occupiedColumns(circuit) {
-    return circuit.columns.reduce((end,column,col) => Math.max(end,...column.gates.map(gate => gate ? col+gate.width : 0)),circuit.columns.length);
-}
-
 /** Serialized circuits can omit empty columns occupied by the end of a wide gate. */
 export function parseCircuitDraft(circuit, {cols,rows,name}) {
     const range = validateCircuitRange(circuit,cols,rows);
@@ -87,14 +84,10 @@ export function parseCircuitDraft(circuit, {cols,rows,name}) {
 export function validateCircuitRange(circuit, colsText, rowsText) {
     const [colStart, colEnd] = strictRange(colsText, occupiedColumns(circuit), 'Columns');
     const [wireStart, wireEnd] = strictRange(rowsText, circuit.numWires, 'Wires');
-    let count = 0;
-    circuit.columns.forEach((column, col) => column.gates.forEach((gate, row) => {
-        if (!gate || col >= colEnd || col + gate.width <= colStart || row >= wireEnd || row + gate.height <= wireStart) return;
-        if (col < colStart || col + gate.width > colEnd || row < wireStart || row + gate.height > wireEnd) {
-            throw new Error(`Include the whole ${gate.symbol || 'gate'} at wire ${row + 1}, column ${col + 1}.`);
-        }
-        count++;
-    }));
-    if (!count) throw new Error('No gates in the selected range.');
-    return {colStart, colEnd, wireStart, wireEnd};
+    const range = {colStart, colEnd, wireStart, wireEnd};
+    const met = gatesMeetingRange(circuit, range);
+    const cut = met.find(e => !e.inside);
+    if (cut) throw new Error(`Include the whole ${cut.gate.symbol || 'gate'} at wire ${cut.row + 1}, column ${cut.col + 1}.`);
+    if (!met.length) throw new Error('No gates in the selected range.');
+    return range;
 }

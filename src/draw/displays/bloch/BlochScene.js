@@ -371,7 +371,7 @@ function labelSegment(view, from, to, text, color, project, center) {
         align: 'center',
         baseline: 'middle',
         fill: color,
-        font: {fontSize: 10, fontFamily: Typography.MONO_FONT_FAMILY},
+        font: {fontSize: Typography.LABEL_FONT_SIZE, fontFamily: Typography.MONO_FONT_FAMILY},
         // A formula crosses whatever the leg crosses, so it reads off its own plate.
         beforeDraw: (w, h) => view.group('plate-' + text + x.toFixed(0) + y.toFixed(0), plate => {
             plate.alpha *= 0.72;

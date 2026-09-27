@@ -163,7 +163,8 @@ test('a right click on a wire label groups, feeds and ungroups through its menu'
         const label = await wireLabelAt(page, 1, 2, false);
         await page.mouse.click(label.x, label.y, {button: 'right'});
         const item = await page.waitForSelector('.app-menu [role="menuitem"]', {timeout: TEST_TIMEOUT_MILLIS});
-        assert.equal(await item.evaluate(e => e.textContent), 'Group q1 into a register');
+        // Menu items take title-style capitalization, without articles, and name no shortcuts.
+        assert.equal(await item.evaluate(e => e.textContent), 'Group q1 into Register');
         await item.click();
         await waitForCircuit(page, {cols: [['H']], registers: [{name: 'a', wires: [1, 1]}]});
 

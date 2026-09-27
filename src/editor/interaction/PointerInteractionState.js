@@ -29,7 +29,9 @@ const operationSchema = z.discriminatedUnion('type', [
         initialState: z.unknown(), gates: z.array(z.instanceof(Gate).optional())
     }), offset: point}),
     z.strictObject({type: z.literal('resize'), slot: point, offset: point}),
-    z.strictObject({type: z.literal('select-wires'), wire: z.int().nonnegative()})
+    z.strictObject({type: z.literal('select-wires'), wire: z.int().nonnegative()}),
+    // A box dragged from an empty part of the canvas, from where the press was.
+    z.strictObject({type: z.literal('select-range'), from: point})
 ]);
 const validatedOperations = new WeakSet();
 const idle = Object.freeze({type: 'idle'});
@@ -44,6 +46,7 @@ export class PointerInteractionState {
             operation = operationSchema.parse(operation);
             if (operation.offset) operation.offset = freezePoint(operation.offset);
             if (operation.slot) operation.slot = freezePoint(operation.slot);
+            if (operation.from) operation.from = freezePoint(operation.from);
             if (operation.row) operation.row = Object.freeze({...operation.row, gates: Object.freeze(operation.row.gates)});
             Object.freeze(operation);
             validatedOperations.add(operation);
@@ -56,6 +59,7 @@ export class PointerInteractionState {
     get heldRow() { return this.operation.type === 'row' ? this.operation.row : undefined; }
     get resizingGateSlot() { return this.operation.type === 'resize' ? this.operation.slot : undefined; }
     get selectingWires() { return this.operation.type === 'select-wires' ? this.operation.wire : undefined; }
+    get selectingRangeFrom() { return this.operation.type === 'select-range' ? this.operation.from : undefined; }
     get holdOffset() { return this.operation.offset; }
     isHoldingSomething() { return ['gate', 'column', 'row'].includes(this.operation.type); }
     isBusy() { return this.operation.type !== 'idle'; }
@@ -73,6 +77,7 @@ export class PointerInteractionState {
     withHeldRow(row, offset) { return new PointerInteractionState(this.pos, {type: 'row', row, offset}); }
     withResizeSlot(slot, offset) { return new PointerInteractionState(this.pos, {type: 'resize', slot, offset}); }
     withSelectingWires(wire) { return new PointerInteractionState(this.pos, {type: 'select-wires', wire}); }
+    withSelectingRange(from) { return new PointerInteractionState(this.pos, {type: 'select-range', from}); }
     stableDuration() {
         return this.heldGate?.stableDuration() ?? this.heldColumn?.stableDuration() ??
             (this.heldRow ? new GateColumn(this.heldRow.gates).stableDuration() : Infinity);

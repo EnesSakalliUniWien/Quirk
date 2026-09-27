@@ -1,7 +1,7 @@
 # Circuit rendering
 
 `CircuitRendering.js` adapts the public circuit API to explicit rendering inputs.
-`CircuitLayers.js` describes React elements in order: playhead, wires, columns,
+`CircuitLayers.js` describes React elements in order: playhead, selection, breakpoints, wires, columns,
 outputs, captions, then row highlights. `@pixi/react` reconciles the retained objects and PixiJS renders them. The `paintCircuit()` adapter preserves its callable signature; state no longer has a rendering method.
 
 ## Responsibilities
@@ -9,7 +9,7 @@ outputs, captions, then row highlights. `@pixi/react` reconciles the retained ob
 - `wires/`: wire segments, initial-state kets, register names and braces, and wire-limit hints.
 - `columns/`: gates, control connections, resize regions, disabled reasons and survival annotations.
 - `outputs/`: probability/Bloch outputs, amplitudes, basis labels, captions and output warnings.
-- `interaction/`: playhead and row/column drag highlights.
+- `interaction/`: playhead, breakpoints, the selection or the box being dragged, and row/column drag highlights.
 - `previews/`: circuit thumbnails and custom-gate rendering without editor state.
 
 The coordinator supplies `context.definition`, `context.geometry`, `context.highlightedSlot`,

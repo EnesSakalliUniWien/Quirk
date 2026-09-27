@@ -15,13 +15,12 @@
  */
 
 import { Axis } from "../engine/math/formula/Axis.js";
-import { CircuitDefinition } from "../circuit/model/CircuitDefinition.js";
 import { setGateBuilderEffectToCircuit } from "../engine/simulation/CircuitComputeUtil.js";
 import { Complex } from "../engine/math/complex/Complex.js";
 import { DetailedError } from "../base/DetailedError.js";
 import { Format } from "../base/Format.js";
 import { GateBuilder } from "../circuit/model/Gate.js";
-import { GateColumn } from "../circuit/model/GateColumn.js";
+import { sliceCircuit } from "../circuit/circuitRange.js";
 import { Matrix } from "../engine/math/matrix/Matrix.js";
 import { floorLg2, isPowerOf2 } from "../engine/math/powersOfTwo.js";
 import { MatrixDecomposition } from "../engine/math/matrix/MatrixDecomposition.js";
@@ -185,27 +184,6 @@ function parseRange(text, maxLen) {
 
 /**
  * @param {!CircuitDefinition} circuit
- * @returns {!CircuitDefinition}
- */
-function removeBrokenGates(circuit) {
-  const w = circuit.columns.length;
-  const h = circuit.numWires;
-  return circuit.withColumns(
-    circuit.columns.map(
-      (col, c) =>
-        new GateColumn(
-          col.gates.map((gate, r) =>
-            gate === undefined || c + gate.width > w || r + gate.height > h
-              ? undefined
-              : gate,
-          ),
-        ),
-    ),
-  );
-}
-
-/**
- * @param {!CircuitDefinition} circuit
  * @param {!string} colRangeText
  * @param {!string} wireRangeText
  * @param {!string} nameText
@@ -223,14 +201,12 @@ function parseUserGateFromCircuitRange(
     throw new Error("Empty wire range.");
   }
 
-  const cols = circuit.columns
-    .slice(colRange.start, colRange.end)
-    .map(
-      (col) => new GateColumn(col.gates.slice(rowRange.start, rowRange.end)),
-    );
-  let gateCircuit = new CircuitDefinition(rowRange.end - rowRange.start, cols);
-  gateCircuit = removeBrokenGates(gateCircuit);
-  gateCircuit = gateCircuit.withUncoveredColumnsRemoved();
+  const gateCircuit = sliceCircuit(circuit, {
+    colStart: colRange.start,
+    colEnd: colRange.end,
+    wireStart: rowRange.start,
+    wireEnd: rowRange.end,
+  }).withUncoveredColumnsRemoved();
   if (gateCircuit.columns.length === 0) {
     throw new Error("No gates in included range.");
   }

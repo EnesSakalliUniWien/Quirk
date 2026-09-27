@@ -8,7 +8,7 @@
         width: max-content;
         color: var(--muted-foreground);
         font-family: var(--font-mono);
-        font-size: 10px;
+        font-size: var(--text-caption);
     }
 
     .evolution-grid.evolution-labelled {

@@ -23,3 +23,15 @@ suite.test('pointer moves reuse validated operation and isolate mutable coordina
     assertThat(moved.withResizeSlot(new Point(0, 0), new Point(1, 1)).heldGate).isEqualTo(undefined);
     assertThat(moved.withDrop().isBusy()).isEqualTo(false);
 });
+suite.test('a selection box remembers where it started and makes the hand busy without holding anything', () => {
+    const from = new Point(3, 4);
+    const boxing = PointerInteractionState.EMPTY.withPos(new Point(5, 6)).withSelectingRange(from);
+    from.x = 999;
+    assertThat(boxing.selectingRangeFrom).isEqualTo(new Point(3, 4));
+    assertThat(boxing.isBusy()).isEqualTo(true);
+    assertThat(boxing.isHoldingSomething()).isEqualTo(false);
+    assertThat(boxing.hoverPoints()).isEqualTo([]);
+    assertThat(boxing.withPos(new Point(7, 8)).selectingRangeFrom).isEqualTo(new Point(3, 4));
+    assertThat(boxing.withDrop().selectingRangeFrom).isEqualTo(undefined);
+    assertThrows(() => new PointerInteractionState(undefined, {type: 'select-range'}));
+});

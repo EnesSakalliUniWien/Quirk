@@ -42,6 +42,21 @@ const appStore = createStore((set) => ({
   registerActions: undefined,
   /** @type {undefined|!GateActions} Edits to one gate in its slot, each one commit. Set once by startQuirk. */
   gateActions: undefined,
+  /** @type {undefined|!SelectionActions} The selected part of the circuit: select, copy, cut, delete
+   *  and paste. Set once by startQuirk. */
+  selectionActions: undefined,
+  /** @type {undefined|!{circuitJson: !string, range: !CircuitRange}} The selected part of the circuit
+   *  and the circuit it was made on; read it through selectionActions.range(), which drops a
+   *  selection whose circuit is no longer shown. */
+  circuitSelection: undefined,
+  /** @type {undefined|!{col: !int, row: !int}} The cell the keyboard is on, while the arrow keys are
+   *  being used on the circuit: where a gate chosen from the palette with the keyboard lands, and
+   *  what the selection's keys act on when nothing is selected. A press on the canvas lets it go. */
+  circuitCursor: undefined,
+  /** @type {undefined|!{x: !number, y: !number, viaKeyboard: (undefined|!boolean)}} Where a right
+   *  click, a touch held still or the menu key inside the selection opened its menu, in client
+   *  coordinates, and whether the keyboard opened it, so closing it hands the focus back. */
+  selectionMenu: undefined,
 
   /** Where the transport is parked and what it may do. Mirrored from Playhead. */
   playheadState: {
@@ -91,6 +106,9 @@ const appStore = createStore((set) => ({
    *  set by the click that opens it. Transient, so it is not part of the dock's layout. */
   gateParamTarget: undefined,
   forgeRange: undefined,
+  /** @type {undefined|!{cols: !string, rows: !string}} Column and wire ranges for Make Gate's Circuit
+   *  tab to take, set by "Make gate" on a selection; the panel clears it once taken. */
+  forgeCircuitDraft: undefined,
   customGateFocus: undefined,
 
   /** @type {undefined|!{row: !int, col: (undefined|!int)}} The sphere the Bloch panel enlarges. */
@@ -112,8 +130,10 @@ const appStore = createStore((set) => ({
    *  has one, and where the pointer was, in client coordinates. */
   gutterMenu: undefined,
 
-  /** @type {undefined|!{col: !int, row: !int, gate: !Gate, x: !number, y: !number}}
-   *  The gate whose menu is open, by its slot, and where the pointer was, in client coordinates. */
+  /** @type {undefined|!{col: !int, row: !int, gate: !Gate, x: !number, y: !number,
+   *      viaKeyboard: (undefined|!boolean)}}
+   *  The gate whose menu is open, by its slot, where it opened, in client coordinates, and whether
+   *  the keyboard opened it, so closing it hands the focus back. */
   gateMenu: undefined,
 }));
 

@@ -315,21 +315,24 @@ test('scrubbing to a gate stops playback', async browser => {
     });
 });
 
-test('houses the transport in the shell below the work area', async browser => {
+test('houses the transport in the shell between the toolbar and the work area', async browser => {
     await withQuirkPage(browser, {cols: [['H'], ['X']]}, async page => {
-        // The transport is the shell's own bottom strip now, not a band inside a panel: it stays
-        // put whatever the dock is showing.
+        // The transport is the shell's own strip, not a band inside a panel: it stays put whatever
+        // the dock is showing. It sits at the top of the window, under the toolbar, where moving the
+        // window never hides it.
         const placement = await page.evaluate(() => {
-            const transport = document.querySelector('.transport-bar');
-            const work = document.querySelector('.app-dock');
+            const transport = document.querySelector('.transport-bar').getBoundingClientRect();
+            const toolbar = document.querySelector('.app-toolbar').getBoundingClientRect();
+            const work = document.querySelector('.app-dock').getBoundingClientRect();
             return {
-                insideAPanel: transport.closest('[data-panel-id]') !== null,
-                belowTheWorkArea:
-                    transport.getBoundingClientRect().top >= work.getBoundingClientRect().bottom - 1,
+                insideAPanel: document.querySelector('.transport-bar').closest('[data-panel-id]') !== null,
+                underTheToolbar: transport.top >= toolbar.bottom - 1,
+                aboveTheWorkArea: transport.bottom <= work.top + 1,
             };
         });
         assert.equal(placement.insideAPanel, false, 'The transport must not live inside a panel.');
-        assert.ok(placement.belowTheWorkArea, 'The transport must sit below the work area.');
+        assert.ok(placement.underTheToolbar, 'The transport must sit under the toolbar.');
+        assert.ok(placement.aboveTheWorkArea, 'The transport must sit above the work area.');
 
         await page.click('#playhead-next-button');
         await page.waitForFunction(

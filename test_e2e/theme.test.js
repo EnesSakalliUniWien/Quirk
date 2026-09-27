@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import {readdirSync, readFileSync} from "node:fs";
 import {Theme, gateStyle} from "../src/config/Theme.js";
-import {test, withQuirkPage, waitForQuirk, waitForPanel} from "./harness.js";
+import {domFor} from "../src/browser/theme/dom.js";
+import {test, withQuirkPage, waitForQuirk, waitForPanel, waitForCircuit} from "./harness.js";
 
 test("shared appearance imports no renderer, browser, or CSS implementation", () => {
     const seen = new Set();
@@ -75,5 +76,36 @@ test("JavaScript owns theme assignments at startup and across panels and gate ch
         await page.click("#examples-button");
         await page.waitForSelector(".app-menu", {visible: true});
         assert.equal(await page.$eval(".app-menu", e => getComputedStyle(e).backgroundColor), rgb(Theme.dom["--popover"]));
+    });
+});
+
+test("looks the way the system does, and follows it when it changes while the app runs", async browser => {
+    await withQuirkPage(browser, {cols: [["H"]]}, async page => {
+        const shown = () => page.evaluate(() => ({
+            dark: document.documentElement.classList.contains("dark"),
+            card: document.documentElement.style.getPropertyValue("--card"),
+        }));
+        // The harness starts every page on a system set to dark. The app has no appearance setting
+        // of its own to disagree with it.
+        assert.deepEqual(await shown(), {dark: true, card: Theme.dom["--card"]});
+        assert.equal(await page.$("#colour-scheme-button"), null);
+
+        // While a text field has the focus the new appearance waits, so typing is never cut short.
+        await page.focus("#gate-search");
+        await page.emulateMediaFeatures([{name: "prefers-color-scheme", value: "light"}]);
+        await new Promise(resolve => setTimeout(resolve, 400));
+        assert.equal((await shown()).dark, true);
+
+        // Once nothing is being typed, the app starts again in the light palette, on the same circuit.
+        await Promise.all([page.waitForNavigation(), page.evaluate(() => document.activeElement.blur())]);
+        await waitForQuirk(page);
+        assert.deepEqual(await shown(), {dark: false, card: domFor("light")["--card"]});
+        await waitForCircuit(page, {cols: [["H"]]});
+
+        // And back, as when an automatic appearance turns dark in the evening.
+        await Promise.all([page.waitForNavigation(),
+            page.emulateMediaFeatures([{name: "prefers-color-scheme", value: "dark"}])]);
+        await waitForQuirk(page);
+        assert.deepEqual(await shown(), {dark: true, card: Theme.dom["--card"]});
     });
 });

@@ -299,10 +299,11 @@
         font-size: var(--text-small);
     }
 
+    /* The whole 28-point band takes a press, not only the thin track and its thumb. */
     .bloch-slider-control {
         display: flex;
         align-items: center;
-        height: 18px;
+        height: 28px;
         cursor: pointer;
         touch-action: none;
     }
@@ -321,8 +322,8 @@
     }
 
     .bloch-slider-thumb {
-        width: 12px;
-        height: 12px;
+        width: 16px;
+        height: 16px;
         border-radius: 50%;
         background: var(--foreground);
         outline: none;

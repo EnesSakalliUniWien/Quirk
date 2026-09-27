@@ -25,7 +25,10 @@ test('renders the circuit controls as a button toolbar', async browser => {
         const toolbar = await page.$eval('.app-toolbar[role="toolbar"]', element => ({
             label: element.getAttribute('aria-label'),
             buttonIds: Array.from(element.querySelectorAll('[data-slot="button"]'), button => button.id),
-            buttonGroupCount: element.querySelectorAll('[data-slot="button-group"]').length
+            buttonGroupCount: element.querySelectorAll('[data-slot="button-group"]').length,
+            // Each separator's neighbours, so the groups can be read off.
+            separatorsAfter: Array.from(element.querySelectorAll('[role="separator"]'),
+                separator => separator.previousElementSibling.id),
         }));
 
         assert.equal(await page.$eval('html', element => element.classList.contains('dark')), true);
@@ -38,45 +41,52 @@ test('renders the circuit controls as a button toolbar', async browser => {
         const sidebarBrand = await page.$eval('.gate-toolbox .app-brand-copy strong',
             element => element.textContent);
         assert.equal(sidebarBrand, 'Shadow-Quant');
-        // Clear All comes last, away from Clear Circuit; the row has no button groups.
+        // Three groups by what the buttons do - the circuit itself, making gates, reading the circuit
+        // out - and Clear all last, away from Clear circuit. The row has no button groups, and at this
+        // width no More menu.
         assert.deepEqual(toolbar.buttonIds, [
             'examples-button',
-            'colour-scheme-button',
-            'export-button', 'tape-button',
+            'undo-button',
+            'redo-button',
+            'clear-circuit-button',
+            'gate-forge-button',
+            'gate-parameter-button',
             'state-button',
-            'algebra-button',
             'probabilities-button',
             'qubits-button',
             'registers-button',
-            'clear-circuit-button',
-            'undo-button',
-            'redo-button',
-            'gate-forge-button',
-            'gate-parameter-button',
+            'algebra-button',
+            'tape-button',
+            'export-button',
             'clear-all-button'
         ]);
+        assert.deepEqual(toolbar.separatorsAfter, ['clear-circuit-button', 'gate-parameter-button']);
         assert.equal(toolbar.buttonGroupCount, 0);
+        // Buttons are named in sentence case; only menu items take title-style capitalization.
         const labels = await page.$$eval('.app-toolbar [data-slot="button"]',
             els => els.map(el => el.getAttribute('aria-label')));
         assert.deepEqual(labels,
-            ['Examples', 'Colour scheme: dark. Open menu to change.', 'Export', 'Tape', 'State', 'Algebra', 'Probabilities', 'Qubits', 'Registers',
-             'Clear Circuit', 'Undo', 'Redo', 'Make Gate', 'Gate Parameter', 'Clear All']);
+            ['Examples', 'Undo', 'Redo', 'Clear circuit', 'Make gate', 'Gate parameter', 'State', 'Probabilities',
+             'Qubits', 'Registers', 'Algebra', 'Tape', 'Export', 'Clear all']);
+        // No two buttons wear the same mark.
+        const marks = await page.$$eval('.app-toolbar [data-slot="button"] svg', els => els.map(el => el.getAttribute('class')));
+        assert.equal(new Set(marks).size, marks.length, `Toolbar icons must be distinct: ${marks.join(', ')}`);
 
-        // The destructive action takes the row's slack: never flush against Clear Circuit, and
+        // The destructive action takes the row's slack: never flush against Clear circuit, and
         // visibly apart from its neighbour.
         const clearGap = await page.evaluate(() => {
             const clearCircuit = document.getElementById('clear-circuit-button').getBoundingClientRect();
-            const makeGate = document.getElementById('gate-forge-button').getBoundingClientRect();
+            const neighbour = document.getElementById('export-button').getBoundingClientRect();
             const clearAll = document.getElementById('clear-all-button').getBoundingClientRect();
             return {
                 fromClearCircuit: Math.round(clearAll.left - clearCircuit.right),
-                fromNeighbour: Math.round(clearAll.left - makeGate.right),
+                fromNeighbour: Math.round(clearAll.left - neighbour.right),
             };
         });
         assert.ok(clearGap.fromClearCircuit >= 100,
-            `Clear All must sit well clear of Clear Circuit, gap was ${clearGap.fromClearCircuit}px.`);
+            `Clear all must sit well clear of Clear circuit, gap was ${clearGap.fromClearCircuit}px.`);
         assert.ok(clearGap.fromNeighbour >= 12,
-            `Clear All must sit apart from its neighbour, gap was ${clearGap.fromNeighbour}px.`);
+            `Clear all must sit apart from its neighbour, gap was ${clearGap.fromNeighbour}px.`);
 
         // The base layer's `font: inherit` reset must not outrank the components layer, or the
         // buttons silently lose their 14px/500 type.
@@ -137,4 +147,25 @@ test('the examples menu loads a circuit, and undo puts the old one back', async 
         await page.click('#undo-button');
         await waitForCircuit(page, circuit);
     });
+});
+
+test('a narrow window moves the panel buttons that do not fit into a More menu', async browser => {
+    await withQuirkPage(browser, {cols: [['H']]}, async page => {
+        const row = () => page.$$eval('.app-toolbar [data-slot="button"]', els => els.map(el => el.id));
+        const shown = await row();
+        // The circuit's own buttons and Clear all stay; the More menu takes the rest from the end.
+        assert.deepEqual(shown.slice(0, 4), ['examples-button', 'undo-button', 'redo-button', 'clear-circuit-button']);
+        assert.deepEqual(shown.slice(-2), ['toolbar-more-button', 'clear-all-button']);
+        assert.ok(!shown.includes('export-button'), `Export must move into More at this width: ${shown.join(', ')}`);
+        const fits = await page.$eval('.app-toolbar', element => element.scrollWidth <= element.clientWidth);
+        assert.ok(fits, 'The toolbar must fit the window without scrolling.');
+
+        // A moved button is a menu item with the same mark and its name in title-style capitalization.
+        await page.click('#toolbar-more-button');
+        const items = await page.waitForSelector('.app-menu [data-toolbar-item="export-button"]', {timeout: TEST_TIMEOUT_MILLIS});
+        const names = await page.$$eval('.app-menu [data-toolbar-item]', els => els.map(el => el.textContent));
+        assert.equal(names.at(-1), 'Export');
+        await items.click();
+        await page.waitForSelector('[data-panel-id="export"]', {timeout: TEST_TIMEOUT_MILLIS});
+    }, {width: 420, height: 720, deviceScaleFactor: 1});
 });

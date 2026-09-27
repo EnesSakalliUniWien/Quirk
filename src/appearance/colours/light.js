@@ -108,6 +108,9 @@ const interaction = Object.freeze({
   // A debugger's breakpoint dot.
   breakpoint: colour(185, 28, 28),
   drop: colour(180, 83, 9, 0.16),
+  // A selected part of the circuit: neutral ink, so it takes no hue that already means something.
+  selection: colour(46, 52, 64, 0.08),
+  selectionEdge: colour(46, 52, 64), // #2E3440  12.49:1 on white
 });
 
 // ── Error ───────────────────────────────────────────────────────────────────

@@ -17,6 +17,7 @@ serialization/
     ├── circuit.js         circuit structure and displayed-wire padding
     ├── initialState.js    sparse initial-state values
     ├── registers.js       named registers, inputs and value labels
+    ├── clipboard.js       circuit JSON on the clipboard, and text that is not
     └── text.js            JSON text parsing and the last successful result
 ```
 

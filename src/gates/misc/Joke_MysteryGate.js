@@ -26,7 +26,7 @@ const MysteryGateMakerWithMatrix = (matrix) =>
   new GateBuilder()
     .setSerializedIdAndSymbol(MysteryGateSymbol)
     .setTitle("Mystery Gate")
-    .setBlurb("Different every time.\n(Use shift+drag to copy circuit gates.)")
+    .setBlurb("Different every time.\n(Hold Option or Alt while dragging to copy circuit gates.)")
     .setRenderer(MATRIX_RENDERER)
     .setKnownEffectToMatrix(matrix).gate;
 

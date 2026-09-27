@@ -100,6 +100,9 @@ const interaction = Object.freeze({
   // A debugger's breakpoint dot.
   breakpoint: colour(248, 113, 113),
   drop: colour(255, 196, 112, 0.16),
+  // A selected part of the circuit: neutral ink, so it takes no hue that already means something.
+  selection: colour(211, 214, 224, 0.1),
+  selectionEdge: colour(211, 214, 224),
 });
 
 const error = Object.freeze({
@@ -107,21 +110,23 @@ const error = Object.freeze({
   background: colour(53, 28, 57),
 });
 
+// The chrome's neutrals share the canvas's indigo cast (OKLCH hue about 268°), so no strip or
+// border reads warmer than the surfaces around it.
 const ui = Object.freeze({
-  tableDivider: colour(223, 211, 214, 0.0635),
-  transportSurface: colour(41, 30, 33),
-  searchSurface: colour(41, 31, 34),
+  tableDivider: colour(211, 214, 224, 0.0635),
+  transportSurface: colour(30, 33, 42),
+  searchSurface: colour(31, 34, 42),
   focusShadow: colour(139, 147, 166, 0.28),
   tileHover: colour(53, 57, 69),
-  controlBorder: colour(237, 227, 229, 0.6135),
+  controlBorder: colour(227, 230, 238, 0.6135),
   controlSurface: colour(65, 73, 91),
   controlHover: colour(80, 91, 112),
-  brandInk: colour(241, 233, 235),
-  brandSurface: colour(238, 229, 231, 0.2),
-  brandBorder: colour(238, 229, 231, 0.52),
-  brandGlow: colour(238, 229, 231, 0.24),
+  brandInk: colour(233, 235, 242),
+  brandSurface: colour(229, 232, 239, 0.2),
+  brandBorder: colour(229, 232, 239, 0.52),
+  brandGlow: colour(229, 232, 239, 0.24),
   panelGlow: colour(139, 147, 166, 0.6),
-  panelPrimaryHover: colour(239, 230, 232),
+  panelPrimaryHover: colour(230, 233, 240),
   panelOptionSurface: colour(43, 47, 59, 0.62),
   panelOptionBorder: colour(146, 154, 172, 0.6135),
   errorBorder: colour(232, 121, 249, 0.5),

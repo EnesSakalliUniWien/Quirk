@@ -1,9 +1,11 @@
 import {
   BracketsIcon,
+  CassetteTapeIcon,
   ChartColumnIcon,
   DownloadIcon,
   GitCommitHorizontalIcon,
   GlobeIcon,
+  Grid3x3Icon,
   OrbitIcon,
   ShapesIcon,
   SigmaIcon,
@@ -57,14 +59,18 @@ import { createPanelComponent } from "./shared/panel-wrapper.jsx";
  * app on its behalf.
  *
  * `icon` is the panel's mark, drawn on its tab and on the toolbar button that opens it, so a panel
- * is named the same way wherever it appears and neither place picks an icon of its own.
+ * is named the same way wherever it appears and neither place picks an icon of its own. No two
+ * panels share a mark: side by side on the toolbar, two alike would read as one command.
+ *
+ * `title` names the panel on its tab and on the toolbar button, in sentence case like every other
+ * button and heading; only menu items take title-style capitalization.
  *
  * @type {!Object.<!string, !{title: !string, icon: !function, component: !function,
  *     permanent: (undefined|!boolean), side: (undefined|!{direction: !string, width: !int}),
  *     floating: (undefined|!{width: !int, height: !int})}>}
  */
 const PANELS = {
-  tape: {title: "Tape", icon: DownloadIcon, component: TapePanel},
+  tape: {title: "Tape", icon: CassetteTapeIcon, component: TapePanel},
   circuit: {
     title: "Circuit",
     icon: GitCommitHorizontalIcon,
@@ -89,16 +95,16 @@ const PANELS = {
   qubits: { title: "Qubits", icon: OrbitIcon, component: QubitsPanel },
   registers: { title: "Registers", icon: BracketsIcon, component: RegistersPanel },
   export: { title: "Export", icon: DownloadIcon, component: ExportPanel },
-  forge: { title: "Make Gate", icon: WandSparklesIcon, component: ForgePanel },
+  forge: { title: "Make gate", icon: WandSparklesIcon, component: ForgePanel },
   "gate-param": {
-    title: "Gate Parameter",
+    title: "Gate parameter",
     icon: SlidersHorizontalIcon,
     component: GateParamPanel,
     floating: { width: 420, height: 320 },
   },
-  "complex-display": {title: "Complex values", icon: BracketsIcon, component: ComplexDisplayPanel, floating: {width: 440, height: 820}},
+  "complex-display": {title: "Complex values", icon: Grid3x3Icon, component: ComplexDisplayPanel, floating: {width: 440, height: 820}},
   bloch: {
-    title: "Bloch Sphere",
+    title: "Bloch sphere",
     icon: GlobeIcon,
     component: BlochPanel,
     floating: { width: 1180, height: 880 },

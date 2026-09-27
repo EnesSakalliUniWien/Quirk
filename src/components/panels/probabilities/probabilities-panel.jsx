@@ -8,6 +8,7 @@ import {
   probabilityBarFraction,
 } from "../../../draw/displays/probability/ProbabilityScale.js";
 import { stateAtStep } from "../../../engine/simulation/stepAlgebra.js";
+import { prefersReducedMotion } from "../../../browser/reducedMotion.js";
 import { appStore } from "../../../state/appStore.js";
 import { useWheelScrollsSideways } from "../algebra/useWheelScrollsSideways.js";
 import { usePlayheadStats } from "../shared/usePlayheadStats.js";
@@ -85,7 +86,7 @@ function StepTable({ table, stops, current, onSeek }) {
         .find((step) => step.offsetLeft - kets >= right - scroller.clientWidth) ?? header;
       scroller.scrollTo({
         left: Math.max(0, first.offsetLeft - kets),
-        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+        behavior: prefersReducedMotion() ? "auto" : "smooth",
       });
     }
   }, [current]);

@@ -45,6 +45,8 @@ import {circuitZoom, onCircuitZoomChanged} from './zoom.js';
  * @param {!function(!EditorState): !{w: !number, h: !number}} desiredCanvasSizeFor
  * @param {!function(!EditorState): !EditorState} syncArea
  * @param {!function(): !Object} captureCommitted Captures the committed circuit, separate from a drag preview.
+ * @param {!function(): (undefined|!{circuitJson: !string, range: !CircuitRange})} currentSelection The
+ *     selected part of the circuit, drawn while the circuit it was made on is the one shown.
  * @returns {!{start: !function(): void, trigger: !function(): void}} start paints the first frame
  *     and unlocks the loop; trigger asks for a redraw (cheap, rate-limited).
  */
@@ -56,7 +58,7 @@ function initRedrawLoop(canvas,
                         playhead,
                         mostRecentStats,
                         desiredCanvasSizeFor,
-                        syncArea, captureCommitted) {
+                        syncArea, captureCommitted, currentSelection) {
     let hasStarted = false;
     const viewport = new CircuitViewport(RenderSurface.forCanvas(canvas));
     // The scroll extent lives on this spacer, not the canvas: the canvas stays viewport-sized
@@ -144,10 +146,12 @@ function initRedrawLoop(canvas,
             lineScale: 1 / Math.min(zoom, 1),
             scrollX: canvasDiv.scrollLeft / zoom, scrollY: canvasDiv.scrollTop / zoom,
             breakpoints: playhead.breakpoints(),
+            selection: currentSelection(),
         });
 
         const hand = displayed.getState().value.hand;
         viewport.surface.app.renderer.events.setCursor(hand.isHoldingSomething() ? 'move' :
+            hand.selectingRangeFrom !== undefined ? 'crosshair' :
             hand.isBusy() ? 'ns-resize' : viewport.surface.app.renderer.events.rootBoundary.cursor || 'auto');
 
         // Time-dependent gates animate whenever the cycle runs, not only while the transport plays.

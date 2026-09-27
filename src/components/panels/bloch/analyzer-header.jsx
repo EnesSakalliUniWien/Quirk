@@ -12,7 +12,7 @@ function AnalyzerHeader({ subtitle }) {
   return (
     <header className="panel-header">
       <h2 id="bloch-title" className="bloch-title">
-        Bloch Sphere Analyzer
+        Bloch sphere analyzer
       </h2>
       <p id="bloch-subtitle" className="bloch-subtitle">
         {subtitle}

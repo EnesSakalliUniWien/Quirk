@@ -1,16 +1,23 @@
-/* The app toolbar: the circuit's actions as an icon row, the shell's top strip above the work
-   area (src/components/app.jsx). */
+/* The app toolbar: the circuit's actions as an icon row in three groups, the shell's top strip above
+   the transport and the work area (src/components/app.jsx). */
 @layer components {
     .app-toolbar {
         display: flex;
         align-items: center;
-        /* Six 32px buttons on the 240px sidebar's 216px inner width: a 2px gap leaves the
-           auto margin enough slack to hold Clear All visibly apart. */
         gap: 2px;
     }
 
+    /* Between two groups: a hairline with room on both sides, so a group reads as one. */
+    .app-toolbar-separator {
+        flex: none;
+        width: var(--border-width);
+        height: 20px;
+        margin: 0 calc(var(--spacing) * 1.5);
+        background: var(--border);
+    }
+
     /* Keeps the destructive action clear of the others: it takes the row's slack, so it never
-       sits flush against Clear Circuit or its neighbour. */
+       sits flush against Clear circuit or its neighbour. */
     .app-toolbar-danger {
         margin-left: auto;
         color: var(--destructive);

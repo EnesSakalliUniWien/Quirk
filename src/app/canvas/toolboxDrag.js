@@ -18,6 +18,8 @@ import {Layout} from "../../config/Layout.js"
 import {Point} from "../../geometry/Point.js"
 import {eventPosRelativeTo, trackPointerUntilRelease} from "../../browser/PointerDrag.js"
 import {pointIntoCircuitCoords} from "./zoom.js"
+import {clampCell} from "../../circuit/circuitRange.js"
+import {appStore} from "../../state/appStore.js"
 
 /**
  * Bridges a grab in the DOM toolbox onto the canvas's hand.
@@ -81,9 +83,10 @@ function initToolboxDrag(canvas, revision, displayed, syncArea) {
 }
 
 /**
- * Places a gate with no pointer involved: it lands in a fresh column at the end of the circuit,
- * on the top wire, through the same drop pipeline a drag ends with. This is how a gate chosen
- * with the keyboard reaches the circuit.
+ * Places a gate with no pointer involved, through the same drop pipeline a drag ends with: in the
+ * cell the keyboard's cursor is on, when the arrow keys have been used on the circuit, and otherwise
+ * in a fresh column at the end of the circuit, on the top wire. This is how a gate chosen with the
+ * keyboard reaches the circuit.
  *
  * @param {!Revision} revision
  * @param {import("zustand/vanilla").StoreApi<{value: !EditorState}>} displayed
@@ -92,13 +95,16 @@ function initToolboxDrag(canvas, revision, displayed, syncArea) {
  */
 function initToolboxKeyboardPlace(revision, displayed, syncArea) {
     return gate => {
-        const cur = syncArea(displayed.getState().value);
-        const endColumn = cur.displayedCircuit.circuitDefinition.columns.length;
-        const pt = cur.displayedCircuit.gateRect(0, endColumn).center();
+        // With the extra wire a gate can land on already there, so the cell is found where it will be.
+        const cur = syncArea(displayed.getState().value.withJustEnoughWires(1));
+        const circuit = displayed.getState().value.displayedCircuit.circuitDefinition;
+        const cursor = appStore.getState().circuitCursor;
+        const cell = cursor === undefined ? {col: circuit.columns.length, row: 0} : clampCell(circuit, cursor);
+        const pt = cur.displayedCircuit.gateRect(cell.row, cell.col).center();
         const held = cur.hand.
             withPos(pt).
             withHeldGate(gate, new Point(Layout.GATE_RADIUS, Layout.GATE_RADIUS));
-        const dropped = syncArea(cur.withHand(held).withJustEnoughWires(1)).
+        const dropped = syncArea(cur.withHand(held)).
             afterDropping().
             afterTidyingUp();
 

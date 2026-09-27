@@ -1,5 +1,6 @@
-/* The app's popup menu: the look worn by the examples menu on the toolbar and by the menu a right
-   click on a wire label opens.
+/* The app's popup menu: the look worn by the toolbar's menus and by the menus a right click, a touch
+   and hold or the menu key opens on the circuit. Items name commands only; their shortcuts are in
+   the tooltips of the controls that offer the same commands.
 
    Portalled to the body, so lifted over the dock the way the hover card is. Unlayered, like the
    dock's own rules, so it is not outranked by them. */
@@ -41,22 +42,34 @@
     color: var(--muted-foreground);
 }
 
+/* An item with its command's mark before its name, the mark the toolbar button wears. */
+.app-menu-item-label {
+    display: inline-flex;
+    align-items: center;
+    gap: calc(var(--spacing) * 2);
+}
+
+.app-menu-item-icon {
+    flex: none;
+    width: 16px;
+    height: 16px;
+}
+
+/* An item that takes gates out of the circuit says so before it is chosen. */
+.app-menu-item[data-action="delete"] {
+    color: var(--destructive);
+}
+
+/* A section's title, in the items' own capitalization. */
 .app-menu-label {
     padding: 6px calc(var(--spacing) * 2) 2px;
     color: var(--muted-foreground);
-    font-size: 0.72rem;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    font-size: var(--text-caption);
+    font-weight: 600;
 }
 
 .app-menu-separator {
     height: 1px;
     margin: calc(var(--spacing) * 1) 0;
     background: var(--border);
-}
-
-.app-menu-item kbd {
-    color: var(--muted-foreground);
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
 }

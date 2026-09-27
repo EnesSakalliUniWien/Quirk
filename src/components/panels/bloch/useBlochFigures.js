@@ -7,6 +7,7 @@ import {
 import { drawBlochProjection } from "../../../draw/displays/bloch/BlochProjections.js";
 import { drawBlochStrip } from "../../../draw/displays/bloch/BlochStrip.js";
 import { clock } from "../../../base/Clock.js";
+import { prefersReducedMotion } from "../../../browser/reducedMotion.js";
 import { Animation } from "../../../config/Animation.js";
 import { RenderSurface } from "../../../draw/surface/RenderSurface.js";
 import { blochCoordinates, blochReading, blochVectorBetween } from "../../../engine/math/bloch.js";
@@ -49,7 +50,8 @@ import {
  *
  * When the state shown changes at once - another step, back from a free state, an edited circuit -
  * the arrow glides to it along the sphere over Animation.GLIDE_DURATION_MS, landing on the state as it is
- * then, so a running circuit's arrow is caught up with rather than left behind.
+ * then, so a running circuit's arrow is caught up with rather than left behind. With Reduce Motion
+ * on it lands there at once.
  *
  * Closes the panel when the sphere it was opened for has gone from the circuit.
  *
@@ -137,7 +139,8 @@ function useBlochFigures({
         index: shown.kind === "step" ? shown.index : undefined,
         circuit: completedRef.current?.circuit,
       };
-      if (glidesBetween(sourceRef.current, source) && shownVector.current !== undefined && vec !== undefined) {
+      if (glidesBetween(sourceRef.current, source) && shownVector.current !== undefined && vec !== undefined &&
+          !prefersReducedMotion()) {
         glideRef.current = { from: shownVector.current, start: clock.now() };
       }
       sourceRef.current = source;

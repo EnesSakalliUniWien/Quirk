@@ -1,6 +1,7 @@
 @import "../../styles/layers.css";
 
-/* The playhead transport strip: step buttons, scrub slider, and position readout. */
+/* The playhead transport strip: step buttons, scrub slider, and position readout. It sits under the
+   toolbar, at the top of the window, where moving the window never hides it. */
 @layer components {
     .bar {
         display: flex;
@@ -10,20 +11,20 @@
         gap: var(--space-small) var(--space-medium);
         padding: var(--space-small) var(--space-medium);
         background: var(--transport-surface);
-        border-top: var(--border-width) solid var(--border);
+        border-bottom: var(--border-width) solid var(--border);
     }
 
-
+    /* The browser draws the thin track and its thumb; the element around them is the 28-point band a
+       press can land on. */
     .scrub {
         flex: 1 1 160px;
         min-width: 120px;
         max-width: 420px;
-        height: 4px;
+        height: 28px;
         margin: 0;
         padding: 0;
         accent-color: var(--primary);
-        background: var(--muted);
-        border-radius: 999px;
+        background: transparent;
         cursor: pointer;
     }
 

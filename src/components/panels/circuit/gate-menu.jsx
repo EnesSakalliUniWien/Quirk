@@ -4,11 +4,12 @@ import { appStore } from "../../../state/appStore.js";
 import { openPanel } from "../../dock.jsx";
 
 /**
- * The menu a right click on a gate opens, drawn inside the circuit's scroll content so it sits
- * where the click was (src/app/canvas/canvasPointer.js writes the store). Switch the gate off or
- * on, edit its parameter when it has one, or delete it. The gate is read from its slot when an item
- * is chosen, so a menu left open over a circuit that changed acts on what is there now, or on
- * nothing.
+ * The menu a right click, a touch and hold, or the menu key opens on a gate, drawn inside the
+ * circuit's scroll content so it sits at the gate (src/app/canvas/canvasPointer.js and
+ * useCircuitKeyboard.js write the store). Switch the gate off or on, edit its parameter when it has
+ * one, or delete it; the selection's bar and the Gate parameter panel offer the same. The gate is
+ * read from its slot when an item is chosen, so a menu left open over a circuit that changed acts on
+ * what is there now, or on nothing.
  *
  * @param {!{host: !{current: (null|!HTMLElement)}}} props host is the scroll container the menu is
  *     positioned in.
@@ -41,9 +42,10 @@ function GateMenu({ host }) {
       <Menu.Trigger nativeButton={false} render={<span className="gutter-menu-anchor" style={anchor} aria-hidden="true" />} />
       <Menu.Portal>
         <Menu.Positioner className="app-menu-positioner" side="bottom" align="start" sideOffset={4}>
-          {/* The anchor is not a control, so closing hands focus nowhere: the parameter panel an
-              item opens keeps the focus it took. */}
-          <Menu.Popup className="app-menu gate-menu" finalFocus={false}
+          {/* The anchor is not a control, so a menu a pointer opened hands focus nowhere when it
+              closes. One opened from the keyboard hands it back to the circuit, where its keys were
+              pressed; the parameter panel an item opens takes it from there when it focuses. */}
+          <Menu.Popup className="app-menu gate-menu" finalFocus={menu.viaKeyboard ? host : false}
             aria-label={`${gate.name} at wire ${menu.row + 1}, column ${menu.col + 1}`}>
             <Menu.Group>
               <Menu.GroupLabel className="app-menu-label">{gate.name}</Menu.GroupLabel>
@@ -56,14 +58,13 @@ function GateMenu({ host }) {
               </Menu.Item>
               {gate.paramDialog !== undefined && (
                 <Menu.Item className="app-menu-item" data-action="edit" onClick={editParameter}>
-                  Edit parameter…
+                  Edit Parameter…
                 </Menu.Item>
               )}
             </Menu.Group>
             <Menu.Separator className="app-menu-separator" />
             <Menu.Item className="app-menu-item" data-action="delete" onClick={() => actions.remove(menu.col, menu.row)}>
               Delete
-              <kbd>middle-click</kbd>
             </Menu.Item>
           </Menu.Popup>
         </Menu.Positioner>

@@ -19,7 +19,7 @@ function ParameterList({deps}) {
     shown.displayedCircuit.circuitDefinition.columns.forEach((column,col) => column.gates.forEach((gate,row) => {
         if (gate?.paramDialog) entries.push({gate,col,row});
     }));
-    return <div className="panel-body gate-param-panel"><header><h2 className="gate-param-title">Gate Parameter</h2><p className="field-description">Choose a gate to edit.</p></header>
+    return <div className="panel-body gate-param-panel"><header><h2 className="gate-param-title">Gate parameter</h2><p className="field-description">Choose a gate to edit.</p></header>
         <div className="construction-scroll parameter-targets">{entries.length ? entries.map(target => <button type="button" key={`${target.col}:${target.row}`}
             onClick={() => appStore.setState({gateParamTarget:target})}>{target.gate.symbol}({String(target.gate.param ?? '')}) · wire {target.row+1}, column {target.col+1}</button>) : <p>No parameter gates in this circuit.</p>}</div>
     </div>;

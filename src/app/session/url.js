@@ -47,7 +47,40 @@ function parseBreakpoints(text) {
         map(part => parseInt(part.trim(), 10));
 }
 
+/** Where the last circuit shown is remembered, for a visit whose address names none. */
+const LAST_CIRCUIT_STORAGE_KEY = "shadow-quant.last-circuit";
+
 /**
+ * @returns {undefined|!string} The circuit the last visit left, if the browser kept it and this
+ *     version still reads it; one it cannot read is quietly passed over for an empty circuit.
+ */
+function readLastCircuit() {
+    try {
+        const text = window.localStorage.getItem(LAST_CIRCUIT_STORAGE_KEY) ?? undefined;
+        if (text !== undefined) {
+            fromJsonText_CircuitDefinition(text);
+        }
+        return text;
+    } catch {
+        return undefined;
+    }
+}
+
+/** @param {!string} jsonText */
+function writeLastCircuit(jsonText) {
+    try {
+        window.localStorage.setItem(LAST_CIRCUIT_STORAGE_KEY, jsonText);
+    } catch {
+        // A browser that refuses site data starts the next visit empty, as a bare address always did.
+    }
+}
+
+/**
+ * The address is the circuit: each edit writes it into the link, and going back through the
+ * browser's history goes back through the edits. The circuit is also remembered in the browser, so
+ * opening the app without a circuit in its address - from a bookmark of the bare page, or by typing
+ * it - continues from the circuit that was left, as an app restarted comes back to where it was.
+ *
  * @param {!Revision} revision
  * @param {!Recorder} recorder
  * @param {!Playhead} playhead Holds the breakpoints, which the link carries beside the circuit.
@@ -92,9 +125,12 @@ function initUrlCircuitSync(revision, recorder, playhead, onTakeLoaded) {
                 }).catch(error => recorder.store.error.setState({value: error.message}));
                 return;
             }
+            // Opened without a circuit: the one the last visit left, or else an empty one. A circuit
+            // taken back up is written into the address, so the page's link is the circuit's again.
+            const restored = !params.has(AppInfo.URL_CIRCUIT_PARAM_KEY) && version === 1 ? readLastCircuit() : undefined;
             if (!params.has(AppInfo.URL_CIRCUIT_PARAM_KEY)) {
-                const def = JSON.stringify(Serializer.toJson(CircuitDefinition.EMPTY));
-                params.set(AppInfo.URL_CIRCUIT_PARAM_KEY, def);
+                params.set(AppInfo.URL_CIRCUIT_PARAM_KEY,
+                    restored ?? JSON.stringify(Serializer.toJson(CircuitDefinition.EMPTY)));
             }
 
             const jsonText = params.get(AppInfo.URL_CIRCUIT_PARAM_KEY);
@@ -103,7 +139,9 @@ function initUrlCircuitSync(revision, recorder, playhead, onTakeLoaded) {
             const cleanedJson = JSON.stringify(Serializer.toJson(circuitDef));
             revision.clear(cleanedJson);
             playhead.setBreakpoints(parseBreakpoints(params.get(AppInfo.URL_BREAKPOINTS_PARAM_KEY)));
-            if (circuitDef.isEmpty() && params.size === 1) {
+            if (restored !== undefined && !circuitDef.isEmpty()) {
+                historyPusher.replaceHash(urlWithCircuitHash(jsonText, playhead.breakpoints()));
+            } else if (circuitDef.isEmpty() && params.size === 1) {
                 historyPusher.currentStateIsNotMemorable();
             } else {
                 const urlHash = urlWithCircuitHash(jsonText, playhead.breakpoints());
@@ -119,6 +157,8 @@ function initUrlCircuitSync(revision, recorder, playhead, onTakeLoaded) {
 
     window.addEventListener('popstate', loadCircuitFromUrl);
     loadCircuitFromUrl();
+
+    revision.latestActiveCommit().whenDifferent().subscribe(writeLastCircuit);
 
     revision.latestActiveCommit().whenDifferent().skip(1).subscribe(jsonText => {
         if (!loadingTake) historyPusher.stateChange(jsonText, urlWithCircuitHash(jsonText, playhead.breakpoints()));

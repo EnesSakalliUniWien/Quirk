@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import { bin } from "../../../base/Format.js";
+import { prefersReducedMotion } from "../../../browser/reducedMotion.js";
 import { Matrix } from "../../../engine/math/matrix/Matrix.js";
 import { DataView } from "../../math/data-view.jsx";
 import { useWheelScrollsSideways } from "./useWheelScrollsSideways.js";
@@ -22,10 +23,9 @@ const EVOLUTION_LABEL_WIDTH = 48;
  * @param {!number} width
  */
 function centreHorizontally(scroller, left, width) {
-  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   scroller.scrollTo({
     left: Math.max(0, left - (scroller.clientWidth - width) / 2),
-    behavior: reduceMotion ? "auto" : "smooth",
+    behavior: prefersReducedMotion() ? "auto" : "smooth",
   });
 }
 

@@ -5,6 +5,7 @@ Files are grouped by their primary purpose. Filenames and exported symbols remai
 ```text
 circuit/
 ├── registerLabels.js   how wires and basis states are written once wires have names
+├── circuitRange.js     rectangles of a circuit: whole-gate growth, slices, outside dependencies
 └── model/
     ├── CircuitDefinition.js
     ├── Controls.js

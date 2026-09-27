@@ -19,7 +19,7 @@ import { useCircuitSteps } from "./useCircuitSteps.js";
 import { useExploreTransition } from "./useExploreTransition.js";
 
 /**
- * The Bloch Sphere Analyzer: one qubit read three ways - the sphere in perspective, the meridian
+ * The Bloch sphere analyzer: one qubit read three ways - the sphere in perspective, the meridian
  * that holds θ and the equator that holds ϕ, all face on - with every number beside them.
  *
  * Usage: open it by clicking any Bloch sphere in the circuit; appStore.blochTarget says which

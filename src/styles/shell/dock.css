@@ -1,6 +1,6 @@
 /* Dock layout only. Theme.js defines the values assigned by applyTheme.js. */
 
-/* The work area between the toolbar and the transport: every panel, the gate palette included,
+/* The work area under the toolbar and the transport: every panel, the gate palette included,
    lives inside it. */
 .app-dock {
     flex: 1 1 auto;

@@ -2,22 +2,28 @@
 
 - **add gate**: `drag` gate from toolbox to circuit
 - **move gate**: `drag` gate in circuit
-- **remove gate**: `drag` gate out of circuit **OR** `middle-click` gate
-- **undo**: `ctrl + Z` **OR** click 'undo' button
-- **redo**: `ctrl + shift + Z` **OR** `ctrl + Y` **OR** click 'redo' button
-- **save circuit**: bookmark the page with your browser
+- **remove gate**: `drag` gate out of circuit **OR** `middle-click` gate **OR** choose Delete in
+  its menu
+- **undo**: `⌘ + Z` on a Mac, `ctrl + Z` elsewhere **OR** click 'undo' button
+- **redo**: `⇧ + ⌘ + Z` on a Mac, `ctrl + shift + Z` or `ctrl + Y` elsewhere **OR** click 'redo'
+  button
+- **save circuit**: bookmark the page with your browser; the browser also remembers the last
+  circuit, and the bare page opens on it
 - **load circuit**: open the bookmark
+- **open a gate's menu**: `right-click` it **OR** touch and hold it; on a wire label the same opens
+  the label's menu, and inside the selection the selection's
 - **add qubit**: `drag` gate onto extra wire that appears while dragging
 - **remove qubit**: re-arrange gates so that the bottom wire is unused
 - **show intermediate state**: `drag` a display gate onto the circuit
 - **view tips**: `hover` with mouse **OR** awkwardly tap-hold with finger
-- **play/pause stepping through the circuit**: `space` **OR** click the transport's play button;
-  spinning and formula gates animate without it
+- **play/pause stepping through the circuit**: `space` **OR** click the play button in the
+  transport under the toolbar; spinning and formula gates animate without it, unless the system's
+  Reduce Motion is on
 - **zoom the circuit**: use the `−` / `+` / `Fit` buttons over the circuit's corner
 - **scroll a big circuit**: drag the viewport box on the minimap that appears when the circuit
   overflows
 - **inspect a qubit's Bloch sphere**: click any Bloch sphere in the circuit or at a wire's end to
-  open the Bloch Sphere Analyzer. Its parts are grouped by what they do: Figures, Display, State
+  open the Bloch sphere analyzer. Its parts are grouped by what they do: Figures, Display, State
   source, and beside them the readout's Bloch vector and Quantum state. The figures show the qubit
   three ways: the sphere in perspective (drag to rotate), the meridian through the state, where θ
   is measured, and the equator, where ϕ is. All three draw one unit circle, at one size and one
@@ -38,23 +44,54 @@
 - **open the gates on a narrow screen**: click the `Gates` button over the circuit's corner; the
   palette slides in as a drawer and closes when a gate is dragged out
 
+**Using the keyboard**
+
+- **reach the circuit**: `tab` to it; a ring marks the cell the keyboard is on, and a screen
+  reader names the cell and the gate in it
+- **move between cells**: the arrow keys; `home` and `end` go to the first column and to the empty
+  one after the last
+- **select**: `shift` with the arrow keys, from the cell where the run started
+- **open a gate**: `return` does what a click does - opens its parameter, Bloch sphere or values -
+  or opens its menu; `shift + F10` or the menu key opens its menu
+- **place a gate**: choose it in Gates with the arrow keys and press `return`; it lands in the
+  keyboard's cell
+- **copy, cut or delete the gate in the cell**: `⌘/ctrl + C`, `⌘/ctrl + X` or `delete` with
+  nothing selected
+
 **Advanced Actions**
 
-- **copy gate**: `shift + drag` gate in circuit
-- **grab a gate's inverse**: `alt + drag` gate
-- **move column**: `ctrl + drag` in circuit
-- **copy column**: `ctrl + shift + drag` in circuit
+- **copy gate**: hold `option` (`alt`) while dropping a gate dragged in the circuit; let go of it
+  before dropping and the gate moves
+- **grab a gate's inverse**: `shift + drag` gate
+- **move column**: `⌘/ctrl + drag` in circuit
+- **copy column**: `⌘/ctrl + drag`, holding `option` (`alt`) at the drop
+- **select part of the circuit**: `drag` from an empty part of the circuit, or touch and hold
+  there first with a finger; the box grows to take in every gate it touches. `ctrl/⌘ + A` selects every gate; `Esc` or a click on an empty part lets
+  the selection go, and so does any edit
+- **copy, cut or delete a selection**: `ctrl/⌘ + C`, `ctrl/⌘ + X` or `Delete`, or the bar over the
+  selection, or its menu. The copy is circuit JSON, the form URLs and
+  Export use, so it pastes into another tab. The bar names a control, swap half or input outside
+  the selection that its gates rely on - a copy leaves those behind - and offers to take their
+  wires in
+- **paste**: `ctrl/⌘ + V` inserts the copied gates as new columns, before the column under the
+  keyboard's cell or the pointer and from the wire under it, or else after the selection or the
+  circuit; nothing is
+  overwritten, and the pasted gates are selected. Exported circuit JSON pastes the same way
+- **make a gate of a selection**: the bar's wand opens Make gate's Circuit tab with its columns and
+  wires filled in
 - **set a gate's parameter**: click the 'change' button on a parametrized gate (the Rx/Ry/Rz
   rotation gates take their angle in radians)
 - **fold a toolbox group**: click the group's heading; the folding is remembered
-- **create custom gate**: click 'Make Gate' button
+- **switch gates off and on**: Deactivate in a gate's menu or on the selection's bar
+- **create custom gate**: click 'Make gate' button
 - **remove custom gate**: [crummy support] have to use undo or clear all or manually edit URL
 
 **Constructing custom gates**
 
-Open **Make Gate**, choose Rotation, Matrix, or Circuit, and inspect the operation and gate
+Open **Make gate**, choose Rotation, Matrix, or Circuit, and inspect the operation and gate
 preview. Drafts survive switching methods. **Create gate** adds the gate to Custom Gates and
-focuses it; press Enter to place it on the top wire, or drag it into the circuit.
+focuses it; press Enter to place it in the keyboard's cell, or on the top wire, or drag it into
+the circuit.
 
 - **Rotation:** choose Y, enter `pi/3` in radians, and leave global phase at `0` for a
   60-degree Y rotation. Switching radians/degrees converts the value. Global phase changes

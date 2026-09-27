@@ -240,7 +240,7 @@ class Gate {
          */
         this._isDefinitelyUnitary = false;
         /**
-         * The alternate gate for this one, used when shift+alt dragging.
+         * The alternate gate for this one, taken when the gate is dragged with Shift held.
          * @type {!Gate}
          */
         this.alternate = this;

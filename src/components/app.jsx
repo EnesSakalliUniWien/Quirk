@@ -5,10 +5,14 @@ import { Dock } from "./dock.jsx";
 import { AppToolbar } from "./toolbar/app-toolbar.jsx";
 import { TransportBar } from "./toolbar/transport-bar.jsx";
 import { IconProvider } from "./ui/icon.jsx";
+import { Toasts } from "./ui/toasts.jsx";
 
 /**
- * The whole shell, under the app's one React root: the toolbar strip, the work area, and the
- * transport strip. Nothing outside this tree creates DOM.
+ * The whole shell, under the app's one React root: the toolbar strip, the transport strip, and the
+ * work area. Nothing outside this tree creates DOM.
+ *
+ * Both strips are at the top of the window: a window moved partly off the screen, or a browser bar
+ * over its lower edge, never hides the controls that run the circuit.
  *
  * The work area is the dock, and the dock is where every panel lives - the circuit and the gate
  * palette included. Adding a view to the app is a panel registration, not a change here.
@@ -25,9 +29,10 @@ function App() {
     <IconProvider>
       <div id="inspectorDiv" style={{ visibility: booted ? undefined : "hidden" }}>
         <AppToolbar />
-        <Dock />
         <TransportBar />
+        <Dock />
       </div>
+      <Toasts />
     </IconProvider>
   );
 }

@@ -143,6 +143,9 @@ async function withQuirkPage(browser, circuit, body, viewport=DEFAULT_VIEWPORT, 
             }
         });
         await page.setViewport(viewport);
+        // The app looks the way the system does. The suite's pixel checks read the dark palette, so
+        // every page starts on a system set to dark; a test that wants light says so.
+        await page.emulateMediaFeatures([{name: 'prefers-color-scheme', value: 'dark'}]);
         await page.goto(urlForCircuit(circuit));
         await waitForQuirk(page);
         await body(page);

@@ -232,12 +232,23 @@ function composited(overlay) {
     return [...ctx.getImageData(0, 0, 1, 1).data].slice(0, 3);
 }
 
-suite.test("playhead and drop overlays preserve text contrast after compositing", () => {
-    for (const overlay of [theme.interaction.playheadBand, theme.interaction.drop]) {
+suite.test("playhead, drop and selection overlays preserve text contrast after compositing", () => {
+    for (const overlay of [theme.interaction.playheadBand, theme.interaction.drop, theme.interaction.selection]) {
         const background = composited(overlay);
         assertThat(contrast(rgb(theme.text.primary), background) >= 4.5).isEqualTo(true);
         assertThat(contrast(rgb(theme.text.muted), background) >= 4.5).isEqualTo(true);
     }
     // A disabled gate's reason can sit in the playhead's column.
     assertThat(contrast(rgb(theme.error.text), composited(theme.interaction.playheadBand)) >= 4.5).isEqualTo(true);
+});
+
+suite.test("the selection's edge reads on every surface and takes no hue that means something", () => {
+    for (const background of [theme.surface.background, theme.surface.gate, theme.surface.quiet]) {
+        check(theme.interaction.selectionEdge, background, 3);
+    }
+    for (const color of [theme.interaction.outline, theme.iqp.hadamard, theme.iqp.not, theme.iqp.rotation,
+        theme.probability.fill, theme.amplitude.fill, theme.operation.fill, theme.error.text]) {
+        const d = difference(theme.interaction.selectionEdge, color);
+        assertThat(d >= 15).withInfo({color, d}).isEqualTo(true);
+    }
 });
