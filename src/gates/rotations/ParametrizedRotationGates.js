@@ -74,9 +74,9 @@ const X_TO_A_SHADER = ketShader(
         ${ketInputGateShaderCode('A')}
     `,
     `
-        float angle = read_input_A() * factor / _gen_input_span_A;
-        float c = cos(angle) * 0.5;
-        float s = sin(angle) * 0.5;
+        vec2 cs = cos_sin(read_input_A() * factor / _gen_input_span_A) * 0.5;
+        float c = cs.x;
+        float s = cs.y;
         vec2 u = vec2(0.5 + c, s);
         vec2 v = vec2(0.5 - c, -s);
         // multiply state by the matrix [[u, v], [v, u]]
@@ -90,9 +90,9 @@ const Y_TO_A_SHADER = ketShader(
         ${ketInputGateShaderCode('A')}
     `,
     `
-        float angle = read_input_A() * factor / _gen_input_span_A;
-        float c = cos(angle) * 0.5;
-        float s = sin(angle) * 0.5;
+        vec2 cs = cos_sin(read_input_A() * factor / _gen_input_span_A) * 0.5;
+        float c = cs.x;
+        float s = cs.y;
         vec2 u = vec2(c + 0.5, s);
         vec2 v = vec2(s, 0.5 - c);
         // multiply state by the matrix [[u, v], [-v, u]]

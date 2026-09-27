@@ -18,6 +18,26 @@ import {WglArg} from "../../webgl/shader/WglArg.js"
 import {makePseudoShaderWithInputsAndOutputAndCode, Inputs, Outputs} from "../../webgl/coder/ShaderCoders.js"
 
 /**
+ * vec2(cos(angle), sin(angle)), to float precision on every GPU.
+ *
+ * The built-in sin and cos are approximations whose accuracy the GPU chooses: a software renderer's
+ * are off by about 5e-5, which shows as a gate's matrix disagreeing with its definition. This one
+ * uses only multiplication and addition, which every GPU rounds correctly: the angle is reduced to
+ * within an eighth of a turn with π/2 split into two floats, so the reduction loses nothing, and
+ * Taylor series there are accurate to within 3e-7.
+ */
+const COS_SIN_GLSL = `
+    vec2 cos_sin(float angle) {
+        float quarter_turns = floor(angle * 0.6366197723675814 + 0.5);
+        float r = (angle - quarter_turns * 1.5707963705062866) + quarter_turns * 4.371139000186243e-8;
+        float r2 = r * r;
+        float s = r * (1.0 - r2 * (1.0 / 6.0 - r2 * (1.0 / 120.0 - r2 * (1.0 / 5040.0))));
+        float c = 1.0 - r2 * (0.5 - r2 * (1.0 / 24.0 - r2 * (1.0 / 720.0 - r2 * (1.0 / 40320.0))));
+        float quadrant = mod(quarter_turns, 4.0);
+        return quadrant < 0.5 ? vec2(c, s) : quadrant < 1.5 ? vec2(-s, c) : quadrant < 2.5 ? vec2(-c, -s) : vec2(s, -c);
+    }`;
+
+/**
  * Creates a shader for a quantum gate based on a minimalist input like `return cmul(inp(0.0), vec2(0.0, 1.0));`.
  *
  * Available methods and values:
@@ -30,6 +50,8 @@ import {makePseudoShaderWithInputsAndOutputAndCode, Inputs, Outputs} from "../..
  * - float full_out_id: The non-relativized state id. Useful if you want to use the value of other qubits as an
  *                      input (which e.g. the arithmetic gates do).
  * - vec2 cmul(vec2 a, vec2 b): returns the product of two complex numbers represented as a vec2.
+ * - vec2 cos_sin(float angle): returns vec2(cos(angle), sin(angle)) to float precision on every GPU,
+ *                      where the built-in sin and cos may be coarser (COS_SIN_GLSL).
  * - vec2 amp: The input amplitude of the output state being computed. This value had to be retrieved for the case where
  *             controls aren't satisfied, and as a convenience/optimization-opportunity it's handed to your code.
  * - float span [if you gave an undefined span]: Two to the power of the gate height.
@@ -56,6 +78,7 @@ const ketShader = (head, body, span=null, inputs=[]) => ({withArgs: makePseudoSh
     float full_out_id;
 
     ${body.match(/\bcmul\b/) ? 'vec2 cmul(vec2 c1, vec2 c2) { return mat2(c1.x, c1.y, -c1.y, c1.x) * c2; }' : ''}
+    ${body.match(/\bcos_sin\b/) ? COS_SIN_GLSL : ''}
     ${body.match(/\binp\b/) ? 'vec2 inp(float k) { return read_ketgen_ket(_ketgen_off + _ketgen_step*k); }' : ''}
 
     ${head}
@@ -103,7 +126,7 @@ const ketShaderPhase = (head, body, span=null) => ketShader(
     `,
     `
         float angle = _ketgen_phase_for(out_id);
-        return cmul(amp, vec2(cos(angle), sin(angle)));
+        return cmul(amp, cos_sin(angle));
     `,
     span);
 

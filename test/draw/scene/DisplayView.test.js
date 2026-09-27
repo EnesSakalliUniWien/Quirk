@@ -140,8 +140,21 @@ suite.canvasAppearanceTest("printLine_aligned", 40, 40, canvas => {
         maxFontSize: 24,
         fontFamily: "monospace"
     });
-    assertThat(used1).isApproximatelyEqualTo(new Rect(0, 12, 14.4, 24), 3);
-    assertThat(used2).isApproximatelyEqualTo(new Rect(20, 23.25, 20, 9), 2.5);
+    // The box a line takes follows the monospace font's own metrics, which differ from system to
+    // system, so the checks are what fitLine promises: each line stays inside its half, on the side
+    // it is aligned to, and only a line too wide for its half is shrunk.
+    const inside = (used, area) => used.x >= area.x - 0.5 && used.right() <= area.right() + 0.5 &&
+        used.y >= area.y - 0.5 && used.bottom() <= area.bottom() + 0.5;
+    const [left, right] = [new Rect(0, 0, 40, 40).leftHalf(), new Rect(0, 0, 40, 40).rightHalf()];
+    assertThat(inside(used1, left)).withInfo({used1}).isEqualTo(true);
+    assertThat(inside(used2, right)).withInfo({used2}).isEqualTo(true);
+    assertThat(used1.x).isApproximatelyEqualTo(left.x, 0.5);
+    assertThat(used2.right()).isApproximatelyEqualTo(right.right(), 0.5);
+    // "A" fits at the largest size; "long" nearly fills its half's width at a smaller one, the font
+    // shrinking in steps.
+    assertThat(used1.w < left.w && used1.h >= 20).withInfo({used1}).isEqualTo(true);
+    assertThat(used2.w >= right.w - 2).withInfo({used2}).isEqualTo(true);
+    assertThat(used2.h < used1.h).withInfo({used1, used2}).isEqualTo(true);
 }, 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAABYUlEQVRYhe3WoW7DMBQF0MdKzIKMwsyCzALDCg2L/QH' +
 '5hfsL5cWjY4NlZUNlZWVDQ0FFd6CzV6WNmm7T7EkGV6riqjp+z8+NAGDOkdSAAizA1IACLMDUgAIswNSAAvwz4MEYUuQqx7rOA3iZbddxUIpPqxUpwnX' +
 'f5wU81jX3TUMAHJTirm3zAW68J0W48Z4AuGtbvldVPsAxaAxODnyvqquWvmkdW54UODUUYWiSA/dNc/NaWfc9KcJn59ICT4vFzbsw5GDMrB9VUFT4nYp' +
