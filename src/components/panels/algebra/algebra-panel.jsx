@@ -53,7 +53,10 @@ function AlgebraPanel() {
   );
 
   // Move with the playhead: whenever it steps, bring its card to the middle of the track. Only on
-  // a step, never on a re-render, so scrolling by hand is not undone ten times a second.
+  // a step, never on a re-render, so scrolling by hand is not undone ten times a second. Opening
+  // the panel puts the card in view at once - the playhead rests at the end, the last card - and
+  // only a step after that glides.
+  const placed = useRef(false);
   useEffect(() => {
     const track = trackRef.current;
     const card = track?.querySelector(`[data-step="${current}"]`);
@@ -62,8 +65,9 @@ function AlgebraPanel() {
       const right = left + card.offsetWidth;
       if (left < track.scrollLeft || right > track.scrollLeft + track.clientWidth) {
         track.scrollTo({left: card.offsetWidth > track.clientWidth ? left : Math.max(0, right - track.clientWidth),
-          behavior: prefersReducedMotion() ? "auto" : "smooth"});
+          behavior: !placed.current || prefersReducedMotion() ? "auto" : "smooth"});
       }
+      placed.current = true;
     }
   }, [current, ready]);
 

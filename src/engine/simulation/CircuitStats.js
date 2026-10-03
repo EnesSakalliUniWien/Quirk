@@ -15,18 +15,12 @@
  */
 
 import {CircuitDefinition} from "../../circuit/model/CircuitDefinition.js"
-import {CircuitEvalContext} from "./CircuitEvalContext.js"
-import {CircuitShaders} from "./gpu/CircuitShaders.js"
 import {KetTextureUtil} from "./gpu/KetTextureUtil.js"
-import {Controls} from "../../circuit/model/Controls.js"
 import {DetailedError} from "../../base/DetailedError.js"
 import {Matrix} from "../math/matrix/Matrix.js"
-import {Shaders} from "../webgl/operations/Shaders.js"
 import {Serializer} from "../../serialization/Serializer.js"
 import {reportRecoveredError} from "../../diagnostics/errorReporter.js"
-import {advanceStateWithCircuit} from "./CircuitComputeUtil.js"
-import {currentShaderCoder} from "../webgl/coder/ShaderCoders.js"
-import {WglTextureTrader} from "../webgl/texture/WglTextureTrader.js"
+import {readRun, readStatesAfterSteps, runCircuit, startReadingRun} from "./CircuitRun.js"
 import {ReadableJson} from "../math/matrix/ReadableJson.js"
 import {QubitMatrix} from "../math/matrix/QubitMatrix.js"
 
@@ -249,11 +243,15 @@ class CircuitStats {
     /**
      * @param {!CircuitDefinition} circuitDefinition
      * @param {!number} time
+     * @param {*=} seed
+     * @param {undefined|!StablePrefix=} prefix Where to take the state after the columns that do not move
+     *     with time from, and to keep it, so that a circuit run again and again at different times
+     *     applies only the columns that do.
      * @returns {!CircuitStats}
      */
-    static fromCircuitAtTime(circuitDefinition, time, seed = undefined) {
+    static fromCircuitAtTime(circuitDefinition, time, seed = undefined, prefix = undefined) {
         try {
-            return CircuitStats._fromCircuitAtTime_noFallback(circuitDefinition, time, seed);
+            return CircuitStats._fromCircuitAtTime_noFallback(circuitDefinition, time, seed, prefix);
         } catch (ex) {
             reportRecoveredError(
                 `Defaulted to NaN results. Computing circuit values failed.`,
@@ -261,6 +259,110 @@ class CircuitStats {
                 ex);
             return CircuitStats.withNanDataFromCircuitAtTime(circuitDefinition, time);
         }
+    }
+
+    /**
+     * The stats of the whole circuit and of just the columns the playhead has run, from one run: the
+     * playhead's are the first columns' stats of the whole run, and the state it left when it had
+     * applied them. A run apiece would apply those columns twice and wait on the GPU twice.
+     *
+     * The playhead's stats are what a run of its circuit alone gives, but for rounding.
+     *
+     * @param {!CircuitDefinition} circuitDefinition
+     * @param {!CircuitDefinition} playhead The circuit with only the columns the playhead has run: the
+     *     first `step` of the circuit's, for a step short of the circuit's end.
+     * @param {!number} time
+     * @param {*=} seed
+     * @param {undefined|!StablePrefix=} prefix As for fromCircuitAtTime.
+     * @returns {!{fullStats: !CircuitStats, stats: !CircuitStats}}
+     */
+    static fromCircuitAtTimeWithPlayhead(circuitDefinition, playhead, time, seed = undefined, prefix = undefined) {
+        try {
+            const wholeCircuit = circuitDefinition.withMinimumWireCount();
+            const playheadCircuit = playhead.withMinimumWireCount();
+            const run = runCircuit(wholeCircuit, time, seed, {
+                prefix, step: playheadCircuit.columns.length, playheadWires: playheadCircuit.numWires});
+            const results = CircuitStats._fromRunPixels(wholeCircuit, playheadCircuit, time, seed, readRun(run));
+            // A run that began from a kept prefix, past the playhead, has no state to make its stats of.
+            return {
+                fullStats: results.fullStats,
+                stats: results.stats ?? CircuitStats._fromCircuitAtTime_noFallback(playheadCircuit, time, seed),
+            };
+        } catch (ex) {
+            reportRecoveredError(
+                `Defaulted to NaN results. Computing circuit values failed.`,
+                {circuitDefinition: Serializer.toJson(circuitDefinition)},
+                ex);
+            return {
+                fullStats: CircuitStats.withNanDataFromCircuitAtTime(circuitDefinition, time),
+                stats: CircuitStats.withNanDataFromCircuitAtTime(playhead, time),
+            };
+        }
+    }
+
+    /**
+     * Starts working out the stats without waiting for the GPU, which is the slow part: the run is
+     * issued and the results are read into buffers, and a later frame comes back for them. See
+     * PendingCircuitStats.
+     *
+     * @param {!CircuitDefinition} circuitDefinition
+     * @param {undefined|!CircuitDefinition} playhead As for fromCircuitAtTimeWithPlayhead, or undefined
+     *     for the stats of the whole circuit alone.
+     * @param {!number} time
+     * @param {*=} seed
+     * @param {undefined|!StablePrefix=} prefix As for fromCircuitAtTime.
+     * @returns {!PendingCircuitStats}
+     */
+    static startFromCircuitAtTime(circuitDefinition, playhead, time, seed = undefined, prefix = undefined) {
+        const wholeCircuit = circuitDefinition.withMinimumWireCount();
+        const playheadCircuit = playhead?.withMinimumWireCount();
+        try {
+            const run = runCircuit(wholeCircuit, time, seed, {
+                prefix, step: playheadCircuit?.columns.length, playheadWires: playheadCircuit?.numWires});
+            return new PendingCircuitStats(wholeCircuit, playheadCircuit, time, seed, startReadingRun(run));
+        } catch (ex) {
+            return PendingCircuitStats.failed(wholeCircuit, playheadCircuit, time, ex);
+        }
+    }
+
+    /**
+     * The state after each of the given numbers of columns: what a run of just those columns would
+     * leave, at these stats' time and seed, renormalized by the chance of surviving to it as the final
+     * state is. All of them come from one run of the circuit and one readback; a run per step would
+     * apply the columns again for every step and wait on the GPU once per step.
+     *
+     * @param {!Array.<!int>} steps How many columns have run, each from 0 to the column count.
+     * @param {undefined|!StablePrefix=} prefix As for fromCircuitAtTime, except that it is only read:
+     *     when it holds the state after the columns that do not move for this circuit and seed, and no
+     *     step is before them, the run starts there and applies only the columns after. The states are
+     *     the same either way.
+     * @param {undefined|!int=} wireCount How many qubits the states are over, when more than the
+     *     circuit's own: the wires it leaves out stay |0>, so each state is zero after the amplitudes
+     *     the circuit has. Default is the circuit's own.
+     * @returns {!Array.<!Matrix>} The state after each, in the order asked.
+     */
+    statesAfterSteps(steps, prefix = undefined, wireCount = undefined) {
+        const circuit = this.circuitDefinition.withMinimumWireCount();
+        const numWires = circuit.numWires;
+        const size = 1 << (wireCount ?? numWires);
+        const wanted = [...new Set(steps)].sort((a, b) => a - b);
+        if (wanted.length === 0) {
+            return [];
+        }
+        let pixels;
+        try {
+            pixels = readStatesAfterSteps(circuit, this.time, this.seed, wanted, prefix);
+        } catch (ex) {
+            reportRecoveredError(
+                `Defaulted to NaN states. Computing the states after each step failed.`,
+                {circuitDefinition: Serializer.toJson(circuit)},
+                ex);
+            const nan = KetTextureUtil.pixelsToAmplitudes(new Float32Array(2 << numWires).fill(NaN), 1, size);
+            return steps.map(() => nan);
+        }
+        const states = new Map(wanted.map((step, i) =>
+            [step, KetTextureUtil.pixelsToAmplitudes(pixels[i], this.survivalRate(step - 1), size)]));
+        return steps.map(step => states.get(step));
     }
 
     /**
@@ -355,13 +457,45 @@ class CircuitStats {
     /**
      * @param {!CircuitDefinition} circuitDefinition
      * @param {!number} time
+     * @param {*=} seed
+     * @param {undefined|!StablePrefix=} prefix
      * @returns {!CircuitStats}
      */
-    static _fromCircuitAtTime_noFallback(circuitDefinition, time, seed = undefined) {
+    static _fromCircuitAtTime_noFallback(circuitDefinition, time, seed = undefined, prefix = undefined) {
         circuitDefinition = circuitDefinition.withMinimumWireCount();
-        const textures = collectCircuitStatsTextures(circuitDefinition, time, seed);
-        const pixelData = readCircuitStatsPixels(textures);
+        const run = runCircuit(circuitDefinition, time, seed, {prefix});
+        return CircuitStats._fromPixels(circuitDefinition, time, seed, readRun(run));
+    }
 
+    /**
+     * The stats of a run, and of its playhead's circuit if the run kept the state there, made from the
+     * pixels it read.
+     *
+     * @param {!CircuitDefinition} circuitDefinition With its minimum wire count.
+     * @param {undefined|!CircuitDefinition} playhead With its minimum wire count.
+     * @param {!number} time
+     * @param {*} seed
+     * @param {!RunPixels} pixels
+     * @returns {!{fullStats: !CircuitStats, stats: (undefined|!CircuitStats)}}
+     * @private
+     */
+    static _fromRunPixels(circuitDefinition, playhead, time, seed, pixels) {
+        return {
+            fullStats: CircuitStats._fromPixels(circuitDefinition, time, seed, pixels),
+            stats: playhead === undefined || pixels.playhead === undefined ? undefined :
+                CircuitStats._fromPixels(playhead, time, seed, playheadPixels(pixels, playhead)),
+        };
+    }
+
+    /**
+     * @param {!CircuitDefinition} circuitDefinition With its minimum wire count.
+     * @param {!number} time
+     * @param {*} seed
+     * @param {!RunPixels} pixelData
+     * @returns {!CircuitStats}
+     * @private
+     */
+    static _fromPixels(circuitDefinition, time, seed, pixelData) {
         const qubitDensities =
             CircuitStats._extractColumnQubitStatsFromPixelDatas(circuitDefinition, pixelData.colQubitDensities);
         const survivalRates =
@@ -371,7 +505,7 @@ class CircuitStats {
             survivalRates.length === 0 ? 1 : survivalRates.at(-1));
 
         const customStatsProcessed = processCustomStats(
-            circuitDefinition, textures.customStatsMap, pixelData.customStats);
+            circuitDefinition, pixelData.customStatsMap, pixelData.customStats);
         const sampleOutcomes = collectSampleOutcomes(circuitDefinition, customStatsProcessed, time, seed);
         return new CircuitStats(
             circuitDefinition,
@@ -383,46 +517,117 @@ class CircuitStats {
     }
 }
 
-/** Runs the circuit and packs the final state for a single combined texture readback. */
-function collectCircuitStatsTextures(circuitDefinition, time, seed) {
-    const numWires = circuitDefinition.numWires;
-
-    // Advance state while collecting stats into textures.
-    const stateTrader = new WglTextureTrader(CircuitShaders.classicalState(0).toVec2Texture(numWires));
-    const controlTex = CircuitShaders.controlMask(Controls.NONE).toBoolTexture(numWires);
-    const {colQubitDensities, colNorms, customStats, customStatsMap} = advanceStateWithCircuit(
-        new CircuitEvalContext(
-            time,
-            0,
-            numWires,
-            Controls.NONE,
-            controlTex,
-            Controls.NONE,
-            stateTrader,
-            new Map(), seed === undefined ? Math.random : randomFor(seed)),
-        circuitDefinition,
-        true);
-    controlTex.deallocByDepositingInPool("controlTex in _fromCircuitAtTime_noFallback");
-    if (currentShaderCoder().vec2.needRearrangingToBeInVec4Format) {
-        stateTrader.shadeHalveAndTrade(Shaders.packVec2IntoVec4);
-    }
-    return {output: stateTrader.currentTexture, colQubitDensities, colNorms, customStats, customStatsMap};
+/**
+ * The pixels the stats of a playhead's circuit are made of, out of those of a run of the whole circuit.
+ * Its columns are the first of the circuit's, so their stats are the first of the run's. Its state is
+ * the one the run kept when it had applied them, which the wires the playhead's circuit leaves out
+ * left at |0>, so that its amplitudes are the first of the kept state's.
+ *
+ * @param {!RunPixels} pixels Of a run that kept the playhead's state.
+ * @param {!CircuitDefinition} playhead With its minimum wire count.
+ * @returns {!RunPixels}
+ */
+function playheadPixels(pixels, playhead) {
+    const step = playhead.columns.length;
+    return {
+        colNorms: pixels.colNorms.slice(0, step),
+        colQubitDensities: [...pixels.colQubitDensities.slice(0, step), pixels.playhead.densities],
+        customStats: pixels.customStats,
+        customStatsMap: pixels.customStatsMap.filter(({col}) => col < step),
+        output: pixels.playhead.state.subarray(0, 2 << playhead.numWires),
+        playhead: undefined,
+    };
 }
 
-/** Reads and releases the collected textures; the location map stays on the CPU. */
-function readCircuitStatsPixels({output, colQubitDensities, colNorms, customStats}) {
-    // Preserve the original readback order, including each display's texture order.
-    const pixels = KetTextureUtil.mergedReadFloats([
-        ...colNorms, ...colQubitDensities, ...customStats.flat(), output
-    ])[Symbol.iterator]();
-    return {
-        colNorms: colNorms.map(() => pixels.next().value),
-        colQubitDensities: colQubitDensities.map(() => pixels.next().value),
-        customStats: customStats.map(stat => Array.isArray(stat)
-            ? stat.map(() => pixels.next().value)
-            : pixels.next().value),
-        output: pixels.next().value
-    };
+/**
+ * Stats being worked out by a run that did not wait for the GPU. Ask `poll` each frame until the
+ * results are there, or `cancel` if they are no longer wanted.
+ */
+class PendingCircuitStats {
+    /**
+     * @param {!CircuitDefinition} circuitDefinition With its minimum wire count.
+     * @param {undefined|!CircuitDefinition} playhead With its minimum wire count.
+     * @param {!number} time
+     * @param {*} seed
+     * @param {undefined|!{poll: !function(): (undefined|!RunPixels), cancel: !function(): void}} pending
+     */
+    constructor(circuitDefinition, playhead, time, seed, pending) {
+        /** @private */
+        this._circuitDefinition = circuitDefinition;
+        /** @private */
+        this._playhead = playhead;
+        /** @private */
+        this._time = time;
+        /** @private */
+        this._seed = seed;
+        /** @private */
+        this._pending = pending;
+        /**
+         * @type {undefined|!{fullStats: !CircuitStats, stats: (undefined|!CircuitStats)}}
+         * @private
+         */
+        this._result = undefined;
+    }
+
+    /**
+     * A run that never started, whose stats are NaN as a failed run's are.
+     *
+     * @param {!CircuitDefinition} circuitDefinition
+     * @param {undefined|!CircuitDefinition} playhead
+     * @param {!number} time
+     * @param {*} cause
+     * @returns {!PendingCircuitStats}
+     */
+    static failed(circuitDefinition, playhead, time, cause) {
+        const result = new PendingCircuitStats(circuitDefinition, playhead, time, undefined, undefined);
+        result._result = result._nanResult(cause);
+        return result;
+    }
+
+    /**
+     * @param {*} cause
+     * @returns {!{fullStats: !CircuitStats, stats: (undefined|!CircuitStats)}}
+     * @private
+     */
+    _nanResult(cause) {
+        reportRecoveredError(
+            `Defaulted to NaN results. Computing circuit values failed.`,
+            {circuitDefinition: Serializer.toJson(this._circuitDefinition)},
+            cause);
+        return {
+            fullStats: CircuitStats.withNanDataFromCircuitAtTime(this._circuitDefinition, this._time),
+            stats: this._playhead === undefined ? undefined :
+                CircuitStats.withNanDataFromCircuitAtTime(this._playhead, this._time),
+        };
+    }
+
+    /**
+     * @returns {undefined|!{fullStats: !CircuitStats, stats: (undefined|!CircuitStats)}} The stats once
+     *     the GPU has got that far, and the same ones if asked again; undefined until then. `stats`,
+     *     the playhead's, is undefined if none was asked for, or the run had no state of it to make
+     *     them from. They are NaN, as for a run that fails, if turning the pixels into stats fails.
+     * @throws {!DetailedError} If the context was lost meanwhile; nothing is left to read.
+     */
+    poll() {
+        if (this._result === undefined) {
+            const pixels = this._pending.poll();
+            if (pixels === undefined) {
+                return undefined;
+            }
+            try {
+                this._result = CircuitStats._fromRunPixels(
+                    this._circuitDefinition, this._playhead, this._time, this._seed, pixels);
+            } catch (ex) {
+                this._result = this._nanResult(ex);
+            }
+        }
+        return this._result;
+    }
+
+    /** Gives up on the stats, freeing what the run holds. */
+    cancel() {
+        this._pending?.cancel();
+    }
 }
 
 /** Converts each custom display texture using its gate's postprocessor, in evaluation order. */

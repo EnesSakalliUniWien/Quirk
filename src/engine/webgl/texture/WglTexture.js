@@ -22,6 +22,8 @@ import {
   checkGetErrorResult,
   checkFrameBufferStatusResult,
 } from "../context/WglUtil.js";
+import { WglPackBufferRing } from "./WglPackBufferRing.js";
+import { WglPixelReadback } from "./WglPixelReadback.js";
 // Both of these import WglTexture back. The cycle is safe: each side only uses the other inside
 // methods, never while the modules are being evaluated.
 import { WglTexturePool } from "./WglTexturePool.js";
@@ -246,12 +248,12 @@ class WglTexture {
   }
 
   /**
-   * Performs a blocking read of the pixel color data in this texture.
-   * @param {!boolean=} checkErrors Whether to run the (slow) GL error checks around the read.
-   *     Defaults to the diagnostics setting for hot paths.
-   * @returns {!Uint8Array|!Float32Array}
+   * The rows a read of the first `pixelCount` pixels covers, and the array type that holds them.
+   * @param {!int} pixelCount
+   * @returns {!{rows: !int, ArrayType: !function(new:(Uint8Array|Float32Array), !int)}}
+   * @private
    */
-  readPixels(checkErrors = false) {
+  _readLayout(pixelCount) {
     const GL = WebGL2RenderingContext;
     if (!this._hasBeenRenderedTo) {
       throw new Error(
@@ -259,19 +261,77 @@ class WglTexture {
       );
     }
 
-    let outputBuffer;
+    const rows = this.width === 0 ? 0 : Math.min(this.height, Math.ceil(pixelCount / this.width));
     switch (this.pixelType) {
       case GL.UNSIGNED_BYTE:
-        outputBuffer = new Uint8Array(this.width * this.height * 4);
-        break;
+        return { rows, ArrayType: Uint8Array };
       case GL.FLOAT:
-        outputBuffer = new Float32Array(this.width * this.height * 4);
-        break;
+        return { rows, ArrayType: Float32Array };
       default:
         throw new Error("Unrecognized pixel type.");
     }
+  }
 
-    if (this.width === 0 || this.height === 0) {
+  /**
+   * Starts reading the pixel color data in this texture without waiting for the GPU. The data comes
+   * later, from the returned read. Commands run in the order they were issued, so rendering to the
+   * texture again, or giving it back to the pool, once this has returned does not disturb the data.
+   *
+   * @param {!int=} pixelCount How many of the texture's pixels, in index order, the caller needs, as
+   *     for readPixels.
+   * @returns {!WglPixelReadback} Whose pixels are those of the rows read, four channels each, as
+   *     readPixels would have returned them.
+   */
+  startReadPixels(pixelCount = this.width * this.height) {
+    const GL = WebGL2RenderingContext;
+    const { rows, ArrayType } = this._readLayout(pixelCount);
+    if (this.width === 0 || rows === 0) {
+      return WglPixelReadback.empty(ArrayType);
+    }
+
+    const length = this.width * rows * 4;
+    const gl = initializedWglContext().gl;
+    // The buffer is from the ring of those reads give back, as every frame reads the same size.
+    const pack = WglPackBufferRing.take(length * ArrayType.BYTES_PER_ELEMENT);
+    try {
+      // A buffer bound for packing takes the pixels where readPixels would write an array. Unbinding
+      // it matters: a later readPixels into an array would otherwise fail.
+      gl.bindBuffer(GL.PIXEL_PACK_BUFFER, pack.buffer);
+      try {
+        gl.bindFramebuffer(GL.FRAMEBUFFER, this.initializedFramebuffer());
+        checkGetErrorResult(gl, "framebufferTexture2D", true);
+        checkFrameBufferStatusResult(gl, true);
+        gl.readPixels(0, 0, this.width, rows, GL.RGBA, this.pixelType, 0);
+        checkGetErrorResult(gl, `readPixels(..., RGBA, ${this.pixelType}, 0)`, true);
+      } finally {
+        gl.bindBuffer(GL.PIXEL_PACK_BUFFER, null);
+      }
+      const sync = gl.fenceSync(GL.SYNC_GPU_COMMANDS_COMPLETE, 0);
+      // The fence is only queued until the commands before it have been sent on.
+      gl.flush();
+      return new WglPixelReadback(pack, sync, ArrayType, length);
+    } catch (ex) {
+      // Not given back to the ring: a read that failed may have left the buffer without its storage.
+      gl.deleteBuffer(pack.buffer);
+      throw ex;
+    }
+  }
+
+  /**
+   * Performs a blocking read of the pixel color data in this texture.
+   * @param {!boolean=} checkErrors Whether to run the (slow) GL error checks around the read.
+   *     Defaults to the diagnostics setting for hot paths.
+   * @param {!int=} pixelCount How many of the texture's pixels, in index order, the caller needs. Only
+   *     the rows holding them are read: the read waits on the GPU and copies every byte it covers,
+   *     so a texture sized up to a power of two need not be read past its data.
+   * @returns {!Uint8Array|!Float32Array} The pixels of the rows read, four channels each.
+   */
+  readPixels(checkErrors = false, pixelCount = this.width * this.height) {
+    const GL = WebGL2RenderingContext;
+    const { rows, ArrayType } = this._readLayout(pixelCount);
+    const outputBuffer = new ArrayType(this.width * rows * 4);
+
+    if (this.width === 0 || rows === 0) {
       return outputBuffer;
     }
 
@@ -284,7 +344,7 @@ class WglTexture {
       0,
       0,
       this.width,
-      this.height,
+      rows,
       GL.RGBA,
       this.pixelType,
       outputBuffer,

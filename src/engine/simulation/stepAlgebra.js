@@ -19,7 +19,6 @@ import {equate_Maps} from "../../base/Equate.js"
 import {Registers} from "../../circuit/model/Registers.js"
 import {wiresLabel} from "../../circuit/registerLabels.js"
 import {Matrix} from "../math/matrix/Matrix.js"
-import {CircuitStats} from "./CircuitStats.js"
 import {columnStructure} from "./columnStructure/columnStructure.js";
 import {applyStructure, structureMatrix} from "./columnStructure/evaluation.js";
 
@@ -59,21 +58,77 @@ function paddedState(finalState, wireCount) {
 }
 
 /**
- * The state after the circuit's first `step` columns, from a truncated run of the simulator at the
- * stats' time and seed, so it is what the circuit really produces up to there.
+ * A state as a column vector over `wireCount` qubits, as it is if it already is one, else padded by
+ * paddedState.
+ *
+ * @param {!Matrix} state
+ * @param {!int} wireCount
+ * @returns {!Matrix}
+ */
+function overWires(state, wireCount) {
+    return state.height() === 1 << wireCount ? state : paddedState(state, wireCount);
+}
+
+/**
+ * The last step states worked out, whichever panel asked: the Algebra, Bloch and Probabilities
+ * panels trace the same circuit, and share one run's states rather than each running it again.
+ *
+ * It holds every state of the circuit, a megabyte or so each at 16 qubits, so it is let go of by
+ * releaseStepStates when the panels that read it close.
+ * @type {undefined|!{stats: !CircuitStats, wireCount: !int, circuit: !CircuitDefinition, seed: *, states: !Array.<!Matrix>}}
+ */
+let lastStepStates = undefined;
+
+/**
+ * Lets go of the step states kept for the panels to share, which would otherwise stay as long as the
+ * page does. Called when the last panel that traces the circuit closes; the next to open works them
+ * out again.
+ */
+function releaseStepStates() {
+    lastStepStates = undefined;
+}
+
+/**
+ * The state before the circuit's first column and after each one, over `wireCount` qubits: what the
+ * circuit really produces up to each step, at the stats' time and seed.
+ *
+ * One run of the simulator gives them all (CircuitStats.statesAfterSteps), not a run per step, and
+ * the answer is shared: the same stats get the same states back. States that cannot have changed are
+ * kept from `previous`, or else from the last answer: those before the first time-dependent column,
+ * while the columns before them, the wires, the initial values and the seed are unchanged. A
+ * spinning gate then only reads back the states from its own column on.
+ *
+ * Each state is renormalized and padded to `wireCount` qubits as it comes out of the readback, not
+ * copied again to pad it, and the final state is used as the stats hold it when it already spans
+ * `wireCount` qubits.
  *
  * @param {!CircuitStats} stats The stats of the whole circuit.
  * @param {!int} wireCount
- * @param {!int} step How many columns have run, from 0 to the column count.
- * @returns {!Matrix}
+ * @param {undefined|!{wireCount: !int, circuit: !CircuitDefinition, seed: *, states: !Array.<!Matrix>}} previous
+ * @param {undefined|!StablePrefix=} prefix What the simulator keeps of the circuit's columns before the
+ *     first that moves with time. When it holds them for this circuit and seed, the run for the states
+ *     after the later columns starts from it, and applies only those columns. The states are the same
+ *     whether or not it is given.
+ * @returns {!Array.<!Matrix>} One state per step, from 0 to the column count.
  */
-function stateAtStep(stats, wireCount, step) {
-    const circuit = stats.circuitDefinition;
-    if (step >= circuit.columns.length) {
-        return paddedState(stats.finalState, wireCount);
+function stepStates(stats, wireCount, previous = undefined, prefix = undefined) {
+    const last = lastStepStates;
+    if (last !== undefined && last.stats === stats && last.wireCount === wireCount) {
+        return last.states;
     }
-    const truncated = circuit.withColumns(circuit.columns.slice(0, step));
-    return paddedState(CircuitStats.fromCircuitAtTime(truncated, stats.time, stats.seed).finalState, wireCount);
+    const source = previous ?? last;
+    const circuit = stats.circuitDefinition;
+    const count = circuit.columns.length;
+    const kept = Math.min(count + 1, reusableStateCount(stats, wireCount, source));
+    // The state after the last column is the whole circuit's final state, which the stats hold.
+    const ran = stats.statesAfterSteps(
+        Array.from({length: Math.max(0, count - kept)}, (_, i) => kept + i), prefix, wireCount);
+    const states = Array.from({length: count + 1}, (_, k) =>
+        k < kept ? source.states[k] :
+        k === count ? overWires(stats.finalState, wireCount) :
+        ran[k - kept]);
+    lastStepStates = {stats, wireCount, circuit, seed: stats.seed, states};
+    return states;
 }
 
 /**
@@ -149,18 +204,19 @@ function reusableStateCount(stats, wireCount, previous) {
 /**
  * The whole circuit as a list of steps.
  *
- * States come from the simulator, one truncated run per step, so every one is what the circuit
- * really produces. A time-independent column's operator is reused from `previous` while the column,
- * which of its gates are enabled and the inputs earlier columns set are unchanged - reading the
- * list while a time-dependent gate spins elsewhere then only rebuilds that gate's step.
+ * States come from the simulator (stepStates), so every one is what the circuit really produces.
+ * A time-independent column's operator is reused from `previous` while the column, which of its
+ * gates are enabled and the inputs earlier columns set are unchanged - reading the list while a
+ * time-dependent gate spins elsewhere then only rebuilds that gate's step.
  *
  * The states before the first time-dependent column do not depend on the time either, so they are
  * reused from `previous` too, while the columns before them, the wires, the initial values and the
- * seed are unchanged. A spinning gate then only reruns the steps from its own column on.
+ * seed are unchanged. A spinning gate then only reads back the states from its own column on.
  *
  * @param {!CircuitStats} stats The stats of the whole circuit.
  * @param {!int} wireCount
  * @param {undefined|!CircuitAlgebra} previous
+ * @param {undefined|!StablePrefix=} prefix As for stepStates.
  * @returns {!CircuitAlgebra}
  *
  * @typedef {!{wireCount: !int, circuit: !CircuitDefinition, seed: *, states: !Array.<!Matrix>, steps: !Array.<!{
@@ -168,12 +224,10 @@ function reusableStateCount(stats, wireCount, previous) {
  *     description: !string, structure: (undefined|!ColumnStructure), matrix: (undefined|!Matrix),
  *     reason: (undefined|!string), residual: (undefined|!number)}>}} CircuitAlgebra
  */
-function circuitAlgebra(stats, wireCount, previous = undefined) {
+function circuitAlgebra(stats, wireCount, previous = undefined, prefix = undefined) {
     const circuit = stats.circuitDefinition;
     const {columns} = circuit;
-    const kept = reusableStateCount(stats, wireCount, previous);
-    const states = Array.from({length: columns.length + 1}, (_, k) =>
-        k < kept ? previous.states[k] : stateAtStep(stats, wireCount, k));
+    const states = stepStates(stats, wireCount, previous, prefix);
 
     const steps = columns.map((column, k) => {
         const reasons = Array.from({length: wireCount}, (_, row) => circuit.gateAtLocIsDisabledReason(k, row));
@@ -208,4 +262,4 @@ function circuitAlgebra(stats, wireCount, previous = undefined) {
     return {wireCount, circuit, seed: stats.seed, states, steps};
 }
 
-export {circuitAlgebra, describeColumn, paddedState, stateAtStep}
+export {circuitAlgebra, describeColumn, paddedState, releaseStepStates, stepStates}

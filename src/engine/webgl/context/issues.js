@@ -23,7 +23,10 @@
  * context is simply absent, and nothing that would use it runs.
  */
 const sharedCanvas = typeof document === "undefined" ? undefined : document.createElement("canvas");
-const sharedContext = sharedCanvas === undefined ? undefined : sharedCanvas.getContext("webgl2");
+// The simulation renders only into its own textures; the canvas is never shown. So its default
+// framebuffer needs no antialiasing, depth or stencil buffers, nor alpha to composite with.
+const sharedContext = sharedCanvas === undefined ? undefined : sharedCanvas.getContext("webgl2",
+  { alpha: false, antialias: false, depth: false, stencil: false, preserveDrawingBuffer: false });
 
 /**
  * Explains why the simulation cannot run on this browser, or returns undefined when it can.

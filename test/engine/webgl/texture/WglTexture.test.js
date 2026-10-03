@@ -51,6 +51,22 @@ suite.testUsingWebGL("readPixels_bytes", () => {
     ]));
 });
 
+suite.testUsingWebGL("readPixels reads only the rows holding the pixels asked for", () => {
+    const shader = new WglShader(`
+        void main() {
+            vec2 xy = gl_FragCoord.xy - vec2(0.5, 0.5);
+            fragColor = vec4(xy / 255.0, 0.0, 1.0);
+        }`);
+    const texture = new WglTexture(4, 4, WebGL2RenderingContext.UNSIGNED_BYTE);
+    shader.withArgs().renderTo(texture);
+    // Five pixels lie in the first two rows of four: those rows are read, in index order.
+    const rows = texture.readPixels(false, 5);
+    assertThat(rows.length).isEqualTo(2 * 4 * 4);
+    assertThat([...rows.subarray(4 * 4, 4 * 5)]).isEqualTo([0, 1, 0, 255]);
+    assertThat(texture.readPixels(false, 0).length).isEqualTo(0);
+    assertThat(texture.readPixels().length).isEqualTo(4 * 4 * 4);
+});
+
 suite.testUsingWebGLFloatTextures("readPixels_floats", () => {
     const w = 2;
     const h = 2;
