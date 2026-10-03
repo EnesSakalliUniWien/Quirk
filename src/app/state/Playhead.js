@@ -25,6 +25,10 @@ import {Animation} from "../../config/Animation.js"
  * The step counts the columns that have already executed, so it runs from 0 (nothing has run) to
  * the column count (the whole circuit has run). A column is the unit of execution here, which is
  * why gates in one column execute together. Transport stops skip columns without operations.
+ *
+ * The playhead rests at the end, where the whole circuit has run: that is what an edited circuit
+ * shows, and it stays at the end as the circuit grows or shrinks. Step 0 is the start, before any
+ * operation, and shows the state the circuit starts in.
  */
 class Playhead {
     /**
@@ -38,16 +42,21 @@ class Playhead {
                 clearIntervalFunc = stop => stop()) {
         this._setInterval = setIntervalFunc;
         this._clearInterval = clearIntervalFunc;
+        /**
+         * How long Play rests on each operation, in milliseconds.
+         * @type {!number}
+         * @private
+         */
+        this._stepMillis = Animation.PLAYHEAD_STEP_DURATION_MS;
         this._columnCount = 0;
         this._operationColumns = [];
         this._step = 0;
         /**
-         * The operations the transport has stepped over, forwards less backwards. An edit that moves
-         * the playhead is not a step, and does not count.
-         * @type {!int}
+         * Whether the playhead stands at the circuit's end, and so moves with it through an edit.
+         * @type {!boolean}
          * @private
          */
-        this._operationsStepped = 0;
+        this._atEnd = true;
         /**
          * The columns a run halts before: the user's breakpoints, and whatever else halts a run - the
          * assertions that fail, which whoever evaluates them reports through setHaltColumns.
@@ -76,9 +85,10 @@ class Playhead {
             this._columns = columns;
             this._columnCount = Math.max(0, columnCount);
             this._operationColumns = operationColumns;
-            // Editing the circuit shorter than the playhead pulls the playhead back to the new end,
-            // rather than dropping it to the start and losing the user's place.
-            this._step = Math.min(this._step, this._columnCount);
+            // At the end, the playhead stays at the end of the edited circuit. Inside it, it keeps
+            // the user's place; editing the circuit shorter than that pulls it back to the new end.
+            this._step = this._atEnd ? this._columnCount : Math.min(this._step, this._columnCount);
+            this._atEnd = this._step >= this._columnCount;
             this._breakpoints = this._breakpoints.filter(col => operationColumns.includes(col));
             if (!this._operationColumns.some(col => col >= this._step)) {
                 this._pause();
@@ -143,22 +153,13 @@ class Playhead {
     }
 
     /**
-     * @returns {!int} The operations the transport has stepped over so far, forwards less backwards.
-     *     Whoever follows the steps - the animation, while it is stopped - reads how far it moved.
-     */
-    operationsStepped() {
-        return this._operationsStepped;
-    }
-
-    /**
      * @param {!int} step
      * @returns {void}
      * @private
      */
     _stepTo(step) {
-        const operationsBefore = at => this._operationColumns.filter(col => col < at).length;
-        this._operationsStepped += operationsBefore(step) - operationsBefore(this._step);
         this._step = step;
+        this._atEnd = step >= this._columnCount;
     }
 
     /**
@@ -206,10 +207,22 @@ class Playhead {
     }
 
     /**
+     * Back to the start, before any operation has run.
      * @returns {void}
      */
     reset() {
         this.seek(0);
+    }
+
+    /**
+     * Puts the playhead at its rest, the end of the circuit, where the whole circuit has run: a
+     * circuit just opened shows its answer, and Play starts it from the top.
+     * @returns {void}
+     */
+    rest() {
+        this.pause();
+        this._stepTo(this._columnCount);
+        this._publish();
     }
 
     /**
@@ -334,12 +347,33 @@ class Playhead {
         if (this._step === 0 && this._restartOnPlay) this.generation++;
         this._restartOnPlay = false;
         this._playing = true;
+        this._startTimer();
+        this._publish();
+    }
+
+    /**
+     * Changes how fast Play steps. A run under way carries on at the new pace from its next step.
+     *
+     * @param {!number} speed A multiple of the pace Animation.PLAYHEAD_STEP_DURATION_MS sets.
+     * @returns {void}
+     */
+    setSpeed(speed) {
+        this._stepMillis = Animation.PLAYHEAD_STEP_DURATION_MS / speed;
+        if (this._timer !== undefined) {
+            this._clearInterval(this._timer);
+            this._startTimer();
+        }
+    }
+
+    /**
+     * @private
+     */
+    _startTimer() {
         this._timer = this._setInterval(() => {
             this._seek(this._runTarget(this._nextStep()));
             // A halt ends the run where it stands, the way the end of the circuit does.
             if (this._haltSteps().includes(this._step)) this.pause();
-        }, Animation.PLAYHEAD_STEP_DURATION_MS);
-        this._publish();
+        }, this._stepMillis);
     }
 
     /**

@@ -17,6 +17,7 @@
 import {circle, highlightRing, lineWidth, rectangle, strokePath} from '../../../draw/shapes/ShapeView.js';
 import {CanvasTheme} from '../../../config/CanvasTheme.js';
 import {Point} from '../../../geometry/Point.js';
+import {Rect} from '../../../geometry/Rect.js';
 import {operationColumns} from '../../../circuit/operationColumns.js';
 import {rangeBetween, selectionRect} from '../../interaction/RangeSelection.js';
 
@@ -29,19 +30,60 @@ import {rangeBetween, selectionRect} from '../../interaction/RangeSelection.js';
  * @param {undefined|!int} playheadStep
  */
 function drawPlayheadBand(context, painter, playheadStep) {
-    // Once every column has run there is no next column to mark.
+    const rect = playheadRect(context, playheadStep);
+    if (rect === undefined) return;
+    // A bracket opening onto the column, over a neutral band: the next column to run reads as a
+    // place in the run, never as a hovered gate.
+    rectangle(painter, rect, {fill: CanvasTheme.interaction.playheadBand});
+    drawPlayheadBracket(painter, rect);
+}
+
+/**
+ * The band around the next operation column the playhead runs, or undefined once every column has
+ * run and there is none.
+ * @param {!Object} context
+ * @param {undefined|!int} playheadStep
+ * @returns {undefined|!Rect}
+ */
+function playheadRect(context, playheadStep) {
     if (playheadStep === undefined ||
             playheadStep < 0 ||
             playheadStep >= context.definition.columns.length) {
-        return;
+        return undefined;
     }
-
     const nextColumn = operationColumns(context.definition).find(col => col >= playheadStep);
-    if (nextColumn === undefined) return;
-    const rect = context.geometry.gateRect(0, nextColumn, 1, context.geometry.groundedWireCount()).paddedBy(3);
-    rectangle(painter, rect, {fill: CanvasTheme.interaction.playheadBand});
-    strokePath(painter, [rect.topLeft(), rect.bottomLeft()], CanvasTheme.interaction.playhead, lineWidth(painter, 2));
+    if (nextColumn === undefined) return undefined;
+    return context.geometry.gateRect(0, nextColumn, 1, context.geometry.groundedWireCount()).paddedBy(3);
 }
+
+/** @param {!DisplayView} painter @param {!Rect} rect */
+function drawPlayheadBracket(painter, rect) {
+    const tick = Math.min(8, rect.w / 3);
+    strokePath(painter, [rect.topLeft().offsetBy(tick, 0), rect.topLeft(), rect.bottomLeft(),
+        rect.bottomLeft().offsetBy(tick, 0)], CanvasTheme.interaction.playhead, lineWidth(painter, 2));
+}
+
+/**
+ * While the playhead stands inside the circuit, the columns after the one it runs next stand back
+ * under a veil of the canvas, to the circuit's end: the circuit reads as run up to the bracket, the
+ * next column waits in its band, and the outputs show the state reached there.
+ *
+ * @param {!Object} context Rendering inputs supplied by CircuitRendering.
+ * @param {!DisplayView} painter
+ * @param {!int} playheadStep
+ */
+function drawUnrunColumns(context, painter, playheadStep) {
+    const rect = playheadRect(context, playheadStep);
+    if (rect === undefined) return;
+    const start = rect.right() + 1;
+    const end = context.geometry.opRect(context.definition.columns.length).x;
+    if (end <= start) return;
+    painter.group('unrun-veil-' + painter.order, veil => {
+        veil.alpha *= 0.62;
+        rectangle(veil, new Rect(start, rect.y, end - start, rect.h), {fill: CanvasTheme.surface.background});
+    });
+}
+
 
 /**
  * Marks each column a run halts before with a debugger's dot, above the column's top wire.
@@ -107,4 +149,4 @@ function drawRowDragHighlight(context, painter) {
     }
 }
 
-export {drawBreakpoints, drawPlayheadBand, drawSelection, drawColumnDragHighlight, drawRowDragHighlight};
+export {drawBreakpoints, drawPlayheadBand, drawSelection, drawColumnDragHighlight, drawRowDragHighlight, drawUnrunColumns};

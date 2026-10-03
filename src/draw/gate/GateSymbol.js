@@ -37,8 +37,8 @@ function gateSymbolFont(size) {
 const GATE_SYMBOL_FONT = gateSymbolFont(Typography.GATE_SYMBOL_FONT_SIZE);
 
 /**
- * Preferred gate symbol sizes. Try wrapping at the smallest size before Pixi Layout
- * scales an overlong unbreakable label to keep it inside the gate.
+ * Preferred gate symbol sizes. Try wrapping at the smallest size before the gate label
+ * (GateLabel.js) scales an overlong unbreakable label to keep it inside the gate.
  * @type {!Array.<!number>}
  */
 const GATE_SYMBOL_FONT_SIZES = [

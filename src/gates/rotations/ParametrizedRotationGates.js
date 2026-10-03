@@ -37,7 +37,9 @@ function configurableRotationRenderer(pattern, axis) {
     return args => {
         paintBackground(args);
         paintOutline(args);
-        const text = pattern.split('f(t)').join(args.gate.param);
+        // Written as the constant rotations write theirs: π, not "pi".
+        const formula = String(args.gate.param).replace(/\bpi\b/g, 'π');
+        const text = pattern.split('f(t)').join(formula);
         paintGateSymbol(args, text, pattern.includes('^'));
 
         const isStable = args.gate.stableDuration() === Infinity;
@@ -232,7 +234,8 @@ function angleFormulaDialog(quantityName) {
     return {
         title: `Enter a formula to use for the ${quantityName}.`,
         message: "The formula can depend on the time variable t.\n" +
-            "Time t starts at 0, grows to +2 over time, then jumps back to 0.\n" +
+            "Over one cycle of the Time lane, whose readout runs from 0 to 1, a formula's t runs\n" +
+            "from 0 to 2, then jumps back to 0: a formula sees twice the lane's t.\n" +
             "Invalid results will default to 0.\n" +
             "\n" +
             "Available constants: e, pi\n" +

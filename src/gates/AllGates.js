@@ -236,7 +236,19 @@ Gates.findKnownGateById = (id, customGateSet) => {
 };
 
 /** @type {!Array<!{hint: !string, gates: !Array<!Gate>}>} */
+// The half turns come first, H first: they are where a circuit starts, so a first-timer meets them
+// before the probes and displays.
 Gates.TopToolboxGroups = [
+  {
+    hint: "Half Turns",
+    gates: [
+      HalfTurnGates.H,
+      HalfTurnGates.X,
+      HalfTurnGates.Y,
+      HalfTurnGates.Z,
+      SwapGateHalf,
+    ],
+  },
   {
     hint: "Probes",
     gates: [
@@ -273,16 +285,6 @@ Gates.TopToolboxGroups = [
       PrepareGates.GhzFamily.ofSize(3),
       PrepareGates.WFamily.ofSize(3),
       PrepareGates.AmplitudesFamily.ofSize(1),
-    ],
-  },
-  {
-    hint: "Half Turns",
-    gates: [
-      HalfTurnGates.Z,
-      SwapGateHalf,
-      HalfTurnGates.Y,
-      HalfTurnGates.X,
-      HalfTurnGates.H,
     ],
   },
   {

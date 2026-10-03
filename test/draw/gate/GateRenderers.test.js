@@ -1,7 +1,7 @@
 import {CanvasTheme, gateStyle} from '../../../src/config/CanvasTheme.js';
 import {rectangle} from '../../../src/draw/shapes/ShapeView.js';
 import {Suite, assertThat} from '../../TestUtil.js';
-import {DEFAULT_RENDERER, makeDisplayRenderer} from '../../../src/draw/gate/GateRenderers.js';
+import {DEFAULT_RENDERER, makeCycleRenderer, makeDisplayRenderer} from '../../../src/draw/gate/GateRenderers.js';
 import {rectForResizeTab} from '../../../src/draw/gate/GateRects.js';
 import {DisplayView, scenePixels} from '../scene/TestDisplayView.js';
 import {Rect} from '../../../src/geometry/Rect.js';
@@ -31,6 +31,34 @@ suite.test("IQP-dark gate backgrounds and ink reach the painter and survive hove
             assertThat(darkInk > 5).withInfo({gate: gate.serializedId, isHighlighted, darkInk}).isEqualTo(true);
         }
     }
+});
+
+suite.test("every time-dependent gate draws, in the circuit and in the hand, all round its cycle", async () => {
+    const dynamic = Gates.KnownToSerializer.filter(g => g.stableDuration() !== Infinity);
+    assertThat(dynamic.length > 0).isEqualTo(true);
+    for (const gate of dynamic) {
+        for (const positionInCircuit of [{row: 0, col: 0}, undefined]) {
+            for (const time of [0, 0.3, 0.8]) {
+                const painter = new DisplayView(document.createElement('canvas'));
+                const args = {painter, rect: new Rect(10, 10, 40, 40 * gate.height), gate, positionInCircuit,
+                    isHighlighted: false, isResizeShowing: false, isResizeHighlighted: false, stats: {time},
+                    hand: {isHoldingSomething: () => false}, focusPoints: []};
+                try {
+                    (gate.customRenderer || DEFAULT_RENDERER)(args);
+                    await painter.commit();
+                } catch (error) {
+                    throw new Error(`${gate.serializedId} at t=${time}: ${error.message}`, {cause: error});
+                }
+            }
+        }
+    }
+});
+
+suite.test("a gate without turns of its own, one made from a circuit, dials the shared cycle", async () => {
+    const painter = new DisplayView(document.createElement('canvas'));
+    makeCycleRenderer()({painter, rect: new Rect(10, 10, 40, 40), gate: Gates.HalfTurns.H,
+        positionInCircuit: {row: 0, col: 0}, isHighlighted: false, isResizeShowing: false, stats: {time: 0.25}});
+    await painter.commit();
 });
 
 suite.test("resize tabs stay inside the bottom quarter of small, wide and tall gates", () => {

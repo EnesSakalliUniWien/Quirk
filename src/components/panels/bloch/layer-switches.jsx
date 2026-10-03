@@ -24,7 +24,7 @@ function LayerSwitches({ layers, onChange }) {
               id={`bloch-layer-${key}`}
               className="bloch-check"
               checked={layers[key]}
-              aria-describedby={key === "trig" ? "bloch-trig-help" : undefined}
+              aria-describedby={key === "trig" && layers.trig ? "bloch-trig-help" : undefined}
               onCheckedChange={(checked) => onChange(key, checked)}
             >
               <Checkbox.Indicator className="bloch-check-indicator" />
@@ -33,9 +33,13 @@ function LayerSwitches({ layers, onChange }) {
           </label>
         ))}
       </ControlRow>
-      <p id="bloch-trig-help" className="bloch-note">
-        cos · sin: sphere labels require Components; meridian and equator labels work independently.
-      </p>
+      {/* Said only while the switch it explains is on. */}
+      {layers.trig && (
+        <p id="bloch-trig-help" className="bloch-note">
+          cos · sin labels the sphere only with Components on; the meridian and equator label
+          themselves.
+        </p>
+      )}
     </>
   );
 }

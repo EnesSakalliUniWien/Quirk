@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import '@pixi/layout';
 import {createElement, useLayoutEffect, useRef} from 'react';
 import {extend} from '@pixi/react';
 import {Container, Graphics, Point} from 'pixi.js';
@@ -63,11 +62,18 @@ export class DisplayView {
         this.order++;
         return reference;
     }
-    group(key, update) {
+    /**
+     * @param {*} key
+     * @param {!function(!DisplayView): *} update Describes the group's contents.
+     * @param {!{pointer: (undefined|!boolean)}=} options `pointer: false` for a group nothing in which
+     *     takes the pointer: Pixi then skips the whole subtree when it hit-tests a pointer move.
+     */
+    group(key, update, {pointer = true} = {}) {
         const child = new DisplayView(this.canvas, this.rng, this.pixelRatio);
         child.lineScale = this.lineScale;
         child.tooltips = this.tooltips;
         child.parent = this;
+        child.pointer = pointer;
         child.result = update(child);
         this.elements.push(child.element(key));
         this.order++;
@@ -76,7 +82,7 @@ export class DisplayView {
     element(key) {
         return createElement(FrameNode, {key, frame: this, transform: {
             x: this.position.x, y: this.position.y, scale: {x: this.scale.x, y: this.scale.y},
-            rotation: this.rotation, alpha: this.alpha
+            rotation: this.rotation, alpha: this.alpha, eventMode: this.pointer === false ? 'none' : 'passive'
         }}, this.elements);
     }
     get children() { return this.native?.children ?? []; }
@@ -87,7 +93,54 @@ export function drawingArea(view) {
     return new Rect(0, 0, width, height);
 }
 
-/** Native graphics commands execute on the object supplied by the React reconciler. */
+/**
+ * The Graphics calls a drawing makes, recorded rather than run: [method, args, method, args, …].
+ * @param {!function(!Object): void} draw Called with a stand-in for a Graphics, whose every method
+ *     records its call and returns the stand-in, so chained calls record in order.
+ * @returns {!Array}
+ */
+export function recordGraphics(draw) {
+    const commands = [];
+    const recorder = new Proxy({}, {get: (_, method) => (...args) => {
+        commands.push(method, args);
+        return recorder;
+    }});
+    draw(recorder);
+    return commands;
+}
+
+/** @returns {!boolean} Whether two recorded values - numbers, strings, arrays, plain objects - are the same. */
+function sameRecorded(a, b) {
+    if (Object.is(a, b)) return true;
+    if (typeof a !== 'object' || typeof b !== 'object' || a === null || b === null) return false;
+    if (Array.isArray(a)) {
+        if (!Array.isArray(b) || a.length !== b.length) return false;
+        for (let i = 0; i < a.length; i++) if (!sameRecorded(a[i], b[i])) return false;
+        return true;
+    }
+    const keys = Object.keys(a);
+    if (keys.length !== Object.keys(b).length) return false;
+    return keys.every(key => sameRecorded(a[key], b[key]));
+}
+
+/**
+ * A Graphics that replays recorded commands, and only when they differ from the last ones. The
+ * scene describes every drawing every frame; a drawing handed over as a fresh closure was cleared,
+ * re-triangulated and re-uploaded every frame although nothing in it had changed.
+ */
+class RecordedGraphics extends Graphics {
+    constructor() { super(); }
+    set commands(commands) {
+        if (this.recorded !== undefined && sameRecorded(this.recorded, commands)) return;
+        this.recorded = commands;
+        this.clear();
+        for (let i = 0; i < commands.length; i += 2) this[commands[i]](...commands[i + 1]);
+    }
+}
+
+extend({RecordedGraphics});
+
+/** Native graphics commands, recorded now and replayed on the reconciler's object when they change. */
 export function drawGraphics(view, draw) {
-    return view.add('pixiGraphics', {draw: graphics => {graphics.clear(); draw(graphics);}});
+    return view.add('pixiRecordedGraphics', {commands: recordGraphics(draw)});
 }

@@ -174,16 +174,17 @@ const MATRIX_RENDERER = args => {
  * @returns {!function(!GateRenderParams)}
  */
 const makeCycleRenderer = axis => args => {
-    // The dial marks time dependence while the fill retains the operation family.
+    // The dial marks time dependence while the fill retains the operation family. A gate made from a
+    // circuit has no turns of its own, only the cycle its gates share, so its dial shows that.
     DEFAULT_RENDERER(args);
-    paintTimeDial(args, args.gate.turnsAt(args.stats.time, args.gate.param), axis);
+    const {turnsAt} = args.gate;
+    paintTimeDial(args, turnsAt === undefined ? args.stats.time : turnsAt(args.stats.time, args.gate.param), axis);
 };
 
 export {
     MAKE_HIGHLIGHTED_RENDERER,
     DEFAULT_RENDERER,
     LABEL_RENDERER,
-    makeLocationIndependentGateRenderer,
     LOCATION_INDEPENDENT_GATE_RENDERER,
     SECTIONED_RENDERER_MAKER,
     makeDisplayRenderer,

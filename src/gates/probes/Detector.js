@@ -169,7 +169,7 @@ function sampleMeasure(ctx) {
 function drawDetector(args, axis) {
     drawHighlight(args);
     drawWedge(args, axis);
-    drawClick(args, axis);
+    drawClick(args);
 }
 
 /**
@@ -188,9 +188,11 @@ function drawHighlight(args) {
  * @param {!string} axis
  */
 function drawWedge(args, axis) {
-    // Draw semi-circle wedge.
+    // A semi-circle wedge, lit in the outcome green when it clicks - the green a Sample's 1 wears -
+    // so a click is seen at a glance and nothing is written across it.
     const τ = Math.PI * 2;
     const r = Math.min(args.rect.h / 2, args.rect.w) - 1;
+    const clicked = args.customStats === true;
     let {x, y} = args.rect.center();
     x -= r*0.5;
     x += 0.5;
@@ -198,10 +200,12 @@ function drawWedge(args, axis) {
     drawPath(args.painter, trace => {
         trace.arc(x, y, r, τ*3/4, τ/4);
         trace.lineTo(x, y - r - 1);
-    }, [{stroke: {color: CanvasTheme.text.primary, width: 2}}, {fill: CanvasTheme.gate.time}]);
+    }, [{stroke: {color: CanvasTheme.text.primary, width: 2}},
+        {fill: clicked ? CanvasTheme.probability.fill : CanvasTheme.surface.gate}]);
     fitLine(args.painter, axis, args.rect, {
         horizontal: 0.5,
-        vertical: 0.5
+        vertical: 0.5,
+        fill: clicked ? CanvasTheme.probability.fillText : CanvasTheme.text.primary,
     });
 }
 
@@ -209,52 +213,21 @@ function drawWedge(args, axis) {
  * @param {!GateRenderParams} args
  * @param {undefined|!string} axis
  */
-function drawClick(args, axis) {
-    // Draw tilted "*click*" text.
-    const clicked = args.customStats;
-    if (!clicked) {
+function drawClick(args) {
+    // The word, small and upright above the tile, in the gap over the wire: the lit wedge says it,
+    // and this names it for whoever has not met a detector yet.
+    if (!args.customStats) {
         return;
-}
-    const r = Math.min(args.rect.h / 2, args.rect.w);
-    args.painter.group('click-label-' + args.painter.order, painter => {
-        painter.position.set(args.rect.center().x, args.rect.center().y);
-        painter.rotation = axis === undefined ? Math.PI / 3 : Math.PI / 4;
-        const stroke = {
-            color: CanvasTheme.surface.background,
-            width: 3
-        };
-        fitText(painter, '*click*', {
-            x: 0,
-            y: axis === undefined ? 0 : -5,
-            align: 'center',
-            baseline: 'middle',
-            fill: CanvasTheme.text.primary,
-            font: {
-                fontSize: 16,
-                fontFamily: Typography.DEFAULT_FONT_FAMILY,
-                fontWeight: 'bold'
-            },
-            width: r * 2.8,
-            height: r * 2.8,
-            stroke
-        });
-        if (axis !== undefined) {
-            fitText(painter, axis, {
-                x: 0,
-                y: 10,
-                align: 'center',
-                baseline: 'middle',
-                fill: CanvasTheme.text.primary,
-                font: {
-                    fontSize: 16,
-                    fontFamily: Typography.DEFAULT_FONT_FAMILY,
-                    fontWeight: 'bold'
-                },
-                width: r * 2.8,
-                height: r * 2.8,
-                stroke
-            });
-        }
+    }
+    fitText(args.painter, 'click', {
+        x: args.rect.center().x,
+        y: args.rect.y - 3,
+        align: 'center',
+        baseline: 'bottom',
+        fill: CanvasTheme.probability.outline,
+        font: {fontSize: 11, fontFamily: Typography.DEFAULT_FONT_FAMILY},
+        width: Math.max(args.rect.w, 40),
+        height: 14,
     });
 }
 
@@ -317,7 +290,7 @@ function drawDetectClearReset(args, axis) {
     args.rect = fullRect;
     drawControlBulb(args, axis);
     args.rect = detectorRect;
-    drawClick(args, undefined);
+    drawClick(args);
 
     args.rect = fullRect;
 }
@@ -399,7 +372,9 @@ function makeDetectControlClearGate(axis) {
             withClearedControls(ctx => {
                 GateShaders.applyMatrixOperation(ctx, Matrix.square(1, 1, 0, 0));
             })).
-        setStatPixelDataPostProcessor((pixels, circuit, row, col) => pixels[0] > 0);
+        setStatPixelDataPostProcessor((pixels, circuit, row, col) => pixels[0] > 0).
+        // The sample is drawn from the run's seed, so it holds still until a new run draws again.
+        promiseEffectIsStable();
     if (axis === 'Z') {
         builder.promiseEffectIsDiagonal();
         builder.setMeasureEffect("collapse");
@@ -430,7 +405,9 @@ function makeDetector(axis) {
             ctx => switchToBasis(ctx, axis, true)).
         setActualEffectToUpdateFunc(sampleMeasure).
         setStatTexturesMaker(detectorStatTexture).
-        setStatPixelDataPostProcessor((pixels, circuit, row, col) => pixels[0] > 0);
+        setStatPixelDataPostProcessor((pixels, circuit, row, col) => pixels[0] > 0).
+        // The sample is drawn from the run's seed, so it holds still until a new run draws again.
+        promiseEffectIsStable();
     if (axis === 'Z') {
         builder.promiseEffectIsDiagonal();
         builder.setMeasureEffect("collapse");

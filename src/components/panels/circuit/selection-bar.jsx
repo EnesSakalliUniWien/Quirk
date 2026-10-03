@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useReducer, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useReducer, useState } from "react";
 import { useStore } from "zustand";
 import { CopyIcon, PowerIcon, PowerOffIcon, ScissorsIcon, Trash2Icon, WandSparklesIcon, XIcon } from "lucide-react";
 import { appStore } from "../../../state/appStore.js";
@@ -34,7 +34,11 @@ function SelectionBar({ host }) {
 
 function Bar({ deps, actions, host }) {
   const zoom = useStore(appStore, (s) => s.zoom);
-  const shown = useStore(deps.displayed, (s) => s.value);
+  // Not the whole state, whose hand moves with every mouse move over the canvas while the bar stays
+  // where it is: the circuit, followed for its identity alone, which holds while only the hand
+  // moves and changes with the circuit and its layout, and whether the hand is busy.
+  useStore(deps.displayed, (s) => s.value.displayedCircuit);
+  const busy = useStore(deps.displayed, (s) => s.value.hand.isBusy());
   // The circuit centres in the cell, so a resized cell moves the selection without a new state; and
   // the bar keeps inside the visible area, which scrolling moves.
   const [, moved] = useReducer((n) => n + 1, 0);
@@ -48,21 +52,28 @@ function Bar({ deps, actions, host }) {
       element.removeEventListener("scroll", moved);
     };
   }, [host]);
-  const bar = useRef(null);
+  // The bar's width, which decides how far in from the edge it must sit to stay in view. It changes
+  // with what the bar says, so it is watched rather than read at every render.
+  const [bar, setBar] = useState(/** @type {null|!HTMLElement} */ (null));
   const [barWidth, setBarWidth] = useState(0);
   useLayoutEffect(() => {
-    const width = bar.current?.offsetWidth;
-    if (width !== undefined && width !== barWidth) {
-      setBarWidth(width);
+    if (bar === null) {
+      return undefined;
     }
-  });
+    const measure = () => setBarWidth(bar.offsetWidth);
+    // Now, as well as when it changes: a layout effect renders again before the first paint.
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(bar);
+    return () => observer.disconnect();
+  }, [bar]);
 
   // A drag in progress shows another circuit, and a new box replaces the selection when it ends.
-  const range = shown.hand.isBusy() ? undefined : actions.range();
+  const range = busy ? undefined : actions.range();
   if (range === undefined) {
     return null;
   }
-  const rect = selectionRect(deps.syncArea(shown).displayedCircuit.geometry(), range);
+  const rect = selectionRect(deps.syncArea(deps.displayed.getState().value).displayedCircuit.geometry(), range);
   const dependencies = actions.outsideDependencies();
   const outsideWires = [...new Set(dependencies.filter((d) => d.row !== undefined).map((d) => d.row))];
   const includeWires = () => actions.select({
@@ -79,7 +90,7 @@ function Bar({ deps, actions, host }) {
 
   return (
     <div
-      ref={bar}
+      ref={setBar}
       className="selection-bar"
       data-placement={above ? "above" : "below"}
       role="group"

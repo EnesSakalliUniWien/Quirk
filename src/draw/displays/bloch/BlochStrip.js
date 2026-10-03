@@ -28,8 +28,9 @@ const STRIP_GAP = 8;
  * A qubit's state after every column, one small sphere each, all in one canvas.
  *
  * Every sphere is painted by paintBlochScene, the painter the large sphere uses, so a thumbnail and
- * the view it opens cannot disagree about which way an axis points. They share one canvas because
- * each canvas holds a WebGL context and a browser keeps only a few alive at once.
+ * the view it opens cannot disagree about which way an axis points. They share one canvas, so that
+ * the whole strip is one scene, reconciled and drawn together, where a canvas each would be as many
+ * scenes and copies.
  *
  * @param {!HTMLCanvasElement} canvas As wide as the thumbnails and one cell tall.
  * @param {!Array.<undefined|!{x: !number, y: !number, z: !number}>} vecs

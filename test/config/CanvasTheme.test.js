@@ -1,12 +1,15 @@
 import {Suite, assertThat} from "../TestUtil.js"
 import {CanvasTheme as theme, phaseColor, phaseRgb, gateStyle} from "../../src/config/CanvasTheme.js"
+import {Appearance} from "../../src/appearance/Appearance.js"
 
 const suite = new Suite("CanvasTheme");
 
 suite.test("phase RGB agrees with the browser's independent OKLCH conversion", () => {
     assertThat(CSS.supports('color', 'oklch(0.75 0.12 0)')).isEqualTo(true);
+    const {lightness, chroma} = Appearance.phase;
     for (const angle of [-405, -180, -45, 0, 45, 90, 135, 180, 225, 270, 315, 360, 765]) {
-        const expected = rgb(`oklch(0.75 0.12 ${angle})`);
+        // A phase of 0° is OKLCH hue 245, so a positive amplitude is blue and a negative one orange.
+        const expected = rgb(`oklch(${lightness} ${chroma} ${angle + 245})`);
         const actual = phaseRgb(angle);
         // Allow one byte of rounding difference between the browser and the explicit matrices.
         assertThat(actual.every((channel, i) => Math.abs(channel - expected[i]) <= 1)).
@@ -14,10 +17,11 @@ suite.test("phase RGB agrees with the browser's independent OKLCH conversion", (
     }
 });
 
-suite.test("IQP-dark assigns operations by serialized ID including Quirk axis formulas", () => {
+suite.test("IQP-dark assigns operations by axis, Quirk's axis formulas included", () => {
     for (const [ids, fill] of [
-        [['H'], '#FA4D56'], [['X', 'Swap'], '#4589FF'],
-        [['Y', 'Rx', 'Ry', 'X^½', 'Y^-½', 'Rxft', 'Y^ft', 'e^-iXt'], '#FF7EB6'],
+        [['H'], '#FA4D56'],
+        [['X', 'Swap', 'X^½', 'X^-¼', 'Rx', 'Rxft', 'X^ft', 'X^t', 'e^-iXt', 'X^(A/2^n)'], '#4589FF'],
+        [['Y', 'Ry', 'Y^½', 'Y^-½', 'Ryft', 'Y^ft', 'Y^-t', 'e^-iYt'], '#FF7EB6'],
         [['Z', 'Z^½', 'Z^-¼', 'Rz', 'Rzft', 'Z^ft', 'e^iZt'], '#BAE6FF'],
         [['Measure'], '#8D8D8D']
     ]) {
@@ -29,6 +33,12 @@ suite.test("IQP-dark assigns operations by serialized ID including Quirk axis fo
     }
     assertThat(theme.surface.background).isEqualTo('#202630');
     assertThat(gateStyle({serializedId: '~custom', symbol: 'H'}).fill).isEqualTo(theme.surface.gate);
+    // The clock pulses sit on the time tile, so their labels take the canvas's ink, not a bright fill's.
+    for (const serializedId of ['X^⌈t⌉', 'X^⌈t-¼⌉']) {
+        const style = gateStyle({serializedId, symbol: 'different display label'});
+        assertThat(style.text).isEqualTo(theme.text.primary);
+        check(style.text, theme.gate.time, 4.5);
+    }
 });
 
 function rgb(color) {
@@ -84,12 +94,12 @@ suite.test("colour definitions are immutable", () => {
 });
 
 suite.test("each colour that carries a meaning carries only one", () => {
+    // The X and Z axes are their gates' colours, so they are counted with them.
     const meanings = {
         hadamard: theme.iqp.hadamard, not: theme.iqp.not, rotation: theme.iqp.rotation,
         phase: theme.iqp.phase, measure: theme.iqp.measure,
-        stateReadout: theme.probability.fill, amplitude: theme.amplitude.fill, operator: theme.operation.fill,
-        highlight: theme.interaction.outline, error: theme.error.text,
-        blochX: theme.bloch.axisX, blochY: theme.bloch.axisY, blochZ: theme.bloch.axisZ,
+        stateReadout: theme.probability.fill, operator: theme.operation.fill,
+        highlight: theme.interaction.outline, error: theme.error.text, blochY: theme.bloch.axisY,
     };
     const owners = new Map();
     for (const [meaning, color] of Object.entries(meanings)) {
@@ -101,35 +111,53 @@ suite.test("each colour that carries a meaning carries only one", () => {
     assertThat(theme.bloch.background).isEqualTo(theme.probability.background);
     assertThat(theme.interaction.playhead).isEqualTo(theme.interaction.outline);
     assertThat(theme.operation.background).isEqualTo(theme.surface.gate);
+    // One hue per axis: X's gates and the Bloch sphere's X axis are one colour.
+    assertThat(theme.bloch.axisX).isEqualTo(theme.iqp.not);
 });
 
-suite.test("the three look-alike displays stay apart, also with red-green colour blindness", () => {
-    // The amplitude grid, the density matrix (a state readout) and an operator matrix are all grids
-    // of discs, so colour is what tells them apart.
-    const kinds = {stateReadout: theme.probability.fill, amplitude: theme.amplitude.fill, operator: theme.operation.fill};
-    const names = Object.keys(kinds);
-    for (let i = 0; i < names.length; i++) {
-        for (let j = i + 1; j < names.length; j++) {
-            const [a, b] = [kinds[names[i]], kinds[names[j]]];
-            const pair = `${names[i]}~${names[j]}`;
-            assertThat(difference(a, b) >= 15).withInfo({pair, normal: difference(a, b)}).isEqualTo(true);
-            for (const deficiency of Object.keys(DEFICIENCIES)) {
-                const d = difference(a, b, deficiency);
-                assertThat(d >= 8).withInfo({pair, deficiency, d}).isEqualTo(true);
-            }
+suite.test("the playhead's band is neutral, so the next column never reads as a hovered gate", () => {
+    // The band is a neutral slate, its channels within a slate's spread of each other, and the hover
+    // fill is warm: told apart by hue, as dark colours this close in lightness are.
+    const spread = color => { const c = rgb(color); return Math.max(...c) - Math.min(...c); };
+    assertThat(spread(theme.interaction.playheadBand) <= 24).isEqualTo(true);
+    assertThat(spread(theme.gate.hover) >= 30).isEqualTo(true);
+});
+
+suite.test("a grid's phases read by hue, and a sign also with red-green colour blindness", () => {
+    // In every grid of complex numbers colour means phase alone: +1 blue, -1 orange, +i magenta, -i green.
+    const cardinal = {one: phaseColor(0), minusOne: phaseColor(180), i: phaseColor(90), minusI: phaseColor(-90)};
+    const names = Object.keys(cardinal);
+    for (let a = 0; a < names.length; a++) {
+        for (let b = a + 1; b < names.length; b++) {
+            const d = difference(cardinal[names[a]], cardinal[names[b]]);
+            assertThat(d >= 15).withInfo({pair: `${names[a]}~${names[b]}`, d}).isEqualTo(true);
         }
     }
+    // A sign, the difference read most often, survives red-green deficiency. A quarter turn may not,
+    // so the hand on every disc says the exact phase.
+    for (const deficiency of Object.keys(DEFICIENCIES)) {
+        const d = difference(cardinal.one, cardinal.minusOne, deficiency);
+        assertThat(d >= 15).withInfo({deficiency, d}).isEqualTo(true);
+    }
 });
 
-suite.test("an amplitude's disc stays apart from the probability bar beneath it", () => {
-    // Both size one cell's value, so they must not read as a single mark.
-    const [disc, bar] = [theme.amplitude.circle, theme.amplitude.fill];
-    assertThat(difference(disc, bar) >= 15).withInfo({normal: difference(disc, bar)}).isEqualTo(true);
-    for (const deficiency of Object.keys(DEFICIENCIES)) {
-        const d = difference(disc, bar, deficiency);
-        assertThat(d >= 8).withInfo({deficiency, d}).isEqualTo(true);
+suite.test("an amplitude's disc stays apart from the chance gauge beside it, whatever its phase", () => {
+    // Both size one cell's value, so they must not read as a single mark; and the hand crosses the disc.
+    for (let angle = -180; angle < 180; angle += 5) {
+        const disc = phaseColor(angle);
+        assertThat(difference(disc, theme.amplitude.chance) >= 15).withInfo({angle}).isEqualTo(true);
+        for (const deficiency of Object.keys(DEFICIENCIES)) {
+            const d = difference(disc, theme.amplitude.chance, deficiency);
+            assertThat(d >= 8).withInfo({angle, deficiency, d}).isEqualTo(true);
+        }
+        check(disc, theme.amplitude.background, 3);
+        check(theme.amplitude.hand, disc, 3);
     }
-    check(disc, theme.amplitude.background, 3);
+    // The neutral inks: the chance a reader reads, the disc without a phase, and the log ring.
+    check(theme.amplitude.chance, theme.amplitude.background, 4.5);
+    check(theme.amplitude.unknown, theme.amplitude.background, 3);
+    check(theme.amplitude.hand, theme.amplitude.unknown, 3);
+    check(theme.stroke.logRing, theme.amplitude.background, 3);
 });
 
 suite.test("the Bloch axes stay apart from each other and the vector, also with red-green colour blindness", () => {
@@ -167,8 +195,10 @@ suite.test("the Bloch axes stay apart from each other and the vector, also with 
 });
 
 suite.test("the highlight stands apart from every colour that means something", () => {
+    // The phase wheel takes every hue, so a hovered cell is told from its disc by form: an outline
+    // round the cell, not a fill inside it.
     for (const color of [theme.iqp.hadamard, theme.iqp.not, theme.iqp.rotation, theme.iqp.phase,
-        theme.iqp.measure, theme.probability.fill, theme.amplitude.fill, theme.operation.fill, theme.error.text,
+        theme.iqp.measure, theme.probability.fill, theme.amplitude.chance, theme.operation.fill, theme.error.text,
         theme.bloch.axisX, theme.bloch.axisY, theme.bloch.axisZ]) {
         const d = difference(theme.interaction.outline, color);
         assertThat(d >= 15).withInfo({color, d}).isEqualTo(true);
@@ -202,7 +232,7 @@ suite.test("essential boundaries and Bloch guides contrast with dark surfaces", 
     check(theme.bloch.vector, theme.bloch.background, 3);
     check(theme.probability.fill, theme.probability.background, 3);
     check(theme.probability.bar, theme.probability.background, 3);
-    check(theme.amplitude.fill, theme.amplitude.background, 3);
+    check(theme.probability.fill, theme.amplitude.background, 3);
     check(theme.stroke.grid, theme.amplitude.phaseHalo, 3);
 });
 
@@ -247,7 +277,7 @@ suite.test("the selection's edge reads on every surface and takes no hue that me
         check(theme.interaction.selectionEdge, background, 3);
     }
     for (const color of [theme.interaction.outline, theme.iqp.hadamard, theme.iqp.not, theme.iqp.rotation,
-        theme.probability.fill, theme.amplitude.fill, theme.operation.fill, theme.error.text]) {
+        theme.probability.fill, theme.operation.fill, theme.error.text]) {
         const d = difference(theme.interaction.selectionEdge, color);
         assertThat(d >= 15).withInfo({color, d}).isEqualTo(true);
     }

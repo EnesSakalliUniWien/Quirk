@@ -1,0 +1,33 @@
+@import "../../../styles/layers.css";
+
+/* The Record menu: each item names what it records, with what that takes beside it, the way the
+   speed menus give each multiple its pace. */
+@layer components {
+    .item {
+        display: inline-flex;
+        align-items: baseline;
+        gap: calc(var(--spacing) * 3);
+    }
+
+    .detail {
+        color: var(--muted-foreground);
+        font-size: var(--text-caption);
+    }
+
+    /* The record dot is a mark, not an alarm: it wears the button's ink, smaller than an icon. */
+    .trigger .dot {
+        width: 0.625rem;
+        height: 0.625rem;
+    }
+
+    @media (max-width: 640px) {
+        .word {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip-path: inset(50%);
+            white-space: nowrap;
+        }
+    }
+}

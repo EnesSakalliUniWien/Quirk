@@ -37,19 +37,24 @@ export function paintMatrixTooltip(
     painter.add('pixiSceneContainer', {
         eventMode: 'static', hitArea: new Rectangle(x, y, diam * numCols, diam * numRows)
     });
-    for (const pt of focusPoints) {
-        const c = Math.floor((pt.x - x) / diam);
-        const r = Math.floor((pt.y - y) / diam);
-        if (c >= 0 && c < matrix.width() && r >= 0 && r < matrix.height()) {
-            rectangle(painter, new Rect(x + diam*c, y + diam*r, diam, diam), {stroke: {color: CanvasTheme.interaction.outline, width: 2}});
-            const v = matrix.cell(c, r);
-            TooltipLayer.forView(painter).show(painter, {
-                x: x + diam*c + diam,
-                y: y + diam*r,
-                labelText: titleFunc(c, r),
-                valueText: valueTextFunc1(c, r, v),
-                valueText2: valueTextFunc2(c, r, v)
-            });
+    // In a group of its own, so whether a cell is hovered never shifts the keys of what follows.
+    painter.group('matrix-hover', hover => {
+        for (const pt of focusPoints) {
+            const c = Math.floor((pt.x - x) / diam);
+            const r = Math.floor((pt.y - y) / diam);
+            if (c >= 0 && c < matrix.width() && r >= 0 && r < matrix.height()) {
+                rectangle(hover, new Rect(x + diam*c, y + diam*r, diam, diam), {stroke: {color: CanvasTheme.interaction.outline, width: 2}});
+                const v = matrix.cell(c, r);
+                // The card stands beside the matrix, level with the hovered row, so it never covers
+                // the cells around the one it describes.
+                TooltipLayer.forView(hover).show(hover, {
+                    x: x + diam * numCols,
+                    y: y + diam*r,
+                    labelText: titleFunc(c, r),
+                    valueText: valueTextFunc1(c, r, v),
+                    valueText2: valueTextFunc2(c, r, v)
+                });
+            }
         }
-    }
+    });
 }

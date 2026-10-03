@@ -22,7 +22,9 @@ import {Complex} from "../../../src/engine/math/complex/Complex.js"
 import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
 import {Gates} from "../../../src/gates/AllGates.js"
 import {ArithmeticGates} from "../../../src/gates/arithmetic/ArithmeticGates.js"
-import {circuitAlgebra, describeColumn, paddedState} from "../../../src/engine/simulation/stepAlgebra.js"
+import {Shaders} from "../../../src/engine/webgl/operations/Shaders.js"
+import {StablePrefix} from "../../../src/engine/simulation/StablePrefix.js"
+import {circuitAlgebra, describeColumn, paddedState, releaseStepStates, stepStates} from "../../../src/engine/simulation/stepAlgebra.js"
 
 const suite = new Suite("stepAlgebra");
 
@@ -123,6 +125,92 @@ suite.test("the states before the first time-dependent column are kept while tim
     assertThat(second.states[3]).isNotApproximatelyEqualTo(first.states[3], 0.0001);
 });
 
+suite.testUsingWebGL("the states after the first time-dependent column start from the kept prefix, and are the same", () => {
+    const spin = Gates.Powering.XForward;
+    const circuit = circuitOf(2, [H, undefined], [C, X], [spin, undefined], [undefined, H], [X, undefined]);
+    const prefix = new StablePrefix();
+    const at = time => CircuitStats.fromCircuitAtTime(circuit, time, "seed", prefix);
+    const first = circuitAlgebra(at(0.125), 2, undefined, prefix);
+    for (const time of [0.25, 0.5]) {
+        const stats = at(time);
+        const second = circuitAlgebra(stats, 2, first, prefix);
+        const fresh = circuitAlgebra(CircuitStats.fromCircuitAtTime(circuit, time, "seed"), 2);
+        assertThat(second.states.length).isEqualTo(6);
+        for (const k of second.states.keys()) {
+            // Exactly the states of a run from the start, whether kept from before or read from the prefix.
+            assertThat(second.states[k]).withInfo({k, time}).isEqualTo(fresh.states[k]);
+        }
+        for (const k of [0, 1, 2]) {
+            assertThat(second.states[k] === first.states[k]).withInfo({k}).isEqualTo(true);
+        }
+    }
+
+    // Spoil the state that is kept: the states after the spinning column are then read from it.
+    const stats = at(0.75);
+    const honest = circuitAlgebra(stats, 2, first);
+    Shaders.color(0, 0, 0, 0).renderTo(prefix.heldFor(stats.circuitDefinition, "seed").state);
+    // Other stats of the same circuit, since the answer for these is shared.
+    const spoilt = circuitAlgebra(stats.withTime(0.75), 2, first, prefix);
+    assertThat(spoilt.states[2] === honest.states[2]).isEqualTo(true);
+    for (const k of [3, 4]) {
+        assertThat(spoilt.states[k]).withInfo({k}).isNotApproximatelyEqualTo(honest.states[k], 1e-3);
+    }
+    // The state after the last column is the stats', not read from the run.
+    assertThat(spoilt.states[5]).isEqualTo(honest.states[5]);
+    prefix.release();
+});
+
+suite.testUsingWebGL("a state is padded as it is read, and one that already has the wires is not copied", () => {
+    const circuit = circuitOf(2, [H, undefined], [C, X], [undefined, H]);
+    const stats = CircuitStats.fromCircuitAtTime(circuit, 0, "padding");
+    const own = stepStates(stats, 2);
+    // The final state is the stats' own, not a copy of it.
+    assertThat(own[3] === stats.finalState).isEqualTo(true);
+    assertThat(own.map(state => state.height())).isEqualTo([4, 4, 4, 4]);
+
+    // On more wires the states have zeros after the circuit's amplitudes, as paddedState makes them.
+    const wide = stepStates(stats, 4);
+    assertThat(wide.length).isEqualTo(4);
+    for (const k of wide.keys()) {
+        assertThat(wide[k].height()).withInfo({k}).isEqualTo(16);
+        assertThat(wide[k]).withInfo({k}).isEqualTo(paddedState(own[k], 4));
+    }
+    releaseStepStates();
+});
+
+suite.testUsingWebGL("the step states kept for the panels to share are let go of on request", () => {
+    const circuit = circuitOf(2, [H, undefined], [C, X], [undefined, H]);
+    const stats = CircuitStats.fromCircuitAtTime(circuit, 0, "release");
+    const read = WebGL2RenderingContext.prototype.readPixels;
+    let reads = 0;
+    WebGL2RenderingContext.prototype.readPixels = function (...args) {
+        reads++;
+        return read.apply(this, args);
+    };
+    try {
+        const states = stepStates(stats, 2);
+        assertThat(stepStates(stats, 2) === states).isEqualTo(true);
+        assertThat(reads).isEqualTo(1);
+        // Once released, nothing is shared: the next asker has them worked out again.
+        releaseStepStates();
+        const again = stepStates(stats, 2);
+        assertThat(again === states).isEqualTo(false);
+        assertThat(again).isEqualTo(states);
+        assertThat(reads).isEqualTo(2);
+    } finally {
+        WebGL2RenderingContext.prototype.readPixels = read;
+    }
+
+    // The states before the first time-dependent column are kept from one time to the next, until then.
+    const spinning = circuitOf(2, [H, undefined], [Gates.Powering.XForward, undefined]);
+    const at = time => stepStates(CircuitStats.fromCircuitAtTime(spinning, time, "release"), 2);
+    const [early, later] = [at(0.1), at(0.2)];
+    assertThat(later[0] === early[0]).isEqualTo(true);
+    releaseStepStates();
+    assertThat(at(0.3)[0] === later[0]).isEqualTo(false);
+    releaseStepStates();
+});
+
 suite.test("an edited column, another seed or other wires drop the states that depended on them", () => {
     const circuit = circuitOf(2, [H, undefined], [C, X]);
     const first = circuitAlgebra(CircuitStats.fromCircuitAtTime(circuit, 0, "a"), 2);
@@ -134,6 +222,27 @@ suite.test("an edited column, another seed or other wires drop the states that d
     assertThat(reseeded.states[0] === first.states[0]).isEqualTo(false);
     const widened = circuitAlgebra(CircuitStats.fromCircuitAtTime(circuit, 0, "a"), 3, first);
     assertThat(widened.states[0] === first.states[0]).isEqualTo(false);
+});
+
+suite.test("every step's state comes from one run and one readback, and is shared with the next asker", () => {
+    const circuit = circuitOf(2, [H, undefined], [C, X], [undefined, H], [X, undefined], [undefined, X]);
+    const stats = CircuitStats.fromCircuitAtTime(circuit, 0, "one run");
+    const read = WebGL2RenderingContext.prototype.readPixels;
+    let reads = 0;
+    WebGL2RenderingContext.prototype.readPixels = function (...args) {
+        reads++;
+        return read.apply(this, args);
+    };
+    try {
+        const states = stepStates(stats, 2);
+        assertThat(reads).isEqualTo(1);
+        assertThat(states.length).isEqualTo(6);
+        // A second panel asking about the same stats gets the same answer, without a run.
+        assertThat(stepStates(stats, 2) === states).isEqualTo(true);
+        assertThat(reads).isEqualTo(1);
+    } finally {
+        WebGL2RenderingContext.prototype.readPixels = read;
+    }
 });
 
 suite.test("a column is described by what acts where, and on what condition", () => {

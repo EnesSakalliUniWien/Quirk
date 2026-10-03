@@ -7,7 +7,7 @@ import {
   formatProbability,
   probabilityBarFraction,
 } from "../../../draw/displays/probability/ProbabilityScale.js";
-import { stateAtStep } from "../../../engine/simulation/stepAlgebra.js";
+import { releaseStepStates, stepStates } from "../../../engine/simulation/stepAlgebra.js";
 import { prefersReducedMotion } from "../../../browser/reducedMotion.js";
 import { appStore } from "../../../state/appStore.js";
 import { useWheelScrollsSideways } from "../algebra/useWheelScrollsSideways.js";
@@ -186,20 +186,28 @@ function ProbabilitiesPanel() {
   const playhead = useStore(appStore, (s) => s.playhead);
   const [layout, setLayout] = useState(/** @type {"index" | "grouped"} */ ("index"));
 
+  // Keyed on the stats, not the sample: a playhead step publishes a new sample around the same
+  // stats, and the steps' chances do not depend on where the playhead stands.
+  const fullStats = sample?.fullStats;
+  const wireCount = sample?.wireCount;
+  // The steps before the first column that moves with time start from what the simulator keeps.
+  const prefix = useStore(appStore, (s) => s.panelDeps?.stablePrefix);
+  // The states of every step are kept for whoever asks next; once the panel closes nobody does.
+  useEffect(() => releaseStepStates, []);
   const history = useMemo(() => {
-    if (sample === undefined) {
+    if (fullStats === undefined) {
       return undefined;
     }
-    const { fullStats, wireCount } = sample;
     const circuit = fullStats.circuitDefinition;
     const stops = stepStops(circuit);
+    const states = stepStates(fullStats, wireCount, undefined, prefix);
     return {
       stops,
       wireCount,
       registers: circuit.registers,
-      steps: stops.map(({ column }) => probabilitiesOf(stateAtStep(fullStats, wireCount, column))),
+      steps: stops.map(({ column }) => probabilitiesOf(states[column])),
     };
-  }, [sample]);
+  }, [fullStats, wireCount, prefix]);
   const tables = useMemo(
     () => (history === undefined ? [] : stepTables(history.steps, layout, history.wireCount, history.registers)),
     [history, layout],

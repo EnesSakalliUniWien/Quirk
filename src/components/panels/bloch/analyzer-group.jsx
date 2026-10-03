@@ -5,6 +5,7 @@ import { useId } from "react";
  * @property {string} title The group's name.
  * @property {string} purpose What the group is responsible for, set after its name, muted.
  * @property {import("react").ReactNode} children The parts that share that responsibility.
+ * @property {string=} className Where the group stands in the analyzer's grid.
  */
 
 /**
@@ -14,10 +15,10 @@ import { useId } from "react";
  *
  * @param {AnalyzerGroupProps} props
  */
-function AnalyzerGroup({ title, purpose, children }) {
+function AnalyzerGroup({ title, purpose, children, className }) {
   const titleId = useId();
   return (
-    <section className="panel-section bloch-group" aria-labelledby={titleId}>
+    <section className={["panel-section bloch-group", className].filter(Boolean).join(" ")} aria-labelledby={titleId}>
       <header className="panel-section-heading bloch-group-heading">
         <h3 id={titleId} className="panel-section-title">
           {title}

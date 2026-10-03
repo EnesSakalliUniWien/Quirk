@@ -49,6 +49,25 @@ const assertRoundTrip = (t, v, s, equater=undefined) => {
     }
 };
 
+suite.test("loading spaces out a gate that a wider neighbour still reaches, as an edit would", () => {
+    // An Amps3 display is wider than its column, and a rotation with its dial is three columns wide.
+    const circuit = Serializer.fromJson(CircuitDefinition, {cols: [
+        ["Amps3"], ["Density"], [{id: "Rz", arg: "pi/4"}], ["H"]]});
+    const covering = new Set();
+    circuit.columns.forEach((column, col) => column.gates.forEach((gate, row) => {
+        if (gate === undefined) return;
+        for (let dx = 0; dx < gate.width; dx++) {
+            for (let dy = 0; dy < gate.height; dy++) {
+                const slot = `${col + dx}:${row + dy}`;
+                assertThat(covering.has(slot)).withInfo({slot, gate: gate.serializedId}).isEqualTo(false);
+                covering.add(slot);
+            }
+        }
+    }));
+    assertThat(circuit.columns.filter(c => c.gates.some(g => g !== undefined)).map(c => c.gates.find(g => g)?.serializedId)).
+        isEqualTo(["Amps3", "Density", "Rz", "H"]);
+});
+
 suite.test("roundTrip_Complex", () => {
     assertRoundTrip(Complex, Complex.ONE, "1");
     assertRoundTrip(Complex, new Complex(2, -3), "2-3i");

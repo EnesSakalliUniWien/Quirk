@@ -16,9 +16,16 @@
 
 import { Appearance } from "../Appearance.js";
 
+/**
+ * Where a phase of 0° sits on the wheel, in OKLCH hue degrees. A positive real amplitude is blue, so
+ * a negative one, half a turn round, is orange, the colours a sign reads by; +i is magenta and −i
+ * green. The hue turns the way the phase does, counter-clockwise.
+ */
+const HUE_AT_ZERO_PHASE = 245;
+
 /** The phase wheel for one scheme's `phase` settings; the active scheme's by default. */
 function phaseRgb(phaseDegrees, { lightness, chroma } = Appearance.phase) {
-  const hue = ((((phaseDegrees % 360) + 360) % 360) * Math.PI) / 180;
+  const hue = (((((phaseDegrees + HUE_AT_ZERO_PHASE) % 360) + 360) % 360) * Math.PI) / 180;
   const a = chroma * Math.cos(hue);
   const b = chroma * Math.sin(hue);
   // OKLab to linear sRGB (Ottosson), then the sRGB transfer curve.
@@ -44,4 +51,40 @@ function phaseColor(phaseDegrees, alpha = 1, phase = Appearance.phase) {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-export { phaseRgb, phaseColor };
+/** The wheel as tints, one per whole degree, for each scheme's settings. @type {!Map<!string, !Uint32Array>} */
+const tintTables = new Map();
+/** The settings last asked for and their table, so a raster's lookup per entry builds no key. */
+let lastSettings = undefined;
+let lastTable = undefined;
+
+/**
+ * A phase's colour as a 0xRRGGBB tint, to the nearest degree, from a table built once per scheme:
+ * for marks that take a colour each frame, where a CSS string would be built and parsed again.
+ * @param {!number} phaseDegrees
+ * @param {!{lightness: !number, chroma: !number}=} phase
+ * @returns {!number}
+ */
+function phaseTint(phaseDegrees, phase = Appearance.phase) {
+  if (phase !== lastSettings) {
+    lastTable = tintTable(phase);
+    lastSettings = phase;
+  }
+  return lastTable[((Math.round(phaseDegrees) % 360) + 360) % 360];
+}
+
+/** @param {!{lightness: !number, chroma: !number}} phase @returns {!Uint32Array} */
+function tintTable(phase) {
+  const key = `${phase.lightness}|${phase.chroma}`;
+  let table = tintTables.get(key);
+  if (table === undefined) {
+    table = new Uint32Array(360);
+    for (let degree = 0; degree < 360; degree++) {
+      const [r, g, b] = phaseRgb(degree, phase);
+      table[degree] = (r << 16) | (g << 8) | b;
+    }
+    tintTables.set(key, table);
+  }
+  return table;
+}
+
+export { phaseRgb, phaseColor, phaseTint };

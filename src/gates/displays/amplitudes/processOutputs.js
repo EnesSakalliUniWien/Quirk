@@ -15,14 +15,14 @@
  */
 
 import { Matrix } from "../../../engine/math/matrix/Matrix.js";
+import { phaseReferenceIndex } from "../../../engine/math/phaseReference.js";
 
 /**
  * @param {!int} span
  * @param {!Array.<!Float32Array>} pixelGroups
- * @param {!CircuitDefinition} circuitDefinition
  * @returns {!{quality: !number, ket: !Matrix, phaseLockIndex: !int,incoherentKet: !Matrix}}
  */
-function processOutputs(span, pixelGroups, circuitDefinition) {
+function processOutputs(span, pixelGroups) {
   const [ketPixels, qualityPixels, rawIncoherentKetPixels] = pixelGroups;
   const denormalizedQuality = qualityPixels[0];
   const n = 1 << span;
@@ -54,10 +54,9 @@ function processOutputs(span, pixelGroups, circuitDefinition) {
   }
   const quality = denormalizedQuality / unity / incoherentUnity;
 
-  const phaseIndex =
-    span === circuitDefinition.numWires
-      ? undefined
-      : _processOutputs_pickPhaseLockIndex(ketPixels);
+  // Phases are measured from the largest amplitude, as the circuit's state-vector grid measures
+  // them (src/engine/math/phaseReference.js), so one state reads the same in a gate and at the end.
+  const phaseIndex = phaseReferenceIndex(ketPixels) ?? 0;
   const phase =
     phaseIndex === undefined
       ? 0
@@ -79,26 +78,6 @@ function processOutputs(span, pixelGroups, circuitDefinition) {
     phaseLockIndex: phaseIndex,
     incoherentKet: new Matrix(w, h, incoherentKetPixels),
   };
-}
-
-/**
- * @param {!Float32Array} ketPixels
- * @returns {!int}
- * @private
- */
-function _processOutputs_pickPhaseLockIndex(ketPixels) {
-  let result = 0;
-  let best = 0;
-  for (let k = 0; k < ketPixels.length; k += 2) {
-    const r = ketPixels[k];
-    const i = ketPixels[k + 1];
-    const m = r * r + i * i;
-    if (m > best * 10000) {
-      best = m;
-      result = k >> 1;
-    }
-  }
-  return result;
 }
 
 export { processOutputs };

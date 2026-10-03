@@ -58,54 +58,139 @@ KetTextureUtil.tradeTextureForVec4Output = trader => {
 };
 
 /**
+ * Overlays textures end to end in one, so they can be read in a single go.
+ *
+ * @param {!Array.<!WglTexture>} textures
+ * @returns {!{merged: !WglTexture, used: !int, lengths: !Array.<!int>}} The merged texture, which is a
+ *     power of two in size; how many of its pixels hold the textures' data; and how many pixels each
+ *     of the textures takes, in order. The textures themselves are left to the caller.
+ */
+function overlaidForReadback(textures) {
+    const lengths = textures.map(tex => tex.width === 0 ? 0 : 1 << currentShaderCoder().vec4.arrayPowerSizeOfTexture(tex));
+    const used = lengths.reduce((total, length) => total + length, 0);
+    const totalPowerSize = Math.round(Math.log2(ceilingPowerOf2(used)));
+
+    const trader = new WglTextureTrader(Shaders.color(0, 0, 0, 0).toVec4Texture(totalPowerSize));
+    let offset = 0;
+    textures.forEach((tex, i) => {
+        if (tex.width > 0) {
+            trader.shadeAndTrade(acc => CircuitShaders.linearOverlay(offset, tex, acc));
+        }
+        offset += lengths[i];
+    });
+    return {merged: trader.currentTexture, used, lengths};
+}
+
+/**
+ * Cuts the merged pixels back into the arrays of the textures that were overlaid.
+ *
+ * @param {!Array.<!int>} lengths
+ * @param {!Float32Array} combinedPixels
+ * @returns {!Array.<!Float32Array>}
+ */
+function splitReadback(lengths, combinedPixels) {
+    let pixelOffset = 0;
+    return lengths.map(length => {
+        const pixelLen = length << 2;
+        const result = combinedPixels.subarray(pixelOffset, pixelOffset + pixelLen);
+        pixelOffset += pixelLen;
+        return result;
+    });
+}
+
+/**
  * @param {!Array.<!WglTexture>} textures The textures to read and deallocate as a group.
  * @returns {!Array.<!Float32Array>}
  */
 KetTextureUtil.mergedReadFloats = textures => {
-    const len = tex => tex.width === 0 ? 0 : 1 << currentShaderCoder().vec4.arrayPowerSizeOfTexture(tex);
-    const totalPowerSize = Math.round(Math.log2(ceilingPowerOf2(
-        textures.reduce((total, tex) => total + len(tex), 0))));
+    // The merged texture is a power of two in size; only the rows holding the data are read.
+    const {merged, used, lengths} = overlaidForReadback(textures);
+    const combinedPixels = currentShaderCoder().vec4.pixelsToData(merged.readPixels(false, used));
+    merged.deallocByDepositingInPool("mergedReadFloats");
 
-    const trader = new WglTextureTrader(Shaders.color(0, 0, 0, 0).toVec4Texture(totalPowerSize));
-    let offset = 0;
     for (const tex of textures) {
-        if (tex.width > 0) {
-            trader.shadeAndTrade(acc => CircuitShaders.linearOverlay(offset, tex, acc));
-        }
-        offset += len(tex);
-    }
-
-    const combinedPixels = KetTextureUtil.tradeTextureForVec4Output(trader);
-
-    const result = [];
-    let pixelOffset = 0;
-    for (const tex of textures) {
-        const pixelLen = len(tex) << 2;
-        result.push(combinedPixels.subarray(pixelOffset, pixelOffset + pixelLen));
-        pixelOffset += pixelLen;
         tex.deallocByDepositingInPool();
     }
-    return result;
+    return splitReadback(lengths, combinedPixels);
+};
+
+/**
+ * A mergedReadFloats that has been started and not yet finished, because it did not wait for the GPU.
+ */
+class PendingMergedRead {
+    /**
+     * @param {!WglPixelReadback} readback
+     * @param {!Array.<!int>} lengths
+     */
+    constructor(readback, lengths) {
+        /** @private */
+        this._readback = readback;
+        /** @private */
+        this._lengths = lengths;
+    }
+
+    /**
+     * @returns {undefined|!Array.<!Float32Array>} What mergedReadFloats would have returned, once the
+     *     GPU has got that far; undefined until then.
+     * @throws {!DetailedError} If the context was lost meanwhile.
+     */
+    poll() {
+        const pixels = this._readback.poll();
+        return pixels === undefined ? undefined :
+            splitReadback(this._lengths, currentShaderCoder().vec4.pixelsToData(pixels));
+    }
+
+    /** Gives up on the read, freeing what it holds. */
+    cancel() {
+        this._readback.cancel();
+    }
+}
+
+/**
+ * Starts mergedReadFloats without waiting for the GPU, and returns before the data is there.
+ *
+ * Every texture has gone back to the pool when this returns: the read was queued behind the work
+ * that drew them, and the GPU runs commands in the order it was given them, so whatever draws into
+ * those textures next draws after the read.
+ *
+ * @param {!Array.<!WglTexture>} textures The textures to read and deallocate as a group.
+ * @returns {!PendingMergedRead}
+ */
+KetTextureUtil.startMergedReadFloats = textures => {
+    const {merged, used, lengths} = overlaidForReadback(textures);
+    let readback;
+    try {
+        readback = merged.startReadPixels(used);
+    } finally {
+        merged.deallocByDepositingInPool("startMergedReadFloats");
+        for (const tex of textures) {
+            tex.deallocByDepositingInPool();
+        }
+    }
+    return new PendingMergedRead(readback, lengths);
 };
 
 /**
  * @param {!Float32Array} pixels
  * @param {!number} unity
+ * @param {!int=} size How many amplitudes the state has, when more than the pixels hold. The rest are
+ *     zero, as for wires that nothing touched, and are made here so that no second copy is needed to
+ *     pad the state out.
  * @returns {!Matrix}
  */
-KetTextureUtil.pixelsToAmplitudes = (pixels, unity) => {
+KetTextureUtil.pixelsToAmplitudes = (pixels, unity, size = pixels.length >> 1) => {
     // Renormalization factor. For better answers when non-unitary gates are used.
     if (unity < 0.000001) {
         unity = NaN;
     }
 
     const d = Math.sqrt(unity);
-    const n = pixels.length >> 1;
-    const buf = new Float32Array(n * 2);
-    for (let i = 0; i < pixels.length; i++) {
+    const buf = new Float32Array(size * 2);
+    const end = Math.min(pixels.length, buf.length);
+    for (let i = 0; i < end; i++) {
         buf[i] = pixels[i] / d;
     }
-    return new Matrix(1, n, buf);
+    return new Matrix(1, size, buf);
 };
 
 /**

@@ -17,6 +17,13 @@ async function records(page) {
     }));
 }
 
+/** Records from the Steps lane's Record menu: "record-take" for this step, "record-run" for every step. */
+async function record(page, item) {
+    await page.click("#record-button");
+    await page.waitForSelector(`#${item}`, {visible: true});
+    await page.click(`#${item}`);
+}
+
 async function waitSaved(page, count) {
     await page.waitForFunction(expected => [...document.querySelectorAll('.take-card:not(.take-ghost)')].length === expected,
         {timeout: TEST_TIMEOUT_MILLIS}, count);
@@ -29,11 +36,13 @@ test("Tape records, compares, reloads, restores and downloads complete takes", a
         await withQuirkPage(context, {cols: [["H"], ["X"]]}, async page => {
             const client = await page.createCDPSession();
             await client.send("Browser.setDownloadBehavior", {behavior: "allow", downloadPath: directory, browserContextId: context.id});
-            await page.click("#record-take");
+            // From the start, where nothing has run, then one step on.
+            await page.click("#playhead-reset-button");
+            await record(page, "record-take");
             await waitForPanel(page, "tape", true);
             await waitSaved(page, 1);
             await page.click("#playhead-next-button");
-            await page.click("#record-take");
+            await record(page, "record-take");
             await waitSaved(page, 2);
             let saved = (await records(page)).filter(r => !r.ghost);
             assert.deepEqual(saved.map(r => r.take.step).sort(), [0,1]);
@@ -74,7 +83,7 @@ test("Tape whole run uses one phase and links import in a fresh browser context"
     let first;
     try {
         await withQuirkPage(context, {cols: [["H"], ["ZDetector"], ["Sample1"]]}, async page => {
-            await page.click("#record-run");
+            await record(page, "record-run");
             await waitForPanel(page, "tape", true);
             await waitSaved(page, 4);
             const takes = (await records(page)).map(r => r.take).sort((a,b) => a.step-b.step);
@@ -103,7 +112,7 @@ test("Tape validates a whole import before saving any of it", async browser => {
     const directory = await mkdtemp(join(tmpdir(), "quirk-import-"));
     try {
         await withQuirkPage(context, {cols: [["H"]]}, async page => {
-            await page.click("#record-take");
+            await record(page, "record-take");
             await waitSaved(page, 1);
             const take = (await records(page))[0].take;
             const path = join(directory, "album.json");
@@ -129,7 +138,7 @@ test("Keeping a ghost immediately after editing preserves metadata and results o
         const context = await browser.createBrowserContext();
         try {
             await withQuirkPage(context, {cols: [["H"]]}, async page => {
-                await page.click("#record-take");
+                await record(page, "record-take");
                 await waitSaved(page, 1);
                 await page.click("#clear-circuit-button");
                 await page.waitForSelector(".take-ghost");
@@ -163,7 +172,7 @@ test("Tape rejects an album with missing detector data without partial writes", 
     try {
         await withQuirkPage(context, {cols: [["H"], ["ZDetector"]]}, async page => {
             await page.click("#playhead-end-button");
-            await page.click("#record-take");
+            await record(page, "record-take");
             await waitSaved(page, 1);
             const before = await records(page);
             const take = before[0].take;

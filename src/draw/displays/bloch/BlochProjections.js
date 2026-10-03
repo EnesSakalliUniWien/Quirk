@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {drawText, fitText} from '../../text/TextLayout.js';
+import {drawText, fitText, measureText} from '../../text/TextLayout.js';
 import {strokePath, rectangle, circle, arrowHead} from '../../shapes/ShapeView.js';
 
 import {AXIS_COLOR, unitCircleOf} from './BlochGeometry.js';
@@ -36,12 +36,14 @@ const TICKS = [-1, -0.5, 0.5, 1];
  *     circleColor: !string,
  *     point: !Array.<!number>,
  *     length: !number,
+ *     lengthName: !string,
  *     arc: (undefined|!{from: !number, to: !number, label: !string}),
  *     formulas: !Array.<!Array.<(undefined|!string)>>,
  *     note: (undefined|!string),
  * }} ProjectionGeometry
  * point is in the plane's own coordinates, across then up; the arc's angles are in that plane,
- * counter-clockwise from the across axis.
+ * counter-clockwise from the across axis. lengthName says what the badge's length is: the
+ * meridian holds the whole vector, |r|; the equator only its shadow, |r| sin θ.
  */
 
 /**
@@ -68,6 +70,7 @@ function projectionGeometry(vec, plane, reading = blochReading(vec)) {
             circleColor: AXIS_COLOR.z,
             point: [vec.x, vec.y],
             length: reading.rxy,
+            lengthName: '|r| sin θ',
             arc: reading.phi === undefined ? undefined : {from: 0, to: reading.phi, label: `ϕ ${degreesText(reading.phi)}`},
             formulas: [['x', formulas.x], ['y', formulas.y]],
             note: note ?? (reading.rule === 'polar' ? POLAR_NOTE : undefined),
@@ -83,6 +86,7 @@ function projectionGeometry(vec, plane, reading = blochReading(vec)) {
         // In its own meridian the vector stands ρ = |r| sin θ out from the z axis, on the side it faces.
         point: [turned ? reading.rxy : vec.x, vec.z],
         length: reading.r,
+        lengthName: '|r|',
         // θ turns from +z (at π/2 in the plane) toward the vector, which lies at π/2 − θ.
         arc: reading.theta === undefined ? undefined :
             {from: Math.PI / 2, to: Math.PI / 2 - reading.theta, label: `θ ${degreesText(reading.theta)}`},
@@ -123,7 +127,14 @@ function paintBlochProjection(view, width, height, vec, plane, {focusAxis, layer
     const {across, up} = geometry;
     forAxis('across-axis', across.letter, inner => {
         strokePath(inner, [at(-1.12, 0), at(1.12, 0)], across.color, 1);
-        for (const t of TICKS) {
+        // ρ is a distance out from z, never negative: the meridian's left half is the opposite
+        // azimuth, ϕ + 180°, so it carries no ticks of its own.
+        const radial = across.letter === 'ρ';
+        if (radial) {
+            drawText(inner, 'ϕ + 180°', {x: at(-1.12, 0).x, y: cy + 12, fill: CanvasTheme.text.muted,
+                font: font(11), align: 'left', baseline: 'middle'});
+        }
+        for (const t of radial ? TICKS.filter(t => t > 0) : TICKS) {
             strokePath(inner, [at(t, 0).offsetBy(0, -3), at(t, 0).offsetBy(0, 3)], across.color, 1);
             drawText(inner, String(t), {x: at(t, 0).x, y: cy + 12, fill: CanvasTheme.text.muted,
                 font: font(11), align: 'center', baseline: 'middle'});
@@ -174,11 +185,14 @@ function paintBlochProjection(view, width, height, vec, plane, {focusAxis, layer
             drawText(view, arc.label, {x: 10, y: 12, fill: CanvasTheme.text.primary,
                 font: font(12), align: 'left', baseline: 'middle'});
         }
-        // How long the shadow is, on a badge at its tip, pushed outward so it clears the arrowhead.
+        // How long the shadow is, named, on a badge at its tip, pushed outward so it clears the
+        // arrowhead and kept inside the plot.
         const outward = center.distanceTo(tip) < 1 ? new Point(0, -1) :
             tip.minus(center).times(1 / center.distanceTo(tip));
-        plated(view, geometry.length.toFixed(3),
-            Math.max(24, Math.min(width - 24, tip.x + outward.x * 22)),
+        const badge = `${geometry.lengthName} ${geometry.length.toFixed(3)}`;
+        const half = measureText(badge, font(11)).width / 2 + 4;
+        plated(view, badge,
+            Math.max(half, Math.min(width - half, tip.x + outward.x * (half + 8))),
             Math.max(14, Math.min(plot - 14, tip.y + outward.y * 16)),
             CanvasTheme.bloch.vector, font(11));
     }

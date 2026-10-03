@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-import {CanvasTheme} from "../../config/CanvasTheme.js"
 import {GateBuilder} from "../../circuit/model/Gate.js"
-import {makeLocationIndependentGateRenderer} from '../../draw/gate/GateRenderers.js';
+import {LOCATION_INDEPENDENT_GATE_RENDERER} from '../../draw/gate/GateRenderers.js';
 import {Matrix} from "../../engine/math/matrix/Matrix.js"
 
 /** @type {!Gate} */
@@ -24,7 +23,8 @@ const ZeroGate = new GateBuilder().
     setSerializedIdAndSymbol("0").
     setTitle("Nothing Gate").
     setBlurb("Destroys the universe.").
-    setRenderer(makeLocationIndependentGateRenderer(CanvasTheme.text.muted)).
+    // A plain tile: a grey fill under the white 0 read at 2:1, and its blurb already says what it does.
+    setRenderer(LOCATION_INDEPENDENT_GATE_RENDERER).
     setKnownEffectToMatrix(Matrix.square(0, 0, 0, 0)).
     gate;
 

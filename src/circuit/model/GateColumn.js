@@ -23,6 +23,12 @@ import { mergeMaps } from "../../base/maps.js";
 /**
  * A column of gates in a circuit with many qubits.
  */
+/**
+ * How the reason a gate waits for an input starts: "Add input A to this column". A gate waiting for
+ * its input is a circuit half built, not a mistake, so it is drawn as waiting and says what to add.
+ */
+const MISSING_INPUT_REASON = "Add input";
+
 class GateColumn {
     /**
      * A column of gates in a circuit with many qubits.
@@ -289,9 +295,9 @@ class GateColumn {
             }
         }
         if (missing.length > 0) {
-            return "Need\nInput\n " + missing.
-                map(e => e.replace("Input NO_DEFAULT Range ", "").replace("Input Range ", "")).
-                join(", ");
+            const letters = missing.map(e => e.replace("Input NO_DEFAULT Range ", "").replace("Input Range ", ""));
+            // An input only reaches the gates in its own column, which is the part that is easy to miss.
+            return `${MISSING_INPUT_REASON}${letters.length > 1 ? "s" : ""} ${letters.join(", ")}\nto this column`;
         }
 
         return undefined;
@@ -541,4 +547,4 @@ class GateColumn {
     }
 }
 
-export {GateColumn}
+export {GateColumn, MISSING_INPUT_REASON}

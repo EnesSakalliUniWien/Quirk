@@ -42,7 +42,7 @@ const AmplitudeDisplayFamily = Gate.buildFamily(1, 16, (span, builder) =>
         span,
       ),
     )
-    .setStatPixelDataPostProcessor((val, def) => processOutputs(span, val, def))
+    .setStatPixelDataPostProcessor((val) => processOutputs(span, val))
     .setProcessedStatsToJsonFunc(customStatsToJsonData)
     .setRenderer(AMPLITUDE_RENDERER_FROM_CUSTOM_STATS),
 );

@@ -30,6 +30,38 @@ import { ceilLg2 } from "../../engine/math/powersOfTwo.js";
 
 const Controls = {};
 
+/** An X or Y control's face: larger than a Z control's dot, so its mark reads. */
+const AXIS_CONTROL_RADIUS = 6.5;
+
+/**
+ * An X or Y control, drawn in its axis's hue - the hue its gates and its Bloch axis wear - so it
+ * is told from a Z control (the white dot and ring) and from the large filled ⊕ a CNOT targets.
+ * The marks inside say which state it conditions on.
+ * @param {!function(): !string} hue The axis colour, read when drawn so the scheme is current.
+ * @param {!function(!Point, !number): !Array.<!Array.<!Point>>} marks Strokes across the face.
+ */
+const axisControlRenderer = (hue, marks) => args => {
+    if (args.isHighlighted) {
+        paintBackground(args);
+        paintOutline(args);
+    }
+    const p = args.rect.center();
+    const r = AXIS_CONTROL_RADIUS;
+    circle(args.painter, p, r, {fill: CanvasTheme.surface.gate});
+    circle(args.painter, p, r, {stroke: {color: hue(), width: 1.5}});
+    for (const stroke of marks(p, r)) {
+        strokePath(args.painter, stroke, hue(), 1.5);
+    }
+};
+const xHue = () => CanvasTheme.bloch.axisX;
+const yHue = () => CanvasTheme.bloch.axisY;
+const across = (p, r) => [p.offsetBy(-r, 0), p.offsetBy(+r, 0)];
+const upright = (p, r) => [p.offsetBy(0, -r), p.offsetBy(0, +r)];
+const diagonal = (p, r, sign) => {
+    const d = r * Math.sqrt(0.5);
+    return [p.offsetBy(+d, -d * sign), p.offsetBy(-d, +d * sign)];
+};
+
 Controls.Control = new GateBuilder().
     setSerializedIdAndSymbol("•").
     setTitle("Control").
@@ -78,16 +110,7 @@ Controls.XAntiControl = new GateBuilder().
     setActualEffectToUpdateFunc(() => {}).
     promiseEffectIsStable().
     promiseEffectIsUnitary().
-    setRenderer(args => {
-        if (args.isHighlighted) {
-            paintBackground(args);
-            paintOutline(args);
-        }
-        const p = args.rect.center();
-        circle(args.painter, p, 5, {fill: CanvasTheme.surface.gate});
-        circle(args.painter, p, 5, {stroke: {color: CanvasTheme.text.primary, width: 1}});
-        strokePath(args.painter, [p.offsetBy(-5, 0), p.offsetBy(+5, 0)], CanvasTheme.text.primary, 1);
-    }).
+    setRenderer(axisControlRenderer(xHue, (p, r) => [across(p, r)])).
     gate;
 
 Controls.XControl = new GateBuilder().
@@ -104,17 +127,7 @@ Controls.XControl = new GateBuilder().
     setActualEffectToUpdateFunc(() => {}).
     promiseEffectIsStable().
     promiseEffectIsUnitary().
-    setRenderer(args => {
-        if (args.isHighlighted) {
-            paintBackground(args);
-            paintOutline(args);
-        }
-        const p = args.rect.center();
-        circle(args.painter, p, 5, {fill: CanvasTheme.surface.gate});
-        circle(args.painter, p, 5, {stroke: {color: CanvasTheme.text.primary, width: 1}});
-        strokePath(args.painter, [p.offsetBy(0, -5), p.offsetBy(0, +5)], CanvasTheme.text.primary, 1);
-        strokePath(args.painter, [p.offsetBy(-5, 0), p.offsetBy(+5, 0)], CanvasTheme.text.primary, 1);
-    }).
+    setRenderer(axisControlRenderer(xHue, (p, r) => [upright(p, r), across(p, r)])).
     gate;
 
 Controls.YAntiControl = new GateBuilder().
@@ -130,20 +143,7 @@ Controls.YAntiControl = new GateBuilder().
     setActualEffectToUpdateFunc(() => {}).
     promiseEffectIsStable().
     promiseEffectIsUnitary().
-    setRenderer(args => {
-        if (args.isHighlighted) {
-            paintBackground(args);
-            paintOutline(args);
-        }
-        const p = args.rect.center();
-        circle(args.painter, p, 5, {fill: CanvasTheme.surface.gate});
-        circle(args.painter, p, 5, {stroke: {color: CanvasTheme.text.primary, width: 1}});
-        const r = 5*Math.sqrt(0.5)*1.1;
-        strokePath(args.painter, [p.offsetBy(+r, -r), p.offsetBy(-r, +r)], CanvasTheme.text.primary, 1);
-        if (args.isHighlighted) {
-            paintOutline(args);
-        }
-    }).
+    setRenderer(axisControlRenderer(yHue, (p, r) => [diagonal(p, r, 1)])).
     gate;
 
 Controls.YControl = new GateBuilder().
@@ -160,21 +160,7 @@ Controls.YControl = new GateBuilder().
     setActualEffectToUpdateFunc(() => {}).
     promiseEffectIsStable().
     promiseEffectIsUnitary().
-    setRenderer(ctx => {
-        if (ctx.isHighlighted) {
-            paintBackground(ctx);
-            paintOutline(ctx);
-        }
-        const p = ctx.rect.center();
-        ctx.painter.fillCircle(p, 5);
-        ctx.painter.strokeCircle(p, 5);
-        const r = 5*Math.sqrt(0.5);
-        ctx.painter.strokeLine(p.offsetBy(+r, +r), p.offsetBy(-r, -r));
-        ctx.painter.strokeLine(p.offsetBy(+r, -r), p.offsetBy(-r, +r));
-        if (ctx.isHighlighted) {
-            paintOutline(ctx);
-        }
-    }).
+    setRenderer(axisControlRenderer(yHue, (p, r) => [diagonal(p, r, 1), diagonal(p, r, -1)])).
     gate;
 
 const PARITY_SHADER = ketShaderPermute(
@@ -235,7 +221,7 @@ function parityRenderer(name) {
         });
         fitLine(args.painter, 'par', center, {
             horizontal: 0.5,
-            fill: CanvasTheme.error.text,
+            fill: CanvasTheme.text.muted,
             maxFontSize: 10,
             vertical: 1
         });

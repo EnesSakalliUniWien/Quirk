@@ -49,38 +49,28 @@
         background: var(--phase-legend);
     }
 
-    /* As tall as its rows, up to the room left in the panel; then it scrolls. */
+    /* As tall as its rows, up to the room left in the panel; then it scrolls. The table renders only
+       the rows in view and keeps the position of the rest with spacers, so the browser must not
+       also move the scroll position when they change. */
     .state-table-scroll {
         container-type: inline-size;
         flex: 0 1 auto;
         min-height: 0;
         overflow: auto;
+        overflow-anchor: none;
         border: var(--border-width) solid var(--border);
         border-radius: 10px;
     }
 
+    /* Fixed, so a column keeps its width however far the rows scroll: only the rows in view are
+       there for the browser to size it from. Their widths are below. */
     .state-table {
         width: 100%;
+        table-layout: fixed;
         border-collapse: collapse;
         font-family: var(--font-mono);
         font-size: var(--text-small);
         font-variant-numeric: tabular-nums;
-    }
-
-    .state-table:not(.state-table-registers) th:nth-child(1) {
-        width: 18%;
-    }
-
-    .state-table:not(.state-table-registers) th:nth-child(2) {
-        width: 26%;
-    }
-
-    .state-table:not(.state-table-registers) th:nth-child(3) {
-        width: 30%;
-    }
-
-    .state-table:not(.state-table-registers) th:nth-child(4) {
-        width: 26%;
     }
 
     .state-table th {
@@ -96,9 +86,17 @@
         white-space: nowrap;
     }
 
+    /* Every row is this tall, which is what lets the spacers stand in for the rows that are not
+       rendered. A row's content is shorter, so this is the height it has. */
+    .state-table tbody tr {
+        height: 1.75rem;
+    }
+
     .state-table td {
         padding: 3px calc(var(--spacing) * 3);
+        overflow: hidden;
         border-bottom: var(--border-width) solid var(--table-divider);
+        text-overflow: ellipsis;
         white-space: nowrap;
     }
 
@@ -123,8 +121,14 @@
         border-bottom: 0;
     }
 
-    /* Percentages rather than content widths, so the columns hold still as the numbers
-       change from one step to the next. */
+    /* The rows that are not rendered: just their height, with nothing of a row's own. */
+    .state-table .state-spacer > td {
+        position: static;
+        padding: 0;
+        background: none;
+        border: 0;
+    }
+
     /* The registers read together: letters run into a word, so they get a little air. */
     .state-sequence {
         font-family: var(--font-mono);
@@ -132,20 +136,20 @@
         letter-spacing: 0.08em;
     }
 
-    .state-ket {
-        width: 18%;
-    }
-
+    /* Each column is as wide as its widest cell or its header, in the units of what it holds, so
+       the columns hold still as the numbers change from one step to the next. The panel sizes the
+       columns of kets and registers, from the wires and the registers; a panel narrower than all
+       the columns together scrolls the table sideways. */
     .state-probability {
-        width: 26%;
+        width: calc(88px + var(--spacing) * 8 + 6ch);
     }
 
     .state-amplitude {
-        width: 30%;
+        width: calc(14ch + var(--spacing) * 6);
     }
 
     .state-phase {
-        width: 26%;
+        width: calc(11ch + var(--spacing) * 6);
     }
 
     .state-bar,
@@ -197,9 +201,14 @@
         }
     }
 
+    /* The bar is narrower, and so is the column that holds it. */
     @container (max-width: 520px) {
         .state-bar {
             width: 40px;
+        }
+
+        .state-probability {
+            width: calc(40px + var(--spacing) * 8 + 6ch);
         }
     }
 }

@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-import { fitText, fitParagraph } from "../../../draw/text/TextLayout.js";
-import { drawsAsPixels, paintPhaseKey } from "../../../draw/displays/complex/MatrixView.js";
+import { fitText, fitParagraph, measureText } from "../../../draw/text/TextLayout.js";
+import { ketLabel, wireLabel } from "../../../circuit/registerLabels.js";
+import { referencedOutputGrid } from "./CircuitAmplitudes.js";
+import { drawsAsPixels, paintPhaseWheel } from "../../../draw/displays/complex/MatrixView.js";
 import { CanvasTheme } from "../../../config/CanvasTheme.js";
 import { Typography } from "../../../config/Typography.js";
 import { Point } from "../../../geometry/Point.js";
@@ -26,8 +28,22 @@ import {
   DISPLAY_CAPTION_GAP,
 } from "../../geometry/CircuitLayoutConstants.js";
 
-/** The phase key's widest extent under a wide grid. */
-const PHASE_KEY_MAX_WIDTH = 220;
+/** A key line's height on the canvas, which a 12px line fits. */
+const KEY_LINE_HEIGHT = 16;
+/** The smallest the key's lines are set; a narrower key shrinks a long line further on its own. */
+const KEY_MIN_FONT_SIZE = 10;
+
+/** The phase wheel's radius in the grid's key. */
+const PHASE_WHEEL_RADIUS = 14;
+/** The most a caveat under the key may take: two lines. */
+const CAVEAT_HEIGHT = 30;
+
+/**
+ * Where the followed state stands, for the captions: before every operation, or after one.
+ * @param {!{operation: !int}} follow
+ * @returns {!string}
+ */
+const followedPoint = (follow) => follow.operation === 0 ? "at the start" : `after operation ${follow.operation}`;
 
 /** Caption below the per-wire probability and Bloch outputs. */
 function drawLocalStateCaption(context, painter, numWire, chanceCol) {
@@ -40,7 +56,9 @@ function drawLocalStateCaption(context, painter, numWire, chanceCol) {
   );
   fitParagraph(
     painter,
-    "Local wire states\n(Chance/Bloch)",
+    context.follow === undefined
+      ? "Local wire states\n(Chance/Bloch)"
+      : `Local wire states\n${followedPoint(context.follow)}`,
     new Rect(capX, bottom + 8, capW, 40),
     {
       alignment: new Point(0.5, 0),
@@ -60,77 +78,94 @@ function drawLocalStateCaption(context, painter, numWire, chanceCol) {
 function drawHintLabels(context, painter, stats) {
   const gridRect = context.geometry.rectForSuperpositionDisplay();
   const numWire = context.geometry.importantWireCount();
-  const pixels = drawsAsPixels(1 << Math.floor(numWire / 2), 1 << Math.ceil(numWire / 2), gridRect);
+  const pixels = drawsAsPixels(1 << Math.floor(numWire / 2), 1 << Math.ceil(numWire / 2), gridRect, numWire);
   const x = gridRect.x;
   const width = Math.max(gridRect.w, DISPLAY_CAPTION_WIDTH);
   let y = gridRect.bottom() + SUPERPOSITION_GRID_LABEL_SPAN + DISPLAY_CAPTION_GAP;
+  /** One line of the key: the title at its own size, the rest at the size they share. */
+  const line = (text, { fill = CanvasTheme.text.muted, fontWeight = "normal", fontSize = 12 } = {}) => {
+    fitText(painter, text, {
+      x,
+      y,
+      align: "left",
+      baseline: "top",
+      fill,
+      font: { fontSize, fontFamily: Typography.DEFAULT_FONT_FAMILY, fontWeight },
+      width,
+      height: KEY_LINE_HEIGHT,
+    });
+    y += KEY_LINE_HEIGHT;
+  };
 
-  fitText(painter, "State-vector grid", {
-    x,
-    y,
+  line(context.follow === undefined ? "State-vector grid" : `State-vector grid · ${followedPoint(context.follow)}`,
+    { fill: CanvasTheme.text.primary, fontWeight: "600" });
+
+  // What each cell's marks encode, a short line each, so every line fits the key at one size;
+  // otherwise only hovering says. Colour means phase and nothing else, so it is named once, beside
+  // the wheel below; every other mark is a neutral ink.
+  const lines = pixels
+    ? ["opacity = magnitude vs largest"]
+    : ["disc size = magnitude", "bar = chance · ring = log chance"];
+  // Which amplitude the phases are measured from, since only the phases between them are physical:
+  // its phase is the wheel's 0°.
+  const { reference } = referencedOutputGrid(context);
+  const registers = context.definition.registers.fittingIn(numWire);
+  if (reference !== undefined) {
+    const from = `|${ketLabel(registers, numWire, reference)}⟩`;
+    lines.push(pixels ? `phase 0° at ${from}` : `hand = phase, 0° at ${from}`);
+  }
+  // How a cell's ket is read off the labels: the row's bits, then the column's, highest wire first.
+  const colWires = Math.floor(numWire / 2);
+  const wires = (from, to) => Array.from({ length: from - to + 1 }, (_, i) => wireLabel(registers, from - i)).join(" ");
+  lines.push(colWires === 0
+    ? `ket = rows ${wires(numWire - 1, 0)}`
+    : `ket = rows ${wires(numWire - 1, colWires)}, then columns ${wires(colWires - 1, 0)}`);
+  // One size for all of them - the largest at which the longest fits - so the key reads as one block.
+  const keyFont = { fontSize: 12, fontFamily: Typography.DEFAULT_FONT_FAMILY };
+  const widest = Math.max(...lines.map((text) => measureText(text, keyFont).width));
+  const fontSize = Math.max(KEY_MIN_FONT_SIZE, Math.min(12, (12 * width) / widest));
+  for (const text of lines) line(text, { fontSize });
+
+  // The wheel, and what it keys beside it.
+  y += 4;
+  const wheel = paintPhaseWheel(painter, x, y, PHASE_WHEEL_RADIUS);
+  fitText(painter, "colour = phase", {
+    x: x + wheel.width + 8,
+    y: y + wheel.height / 2,
     align: "left",
-    baseline: "top",
+    baseline: "middle",
     fill: CanvasTheme.text.muted,
-    font: { fontSize: 12, fontFamily: Typography.DEFAULT_FONT_FAMILY },
-    width,
-    height: 16,
+    font: { fontSize, fontFamily: Typography.DEFAULT_FONT_FAMILY },
+    width: width - wheel.width - 8,
+    height: KEY_LINE_HEIGHT,
   });
-  y += 16;
+  y += wheel.height + 4;
 
-  // Says what each cell's marks encode, which is otherwise only discoverable by hovering.
-  fitParagraph(
-    painter,
-    pixels
-      ? "colour = phase · opacity = magnitude vs largest"
-      : "area = chance · ring = log chance · line = phase",
-    new Rect(x, y, width, 24),
-    {
+  // The caveats, together under the key, each a plain sentence. They describe the state shown, so
+  // they follow the playhead: before a measurement there is none to defer.
+  const caveat = (text, fill = CanvasTheme.text.muted) => {
+    const used = fitParagraph(painter, text, new Rect(x, y, width, CAVEAT_HEIGHT), {
       alignment: new Point(0, 0),
-      fill: CanvasTheme.text.muted,
-      maxFontSize: 10,
-    },
-  );
-  y += 24;
-  if (pixels) {
-    paintPhaseKey(painter, new Rect(x, y, Math.min(width, PHASE_KEY_MAX_WIDTH), 10));
-    y += 12;
+      fill,
+      maxFontSize: 11,
+    });
+    y += used.h + 3;
+  };
+  if (stats.circuitDefinition.colIsMeasuredMask(Infinity) !== 0) {
+    // A caveat, not an error: magenta is kept for what went wrong.
+    caveat("Measurements shown as if made at the end: the coherent state, not one outcome.");
   }
-
-  // Deferred measurement warning.
-  if (context.definition.colIsMeasuredMask(Infinity) !== 0) {
-    fitParagraph(
-      painter,
-      "(assuming measurement deferred)",
-      new Rect(x, y, width, 14),
-      {
-        alignment: new Point(0, 0),
-        fill: CanvasTheme.error.text,
-      },
-    );
-  }
-
-  // Discard rate warning.
   const survivalRate = stats.survivalRate(Infinity);
   if (Math.abs(survivalRate - 1) > 0.01) {
-    let desc;
     if (survivalRate < 1) {
       const rate = Math.round(survivalRate * 100);
-      const rateDesc = survivalRate === 0 ? "0" : rate > 0 ? rate : "<1";
-      desc = `kept: ${rateDesc}%`;
+      const kept = survivalRate === 0 ? "0" : rate > 0 ? rate : "<1";
+      caveat(`Post-selection keeps ${kept}% of runs; the chances shown are of those.`);
     } else {
-      const factor = Math.round(survivalRate * 100);
-      desc = `over-unity: ${factor}%`;
+      // More than every run surviving is not physical: that one is a mistake in the circuit.
+      caveat(`Over-unity: ${Math.round(survivalRate * 100)}% of runs survive, so an operation is not unitary.`,
+        CanvasTheme.error.text);
     }
-    fitText(painter, desc, {
-      x: context.geometry.rectForSuperpositionDisplay().x - 5,
-      y: gridRect.bottom() + SUPERPOSITION_GRID_LABEL_SPAN + 20,
-      align: "right",
-      baseline: "bottom",
-      fill: CanvasTheme.error.text,
-      font: { fontSize: 14, fontFamily: Typography.DEFAULT_FONT_FAMILY },
-      width: 800,
-      height: 50,
-    });
   }
 }
 

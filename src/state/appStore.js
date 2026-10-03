@@ -73,12 +73,23 @@ const appStore = createStore((set) => ({
   },
   /** @type {undefined|!Playhead} Set once by startQuirk. */
   playhead: undefined,
-  /** @type {!boolean} Whether the circuit is being debugged: a transport command has stopped the
-   *  animation, and t moves only with the playhead's steps. Mirrored from Simulator. */
-  debugging: false,
-  /** @type {undefined|!function(): void} Ends the debugging: the playhead returns to the start and
-   *  the animation runs again. Set once by startQuirk. */
-  stopDebugging: undefined,
+  /** @type {!boolean} Whether the circuit has gates that move with t, so the Time lane acts. */
+  cycleAnimates: false,
+  /** @type {undefined|!string} What stands the t cycle still: 'take', 'recording' or 'paused';
+   *  undefined while it runs. Mirrored from Simulator. */
+  cycleHold: undefined,
+  /** @type {!number} How fast the Steps lane's Play runs, a multiple of its pace in Animation.js. */
+  stepSpeed: 1,
+  /** @type {!number} How fast t's cycle runs, a multiple of its pace in Animation.js. */
+  timeSpeed: 1,
+  /** @type {undefined|!function(!number): void} Sets stepSpeed, one of Animation.SPEEDS. */
+  setStepSpeed: undefined,
+  /** @type {undefined|!function(!number): void} Sets timeSpeed, one of Animation.SPEEDS. */
+  setTimeSpeed: undefined,
+  /** @type {undefined|!{toggle: !function(): void, nudge: !function(!int): void,
+   *      scrub: !function(!number): void}} The Time lane's actions: pause or run the cycle, move it a
+   *  nudge either way, and put it at a phase. Set once by startQuirk. */
+  cycleControls: undefined,
   /** @type {undefined|!Object} Records and restores completed simulation results. */
   recorder: undefined,
 
@@ -99,8 +110,12 @@ const appStore = createStore((set) => ({
   /** What the panels read the circuit through. Published once by startQuirk.
    *  @type {undefined|!{revision: !Revision, displayed: import("zustand/vanilla").StoreApi,
    *      mostRecentStats: import("zustand/vanilla").StoreApi, completed: import("zustand/vanilla").StoreApi, recorder: !Object,
-   *      cycleTime: !function(): !number}} */
+   *      cycleTime: !function(): !number, stablePrefix: !StablePrefix}} */
   panelDeps: undefined,
+
+  /** @type {!string} The state-vector grid in words, for assistive technology; written by the
+   *  redraw loop, at most twice a second, from the state the grid shows. */
+  outputSummary: "",
 
   /** @type {undefined|!{col: !int, row: !int, gate: !Gate}} The gate the parameter panel edits,
    *  set by the click that opens it. Transient, so it is not part of the dock's layout. */

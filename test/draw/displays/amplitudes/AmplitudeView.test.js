@@ -29,7 +29,7 @@ suite.test('amplitude cells fit inside their gate, and the frame follows the cel
     // A two-wire display is taller than it is wide: 152 units of wires against 120 of columns.
     const rect = new Rect(10, 10, 120, 152);
     const view = await drawDisplay(2, Matrix.fromRows([[0.5, 0.5], [0.5, 0.5]]), rect);
-    const [x, y, diam, cols, rows] = view.children.find(child => child.previous).previous.values;
+    const {x, y, diam, cols, rows} = view.children.find(child => child.kinds !== undefined).previous;
     assertThat(x >= rect.x && y >= rect.y && x + diam*cols <= rect.right() && y + diam*rows <= rect.bottom()).isEqualTo(true);
     const frames = [];
     // Frames are rounded tiles: their stroke colour sits after the corner radius.
@@ -61,9 +61,10 @@ suite.test('caption, phase hands and inspector agree near the coherence threshol
         AMPLITUDE_RENDERER_FROM_CUSTOM_STATS({painter:view,gate,stats,customStats:data,
             positionInCircuit:{row:0,col:0},rect:new Rect(0,0,120,40),focusPoints:[]});
         await view.commit();
-        const graphic = view.children.find(child=>child.previous);
-        assertThat(graphic.previous.buf).isEqualTo(inspector.matrix.rawBuffer());
-        assertThat(graphic.previous.colors.some(color=>color!==undefined)).isEqualTo(inspector.coherent);
+        const cells = view.children.find(child=>child.kinds !== undefined);
+        assertThat(cells.previous.buf).isEqualTo(inspector.matrix.rawBuffer());
+        // A hand is drawn exactly when the inspector says the phases are defined.
+        assertThat(cells.kinds[5].some(hand=>hand.alpha>0)).isEqualTo(inspector.coherent);
         const texts=[];
         const collect=node=>{if(typeof node.text==='string')texts.push(node.text);for(const child of node.children??[])collect(child);};
         collect(view);

@@ -78,16 +78,31 @@ test('the algebra steps run left to right, follow the playhead and scroll sidewa
             () => document.querySelectorAll('[data-panel-id="algebra"] .algebra-step').length === 9,
             {timeout: TEST_TIMEOUT_MILLIS});
 
+        const lastInSight = () => page.waitForFunction(() => {
+            const track = document.querySelector('[data-panel-id="algebra"] .algebra-steps');
+            const card = track.querySelector('[data-step="8"]');
+            const t = track.getBoundingClientRect(), c = card.getBoundingClientRect();
+            return card.getAttribute('aria-current') === 'step' && c.left >= t.left - 1 &&
+                (c.width > t.width ? c.left <= t.left + 1 : c.right <= t.right + 1);
+        }, {timeout: TEST_TIMEOUT_MILLIS});
         const layout = await page.evaluate(() => {
             const track = document.querySelector('[data-panel-id="algebra"] .algebra-steps');
             const [first, second] = track.querySelectorAll('.algebra-step');
             const a = first.getBoundingClientRect(), b = second.getBoundingClientRect();
             return {sideBySide: b.left >= a.right - 1 && Math.abs(b.top - a.top) < 1,
-                    overflows: track.scrollWidth > track.clientWidth, scrollLeft: track.scrollLeft};
+                    overflows: track.scrollWidth > track.clientWidth};
         });
         assert.ok(layout.sideBySide, 'Steps must run left to right, not down the panel.');
         assert.ok(layout.overflows, 'Eight steps must be wider than the panel, so it scrolls.');
-        assert.equal(layout.scrollLeft, 0, 'The playhead starts at the first step.');
+        // The panel opens on the playhead's step: at rest, the last.
+        await lastInSight();
+
+        // Back at the start, the view goes with the playhead to the first step.
+        await page.click('#playhead-reset-button');
+        await page.waitForFunction(() => {
+            const track = document.querySelector('[data-panel-id="algebra"] .algebra-steps');
+            return track.scrollLeft === 0 && track.querySelector('[data-step="0"]').getAttribute('aria-current') === 'step';
+        }, {timeout: TEST_TIMEOUT_MILLIS});
 
         // A horizontal gesture over the steps scrolls them sideways.
         const box = await page.$eval('[data-panel-id="algebra"] .algebra-steps', el => {
@@ -101,13 +116,7 @@ test('the algebra steps run left to right, follow the playhead and scroll sidewa
 
         // Stepping moves the view with it: the last step ends up in sight.
         await page.click('#playhead-end-button');
-        await page.waitForFunction(() => {
-            const track = document.querySelector('[data-panel-id="algebra"] .algebra-steps');
-            const card = track.querySelector('[data-step="8"]');
-            const t = track.getBoundingClientRect(), c = card.getBoundingClientRect();
-            return card.getAttribute('aria-current') === 'step' && c.left >= t.left - 1 &&
-                (c.width > t.width ? c.left <= t.left + 1 : c.right <= t.right + 1);
-        }, {timeout: TEST_TIMEOUT_MILLIS});
+        await lastInSight();
     });
 });
 
@@ -271,20 +280,27 @@ test('the probabilities panel keeps a large state to the outcomes some step allo
     });
 });
 
-test('spinning gates stand still once the transport debugs the circuit', async browser => {
-    // X^t turns its wire over the animation cycle, until a transport command starts the debugging:
-    // from then on t moves only with the playhead's steps. (test_e2e/transport.test.js covers the
-    // increments, and the cycle running again once the debugging is stopped.)
+test('spinning gates keep turning while the circuit is stepped, and stand still when t is paused', async browser => {
+    // Steps and time are separate lanes: running the playhead to the end leaves X^t turning its wire,
+    // and only the Time lane's pause stands it still. (test_e2e/transport.test.js covers the lanes.)
     await withQuirkPage(browser, {cols: [['X^t']]}, async page => {
         await runToEnd(page, 1);
         await page.click('#qubits-button');
         await waitForPanel(page, 'qubits', true);
         const chanceOfOne = '[data-panel-id="qubits"] [data-qubit="0"] .qubits-number';
+        const read = () => page.$eval(chanceOfOne, cell => cell.textContent);
         const first = await page.waitForFunction(selector => document.querySelector(selector)?.textContent,
             {timeout: TEST_TIMEOUT_MILLIS}, chanceOfOne).then(handle => handle.jsonValue());
+        await page.waitForFunction((selector, was) => document.querySelector(selector)?.textContent !== was,
+            {timeout: TEST_TIMEOUT_MILLIS}, chanceOfOne, first);
+
+        await page.click('#time-play-button');
+        await page.waitForFunction(() => document.getElementById('time-hold').textContent === 'paused',
+            {timeout: TEST_TIMEOUT_MILLIS});
+        await new Promise(resolve => setTimeout(resolve, 300));
+        const stood = await read();
         await new Promise(resolve => setTimeout(resolve, 500));
-        assert.equal(await page.$eval(chanceOfOne, cell => cell.textContent), first);
-        assert.equal(await page.$eval('#debug-stop-button', button => button.disabled), false);
+        assert.equal(await read(), stood, 'A paused t must stand the gate still.');
     });
 });
 
@@ -295,9 +311,14 @@ test('the qubits panel shows which qubits the circuit has entangled', async brow
         const readPurities = () => page.evaluate(() =>
             [...document.querySelectorAll('[data-panel-id="qubits"] .qubits-purity')].
                 map(cell => cell.textContent));
-        // Before anything runs both qubits are |0>, each in a state of its own.
+        // At the start, before anything runs, both qubits are |0>, each in a state of its own.
+        await page.click('#playhead-reset-button');
         await page.waitForFunction(
-            () => document.querySelectorAll('[data-panel-id="qubits"] .qubits-purity').length === 2,
+            () => document.querySelectorAll('[data-panel-id="qubits"] .qubits-purity').length === 2 &&
+                document.getElementById('playhead-position').textContent.startsWith('operation 0'),
+            {timeout: TEST_TIMEOUT_MILLIS});
+        await page.waitForFunction(
+            () => [...document.querySelectorAll('[data-panel-id="qubits"] .qubits-purity')].every(cell => cell.textContent === '1.000'),
             {timeout: TEST_TIMEOUT_MILLIS});
         assert.deepEqual(await readPurities(), ['1.000', '1.000']);
 

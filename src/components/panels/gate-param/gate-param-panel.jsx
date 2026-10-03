@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useMemo, useRef, useState} from 'react';
 import {useStore} from 'zustand';
 import {GateColumn} from '../../../circuit/model/GateColumn.js';
 import {appStore} from '../../../state/appStore.js';
@@ -14,11 +14,15 @@ export function GateParamPanel() {
     return target ? <ParameterEditor key={`${target.col}:${target.row}:${target.gate.serializedId}:${target.gate.param}`} deps={deps} target={target} /> : <ParameterList deps={deps} />;
 }
 function ParameterList({deps}) {
-    const shown = useStore(deps.displayed,s => s.value);
-    const entries = [];
-    shown.displayedCircuit.circuitDefinition.columns.forEach((column,col) => column.gates.forEach((gate,row) => {
-        if (gate?.paramDialog) entries.push({gate,col,row});
-    }));
+    // The circuit, not the whole state: its hand moves with every mouse move over the canvas.
+    const definition = useStore(deps.displayed,s => s.value.displayedCircuit.circuitDefinition);
+    const entries = useMemo(() => {
+        const found = [];
+        definition.columns.forEach((column,col) => column.gates.forEach((gate,row) => {
+            if (gate?.paramDialog) found.push({gate,col,row});
+        }));
+        return found;
+    },[definition]);
     return <div className="panel-body gate-param-panel"><header><h2 className="gate-param-title">Gate parameter</h2><p className="field-description">Choose a gate to edit.</p></header>
         <div className="construction-scroll parameter-targets">{entries.length ? entries.map(target => <button type="button" key={`${target.col}:${target.row}`}
             onClick={() => appStore.setState({gateParamTarget:target})}>{target.gate.symbol}({String(target.gate.param ?? '')}) · wire {target.row+1}, column {target.col+1}</button>) : <p>No parameter gates in this circuit.</p>}</div>

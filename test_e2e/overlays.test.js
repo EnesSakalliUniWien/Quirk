@@ -72,11 +72,13 @@ test('Bloch Planes draws equatorial triangles independently and explains cos · 
         assert.equal(await checks[1].evaluate(e => e.getAttribute('aria-checked')), 'true');
         await checks[1].click();
         await page.waitForFunction(image => document.getElementById('bloch-canvas').toDataURL() === image, {}, before);
-        assert.match(await checks[6].evaluate(e => document.getElementById(e.getAttribute('aria-describedby')).textContent),
-            /sphere labels require Components/);
+        // Off, cos · sin says nothing; on, it explains where its labels go.
+        assert.equal(await checks[6].evaluate(e => e.getAttribute('aria-describedby')), null);
         const projection = await page.$eval('#bloch-equator-canvas', e => e.toDataURL());
         await checks[6].click();
         await page.waitForFunction(image => document.getElementById('bloch-equator-canvas').toDataURL() !== image, {}, projection);
+        assert.match(await checks[6].evaluate(e => document.getElementById(e.getAttribute('aria-describedby')).textContent),
+            /labels the sphere only with Components on/);
         assert.equal(await checks[0].evaluate(e => e.getAttribute('aria-checked')), 'false');
     });
 });
@@ -137,7 +139,7 @@ test('Bloch source selection cancels an unfinished preset transition', async bro
             // Past the preset's duration, no remaining animation may replace the new source.
             await new Promise(resolve => setTimeout(resolve, 400));
             assert.equal(await page.$eval('#bloch-subtitle', e => e.textContent),
-                returnToCircuit ? 'Qubit 1 · at column 2' : 'Qubit 1 · before the first column');
+                returnToCircuit ? 'q0 · at its Bloch gate, column 2' : 'q0 · before the first column');
             assert.equal(await page.$eval(returnToCircuit ? '#bloch-x' : '#bloch-z', e => e.textContent), '+1.000');
         }
     });
@@ -186,8 +188,9 @@ test('Bloch sliders show an unfilled track at zero', async browser => {
 
 test('closing the Bloch panel releases its figures\' render surfaces', async browser => {
     await withQuirkPage(browser, {cols: [['H'], ['Bloch']]}, async page => {
-        // Each surface listens for pointer moves on the whole document, and holds a WebGL context
-        // beside it. Left behind, a few openings cost the circuit its own context.
+        // The figures draw with the shared renderer, which listens for pointer moves on the whole
+        // document and holds a WebGL context beside the circuit's. Left behind, a few openings cost
+        // the circuit its own context.
         const session = await page.createCDPSession();
         const pointerMoveListeners = async () => {
             const {result} = await session.send('Runtime.evaluate', {expression: 'document'});
@@ -204,11 +207,21 @@ test('closing the Bloch panel releases its figures\' render surfaces', async bro
             }
             return count;
         };
-        const closed = await pointerMoveListeners();
+        // The renderer starts at boot, before any figure needs it, and goes with the last figure to
+        // leave it: what is left once the first panel has closed is what every later close returns to.
         await openBlochAt(page, 1);
-        assert.ok(await pointerMoveListeners() > closed, 'The open figures must hold surfaces to release.');
+        const open = await pointerMoveListeners();
+        await closePanel(page, 'bloch');
+        const deadline = Date.now() + TEST_TIMEOUT_MILLIS;
+        let closed = await pointerMoveListeners();
+        while (closed >= open && Date.now() < deadline) {
+            await new Promise(resolve => setTimeout(resolve, 50));
+            closed = await pointerMoveListeners();
+        }
+        assert.ok(closed < open, 'The open figures must hold surfaces to release.');
         for (let opening = 0; opening < 3; opening++) {
-            if (opening > 0) await openBlochAt(page, 1);
+            await openBlochAt(page, 1);
+            assert.ok(await pointerMoveListeners() > closed, 'Each opening must hold surfaces to release.');
             await closePanel(page, 'bloch');
             assert.equal(await settled(closed), closed);
         }
@@ -340,7 +353,7 @@ test('opens the enlarged Bloch sphere view from a Bloch display gate', async bro
             quaternion: document.getElementById('bloch-quaternion').textContent,
             vector: document.getElementById('bloch-vector-quaternion').textContent,
         }));
-        assert.equal(readout.subtitle, 'Qubit 1 · at column 2');
+        assert.equal(readout.subtitle, 'q0 · at its Bloch gate, column 2');
         assert.equal(readout.x, '+1.000');
         assert.equal(readout.z, '+0.000');
         assert.equal(readout.theta, '90.0°');
@@ -877,5 +890,34 @@ test('a rotation gate edits from its indicator and not from its body at each zoo
             assert.ok(Math.abs((dial.top + dial.height / 2) - wire.y) < 2 * zoom, `The dial must sit on the wire at ${zoom}x.`);
             await closePanel(page, 'gate-param');
         }
+    });
+});
+
+test("a wire's Bloch sphere follows the playhead, and Escape closes the analyzer back to the circuit", async browser => {
+    await withQuirkPage(browser, {cols: [['H'], ['Z']]}, async page => {
+        // A short circuit keeps five columns; the wires' outputs stand two past them.
+        await openBlochAt(page, 7);
+        const shows = (subtitle, id, value) => page.waitForFunction((subtitle, id, value) =>
+            document.getElementById('bloch-subtitle')?.textContent === subtitle &&
+            document.getElementById(id)?.textContent === value,
+        {timeout: TEST_TIMEOUT_MILLIS}, subtitle, id, value);
+        // At its rest the playhead is past the end: the whole circuit's result, |−⟩.
+        await shows("q0 · the whole circuit's result", 'bloch-x', '-1.000');
+        await page.click('#playhead-reset-button');
+        await shows('q0 · at the playhead, before the first column', 'bloch-z', '+1.000');
+        await page.click('#playhead-next-button');
+        await shows('q0 · at the playhead, after column 1', 'bloch-x', '+1.000');
+
+        // The sphere turns by keyboard, and Reset view brings it back.
+        await page.focus('#bloch-canvas');
+        await page.keyboard.press('ArrowRight');
+        await page.waitForSelector('#bloch-reset-view');
+        await page.click('#bloch-reset-view');
+        await page.waitForFunction(() => document.getElementById('bloch-reset-view') === null);
+
+        await page.focus('#bloch-canvas');
+        await page.keyboard.press('Escape');
+        await waitForPanel(page, 'bloch', false);
+        assert.equal(await page.evaluate(() => document.activeElement?.id), 'canvasDiv');
     });
 });

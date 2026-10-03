@@ -6,7 +6,8 @@ import { FigureHeader } from "./figure-header.jsx";
 /**
  * @typedef {object} StepStripProps
  * @property {import("./analyzerModel.js").Step[]} steps The qubit after each column.
- * @property {number | undefined} selected The step being read, ringed on the canvas.
+ * @property {number | undefined} selected The step being read, ringed on the canvas: one chosen
+ *     here, or the one the analyzer follows - the playhead's, for a wire's output.
  * @property {import("react").RefObject<HTMLCanvasElement | null>} canvasRef The canvas the steps'
  *     spheres are painted into, all in one so the page keeps few WebGL contexts.
  * @property {(index: number) => void} onSelect
@@ -69,6 +70,7 @@ function StepStrip({ steps, selected, canvasRef, onSelect }) {
                 width: STRIP_CELL,
               }}
               aria-pressed={selected === index}
+              aria-label={step.name}
               tabIndex={
                 selected === index || (selected === undefined && index === 0)
                   ? 0

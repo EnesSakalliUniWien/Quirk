@@ -401,7 +401,8 @@ const distillLink = {
 // Rz(-pi/4), Ry(-pi/3), Rz(pi t), Ry(pi/3), Rz(pi/4). Rz(pi t) holds the eigenvalues
 // e^(∓i pi t/2), and V turns the z axis to the eigenvector axis at polar angle pi/3 and azimuth
 // pi/4. From state 0 or 1, the Bloch vector turns about that axis by pi t, the difference between
-// the eigenvalue phases. Each constant rotation is two columns wide, so an empty column follows it.
+// the eigenvalue phases. Each constant rotation is three columns wide - its box and its dial - so
+// two empty columns follow it.
 const twoStateUnitaryLink = {
   init: [0, 1],
   cols: [
@@ -410,10 +411,12 @@ const twoStateUnitaryLink = {
       { id: "Rz", arg: "-pi/4" },
     ],
     [],
+    [],
     [
       { id: "Ry", arg: "-pi/3" },
       { id: "Ry", arg: "-pi/3" },
     ],
+    [],
     [],
     [
       { id: "Rzft", arg: "pi t" },
@@ -425,10 +428,12 @@ const twoStateUnitaryLink = {
       { id: "Ry", arg: "pi/3" },
     ],
     [],
+    [],
     [
       { id: "Rz", arg: "pi/4" },
       { id: "Rz", arg: "pi/4" },
     ],
+    [],
     [],
     ["Bloch", "Bloch"],
   ],
@@ -438,13 +443,15 @@ const twoStateUnitaryLink = {
 // Ry(pi/3) and Ry(pi/4), and the children start empty. Each edge copies its parent into its child
 // with a CNOT: A → C, A → D, B → D, B → E. D has two parents, so it holds A ⊕ B. The copies
 // entangle the children with the roots, so the four root amplitudes move to the basis states
-// where C = A, D = A ⊕ B and E = B. An Amps5 display is three columns wide.
+// where C = A, D = A ⊕ B and E = B. A rotation is three columns wide with its dial, and an Amps5
+// display is three columns wide.
 const dagCopyLink = {
   cols: [
     [
       { id: "Ry", arg: "pi/3" },
       { id: "Ry", arg: "pi/4" },
     ],
+    [],
     [],
     ["Amps5"],
     [],

@@ -1,11 +1,21 @@
 @layer components {
-    /* The Bloch Sphere Analyzer: its parts grouped by responsibility - the figures, what they draw
-       and which state they show - with the readout's groups in a fixed column beside them. The dock-sized wrapper is the query container, so the
-       arrangement follows the panel's own width, the way the forge panel's does. Every colour here
-       is a theme variable set by src/config/Theme.js; this file defines none. */
+    /* The Bloch Sphere Analyzer: what changes the state, the numbers it changes, and the figures
+       that picture it. Wide enough, the numbers stand beside the controls, so a slider and the values
+       it moves are seen together. The dock-sized wrapper is the query container, so the arrangement
+       follows the panel's own width, the way the forge panel's does. Every colour here is a theme
+       variable set by src/config/Theme.js; this file defines none. */
 
     .panel-scroll[data-panel-id="bloch"] {
         container-type: inline-size;
+    }
+
+    /* The dock lays a panel out once at a sliver's width before it sizes it; nothing is shown
+       squeezed into that sliver, so the panel appears at its own width. Faded rather than hidden,
+       so the title can still take focus as the panel opens. */
+    @container (max-width: 239px) {
+        .bloch-panel {
+            opacity: 0;
+        }
     }
 
     .bloch-panel {
@@ -20,34 +30,57 @@
         font-weight: 650;
     }
 
+    /* The title takes focus when the analyzer opens, to start the keyboard there; it is no control. */
+    .bloch-title:focus {
+        outline: none;
+    }
+
     .bloch-subtitle {
         margin: 0;
         color: var(--muted-foreground);
         font-size: var(--text-small);
     }
 
-    /* One column until the readout fits beside the figures without squeezing them. */
+    /* One column - the controls, then the figures, then the numbers - until the numbers fit beside
+       the controls. */
 
     .bloch-analyzer {
         display: grid;
         grid-template-columns: minmax(0, 1fr);
-        gap: calc(var(--spacing) * 5);
+        grid-template-areas: "source" "figures" "readout";
+        gap: calc(var(--spacing) * 4) calc(var(--spacing) * 5);
         align-items: start;
     }
 
-    /* Keep room for three readable figures before putting the readout beside them. */
-
-    @container (min-width: 1280px) {
-        .bloch-analyzer {
-            grid-template-columns: minmax(0, 1fr) 326px;
-        }
+    .bloch-area-source {
+        grid-area: source;
+        container: bloch-source / inline-size;
     }
 
-    .bloch-main {
-        container: bloch-main / inline-size;
-        display: grid;
-        gap: calc(var(--spacing) * 4);
-        min-width: 0;
+    .bloch-area-figures {
+        grid-area: figures;
+        container: bloch-figures / inline-size;
+    }
+
+    .bloch-area-readout {
+        grid-area: readout;
+    }
+
+    /* Beside the controls, the numbers stay in view while the figures below scroll past them. */
+
+    @container (min-width: 960px) {
+        .bloch-analyzer {
+            grid-template-columns: minmax(0, 1fr) 320px;
+            /* The readout is taller than the controls; the figures' row takes the difference, so
+               no gap opens between the controls and the figures. */
+            grid-template-rows: auto 1fr;
+            grid-template-areas: "source readout" "figures readout";
+        }
+
+        .bloch-area-readout {
+            position: sticky;
+            top: 0;
+        }
     }
 
     /* A group is the app's panel section, a little tighter, with its name and its purpose on one
@@ -71,39 +104,38 @@
         font-size: var(--text-small);
     }
 
-    /* Three equal plots only when the main column can keep each about 280px wide. */
+    /* Three equal plots in a row while each keeps about 190px; fewer to a row below that, every
+       one the same width, so all three draw one unit circle at one size. */
 
     .bloch-figures {
         display: grid;
-        grid-template-columns: minmax(0, 1fr);
+        grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
         gap: calc(var(--spacing) * 3);
         align-items: start;
     }
-
-    @container bloch-main (min-width: 900px) {
-        .bloch-figures {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-        }
-    }
-
-    /* All three figures use the same available width. */
 
     .bloch-figure {
         display: grid;
         gap: calc(var(--spacing) * 1.5);
         width: 100%;
-        max-width: 460px;
         min-width: 0;
         margin: 0;
-        justify-self: center;
     }
 
-    /* Side by side, each figure takes its whole track; stacked, none grows past a readable size. */
+    /* What the figures draw, under the figures it changes. */
 
-    @container bloch-main (min-width: 900px) {
-        .bloch-figure {
-            max-width: none;
-        }
+    .bloch-display {
+        display: grid;
+        gap: calc(var(--spacing) * 2);
+        margin-top: calc(var(--spacing) * 3);
+        padding-top: calc(var(--spacing) * 3);
+        border-top: var(--border-width) solid var(--border);
+    }
+
+    .bloch-figure-header .bloch-reset-view {
+        height: 1.5rem;
+        padding: 0 0.5rem;
+        font-size: var(--text-caption);
     }
 
     /* A figure's title bar sits above its canvas, so no axis letter drawn inside can meet it. */
@@ -151,6 +183,11 @@
         touch-action: none;
     }
 
+    .bloch-canvas:focus-visible {
+        outline: var(--border-width-strong) solid var(--ring);
+        outline-offset: 2px;
+    }
+
     .bloch-canvas:active {
         cursor: grabbing;
     }
@@ -177,7 +214,7 @@
         align-content: start;
     }
 
-    @container bloch-main (min-width: 900px) {
+    @container bloch-source (min-width: 640px) {
         .bloch-source-controls {
             grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
             gap: calc(var(--spacing) * 5);
@@ -398,9 +435,17 @@
         color: var(--foreground);
     }
 
+    /* Inside the step, so the strip's scroll box never clips the ring. */
     .bloch-strip-step:focus-visible {
         outline: var(--border-width-strong) solid var(--ring);
-        outline-offset: 2px;
+        outline-offset: -2px;
+    }
+
+    /* A touch screen has no arrow keys to step with. */
+    @media (pointer: coarse) {
+        .bloch-strip .bloch-figure-axis {
+            display: none;
+        }
     }
 
     .bloch-strip-label {
@@ -453,7 +498,7 @@
 
     .bloch-row {
         display: grid;
-        grid-template-columns: 3rem minmax(0, 1fr) 7.5rem;
+        grid-template-columns: 3rem minmax(0, 1fr) 6rem;
         align-items: baseline;
         gap: calc(var(--spacing) * 2);
     }
@@ -508,15 +553,28 @@
        the letter the sphere paints at its poles, in the key and in the rows alike. */
 
     .bloch-panel .bloch-axis-x {
-        color: var(--bloch-axis-x);
+        color: var(--bloch-axis-x-text);
     }
 
     .bloch-panel .bloch-axis-y {
-        color: var(--bloch-axis-y);
+        color: var(--bloch-axis-y-text);
     }
 
     .bloch-panel .bloch-axis-z {
-        color: var(--bloch-axis-z);
+        color: var(--bloch-axis-z-text);
+    }
+
+    /* The swatch is the axis's own hue, the one its triangles and letters wear on the figures. */
+    .bloch-panel .bloch-axis-x .bloch-swatch {
+        background: var(--bloch-axis-x);
+    }
+
+    .bloch-panel .bloch-axis-y .bloch-swatch {
+        background: var(--bloch-axis-y);
+    }
+
+    .bloch-panel .bloch-axis-z .bloch-swatch {
+        background: var(--bloch-axis-z);
     }
 
     .bloch-actions {

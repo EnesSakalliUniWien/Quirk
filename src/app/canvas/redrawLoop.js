@@ -26,6 +26,12 @@ import {RestartableRng} from '../../base/RestartableRng.js';
 import {Rect} from '../../geometry/Rect.js';
 import {invalidateCircuitLabelCache} from '../../editor/rendering/CircuitRendering.js';
 import {circuitZoom, onCircuitZoomChanged} from './zoom.js';
+import {operationColumns} from '../../circuit/operationColumns.js';
+import {describeOutputState} from '../../editor/rendering/outputs/CircuitOutputState.js';
+import {appStore} from '../../state/appStore.js';
+
+/** How often, at most, the grid's description for assistive technology is worked out again. */
+const OUTPUT_SUMMARY_COOLDOWN_MILLIS = 500;
 
 /**
  * The app's frame pipeline: simulate the shown circuit, publish the stats, size the canvas, and
@@ -44,7 +50,9 @@ import {circuitZoom, onCircuitZoomChanged} from './zoom.js';
  * @param {import("zustand/vanilla").StoreApi<{value: !CircuitStats}>} mostRecentStats Written every frame.
  * @param {!function(!EditorState): !{w: !number, h: !number}} desiredCanvasSizeFor
  * @param {!function(!EditorState): !EditorState} syncArea
- * @param {!function(): !Object} captureCommitted Captures the committed circuit, separate from a drag preview.
+ * @param {!function(boolean=): !Object} captureCommitted Captures the committed circuit, separate from a
+ *     drag preview. Asked with true, as each frame does, the stats may come from a run that finished a
+ *     frame after it began, and so a frame behind: see Simulator.evaluate.
  * @param {!function(): (undefined|!{circuitJson: !string, range: !CircuitRange})} currentSelection The
  *     selected part of the circuit, drawn while the circuit it was made on is the one shown.
  * @returns {!{start: !function(): void, trigger: !function(): void}} start paints the first frame
@@ -86,6 +94,18 @@ function initRedrawLoop(canvas,
         allocated >= fitted ? allocated :
         fitted + Math.round(Rendering.RESIZE_SLACK_PIXELS * pixelRatio);
 
+    // The grid in words, for someone who does not see the canvas. A spinning gate changes it every
+    // frame and nobody reads that fast, so it is worked out at most twice a second, from the last
+    // frame drawn, and once more after the last change.
+    /** @type {undefined|!{definition: !CircuitDefinition, stats: !CircuitStats, numWire: !int, operation: (undefined|!int)}} */
+    let described = undefined;
+    const describeThrottle = new CooldownThrottle(() => {
+        if (described === undefined) return;
+        const {definition, stats, numWire, operation} = described;
+        const outputSummary = describeOutputState(definition, stats, numWire, operation);
+        if (appStore.getState().outputSummary !== outputSummary) appStore.setState({outputSummary});
+    }, OUTPUT_SUMMARY_COOLDOWN_MILLIS);
+
     const redrawNow = () => {
         if (!hasStarted) {
             return;
@@ -96,15 +116,24 @@ function initRedrawLoop(canvas,
             shown = shown.withHand(shown.hand.withHeldGateColumn(new GateColumn([]), new Point(0, 0)))
         }
         const circuitDefinition = shown.displayedCircuit.circuitDefinition;
-        const committed = captureCommitted();
+        const committed = captureCommitted(true);
         // A preview runs at the simulator's own phase, so a spinning gate held over a still circuit spins.
-        const stats = committed.circuit.withMinimumWireCount().isEqualTo(circuitDefinition.withMinimumWireCount()) ?
-            committed.fullStats : simulator.simulate(circuitDefinition);
+        const showingCommitted = committed.circuit.withMinimumWireCount().isEqualTo(circuitDefinition.withMinimumWireCount());
+        const stats = showingCommitted ? committed.fullStats : simulator.simulate(circuitDefinition);
         mostRecentStats.setState({value: stats});
 
-        // The canvas keeps showing the whole circuit; the playhead only says which column comes
-        // next, and what the state looks like up to there.
+        // The gates keep their own results. Short of the circuit's end the canvas follows the
+        // playhead: the columns not yet run stand back and the outputs show the state reached
+        // there - at the start, the state the circuit starts in. At the end, where the playhead
+        // rests, and while a drag previews another circuit, the outputs show the whole result.
         const playheadStep = Math.min(playhead.step(), circuitDefinition.columns.length);
+        const follow = showingCommitted && playheadStep < circuitDefinition.columns.length ?
+            {stats: committed.stats, operation: operationColumns(circuitDefinition).filter(col => col < playheadStep).length} :
+            undefined;
+
+        described = {definition: circuitDefinition, stats: follow?.stats ?? stats,
+            numWire: shown.displayedCircuit.geometry().importantWireCount(), operation: follow?.operation};
+        describeThrottle.trigger();
 
         const size = desiredCanvasSizeFor(shown);
         const pixelRatio = window.devicePixelRatio || 1;
@@ -133,7 +162,11 @@ function initRedrawLoop(canvas,
         const backingH = backingLength(viewport.surface.size.height, fittedH, pixelRatio);
         overAllocated = backingW !== fittedW || backingH !== fittedH;
         viewport.surface.resize(backingW, backingH);
-        viewport.surface.presentation.setState({width: cssW, height: cssH});
+        // A store write notifies even an identical value, and the size seldom changes.
+        const presented = viewport.surface.presentation.getState();
+        if (presented.width !== cssW || presented.height !== cssH) {
+            viewport.surface.presentation.setState({width: cssW, height: cssH});
+        }
         spacer.style.width = Math.round(size.w * zoom) + 'px';
         spacer.style.height = Math.round(size.h * zoom) + 'px';
 
@@ -147,6 +180,7 @@ function initRedrawLoop(canvas,
             scrollX: canvasDiv.scrollLeft / zoom, scrollY: canvasDiv.scrollTop / zoom,
             breakpoints: playhead.breakpoints(),
             selection: currentSelection(),
+            follow,
         });
 
         const hand = displayed.getState().value.hand;
@@ -167,7 +201,14 @@ function initRedrawLoop(canvas,
     // and the fixed viewport must follow it.
     new ResizeObserver(() => redrawThrottle.trigger()).observe(canvasDiv);
     // The camera shifts with the scroll, so the fixed viewport needs a repaint per scroll step.
-    canvasDiv.addEventListener('scroll', () => redrawThrottle.trigger(), {passive: true});
+    canvasDiv.addEventListener('scroll', () => {
+        // Usually the camera only moves (CircuitViewport.pan); otherwise the scene is described anew.
+        const zoom = circuitZoom();
+        const resolution = (window.devicePixelRatio || 1) * zoom;
+        if (!viewport.pan(canvasDiv.scrollLeft / zoom, canvasDiv.scrollTop / zoom, resolution)) {
+            redrawThrottle.trigger();
+        }
+    }, {passive: true});
     // A monitor change or browser-zoom change alters the device pixel ratio without any resize;
     // each firing re-registers against the new ratio.
     const watchPixelRatio = () => {

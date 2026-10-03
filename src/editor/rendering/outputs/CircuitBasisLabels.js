@@ -53,15 +53,16 @@ function _drawLabelsReasonablyFast(painter, dy, n, labeller, boundingWidth, alig
         const offset = alignEnd ? boundingWidth / scale - (w + 2 * pad) : 0;
         painter.scale.set(scale, scale);
         painter.position.set(0, dy * 0.5 - scale * h * 0.5);
+        // On the readout's quiet plate, not the gate's, so a label never reads as a gate.
         if (h < step * 0.95) {
             for (let i = 0; i < n; i++) {
                 rectangle(painter, new Rect(offset, step * i, w + 2 * pad, h), {
-                    fill: CanvasTheme.surface.gate
+                    fill: CanvasTheme.surface.readout
                 });
             }
         } else {
             rectangle(painter, new Rect(offset, 0, w + 2 * pad, step * n), {
-                fill: CanvasTheme.surface.gate
+                fill: CanvasTheme.surface.readout
             });
         }
         for (let i = 0; i < n; i++) {

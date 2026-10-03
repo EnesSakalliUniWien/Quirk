@@ -104,7 +104,7 @@ suite.test("a mixed state's arrow turns the same way while its length changes ev
 });
 
 suite.test("the presets are the six poles and the centre", () => {
-    assertThat(BLOCH_PRESETS.map(p => p.name)).isEqualTo(["|0⟩", "|1⟩", "|+⟩", "|−⟩", "|i⟩", "|−i⟩", "Mixed"]);
+    assertThat(BLOCH_PRESETS.map(p => p.name)).isEqualTo(["|0⟩", "|1⟩", "|+⟩", "|−⟩", "|+i⟩", "|−i⟩", "Mixed"]);
     for (const {name, vec} of BLOCH_PRESETS) {
         assertThat(blochReading(vec).r).isApproximatelyEqualTo(name === "Mixed" ? 0 : 1);
     }
@@ -244,4 +244,11 @@ suite.test("at |1⟩ the quaternion is the half turn ϕ = 0 names, agreeing with
     // α = w and β = y − x i: β is +1, as pureStateText(π, 0) writes it.
     assertThat(pureStateText(Math.PI, 0)).isEqualTo("0.000 |0⟩ + (+1.000+0.000i) |1⟩");
     assertThat(degreesText(blochReading({x: 0, y: -1, z: 0}).phi)).isEqualTo("270.0°");
+});
+
+suite.test("an azimuth a hair short of a full turn reads 0.0°, never 360.0°", () => {
+    // T then T† leaves the phase a rounding error short of 2π.
+    assertThat(degreesText(2 * Math.PI - 1e-8)).isEqualTo("0.0°");
+    assertThat(degreesText(2 * Math.PI * 359.94 / 360)).isEqualTo("359.9°");
+    assertThat(degreesText(Math.PI)).isEqualTo("180.0°");
 });

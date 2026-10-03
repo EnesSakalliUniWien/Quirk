@@ -44,14 +44,22 @@ function useExploreTransition(setMode, shownVector) {
     });
   };
 
-  /** @param {number} thetaDegrees @param {number} phiDegrees */
-  const exploreAngles = (thetaDegrees, phiDegrees) =>
+  /**
+   * Turns the arrow to the angles, keeping its length: a partly mixed qubit stays as mixed as it
+   * was, rather than silently becoming pure.
+   * @param {number} thetaDegrees @param {number} phiDegrees
+   */
+  const exploreAngles = (thetaDegrees, phiDegrees) => {
+    const shown = shownVector.current;
+    const length = shown === undefined ? 1 : Math.hypot(shown.x, shown.y, shown.z);
     explore(
       vectorFromAngles(
         (thetaDegrees * Math.PI) / 180,
         (phiDegrees * Math.PI) / 180,
+        length > 1e-6 ? Math.min(1, length) : 1,
       ),
     );
+  };
 
   return { explore, exploreAngles, cancel };
 }
