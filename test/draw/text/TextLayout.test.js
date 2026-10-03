@@ -2,6 +2,7 @@ import {Suite, assertThat} from '../../TestUtil.js';
 import {MEASUREMENT_LIMIT, drawText, fitText, invalidateTextLayout, measureText} from '../../../src/draw/text/TextLayout.js';
 import {DisplayView} from '../../../src/draw/scene/DisplayView.js';
 import {Typography} from '../../../src/config/Typography.js';
+import {CanvasTextMetrics, TextStyle} from 'pixi.js';
 
 const suite = new Suite('TextLayout');
 
@@ -20,12 +21,15 @@ suite.test('a string measures once in a font, and every later measure of it is t
 });
 
 suite.test('what is measured is what the font says, for the string as a string', () => {
-    const mono = {...font(), fontSize: 20};
-    // A monospaced font sets every character as wide as every other.
-    assertThat(measureText('iiii', mono).width).isApproximatelyEqualTo(measureText('WWWW', mono).width, 0.01);
-    assertThat(measureText('WWWW', mono).width).isApproximatelyEqualTo(4 * measureText('W', mono).width, 0.01);
-    assertThat(measureText('WWWW', mono).width > measureText('WWWW', font()).width).isEqualTo(true);
-    assertThat(measureText(1234, mono)).isEqualTo(measureText('1234', mono));
+    const big = {...font(), fontSize: 20};
+    // What is kept is Pixi's own measure of the string in a style of the same font, whatever fonts
+    // the system has: a monospace family can fall back to a face that is not monospaced.
+    for (const text of ['iiii', 'WWWW', '37.2%']) {
+        const fresh = CanvasTextMetrics.measureText(text, new TextStyle({...big}));
+        assertThat(measureText(text, big).width).withInfo({text}).isEqualTo(fresh.width);
+    }
+    assertThat(measureText('WWWW', big).width > measureText('WWWW', font()).width).isEqualTo(true);
+    assertThat(measureText(1234, big)).isEqualTo(measureText('1234', big));
 });
 
 suite.test('measurements are forgotten when the layout is invalidated, and measured as before', () => {
