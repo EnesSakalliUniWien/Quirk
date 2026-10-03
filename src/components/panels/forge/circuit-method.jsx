@@ -19,8 +19,9 @@ export function CircuitMethod({deps, circuitJson, draft, onDraftChange, onCreate
         return () => appStore.setState({forgeRange:undefined});
     }, [value,circuitJson]);
     const nested = value?.gate.knownCircuitNested;
-    // While the circuit is debugged nothing moves on its own, this figure included.
-    const debugging = useStore(appStore, state => state.debugging);
+    // While anything holds t - the debugger, the t clock's pause, a recording - nothing moves on its
+    // own, this figure included.
+    const cycleRunning = useStore(appStore, state => state.cycleHold === undefined);
     return <form className="forge-method" onSubmit={event => {
         event.preventDefault();
         if (!value) return;
@@ -47,7 +48,7 @@ export function CircuitMethod({deps, circuitJson, draft, onDraftChange, onCreate
         </div><div className="construction-preview" id="gate-forge-circuit-canvas" aria-busy={result.pending}>
             <h2>Selected circuit</h2>
             {result.pending ? <p role="status">Updating preview…</p> : result.error ? <p className="field-error" role="alert">{result.error}</p> : value && <>
-                <CircuitFigure circuit={nested} time={deps.cycleTime()} responsive animate={!debugging && value.gate.stableDuration() !== Infinity} cycleTime={deps.cycleTime} />
+                <CircuitFigure circuit={nested} time={deps.cycleTime()} responsive animate={cycleRunning && value.gate.stableDuration() !== Infinity} cycleTime={deps.cycleTime} />
                 <GatePreview gate={value.gate} />
             </>}
         </div>

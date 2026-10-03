@@ -18,21 +18,45 @@ import {createValueStore, observeStore} from '../../../src/base/valueStore.js';
 import {Suite, assertThat} from "../../TestUtil.js"
 
 import {Playhead} from "../../../src/app/state/Playhead.js"
+import {Animation} from "../../../src/config/Animation.js"
 import {operationSchedule} from '../../../src/circuit/operationColumns.js';
 import {Serializer} from '../../../src/serialization/Serializer.js';
 import {CircuitDefinition} from '../../../src/circuit/model/CircuitDefinition.js';
 
 const suite = new Suite("Playhead");
 
+suite.test("the speed sets how long Play rests on each operation, a run under way included", () => {
+    const circuit = Serializer.fromJson(CircuitDefinition, {cols: [['H'], ['X'], ['H']]});
+    const timers = [];
+    const playhead = new Playhead(observeStore(createValueStore(operationSchedule(circuit))),
+        (callback, millis) => timers.push({callback, millis, live: true}),
+        id => { timers[id - 1].live = false; });
+    playhead.setSpeed(2);
+    playhead.togglePlay();
+    assertThat(timers.map(t => t.millis)).isEqualTo([Animation.PLAYHEAD_STEP_DURATION_MS / 2]);
+    timers[0].callback();
+    assertThat(playhead.step()).isEqualTo(1);
+
+    // Changed mid-run, the run carries on from where it is at the new pace, on one timer.
+    playhead.setSpeed(0.5);
+    assertThat(timers.map(t => [t.millis, t.live])).isEqualTo([
+        [Animation.PLAYHEAD_STEP_DURATION_MS / 2, false], [Animation.PLAYHEAD_STEP_DURATION_MS * 2, true]]);
+    timers[1].callback();
+    assertThat(playhead.step()).isEqualTo(2);
+    assertThat(playhead.state().snapshot()[0].playing).isEqualTo(true);
+});
+
 suite.test("operation stops skip displays and empty columns but retain measurements and mixed columns", () => {
     const circuit = Serializer.fromJson(CircuitDefinition, {cols: [
         ['Amps1'], [], ['H'], ['Bloch'], ['Density'], ['Chance'], ['Sample1'],
-        ['Measure'], ['Amps1', 'X'], ['Bloch']
+        // Amps1 is two columns wide, so the Bloch display after it sits on the other wire.
+        ['Measure'], ['Amps1', 'X'], [1, 'Bloch']
     ]});
     const schedule = operationSchedule(circuit);
     assertThat(schedule.operationColumns).isEqualTo([2, 7, 8]);
     const clock = fakeClock();
     const playhead = new Playhead(observeStore(createValueStore(schedule)), clock.setInterval, clock.clearInterval);
+    playhead.reset();
     playhead.next();
     assertThat(playhead.step()).isEqualTo(3);
     playhead.next();
@@ -58,6 +82,7 @@ suite.test("display-only circuits cannot play and same-length edits refresh the 
     const schedules = createValueStore({columnCount: 2, operationColumns: []});
     const clock = fakeClock();
     const playhead = new Playhead(observeStore(schedules), clock.setInterval, clock.clearInterval);
+    playhead.reset();
     playhead.togglePlay();
     assertThat(clock.pendingCount()).isEqualTo(0);
     assertThat(playhead.state().snapshot()[0].canStepForward).isEqualTo(false);
@@ -96,11 +121,25 @@ function playheadOver(columnCount) {
     return {playhead, columns, clock};
 }
 
-suite.test("starts before the first column", () => {
+suite.test("rests at the end, where the whole circuit has run, and Reset takes it to the start", () => {
     const {playhead} = playheadOver(3);
 
-    assertThat(playhead.step()).isEqualTo(0);
+    assertThat(playhead.step()).isEqualTo(3);
     assertThat(playhead.state().snapshot()).isEqualTo([{
+        step: 3,
+        columnCount: 3,
+        operationIndex: 3,
+        operationCount: 3,
+        breakpoints: [],
+        nextColumn: undefined,
+        playing: false,
+        canPlay: true,
+        canStepBack: true,
+        canStepForward: false
+    }]);
+
+    playhead.reset();
+    assertThat(playhead.state().snapshot()[0]).isEqualTo({
         step: 0,
         columnCount: 3,
         operationIndex: 0,
@@ -111,11 +150,25 @@ suite.test("starts before the first column", () => {
         canPlay: true,
         canStepBack: false,
         canStepForward: true
-    }]);
+    });
+});
+
+suite.test("rest puts the playhead back at the end, which it then keeps through edits", () => {
+    const {playhead, columns, clock} = playheadOver(3);
+    playhead.seek(1);
+    playhead.togglePlay();
+
+    playhead.rest();
+    assertThat(playhead.step()).isEqualTo(3);
+    assertThat(playhead.state().snapshot()[0].playing).isEqualTo(false);
+    assertThat(clock.pendingCount()).isEqualTo(0);
+    columns.setState({value: 5});
+    assertThat(playhead.step()).isEqualTo(5);
 });
 
 suite.test("next and previous move a column at a time, and clamp", () => {
     const {playhead} = playheadOver(2);
+    playhead.reset();
 
     playhead.previous();
     assertThat(playhead.step()).isEqualTo(0);
@@ -194,35 +247,13 @@ suite.test("moving the playhead by hand stops playback", () => {
 });
 
 
-suite.test("counts the operations stepped over, forwards less backwards, but not an edit's pull", () => {
-    const {playhead, columns, clock} = playheadOver(4);
-    assertThat(playhead.operationsStepped()).isEqualTo(0);
-    playhead.next();
-    playhead.next();
-    assertThat(playhead.operationsStepped()).isEqualTo(2);
-    playhead.previous();
-    assertThat(playhead.operationsStepped()).isEqualTo(1);
-    playhead.end();
-    assertThat(playhead.operationsStepped()).isEqualTo(4);
-
-    // Playing from the end steps back to the start first, then on a tick at a time.
-    playhead.togglePlay();
-    assertThat(playhead.operationsStepped()).isEqualTo(0);
-    clock.tick();
-    assertThat(playhead.operationsStepped()).isEqualTo(1);
-    playhead.end();
-
-    columns.setState({value: 2});
-    assertThat(playhead.step()).isEqualTo(2);
-    assertThat(playhead.operationsStepped()).isEqualTo(4);
-});
-
 suite.test("a run halts before a breakpoint, and a single step does not care", () => {
     const {playhead, clock} = playheadOver(5);
     playhead.toggleBreakpoint(2);
     playhead.toggleBreakpoint(4);
     playhead.toggleBreakpoint(7);
     assertThat(playhead.state().snapshot()[0].breakpoints).isEqualTo([2, 4]);
+    playhead.reset();
 
     // End is a debugger's continue: to the next breakpoint, and from one on to the one after.
     playhead.end();
@@ -259,6 +290,7 @@ suite.test("a breakpoint stands before its column's operation, whatever displays
     const clock = fakeClock();
     const playhead = new Playhead(
         observeStore(createValueStore(operationSchedule(circuit))), clock.setInterval, clock.clearInterval);
+    playhead.reset();
     playhead.toggleBreakpoint(1);
     assertThat(playhead.state().snapshot()[0].breakpoints).isEqualTo([]);
     playhead.toggleBreakpoint(3);
@@ -310,13 +342,20 @@ suite.test("an empty circuit has nothing to play", () => {
     assertThat(clock.pendingCount()).isEqualTo(0);
 });
 
-suite.test("shortening the circuit pulls the playhead back to the new end", () => {
+suite.test("at the end the playhead follows the circuit's end; inside it, it keeps its place", () => {
     const {playhead, columns} = playheadOver(5);
-    playhead.end();
 
     columns.setState({value: 2});
     assertThat(playhead.step()).isEqualTo(2);
-
     columns.setState({value: 6});
+    assertThat(playhead.step()).isEqualTo(6);
+
+    playhead.seek(3);
+    columns.setState({value: 8});
+    assertThat(playhead.step()).isEqualTo(3);
+    // Shortened past it, the playhead is pulled back to the new end, and from there follows it.
+    columns.setState({value: 2});
     assertThat(playhead.step()).isEqualTo(2);
+    columns.setState({value: 4});
+    assertThat(playhead.step()).isEqualTo(4);
 });

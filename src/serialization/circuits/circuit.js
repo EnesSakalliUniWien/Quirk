@@ -103,7 +103,12 @@ function fromJson_CircuitDefinition(json, context = undefined) {
     false,
     initialValues,
     registers,
-  ).withTrailingSpacersIncluded();
+  )
+    // A circuit written by hand, or saved before a gate grew wider (a rotation gained its dial),
+    // can put a gate where a wider neighbour still reaches. It is spaced out on load, the way an
+    // edit spaces it, so no gate or display is drawn over another; empty columns change nothing.
+    .withWidthOverlapsFixed()
+    .withTrailingSpacersIncluded();
 }
 
 export { toJson_CircuitDefinition, fromJson_CircuitDefinition };

@@ -1018,15 +1018,6 @@ class GateBuilder {
     }
 
     /**
-     * @returns {!GateBuilder}
-     */
-    promiseHasNoNetEffectOnStateVectorButStillRequiresDynamicRedraw() {
-        this.promiseHasNoNetEffectOnStateVector();
-        this.gate._stableDuration = 0;
-        return this;
-    }
-
-    /**
      * Indicates that the gate isn't a control wire destination when drawing.
      * @returns {!GateBuilder}
      */

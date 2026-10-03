@@ -85,8 +85,10 @@ function writeLastCircuit(jsonText) {
  * @param {!Recorder} recorder
  * @param {!Playhead} playhead Holds the breakpoints, which the link carries beside the circuit.
  * @param {undefined|!function(): void} onTakeLoaded Called after the current URL take is restored.
+ * @param {undefined|!function(): void} onCircuitLoaded Called after the link's circuit replaces the
+ *     one shown.
  */
-function initUrlCircuitSync(revision, recorder, playhead, onTakeLoaded) {
+function initUrlCircuitSync(revision, recorder, playhead, onTakeLoaded, onCircuitLoaded) {
     let loadingTake = false;
     let loadVersion = 0;
     // Pull initial circuit out of URL '#x=y' arguments.
@@ -139,6 +141,7 @@ function initUrlCircuitSync(revision, recorder, playhead, onTakeLoaded) {
             const cleanedJson = JSON.stringify(Serializer.toJson(circuitDef));
             revision.clear(cleanedJson);
             playhead.setBreakpoints(parseBreakpoints(params.get(AppInfo.URL_BREAKPOINTS_PARAM_KEY)));
+            onCircuitLoaded?.();
             if (restored !== undefined && !circuitDef.isEmpty()) {
                 historyPusher.replaceHash(urlWithCircuitHash(jsonText, playhead.breakpoints()));
             } else if (circuitDef.isEmpty() && params.size === 1) {

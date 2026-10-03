@@ -162,11 +162,11 @@ test('places gates with the keyboard alone', async browser => {
         await page.keyboard.press('Enter');
         await waitForCircuit(page, {cols: [['X'], ['H']]});
 
-        // Focus survives the placement, so the arrow keys keep working: down one tile and place
-        // that one too.
+        // Focus survives the placement, so the arrow keys keep working: down one tile - the palette
+        // opens on the half turns, H then X - and place that one too.
         await page.keyboard.press('ArrowDown');
         await page.keyboard.press('Enter');
-        await waitForCircuit(page, {cols: [['X'], ['H'], ['Z^½']]});
+        await waitForCircuit(page, {cols: [['X'], ['H'], ['X']]});
     });
 });
 

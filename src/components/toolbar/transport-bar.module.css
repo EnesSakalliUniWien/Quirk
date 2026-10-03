@@ -1,25 +1,105 @@
 @import "../../styles/layers.css";
 
-/* The playhead transport strip: step buttons, scrub slider, and position readout. It sits under the
-   toolbar, at the top of the window, where moving the window never hides it. */
+/* The transport under the toolbar, at the top of the window, where moving the window never hides
+   it. Two lanes share one grid, like two tracks of a sequencer: each lane's Play, scrubber, readout
+   and speed stand in the same column as the other's, so the two read as one instrument whose lanes
+   move independently. */
 @layer components {
     .bar {
-        display: flex;
-        min-height: 44px;
+        display: grid;
+        grid-template-columns:
+            [label] auto [back] auto [play] auto [forward] auto [more] auto
+            [scrub] minmax(140px, 360px) [readout] minmax(17ch, auto) [pace] auto [extra] 1fr;
+        column-gap: var(--space-medium);
+        row-gap: 2px;
         align-items: center;
-        flex-wrap: wrap;
-        gap: var(--space-small) var(--space-medium);
         padding: var(--space-small) var(--space-medium);
         background: var(--transport-surface);
         border-bottom: var(--border-width) solid var(--border);
     }
 
+    .lane {
+        display: grid;
+        grid-column: 1 / -1;
+        grid-template-columns: subgrid;
+        align-items: center;
+        min-height: 36px;
+    }
+
+    /* The lane's name, in the items' own capitalization: it names the track, it does not head it. */
+    .laneLabel {
+        grid-column: label;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        min-width: 3.5rem;
+        color: var(--muted-foreground);
+        font-size: var(--text-small);
+        font-weight: 500;
+    }
+
+    /* Each lane wears the mark of what it moves: Steps the playhead's amber bracket, Time the violet
+       of t's own clock at the lane's readout. */
+    .laneLabel::before {
+        content: "";
+        flex: none;
+        width: 6px;
+        height: 12px;
+        border-radius: 1px;
+    }
+
+    .stepsLabel::before {
+        border: 2px solid var(--playhead);
+        border-right: 0;
+    }
+
+    .timeLabel::before {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--operator);
+    }
+
+    /* Back hugs Play from the left and forward from the right, in both lanes. */
+    .back {
+        grid-column: back;
+        justify-self: end;
+    }
+
+    .play {
+        grid-column: play;
+        justify-self: start;
+        /* As wide as "Pause steps", so Play and Pause trade places without moving the nudges. */
+        min-width: 7.25rem;
+    }
+
+    /* Filled in the primary ink, the one prominent button on the bar; every other control is a
+       ghost beside it. */
+    .lane .prominent {
+        color: var(--primary-foreground);
+        background: var(--primary);
+    }
+
+    .lane .prominent:hover {
+        color: var(--primary-foreground);
+        background: var(--panel-primary-hover);
+    }
+
+    .forward {
+        grid-column: forward;
+        justify-self: start;
+    }
+
+    .more {
+        grid-column: more;
+    }
+
     /* The browser draws the thin track and its thumb; the element around them is the 28-point band a
        press can land on. */
     .scrub {
-        flex: 1 1 160px;
+        grid-column: scrub;
+        width: 100%;
         min-width: 120px;
-        max-width: 420px;
         height: 28px;
         margin: 0;
         padding: 0;
@@ -33,11 +113,149 @@
         opacity: 0.48;
     }
 
-    .position {
+    .readout {
+        grid-column: readout;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        white-space: nowrap;
+    }
+
+    .position,
+    .value {
         color: var(--muted-foreground);
         font-family: var(--font-mono);
         font-size: var(--text-small);
         font-variant-numeric: tabular-nums;
+    }
+
+    .value {
+        color: var(--foreground);
+        min-width: 6ch;
+    }
+
+    /* Reserved, so a word arriving or leaving never moves what follows. */
+    .hold {
+        min-width: 8ch;
+        color: var(--muted-foreground);
+        font-size: var(--text-small);
+    }
+
+    .pace {
+        grid-column: pace;
+    }
+
+    .extra {
+        grid-column: extra;
+        display: flex;
+        align-items: center;
+        gap: var(--space-small);
         white-space: nowrap;
+    }
+
+    /* Without a gate that uses t, the lane keeps its row and says so in place of its controls. */
+    .idle {
+        grid-column: back / pace;
+        color: var(--muted-foreground);
+        font-size: var(--text-small);
+    }
+
+    /* The dial an X^t gate wears on the canvas: zero at twelve, sweeping anticlockwise. */
+    .dial {
+        flex: none;
+        width: 1rem;
+        height: 1rem;
+        overflow: visible;
+    }
+
+    .face {
+        fill: none;
+        stroke: currentColor;
+        stroke-opacity: 0.5;
+        stroke-width: 1;
+    }
+
+    .sector {
+        fill: var(--operator);
+        stroke: currentColor;
+        stroke-width: 1;
+        stroke-linejoin: round;
+    }
+
+    .zero {
+        stroke: currentColor;
+        stroke-width: 1;
+    }
+
+    /* Narrow windows cannot hold the shared columns: each lane wraps on its own, label first. */
+    @media (max-width: 1100px) {
+        .bar {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .lane {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-small) var(--space-medium);
+        }
+
+        .scrub {
+            flex: 1 1 160px;
+            width: auto;
+            max-width: 420px;
+        }
+    }
+
+    /* A phone: each lane's commands on one row, as icons that keep their names for assistive
+       technology, and its scrubber and readout on the next, the Record menu at that row's end. */
+    @media (max-width: 640px) {
+        .bar {
+            padding: 6px 12px;
+            row-gap: 6px;
+        }
+
+        .lane {
+            display: grid;
+            grid-template-columns: auto auto auto auto auto 1fr auto auto;
+            grid-template-areas:
+                "label back play forward more . . pace"
+                "scrub scrub scrub readout readout readout readout extra";
+            gap: 4px;
+            min-height: 0;
+        }
+
+        .laneLabel {
+            grid-area: label;
+            min-width: 0;
+            margin-right: 4px;
+        }
+
+        .back { grid-area: back; }
+        .play { grid-area: play; min-width: 0; }
+        .forward { grid-area: forward; }
+        .more { grid-area: more; }
+        .pace { grid-area: pace; }
+        .readout { grid-area: readout; justify-self: end; }
+        .extra { grid-area: extra; justify-self: end; }
+
+        .scrub {
+            grid-area: scrub;
+            min-width: 0;
+        }
+
+        .idle {
+            grid-area: 1 / back / 2 / pace;
+        }
+
+        .word {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip-path: inset(50%);
+            white-space: nowrap;
+        }
     }
 }
