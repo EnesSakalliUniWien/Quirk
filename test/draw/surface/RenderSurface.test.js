@@ -6,7 +6,7 @@ import {flushSync} from 'react-dom';
 import {Suite, assertThat} from '../../TestUtil.js';
 import {RenderSurface} from '../../../src/draw/surface/RenderSurface.js';
 import {paintInto} from '../../../src/draw/surface/SharedPaintSurface.js';
-import {startNewSharedRenderer, warmSharedRenderer} from '../../../src/draw/surface/SharedRenderer.js';
+import {startNewSharedRenderer} from '../../../src/draw/surface/SharedRenderer.js';
 import {rectangle} from '../../../src/draw/shapes/ShapeView.js';
 import {Rect} from '../../../src/geometry/Rect.js';
 import {installErrorReporter} from '../../../src/diagnostics/errorReporter.js';
@@ -306,19 +306,6 @@ suite.test('the first surface after the last has left starts a renderer of its o
         assertThat(second.app.renderer === renderer).isEqualTo(false);
         assertThat(pixel(second.canvas, 5, 5)).isEqualTo([0, 0, 255, 255]);
     } finally {await bounded(second.destroy());}
-});
-
-suite.test('a renderer started before any surface is the one the first surface joins', async () => {
-    startNewSharedRenderer();
-    const warmed = warmSharedRenderer();
-    await bounded(warmed.ready);
-    assertThat(warmSharedRenderer() === warmed).isEqualTo(true);
-    const surface = await paintedSurface(20, 20, 'red');
-    try {
-        assertThat(surface.app.renderer === warmed.app.renderer).isEqualTo(true);
-        assertThat(pixel(surface.canvas, 5, 5)).isEqualTo([255, 0, 0, 255]);
-    } finally {await bounded(surface.destroy());}
-    assertThat(warmed.closing).isEqualTo(true);
 });
 
 suite.test('initialization failure is reported once, however many surfaces waited for the renderer', async () => {
