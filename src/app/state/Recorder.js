@@ -1,7 +1,8 @@
 import {createValueStore} from '../../base/valueStore.js';
 
 import {Serializer} from "../../serialization/Serializer.js";
-import { createTake, restoreTake } from "../../results/take/snapshot.js";
+import { createTake, planTake, restoreTake } from "../../results/take/snapshot.js";
+import { jsonBytes } from "../../results/take/size.js";
 import {freshSeed} from "../../engine/simulation/random.js";
 import { parseTakes } from "../../results/files/json.js";
 import { MAX_FILE_BYTES } from "../../results/files/limits.js";
@@ -17,16 +18,22 @@ class Recorder {
         this.batch = undefined;
         this.suppressGhost = false;
         this.restoring = false;
+        // Encoding a take costs tens of milliseconds at sixteen qubits, and a ghost is a safety copy
+        // that nobody waits for: the commit only captures what the take records, by reference
+        // because results are immutable, and the store builds and writes it when the page is idle.
         revision.beforeCommit().subscribe(() => {
             if (this.suppressGhost || !this.ghostsEnabled.getState().value) return;
-            const take = this.makeTake();
-            store.write([take], {ghost: true}).catch(() => {});
+            store.deferGhost(this.planTake());
         });
     }
 
-    makeTake(result = this.capture()) {
+    planTake(result = this.capture()) {
         const n = this.store.items.getState().value.filter(r => !r.ghost).length + 1;
-        return createTake(result, `take ${n}`, (n - 1) % 8);
+        return planTake(result, `take ${n}`, (n - 1) % 8);
+    }
+
+    makeTake(result = this.capture()) {
+        return this.planTake(result)();
     }
 
     async save(takes, options = {}) {
@@ -49,7 +56,7 @@ class Recorder {
         this.playhead.pause();
         const initial = this.capture();
         // Every step records at the captured phase: the animation cycle stands still until the run ends.
-        const releaseClock = this.simulator.holdClock();
+        const releaseClock = this.simulator.holdClock('recording');
         const checkpoint = this.revision.peekActiveCommit();
         const token = new AbortController();
         this.batch = token;
@@ -66,7 +73,7 @@ class Recorder {
                 const result = this.simulator.evaluate(initial.circuit, initial.wireCount, step, false);
                 const take = createTake(result, `run step ${step}`, step % 8);
                 takes.push(take);
-                bytes += new TextEncoder().encode(JSON.stringify(take)).byteLength;
+                bytes += jsonBytes(take);
                 if (bytes > MAX_FILE_BYTES) throw new Error("Whole run exceeds the 200 MiB limit. Record fewer steps individually.");
             }
             await this.save(takes, {signal: token.signal});
@@ -97,7 +104,8 @@ class Recorder {
 
     async importText(text) {
         const takes = parseTakes(text);
-        await this.store.ready;
+        // After the store is read, and after every ghost that is waiting has been written.
+        await this.store.flush();
         const existing = new Map(this.store.items.getState().value.map(r => [r.id, r.take]));
         const imported = takes.map(t => existing.has(t.id) && JSON.stringify(existing.get(t.id)) !== JSON.stringify(t) ?
             {...t, id: freshSeed()} : t);

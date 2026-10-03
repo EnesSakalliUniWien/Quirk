@@ -17,10 +17,15 @@ function Range({deps,selection,zoom,host}) {
         observer.observe(host.current);
         return ()=>observer.disconnect();
     },[host]);
-    const shown = useStore(deps.displayed,s => s.value);
+    // The circuit and whether the hand is busy, not the whole state: its hand moves with every mouse
+    // move over the canvas, and the circuit it holds does not.
+    const shown = useStore(deps.displayed,s => s.value.displayedCircuit);
+    const busy = useStore(deps.displayed,s => s.value.hand.isBusy());
     const expected = useMemo(() => JSON.stringify(Serializer.toJson(fromJsonText_CircuitDefinition(selection.circuitJson))),[selection.circuitJson]);
-    if (shown.snapshot() !== expected || shown.hand.isBusy()) return null;
-    const circuit = deps.syncArea(shown).displayedCircuit;
+    // Serialising the circuit to compare it is the cost, so it is paid once per circuit.
+    const shownIsSelected = useMemo(() => JSON.stringify(Serializer.toJson(shown.circuitDefinition)) === expected,[shown.circuitDefinition,expected]);
+    if (!shownIsSelected || busy) return null;
+    const circuit = deps.syncArea(deps.displayed.getState().value).displayedCircuit;
     const {colStart,colEnd,wireStart,wireEnd} = selection.range;
     const rect = circuit.gateRect(wireStart,colStart,colEnd-colStart,wireEnd-wireStart);
     return <div className="forge-range-highlight" aria-hidden="true" style={{left:rect.x*zoom,top:rect.y*zoom,width:rect.w*zoom,height:rect.h*zoom}} />;

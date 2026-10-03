@@ -1,4 +1,4 @@
-import {useEffect, useRef} from 'react';
+import {memo, useEffect, useMemo, useReducer, useRef} from 'react';
 import {useStore} from 'zustand';
 import {useDrag} from '@use-gesture/react';
 import {appStore} from '../../../state/appStore.js';
@@ -19,43 +19,62 @@ const axisOf = gate => /([xyz])$/i.exec(gate.serializedId)?.[1].toLowerCase();
  * They live in the circuit's scroll content, at the drawing's zoom, so they stay with their gate
  * as the circuit scrolls and zooms, and a gate that goes takes its dial with it.
  */
-export function WireDials() {
+export function WireDials({host}) {
     const deps = useStore(appStore, s => s.panelDeps);
     const actions = useStore(appStore, s => s.gateActions);
-    return deps === undefined || actions === undefined ? null : <CircuitDials deps={deps} actions={actions} />;
+    return deps === undefined || actions === undefined ? null : <CircuitDials deps={deps} actions={actions} host={host} />;
 }
 
-function CircuitDials({deps, actions}) {
+/** @param {{host: (undefined|!{current: (null|!HTMLElement)})}} props host is the scroll container, found by its id when not given. */
+function CircuitDials({deps, actions, host}) {
     const zoom = useStore(appStore, s => s.zoom);
-    const shown = useStore(deps.displayed, s => s.value);
-    // A held gate is out of the circuit, so its dial waits until it is put down.
-    if (shown.hand.isBusy()) {
-        return null;
-    }
-    const circuit = deps.syncArea(shown).displayedCircuit;
-    const geometry = circuit.geometry();
-    const dials = [];
-    circuit.circuitDefinition.columns.forEach((column, col) => column.gates.forEach((gate, row) => {
-        if (gate?.hasAngleDial()) {
-            dials.push(<Dial key={`${col}:${row}`} col={col} row={row} gate={gate}
-                rect={geometry.dialRect(row, col, gate)} zoom={zoom} actions={actions} />);
+    // The circuit and whether the hand is busy, not the whole state: its hand moves with every mouse
+    // move over the canvas, and the dials stay where they are. The circuit's identity holds while
+    // only the hand moves.
+    const circuit = useStore(deps.displayed, s => s.value.displayedCircuit);
+    const busy = useStore(deps.displayed, s => s.value.hand.isBusy());
+    // The circuit centres in the cell, so a resized cell moves the dials without a new state.
+    const [resized, resize] = useReducer(n => n + 1, 0);
+    useEffect(() => {
+        const observer = new ResizeObserver(resize);
+        observer.observe(host?.current ?? document.getElementById('canvasDiv'));
+        return () => observer.disconnect();
+    }, [host]);
+    return useMemo(() => {
+        // A held gate is out of the circuit, so its dial waits until it is put down.
+        if (busy) {
+            return null;
         }
-    }));
-    return dials;
+        const geometry = deps.syncArea(deps.displayed.getState().value).displayedCircuit.geometry();
+        const dials = [];
+        circuit.circuitDefinition.columns.forEach((column, col) => column.gates.forEach((gate, row) => {
+            if (gate?.hasAngleDial()) {
+                const rect = geometry.dialRect(row, col, gate);
+                dials.push(<Dial key={`${col}:${row}`} col={col} row={row} gate={gate}
+                    left={rect.x} top={rect.y} width={rect.w} height={rect.h} zoom={zoom} actions={actions} />);
+            }
+        }));
+        return dials;
+        // resized is the cell's size, which syncArea reads.
+    }, [deps, actions, circuit, busy, zoom, resized]);
 }
 
 /**
  * A flat encoder seen from above: a pale face, a dark core, and an arc from the top round to the
- * angle, the other way for a negative one, in the axis's tone. Turn it by dragging round, by the wheel, or by the arrow keys, and the gate takes
+ * angle - anticlockwise for a positive one, by the right-hand rule the time dials keep, clockwise
+ * for a negative one - in the axis's tone. Turn it by dragging round, by the wheel, or by the arrow keys, and the gate takes
  * the angle it lands on - each step shown at once, the whole turn one commit once it settles. It
  * reads the gate's angle, so an angle typed into the panel turns the dial too; while the parameter
  * is not a constant angle the dial rests where it was.
  *
  * Interaction is @use-gesture's drag: pointer capture, touch and mouse alike, with taps ignored.
+ * It renders again only when its gate, its place or the zoom changes, not with every render of the
+ * dials, and parses the gate's angle only when that changes.
  */
-function Dial({col, row, gate, rect, zoom, actions}) {
-    let degrees;
-    try { degrees = parseAngleExpression(String(gate.param)).degrees; } catch { degrees = undefined; }
+const Dial = memo(function Dial({col, row, gate, left, top, width, height, zoom, actions}) {
+    const degrees = useMemo(() => {
+        try { return parseAngleExpression(String(gate.param)).degrees; } catch { return undefined; }
+    }, [gate.param]);
     const resting = useRef(0);
     if (degrees !== undefined && Number.isFinite(degrees)) resting.current = degrees;
     const value = resting.current;
@@ -98,11 +117,12 @@ function Dial({col, row, gate, rect, zoom, actions}) {
     }, []);
 
     const bind = useDrag(({xy: [x, y], first, last, memo, shiftKey}) => {
-        // The pointer's bearing from the face's centre; the dial turns by its change.
+        // The pointer's bearing from the face's centre; the dial turns by its change. The screen's y
+        // runs down, so a bearing that grows is a clockwise drag: the angle grows the other way.
         const box = face.current.getBoundingClientRect();
         const bearing = Math.atan2(y - (box.top + box.height / 2), x - (box.left + box.width / 2)) * 180 / Math.PI;
         if (first) return {bearing, value: resting.current};
-        const turned = ((bearing - memo.bearing + 540) % 360) - 180;
+        const turned = -(((bearing - memo.bearing + 540) % 360) - 180);
         const next = memo.value + turned;
         turn(snapAngle(next, shiftKey ? DIAL_DETENT : DIAL_STEP), last);
         return {bearing, value: next};
@@ -126,10 +146,10 @@ function Dial({col, row, gate, rect, zoom, actions}) {
     // The arc covers the angle within one turn; a full turn or more shows as full.
     const arc = Math.min(360, Math.abs(value));
     const style = {
-        left: `${rect.x * zoom}px`,
-        top: `${rect.y * zoom}px`,
-        width: `${rect.w}px`,
-        height: `${rect.h}px`,
+        left: `${left * zoom}px`,
+        top: `${top * zoom}px`,
+        width: `${width}px`,
+        height: `${height}px`,
         transform: `scale(${zoom})`,
         '--arc': `${arc}deg`,
         '--knob-index': `var(--dial-${tone})`,
@@ -141,4 +161,4 @@ function Dial({col, row, gate, rect, zoom, actions}) {
         <span className="wire-dial-index" aria-hidden="true" />
         <span className="wire-dial-core" aria-hidden="true" />
     </div>;
-}
+});
