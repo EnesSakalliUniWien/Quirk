@@ -40,6 +40,17 @@ export function startNewSharedRenderer() {
     current = undefined;
 }
 
+/**
+ * Starts the renderer before any surface needs it, so that the first to draw - the minimap, as a
+ * circuit loads - finds it running rather than waiting the frames it takes to start. It stays until a
+ * surface has joined and the last one has left, like any other.
+ * @returns {!SharedRenderer}
+ */
+export function warmSharedRenderer() {
+    if (!current || current.failure || current.closing) current = new SharedRenderer();
+    return current;
+}
+
 /** Mounts the scene of every surface on the renderer, each in a container of its own. */
 function Scenes({scenes}) {
     const surfaces = useStore(scenes, state => state.surfaces);
@@ -60,7 +71,7 @@ function Scenes({scenes}) {
 export class SharedRenderer {
     /** @returns {!SharedRenderer} The renderer the surface now shares: the running one, or a new one. */
     static join(surface) {
-        if (!current || current.failure || current.closing) current = new SharedRenderer();
+        warmSharedRenderer();
         current.scenes.setState(({surfaces}) => ({surfaces: [...surfaces, surface]}));
         return current;
     }

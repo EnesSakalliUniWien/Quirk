@@ -36,7 +36,8 @@ and `displays/bloch/BlochGeometry.js` owns the Bloch projection axes.
   request draws only that container, with `renderer.render({container, target: canvas})`, into the 2D
   canvas the page shows, in the commit that resized it, so a cleared canvas is never presented.
   Disposing a surface frees its scene alone; the last surface to go takes the renderer with it, and the
-  next one starts a new one. Browsers keep few contexts alive (Chrome 16, Android 8) and drop the least
+  next one starts a new one. The first is started at boot (`warmSharedRenderer`), since starting takes
+  some ten frames, and the minimap would otherwise wait them out behind the circuit. Browsers keep few contexts alive (Chrome 16, Android 8) and drop the least
   recently used, and every context duplicates its textures, shaders and fonts. The visible circuit and
   the circuit figures keep an `Application` each (`RenderCanvas`).
 - Every copy out of the shared renderer costs the GPU a snapshot of the whole of the context's canvas,

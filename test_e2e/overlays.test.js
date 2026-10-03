@@ -188,8 +188,9 @@ test('Bloch sliders show an unfilled track at zero', async browser => {
 
 test('closing the Bloch panel releases its figures\' render surfaces', async browser => {
     await withQuirkPage(browser, {cols: [['H'], ['Bloch']]}, async page => {
-        // Each surface listens for pointer moves on the whole document, and holds a WebGL context
-        // beside it. Left behind, a few openings cost the circuit its own context.
+        // The figures draw with the shared renderer, which listens for pointer moves on the whole
+        // document and holds a WebGL context beside the circuit's. Left behind, a few openings cost
+        // the circuit its own context.
         const session = await page.createCDPSession();
         const pointerMoveListeners = async () => {
             const {result} = await session.send('Runtime.evaluate', {expression: 'document'});
@@ -206,11 +207,21 @@ test('closing the Bloch panel releases its figures\' render surfaces', async bro
             }
             return count;
         };
-        const closed = await pointerMoveListeners();
+        // The renderer starts at boot, before any figure needs it, and goes with the last figure to
+        // leave it: what is left once the first panel has closed is what every later close returns to.
         await openBlochAt(page, 1);
-        assert.ok(await pointerMoveListeners() > closed, 'The open figures must hold surfaces to release.');
+        const open = await pointerMoveListeners();
+        await closePanel(page, 'bloch');
+        const deadline = Date.now() + TEST_TIMEOUT_MILLIS;
+        let closed = await pointerMoveListeners();
+        while (closed >= open && Date.now() < deadline) {
+            await new Promise(resolve => setTimeout(resolve, 50));
+            closed = await pointerMoveListeners();
+        }
+        assert.ok(closed < open, 'The open figures must hold surfaces to release.');
         for (let opening = 0; opening < 3; opening++) {
-            if (opening > 0) await openBlochAt(page, 1);
+            await openBlochAt(page, 1);
+            assert.ok(await pointerMoveListeners() > closed, 'Each opening must hold surfaces to release.');
             await closePanel(page, 'bloch');
             assert.equal(await settled(closed), closed);
         }

@@ -30,6 +30,7 @@ import {
   reportBlockingIssue,
 } from "./diagnostics/errorReporter.js";
 import { webGl2SupportProblem } from "./engine/webgl/context/issues.js";
+import { warmSharedRenderer } from "./draw/surface/SharedRenderer.js";
 import { App } from "./components/app.jsx";
 import "./styles/globals.css";
 
@@ -40,6 +41,10 @@ installErrorReporter();
 const gpuProblem = webGl2SupportProblem();
 if (gpuProblem !== undefined) {
   reportBlockingIssue("Can't simulate circuits. " + gpuProblem);
+} else {
+  // The minimap and the panels' figures draw with it, and it takes some ten frames to start: started
+  // now, it is running by the time the circuit's first frame is.
+  warmSharedRenderer();
 }
 
 // The app's one React root. Everything the app shows is rendered under it, and the circuit starts
