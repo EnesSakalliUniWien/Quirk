@@ -1,6 +1,6 @@
 import {Suite, assertThat, assertTrue} from '../../../TestUtil.js';
 import {drawBlochScene, paintBlochScene, projectPoint, projectionTriangles, coordinatePlaneTriangles,
-    shadowOf, faceShadows, liftOntoSphere, cutAtSilhouette} from '../../../../src/draw/displays/bloch/BlochScene.js';
+    shadowOf, faceShadows, liftOntoSphere, cutAtSilhouette, DEFAULT_VIEW, axisLabelPosition} from '../../../../src/draw/displays/bloch/BlochScene.js';
 import {DisplayView} from '../../scene/TestDisplayView.js';
 import {RenderSurface} from '../../../../src/draw/surface/RenderSurface.js';
 import {CanvasTheme} from '../../../../src/config/CanvasTheme.js';
@@ -104,8 +104,9 @@ suite.test('a curve on the sphere is cut at the silhouette, and its near side is
         const q = projectPoint(...p, yaw, pitch);
         return {x: q.sx, y: -q.sy, depth: q.depth};
     };
-    // The direction the view looks along has depth 1; a direction square to it lies on the silhouette.
-    const toward = [Math.cos(yaw) * Math.cos(pitch), Math.sin(yaw) * Math.cos(pitch), -Math.sin(pitch)];
+    // The direction toward the reader has depth 1 - up and out, for a camera above the equator; a
+    // direction square to it lies on the silhouette.
+    const toward = [Math.cos(yaw) * Math.cos(pitch), Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch)];
     assertTrue(Math.abs(project(toward).depth - 1) < 1e-12);
     const rim = [-Math.sin(yaw), Math.cos(yaw), 0];
     assertTrue(Math.abs(project(rim).depth) < 1e-12);
@@ -251,23 +252,21 @@ suite.test('every triangle tints its own inside in its own axis colour', async (
     document.body.appendChild(canvas);
     const surface = RenderSurface.forCanvas(canvas);
     try {
-        // Seen from well above with the vector below the equator, no triangle covers another
-        // entirely, so a projection triangle and a plane triangle can both be read off the pixels.
+        // Seen from well below the equator, with the vector below it too, no triangle covers
+        // another entirely, so a projection triangle and a plane triangle can both be read off the
+        // pixels.
         const vec = {x: 0.7, y: 0.5, z: -0.3};
-        const [yaw, pitch] = [-0.6, 0.9];
+        const [yaw, pitch] = [-0.6, -0.9];
         drawBlochScene(canvas, vec, yaw, pitch);
         await surface.render();
         const sample = sampler(canvas);
         const sphere = rgbOf(CanvasTheme.bloch.background);
-        // A triangle's inside is its own axis colour over the sphere's fill, at a projection
-        // triangle's alpha or a plane triangle's fainter one.
-        const tints = [];
-        for (const [axis, color] of [['x', CanvasTheme.bloch.axisX], ['y', CanvasTheme.bloch.axisY],
-            ['z', CanvasTheme.bloch.axisZ]]) {
-            for (const alpha of [0.16, 0.1]) {
-                tints.push({axis, rgb: rgbOf(color).map((v, i) => sphere[i] + alpha * (v - sphere[i]))});
-            }
-        }
+        // A triangle's inside is its own axis colour over the sphere's fill, at whatever alpha its
+        // depth leaves it: the tint moves the pixel away from the fill toward the axis colour, so
+        // the axis is the one whose direction from the fill the pixel's offset follows most closely.
+        const axes = [['x', CanvasTheme.bloch.axisX], ['y', CanvasTheme.bloch.axisY], ['z', CanvasTheme.bloch.axisZ]].
+            map(([axis, color]) => ({axis, toward: rgbOf(color).map((v, i) => v - sphere[i])}));
+        const cosine = (a, b) => a.reduce((s, v, i) => s + v * b[i], 0) / (Math.hypot(...a) * Math.hypot(...b));
         const triangles = sceneTriangles(vec, yaw, pitch);
         const checked = new Set();
         for (const triangle of triangles) {
@@ -275,8 +274,9 @@ suite.test('every triangle tints its own inside in its own axis colour', async (
             const point = uncoveredPoint(triangle.corners, others);
             if (point === undefined || Math.hypot(point.x, point.y) < 0.55) continue;
             const pixel = sample(point);
-            const nearest = tints.reduce((best, tint) =>
-                rgbDistance(pixel, tint.rgb) < rgbDistance(pixel, best.rgb) ? tint : best);
+            const offset = pixel.slice(0, 3).map((v, i) => v - sphere[i]);
+            const nearest = axes.reduce((best, axis) =>
+                cosine(offset, axis.toward) > cosine(offset, best.toward) ? axis : best);
             assertThat(nearest.axis).
                 withInfo({triangle: `${triangle.kind}:${triangle.axis}`, point, pixel}).
                 isEqualTo(triangle.axis);
@@ -297,7 +297,7 @@ suite.test('a layer that is switched off leaves the sphere, and reading one axis
     const surface = RenderSurface.forCanvas(canvas);
     try {
         const vec = {x: 0.7, y: 0.5, z: -0.3};
-        const [yaw, pitch] = [-0.6, 0.9];
+        const [yaw, pitch] = [-0.6, -0.9];
         const found = readableTriangle(sceneTriangles(vec, yaw, pitch), 'projection');
         assertTrue(found !== undefined);
         const sample = sampler(canvas);
@@ -333,7 +333,7 @@ suite.test('the shadow layer draws the equator shadow and the surface mark, and 
     const surface = RenderSurface.forCanvas(canvas);
     try {
         const vec = {x: 0.3, y: 0.2, z: 0.4};
-        const [yaw, pitch] = [-0.6, 0.9];
+        const [yaw, pitch] = [-0.6, -0.9];
         const at = point => {
             const p = projectPoint(...point, yaw, pitch);
             return {x: p.sx, y: -p.sy};
@@ -409,4 +409,29 @@ suite.test('on the z axis θ is still read, but no ϕ and no arc, since its plan
     assertTrue(!texts.some(t => t.includes('ϕ')));
     // The arcs' symbols stand alone on the sphere; without arcs there is no bare θ.
     assertTrue(!texts.includes('θ'));
+});
+
+suite.test('the sphere is seen from above the equator, as a textbook draws it', () => {
+    const {yaw, pitch} = DEFAULT_VIEW;
+    const north = projectPoint(0, 0, 1, yaw, pitch);
+    // |0⟩ leans toward the reader, so its axis is drawn solid, not dashed as behind.
+    assertTrue(north.depth > 0 && north.sy > 0);
+    // The near half of the equator runs below the centre; the far half above it.
+    const toward = [Math.cos(yaw), Math.sin(yaw), 0];
+    assertTrue(projectPoint(...toward, yaw, pitch).sy < 0);
+    assertTrue(projectPoint(...toward.map(v => -v), yaw, pitch).sy > 0);
+    // Raising the camera - a drag down - tips the near side further down the screen.
+    assertTrue(projectPoint(...toward, yaw, pitch + 0.2).sy < projectPoint(...toward, yaw, pitch).sy);
+});
+
+suite.test("an axis's ket sits past the axis's end, and steps out of the arrow's way", () => {
+    const center = {x: 100, y: 100};
+    const at = axisLabelPosition(center, {x: 160, y: 100}, undefined);
+    assertThat([Math.round(at.x), Math.round(at.y)]).isEqualTo([178, 100]);
+    // An axis pointing at the reader has no direction on screen; its name goes up and right.
+    const endOn = axisLabelPosition(center, {x: 101, y: 100}, undefined);
+    assertTrue(endOn.x > 101 && endOn.y < 100);
+    // On the arrow's tip, it moves out by about as much again.
+    const avoided = axisLabelPosition(center, {x: 160, y: 100}, {x: 178, y: 100});
+    assertTrue(avoided.x - 178 > 12);
 });

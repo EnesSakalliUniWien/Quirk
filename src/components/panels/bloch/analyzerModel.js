@@ -5,7 +5,9 @@ import {
   analyzerReadout,
   blochReading,
   pureStateText,
+  roundedDegrees,
 } from "../../../engine/math/bloch.js";
+import { wireLabel } from "../../../circuit/registerLabels.js";
 
 /**
  * The Bloch analyzer's model: its types, its fixed choices, and the pure functions that turn the
@@ -24,8 +26,8 @@ import {
  * @typedef {{ circles: boolean, grid: boolean, components: boolean, planes: boolean,
  *     angles: boolean, quaternion: boolean, trig: boolean, shadow: boolean }} Layers The
  *     constructions drawn; shadow is where the vector falls on the equator and on the surface.
- * @typedef {{ vec: (BlochVector | undefined), label: string }} Step The qubit after one column,
- *     and the gates that column holds.
+ * @typedef {{ vec: (BlochVector | undefined), label: string, name: string }} Step The qubit after
+ *     one column, the gates that column holds, and the step's whole name for assistive technology.
  * @typedef {ReturnType<typeof analyzerReadout> & { state: string, thetaDegrees: number,
  *     phiDegrees: number }} PanelReadout Everything the readout prints, and the angles the
  *     controls hold.
@@ -100,7 +102,9 @@ const AXES = [
 /**
  * The single-qubit state the panel was opened for in one completed simulation, or undefined if
  * that sphere is not in it: an undo or a URL change can remove it underneath the panel, and showing
- * some other slot's state would be worse than closing.
+ * some other slot's state would be worse than closing. A Bloch gate keeps its own column's state,
+ * as it does on the canvas; a wire's output is read at the playhead, as the canvas's outputs are -
+ * the whole circuit's result when the playhead rests at the end.
  *
  * @param {!Object} deps
  * @param {Object | undefined} result The completed simulation to read: the sample the panel
@@ -125,36 +129,36 @@ function densityMatrixOf(deps, result, target) {
   ) {
     return undefined;
   }
-  return stats.qubitDensityMatrix(Infinity, target.row);
+  return (result.stats ?? stats).qubitDensityMatrix(Infinity, target.row);
 }
 
 /**
  * @param {ViewMode} mode
  * @param {BlochTarget | undefined} target
- * @returns {string} The line under the title: whose state is shown, and from where.
+ * @param {{ registers: (import("../../../circuit/model/Registers.js").Registers | undefined),
+ *     playheadStep: (number | undefined), columnCount: (number | undefined) }=} circuit The
+ *     circuit's registers, which name its wires, and where the playhead stands in its columns.
+ * @returns {string} The line under the title: whose state is shown, and from where. The wire is
+ *     named as the canvas names it: q0, or by its register.
  */
-function subtitleFor(mode, target) {
+function subtitleFor(mode, target, { registers, playheadStep, columnCount } = {}) {
   if (mode.kind === "explore") {
     return "Exploring a free state — not from the circuit";
   }
   if (target === undefined) {
     return "Click a Bloch sphere in the circuit.";
   }
-  const qubit = `Qubit ${target.row + 1} · `;
+  const wire = registers === undefined ? `q${target.row}` : wireLabel(registers, target.row);
   if (mode.kind === "step") {
-    return (
-      qubit +
-      (mode.index === 0
-        ? "before the first column"
-        : `after column ${mode.index}`)
-    );
+    return `${wire} · ${mode.index === 0 ? "before the first column" : `after column ${mode.index}`}`;
   }
-  return (
-    qubit +
-    (target.col === undefined
-      ? "final output state"
-      : `at column ${target.col + 1}`)
-  );
+  if (target.col !== undefined) {
+    return `${wire} · at its Bloch gate, column ${target.col + 1}`;
+  }
+  if (playheadStep === undefined || columnCount === undefined || playheadStep >= columnCount) {
+    return `${wire} · the whole circuit's result`;
+  }
+  return `${wire} · at the playhead, ${playheadStep === 0 ? "before the first column" : `after column ${playheadStep}`}`;
 }
 
 /**
@@ -174,8 +178,8 @@ function panelReadout(vec, reading = blochReading(vec)) {
           ? pureStateText(reading.theta ?? 0, reading.phi ?? 0)
           : "mixed — |r| < 1 (entangled or decohered)",
     thetaDegrees: reading.theta === undefined ? 0 : toDegrees(reading.theta),
-    phiDegrees:
-      reading.phi === undefined ? 0 : (toDegrees(reading.phi) + 360) % 360,
+    // Rounded as the readout prints it, so a field never holds 360.0 where the readout says 0.0°.
+    phiDegrees: reading.phi === undefined ? 0 : roundedDegrees(reading.phi),
   };
 }
 

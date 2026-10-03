@@ -1,6 +1,8 @@
 /**
  * @typedef {object} AnalyzerHeaderProps
  * @property {string} subtitle Whose state is shown, and from where.
+ * @property {import("react").Ref<HTMLHeadingElement>=} titleRef The title, which takes focus when
+ *     the analyzer opens for a sphere.
  */
 
 /**
@@ -8,10 +10,10 @@
  *
  * @param {AnalyzerHeaderProps} props
  */
-function AnalyzerHeader({ subtitle }) {
+function AnalyzerHeader({ subtitle, titleRef }) {
   return (
     <header className="panel-header">
-      <h2 id="bloch-title" className="bloch-title">
+      <h2 id="bloch-title" className="bloch-title" ref={titleRef} tabIndex={-1}>
         Bloch sphere analyzer
       </h2>
       <p id="bloch-subtitle" className="bloch-subtitle">

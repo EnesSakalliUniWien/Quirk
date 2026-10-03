@@ -1,6 +1,7 @@
 import {Suite, assertThat} from '../../../TestUtil.js';
 import {easeInOut} from '../../../../src/config/Animation.js';
 import {anglesOf, glidesBetween, panelReadout, subtitleFor} from '../../../../src/components/panels/bloch/analyzerModel.js';
+import {Registers} from '../../../../src/circuit/model/Registers.js';
 
 const suite = new Suite('BlochAnalyzerModel');
 
@@ -25,16 +26,29 @@ suite.test('the arrow glides when the state shown changes at once, and follows a
     assertThat([easeInOut(0), easeInOut(0.5), easeInOut(1)]).isEqualTo([0, 0.5, 1]);
 });
 
-suite.test('the subtitle says whose state is shown, and from where', () => {
+suite.test('the subtitle names the wire as the canvas does, and says where its state comes from', () => {
     const gate = {row: 0, col: 1};
     const output = {row: 2, col: undefined};
-    assertThat(subtitleFor({kind: 'circuit'}, gate)).isEqualTo('Qubit 1 · at column 2');
-    assertThat(subtitleFor({kind: 'circuit'}, output)).isEqualTo('Qubit 3 · final output state');
-    assertThat(subtitleFor({kind: 'step', index: 0}, gate)).isEqualTo('Qubit 1 · before the first column');
-    assertThat(subtitleFor({kind: 'step', index: 2}, gate)).isEqualTo('Qubit 1 · after column 2');
+    const registers = new Registers([{name: 'a', start: 2, length: 2, input: undefined, labels: undefined}]);
+    const at = (playheadStep) => ({registers: Registers.EMPTY, playheadStep, columnCount: 4});
+    assertThat(subtitleFor({kind: 'circuit'}, gate, at(4))).isEqualTo('q0 · at its Bloch gate, column 2');
+    // A wire's output follows the playhead, and at its rest, the end, it is the whole result.
+    assertThat(subtitleFor({kind: 'circuit'}, output, at(4))).isEqualTo("q2 · the whole circuit's result");
+    assertThat(subtitleFor({kind: 'circuit'}, output, at(0))).isEqualTo('q2 · at the playhead, before the first column');
+    assertThat(subtitleFor({kind: 'circuit'}, output, at(3))).isEqualTo('q2 · at the playhead, after column 3');
+    assertThat(subtitleFor({kind: 'step', index: 0}, gate, at(4))).isEqualTo('q0 · before the first column');
+    assertThat(subtitleFor({kind: 'step', index: 2}, gate, at(4))).isEqualTo('q0 · after column 2');
+    // A wire in a register is named by it.
+    assertThat(subtitleFor({kind: 'circuit'}, output, {registers, playheadStep: 4, columnCount: 4}))
+        .isEqualTo("a₀ · the whole circuit's result");
     assertThat(subtitleFor({kind: 'explore', vec: {x: 0, y: 0, z: 1}, preset: undefined}, gate))
         .isEqualTo('Exploring a free state — not from the circuit');
     assertThat(subtitleFor({kind: 'circuit'}, undefined)).isEqualTo('Click a Bloch sphere in the circuit.');
+});
+
+suite.test('an azimuth a rounding error short of a full turn holds 0, not 360', () => {
+    const phi = 2 * Math.PI - 1e-8;
+    assertThat(panelReadout({x: Math.cos(phi), y: Math.sin(phi), z: 0}).phiDegrees).isEqualTo(0);
 });
 
 suite.test('the readout names the ket, and holds the angles the controls show', () => {

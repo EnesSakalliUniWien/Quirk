@@ -1,6 +1,7 @@
 import {Suite, assertThat, assertTrue} from '../../../TestUtil.js';
 import {drawBlochProjection, projectionGeometry} from '../../../../src/draw/displays/bloch/BlochProjections.js';
 import {drawBlochScene} from '../../../../src/draw/displays/bloch/BlochScene.js';
+import {drawBlochStrip} from '../../../../src/draw/displays/bloch/BlochStrip.js';
 import {unitCircleOf} from '../../../../src/draw/displays/bloch/BlochGeometry.js';
 import {RenderSurface} from '../../../../src/draw/surface/RenderSurface.js';
 import {CanvasTheme} from '../../../../src/config/CanvasTheme.js';
@@ -34,6 +35,41 @@ suite.test('shared readings preserve sphere and projection pixels across state c
     } finally {
         await surface.destroy();
         canvas.remove();
+    }
+});
+
+suite.test('the sphere, both sections and the strip are drawn by one renderer, and one can be released alone', async () => {
+    const canvases = [320, 320, 320, 320].map(size => {
+        const canvas = document.createElement('canvas');
+        canvas.style.width = canvas.style.height = size + 'px';
+        document.body.appendChild(canvas);
+        return canvas;
+    });
+    const [sphere, meridian, equator, strip] = canvases;
+    strip.style.height = '80px';
+    const vec = {x: 0.5, y: 0.5, z: Math.SQRT1_2};
+    const drawFigures = () => {
+        drawBlochScene(sphere, vec, 0.3, 0.2);
+        drawBlochProjection(meridian, vec, 'meridian');
+        drawBlochProjection(equator, vec, 'equator');
+    };
+    const surfaces = canvases.map(canvas => RenderSurface.forCanvas(canvas));
+    try {
+        drawFigures();
+        drawBlochStrip(strip, [vec, undefined, vec], {selected: 1, yaw: 0.3, pitch: 0.2});
+        await Promise.all(surfaces.map(surface => surface.render()));
+        assertThat(new Set(surfaces.map(surface => surface.app.renderer)).size).isEqualTo(1);
+        const shown = canvases.map(canvas => canvas.toDataURL());
+        // Releasing the strip, as a panel does when its steps go, frees its scene and no other.
+        await RenderSurface.release(strip);
+        assertThat(surfaces[3].app.stage.destroyed).isEqualTo(true);
+        assertThat(surfaces.slice(0, 3).map(surface => surface.app.stage.destroyed)).isEqualTo([false, false, false]);
+        drawFigures();
+        await Promise.all(surfaces.slice(0, 3).map(surface => surface.render()));
+        assertThat(canvases.slice(0, 3).map(canvas => canvas.toDataURL())).isEqualTo(shown.slice(0, 3));
+    } finally {
+        await Promise.all(surfaces.map(surface => surface.destroy()));
+        canvases.forEach(canvas => canvas.remove());
     }
 });
 
@@ -95,6 +131,8 @@ suite.test('the meridian holds θ itself, and the equator ϕ', () => {
     assertThat(meridian.across.letter).isEqualTo('ρ');
     assertThat(meridian.point).isApproximatelyEqualTo([Math.SQRT1_2, Math.SQRT1_2]);
     assertThat(meridian.length).isApproximatelyEqualTo(1);
+    // Each badge says which length it is: the whole vector here, only its shadow on the equator.
+    assertThat(meridian.lengthName).isEqualTo('|r|');
     assertThat(meridian.arc.label).isEqualTo('θ 45.0°');
     // The arc turns from +z down to the vector, which lies at π/2 − θ in the plane.
     assertThat(meridian.arc.to).isApproximatelyEqualTo(Math.atan2(meridian.point[1], meridian.point[0]));
@@ -102,6 +140,7 @@ suite.test('the meridian holds θ itself, and the equator ϕ', () => {
     const equator = projectionGeometry(vec, 'equator');
     assertThat(equator.point).isApproximatelyEqualTo([0.5, 0.5]);
     assertThat(equator.length).isApproximatelyEqualTo(Math.SQRT1_2);
+    assertThat(equator.lengthName).isEqualTo('|r| sin θ');
     assertThat(equator.arc.label).isEqualTo('ϕ 45.0°');
     assertThat(equator.formulas).isEqualTo([['x', 'sin θ cos ϕ'], ['y', 'sin θ sin ϕ']]);
     assertThat(equator.note).isEqualTo(undefined);

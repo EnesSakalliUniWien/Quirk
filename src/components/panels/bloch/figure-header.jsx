@@ -2,6 +2,7 @@
  * @typedef {object} FigureHeaderProps
  * @property {string} title
  * @property {string} caption What the figure shows or how to use it, set small and muted.
+ * @property {import("react").ReactNode=} action A control that takes the caption's place.
  */
 
 /**
@@ -9,11 +10,11 @@
  *
  * @param {FigureHeaderProps} props
  */
-function FigureHeader({ title, caption }) {
+function FigureHeader({ title, caption, action }) {
   return (
     <header className="bloch-figure-header">
       <h4>{title}</h4>
-      <span className="bloch-figure-axis">{caption}</span>
+      {action ?? <span className="bloch-figure-axis">{caption}</span>}
     </header>
   );
 }

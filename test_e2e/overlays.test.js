@@ -72,11 +72,13 @@ test('Bloch Planes draws equatorial triangles independently and explains cos · 
         assert.equal(await checks[1].evaluate(e => e.getAttribute('aria-checked')), 'true');
         await checks[1].click();
         await page.waitForFunction(image => document.getElementById('bloch-canvas').toDataURL() === image, {}, before);
-        assert.match(await checks[6].evaluate(e => document.getElementById(e.getAttribute('aria-describedby')).textContent),
-            /sphere labels require Components/);
+        // Off, cos · sin says nothing; on, it explains where its labels go.
+        assert.equal(await checks[6].evaluate(e => e.getAttribute('aria-describedby')), null);
         const projection = await page.$eval('#bloch-equator-canvas', e => e.toDataURL());
         await checks[6].click();
         await page.waitForFunction(image => document.getElementById('bloch-equator-canvas').toDataURL() !== image, {}, projection);
+        assert.match(await checks[6].evaluate(e => document.getElementById(e.getAttribute('aria-describedby')).textContent),
+            /labels the sphere only with Components on/);
         assert.equal(await checks[0].evaluate(e => e.getAttribute('aria-checked')), 'false');
     });
 });
@@ -137,7 +139,7 @@ test('Bloch source selection cancels an unfinished preset transition', async bro
             // Past the preset's duration, no remaining animation may replace the new source.
             await new Promise(resolve => setTimeout(resolve, 400));
             assert.equal(await page.$eval('#bloch-subtitle', e => e.textContent),
-                returnToCircuit ? 'Qubit 1 · at column 2' : 'Qubit 1 · before the first column');
+                returnToCircuit ? 'q0 · at its Bloch gate, column 2' : 'q0 · before the first column');
             assert.equal(await page.$eval(returnToCircuit ? '#bloch-x' : '#bloch-z', e => e.textContent), '+1.000');
         }
     });
@@ -340,7 +342,7 @@ test('opens the enlarged Bloch sphere view from a Bloch display gate', async bro
             quaternion: document.getElementById('bloch-quaternion').textContent,
             vector: document.getElementById('bloch-vector-quaternion').textContent,
         }));
-        assert.equal(readout.subtitle, 'Qubit 1 · at column 2');
+        assert.equal(readout.subtitle, 'q0 · at its Bloch gate, column 2');
         assert.equal(readout.x, '+1.000');
         assert.equal(readout.z, '+0.000');
         assert.equal(readout.theta, '90.0°');
@@ -877,5 +879,34 @@ test('a rotation gate edits from its indicator and not from its body at each zoo
             assert.ok(Math.abs((dial.top + dial.height / 2) - wire.y) < 2 * zoom, `The dial must sit on the wire at ${zoom}x.`);
             await closePanel(page, 'gate-param');
         }
+    });
+});
+
+test("a wire's Bloch sphere follows the playhead, and Escape closes the analyzer back to the circuit", async browser => {
+    await withQuirkPage(browser, {cols: [['H'], ['Z']]}, async page => {
+        // A short circuit keeps five columns; the wires' outputs stand two past them.
+        await openBlochAt(page, 7);
+        const shows = (subtitle, id, value) => page.waitForFunction((subtitle, id, value) =>
+            document.getElementById('bloch-subtitle')?.textContent === subtitle &&
+            document.getElementById(id)?.textContent === value,
+        {timeout: TEST_TIMEOUT_MILLIS}, subtitle, id, value);
+        // At its rest the playhead is past the end: the whole circuit's result, |−⟩.
+        await shows("q0 · the whole circuit's result", 'bloch-x', '-1.000');
+        await page.click('#playhead-reset-button');
+        await shows('q0 · at the playhead, before the first column', 'bloch-z', '+1.000');
+        await page.click('#playhead-next-button');
+        await shows('q0 · at the playhead, after column 1', 'bloch-x', '+1.000');
+
+        // The sphere turns by keyboard, and Reset view brings it back.
+        await page.focus('#bloch-canvas');
+        await page.keyboard.press('ArrowRight');
+        await page.waitForSelector('#bloch-reset-view');
+        await page.click('#bloch-reset-view');
+        await page.waitForFunction(() => document.getElementById('bloch-reset-view') === null);
+
+        await page.focus('#bloch-canvas');
+        await page.keyboard.press('Escape');
+        await waitForPanel(page, 'bloch', false);
+        assert.equal(await page.evaluate(() => document.activeElement?.id), 'canvasDiv');
     });
 });

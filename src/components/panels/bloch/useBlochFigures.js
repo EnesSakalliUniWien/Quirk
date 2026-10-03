@@ -43,10 +43,12 @@ import {
  * result every panel reads (useCompletedResult): four figures redrawn each frame held the whole app
  * to a fraction of its frame rate.
  *
- * Each canvas a painter draws into gets a render surface of its own - a WebGL context, and pointer
- * listeners on the whole document - which lives until it is released. The figures release theirs
- * when the panel closes and when a canvas is replaced. A browser keeps only a few contexts alive,
- * and past that it drops the oldest, which can be the circuit's own.
+ * Each canvas a painter draws into gets a render surface of its own - a scene, drawn by the renderer
+ * every such surface shares (src/draw/surface/SharedRenderer.js) - which lives until it is released.
+ * The figures release theirs when the panel closes and when a canvas is replaced; the last surface
+ * released takes the shared renderer, its WebGL context and its pointer listener on the whole
+ * document along. A browser keeps only a few contexts alive, and past that it drops the oldest,
+ * which can be the circuit's own, so the figures must not hold one each.
  *
  * When the state shown changes at once - another step, back from a free state, an edited circuit -
  * the arrow glides to it along the sphere over Animation.GLIDE_DURATION_MS, landing on the state as it is
@@ -98,10 +100,13 @@ function useBlochFigures({
       undefined
     ),
   );
+  // Whether the sphere has been turned from the default view, so a Reset view can be offered.
+  const [rotated, setRotated] = useState(false);
 
   // A fresh sphere is shown from the default view.
   useEffect(() => {
     viewRef.current = { ...DEFAULT_VIEW };
+    setRotated(false);
   }, [target]);
 
   const repaint = useMemo(() => {
@@ -133,10 +138,12 @@ function useBlochFigures({
               : blochCoordinates(densityMatrix);
       }
 
+      // The step followed is part of where the state comes from, so the playhead moving glides the
+      // arrow there as choosing a step does.
       const source = {
         target,
         kind: shown.kind,
-        index: shown.kind === "step" ? shown.index : undefined,
+        index: shown.kind === "step" ? shown.index : shown.kind === "circuit" ? currentStep : undefined,
         circuit: completedRef.current?.circuit,
       };
       if (glidesBetween(sourceRef.current, source) && shownVector.current !== undefined && vec !== undefined &&
@@ -249,6 +256,18 @@ function useBlochFigures({
     event.currentTarget.setPointerCapture(event.pointerId);
     event.preventDefault();
   };
+  /**
+   * Turns the view, the way the surface under a finger turns: a drag right swings the near side
+   * right, a drag down tips the near side down and the top toward the reader.
+   * @param {number} yawBy @param {number} pitchBy In radians.
+   */
+  const turn = (yawBy, pitchBy) => {
+    const view = viewRef.current;
+    view.yaw -= yawBy;
+    view.pitch = Math.max(Math.PI * -0.49, Math.min(Math.PI * 0.49, view.pitch + pitchBy));
+    setRotated(true);
+    repaint();
+  };
   /** @param {import("react").PointerEvent<HTMLCanvasElement>} event */
   const onPointerMove = (event) => {
     const canvas = event.currentTarget;
@@ -256,15 +275,26 @@ function useBlochFigures({
       return;
     }
     const cssSize = Math.max(1, canvas.clientWidth);
-    const view = viewRef.current;
-    view.yaw -= (event.movementX * Math.PI) / cssSize;
-    view.pitch = Math.max(
-      Math.PI * -0.49,
-      Math.min(
-        Math.PI * 0.49,
-        view.pitch + (event.movementY * Math.PI) / cssSize,
-      ),
-    );
+    turn((event.movementX * Math.PI) / cssSize, (event.movementY * Math.PI) / cssSize);
+  };
+  /** The arrow keys turn the sphere 15° a press; Home puts it back. */
+  /** @param {import("react").KeyboardEvent<HTMLCanvasElement>} event */
+  const onKeyDown = (event) => {
+    const step = Math.PI / 12;
+    const turns = {
+      ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step],
+    };
+    if (event.key === "Home") {
+      event.preventDefault();
+      resetView();
+    } else if (turns[event.key] !== undefined) {
+      event.preventDefault();
+      turn(...turns[event.key]);
+    }
+  };
+  const resetView = () => {
+    viewRef.current = { ...DEFAULT_VIEW };
+    setRotated(false);
     repaint();
   };
 
@@ -275,8 +305,11 @@ function useBlochFigures({
     stripRef,
     readout,
     shownVector,
+    rotated,
+    resetView,
     onPointerDown,
     onPointerMove,
+    onKeyDown,
   };
 }
 

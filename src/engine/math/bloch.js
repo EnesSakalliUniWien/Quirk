@@ -148,7 +148,7 @@ const BLOCH_PRESETS = Object.freeze([
     Object.freeze({name: "|1⟩", vec: Object.freeze({x: 0, y: 0, z: -1})}),
     Object.freeze({name: "|+⟩", vec: Object.freeze({x: 1, y: 0, z: 0})}),
     Object.freeze({name: "|−⟩", vec: Object.freeze({x: -1, y: 0, z: 0})}),
-    Object.freeze({name: "|i⟩", vec: Object.freeze({x: 0, y: 1, z: 0})}),
+    Object.freeze({name: "|+i⟩", vec: Object.freeze({x: 0, y: 1, z: 0})}),
     Object.freeze({name: "|−i⟩", vec: Object.freeze({x: 0, y: -1, z: 0})}),
     Object.freeze({name: "Mixed", vec: Object.freeze({x: 0, y: 0, z: 0})}),
 ]);
@@ -158,7 +158,18 @@ const BLOCH_PRESETS = Object.freeze([
  * @returns {!string} Degrees to one decimal, or the undefined mark.
  */
 function degreesText(radians) {
-    return radians === undefined ? UNDEFINED_TEXT : `${(radians * 180 / Math.PI).toFixed(1)}°`;
+    return radians === undefined ? UNDEFINED_TEXT : `${roundedDegrees(radians).toFixed(1)}°`;
+}
+
+/**
+ * An angle in degrees to the tenth the views print, rounded before it wraps: an azimuth a hair
+ * short of a full turn is 0.0°, never 360.0°. A polar angle never reaches a full turn.
+ * @param {!number} radians
+ * @returns {!number}
+ */
+function roundedDegrees(radians) {
+    const degrees = Math.round(radians * 1800 / Math.PI) / 10;
+    return degrees >= 360 ? degrees - 360 : degrees;
 }
 
 /** Rounded before signing, so a component that vanishes at this precision never reads -0.000. */
@@ -304,5 +315,5 @@ function analyzerReadout(vec, reading = blochReading(vec)) {
 
 export {EPSILON, PURE_STATE_THRESHOLD, UNDEFINED_TEXT, BLOCH_PRESETS, blochCoordinates, blochReading, vectorFromAngles,
     blochVectorBetween,
-    degreesText, pureStateText, componentFormulas, blochAmplitudes, blochQuaternion,
+    degreesText, roundedDegrees, pureStateText, componentFormulas, blochAmplitudes, blochQuaternion,
     pureQuaternionText, quaternionText, analyzerReadout, MIXED_NOTE, POLAR_NOTE}

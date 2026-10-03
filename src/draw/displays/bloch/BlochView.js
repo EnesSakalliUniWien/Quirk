@@ -16,7 +16,7 @@
 
 import {TooltipLayer} from '../../tooltips/TooltipView.js';
 import {AXIS_COLOR} from './BlochGeometry.js';
-import {DEFAULT_VIEW, glanceBoxFor, paintBlochScene, projectPoint} from './BlochScene.js';
+import {DEFAULT_VIEW, axisLabelPosition, glanceBoxFor, paintBlochScene, projectPoint} from './BlochScene.js';
 import {fitText} from '../../text/TextLayout.js';
 import {circle, rectangle} from '../../shapes/ShapeView.js';
 
@@ -50,7 +50,9 @@ function _paintBlochSphereDisplay_tooltips(painter, c, u, vec, reading, focusPoi
         x: c.x+u*Math.sqrt(0.5),
         y: c.y-u*Math.sqrt(0.5),
         labelText: 'Bloch sphere · click to enlarge',
-        valueText: `r:${forceSign(r)}, θ:${degreesText(theta)}, ϕ:${degreesText(phi)}`,
+        // |r| is the vector's length: 1 for a pure qubit, less when it is mixed or entangled.
+        valueText: `|r| ${r.toFixed(3)} (${r > PURE_STATE_THRESHOLD ? 'pure' : 'mixed or entangled, no single direction'}), ` +
+            `θ:${degreesText(theta)}, ϕ:${degreesText(phi)}`,
         valueText2: `x:${forceSign(vec.x)}, y:${forceSign(vec.y)}, z:${forceSign(vec.z)}`
     });
 }
@@ -76,6 +78,7 @@ function _paintBlochSphereDisplay_purity(painter, drawArea, r) {
         font: {fontSize: fontSize, fontFamily: Typography.MONO_FONT_FAMILY},
         width: drawArea.w,
         height: readoutHeight,
+        changing: true,
         beforeDraw: (w, h) => {
             painter.group('purity-plate-' + painter.order, painter => {
                 painter.alpha *= 0.7;
@@ -123,13 +126,19 @@ function paintBlochSphereDisplay(
     paintBlochScene(painter, size, vec, DEFAULT_VIEW.yaw, DEFAULT_VIEW.pitch,
         {origin: {x: c.x - size / 2, y: c.y - size / 2}, transparent: true, reading});
 
-    // Each positive axis named in its colour, where the analyzer puts the same axis's ket.
+    // Each positive axis named in its colour, where the analyzer puts the same axis's ket: past the
+    // axis's end, and clear of the state's tip.
+    const onScreen = ([x, y, z]) => {
+        const p = projectPoint(x, y, z, DEFAULT_VIEW.yaw, DEFAULT_VIEW.pitch);
+        return {x: c.x + p.sx * u, y: c.y - p.sy * u};
+    };
+    const tip = vec === undefined ? undefined : onScreen([vec.x, vec.y, vec.z]);
     for (const [label, dir, color] of [['X', [1, 0, 0], AXIS_COLOR.x], ['Y', [0, 1, 0], AXIS_COLOR.y],
             ['Z', [0, 0, 1], AXIS_COLOR.z]]) {
-        const p = projectPoint(...dir.map(v => v * 1.22), DEFAULT_VIEW.yaw, DEFAULT_VIEW.pitch);
+        const p = axisLabelPosition(c, onScreen(dir), tip, {reach: u * 0.24, clearance: u * 0.3});
         fitText(painter, label, {
-            x: c.x + p.sx * u,
-            y: c.y - p.sy * u,
+            x: p.x,
+            y: p.y,
             align: 'center',
             baseline: 'middle',
             fill: color,

@@ -7,19 +7,20 @@ import { ReadoutSection } from "./readout-section.jsx";
  * @typedef {object} ReadoutSidebarProps
  * @property {import("./analyzerModel.js").PanelReadout | null | undefined} readout What to print;
  *     null or undefined while there is no state, when every value reads n/a.
+ * @property {string=} className Where the readout stands in the analyzer's grid.
  */
 
 const UNAVAILABLE = "n/a";
 
 /**
- * The readout beside the figures, in two groups by what they describe: the Bloch vector - its
+ * The readout beside the controls, in two groups by what they describe: the Bloch vector - its
  * length and angles, its Cartesian components and the quaternion that turns |0⟩ onto it - and the
  * quantum state - its amplitudes, its purity and its ket. Each value sits in one right-aligned
  * column so they scan down.
  *
  * @param {ReadoutSidebarProps} props
  */
-function ReadoutSidebar({ readout }) {
+function ReadoutSidebar({ readout, className }) {
   const shown = readout ?? undefined;
   /** @param {keyof import("./analyzerModel.js").PanelReadout} field */
   const value = (field) =>
@@ -35,9 +36,9 @@ function ReadoutSidebar({ readout }) {
   ];
 
   return (
-    <aside className="bloch-sidebar" aria-label="Readout">
+    <aside className={["bloch-sidebar", className].filter(Boolean).join(" ")} aria-label="Readout">
       <AnalyzerGroup title="Bloch vector" purpose="where the state points">
-        <ReadoutSection title="State vector">
+        <ReadoutSection title="Length and angles">
           <dl className="bloch-readout">
             <ReadoutRow
               symbol="|r|"
@@ -96,7 +97,7 @@ function ReadoutSidebar({ readout }) {
           </dl>
           <p className="bloch-hint">
             q = cos(θ/2) + sin(θ/2)(−sin ϕ i + cos ϕ j) turns |0⟩ onto the
-            state; r = |r| q k q̄.
+            state's direction; r = |r| q k q̄.
           </p>
         </ReadoutSection>
       </AnalyzerGroup>

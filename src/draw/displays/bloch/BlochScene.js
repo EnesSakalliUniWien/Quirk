@@ -25,6 +25,12 @@ import {Point} from '../../../geometry/Point.js';
 import {AXIS_COLOR, PLOT_RADIUS} from './BlochGeometry.js';
 import {PURE_STATE_THRESHOLD, blochReading, componentFormulas, degreesText} from '../../../engine/math/bloch.js';
 
+/**
+ * Where a point on the sphere lands on screen, seen orthographically from a camera turned yaw about
+ * z and raised pitch above the equator: a positive pitch looks down on the sphere, as a textbook
+ * draws it, so |0⟩ leans toward the reader and the near half of the equator runs below the centre.
+ * sy is up the screen; depth is toward the reader, negative behind the sphere's silhouette.
+ */
 function projectPoint(x, y, z, yaw, pitch) {
     const cy = Math.cos(yaw);
     const sy = Math.sin(yaw);
@@ -34,9 +40,30 @@ function projectPoint(x, y, z, yaw, pitch) {
     const sp = Math.sin(pitch);
     return {
         sx: right,
-        sy: z * cp + toward * sp,
-        depth: toward * cp - z * sp,
+        sy: z * cp - toward * sp,
+        depth: toward * cp + z * sp,
     };
+}
+
+/**
+ * Where an axis's ket goes: past the axis's end on screen, out from the centre, so an axis pointing
+ * at the reader - whose end lands near the centre - never buries its name under its own head; and
+ * further out where that would land on the state's arrowhead.
+ * @param {!Point} center
+ * @param {!{x: !number, y: !number}} end The axis's end on screen.
+ * @param {undefined|!{x: !number, y: !number}} avoid The state's tip on screen, if there is one.
+ * @param {!{reach: (undefined|!number), clearance: (undefined|!number)}=} spacing How far past the
+ *     end the name sits, and how near the tip it may come before it moves out by as much again.
+ * @returns {!{x: !number, y: !number}}
+ */
+function axisLabelPosition(center, end, avoid, {reach = 18, clearance = 20} = {}) {
+    const dx = end.x - center.x, dy = end.y - center.y;
+    const length = Math.hypot(dx, dy);
+    // An axis seen end-on has no direction on screen; its name goes up and to the right.
+    const [ux, uy] = length < reach / 2 ? [Math.SQRT1_2, -Math.SQRT1_2] : [dx / length, dy / length];
+    const at = by => ({x: end.x + ux * by, y: end.y + uy * by});
+    const near = at(reach);
+    return avoid !== undefined && Math.hypot(near.x - avoid.x, near.y - avoid.y) < clearance ? at(reach * 1.9) : near;
 }
 
 /** A leg shorter than this is a point, and its triangle is not drawn. */
@@ -234,7 +261,8 @@ function drawAngles(view, vec, reading, project) {
     const arc = (angle, pointAt, label) => {
         if (Math.abs(angle) <= DEGENERATE_LEG) return;
         const points = Array.from({length: 41}, (_, i) => project(...pointAt(angle * i / 40, 1)));
-        strokePath(view, points, CanvasTheme.text.primary, 1.5);
+        // θ is a solid arc and ϕ a dashed one, so the two read apart where they cross.
+        strokePath(view, points, CanvasTheme.text.primary, 1.5, label === 'ϕ' ? [3, 2] : []);
         const p = project(...pointAt(angle / 2, 1.3));
         plateText(view, label, p.x, p.y, CanvasTheme.text.primary, 12);
     };
@@ -433,6 +461,8 @@ function paintBlochScene(view, size, vec, yaw, pitch,
             });
         }
     }
+    // Where the state's arrow ends on screen, so no axis label is set down on it.
+    const vecTip = vec ? project(vec.x, vec.y, vec.z) : undefined;
     // Both ends of an axis carry its letter, so a negative component reads as easily as a positive.
     for (const [dir, ket, letter] of [
         [[1,0,0], '|+⟩', 'x'], [[-1,0,0], '|−⟩', 'x'], [[0,1,0], '|+i⟩', 'y'],
@@ -445,7 +475,7 @@ function paintBlochScene(view, size, vec, yaw, pitch,
         if (!detailed) continue;
         if (positive) forAxis('head-' + letter, letter, inner => arrowHead(inner, center, tip, AXIS_COLOR[letter], 6));
 
-        const label = project(...dir.map(v => v * 1.22));
+        const label = axisLabelPosition(center, tip, vecTip);
         drawText(view, ket, {
             x: label.x,
             y: label.y,
@@ -628,5 +658,5 @@ function drawBlochScene(canvas, vec, yaw, pitch, options = {}) {
     paintBlochScene(view, size, vec, yaw, pitch, options);
 }
 
-export {drawBlochScene, paintBlochScene, glanceBoxFor, DEFAULT_VIEW, projectPoint, projectionTriangles,
+export {drawBlochScene, paintBlochScene, glanceBoxFor, DEFAULT_VIEW, projectPoint, axisLabelPosition, projectionTriangles,
     coordinatePlaneTriangles, shadowOf, faceShadows, liftOntoSphere, cutAtSilhouette};

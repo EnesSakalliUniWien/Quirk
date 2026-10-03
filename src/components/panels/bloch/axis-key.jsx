@@ -26,6 +26,7 @@ function AxisKey({ pinnedAxis, onTogglePin, onPreview }) {
               id={`bloch-axis-${axis}-button`}
               className={`bloch-legend-axis bloch-axis-${axis}`}
               aria-pressed={pinnedAxis === axis}
+              aria-label={`Read the ${axis} axis on its own`}
               title={`Read the ${axis} axis on its own`}
               onClick={() => onTogglePin(axis)}
               onPointerEnter={() => onPreview(axis)}
