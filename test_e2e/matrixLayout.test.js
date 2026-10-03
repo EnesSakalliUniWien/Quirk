@@ -75,6 +75,9 @@ test("matrix equations align across fractions, complex entries, resizing and zoo
 
 test("plain wheels remain vertical and Shift+wheel alone converts to horizontal scrolling", async browser => {
     await withQuirkPage(browser, {cols: [["H"], ["X"], ["H"]]}, async page => {
+        // At the start, so the track's first card is the playhead's and opening it scrolls nowhere.
+        await page.click("#playhead-reset-button");
+        await page.waitForFunction(() => document.getElementById("playhead-position").textContent.startsWith("operation 0"));
         await openAlgebra(page);
         const result = await page.evaluate(() => {
             const track = document.querySelector('.algebra-steps');

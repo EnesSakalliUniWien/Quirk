@@ -41,7 +41,7 @@ const POST_SELECT_RENDERER = args => {
         y,
         align: 'center',
         baseline: 'hanging',
-        fill: CanvasTheme.error.text,
+        fill: CanvasTheme.text.muted,
         font: {fontSize: 10, fontFamily: Typography.DEFAULT_FONT_FAMILY},
         width: w,
         height: h / 2
@@ -51,7 +51,7 @@ const POST_SELECT_RENDERER = args => {
         y: y + h,
         align: 'center',
         baseline: 'bottom',
-        fill: CanvasTheme.error.text,
+        fill: CanvasTheme.text.muted,
         font: {fontSize: 10, fontFamily: Typography.DEFAULT_FONT_FAMILY},
         width: w,
         height: h / 2

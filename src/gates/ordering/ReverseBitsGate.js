@@ -17,6 +17,7 @@
 import {Simulation} from "../../config/Simulation.js"
 import {Gate} from "../../circuit/model/Gate.js"
 import {ketArgs, ketShaderPermute} from "../../engine/simulation/gpu/KetShaderUtil.js"
+import {PERMUTATION_RENDERER} from './PermutationRenderer.js';
 
 const _generateReverseShaderForSize = span => span < 2 ? undefined : ketShaderPermute(
     '',
@@ -47,6 +48,9 @@ const ReverseBitsGateFamily = Gate.buildFamily(2, 16, (span, builder) => builder
     setTitle("Reverse Order").
     setBlurb("Swaps bits into the opposite order.").
     setKnownEffectToBitPermutation(i => span - 1 - i).
+    // On a wire the gate draws what it does - each wire crossing to its mirror - which reads at any
+    // size, where its name shrank to 9px across a one-column tile.
+    setRenderer(PERMUTATION_RENDERER).
     setActualEffectToShaderProvider(reverseShaderForSize(span)));
 
 export {ReverseBitsGateFamily, reverseShaderForSize}

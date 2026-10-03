@@ -17,6 +17,7 @@
 import { Simulation } from "../../config/Simulation.js";
 import { Gate } from "../../circuit/model/Gate.js";
 import { makeCycleRenderer } from "../../draw/gate/GateRenderers.js";
+import { DIAL_AXIS } from "../../draw/gate/TimeDial.js";
 import {
   ketArgs,
   ketShaderPhase,
@@ -49,6 +50,16 @@ const PHASE_GRADIENT_SHADER = ketShaderPhase(
 );
 
 const PhaseGradientGates = {};
+
+// The cycling gradients' turnsAt: how far round its cycle the gate has come at a time, in turns. The
+// shader, the matrix and the dial all read it, so none of them can drift from the others. Only phases
+// change, so the dial wears the Z face; the inverse gate turns the other way, which is its sign.
+const FORWARD = (t) => t;
+const BACKWARD = (t) => -t;
+const gradientAt = (span) => (turns) =>
+  Matrix.generateDiagonal(1 << span, (k) =>
+    Complex.polar(1, turns * 2 * Math.PI * k),
+  );
 
 PhaseGradientGates.PhaseGradientFamily = Gate.buildFamily(
   1,
@@ -98,19 +109,16 @@ PhaseGradientGates.DynamicPhaseGradientFamily = Gate.buildFamily(
       .setSymbol("Grad^t'")
       .setTitle("Cycling Gradient Gate")
       .setBlurb("Phases the target by a cycling amount proportional its value.")
+      .setTurnsAt(FORWARD)
       .setActualEffectToShaderProvider((ctx) =>
         PHASE_GRADIENT_SHADER.withArgs(
           ...ketArgs(ctx, span),
-          WglArg.float("factor", ctx.time * Math.PI * 2),
+          WglArg.float("factor", FORWARD(ctx.time) * Math.PI * 2),
         ),
       )
-      .setEffectToTimeVaryingMatrix((t) =>
-        Matrix.generateDiagonal(1 << span, (k) =>
-          Complex.polar(1, t * 2 * Math.PI * k),
-        ),
-      )
+      .setEffectFromTurns(gradientAt(span))
       .promiseEffectOnlyPhases()
-      .setRenderer(makeCycleRenderer(-1, -1, 1, -Math.PI / 2)),
+      .setRenderer(makeCycleRenderer(DIAL_AXIS.Z)),
 );
 
 PhaseGradientGates.DynamicPhaseDegradientFamily = Gate.buildFamily(
@@ -125,19 +133,16 @@ PhaseGradientGates.DynamicPhaseDegradientFamily = Gate.buildFamily(
       .setBlurb(
         "Counter-phases the target by a cycling amount proportional its value.",
       )
+      .setTurnsAt(BACKWARD)
       .setActualEffectToShaderProvider((ctx) =>
         PHASE_GRADIENT_SHADER.withArgs(
           ...ketArgs(ctx, span),
-          WglArg.float("factor", -ctx.time * Math.PI * 2),
+          WglArg.float("factor", BACKWARD(ctx.time) * Math.PI * 2),
         ),
       )
-      .setEffectToTimeVaryingMatrix((t) =>
-        Matrix.generateDiagonal(1 << span, (k) =>
-          Complex.polar(1, t * 2 * Math.PI * -k),
-        ),
-      )
+      .setEffectFromTurns(gradientAt(span))
       .promiseEffectOnlyPhases()
-      .setRenderer(makeCycleRenderer(1, -1, 1, Math.PI / 2)),
+      .setRenderer(makeCycleRenderer(DIAL_AXIS.Z)),
 );
 
 PhaseGradientGates.all = [

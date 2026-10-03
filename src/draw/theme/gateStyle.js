@@ -18,14 +18,16 @@ import {CanvasTheme} from './CanvasTheme.js';
 
 function gateStyle(gate) {
   const id = gate.serializedId || "";
-  // The IQP family, which names both the fill and the label drawn on it.
+  // The IQP family, which names both the fill and the label drawn on it. Each family is one axis:
+  // every X-axis gate takes NOT's blue, every Y-axis gate the rotations' pink, every Z-axis gate the
+  // phases' pale blue, as the axes are coloured on the dials and the Bloch sphere. The clock pulses
+  // (X^⌈t⌉) are time gates, drawn on the time tile instead.
   let family;
   if (id === "H") family = "hadamard";
-  else if (id === "X" || id === "Swap") family = "not";
   else if (id === "Measure") family = "measure";
+  else if (/^(Swap$|X($|\^(?!⌈))|Rx($|ft$)|e\^[-+]?iXt$)/.test(id)) family = "not";
+  else if (/^(Y($|\^)|Ry($|ft$)|e\^[-+]?iYt$)/.test(id)) family = "rotation";
   else if (/^(Z($|\^)|Rz($|ft$)|e\^[-+]?iZt$)/.test(id)) family = "phase";
-  else if (/^(Y$|[XY]\^|R[xy]($|ft$)|e\^[-+]?i[XY]t$)/.test(id))
-    family = "rotation";
   if (family === undefined) {
     return {fill: CanvasTheme.surface.gate, text: CanvasTheme.text.primary};
   }

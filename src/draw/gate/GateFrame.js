@@ -162,13 +162,16 @@ function paintLocationIndependentFrame(
 /**
  * @param {!GateRenderParams} args
  */
-function paintGateButton(args) {
+function paintGateButton(args, { restingLabel = true } = {}) {
   if (args.hand.isHoldingSomething()) {
     return;
   }
 
   const buttonRect = gateButtonRect(args.rect);
   if (!args.isHighlighted) {
+    if (!restingLabel) {
+      return;
+    }
     fitText(args.painter, 'edit', {x:args.rect.right()-3,y:args.rect.bottom()-2,align:'right',baseline:'bottom',
       fill:gateStyle(args.gate).text,font:{fontSize:10,fontFamily:Typography.DEFAULT_FONT_FAMILY},width:19,height:14});
     return;

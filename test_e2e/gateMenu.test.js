@@ -93,18 +93,19 @@ test('a rotation gate wears a dial on its wire, and each turn of it is one commi
         await page.keyboard.up('Shift');
         await waitForCircuit(page, {cols: [[{id: 'Rx', arg: '7pi/12'}]]});
 
-        // A drag round the face turns it too, clockwise up, and settles when it is let go. The box
+        // A drag round the face turns it too, anticlockwise up as every dial sweeps, and settles when
+        // it is let go. The box
         // keeps its width as the angle's text changes, so the dial is where it was.
         const now = await page.$eval('#wire-dial-0-0', e => e.getBoundingClientRect().toJSON());
         assert.deepEqual([now.left, now.top], [dial.left, dial.top], 'The dial must not move as it turns.');
         const centre = {x: dial.left + dial.width / 2, y: dial.top + dial.height / 2, r: dial.width / 2};
         await page.mouse.move(centre.x, centre.y - centre.r * 0.7);
         await page.mouse.down();
-        await page.mouse.move(centre.x + centre.r * 0.5, centre.y - centre.r * 0.5, {steps: 4});
-        await page.mouse.move(centre.x + centre.r * 0.7, centre.y, {steps: 4});
+        await page.mouse.move(centre.x - centre.r * 0.5, centre.y - centre.r * 0.5, {steps: 4});
+        await page.mouse.move(centre.x - centre.r * 0.7, centre.y, {steps: 4});
         await page.mouse.up();
         const dragged = await angle();
-        assert.ok(dragged > 150 && dragged < 210, `A quarter turn clockwise must add about 90°, not land on ${dragged}`);
+        assert.ok(dragged > 150 && dragged < 210, `A quarter turn anticlockwise must add about 90°, not land on ${dragged}`);
         await page.waitForFunction(
             () => !document.location.hash.includes(encodeURIComponent('7pi/12')), {timeout: TEST_TIMEOUT_MILLIS});
 

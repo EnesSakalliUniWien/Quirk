@@ -216,9 +216,8 @@ suite.test("knownDynamicGateFamilies", () => {
     const dynamicFamilies = new Set(Gates.KnownToSerializer.
         filter(g => g.stableDuration() !== Infinity).
         map(g => g.gateFamily[0].serializedId));
+    // Samples, detectors among them, are drawn from the run's seed, so they hold still with it.
     assertThat(dynamicFamilies).isEqualTo(new Set([
-        // Dynamic displays.
-        'Sample1',
         // Qubit rotating gates.
         'X^t', 'Y^t', 'Z^t',
         'X^-t', 'Y^-t', 'Z^-t',
@@ -236,11 +235,5 @@ suite.test("knownDynamicGateFamilies", () => {
         // Other.
         'grad^t1',
         'grad^-t1',
-        'XDetector',
-        'YDetector',
-        'ZDetector',
-        'XDetectControlReset',
-        'YDetectControlReset',
-        'ZDetectControlReset',
     ]));
 });

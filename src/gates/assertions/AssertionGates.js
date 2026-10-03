@@ -20,27 +20,30 @@ import {isEntangled, isState, isSuperposition} from "./assertionVerdicts.js";
 /** @param {!GateRenderParams} args */
 function assertionRenderer(args) {
     const holds = args.customStats?.holds;
-    paintBackground(args);
+    // A claim that fails fills its tile, so it is found at a glance and not by a 1px frame alone.
+    paintBackground(args, holds === false ? CanvasTheme.error.background : undefined);
     paintOutline(args);
     paintResizeTab(args);
     paintGateSymbol(args, args.gate.symbol + (holds === undefined ? "" : holds ? "\n✓" : "\n✗"), false);
     if (holds !== undefined) {
         frame(args.painter, args.rect, holds ? CanvasTheme.probability.outline : CanvasTheme.error.text);
     }
-    if (args.gate.paramDialog !== undefined) paintGateButton(args);
+    // At rest an "edit" would sit on the verdict below the name, so only hovering offers the change.
+    if (args.gate.paramDialog !== undefined) paintGateButton(args, {restingLabel: false});
 }
 
 /**
  * @param {!string} id
+ * @param {!string} symbol A name short enough to read inside the tile: what is claimed.
  * @param {!string} title
  * @param {!string} blurb
  * @param {!function(!Matrix, !int, !Gate): !boolean} verdict Of the density matrix, for a gate of
  *     this many wires.
  * @returns {!function(!int, !GateBuilder): !GateBuilder}
  */
-const assertionMaker = (id, title, blurb, verdict) => (span, builder) => builder.
+const assertionMaker = (id, symbol, title, blurb, verdict) => (span, builder) => builder.
     setSerializedId(id + span).
-    setSymbol(id).
+    setSymbol(symbol).
     setTitle(title).
     setBlurb(blurb).
     promiseHasNoNetEffectOnStateVector().
@@ -59,12 +62,14 @@ const AssertionGates = {};
 
 AssertionGates.SuperpositionFamily = Gate.buildFamily(1, 8, assertionMaker(
     "assert-sup",
+    "SUP",
     "Superposition Assertion",
     "Holds while its wires could be found in more than one basis state.\nA run halts before it when it fails.",
     isSuperposition));
 
 AssertionGates.EntanglementFamily = Gate.buildFamily(2, 8, assertionMaker(
     "assert-ent",
+    "ENT",
     "Entanglement Assertion",
     "Holds while every two of its wires are correlated.\nA run halts before it when it fails.",
     isEntangled));
@@ -73,6 +78,7 @@ AssertionGates.EntanglementFamily = Gate.buildFamily(2, 8, assertionMaker(
 // edited in the amplitudes editor (src/components/panels/gate-param/amplitudes-editor.jsx).
 const equalityMaker = assertionMaker(
     "assert-eq",
+    "=ψ",
     "Equality Assertion",
     "Holds while its wires are in the state typed in as amplitudes, up to a global phase.\n" +
         "Click the box to enter them. A run halts before it when it fails.",

@@ -127,8 +127,9 @@ suite.test("a top-level column does not repeat the circuit's initial-state opera
 });
 
 suite.test("a default input set by an earlier column is read from the column's context", () => {
-    const circuit = fromJson([[{id: "setA", arg: 3}], ["+=A2"]]);
-    const structure = columnStructure(circuit, 1, 2, 0);
+    // setA is two columns wide, so the adder that reads it stands two columns on.
+    const circuit = fromJson([[{id: "setA", arg: 3}], [], ["+=A2"]]);
+    const structure = columnStructure(circuit, 2, 2, 0);
     assertThat(structure.ok).isEqualTo(true);
     // The engine cannot run this column on its own, but the answer is plain: |c> goes to |c + 3 mod 4>.
     for (let c = 0; c < 4; c++) {
