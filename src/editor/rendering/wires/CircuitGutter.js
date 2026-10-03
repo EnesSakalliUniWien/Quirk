@@ -21,6 +21,7 @@ import {CanvasTheme} from '../../../config/CanvasTheme.js';
 import {Typography} from '../../../config/Typography.js';
 import {wireLabel} from '../../../circuit/registerLabels.js';
 import {Rect} from '../../../geometry/Rect.js';
+import {Color} from 'pixi.js';
 
 // A register's brace: drawn down its wires' labels, stopping short of the first and last so
 // neighbouring registers read apart, with its tip pointing at the name.
@@ -152,4 +153,62 @@ function drawWireLabels(context, painter, hand, drawnWireCount) {
 
 }
 
-export {drawWireLabels};
+/** How far a pinned name sits in from the viewport's left edge, and its plate around it. */
+const PINNED_NAME_INSET = 4;
+const PINNED_NAME_PADDING = 3;
+/** The pinned name's plate: the canvas, thin enough that a gate passing under it still shows. */
+const PINNED_NAME_PLATE = () => new Color(CanvasTheme.surface.background).setAlpha(0.86).toRgbaString();
+
+/** @returns {!int} How many wires have names to pin. */
+const pinnedWireCount = context =>
+    Math.min(context.definition.numWires, (context.geometry.extraWireStartIndex || Infinity) + 1);
+
+/**
+ * @param {!Object} context Rendering inputs supplied by CircuitRendering.
+ * @returns {!number} How far the viewport scrolls right, in circuit units, before the wire names
+ *     pin to its edge: Infinity when there are none.
+ */
+function wireNamesPinPast(context) {
+    return pinnedWireCount(context) === 0 ? Infinity : context.geometry.wireIndexRect(0).x;
+}
+
+/**
+ * Once the gutter has scrolled out of view, each wire's name rides at the viewport's left edge on a
+ * plate of the canvas, so a wide or zoomed circuit never loses track of which wire is which. Only
+ * the names ride along: the kets and register braces stay in the gutter, and the plates take no
+ * pointer, so a press under one still reaches the gate there.
+ *
+ * The names are drawn from x = 0: the caller places the group at the viewport's left edge, so a
+ * scroll can move it there again without describing the names anew.
+ *
+ * @param {!Object} context Rendering inputs supplied by CircuitRendering.
+ * @param {!DisplayView} painter
+ * @param {!number} scrollX How far the viewport has scrolled right, in circuit units.
+ */
+function drawPinnedWireNames(context, painter, scrollX) {
+    const drawnWireCount = pinnedWireCount(context);
+    if (scrollX <= wireNamesPinPast(context)) {
+        return;
+    }
+    const {registers} = context.definition;
+    const font = {fontSize: Layout.REGISTER_FONT_SIZE, fontFamily: Typography.MONO_FONT_FAMILY};
+    const plate = PINNED_NAME_PLATE();
+    for (let row = 0; row < drawnWireCount; row++) {
+        const indexRect = context.geometry.wireIndexRect(row);
+        fitText(painter, wireLabel(registers, row), {
+            x: PINNED_NAME_INSET + PINNED_NAME_PADDING,
+            y: context.geometry.wireRect(row).center().y,
+            align: 'left',
+            baseline: 'middle',
+            fill: CanvasTheme.text.primary,
+            font,
+            width: indexRect.w,
+            height: indexRect.h,
+            beforeDraw: (w, h) => rectangle(painter, new Rect(PINNED_NAME_INSET,
+                context.geometry.wireRect(row).center().y - h / 2 - 1, w + 2 * PINNED_NAME_PADDING, h + 2),
+                {fill: plate}, 3),
+        });
+    }
+}
+
+export {drawWireLabels, drawPinnedWireNames, wireNamesPinPast};

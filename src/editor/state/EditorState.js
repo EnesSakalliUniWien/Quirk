@@ -191,15 +191,22 @@ class EditorState {
   }
 
   /**
-   * @returns {!string}
+   * @returns {!string} The shown circuit as JSON. A circuit definition never changes once made, so
+   *     its JSON is worked out once: the canvas stamps every frame with it, and a selection is
+   *     checked against it on every hover.
    */
   snapshot() {
-    return JSON.stringify(
-      Serializer.toJson(this.displayedCircuit.circuitDefinition),
-      null,
-      0,
-    );
+    const definition = this.displayedCircuit.circuitDefinition;
+    let json = snapshots.get(definition);
+    if (json === undefined) {
+      json = JSON.stringify(Serializer.toJson(definition), null, 0);
+      snapshots.set(definition, json);
+    }
+    return json;
   }
 }
+
+/** Each circuit definition's JSON, kept while the definition is. @type {!WeakMap<!CircuitDefinition, !string>} */
+const snapshots = new WeakMap();
 
 export { EditorState };

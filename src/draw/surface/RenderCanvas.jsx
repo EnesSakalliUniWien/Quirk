@@ -3,7 +3,8 @@ import {useCallback, useEffect, useRef, useState} from 'react';
 import {useStore} from 'zustand';
 import {createStore} from 'zustand/vanilla';
 const emptyPresentation = createStore(() => ({}));
-import {RenderSurface, applicationOptions} from './RenderSurface.js';
+import {RenderSurface} from './RenderSurface.js';
+import {applicationOptions} from './applicationOptions.js';
 import {ReactScene} from '../scene/ReactScene.js';
 import {reportBlockingIssue} from '../../diagnostics/errorReporter.js';
 
@@ -30,13 +31,21 @@ export function RenderCanvas({canvasRef, id, className, style, label, onReady}) 
     </CanvasPresentation>;
 }
 
+/**
+ * Each attribute is its own selector, so a write to the store that changes none of them, as most of
+ * a frame's are, renders nothing.
+ */
 function CanvasPresentation({surface, ...props}) {
-    const size = useStore(surface?.presentation ?? emptyPresentation);
-    return <Presentation {...props} size={size} />;
+    const store = surface?.presentation ?? emptyPresentation;
+    const width = useStore(store, state => state.width);
+    const height = useStore(store, state => state.height);
+    const ready = useStore(store, state => state.ready);
+    const circuit = useStore(store, state => state.circuit);
+    return <Presentation {...props} width={width} height={height} ready={ready} circuit={circuit} />;
 }
-function Presentation({id, className, style, label, size, children}) {
+function Presentation({id, className, style, label, width, height, ready, circuit, children}) {
     return <div id={id} className={`render-canvas ${className ?? ''}`} role={label ? 'img' : undefined}
-        aria-label={label} data-renderer={size?.ready ? 'pixijs' : undefined} data-circuit={size?.circuit}
-        style={{...style, width: size?.width ?? style?.width, height: size?.height ?? style?.height}}
+        aria-label={label} data-renderer={ready ? 'pixijs' : undefined} data-circuit={circuit}
+        style={{...style, width: width ?? style?.width, height: height ?? style?.height}}
         onContextMenu={event => event.preventDefault()}>{children}</div>;
 }

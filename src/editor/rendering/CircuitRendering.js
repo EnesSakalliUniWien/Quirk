@@ -19,15 +19,23 @@ import {renderCircuitLayers} from './CircuitLayers.js';
 
 export {invalidateCircuitLabelCache} from './outputs/CircuitBasisLabels.js';
 
-/** Adapts the public circuit API to explicit scene inputs. Rendering only updates Pixi objects. */
-export function paintCircuit(circuit, painter, hand, stats, forTooltip=false, showWires=true, playheadStep=undefined, breakpoints=[], selection=undefined) {
+/**
+ * Adapts the public circuit API to explicit scene inputs. Rendering only updates Pixi objects.
+ * `range` is the stretch of the circuit to describe, in circuit units, as {left, right}: a wide
+ * circuit then describes the columns that can be seen rather than all of them. Without one, all.
+ */
+export function paintCircuit(circuit, painter, hand, stats, forTooltip=false, showWires=true, playheadStep=undefined, breakpoints=[], selection=undefined, follow=undefined, scrollX=0, range=undefined) {
     const geometry = circuit.geometry();
     const context = {
         definition: circuit.circuitDefinition,
         geometry,
         highlightedSlot: circuit.highlightedSlot,
         highlightStatusAt: (col, row, points) => circuit.highlightStatusAt(col, row, points),
-        outputStateAsMatrix: () => outputStateAsMatrix(stats, geometry.importantWireCount())
+        outputStateAsMatrix: () => outputStateAsMatrix(follow?.stats ?? stats, geometry.importantWireCount()),
+        follow,
+        // How far the viewport has scrolled right, in circuit units: past the gutter, wire names pin.
+        scrollX,
+        range,
     };
-    renderCircuitLayers(context, painter, hand, stats, forTooltip, showWires, playheadStep, breakpoints, selection);
+    renderCircuitLayers(context, painter, hand, stats, forTooltip, showWires, playheadStep, breakpoints, selection, follow);
 }

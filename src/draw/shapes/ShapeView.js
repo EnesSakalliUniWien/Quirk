@@ -15,8 +15,8 @@
  */
 
 import {extend} from '@pixi/react';
-import {drawGraphics} from '../scene/DisplayView.js';
-import {Graphics, GraphicsPath} from 'pixi.js';
+import {drawGraphics, recordGraphics} from '../scene/DisplayView.js';
+import {Graphics} from 'pixi.js';
 import {CanvasTheme} from '../../config/CanvasTheme.js';
 import {PathGeometry} from './PathGeometry.js';
 import {Appearance} from '../../appearance/Appearance.js';
@@ -92,14 +92,23 @@ export function strokePath(view, points, color = CanvasTheme.text.primary, width
     if (points.length) return drawPath(view, path => PathGeometry.polyline(path, points, dash), [{stroke: {color, width}}]);
 }
 
+/**
+ * A path traced once and filled or stroked in each style. The path's calls are recorded rather than
+ * built into a GraphicsPath, so the drawing compares equal to the last frame's and is not rebuilt.
+ */
 export function drawPath(view, draw, styles) {
-    const path = new GraphicsPath();
-    draw(path);
+    const traced = recordGraphics(draw);
     return drawGraphics(view, graphics => {
-    for (const {fill, stroke} of styles) {
-        // Pixi consumes a path after stroking; resubmit it for the phase halo and foreground.
-        if (fill !== undefined) graphics.path(path).fill(fill);
-        if (stroke !== undefined) graphics.path(path).stroke(stroke);
-    }
+        for (const {fill, stroke} of styles) {
+            // Pixi consumes a path once it is filled or stroked; trace it again for each style.
+            if (fill !== undefined) replayGraphics(graphics, traced).fill(fill);
+            if (stroke !== undefined) replayGraphics(graphics, traced).stroke(stroke);
+        }
     });
+}
+
+/** @returns {!Object} The target, after running the recorded calls on it. */
+function replayGraphics(target, commands) {
+    for (let i = 0; i < commands.length; i += 2) target[commands[i]](...commands[i + 1]);
+    return target;
 }

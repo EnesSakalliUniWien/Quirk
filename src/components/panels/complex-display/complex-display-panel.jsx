@@ -2,6 +2,7 @@ import {useEffect, useRef, useState} from 'react';
 import {useStore} from 'zustand';
 import {appStore} from '../../../state/appStore.js';
 import {useCompletedResult} from '../shared/usePlayheadStats.js';
+import {useOnScreen} from '../shared/useOnScreen.js';
 import {displayData} from './displayData.js';
 import {paintInto} from '../../../draw/surface/SharedPaintSurface.js';
 import {DATA_RENDERERS, stateGridRect} from '../../../draw/renderers/dataRenderers.js';
@@ -75,7 +76,9 @@ function DisplayGrid({data, row, col, select}) {
     const area = new Rect(0, 0, SIZE, SIZE);
     const grid = kind === 'density' ? densityGridRect(matrix, area) : stateGridRect(matrix, area).grid;
     const cell = Math.min(grid.w/matrix.width(), grid.h/matrix.height());
+    const onScreen = useOnScreen(canvas);
     useEffect(() => {
+        if (!onScreen) return undefined;
         let active = true;
         void paintInto(canvas.current, SIZE, SIZE, view => {
             if (kind === 'density') DATA_RENDERERS.matrix(view, matrix, area, {style: 'density'});
@@ -84,7 +87,7 @@ function DisplayGrid({data, row, col, select}) {
                 {stroke: {color: CanvasTheme.interaction.outline, width: 2}});
         }, () => active).catch(() => {});
         return () => {active = false;};
-    }, [data, row, col]);
+    }, [data, row, col, onScreen]);
     return <canvas ref={canvas} className="complex-display-grid" tabIndex="0" role="img"
         aria-label={`Select cell: row ${row}, column ${col}. Use arrow keys.`}
         onClick={event => {
@@ -103,7 +106,9 @@ function DisplayGrid({data, row, col, select}) {
 
 function PhaseFigure({value, defined}) {
     const canvas = useRef(null);
+    const onScreen = useOnScreen(canvas);
     useEffect(() => {
+        if (!onScreen) return undefined;
         let active = true;
         void paintInto(canvas.current, 180, 150, view => {
             const center = new Point(90,75), radius = 50;
@@ -117,6 +122,6 @@ function PhaseFigure({value, defined}) {
             } else drawText(view,'Phase undefined',{x:90,y:145,align:'center'});
         }, () => active).catch(() => {});
         return () => {active=false;};
-    },[value.real,value.imag,defined]);
+    },[value.real,value.imag,defined,onScreen]);
     return <canvas ref={canvas} className="complex-phase-figure" role="img" aria-label={defined ? 'Phase direction on the complex plane; radius is normalized' : 'Phase undefined'} />;
 }

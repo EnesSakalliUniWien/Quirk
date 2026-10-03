@@ -16,6 +16,7 @@
 
 import {BasisLabels} from '../../../src/draw/text/BasisLabels.js';
 import {drawText} from '../../../src/draw/text/TextLayout.js';
+import {fontStringFromTextStyle} from 'pixi.js';
 import {PathGeometry} from '../../../src/draw/shapes/PathGeometry.js';
 import {drawPath, rectangle, circle, strokePath, polygon, frame, highlightRing, lineWidth} from '../../../src/draw/shapes/ShapeView.js';
 import {CanvasTheme} from '../../../src/config/CanvasTheme.js';
@@ -277,7 +278,7 @@ suite.test('render surface releases its objects even when disposed during initia
     rectangle(view, new Rect(0, 0, 10, 10), {fill: 'blue'});
     await surface.destroy();
     assertThat(canvas.dataset.renderer).isEqualTo(undefined);
-    assertThat(surface.app.renderer).isEqualTo(null);
+    assertThat(surface.app.stage.destroyed).isEqualTo(true);
     await surface.destroy();
 });
 
@@ -295,7 +296,7 @@ suite.test('unmounting a rendered surface destroys nested graphics and text', as
     const objects = [group.native, shape.native, text.native];
     await surface.destroy();
     assertThat(objects.map(object => object.destroyed)).isEqualTo([true, true, true]);
-    assertThat(surface.app.renderer).isEqualTo(null);
+    assertThat(surface.app.stage.destroyed).isEqualTo(true);
 });
 
 suite.test('unchanged fixed shapes retain geometry and changed colours update it', async () => {
@@ -361,7 +362,18 @@ suite.test('reused labels clear an old stroke when the next appearance has none'
     const label = first.native;
     view.begin(); const second = drawText(view, 'quiet'); await view.commit();
     assertThat(second.native === label).isEqualTo(true);
-    assertThat(label.style.stroke).isEqualTo(undefined);
+    // Pixi's own default: no stroke.
+    assertThat(label.style.stroke).isEqualTo(null);
+});
+
+suite.test('a label whose font leaves a field undefined takes the default, not the last font set', async () => {
+    const view = new DisplayView(document.createElement('canvas'));
+    drawText(view, 'title', {font: {fontSize: 12, fontFamily: 'sans-serif', fontWeight: '600'}});
+    const line = drawText(view, 'line', {font: {fontSize: 12, fontFamily: 'sans-serif', fontWeight: undefined}});
+    await view.commit();
+    // A canvas ignores a font string with "undefined" in it, and keeps the title's weight.
+    assertThat(line.native.style.fontWeight).isEqualTo('normal');
+    assertThat(fontStringFromTextStyle(line.native.style).includes('undefined')).isEqualTo(false);
 });
 
 suite.test('tooltip flush is idempotent and an unrequested tooltip leaves on the next frame', async () => {

@@ -1,9 +1,14 @@
 import {Rectangle} from 'pixi.js';
 import {gateButtonRect, rectForResizeTab} from '../../draw/gate/GateRects.js';
 import {CircuitGeometry} from '../geometry/CircuitGeometry.js';
+import {columnsInRange} from '../rendering/columns/ColumnRange.js';
 
-/** Semantic targets use the same geometry as rendering; Pixi owns containment and ordering. */
-export function renderCircuitTargets(view, {definition, geometry}, hand) {
+/**
+ * Semantic targets use the same geometry as rendering; Pixi owns containment and ordering. The
+ * gates' targets are those of the columns in `range`, as rendering describes them: a press lands
+ * where the pointer is, which is somewhere the circuit is drawn.
+ */
+export function renderCircuitTargets(view, {definition, geometry}, hand, range = undefined) {
     const activeCursor = hand.isHoldingSomething() ? 'move' : hand.selectingRangeFrom !== undefined ? 'crosshair' :
         hand.isBusy() ? 'ns-resize' : undefined;
     const target = (key, rect, data, cursor = 'pointer') => view.add('pixiSceneContainer', {
@@ -22,7 +27,7 @@ export function renderCircuitTargets(view, {definition, geometry}, hand) {
         target(`register-${register.start}-${register.length}`, {...rect, w: geometry.wireIndexRect(register.start).right()},
             {type: 'register', row: register.start});
     }
-    for (let col = 0; col < definition.columns.length; col++) {
+    for (const col of columnsInRange(definition, geometry, range).columns) {
         for (let row = 0; row < definition.numWires; row++) {
             const gate = definition.columns[col].gates[row];
             if (!gate) continue;

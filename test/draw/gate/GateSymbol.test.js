@@ -28,7 +28,7 @@ suite.test("splitGateSymbol_breaksAtArgumentOrNearestMiddle", () => {
     assertThat(splitGateSymbol("XYZ")).isEqualTo(["XYZ"]);
 });
 
-suite.test("layout updates labels within the gate without a ticker and disposes removed rows", async () => {
+suite.test("labels sit within the gate without a ticker or a layout engine, and are disposed when removed", async () => {
     const canvas = document.createElement('canvas');
     canvas.width = 240;
     canvas.height = 240;
@@ -52,6 +52,7 @@ suite.test("layout updates labels within the gate without a ticker and disposes 
                 const labels = labelsIn(surface.app.stage);
                 assertThat(labels.map(label => label.text)).isEqualTo(expected);
                 assertThat(surface.app.ticker.started).isEqualTo(false);
+                assertThat(surface.app.renderer.layout).isEqualTo(undefined);
                 for (const label of labels.filter(label => label.text)) {
                     const bounds = label.getBounds();
                     assertThat(bounds.minX >= rect.x * ratio && bounds.maxX <= rect.right() * ratio &&
@@ -60,7 +61,6 @@ suite.test("layout updates labels within the gate without a ticker and disposes 
                 }
                 for (const label of previousLabels.filter(label => !labels.includes(label))) {
                     assertThat(label.destroyed).isEqualTo(true);
-                    assertThat(label.layout.destroyed).isEqualTo(true);
                 }
                 previousLabels = labels;
             }
@@ -68,7 +68,7 @@ suite.test("layout updates labels within the gate without a ticker and disposes 
         surface.beginFrame();
         await surface.render();
         assertThat(labelsIn(surface.app.stage)).isEqualTo([]);
-        assertThat(previousLabels.every(label => label.destroyed && label.layout.destroyed)).isEqualTo(true);
+        assertThat(previousLabels.every(label => label.destroyed)).isEqualTo(true);
     } finally {
         await surface.destroy();
     }

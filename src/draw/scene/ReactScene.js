@@ -1,5 +1,5 @@
 import {Rectangle} from 'pixi.js';
-import {Component, createElement, useLayoutEffect, useState} from 'react';
+import {Component, createElement, useCallback, useLayoutEffect, useState} from 'react';
 import {useStore} from 'zustand';
 
 /** Effects run after Pixi refs commit. Tooltips need the committed source transforms. */
@@ -24,24 +24,32 @@ class SceneErrorBoundary extends Component {
 function SceneContents({surface}) {
     const request = useStore(surface.frames, state => state.request);
     const [overlay, setOverlay] = useState(null);
+    // A surface that copies its pixels out is drawn from its own container, so it is known by it.
+    const keepRoot = useCallback(node => {if (node) surface.root = node;}, [surface]);
     useLayoutEffect(() => {
         if (!request) return;
         if (surface.disposed) {request.resolve(); return;}
         const app = surface.app;
         app.stage.scale.set(request.ratio);
-        app.stage.eventMode = 'static';
-        app.stage.hitArea = new Rectangle(0, 0, request.width / request.ratio, request.height / request.ratio);
-        // Layout must be current before tooltip bounds are read, even with the ticker stopped.
-        app.renderer.layout.update(app.stage);
+        if (surface.shared) {
+            // The pointer lands on the canvas the pixels are copied into, never on this scene.
+            app.stage.eventMode = 'none';
+        } else {
+            app.stage.eventMode = 'static';
+            app.stage.hitArea = new Rectangle(0, 0, request.width / request.ratio, request.height / request.ratio);
+        }
         if (request.tooltips.length && overlay?.request !== request) {
             setOverlay({request, element: request.view.tooltips.element(request.tooltips, app.stage)});
             return;
         }
         try {
-            if (app.canvas.width !== request.width || app.canvas.height !== request.height) {
-                app.renderer.resize(request.width, request.height, 1);
-            }
-            if (!surface.copyPixels) {
+            if (surface.shared) {
+                // A frame that has become stale leaves the canvas as the frame before it drew it.
+                if (request.isCurrent?.() !== false) surface.shared.draw(surface, request.width, request.height);
+            } else {
+                if (app.canvas.width !== request.width || app.canvas.height !== request.height) {
+                    app.renderer.resize(request.width, request.height, 1);
+                }
                 // Shown one backing pixel per device pixel, set in the same commit as the resize: a
                 // store kept larger than its element while the element resizes is clipped by the
                 // element, not squeezed. The scene's ratio also carries the circuit's zoom, so the
@@ -51,21 +59,13 @@ function SceneContents({surface}) {
                 const height = `${request.height / deviceRatio}px`;
                 if (app.canvas.style.width !== width) app.canvas.style.width = width;
                 if (app.canvas.style.height !== height) app.canvas.style.height = height;
-            }
-            app.render();
-            if (surface.copyPixels) {
-                // Resize and copy in the same commit, so a cleared canvas is never presented.
-                if (surface.canvas.width !== request.width) surface.canvas.width = request.width;
-                if (surface.canvas.height !== request.height) surface.canvas.height = request.height;
-                const ctx = surface.canvas.getContext('2d');
-                ctx.clearRect(0, 0, surface.canvas.width, surface.canvas.height);
-                ctx.drawImage(app.canvas, 0, 0);
+                app.render();
             }
             surface.presentation.setState({ready: true, circuit: request.circuit});
             request.resolve();
         } catch (error) { request.reject(error); }
     }, [request, overlay, surface]);
-    return createElement('pixiSceneContainer', null,
+    return createElement('pixiSceneContainer', {ref: surface.shared ? keepRoot : undefined},
         request?.element,
         request?.tooltips.length ? overlay?.element : null);
 }

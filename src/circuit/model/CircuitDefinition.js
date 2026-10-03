@@ -39,6 +39,9 @@ import { CUSTOM_IS_EQUAL_TO_EQUALITY } from "../../base/Equate.js";
  *
  * Doesn't compute any amplitudes or probabilities or other possibly-time-dependent stuff. See CircuitStats for that.
  */
+/** Each definition's minimum wire count, kept while the definition is. @type {!WeakMap<!CircuitDefinition, !int>} */
+const minimumWireCounts = new WeakMap();
+
 class CircuitDefinition {
     /**
      * @param {!int} numWires
@@ -600,14 +603,21 @@ class CircuitDefinition {
      * and assuming the gate positions are fixed (i.e. wires can only be added or removed from the bottom).
      */
     minimumRequiredWireCount() {
-        let best = 1;
-        for (const c of this.columns) {
-            best = Math.max(best, c.minimumRequiredWireCount());
+        // A definition never changes once made, and the circuit's geometry asks this for every
+        // column it places, so the scan over every gate runs once per definition.
+        let count = minimumWireCounts.get(this);
+        if (count === undefined) {
+            let best = 1;
+            for (const c of this.columns) {
+                best = Math.max(best, c.minimumRequiredWireCount());
+            }
+            for (const usedWire of this.customInitialValues.keys()) {
+                best = Math.max(best, usedWire + 1);
+            }
+            count = Math.max(best, this.registers.minimumRequiredWireCount());
+            minimumWireCounts.set(this, count);
         }
-        for (const usedWire of this.customInitialValues.keys()) {
-            best = Math.max(best, usedWire + 1);
-        }
-        return Math.max(best, this.registers.minimumRequiredWireCount());
+        return count;
     }
 
     /**
@@ -1045,9 +1055,13 @@ class CircuitDefinition {
             const altOutKey = `Input NO_DEFAULT Range ${letter}`;
             const isInput = i => this.locProvidesStat(pt(i), key) || this.locProvidesStat(pt(i), altInKey);
             const isOutput = i => this.locNeedsStat(pt(i), key) || this.locNeedsStat(pt(i), altOutKey);
+            // An input's link says which letter it carries and where the gate reading it stands, so
+            // each can be drawn as its own and named beside its reader.
+            const [readerFirst, readerLast] = firstLastMatchInRange(n, isOutput);
+            const carrying = range => range === undefined ? undefined : {...range, letter, readerFirst, readerLast};
             result.push(
-                srcDstMatchInRange(n, i => isInput(i) && coversCoherentWire(i), isOutput, false),
-                srcDstMatchInRange(n, i => isInput(i) && coversMeasuredWire(i), isOutput, true)
+                carrying(srcDstMatchInRange(n, i => isInput(i) && coversCoherentWire(i), isOutput, false)),
+                carrying(srcDstMatchInRange(n, i => isInput(i) && coversMeasuredWire(i), isOutput, true))
             );
         }
 

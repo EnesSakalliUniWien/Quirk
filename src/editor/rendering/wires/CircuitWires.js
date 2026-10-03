@@ -26,10 +26,51 @@ import {drawWireLabels} from './CircuitGutter.js';
 
 /** The wire's width: a line rather than a hairline, so it reads at any zoom. */
 const WIRE_WIDTH = 1.5;
-/** A measured wire is one heavier line, not two hairlines. */
-const CLASSICAL_WIRE_WIDTH = 3;
+/** A measured wire is a classical pair of lines this far apart, as its vertical links are. */
+const CLASSICAL_WIRE_GAP = 3;
 /** The tick across the wire where it turns classical, just past the gate that measured it. */
 const CLASSICAL_TICK_HEIGHT = 12;
+
+/**
+ * Where a wire is quantum and where it is classical, along its length. Each run lasts as long as the
+ * wire keeps its state, so a wire a hundred columns long is a line or two. That also spares the
+ * geometry: it is asked where the wire changes state, not where every column is, and each such
+ * question costs a scan of the whole circuit (CircuitGeometry.opRect). The wire turns classical in
+ * the column after the gate that measured it.
+ *
+ * @param {!Object} context Rendering inputs supplied by CircuitRendering.
+ * @param {!int} row
+ * @param {!number} startX Where the wire begins.
+ * @param {!boolean} showLabels Whether the output displays are drawn, which the wire stops before;
+ *     otherwise it ends at the centre of the circuit's last column.
+ * @returns {!Array.<!{from: !number, to: !number, measured: !boolean}>} The runs, left to right.
+ */
+function wireRuns(context, row, startX, showLabels) {
+    const {definition, geometry} = context;
+    // Wires terminate before the superposition display's row labels instead of running to the
+    // canvas's right edge.
+    const wireEndX = showLabels ? geometry.outputWireEndX() : Infinity;
+    const centreOf = col => Math.min(geometry.opRect(col).center().x, wireEndX);
+    const runs = [];
+    let from = startX;
+    let measured = false;
+    // The state in the column past the last is the one the wire keeps from there on.
+    for (let col = 0; col <= definition.columns.length; col++) {
+        const measuredHere = definition.locIsMeasured(new Point(col, row));
+        if (measuredHere === measured) {
+            continue;
+        }
+        // The state changes between the previous column's centre and this one's.
+        const to = col === 0 ? startX : centreOf(col - 1);
+        if (to > from) {
+            runs.push({from, to, measured});
+            from = to;
+        }
+        measured = measuredHere;
+    }
+    runs.push({from, to: showLabels ? wireEndX : centreOf(definition.columns.length), measured});
+    return runs;
+}
 
 /**
  * @param {!Object} context Rendering inputs supplied by CircuitRendering.
@@ -53,32 +94,25 @@ function drawWires(context, painter, showLabels, hand) {
             const ticks = [];
             const wireRect = context.geometry.wireRect(row);
             const y = Math.round(wireRect.center().y - 0.5) + 0.5;
-            let lastX = showLabels ? context.geometry.wireInitialStateRect(row).right() : 5;
-            // Wires terminate before the superposition display's row labels instead of running to the
-            // canvas's right edge.
-            const wireEndX = showLabels ? context.geometry.outputWireEndX() : Infinity;
-            let wasMeasured = false;
-            for (let col = 0; showLabels ? lastX < wireEndX : col <= context.definition.columns.length; col++) {
-                const x = Math.min(context.geometry.opRect(col).center().x, wireEndX);
-                const measured = context.definition.locIsMeasured(new Point(col, row));
-                segments[measured ? 1 : 0].push([lastX, y, x, y]);
-                if (measured && !wasMeasured) {
-                    // The segment starts under the gate that measured; the tick sits just past it.
-                    ticks.push(lastX + Layout.GATE_RADIUS + 3);
-                }
-                wasMeasured = measured;
-                lastX = x;
+            const startX = showLabels ? context.geometry.wireInitialStateRect(row).right() : 5;
+            for (const {from, to, measured} of wireRuns(context, row, startX, showLabels)) {
+                segments[measured ? 1 : 0].push([from, y, to, y]);
+                // The run starts under the gate that measured; the tick sits just past it.
+                if (measured) ticks.push(from + Layout.GATE_RADIUS + 3);
             }
-            const strokes = [
-                {color: CanvasTheme.stroke.wire, width: lineWidth(painter, WIRE_WIDTH)},
-                {color: CanvasTheme.iqp.classicalWire, width: lineWidth(painter, CLASSICAL_WIRE_WIDTH)},
-            ];
-            for (const [i, stroke] of strokes.entries()) {
-                drawPath(painter, trace => segments[i].forEach(segment => PathGeometry.line(trace, ...segment)), [{stroke}]);
-            }
+            const quantum = {color: CanvasTheme.stroke.wire, width: lineWidth(painter, WIRE_WIDTH)};
+            const classical = {color: CanvasTheme.iqp.classicalWire, width: lineWidth(painter, 1)};
+            drawPath(painter, trace => segments[0].forEach(segment => PathGeometry.line(trace, ...segment)),
+                [{stroke: quantum}]);
+            // A measured wire is a pair of lines either side of where the quantum one ran.
+            const half = CLASSICAL_WIRE_GAP / 2;
+            drawPath(painter, trace => segments[1].forEach(([x1, , x2]) => {
+                PathGeometry.line(trace, x1, y - half, x2, y - half);
+                PathGeometry.line(trace, x1, y + half, x2, y + half);
+            }), [{stroke: classical}]);
             drawPath(painter, trace => ticks.forEach(x =>
                 PathGeometry.line(trace, x, y - CLASSICAL_TICK_HEIGHT / 2, x, y + CLASSICAL_TICK_HEIGHT / 2)),
-            [{stroke: strokes[1]}]);
+            [{stroke: {...classical, width: lineWidth(painter, WIRE_WIDTH)}}]);
         });
     }
 
@@ -118,4 +152,27 @@ function drawWires(context, painter, showLabels, hand) {
     }
 }
 
-export {drawWires};
+/**
+ * On an empty circuit, a dashed slot where the first gate goes - the first wire's first column -
+ * so the instruction above has a place on the wire to point at.
+ *
+ * @param {!Object} context Rendering inputs supplied by CircuitRendering.
+ * @param {!DisplayView} painter
+ */
+function drawFirstGateSlot(context, painter) {
+    const r = context.geometry.gateRect(0, 0);
+    strokePath(painter, [r.topLeft(), r.topRight(), r.bottomRight(), r.bottomLeft(), r.topLeft()],
+        CanvasTheme.text.muted, 1, [3, 3]);
+    fitText(painter, 'drop\na gate', {
+        x: r.center().x,
+        y: r.center().y,
+        align: 'center',
+        baseline: 'middle',
+        fill: CanvasTheme.text.muted,
+        font: {fontSize: 11, fontFamily: Typography.DEFAULT_FONT_FAMILY},
+        width: r.w - 4,
+        height: r.h - 4,
+    });
+}
+
+export {drawWires, drawFirstGateSlot, wireRuns};
