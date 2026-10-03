@@ -43,8 +43,13 @@ suite.test("a Chance display gives independent wires their own blocks, and keeps
     const joint = Matrix.col(...[...Array(16).keys()].map(i =>
         [0.5, 0, 0, 0.5][i & 3] * 0.5 * [0.9, 0.1][i >> 3]));
     const still = await chanceTexts(joint, Infinity);
-    assertThat(still.filter(text => text === '⊗').length).withInfo({still}).isEqualTo(2);
-    assertThat(['|00⟩', '|11⟩', '|0⟩', '|1⟩'].every(text => still.includes(text))).withInfo({still}).isEqualTo(true);
+    // Three blocks - the pair and the two lone wires - parted by plain rules, not by a ⊗, which
+    // would claim separable states where only the outcomes are independent.
+    assertThat(still.includes('⊗')).withInfo({still}).isEqualTo(false);
+    // The pair's and q2's rows name their kets; q3's block, short where the gate ends, has room only
+    // for its chances, which keep the label size rather than shrink under it. In a gate this narrow
+    // the chances drop their decimal for the same reason.
+    assertThat(['|00⟩', '|11⟩', '|0⟩', '|1⟩', '90%', '10%'].every(text => still.includes(text))).withInfo({still}).isEqualTo(true);
     // The bit order and the bars' scale are said by every row's hover card, not drawn under the gate.
     assertThat(still.some(text => text.startsWith('bits') || text.startsWith('full'))).withInfo({still}).isEqualTo(false);
 

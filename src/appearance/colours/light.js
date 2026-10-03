@@ -19,20 +19,29 @@ const text = Object.freeze({
 });
 
 // ── IQP gate colours (Qiskit light iqp.json pairs) ──────────────────────────
+// Rotation leaves Qiskit's maroon, which is all but the error colour here, for a rose that is the
+// Y axis's on the Bloch sphere too.
 const iqp = Object.freeze({
   hadamard: colour(250, 77, 86), // #FA4D56
   not: colour(0, 45, 156), // #002D9C
-  rotation: colour(159, 24, 83), // #9F1853
+  rotation: colour(184, 43, 171), // #B82BAB
   phase: colour(51, 177, 255), // #33B1FF
   measure: colour(168, 168, 168), // #A8A8A8
   classicalWire: colour(119, 136, 153), // #778899
 });
 
+// One hue per axis, on gates, dials and the Bloch sphere alike. Z's sky blue darkens for lines,
+// which need 4.5:1 on white where the gate fill needs only its dark label.
+const axis = Object.freeze({
+  x: iqp.not,
+  y: iqp.rotation,
+  z: colour(21, 119, 216), // #1577D8
+});
 // Per-gate label colours: dark on bright fills, white on dark fills.
 const iqpText = Object.freeze({
   hadamard: colour(0, 0, 0), // 6.26:1 on #FA4D56
   not: colour(255, 255, 255), // 11.32:1 on #002D9C
-  rotation: colour(255, 255, 255), // 7.69:1 on #9F1853
+  rotation: colour(255, 255, 255), // 5.33:1 on #B82BAB
   phase: colour(0, 0, 0), // 8.87:1 on #33B1FF
   measure: colour(0, 0, 0), // 8.83:1 on #A8A8A8
 });
@@ -42,7 +51,8 @@ const stroke = Object.freeze({
   grid: colour(124, 132, 148), // #7C8494  3.76:1 on white
   guide: colour(94, 102, 117), // #5E6675  5.78:1 on white
   faint: colour(124, 132, 148), // #7C8494
-  logRing: colour(124, 132, 148, 0.55),
+  // Opaque, so it holds 3:1 on an amplitude cell, as a mark a value is read from must.
+  logRing: colour(132, 139, 154),
   bright: colour(46, 52, 64), // #2E3440  12.49:1 on white
   frame: text.muted,
   displayFrame: colour(46, 52, 64),
@@ -71,10 +81,17 @@ const probability = Object.freeze({
 });
 
 // ── Amplitude display ───────────────────────────────────────────────────────
+// In a grid of complex numbers colour means phase and nothing else: each disc wears its phase's
+// hue from the wheel, and every other mark is a neutral ink, so no colour competes with it.
 const amplitude = Object.freeze({
-  background: colour(240, 249, 255), // very light blue
-  circle: colour(3, 105, 161), // #0369A1
-  fill: colour(7, 89, 133), // #075985
+  background: colour(246, 247, 249),
+  // The hand on a disc: dark, so it reads on every hue of the wheel.
+  hand: colour(20, 23, 31),
+  // A chance's bar and number.
+  chance: colour(64, 70, 84),
+  // A disc whose phase is not defined - its qubit entangled with others - has no hue to wear. It
+  // holds 3:1 on the cell, as a disc whose size is read must.
+  unknown: colour(126, 132, 144), // #7E8490
   phaseHalo: colour(224, 242, 254),
   reference: text.default,
 });
@@ -90,9 +107,14 @@ const bloch = Object.freeze({
   background: probability.background,
   vector: probability.fill,
   mixed: text.muted,
-  axisX: colour(184, 74, 0), // #B84A00
-  axisY: colour(0, 128, 110), // #00806E  4.46:1 on white
-  axisZ: colour(106, 61, 154), // #6A3D9A
+  axisX: axis.x,
+  axisY: axis.y,
+  axisZ: axis.z,
+  // The axes' names as text in the analyzer's panels, a step darker where the hue alone falls
+  // under 4.5:1 on a panel's surface; the canvas keeps the hue itself.
+  axisTextX: axis.x,
+  axisTextY: axis.y,
+  axisTextZ: colour(16, 98, 184), // #1062B8
 });
 
 // ── Interaction / highlight ─────────────────────────────────────────────────
@@ -103,8 +125,9 @@ const interaction = Object.freeze({
   buttonText: colour(255, 255, 255), // 5.02:1 on the button
   buttonFocus: colour(253, 230, 138),
   buttonFocusText: colour(0, 0, 0), // 16.86:1 on the focused button
+  // The run's cursor: an amber bracket over a neutral band, apart from the amber hover.
   playhead: highlight,
-  playheadBand: colour(180, 83, 9, 0.14),
+  playheadBand: colour(46, 52, 64, 0.05),
   // A debugger's breakpoint dot.
   breakpoint: colour(185, 28, 28),
   drop: colour(180, 83, 9, 0.16),
@@ -171,17 +194,18 @@ const dial = Object.freeze({
   face: colour(242, 239, 231), // #F2EFE7
   ring: colour(40, 40, 40), // #282828
   core: colour(20, 20, 20), // #141414
-  x: colour(75, 141, 248), // #4B8DF8
-  y: colour(88, 194, 122), // #58C27A
-  z: colour(242, 140, 51), // #F28C33
+  x: axis.x,
+  y: axis.y,
+  z: axis.z,
   plain: colour(96, 96, 96), // #606060
-  // The rest of the arc the index has not reached.
-  track: colour(215, 213, 205), // #D7D5CD
+  // The rest of the arc the index has not reached, dark enough to read as a track on the face.
+  track: colour(192, 189, 179), // #C0BDB3
 });
 
 const Colours = Object.freeze({
   surface,
   text,
+  axis,
   iqp,
   iqpText,
   stroke,
@@ -200,6 +224,6 @@ const Colours = Object.freeze({
 
 export const light = Object.freeze({
   colours: Colours,
-  phase: Object.freeze({ lightness: 0.55, chroma: 0.12 }),
+  phase: Object.freeze({ lightness: 0.6, chroma: 0.135 }),
   scheme: "light",
 });

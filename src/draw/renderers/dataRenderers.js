@@ -23,7 +23,7 @@ import {PathGeometry} from '../shapes/PathGeometry.js';
 import {drawPath, rectangle} from '../shapes/ShapeView.js';
 import {drawText, fitText, fitParagraph, measureText} from '../text/TextLayout.js';
 import {paintDensityMatrix} from '../displays/density/DensityMatrixView.js';
-import {ZERO_PROBABILITY, formatProbability, largestProbability, probabilityBarFraction}
+import {ZERO_PROBABILITY, formatProbability}
     from '../displays/probability/ProbabilityScale.js';
 import {CanvasTheme} from '../../config/CanvasTheme.js';
 import {Typography} from '../../config/Typography.js';
@@ -50,7 +50,8 @@ import {Rect} from '../../geometry/Rect.js';
 // ---- matrix -------------------------------------------------------------------------------------
 
 /**
- * A matrix, one cell per entry: a disc whose area is the magnitude and a hand for the phase.
+ * A matrix, one cell per entry: a disc whose radius is the magnitude, in its phase's hue, and a hand
+ * along the exact phase.
  *
  * @param {!DisplayView} view
  * @param {!Matrix} matrix
@@ -64,8 +65,6 @@ function renderMatrix(view, matrix, rect, {style = "operator", focusPoints = []}
         return;
     }
     paintMatrix(view, matrix, rect, {
-        amplitudeCircleFillColor: CanvasTheme.operation.fill,
-        amplitudeCircleStrokeColor: CanvasTheme.text.primary,
         backColor: CanvasTheme.operation.background,
         showLogCircles: false
     });
@@ -129,12 +128,16 @@ function stateCellLabels(view, matrix, rect, label) {
                     fill: CanvasTheme.text.primary,
                     font: CELL_LABEL_FONT,
                     width: room,
-                    beforeDraw: (w, h) => rectangle(view, new Rect(x - 1, y, w + 2, h), {fill: CanvasTheme.surface.gate})
+                    // See-through, so a phase hand pointing into the corner still shows under it.
+                    beforeDraw: (w, h) => rectangle(view, new Rect(x - 1, y, w + 2, h), {fill: CELL_LABEL_PLATE})
                 });
             }
         }
     });
 }
+
+/** The plate under a cell's name: the gate's surface, thin enough for a hand to show through. */
+const CELL_LABEL_PLATE = new Color(CanvasTheme.surface.gate).setAlpha(0.72).toRgbaString();
 
 /** Edge labels need a view at least this large on its shorter side; smaller views keep tooltips only. */
 const MIN_EDGE_LABELLED_SIDE = 100;
@@ -194,7 +197,8 @@ function stateEdgeLabels(view, matrix, grid) {
 }
 
 /**
- * A state: amplitudes as discs and white phase hands, each cell named by its basis state, or its
+ * A state: amplitudes as discs in their phases' hues with a hand along each phase, and each
+ * amplitude's chance as a gauge beside its disc, each cell named by its basis state, or its
  * rows and columns named at the grid's edges when cells are too small to hold a name.
  *
  * @param {!DisplayView} view
@@ -213,17 +217,12 @@ function renderState(view, matrix, rect, {wireCount, focusPoints = [], coherent 
     if (layout.edgeLabels) {
         rectangle(view, layout.block, {fill: CanvasTheme.amplitude.background});
     }
-    // The hand is white whatever the phase; it only fades as the phases stop being defined.
-    const handColor = indicatorAlpha >= 1 ? CanvasTheme.text.primary :
-        indicatorAlpha > 0 ? new Color(CanvasTheme.text.primary).setAlpha(indicatorAlpha).toRgbaString() :
-        undefined;
+    // The discs wear their phases' hues and the hands fade as the phases stop being defined; with
+    // none defined the discs have no hue to wear.
     paintMatrix(view, matrix, grid, {
         wireCount,
-        amplitudeCircleFillColor: CanvasTheme.amplitude.circle,
-        amplitudeCircleStrokeColor: CanvasTheme.text.primary,
-        amplitudeProbabilityFillColor: CanvasTheme.amplitude.fill,
-        backColor: CanvasTheme.amplitude.background,
-        phaseColorForDegrees: () => handColor
+        showChance: true,
+        phaseAlpha: Math.min(1, indicatorAlpha),
     });
 
     const index = (c, r) => r*matrix.width() + c;
@@ -273,13 +272,35 @@ const PREFIX_LABEL_WIDTH = 36;
 const PREFIX_FONT = {fontSize: Typography.LABEL_FONT_SIZE, fontFamily: Typography.MONO_FONT_FAMILY};
 const KET_FONT = {fontSize: Typography.LABEL_FONT_SIZE, fontFamily: Typography.MONO_FONT_FAMILY};
 const PERCENT_FONT = {fontSize: Typography.LABEL_FONT_SIZE, fontFamily: Typography.MONO_FONT_FAMILY};
-/** Rows at least this tall carry a thin bar along a track under their text, rather than a filled row. */
-const TEXT_ROW_HEIGHT = 14;
-/** Rows at least this tall carry their ket above their percentage. */
-const STACKED_ROW_HEIGHT = 26;
-/** The thin bar's height, and the room it keeps from the row's edges. */
-const THIN_BAR_HEIGHT = 4;
-const THIN_BAR_INSET = 3;
+/** The smallest a row's ket or percentage is drawn at; a row with less room carries none. */
+const MIN_ROW_TEXT_FONT_SIZE = 10;
+/** The thin bar's height, and the room it keeps from the row's edges: little, so the text keeps the rest. */
+const THIN_BAR_HEIGHT = 3;
+const THIN_BAR_INSET = 2;
+
+/** A row's line of text is this many times its font size tall. */
+const ROW_TEXT_LINE_HEIGHT = 1.3;
+/** A row's text is never drawn below MIN_ROW_TEXT_FONT_SIZE, across or up. */
+const ROW_TEXT_FLOOR = MIN_ROW_TEXT_FONT_SIZE / Typography.LABEL_FONT_SIZE;
+const fitsReadably = (text, width) => measureText(text, KET_FONT).width * ROW_TEXT_FLOOR <= width;
+
+/**
+ * The font a row's line is drawn in: the label size, or as much less as a line `height` tall holds,
+ * at the line height the row's layout reserves.
+ * @param {!Object} font
+ * @param {!number} height
+ * @returns {!Object}
+ */
+const rowFont = (font, height) => ({...font, fontSize: Math.min(font.fontSize, height / ROW_TEXT_LINE_HEIGHT)});
+
+/**
+ * @param {!number} width The room a row's percentage has.
+ * @returns {!int} How many decimals its percentages carry: one where the widest, ">99.9%", reads,
+ *     none where only ">99%" does.
+ */
+function percentDigits(width) {
+    return fitsReadably('>99.9%', width) ? 1 : 0;
+}
 
 /**
  * @returns {undefined|"side"|"stacked"|"percent"} What the rows carry above their bars, if they have
@@ -287,14 +308,15 @@ const THIN_BAR_INSET = 3;
  *     row, or the percentage alone.
  */
 function ketLayout(rect, wireCount) {
-    const d = rect.h / (1 << wireCount);
-    if (d < TEXT_ROW_HEIGHT) {
+    const band = rect.h / (1 << wireCount) - THIN_BAR_HEIGHT - 2 * THIN_BAR_INSET;
+    const lineHeight = MIN_ROW_TEXT_FONT_SIZE * ROW_TEXT_LINE_HEIGHT;
+    if (band < lineHeight || !fitsReadably('>99%', rect.w - 2 * THIN_BAR_INSET)) {
         return undefined;
     }
     if (rect.w >= measureText(`|${bin(0, wireCount)}⟩ 100.0%`, KET_FONT).width + 8) {
         return "side";
     }
-    return d >= STACKED_ROW_HEIGHT ? "stacked" : "percent";
+    return band / 2 >= lineHeight && fitsReadably(`|${bin(0, wireCount)}⟩`, rect.w - 4) ? "stacked" : "percent";
 }
 
 /**
@@ -330,22 +352,22 @@ function probabilityGrid(view, rect, wireCount, groupRows) {
     rectangle(view, rect, {stroke: {color: CanvasTheme.stroke.grid, width: 1}});
 }
 
-function probabilityBars(view, rect, probabilities, wireCount, largest, groupRows, colour = CanvasTheme.probability.fill) {
+function probabilityBars(view, rect, probabilities, wireCount, groupRows, layout, colour = CanvasTheme.probability.fill) {
     const {x, y, w, h} = rect;
     const n = 1 << wireCount;
     const d = h / n;
     const buffer = probabilities.rawBuffer();
-    // A possible outcome keeps at least a pixel of bar, so it never looks like an impossible one.
-    const length = i => buffer[i * 2] > ZERO_PROBABILITY ?
-        Math.max(MIN_BAR_LENGTH, w * probabilityBarFraction(buffer[i * 2], largest)) : 0;
+    // A bar's length is its chance, as a one-wire Chance tile's is: half a bar is 50% wherever it
+    // stands. A possible outcome keeps at least a pixel of bar, so it never looks like an impossible one.
+    const chance = i => Math.min(1, buffer[i * 2]);
+    const length = i => buffer[i * 2] > ZERO_PROBABILITY ? Math.max(MIN_BAR_LENGTH, w * chance(i)) : 0;
     const groupEdge = i => i > 0 && i < n && i % groupRows === 0;
-    if (d >= TEXT_ROW_HEIGHT) {
-        // A tall row: its text above, and a thin bar along a track at its foot, so the text never
-        // sits on the bar.
+    if (layout !== undefined) {
+        // A row with text: its text above, and a thin bar along a track at its foot, so the text
+        // never sits on the bar.
         const barX = x + THIN_BAR_INSET;
         const barW = w - 2 * THIN_BAR_INSET;
-        const barLength = i => buffer[i * 2] > ZERO_PROBABILITY ?
-            Math.max(THIN_BAR_HEIGHT, barW * probabilityBarFraction(buffer[i * 2], largest)) : 0;
+        const barLength = i => buffer[i * 2] > ZERO_PROBABILITY ? Math.max(THIN_BAR_HEIGHT, barW * chance(i)) : 0;
         drawGraphics(view, graphics => {
             for (let i = 0; i < n; i++) {
                 graphics.roundRect(barX, y + d * (i + 1) - THIN_BAR_INSET - THIN_BAR_HEIGHT, barW, THIN_BAR_HEIGHT, THIN_BAR_HEIGHT / 2);
@@ -442,6 +464,7 @@ function probabilityTexts(view, rect, probabilities, layout) {
     const d = h / n;
     // The text's band: the row less its bar and the bar's room.
     const bandHeight = d - THIN_BAR_HEIGHT - 2 * THIN_BAR_INSET;
+    const digits = percentDigits(w - 2 * THIN_BAR_INSET);
     for (let i = 0; i < n; i++) {
         const p = probabilities.rawBuffer()[i * 2];
         const bandTop = y + d * i + THIN_BAR_INSET;
@@ -449,33 +472,32 @@ function probabilityTexts(view, rect, probabilities, layout) {
         if (layout === "side") {
             fitText(view, ket, {
                 x: x + THIN_BAR_INSET, y: bandTop + bandHeight / 2, align: 'left', baseline: 'middle',
-                font: KET_FONT, fill: CanvasTheme.text.primary, width: w / 2, height: bandHeight,
+                font: rowFont(KET_FONT, bandHeight), fill: CanvasTheme.text.primary, width: w / 2,
             });
         } else if (layout === "stacked") {
             fitText(view, ket, {
                 x: x + w / 2, y: bandTop + bandHeight / 4, align: 'center', baseline: 'middle',
-                font: KET_FONT, fill: CanvasTheme.text.primary, width: w - 4, height: bandHeight / 2,
+                font: rowFont(KET_FONT, bandHeight / 2), fill: CanvasTheme.text.primary, width: w - 4,
             });
         }
         // An impossible outcome's 0% steps back, so the outcomes that can happen stand out.
-        fitText(view, formatProbability(p), {
+        fitText(view, formatProbability(p, digits), {
             x: layout === "side" ? x + w - THIN_BAR_INSET : x + w / 2,
             y: layout === "stacked" ? bandTop + bandHeight * 3 / 4 : bandTop + bandHeight / 2,
             align: layout === "side" ? 'right' : 'center',
             baseline: 'middle',
             fill: p > ZERO_PROBABILITY ? CanvasTheme.text.primary : CanvasTheme.text.muted,
-            font: PERCENT_FONT,
+            font: rowFont(PERCENT_FONT, layout === "stacked" ? bandHeight / 2 : bandHeight),
             width: w - 2 * THIN_BAR_INSET,
-            height: layout === "stacked" ? bandHeight / 2 : bandHeight,
+            changing: true,
         });
     }
 }
 
 /**
  * A probability distribution over basis states: a bar per state in index order, with its
- * percentage where the rows are tall enough to hold one. A full bar is the largest probability and
- * each bar is the square root of its share of that (src/draw/displays/probability/ProbabilityScale.js),
- * so a small chance still has a bar and one scale serves every row height.
+ * percentage where the rows are tall enough to hold one. A bar's length is its chance, as a one-wire
+ * Chance tile's is, so half a bar is 50% in every display; a possible outcome keeps a sliver of bar.
  *
  * Rows too small to carry their kets group by their leading bits: a divider every 2, 4, 8… rows,
  * the fewest that stay tall enough to label, and the group's prefix beside it when asked for.
@@ -483,15 +505,14 @@ function probabilityTexts(view, rect, probabilities, layout) {
  * @param {!DisplayView} view
  * @param {undefined|!Matrix} probabilities A column whose real parts are the probabilities.
  * @param {!Rect} rect
- * @param {!{wireCount: !int, focusPoints: (undefined|!Array.<!Point>), largest: (undefined|!number),
+ * @param {!{wireCount: !int, focusPoints: (undefined|!Array.<!Point>),
  *     groupLabels: (undefined|!boolean), wireNames: (undefined|!Array.<!string>), key: (undefined|!string)}} options
- *     largest sets what a full bar stands for, so distributions drawn over each other share a scale.
  *     groupLabels draws each group's prefix left of the chart, outside rect.
  *     wireNames, highest wire first, says in tooltips which wires the kets are over.
  *     key is the line every row's tooltip ends with: the bit order and the bars' scale.
  */
 function renderProbabilities(view, probabilities, rect, {wireCount, focusPoints = [], colour,
-        transparent = false, largest, groupLabels = false, wireNames, key}) {
+        transparent = false, groupLabels = false, wireNames, key}) {
     const layout = ketLayout(rect, wireCount);
     const n = 1 << wireCount;
     // Rows without their kets group by their leading bits, so a prefix beside each group still says
@@ -501,8 +522,7 @@ function renderProbabilities(view, probabilities, rect, {wireCount, focusPoints 
     if (probabilities === undefined || probabilities.hasNaN()) {
         fitParagraph(view, "NaN", rect, {alignment: new Point(0.5, 0.5), fill: CanvasTheme.error.text});
     } else {
-        probabilityBars(view, rect, probabilities, wireCount, largest ?? largestProbability(probabilities),
-            groupRows, colour);
+        probabilityBars(view, rect, probabilities, wireCount, groupRows, layout, colour);
         if (layout !== undefined) {
             probabilityTexts(view, rect, probabilities, layout);
         }

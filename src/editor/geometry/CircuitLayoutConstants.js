@@ -34,7 +34,11 @@ const CIRCUIT_OP_LEFT_SPACING = 2 * Layout.REGISTER_MARGIN + Layout.REGISTER_IND
  */
 const SUPERPOSITION_GRID_LABEL_SPAN = 50;
 
-/** @type {!number} The least width the grid's key wraps into, under a grid narrower than that. */
+/**
+ * @type {!number} The least width the grid's key takes, under a grid narrower than that. Narrow
+ * enough that a small circuit's key does not make it scroll on a laptop; the key's lines share the
+ * largest size at which the longest fits.
+ */
 const DISPLAY_CAPTION_WIDTH = 160;
 
 /** @type {!number} The gap between the superposition grid's column labels and its key. */
@@ -45,9 +49,10 @@ const CIRCUIT_RIGHT_MARGIN = Layout.GATE_RADIUS;
 
 /**
  * @type {!number} The strip under the superposition grid's column labels where its key, then the
- * measurement and discard-rate warnings, print.
+ * measurement and discard-rate caveats, print: the title and up to four key lines at 16 each, the
+ * phase wheel, and two caveats (CircuitCaptions.js drawHintLabels).
  */
-const DISPLAY_WARNING_STRIP_HEIGHT = 72;
+const DISPLAY_WARNING_STRIP_HEIGHT = 212;
 
 /**
  * @type {!number} The space kept below the superposition grid: first the column labels, then the

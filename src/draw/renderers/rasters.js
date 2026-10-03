@@ -15,7 +15,7 @@
  */
 
 import {columnImage, structureFanOut} from '../../engine/simulation/columnStructure/evaluation.js';
-import {phaseRgb} from '../../config/CanvasTheme.js';
+import {phaseTint} from '../../config/CanvasTheme.js';
 
 /**
  * Data drawn as pixels rather than marks: one pixel per entry, or one per block of entries when
@@ -32,19 +32,11 @@ import {phaseRgb} from '../../config/CanvasTheme.js';
 
 /** A tile's side in pixels. */
 const TILE_SIZE = 256;
-/** The faintest nonzero entry still shows at this opacity. */
-const MIN_ALPHA = 0.3;
+/** The faintest nonzero entry still shows at this opacity; low, so it flattens few real differences. */
+const MIN_ALPHA = 0.15;
 /** How many amplitudes one tile may work out before it samples operator columns instead. */
 const TILE_BUDGET = 1 << 21;
 
-/** The phase wheel as 0-255 RGB for each whole degree, as phaseColor writes it. */
-const PHASE_RGB = (() => {
-    const table = new Uint8Array(360 * 3);
-    for (let degree = 0; degree < 360; degree++) {
-        table.set(phaseRgb(degree), degree * 3);
-    }
-    return table;
-})();
 
 /**
  * The pixels [start, end) that entries [index, index + count) cover along an axis of `entries`
@@ -71,16 +63,17 @@ function paintBlock(pixels, best, stride, x0, x1, y0, y1, re, im, scale = 1) {
     if (magnitude < 1e-9) {
         return;
     }
-    const degree = ((Math.round(Math.atan2(im, re) * 180 / Math.PI) % 360) + 360) % 360;
+    // The active scheme's wheel, read each time rather than fixed when the module loaded.
+    const tint = phaseTint(Math.atan2(im, re) * 180 / Math.PI);
     const alpha = Math.round(255 * Math.min(1, Math.max(MIN_ALPHA, magnitude * scale)));
     for (let y = y0; y < y1; y++) {
         for (let x = x0; x < x1; x++) {
             const i = y * stride + x;
             if (magnitude > best[i]) {
                 best[i] = magnitude;
-                pixels[i * 4] = PHASE_RGB[degree * 3];
-                pixels[i * 4 + 1] = PHASE_RGB[degree * 3 + 1];
-                pixels[i * 4 + 2] = PHASE_RGB[degree * 3 + 2];
+                pixels[i * 4] = (tint >> 16) & 255;
+                pixels[i * 4 + 1] = (tint >> 8) & 255;
+                pixels[i * 4 + 2] = tint & 255;
                 pixels[i * 4 + 3] = alpha;
             }
         }

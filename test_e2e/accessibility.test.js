@@ -36,10 +36,13 @@ test('the circuit is named and described for assistive technology, and edited by
             label: element.getAttribute('aria-label'),
             describedBy: element.getAttribute('aria-describedby'),
             summary: document.getElementById('circuit-summary').textContent,
+            output: document.getElementById('circuit-output').textContent,
             live: document.getElementById('circuit-cursor-status').getAttribute('role'),
         }));
-        assert.deepEqual(described, {role: 'application', label: 'Circuit', describedBy: 'circuit-summary circuit-keys',
-            summary: '2 wires, 1 column, 1 gate.', live: 'status'});
+        assert.deepEqual(described, {role: 'application', label: 'Circuit',
+            describedBy: 'circuit-summary circuit-output circuit-keys', summary: '2 wires, 1 column, 1 gate.',
+            // The grid in words: what the canvas shows at the end of the circuit, where the playhead rests.
+            output: 'Output state: |00⟩ 50.0%, |01⟩ 50.0%. Phases measured from |00⟩.', live: 'status'});
 
         // The arrow keys move a cell cursor, and the live line names each cell.
         await page.focus('#canvasDiv');
@@ -156,6 +159,11 @@ test('Reduce Motion stands the time-dependent gates still', async browser => {
         ]);
         await pause(300);
         assert.equal(await frames(page), true, 'With Reduce Motion the gate stands still.');
+        // Paused, not locked: the Time lane says so, and plays the gate when asked to.
+        await page.waitForFunction(() => document.getElementById('time-hold')?.textContent === 'paused',
+            {timeout: TEST_TIMEOUT_MILLIS});
+        await page.click('#time-play-button');
+        assert.equal(await frames(page), false, 'Played from the Time lane, the gate moves.');
     });
 });
 

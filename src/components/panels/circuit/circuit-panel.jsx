@@ -16,6 +16,7 @@ import { SelectionBar } from "./selection-bar.jsx";
 import { SelectionMenu } from "./selection-menu.jsx";
 import { useCircuitKeyboard } from "./useCircuitKeyboard.js";
 import { useSelectionShortcuts } from "./useSelectionShortcuts.js";
+import { ExamplesMenu } from "../../toolbar/examples-menu.jsx";
 
 // Clicking a parametrized gate's button, a Bloch sphere or an amplitude display opens its panel, and
 // so does Return on it. The target is transient state rather than a panel parameter, so it never
@@ -59,10 +60,14 @@ function activateGate(found) {
 function EmptyCircuitHint() {
   const empty = useStore(appStore, (s) => s.booted && !s.circuitAvailability.canClearCircuit);
   return empty ? (
-    <p className="circuit-empty-hint">
-      Drag a gate from Gates onto a wire, or select one there and press Return. Examples has
-      ready-made circuits.
-    </p>
+    <div className="circuit-empty-hint">
+      <p>
+        Drag a gate from Gates onto a wire - the dashed slot on q0 is a good start - or select one
+        there and press Return.
+      </p>
+      {/* The hint lets drops through to the canvas; only this button takes a press. */}
+      <ExamplesMenu worded />
+    </div>
   ) : null;
 }
 
@@ -131,7 +136,7 @@ function CircuitPanel() {
         role="application"
         aria-roledescription="circuit editor"
         aria-label="Circuit"
-        aria-describedby="circuit-summary circuit-keys"
+        aria-describedby="circuit-summary circuit-output circuit-keys"
         style={{ touchAction: "manipulation", position: "relative" }}
       >
         <RenderCanvas id="drawCanvas" canvasRef={canvasRef} onReady={start} />
@@ -141,7 +146,7 @@ function CircuitPanel() {
         <GutterEditors host={canvasDivRef} />
         {/* The gate menu and the rotation gates' dials sit in the scroll content too, at their gate. */}
         <GateMenu host={canvasDivRef} />
-        <WireDials />
+        <WireDials host={canvasDivRef} />
         <ForgeRangeHighlight host={canvasDivRef} />
         {/* The selection's bar and menu sit in the scroll content too, at the selection. */}
         <SelectionBar host={canvasDivRef} />

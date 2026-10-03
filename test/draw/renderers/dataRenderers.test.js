@@ -70,10 +70,10 @@ suite.test("a state is laid out the way the amplitude display lays it out", asyn
     assertThat(three.height()).isEqualTo(4);
 });
 
-suite.test("probability bars measure against the largest outcome, with no second scale drawn over them", async () => {
+suite.test("probability bars are their chance, as a one-wire tile's is, with no second scale drawn over them", async () => {
     const rect = new Rect(0, 0, 100, 200);
     const view = new DisplayView(document.createElement("canvas"));
-    // 64%, 16%, nothing, 1e-6: bars of 1, 1/2, none and at least a dot.
+    // 64%, 16%, nothing, 1e-6: bars of 0.64 and 0.16 of the track, none, and at least a dot.
     DATA_RENDERERS.probabilities(view, Matrix.col(0.64, 0.16, 0, 0.000001), rect, {wireCount: 2});
     await view.commit();
     const bar = new Color(CanvasTheme.probability.fill).toNumber();
@@ -82,9 +82,9 @@ suite.test("probability bars measure against the largest outcome, with no second
     // Rows this tall carry a thin bar each along a track at the row's foot, inset from its edges.
     const rects = bars.context.instructions.find(i => i.action === "fill").data.path.instructions.
         filter(i => i.action === "roundRect").map(i => i.data.slice(0, 4));
-    assertThat(rects.map(([, , w]) => w)).withInfo({rects}).isEqualTo([94, 47, 4]);
+    assertThat(rects.map(([, , w]) => w)).withInfo({rects}).isApproximatelyEqualTo([96 * 0.64, 96 * 0.16, 3]);
     assertThat(rects.map(([, y]) => Math.floor(y / 50))).isEqualTo([0, 1, 3]);
-    assertThat(rects.every(([, y, , h]) => h === 4 && (y + h) % 50 === 47)).withInfo({rects}).isEqualTo(true);
+    assertThat(rects.every(([, y, , h]) => h === 3 && (y + h) % 50 === 48)).withInfo({rects}).isEqualTo(true);
     // Nothing else is stroked through every row: no logarithmic outline over the bars.
     const outlines = graphics.filter(child => child.context.instructions.some(i =>
         i.action === "stroke" && (i.data.path?.instructions ?? []).filter(step => step.action === "lineTo").length >= 4));
@@ -121,14 +121,17 @@ suite.test("an impossible outcome reads 0% in muted ink beside its basis label",
     await view.commit();
     const labelled = [];
     const walk = node => {
-        if (node instanceof LabelView) labelled.push(node);
+        if (typeof node.text === "string") labelled.push(node);
         for (const child of node.children ?? []) walk(child);
     };
     walk(view);
     assertThat(labelled.map(label => label.text)).isEqualTo(["|00⟩", "50.0%", "|01⟩", "0%", "|10⟩", "0%", "|11⟩", "50.0%"]);
+    // The percentages change as the circuit animates, so they are bitmap labels, tinted; the kets are canvas labels.
+    assertThat(labelled.filter(label => label instanceof LabelView).map(label => label.text)).
+        isEqualTo(["|00⟩", "|01⟩", "|10⟩", "|11⟩"]);
     const zero = labelled.find(label => label.text === "0%");
     const muted = new Color(CanvasTheme.text.muted).toNumber();
-    assertThat(new Color(zero.style?.fill ?? zero.fill).toNumber()).withInfo({style: zero.style}).isEqualTo(muted);
+    assertThat(zero instanceof LabelView ? new Color(zero.style.fill).toNumber() : zero.tint).isEqualTo(muted);
 });
 
 suite.test("every kind of data has a renderer that draws into a view", async () => {

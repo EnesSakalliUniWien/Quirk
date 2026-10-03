@@ -11,10 +11,10 @@ const VIEW_MARGIN = 12;
 
 /**
  * What the circuit says to someone who does not see it, and the keyboard's cell cursor for someone
- * who does: a summary of the circuit and its keys, which the circuit's tab stop is described by; a
- * live line that names the cell the cursor is on and what is in it, which a screen reader reads out
- * as the cursor moves and as an edit changes that cell; and a ring around the cell, drawn over the
- * canvas in its scroll content, at the drawing's zoom.
+ * who does: a summary of the circuit, the state its grid shows, and its keys, which the circuit's
+ * tab stop is described by; a live line that names the cell the cursor is on and what is in it,
+ * which a screen reader reads out as the cursor moves and as an edit changes that cell; and a ring
+ * around the cell, drawn over the canvas in its scroll content, at the drawing's zoom.
  *
  * @param {!{host: !{current: (null|!HTMLElement)}}} props host is the circuit's scroll container.
  */
@@ -27,9 +27,11 @@ function CircuitCursor({ host }) {
  * @param {!{summary: !string, cell: !string}} props
  */
 function Speech({ summary, cell }) {
+  const output = useStore(appStore, (s) => s.outputSummary);
   return (
     <>
       <p id="circuit-summary" className="visually-hidden">{summary}</p>
+      <p id="circuit-output" className="visually-hidden">{output}</p>
       <p id="circuit-keys" className="visually-hidden">
         Arrow keys move between cells, and Shift with them selects. Return opens the gate in the cell.
         Shift-F10 opens its menu. Delete removes it. A gate chosen in the Gates list with Return lands in
