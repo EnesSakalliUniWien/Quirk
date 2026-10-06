@@ -25,7 +25,10 @@ import { renderCustomGateCircuit } from "../../draw/gate/CustomGateCircuitRender
 import { toJson_Matrix } from "../numeric/values.js";
 import { fromJson_Gate_props } from "./properties.js";
 import { fromJson_Gate_Matrix } from "./matrix.js";
-import { toJson_CircuitDefinition, fromJson_CircuitDefinition } from "../circuits/circuit.js";
+import {
+  toJson_CircuitDefinition,
+  fromJson_CircuitDefinition,
+} from "../circuits/circuit.js";
 
 // Gates may contain circuits, and circuits contain gates. These imports are only
 // called from functions after initialization; no registration or global mutation is needed.
@@ -39,7 +42,10 @@ function toJson_Gate(gate, context = new CustomGateSet()) {
   // A switched-off gate is its active self plus the flag, whatever form that self takes.
   if (gate.deactivated) {
     const active = toJson_Gate(gate.withDeactivated(false), context);
-    return { ...(typeof active === "string" ? { id: active } : active), off: true };
+    return {
+      ...(typeof active === "string" ? { id: active } : active),
+      off: true,
+    };
   }
 
   const found = Gates.findKnownGateById(gate.serializedId, context);

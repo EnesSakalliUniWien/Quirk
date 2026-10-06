@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-import {Suite} from "../../TestUtil.js"
-import {assertThatCircuitShaderActsLikeMatrix} from "../../CircuitOperationTestUtil.js"
-import {cycleBitsShader} from "../../../src/gates/ordering/CycleBitsGates.js"
+import { Suite } from "../../TestUtil.js";
+import { assertThatCircuitShaderActsLikeMatrix } from "../../CircuitOperationTestUtil.js";
+import { cycleBitsShader } from "../../../src/gates/ordering/CycleBitsGates.js";
 
-import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
+import { Matrix } from "../../../src/engine/math/matrix/Matrix.js";
 
 const suite = new Suite("CycleBitsGates");
 
-suite.testUsingWebGL('cycleBitsShader', () => {
-    assertThatCircuitShaderActsLikeMatrix(
-        ctx => cycleBitsShader(ctx, 3, 2),
-        Matrix.generateTransition(8, i => ((i&1)<<2) | ((i>>1)&3)));
-    assertThatCircuitShaderActsLikeMatrix(
-        ctx => cycleBitsShader(ctx, 4, -2),
-        Matrix.generateTransition(16, i => ((i&3)<<2) | ((i>>2)&3)));
+suite.testUsingWebGL("cycleBitsShader", () => {
+  assertThatCircuitShaderActsLikeMatrix(
+    (ctx) => cycleBitsShader(ctx, 3, 2),
+    Matrix.generateTransition(8, (i) => ((i & 1) << 2) | ((i >> 1) & 3)),
+  );
+  assertThatCircuitShaderActsLikeMatrix(
+    (ctx) => cycleBitsShader(ctx, 4, -2),
+    Matrix.generateTransition(16, (i) => ((i & 3) << 2) | ((i >> 2) & 3)),
+  );
 });

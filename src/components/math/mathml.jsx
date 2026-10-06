@@ -92,7 +92,8 @@ function realMath(value, keyPrefix = "r", prefer = "cos") {
  */
 function complexMath(value, keyPrefix = "c", realPrefer = "cos") {
   const { real, imag } = value;
-  if (!Number.isFinite(real) || !Number.isFinite(imag)) return <mtext>unavailable</mtext>;
+  if (!Number.isFinite(real) || !Number.isFinite(imag))
+    return <mtext>unavailable</mtext>;
   const hasReal = Math.abs(real) > TOLERANCE;
   const hasImag = Math.abs(imag) > TOLERANCE;
 
@@ -160,17 +161,37 @@ function MatrixRow({ model, highlight }) {
   return (
     <mrow data-matrix-kind={model.kind}>
       <mo stretchy="true">[</mo>
-      <mtable className="matrix-table" style={{"--matrix-row-height": model.layout?.rowHeight === undefined ? undefined : `${model.layout.rowHeight}px`}}>
+      <mtable
+        className="matrix-table"
+        style={{
+          "--matrix-row-height":
+            model.layout?.rowHeight === undefined
+              ? undefined
+              : `${model.layout.rowHeight}px`,
+        }}
+      >
         {Array.from({ length: model.rows }, (_, row) => (
           <mtr key={row} data-matrix-row={row}>
             {Array.from({ length: model.cols }, (_, col) => (
               <mtd
                 key={col}
-                title={model.cols === 1 ? model.rowLabel(row) : `${model.rowLabel(row)} ← ${model.colLabel(col)}`}
-                data-changed={highlight !== undefined && highlight(row, col) ? "" : undefined}
+                title={
+                  model.cols === 1
+                    ? model.rowLabel(row)
+                    : `${model.rowLabel(row)} ← ${model.colLabel(col)}`
+                }
+                data-changed={
+                  highlight !== undefined && highlight(row, col)
+                    ? ""
+                    : undefined
+                }
               >
                 <mrow className="matrix-entry-value">
-                  {complexMath(model.at(row, col), `${row}-${col}`, preferenceAt(model, row, col))}
+                  {complexMath(
+                    model.at(row, col),
+                    `${row}-${col}`,
+                    preferenceAt(model, row, col),
+                  )}
                 </mrow>
               </mtd>
             ))}

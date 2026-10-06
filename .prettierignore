@@ -1,0 +1,8 @@
+node_modules/
+out/
+package-lock.json
+patches/
+doc/reviews/
+doc/plans/
+.impeccable/
+.serena/

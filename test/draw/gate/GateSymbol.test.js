@@ -14,72 +14,95 @@
  * limitations under the License.
  */
 
-import {assertThat, Suite} from '../../TestUtil.js';
-import {fitGateSymbol, splitGateSymbol, paintGateSymbol} from '../../../src/draw/gate/GateSymbol.js';
-import {Typography} from '../../../src/config/Typography.js';
-import {RenderSurface} from '../../../src/draw/surface/RenderSurface.js';
-import {Rect} from '../../../src/geometry/Rect.js';
+import { assertThat, Suite } from "../../TestUtil.js";
+import {
+  fitGateSymbol,
+  splitGateSymbol,
+  paintGateSymbol,
+} from "../../../src/draw/gate/GateSymbol.js";
+import { Typography } from "../../../src/config/Typography.js";
+import { RenderSurface } from "../../../src/draw/surface/RenderSurface.js";
+import { Rect } from "../../../src/geometry/Rect.js";
 
 const suite = new Suite("GateSymbol");
 
 suite.test("splitGateSymbol_breaksAtArgumentOrNearestMiddle", () => {
-    assertThat(splitGateSymbol("Rx(f(t))")).isEqualTo(["Rx", "(f(t))"]);
-    assertThat(splitGateSymbol("a/b c")).isEqualTo(["a/", "b c"]);
-    assertThat(splitGateSymbol("XYZ")).isEqualTo(["XYZ"]);
+  assertThat(splitGateSymbol("Rx(f(t))")).isEqualTo(["Rx", "(f(t))"]);
+  assertThat(splitGateSymbol("a/b c")).isEqualTo(["a/", "b c"]);
+  assertThat(splitGateSymbol("XYZ")).isEqualTo(["XYZ"]);
 });
 
-suite.test("labels sit within the gate without a ticker or a layout engine, and are disposed when removed", async () => {
-    const canvas = document.createElement('canvas');
+suite.test(
+  "labels sit within the gate without a ticker or a layout engine, and are disposed when removed",
+  async () => {
+    const canvas = document.createElement("canvas");
     canvas.width = 240;
     canvas.height = 240;
     const surface = new RenderSurface(canvas);
-    const labelsIn = node => node.text === undefined ? node.children.flatMap(labelsIn) : [node];
+    const labelsIn = (node) =>
+      node.text === undefined ? node.children.flatMap(labelsIn) : [node];
     let previousLabels = [];
     try {
-        for (const ratio of [1, 2]) {
-            for (const [symbol, expected, allowExponent = true] of [
-                ['×A^-1\nmod R', ['×A', '-1', 'mod R']],
-                ['H', ['H']],
-                ['Rz(123456789*f(t))', ['Rz', '(123456789*f(t))']],
-                ['X^½', ['X', '½']],
-                ['X^½', ['X^½'], false],
-                ['', ['']]
-            ]) {
-                const rect = new Rect(10, 10, 40, 40);
-                const view = surface.beginFrame(undefined, ratio);
-                paintGateSymbol({painter: view, rect, gate: {symbol}}, undefined, allowExponent);
-                await surface.render();
-                const labels = labelsIn(surface.app.stage);
-                assertThat(labels.map(label => label.text)).isEqualTo(expected);
-                assertThat(surface.app.ticker.started).isEqualTo(false);
-                assertThat(surface.app.renderer.layout).isEqualTo(undefined);
-                for (const label of labels.filter(label => label.text)) {
-                    const bounds = label.getBounds();
-                    assertThat(bounds.minX >= rect.x * ratio && bounds.maxX <= rect.right() * ratio &&
-                        bounds.minY >= rect.y * ratio && bounds.maxY <= rect.bottom() * ratio).
-                        withInfo({symbol, ratio, bounds}).isEqualTo(true);
-                }
-                for (const label of previousLabels.filter(label => !labels.includes(label))) {
-                    assertThat(label.destroyed).isEqualTo(true);
-                }
-                previousLabels = labels;
-            }
+      for (const ratio of [1, 2]) {
+        for (const [symbol, expected, allowExponent = true] of [
+          ["×A^-1\nmod R", ["×A", "-1", "mod R"]],
+          ["H", ["H"]],
+          ["Rz(123456789*f(t))", ["Rz", "(123456789*f(t))"]],
+          ["X^½", ["X", "½"]],
+          ["X^½", ["X^½"], false],
+          ["", [""]],
+        ]) {
+          const rect = new Rect(10, 10, 40, 40);
+          const view = surface.beginFrame(undefined, ratio);
+          paintGateSymbol(
+            { painter: view, rect, gate: { symbol } },
+            undefined,
+            allowExponent,
+          );
+          await surface.render();
+          const labels = labelsIn(surface.app.stage);
+          assertThat(labels.map((label) => label.text)).isEqualTo(expected);
+          assertThat(surface.app.ticker.started).isEqualTo(false);
+          assertThat(surface.app.renderer.layout).isEqualTo(undefined);
+          for (const label of labels.filter((label) => label.text)) {
+            const bounds = label.getBounds();
+            assertThat(
+              bounds.minX >= rect.x * ratio &&
+                bounds.maxX <= rect.right() * ratio &&
+                bounds.minY >= rect.y * ratio &&
+                bounds.maxY <= rect.bottom() * ratio,
+            )
+              .withInfo({ symbol, ratio, bounds })
+              .isEqualTo(true);
+          }
+          for (const label of previousLabels.filter(
+            (label) => !labels.includes(label),
+          )) {
+            assertThat(label.destroyed).isEqualTo(true);
+          }
+          previousLabels = labels;
         }
-        surface.beginFrame();
-        await surface.render();
-        assertThat(labelsIn(surface.app.stage)).isEqualTo([]);
-        assertThat(previousLabels.every(label => label.destroyed)).isEqualTo(true);
+      }
+      surface.beginFrame();
+      await surface.render();
+      assertThat(labelsIn(surface.app.stage)).isEqualTo([]);
+      assertThat(previousLabels.every((label) => label.destroyed)).isEqualTo(
+        true,
+      );
     } finally {
-        await surface.destroy();
+      await surface.destroy();
     }
-});
+  },
+);
 
 suite.test("fitGateSymbol_stepsDownTheRampBeforeWrapping", () => {
-    const wide = fitGateSymbol("Z", 40);
-    assertThat(wide.lines).isEqualTo(["Z"]);
-    assertThat(wide.font.fontSize).isEqualTo(Typography.GATE_SYMBOL_FONT_SIZE);
+  const wide = fitGateSymbol("Z", 40);
+  assertThat(wide.lines).isEqualTo(["Z"]);
+  assertThat(wide.font.fontSize).isEqualTo(Typography.GATE_SYMBOL_FONT_SIZE);
 
-    const narrow = fitGateSymbol("Rz(f(t))", 20);
-    assertThat(narrow.lines).isEqualTo(["Rz", "(f(t))"]);
-    assertThat(narrow.font.fontSize).isEqualTo(Typography.GATE_SYMBOL_MIN_FONT_SIZE);
+  const narrow = fitGateSymbol("Rz(f(t))", 20);
+  assertThat(narrow.lines).isEqualTo(["Rz", "(f(t))"]);
+  assertThat(narrow.font.fontSize).isEqualTo(
+    Typography.GATE_SYMBOL_MIN_FONT_SIZE,
+  );
 });

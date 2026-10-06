@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-import {Layout} from "../../config/Layout.js"
-import {Point} from "../../geometry/Point.js"
-import {eventPosRelativeTo, trackPointerUntilRelease} from "../../browser/PointerDrag.js"
-import {pointIntoCircuitCoords} from "./zoom.js"
-import {clampCell} from "../../circuit/circuitRange.js"
-import {appStore} from "../../state/appStore.js"
+import { Layout } from "../../config/Layout.js";
+import { Point } from "../../geometry/Point.js";
+import {
+  eventPosRelativeTo,
+  trackPointerUntilRelease,
+} from "../../browser/PointerDrag.js";
+import { pointIntoCircuitCoords } from "./zoom.js";
+import { clampCell } from "../../circuit/circuitRange.js";
+import { appStore } from "../../state/appStore.js";
 
 /**
  * Bridges a grab in the DOM toolbox onto the canvas's hand.
@@ -36,50 +39,70 @@ import {appStore} from "../../state/appStore.js"
  *     press that took it. Passed to the toolbox as its onGrab callback.
  */
 function initToolboxDrag(canvas, revision, displayed, syncArea) {
-    /** @type {undefined|!function(): void} */
-    let stopDrag = undefined;
+  /** @type {undefined|!function(): void} */
+  let stopDrag = undefined;
 
-    /**
-     * @param {!Gate} gate
-     * @param {!PointerEvent} pointer
-     */
-    return (gate, pointer) => {
-        if (stopDrag !== undefined) {
-            stopDrag();
-            revision.cancelCommitBeingWorkedOn();
-        }
+  /**
+   * @param {!Gate} gate
+   * @param {!PointerEvent} pointer
+   */
+  return (gate, pointer) => {
+    if (stopDrag !== undefined) {
+      stopDrag();
+      revision.cancelCommitBeingWorkedOn();
+    }
 
-        const handAt = source => displayed.getState().value.hand.
-            withPos(pointIntoCircuitCoords(eventPosRelativeTo(source, canvas))).
-            withHeldGate(gate, new Point(Layout.GATE_RADIUS, Layout.GATE_RADIUS));
+    const handAt = (source) =>
+      displayed
+        .getState()
+        .value.hand.withPos(
+          pointIntoCircuitCoords(eventPosRelativeTo(source, canvas)),
+        )
+        .withHeldGate(gate, new Point(Layout.GATE_RADIUS, Layout.GATE_RADIUS));
 
-        revision.startedWorkingOnCommit();
-        const grabbed = handAt(pointer);
-        displayed.setState({value: syncArea(displayed.getState().value.withHand(grabbed)).withJustEnoughWires(1)});
+    revision.startedWorkingOnCommit();
+    const grabbed = handAt(pointer);
+    displayed.setState({
+      value: syncArea(
+        displayed.getState().value.withHand(grabbed),
+      ).withJustEnoughWires(1),
+    });
 
-        const onMove = source => {
-            displayed.setState({value: displayed.getState().value.withHand(handAt(source))});
-        };
-        const onDrop = source => {
-            stopDrag();
-            const dropped = syncArea(displayed.getState().value.withHand(handAt(source))).afterDropping().afterTidyingUp();
-
-            revision.commit(dropped.withJustEnoughWires(0).snapshot());
-        };
-
-        const stopTracking = trackPointerUntilRelease(pointer, {
-            onMove: ev => { onMove(ev); ev.preventDefault(); },
-            onRelease: ev => { onDrop(ev); ev.preventDefault(); },
-            onCancel: () => {
-                stopDrag();
-                revision.cancelCommitBeingWorkedOn();
-            },
-        });
-        stopDrag = () => {
-            stopTracking();
-            stopDrag = undefined;
-        };
+    const onMove = (source) => {
+      displayed.setState({
+        value: displayed.getState().value.withHand(handAt(source)),
+      });
     };
+    const onDrop = (source) => {
+      stopDrag();
+      const dropped = syncArea(
+        displayed.getState().value.withHand(handAt(source)),
+      )
+        .afterDropping()
+        .afterTidyingUp();
+
+      revision.commit(dropped.withJustEnoughWires(0).snapshot());
+    };
+
+    const stopTracking = trackPointerUntilRelease(pointer, {
+      onMove: (ev) => {
+        onMove(ev);
+        ev.preventDefault();
+      },
+      onRelease: (ev) => {
+        onDrop(ev);
+        ev.preventDefault();
+      },
+      onCancel: () => {
+        stopDrag();
+        revision.cancelCommitBeingWorkedOn();
+      },
+    });
+    stopDrag = () => {
+      stopTracking();
+      stopDrag = undefined;
+    };
+  };
 }
 
 /**
@@ -94,22 +117,26 @@ function initToolboxDrag(canvas, revision, displayed, syncArea) {
  * @returns {!function(!Gate): void} Passed to initToolbox as its onPlace callback.
  */
 function initToolboxKeyboardPlace(revision, displayed, syncArea) {
-    return gate => {
-        // With the extra wire a gate can land on already there, so the cell is found where it will be.
-        const cur = syncArea(displayed.getState().value.withJustEnoughWires(1));
-        const circuit = displayed.getState().value.displayedCircuit.circuitDefinition;
-        const cursor = appStore.getState().circuitCursor;
-        const cell = cursor === undefined ? {col: circuit.columns.length, row: 0} : clampCell(circuit, cursor);
-        const pt = cur.displayedCircuit.gateRect(cell.row, cell.col).center();
-        const held = cur.hand.
-            withPos(pt).
-            withHeldGate(gate, new Point(Layout.GATE_RADIUS, Layout.GATE_RADIUS));
-        const dropped = syncArea(cur.withHand(held)).
-            afterDropping().
-            afterTidyingUp();
+  return (gate) => {
+    // With the extra wire a gate can land on already there, so the cell is found where it will be.
+    const cur = syncArea(displayed.getState().value.withJustEnoughWires(1));
+    const circuit =
+      displayed.getState().value.displayedCircuit.circuitDefinition;
+    const cursor = appStore.getState().circuitCursor;
+    const cell =
+      cursor === undefined
+        ? { col: circuit.columns.length, row: 0 }
+        : clampCell(circuit, cursor);
+    const pt = cur.displayedCircuit.gateRect(cell.row, cell.col).center();
+    const held = cur.hand
+      .withPos(pt)
+      .withHeldGate(gate, new Point(Layout.GATE_RADIUS, Layout.GATE_RADIUS));
+    const dropped = syncArea(cur.withHand(held))
+      .afterDropping()
+      .afterTidyingUp();
 
-        revision.commit(dropped.withJustEnoughWires(0).snapshot());
-    };
+    revision.commit(dropped.withJustEnoughWires(0).snapshot());
+  };
 }
 
-export {initToolboxDrag, initToolboxKeyboardPlace}
+export { initToolboxDrag, initToolboxKeyboardPlace };

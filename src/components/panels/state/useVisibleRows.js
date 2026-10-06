@@ -18,7 +18,10 @@ const OVERSCAN = 8;
  */
 function measuredRowHeight(scroll) {
   const [first, second] = scroll.querySelectorAll("tbody > tr[aria-rowindex]");
-  const height = second === undefined ? 0 : second.getBoundingClientRect().top - first.getBoundingClientRect().top;
+  const height =
+    second === undefined
+      ? 0
+      : second.getBoundingClientRect().top - first.getBoundingClientRect().top;
   return height > 0 ? height : undefined;
 }
 
@@ -40,7 +43,11 @@ function measuredRowHeight(scroll) {
  */
 function useVisibleRows(rowCount) {
   const scrollRef = useRef(/** @type {null|!HTMLElement} */ (null));
-  const [view, setView] = useState({ firstRow: 0, viewportHeight: 0, rowHeight: DEFAULT_ROW_HEIGHT });
+  const [view, setView] = useState({
+    firstRow: 0,
+    viewportHeight: 0,
+    rowHeight: DEFAULT_ROW_HEIGHT,
+  });
 
   // Again whenever the number of rows changes, before the first paint of the new rows: a table that
   // has just got its rows is taller than the empty one the container was last measured around.

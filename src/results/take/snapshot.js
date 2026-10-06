@@ -13,7 +13,10 @@ function readableAmplitudes(state) {
   const buffer = state.rawBuffer();
   const listed = [];
   for (let index = 0; index < buffer.length; index += 2) {
-    listed.push({ r: encodeNumber(buffer[index]), i: encodeNumber(buffer[index + 1]) });
+    listed.push({
+      r: encodeNumber(buffer[index]),
+      i: encodeNumber(buffer[index + 1]),
+    });
   }
   return listed;
 }
@@ -42,7 +45,7 @@ function snapshotStats(stats, wires) {
  * @param {!Object} result What Simulator.evaluate returns: circuit, wireCount, step, phase, seed, stats and fullStats.
  * @returns {() => Object} Builds the take; each call encodes it afresh.
  */
-function planTake(result, name = "take", colour = 0) {
+function planTake(result, name = "snapshot", colour = 0) {
   const id = freshSeed();
   const recorded = new Date().toISOString();
   return () => ({
@@ -63,19 +66,28 @@ function planTake(result, name = "take", colour = 0) {
   });
 }
 
-function createTake(result, name = "take", colour = 0) {
+function createTake(result, name = "snapshot", colour = 0) {
   return planTake(result, name, colour)();
 }
 
 // Restore only runtime fields. Circuit JSON and readable exports are not encoded runtime values.
 function hydrate(stored, circuit, take, step) {
   return new CircuitStats(
-    circuit.withColumns(circuit.columns.slice(0, step)).withWireCount(stored.wires),
+    circuit
+      .withColumns(circuit.columns.slice(0, step))
+      .withWireCount(stored.wires),
     take.phase,
     stored.survival.map(decode),
-    stored.densities.map(column => column.map(buffer =>
-      new Matrix(2, 2, Float64Array.from(buffer, decode)))),
-    new Matrix(1, 2 ** take.wires, Float64Array.from(stored.amplitudes, decode)),
+    stored.densities.map((column) =>
+      column.map(
+        (buffer) => new Matrix(2, 2, Float64Array.from(buffer, decode)),
+      ),
+    ),
+    new Matrix(
+      1,
+      2 ** take.wires,
+      Float64Array.from(stored.amplitudes, decode),
+    ),
     new Map(stored.custom.map(([key, value]) => [key, decode(value)])),
     take.seed,
     structuredClone(stored.samples),

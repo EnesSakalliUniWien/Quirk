@@ -1,20 +1,51 @@
 # How to Contribute
 
 Contributions are welcome. Fork the repository, make your changes on a branch, and open a pull
-request.
+request. Use Node 24 LTS: `.nvmrc` pins 24.21.0, and CI reads the same file. After `nvm use`, run
+`npm ci`; the required `@pixi/react` lifecycle patch and Dockview floating-window accessibility patch
+are applied during installation.
 
-Before opening the pull request, keep the checks green:
+Before opening a pull request, run `npm run check`. It checks formatting, lint, bounded types,
+unused code, browser units, end-to-end behavior, accessibility, and performance in sequence.
+Each browser suite builds its own `out/`, so do not run build commands concurrently.
 
-- `npm run check` — lints, runs knip, then builds each page and runs all three suites in turn.
-  The individual steps are `npm run lint` (ESLint: `no-undef`, `eqeqeq`, `prefer-const` and a
-  short list of `unicorn` rules for hand-rolled forms of things the platform now has), `npm run
-  knip` (unused files, exports and dependencies), `npm test` (browser unit suite), `npm run
-  test:e2e` (end-to-end suite) and `npm run test:perf` (performance checks); `npm run build`
-  produces the production bundle on its own. Both static checks must be clean; CI runs them first.
-- `npm run typecheck` — advisory only. TypeScript checks the JSDoc annotations with `checkJs` and
-  implicit `any` allowed; the codebase predates the checker and reports around four thousand
-  findings, most of them the Closure-era `int` type and `!Type` names TypeScript cannot resolve.
-  Run it on a file you are working in; do not expect it to pass.
+- `npm run lint` uses supported ESLint 10 and Unicorn. ESLint recognizes JSX references directly.
+  React Hooks dependency checks and the ESLint community `jsx-a11y-x` recommended rules are
+  enforced. A few documented accessibility exceptions cover native keyboard scrolling and
+  event delegation from already accessible controls; runtime axe and keyboard tests cover them.
+  Historical `doc/reviews/` evidence scripts are archived and excluded from lint.
+- `npm run format -- path/to/file` formats selected files with Prettier. `npm run format:check`
+  checks the active tree. Generated output, dependency lockfiles, patches, archived review/planning
+  evidence, and local agent metadata are excluded.
+- `npm run typecheck` checks `jsconfig.types.json`: stored-take schemas, JSON size accounting,
+  file limits, idle scheduling, random-format metadata, and generic shared value stores.
+  The checker follows these modules' imports; `src/base/Obs.d.ts` documents the legacy observable
+  API at the shared-store boundary. The observable implementation, full recorder/persistence,
+  circuit serializer and circuit domain graph remain outside this incremental scope. The config
+  uses `checkJs`, `strict`, and `noEmit`, with typed dependency boundaries. Grow this scope as modules become ready. `npm run typecheck:legacy` keeps the full
+  historical advisory check available; its Closure-era JSDoc still produces diagnostics.
+- `npm run knip` checks unused files, exports and dependencies.
+- `npm test`, `npm run test:e2e` and `npm run test:perf` run the browser unit, end-to-end and
+  performance suites. `npm run build` produces the production bundle alone.
+- `npm run test:a11y` runs axe on the desktop workspace and nine panels, the populated parameter editor,
+  desktop/mobile Bloch analyzers, and the mobile workspace with its Inspect/More menus, plus
+  keyboard circuit-editing and toolbar-navigation checks.
+  Axe violations fail; incomplete findings are printed for manual review. Canvas scientific
+  content still needs human assessment. Set `PUPPETEER_EXECUTABLE_PATH` to use existing Chrome.
+
+CI and Pages call the same reusable checks workflow. Pages builds and deploys only after checks
+pass for that workflow's identical commit, including manual runs.
+
+`.github/dependabot.yml` requests weekly npm and GitHub Actions updates after it reaches the
+default branch. GitHub security features are configured separately in repository settings.
+The Dockview patch replaces internal floating z-order metadata stored incorrectly in `aria-level`
+with `data-dockview-level`, updating its setter, reader, and observer together. Keep it until an
+upstream release fixes that metadata while preserving stacking order.
+
+The current audit reports a development-only `braces` stack-exhaustion advisory through
+`patch-package`'s workspace matcher; no patched forward release is available. The suggested
+forced downgrade is not applied because this tool installs the required Pixi patch. Production
+runtime dependency auditing (`npm audit --omit=dev`) is clean at this update.
 
 # Source layout
 

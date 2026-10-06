@@ -16,7 +16,7 @@
 
 import { Complex } from "../../engine/math/complex/Complex.js";
 import { GateBuilder } from "../../circuit/model/Gate.js";
-import {MATRIX_RENDERER} from '../../draw/gate/GateRenderers.js';
+import { MATRIX_RENDERER } from "../../draw/gate/GateRenderers.js";
 import { Matrix } from "../../engine/math/matrix/Matrix.js";
 import { MatrixDecomposition } from "../../engine/math/matrix/MatrixDecomposition.js";
 
@@ -25,19 +25,22 @@ const MysteryGateSymbol = "?";
 const MysteryGateMakerWithMatrix = (matrix) =>
   new GateBuilder()
     .setSerializedIdAndSymbol(MysteryGateSymbol)
-    .setTitle("Mystery Gate")
-    .setBlurb("Different every time.\n(Hold Option or Alt while dragging to copy circuit gates.)")
+    .setTitle("Random single-qubit unitary")
+    .setBlurb("A sampled single-qubit unitary matrix.")
     .setRenderer(MATRIX_RENDERER)
     .setKnownEffectToMatrix(matrix).gate;
 
 const MysteryGateMaker = () =>
   MysteryGateMakerWithMatrix(
-    MatrixDecomposition.closestUnitary(Matrix.square(
-      new Complex(Math.random() - 0.5, Math.random() - 0.5),
-      new Complex(Math.random() - 0.5, Math.random() - 0.5),
-      new Complex(Math.random() - 0.5, Math.random() - 0.5),
-      new Complex(Math.random() - 0.5, Math.random() - 0.5),
-    ), 0.00001),
+    MatrixDecomposition.closestUnitary(
+      Matrix.square(
+        new Complex(Math.random() - 0.5, Math.random() - 0.5),
+        new Complex(Math.random() - 0.5, Math.random() - 0.5),
+        new Complex(Math.random() - 0.5, Math.random() - 0.5),
+        new Complex(Math.random() - 0.5, Math.random() - 0.5),
+      ),
+      0.00001,
+    ),
   );
 
 export { MysteryGateSymbol, MysteryGateMaker, MysteryGateMakerWithMatrix };

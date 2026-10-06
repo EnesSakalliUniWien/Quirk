@@ -17,10 +17,16 @@ function RegistersPanel() {
   const target = useStore(appStore, (s) => s.registerTarget);
   const [error, setError] = useState(undefined);
   const readings = useMemo(
-    () => (sample === undefined ? undefined : registerReadings(sample.stats, sample.wireCount)),
+    () =>
+      sample === undefined
+        ? undefined
+        : registerReadings(sample.stats, sample.wireCount),
     [sample],
   );
-  const clearTarget = useCallback(() => appStore.setState({ registerTarget: undefined }), []);
+  const clearTarget = useCallback(
+    () => appStore.setState({ registerTarget: undefined }),
+    [],
+  );
 
   if (readings === undefined || actions === undefined) {
     return <p className="debug-panel-empty">Waiting for the circuit…</p>;
@@ -34,7 +40,10 @@ function RegistersPanel() {
   };
 
   return (
-    <section className="debug-panel registers-panel" aria-labelledby="registers-heading">
+    <section
+      className="debug-panel registers-panel"
+      aria-labelledby="registers-heading"
+    >
       <header className="debug-panel-header">
         <h2 id="registers-heading" className="debug-panel-heading">
           Registers at the playhead
@@ -60,8 +69,9 @@ function RegistersPanel() {
         </ul>
       ) : (
         <p className="debug-panel-note">
-          No registers yet. Drag down the circuit's wire labels, right-click one, or add a register
-          here. To start a register in a state, put a prepare box on its wires.
+          No registers yet. Drag down the circuit's wire labels, right-click
+          one, or add a register here. To start a register in a state, put a
+          prepare box on its wires.
         </p>
       )}
 

@@ -14,50 +14,52 @@
  * limitations under the License.
  */
 
-import {Suite, assertThat, assertTrue, assertFalse} from "../TestUtil.js"
-import {Point} from "../../src/geometry/Point.js"
+import { Suite, assertThat, assertTrue, assertFalse } from "../TestUtil.js";
+import { Point } from "../../src/geometry/Point.js";
 
 const suite = new Suite("Point");
 
 suite.test("isEqualTo", () => {
-    const p = new Point(2, 3);
-    assertTrue(p.isEqualTo(p));
-    assertFalse(p.isEqualTo(null));
-    assertFalse(p.isEqualTo(""));
+  const p = new Point(2, 3);
+  assertTrue(p.isEqualTo(p));
+  assertFalse(p.isEqualTo(null));
+  assertFalse(p.isEqualTo(""));
 
-    assertTrue(p.isEqualTo(new Point(2, 3)));
-    assertFalse(p.isEqualTo(new Point(2, 4)));
-    assertFalse(p.isEqualTo(new Point(1, 3)));
+  assertTrue(p.isEqualTo(new Point(2, 3)));
+  assertFalse(p.isEqualTo(new Point(2, 4)));
+  assertFalse(p.isEqualTo(new Point(1, 3)));
 
-    // Interops with assertThat.
-    assertThat(p).isEqualTo(new Point(2, 3));
-    assertThat(p).isNotEqualTo(new Point(2, 4));
+  // Interops with assertThat.
+  assertThat(p).isEqualTo(new Point(2, 3));
+  assertThat(p).isNotEqualTo(new Point(2, 4));
 });
 
 suite.test("toString", () => {
-    assertThat(new Point(2, 3).toString()).isEqualTo("(x: 2, y: 3)");
+  assertThat(new Point(2, 3).toString()).isEqualTo("(x: 2, y: 3)");
 });
 
 suite.test("offsetBy", () => {
-    assertThat(new Point(2, 3).offsetBy(5, 7)).isEqualTo(new Point(7, 10));
+  assertThat(new Point(2, 3).offsetBy(5, 7)).isEqualTo(new Point(7, 10));
 });
 
 suite.test("plus", () => {
-    assertThat(new Point(2, 3).plus(new Point(5, 7))).isEqualTo(new Point(7, 10));
+  assertThat(new Point(2, 3).plus(new Point(5, 7))).isEqualTo(new Point(7, 10));
 });
 
 suite.test("minus", () => {
-    assertThat(new Point(2, 3).minus(new Point(5, 7))).isEqualTo(new Point(-3, -4));
+  assertThat(new Point(2, 3).minus(new Point(5, 7))).isEqualTo(
+    new Point(-3, -4),
+  );
 });
 
 suite.test("times", () => {
-    assertThat(new Point(2, 3).times(5)).isEqualTo(new Point(10, 15));
+  assertThat(new Point(2, 3).times(5)).isEqualTo(new Point(10, 15));
 });
 
 suite.test("distanceTo", () => {
-    assertThat(new Point(2, 3).distanceTo(new Point(3, 3))).isEqualTo(1);
-    assertThat(new Point(2, 3).distanceTo(new Point(4, 3))).isEqualTo(2);
-    assertThat(new Point(2, 2).distanceTo(new Point(2, 3))).isEqualTo(1);
-    assertThat(new Point(2, 2).distanceTo(new Point(2, 4))).isEqualTo(2);
-    assertThat(new Point(0, 0).distanceTo(new Point(4, 3))).isEqualTo(5);
+  assertThat(new Point(2, 3).distanceTo(new Point(3, 3))).isEqualTo(1);
+  assertThat(new Point(2, 3).distanceTo(new Point(4, 3))).isEqualTo(2);
+  assertThat(new Point(2, 2).distanceTo(new Point(2, 3))).isEqualTo(1);
+  assertThat(new Point(2, 2).distanceTo(new Point(2, 4))).isEqualTo(2);
+  assertThat(new Point(0, 0).distanceTo(new Point(4, 3))).isEqualTo(5);
 });

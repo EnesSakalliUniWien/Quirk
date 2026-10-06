@@ -14,120 +14,118 @@
  * limitations under the License.
  */
 
-import {fitText} from '../../draw/text/TextLayout.js';
-import {rectangle} from '../../draw/shapes/ShapeView.js';
+import { fitText } from "../../draw/text/TextLayout.js";
+import { rectangle } from "../../draw/shapes/ShapeView.js";
 
-import {Complex} from '../../engine/math/complex/Complex.js';
-import {CanvasTheme} from '../../config/CanvasTheme.js';
-import {Typography} from '../../config/Typography.js';
-import {GateBuilder} from '../../circuit/model/Gate.js';
-import {DEFAULT_RENDERER} from '../../draw/gate/GateRenderers.js';
-import {paintGateSymbol} from '../../draw/gate/GateSymbol.js';
-import {Matrix} from '../../engine/math/matrix/Matrix.js';
+import { Complex } from "../../engine/math/complex/Complex.js";
+import { CanvasTheme } from "../../config/CanvasTheme.js";
+import { Typography } from "../../config/Typography.js";
+import { GateBuilder } from "../../circuit/model/Gate.js";
+import { DEFAULT_RENDERER } from "../../draw/gate/GateRenderers.js";
+import { paintGateSymbol } from "../../draw/gate/GateSymbol.js";
+import { Matrix } from "../../engine/math/matrix/Matrix.js";
 
 const PostSelectionGates = {};
 
-const POST_SELECT_RENDERER = args => {
-    if (args.isHighlighted) {
-        DEFAULT_RENDERER(args);
-    } else {
-        rectangle(args.painter, args.rect, {fill: CanvasTheme.surface.gate});
-        paintGateSymbol(args);
-    }
+const POST_SELECT_RENDERER = (args) => {
+  if (args.isHighlighted) {
+    DEFAULT_RENDERER(args);
+  } else {
+    rectangle(args.painter, args.rect, { fill: CanvasTheme.surface.gate });
+    paintGateSymbol(args);
+  }
 
-    const {x, y, w, h} = args.rect;
-    fitText(args.painter, "post-", {
-        x: x + w / 2,
-        y,
-        align: 'center',
-        baseline: 'hanging',
-        fill: CanvasTheme.text.muted,
-        font: {fontSize: 10, fontFamily: Typography.DEFAULT_FONT_FAMILY},
-        width: w,
-        height: h / 2
-    });
-    fitText(args.painter, "select", {
-        x: x + w / 2,
-        y: y + h,
-        align: 'center',
-        baseline: 'bottom',
-        fill: CanvasTheme.text.muted,
-        font: {fontSize: 10, fontFamily: Typography.DEFAULT_FONT_FAMILY},
-        width: w,
-        height: h / 2
-    });
+  const { x, y, w, h } = args.rect;
+  fitText(args.painter, "post-", {
+    x: x + w / 2,
+    y,
+    align: "center",
+    baseline: "hanging",
+    fill: CanvasTheme.text.muted,
+    font: { fontSize: 10, fontFamily: Typography.DEFAULT_FONT_FAMILY },
+    width: w,
+    height: h / 2,
+  });
+  fitText(args.painter, "select", {
+    x: x + w / 2,
+    y: y + h,
+    align: "center",
+    baseline: "bottom",
+    fill: CanvasTheme.text.muted,
+    font: { fontSize: 10, fontFamily: Typography.DEFAULT_FONT_FAMILY },
+    width: w,
+    height: h / 2,
+  });
 };
 
 /** @type {!Gate} */
-PostSelectionGates.PostSelectOff = new GateBuilder().
-    setSerializedIdAndSymbol("|0⟩⟨0|").
-    setTitle("Postselect Off").
-    setBlurb("Keeps OFF states, discards/retries ON states.").
-    setMeasureEffect("collapse").
-    setRenderer(POST_SELECT_RENDERER).
-    setKnownEffectToMatrix(Matrix.square(1, 0, 0, 0)).
-    gate;
+PostSelectionGates.PostSelectOff = new GateBuilder()
+  .setSerializedIdAndSymbol("|0⟩⟨0|")
+  .setTitle("Postselect Off")
+  .setBlurb("Keeps OFF states, discards/retries ON states.")
+  .setMeasureEffect("collapse")
+  .setRenderer(POST_SELECT_RENDERER)
+  .setKnownEffectToMatrix(Matrix.square(1, 0, 0, 0)).gate;
 
 /** @type {!Gate} */
-PostSelectionGates.PostSelectOn = new GateBuilder().
-    setAlternate(PostSelectionGates.PostSelectOff).
-    setSerializedIdAndSymbol("|1⟩⟨1|").
-    setTitle("Postselect On").
-    setBlurb("Keeps On states, discards/retries Off states.").
-    setMeasureEffect("collapse").
-    setRenderer(POST_SELECT_RENDERER).
-    setKnownEffectToMatrix(Matrix.square(0, 0, 0, 1)).
-    gate;
+PostSelectionGates.PostSelectOn = new GateBuilder()
+  .setAlternate(PostSelectionGates.PostSelectOff)
+  .setSerializedIdAndSymbol("|1⟩⟨1|")
+  .setTitle("Postselect On")
+  .setBlurb("Keeps On states, discards/retries Off states.")
+  .setMeasureEffect("collapse")
+  .setRenderer(POST_SELECT_RENDERER)
+  .setKnownEffectToMatrix(Matrix.square(0, 0, 0, 1)).gate;
 
 /** @type {!Gate} */
-PostSelectionGates.PostSelectAntiX = new GateBuilder().
-    setSerializedId("|+⟩⟨+|").  // The +/- drawing convention was switched, but the serialized id must stay the same.
-    setSymbol("|+⟩⟨+|").
-    setTitle("Postselect X-Off").
-    setBlurb("Keeps ON+OFF states, discards/retries ON-OFF states.").
-    setRenderer(POST_SELECT_RENDERER).
-    setKnownEffectToMatrix(Matrix.square(1, 1, 1, 1).times(0.5)).
-    gate;
+PostSelectionGates.PostSelectAntiX = new GateBuilder()
+  .setSerializedId("|+⟩⟨+|") // The +/- drawing convention was switched, but the serialized id must stay the same.
+  .setSymbol("|+⟩⟨+|")
+  .setTitle("Postselect X-Off")
+  .setBlurb("Keeps ON+OFF states, discards/retries ON-OFF states.")
+  .setRenderer(POST_SELECT_RENDERER)
+  .setKnownEffectToMatrix(Matrix.square(1, 1, 1, 1).times(0.5)).gate;
 
 /** @type {!Gate} */
-PostSelectionGates.PostSelectX = new GateBuilder().
-    setAlternate(PostSelectionGates.PostSelectAntiX).
-    setSerializedId("|-⟩⟨-|").  // The +/- drawing convention was switched, but the serialized id must stay the same.
-    setSymbol("|-⟩⟨-|").
-    setTitle("Postselect X-On").
-    setBlurb("Keeps ON-OFF states, discards/retries ON+OFF states.").
-    setRenderer(POST_SELECT_RENDERER).
-    setKnownEffectToMatrix(Matrix.square(1, -1, -1, 1).times(0.5)).
-    gate;
+PostSelectionGates.PostSelectX = new GateBuilder()
+  .setAlternate(PostSelectionGates.PostSelectAntiX)
+  .setSerializedId("|-⟩⟨-|") // The +/- drawing convention was switched, but the serialized id must stay the same.
+  .setSymbol("|-⟩⟨-|")
+  .setTitle("Postselect X-On")
+  .setBlurb("Keeps ON-OFF states, discards/retries ON+OFF states.")
+  .setRenderer(POST_SELECT_RENDERER)
+  .setKnownEffectToMatrix(Matrix.square(1, -1, -1, 1).times(0.5)).gate;
 
 /** @type {!Gate} */
-PostSelectionGates.PostSelectAntiY = new GateBuilder().
-    setSerializedId("|X⟩⟨X|").  // The cross/slash convention was switched, but the serialized id must stay the same.
-    setSymbol("|i⟩⟨i|").
-    setTitle("Postselect Y-Off").
-    setBlurb("Keeps ON+iOFF states, discards ON-iOFF states.").
-    setRenderer(POST_SELECT_RENDERER).
-    setKnownEffectToMatrix(Matrix.square(1, Complex.I.neg(), Complex.I, 1).times(0.5)).
-    gate;
+PostSelectionGates.PostSelectAntiY = new GateBuilder()
+  .setSerializedId("|X⟩⟨X|") // The cross/slash convention was switched, but the serialized id must stay the same.
+  .setSymbol("|i⟩⟨i|")
+  .setTitle("Postselect Y-Off")
+  .setBlurb("Keeps ON+iOFF states, discards ON-iOFF states.")
+  .setRenderer(POST_SELECT_RENDERER)
+  .setKnownEffectToMatrix(
+    Matrix.square(1, Complex.I.neg(), Complex.I, 1).times(0.5),
+  ).gate;
 
 /** @type {!Gate} */
-PostSelectionGates.PostSelectY = new GateBuilder().
-    setAlternate(PostSelectionGates.PostSelectAntiY).
-    setSerializedId("|/⟩⟨/|").  // The cross/slash convention was switched, but the serialized id must stay the same.
-    setSymbol("|-i⟩⟨-i|").
-    setTitle("Postselect Y-On").
-    setBlurb("Keeps ON-iOFF states, discards/retries ON+iOFF states.").
-    setRenderer(POST_SELECT_RENDERER).
-    setKnownEffectToMatrix(Matrix.square(1, Complex.I, Complex.I.neg(), 1).times(0.5)).
-    gate;
+PostSelectionGates.PostSelectY = new GateBuilder()
+  .setAlternate(PostSelectionGates.PostSelectAntiY)
+  .setSerializedId("|/⟩⟨/|") // The cross/slash convention was switched, but the serialized id must stay the same.
+  .setSymbol("|-i⟩⟨-i|")
+  .setTitle("Postselect Y-On")
+  .setBlurb("Keeps ON-iOFF states, discards/retries ON+iOFF states.")
+  .setRenderer(POST_SELECT_RENDERER)
+  .setKnownEffectToMatrix(
+    Matrix.square(1, Complex.I, Complex.I.neg(), 1).times(0.5),
+  ).gate;
 
 PostSelectionGates.all = [
-    PostSelectionGates.PostSelectOff,
-    PostSelectionGates.PostSelectOn,
-    PostSelectionGates.PostSelectAntiX,
-    PostSelectionGates.PostSelectX,
-    PostSelectionGates.PostSelectAntiY,
-    PostSelectionGates.PostSelectY
+  PostSelectionGates.PostSelectOff,
+  PostSelectionGates.PostSelectOn,
+  PostSelectionGates.PostSelectAntiX,
+  PostSelectionGates.PostSelectX,
+  PostSelectionGates.PostSelectAntiY,
+  PostSelectionGates.PostSelectY,
 ];
 
-export {PostSelectionGates}
+export { PostSelectionGates };

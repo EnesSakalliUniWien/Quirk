@@ -18,8 +18,8 @@ import { gateStyle } from "../../config/CanvasTheme.js";
 import { circle, strokePath } from "../../draw/shapes/ShapeView.js";
 
 import { GateBuilder } from "../../circuit/model/Gate.js";
-import {DEFAULT_RENDERER} from '../../draw/gate/GateRenderers.js';
-import {paintBackground, paintOutline} from '../../draw/gate/GateFrame.js';
+import { DEFAULT_RENDERER } from "../../draw/gate/GateRenderers.js";
+import { paintBackground, paintOutline } from "../../draw/gate/GateFrame.js";
 import { Point } from "../../geometry/Point.js";
 import {
   ketArgs,

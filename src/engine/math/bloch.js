@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import {quat} from "gl-matrix"
-import {Complex} from "./complex/Complex.js"
-import {QubitMatrix} from "./matrix/QubitMatrix.js"
+import { quat } from "gl-matrix";
+import { Complex } from "./complex/Complex.js";
+import { QubitMatrix } from "./matrix/QubitMatrix.js";
 
 /**
  * The Bloch-sphere reading of a single-qubit state: where the state sits on the sphere, and the
@@ -46,8 +46,8 @@ const UNDEFINED_TEXT = "—";
  * @returns {!{x: !number, y: !number, z: !number}}
  */
 function blochCoordinates(densityMatrix) {
-    const [ix, iy, iz] = QubitMatrix.densityMatrixToBlochVector(densityMatrix);
-    return {x: -ix, y: iy, z: -iz};
+  const [ix, iy, iz] = QubitMatrix.densityMatrixToBlochVector(densityMatrix);
+  return { x: -ix, y: iy, z: -iz };
 }
 
 /**
@@ -74,14 +74,20 @@ function blochCoordinates(densityMatrix) {
  * @returns {!BlochReading}
  */
 function blochReading(vec) {
-    const rxy = Math.sqrt(vec.x * vec.x + vec.y * vec.y);
-    const r = Math.sqrt(rxy * rxy + vec.z * vec.z);
-    const rule = r < EPSILON ? "mixed" : rxy < EPSILON ? "polar" : "general";
-    // cos θ = z / |r|, clamped because rounding can leave the ratio a hair outside [-1, 1].
-    const theta = rule === "mixed" ? undefined : Math.acos(Math.max(-1, Math.min(1, vec.z / r)));
-    // atan2 answers in (−π, π]; the azimuth is read the conventional way, from 0 up to 2π.
-    const phi = rule === "general" ? (Math.atan2(vec.y, vec.x) + 2 * Math.PI) % (2 * Math.PI) : undefined;
-    return {r, rxy, theta, phi, rule, purity: (1 + r * r) / 2};
+  const rxy = Math.sqrt(vec.x * vec.x + vec.y * vec.y);
+  const r = Math.sqrt(rxy * rxy + vec.z * vec.z);
+  const rule = r < EPSILON ? "mixed" : rxy < EPSILON ? "polar" : "general";
+  // cos θ = z / |r|, clamped because rounding can leave the ratio a hair outside [-1, 1].
+  const theta =
+    rule === "mixed"
+      ? undefined
+      : Math.acos(Math.max(-1, Math.min(1, vec.z / r)));
+  // atan2 answers in (−π, π]; the azimuth is read the conventional way, from 0 up to 2π.
+  const phi =
+    rule === "general"
+      ? (Math.atan2(vec.y, vec.x) + 2 * Math.PI) % (2 * Math.PI)
+      : undefined;
+  return { r, rxy, theta, phi, rule, purity: (1 + r * r) / 2 };
 }
 
 /**
@@ -92,11 +98,11 @@ function blochReading(vec) {
  * @returns {!{x: !number, y: !number, z: !number}}
  */
 function vectorFromAngles(theta, phi, r = 1) {
-    return {
-        x: r * Math.sin(theta) * Math.cos(phi),
-        y: r * Math.sin(theta) * Math.sin(phi),
-        z: r * Math.cos(theta),
-    };
+  return {
+    x: r * Math.sin(theta) * Math.cos(phi),
+    y: r * Math.sin(theta) * Math.sin(phi),
+    z: r * Math.cos(theta),
+  };
 }
 
 /**
@@ -112,45 +118,60 @@ function vectorFromAngles(theta, phi, r = 1) {
  * @returns {!{x: !number, y: !number, z: !number}}
  */
 function blochVectorBetween(from, to, t) {
-    const lengthOf = v => Math.hypot(v.x, v.y, v.z);
-    const [rFrom, rTo] = [lengthOf(from), lengthOf(to)];
-    const r = rFrom + (rTo - rFrom) * t;
-    if (rFrom < EPSILON && rTo < EPSILON) {
-        return {x: 0, y: 0, z: 0};
+  const lengthOf = (v) => Math.hypot(v.x, v.y, v.z);
+  const [rFrom, rTo] = [lengthOf(from), lengthOf(to)];
+  const r = rFrom + (rTo - rFrom) * t;
+  if (rFrom < EPSILON && rTo < EPSILON) {
+    return { x: 0, y: 0, z: 0 };
+  }
+  const unit = (v, length) => ({
+    x: v.x / length,
+    y: v.y / length,
+    z: v.z / length,
+  });
+  const a = unit(rFrom < EPSILON ? to : from, rFrom < EPSILON ? rTo : rFrom);
+  const b = unit(rTo < EPSILON ? from : to, rTo < EPSILON ? rFrom : rTo);
+  const cross = (u, v) => ({
+    x: u.y * v.z - u.z * v.y,
+    y: u.z * v.x - u.x * v.z,
+    z: u.x * v.y - u.y * v.x,
+  });
+  const dot = a.x * b.x + a.y * b.y + a.z * b.z;
+  let axis = cross(a, b);
+  let sinAngle = lengthOf(axis);
+  if (sinAngle < EPSILON) {
+    if (dot > 0) {
+      return { x: a.x * r, y: a.y * r, z: a.z * r };
     }
-    const unit = (v, length) => ({x: v.x / length, y: v.y / length, z: v.z / length});
-    const a = unit(rFrom < EPSILON ? to : from, rFrom < EPSILON ? rTo : rFrom);
-    const b = unit(rTo < EPSILON ? from : to, rTo < EPSILON ? rFrom : rTo);
-    const cross = (u, v) => ({x: u.y * v.z - u.z * v.y, y: u.z * v.x - u.x * v.z, z: u.x * v.y - u.y * v.x});
-    const dot = a.x * b.x + a.y * b.y + a.z * b.z;
-    let axis = cross(a, b);
-    let sinAngle = lengthOf(axis);
-    if (sinAngle < EPSILON) {
-        if (dot > 0) {
-            return {x: a.x * r, y: a.y * r, z: a.z * r};
-        }
-        // Opposite directions: turn about an axis square to a, toward +x (or +y from the x axis).
-        axis = cross(a, Math.abs(a.x) < 0.9 ? {x: 1, y: 0, z: 0} : {x: 0, y: 1, z: 0});
-        sinAngle = 0;
-    }
-    axis = unit(axis, lengthOf(axis));
-    const angle = Math.atan2(sinAngle, dot) * t;
-    // Rodrigues' rotation of a about an axis square to it: a cos θ + (axis × a) sin θ.
-    const side = cross(axis, a);
-    const c = Math.cos(angle) * r;
-    const s = Math.sin(angle) * r;
-    return {x: a.x * c + side.x * s, y: a.y * c + side.y * s, z: a.z * c + side.z * s};
+    // Opposite directions: turn about an axis square to a, toward +x (or +y from the x axis).
+    axis = cross(
+      a,
+      Math.abs(a.x) < 0.9 ? { x: 1, y: 0, z: 0 } : { x: 0, y: 1, z: 0 },
+    );
+    sinAngle = 0;
+  }
+  axis = unit(axis, lengthOf(axis));
+  const angle = Math.atan2(sinAngle, dot) * t;
+  // Rodrigues' rotation of a about an axis square to it: a cos θ + (axis × a) sin θ.
+  const side = cross(axis, a);
+  const c = Math.cos(angle) * r;
+  const s = Math.sin(angle) * r;
+  return {
+    x: a.x * c + side.x * s,
+    y: a.y * c + side.y * s,
+    z: a.z * c + side.z * s,
+  };
 }
 
 /** The six poles and the centre, for exploring the sphere away from any circuit. */
 const BLOCH_PRESETS = Object.freeze([
-    Object.freeze({name: "|0⟩", vec: Object.freeze({x: 0, y: 0, z: 1})}),
-    Object.freeze({name: "|1⟩", vec: Object.freeze({x: 0, y: 0, z: -1})}),
-    Object.freeze({name: "|+⟩", vec: Object.freeze({x: 1, y: 0, z: 0})}),
-    Object.freeze({name: "|−⟩", vec: Object.freeze({x: -1, y: 0, z: 0})}),
-    Object.freeze({name: "|+i⟩", vec: Object.freeze({x: 0, y: 1, z: 0})}),
-    Object.freeze({name: "|−i⟩", vec: Object.freeze({x: 0, y: -1, z: 0})}),
-    Object.freeze({name: "Mixed", vec: Object.freeze({x: 0, y: 0, z: 0})}),
+  Object.freeze({ name: "|0⟩", vec: Object.freeze({ x: 0, y: 0, z: 1 }) }),
+  Object.freeze({ name: "|1⟩", vec: Object.freeze({ x: 0, y: 0, z: -1 }) }),
+  Object.freeze({ name: "|+⟩", vec: Object.freeze({ x: 1, y: 0, z: 0 }) }),
+  Object.freeze({ name: "|−⟩", vec: Object.freeze({ x: -1, y: 0, z: 0 }) }),
+  Object.freeze({ name: "|+i⟩", vec: Object.freeze({ x: 0, y: 1, z: 0 }) }),
+  Object.freeze({ name: "|−i⟩", vec: Object.freeze({ x: 0, y: -1, z: 0 }) }),
+  Object.freeze({ name: "Mixed", vec: Object.freeze({ x: 0, y: 0, z: 0 }) }),
 ]);
 
 /**
@@ -158,7 +179,9 @@ const BLOCH_PRESETS = Object.freeze([
  * @returns {!string} Degrees to one decimal, or the undefined mark.
  */
 function degreesText(radians) {
-    return radians === undefined ? UNDEFINED_TEXT : `${roundedDegrees(radians).toFixed(1)}°`;
+  return radians === undefined
+    ? UNDEFINED_TEXT
+    : `${roundedDegrees(radians).toFixed(1)}°`;
 }
 
 /**
@@ -168,14 +191,14 @@ function degreesText(radians) {
  * @returns {!number}
  */
 function roundedDegrees(radians) {
-    const degrees = Math.round(radians * 1800 / Math.PI) / 10;
-    return degrees >= 360 ? degrees - 360 : degrees;
+  const degrees = Math.round((radians * 1800) / Math.PI) / 10;
+  return degrees >= 360 ? degrees - 360 : degrees;
 }
 
 /** Rounded before signing, so a component that vanishes at this precision never reads -0.000. */
-const signed = v => {
-    const text = Math.abs(v).toFixed(3);
-    return (v < 0 && text !== '0.000' ? '-' : '+') + text;
+const signed = (v) => {
+  const text = Math.abs(v).toFixed(3);
+  return (v < 0 && text !== "0.000" ? "-" : "+") + text;
 };
 
 /**
@@ -185,10 +208,10 @@ const signed = v => {
  * @returns {!string}
  */
 function pureStateText(theta, phi) {
-    const a = Math.cos(theta / 2);
-    const br = Math.sin(theta / 2) * Math.cos(phi);
-    const bi = Math.sin(theta / 2) * Math.sin(phi);
-    return `${a.toFixed(3)} |0⟩ + (${signed(br)}${signed(bi)}i) |1⟩`;
+  const a = Math.cos(theta / 2);
+  const br = Math.sin(theta / 2) * Math.cos(phi);
+  const bi = Math.sin(theta / 2) * Math.sin(phi);
+  return `${a.toFixed(3)} |0⟩ + (${signed(br)}${signed(bi)}i) |1⟩`;
 }
 
 /** Above this length the state is pure, and its components need no |r| in front of them. */
@@ -203,17 +226,17 @@ const PURE_STATE_LENGTH = 0.999;
  *     radial: (undefined|!string)}}
  */
 function componentFormulas(reading) {
-    if (reading.rule === "mixed") {
-        return {x: undefined, y: undefined, z: undefined, radial: undefined};
-    }
-    const scale = reading.r > PURE_STATE_LENGTH ? '' : '|r| ';
-    const azimuth = reading.rule === "general";
-    return {
-        x: azimuth ? `${scale}sin θ cos ϕ` : undefined,
-        y: azimuth ? `${scale}sin θ sin ϕ` : undefined,
-        z: `${scale}cos θ`,
-        radial: `${scale}sin θ`,
-    };
+  if (reading.rule === "mixed") {
+    return { x: undefined, y: undefined, z: undefined, radial: undefined };
+  }
+  const scale = reading.r > PURE_STATE_LENGTH ? "" : "|r| ";
+  const azimuth = reading.rule === "general";
+  return {
+    x: azimuth ? `${scale}sin θ cos ϕ` : undefined,
+    y: azimuth ? `${scale}sin θ sin ϕ` : undefined,
+    z: `${scale}cos θ`,
+    radial: `${scale}sin θ`,
+  };
 }
 
 /**
@@ -224,10 +247,11 @@ function componentFormulas(reading) {
  * @returns {!{alpha: (undefined|!number), beta: (undefined|!Complex)}}
  */
 function blochAmplitudes(reading) {
-    if (reading.r <= PURE_STATE_LENGTH) return {alpha: undefined, beta: undefined};
-    const alpha = Math.cos(reading.theta / 2);
-    const beta = Complex.polar(Math.sin(reading.theta / 2), reading.phi ?? 0);
-    return {alpha, beta};
+  if (reading.r <= PURE_STATE_LENGTH)
+    return { alpha: undefined, beta: undefined };
+  const alpha = Math.cos(reading.theta / 2);
+  const beta = Complex.polar(Math.sin(reading.theta / 2), reading.phi ?? 0);
+  return { alpha, beta };
 }
 
 /**
@@ -241,15 +265,19 @@ function blochAmplitudes(reading) {
  *     direction to turn to.
  */
 function blochQuaternion(vec, reading = blochReading(vec)) {
-    const {theta, phi, rule} = reading;
-    if (rule === "mixed") return undefined;
-    // At |1⟩ every equatorial axis turns k onto −k. Take the one ϕ = 0 names, a half turn about +y,
-    // so q agrees with the ket written beside it, whose β is then +1.
-    if (rule === "polar" && vec.z < 0) return {w: 0, x: 0, y: 1, z: 0};
-    // gl-matrix stores [x, y, z, w]; a plain array keeps the readout's double precision.
-    const azimuth = phi ?? 0;
-    const q = quat.setAxisAngle([0, 0, 0, 1], [-Math.sin(azimuth), Math.cos(azimuth), 0], theta);
-    return {w: q[3], x: q[0], y: q[1], z: q[2]};
+  const { theta, phi, rule } = reading;
+  if (rule === "mixed") return undefined;
+  // At |1⟩ every equatorial axis turns k onto −k. Take the one ϕ = 0 names, a half turn about +y,
+  // so q agrees with the ket written beside it, whose β is then +1.
+  if (rule === "polar" && vec.z < 0) return { w: 0, x: 0, y: 1, z: 0 };
+  // gl-matrix stores [x, y, z, w]; a plain array keeps the readout's double precision.
+  const azimuth = phi ?? 0;
+  const q = quat.setAxisAngle(
+    [0, 0, 0, 1],
+    [-Math.sin(azimuth), Math.cos(azimuth), 0],
+    theta,
+  );
+  return { w: q[3], x: q[0], y: q[1], z: q[2] };
 }
 
 /**
@@ -257,7 +285,7 @@ function blochQuaternion(vec, reading = blochReading(vec)) {
  * @returns {!string} The pure quaternion x i + y j + z k, as the Bloch vector is written.
  */
 function pureQuaternionText(v) {
-    return `${signed(v.x)}i ${signed(v.y)}j ${signed(v.z)}k`;
+  return `${signed(v.x)}i ${signed(v.y)}j ${signed(v.z)}k`;
 }
 
 /**
@@ -265,12 +293,12 @@ function pureQuaternionText(v) {
  * @returns {!string}
  */
 function quaternionText(q) {
-    return `${q.w.toFixed(3)} ${pureQuaternionText(q)}`;
+  return `${q.w.toFixed(3)} ${pureQuaternionText(q)}`;
 }
 
 /** @param {!Complex} c @returns {!string} The number as +a+bi, each part to three places. */
 function complexText(c) {
-    return `${signed(c.real)}${signed(c.imag)}i`;
+  return `${signed(c.real)}${signed(c.imag)}i`;
 }
 
 /** The notes RULE A and RULE B call for, where a view has room to say why a value is missing. */
@@ -284,36 +312,75 @@ const POLAR_NOTE = "ϕ undefined — vector lies on z-axis";
  * @param {!{x: !number, y: !number, z: !number}} vec
  */
 function analyzerReadout(vec, reading = blochReading(vec)) {
-    const formulas = componentFormulas(reading);
-    const {alpha, beta} = blochAmplitudes(reading);
-    const q = blochQuaternion(vec, reading);
-    // Full precision for a hover, where the rounded value leaves a reader wondering.
-    const exact = radians => radians === undefined ? UNDEFINED_TEXT : `${radians * 180 / Math.PI}°`;
-    return {
-        rule: reading.rule,
-        note: reading.rule === "mixed" ? MIXED_NOTE : reading.rule === "polar" ? POLAR_NOTE : undefined,
-        length: reading.r.toFixed(3),
-        theta: degreesText(reading.theta),
-        phi: degreesText(reading.phi),
-        thetaExact: exact(reading.theta),
-        phiExact: exact(reading.phi),
-        components: /** @type {Array<[string, (string | undefined), number]>} */ (
-            [["x", formulas.x, vec.x], ["y", formulas.y, vec.y], ["z", formulas.z, vec.z]])
-            .map(([axis, formula, value]) => ({axis, formula, value: signed(value)})),
-        amplitudes: [
-            {name: "α", formula: alpha === undefined ? undefined : "cos(θ/2)",
-                value: alpha === undefined ? UNDEFINED_TEXT : alpha.toFixed(3)},
-            {name: "β", formula: beta === undefined ? undefined :
-                reading.phi === undefined ? "sin(θ/2)" : "e^(iϕ) sin(θ/2)",
-                value: beta === undefined ? UNDEFINED_TEXT : complexText(beta)},
-        ],
-        purity: reading.purity.toFixed(3),
-        quaternion: q === undefined ? UNDEFINED_TEXT : quaternionText(q),
-        vector: pureQuaternionText(vec),
-    };
+  const formulas = componentFormulas(reading);
+  const { alpha, beta } = blochAmplitudes(reading);
+  const q = blochQuaternion(vec, reading);
+  // Full precision for a hover, where the rounded value leaves a reader wondering.
+  const exact = (radians) =>
+    radians === undefined ? UNDEFINED_TEXT : `${(radians * 180) / Math.PI}°`;
+  return {
+    rule: reading.rule,
+    note:
+      reading.rule === "mixed"
+        ? MIXED_NOTE
+        : reading.rule === "polar"
+          ? POLAR_NOTE
+          : undefined,
+    length: reading.r.toFixed(3),
+    theta: degreesText(reading.theta),
+    phi: degreesText(reading.phi),
+    thetaExact: exact(reading.theta),
+    phiExact: exact(reading.phi),
+    components: /** @type {Array<[string, (string | undefined), number]>} */ ([
+      ["x", formulas.x, vec.x],
+      ["y", formulas.y, vec.y],
+      ["z", formulas.z, vec.z],
+    ]).map(([axis, formula, value]) => ({
+      axis,
+      formula,
+      value: signed(value),
+    })),
+    amplitudes: [
+      {
+        name: "α",
+        formula: alpha === undefined ? undefined : "cos(θ/2)",
+        value: alpha === undefined ? UNDEFINED_TEXT : alpha.toFixed(3),
+      },
+      {
+        name: "β",
+        formula:
+          beta === undefined
+            ? undefined
+            : reading.phi === undefined
+              ? "sin(θ/2)"
+              : "e^(iϕ) sin(θ/2)",
+        value: beta === undefined ? UNDEFINED_TEXT : complexText(beta),
+      },
+    ],
+    purity: reading.purity.toFixed(3),
+    quaternion: q === undefined ? UNDEFINED_TEXT : quaternionText(q),
+    vector: pureQuaternionText(vec),
+  };
 }
 
-export {EPSILON, PURE_STATE_THRESHOLD, UNDEFINED_TEXT, BLOCH_PRESETS, blochCoordinates, blochReading, vectorFromAngles,
-    blochVectorBetween,
-    degreesText, roundedDegrees, pureStateText, componentFormulas, blochAmplitudes, blochQuaternion,
-    pureQuaternionText, quaternionText, analyzerReadout, MIXED_NOTE, POLAR_NOTE}
+export {
+  EPSILON,
+  PURE_STATE_THRESHOLD,
+  UNDEFINED_TEXT,
+  BLOCH_PRESETS,
+  blochCoordinates,
+  blochReading,
+  vectorFromAngles,
+  blochVectorBetween,
+  degreesText,
+  roundedDegrees,
+  pureStateText,
+  componentFormulas,
+  blochAmplitudes,
+  blochQuaternion,
+  pureQuaternionText,
+  quaternionText,
+  analyzerReadout,
+  MIXED_NOTE,
+  POLAR_NOTE,
+};

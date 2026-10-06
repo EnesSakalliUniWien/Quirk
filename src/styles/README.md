@@ -2,19 +2,19 @@
 
 `globals.css` is the global CSS entry point imported by `src/main.jsx`.
 
-| Directory | Responsibility |
-| --- | --- |
-| `foundation/` | Scoped resets, document defaults, native elements, focus styles and text for assistive technology only. |
-| `shell/` | App sizing, toolbar, Dockview layout, motion preferences and error banner. |
-| `ui/` | Shared buttons, popup menus, toasts and HTML canvas sizing. |
-| `circuit/` | Circuit viewport, zoom controls, minimap, gutter editors, the dial on a rotation gate's wire, the selection's bar, the keyboard's cell cursor and the empty circuit's hint. |
-| `gates/` | Gate details and the toolbox, including search, groups and tiles. |
-| `math/` | MathML matrices, data views, operator controls and math entry fields. |
-| `panels/` | Styles named for their panel: state, Bloch, Tape, export and others. |
-| `panels/shared/` | Panel frames, sections, debug headings and responsive rules. |
-| `panels/algebra/` | Algebra steps and the evolution chart. |
-| `panels/probabilities/` | The step trace: layout tabs, step headers, cells and their marks. |
-| `panels/forge/` | Gate construction and operation previews. |
+| Directory               | Responsibility                                                                                                                                                              |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `foundation/`           | Scoped resets, document defaults, native elements, focus styles and text for assistive technology only.                                                                     |
+| `shell/`                | App sizing, toolbar, Dockview layout, motion preferences and error banner.                                                                                                  |
+| `ui/`                   | Shared buttons, popup menus, toasts and HTML canvas sizing.                                                                                                                 |
+| `circuit/`              | Circuit viewport, zoom controls, minimap, gutter editors, the dial on a rotation gate's wire, the selection's bar, the keyboard's cell cursor and the empty circuit's hint. |
+| `gates/`                | Gate details and the toolbox, including search, groups and tiles.                                                                                                           |
+| `math/`                 | MathML matrices, data views, operator controls and math entry fields.                                                                                                       |
+| `panels/`               | Styles named for their panel: state, Bloch, Tape, export and others.                                                                                                        |
+| `panels/shared/`        | Panel frames, sections, debug headings and responsive rules.                                                                                                                |
+| `panels/algebra/`       | Algebra steps and the evolution chart.                                                                                                                                      |
+| `panels/probabilities/` | The step trace: layout tabs, step headers, cells and their marks.                                                                                                           |
+| `panels/forge/`         | Gate construction and operation previews.                                                                                                                                   |
 
 ## Import order
 

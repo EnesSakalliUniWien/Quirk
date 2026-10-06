@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-import {Rendering} from "../../config/Rendering.js";
-import {equate_Maps} from "../../base/Equate.js"
-import {Registers} from "../../circuit/model/Registers.js"
-import {wiresLabel} from "../../circuit/registerLabels.js"
-import {Matrix} from "../math/matrix/Matrix.js"
-import {columnStructure} from "./columnStructure/columnStructure.js";
-import {applyStructure, structureMatrix} from "./columnStructure/evaluation.js";
+import { Rendering } from "../../config/Rendering.js";
+import { equate_Maps } from "../../base/Equate.js";
+import { Registers } from "../../circuit/model/Registers.js";
+import { wiresLabel } from "../../circuit/registerLabels.js";
+import { Matrix } from "../math/matrix/Matrix.js";
+import { columnStructure } from "./columnStructure/columnStructure.js";
+import {
+  applyStructure,
+  structureMatrix,
+} from "./columnStructure/evaluation.js";
 
 /**
  * The circuit as algebra: every column as an operator, and the state before and after each one, so
@@ -50,11 +53,11 @@ const CHECK_BUDGET = 1 << 14;
  * @returns {!Matrix}
  */
 function paddedState(finalState, wireCount) {
-    const size = 1 << wireCount;
-    const source = finalState.rawBuffer();
-    const buffer = new Float64Array(size * 2);
-    buffer.set(source.subarray(0, Math.min(source.length, buffer.length)));
-    return new Matrix(1, size, buffer);
+  const size = 1 << wireCount;
+  const source = finalState.rawBuffer();
+  const buffer = new Float64Array(size * 2);
+  buffer.set(source.subarray(0, Math.min(source.length, buffer.length)));
+  return new Matrix(1, size, buffer);
 }
 
 /**
@@ -66,7 +69,9 @@ function paddedState(finalState, wireCount) {
  * @returns {!Matrix}
  */
 function overWires(state, wireCount) {
-    return state.height() === 1 << wireCount ? state : paddedState(state, wireCount);
+  return state.height() === 1 << wireCount
+    ? state
+    : paddedState(state, wireCount);
 }
 
 /**
@@ -85,7 +90,7 @@ let lastStepStates = undefined;
  * out again.
  */
 function releaseStepStates() {
-    lastStepStates = undefined;
+  lastStepStates = undefined;
 }
 
 /**
@@ -111,24 +116,42 @@ function releaseStepStates() {
  *     whether or not it is given.
  * @returns {!Array.<!Matrix>} One state per step, from 0 to the column count.
  */
-function stepStates(stats, wireCount, previous = undefined, prefix = undefined) {
-    const last = lastStepStates;
-    if (last !== undefined && last.stats === stats && last.wireCount === wireCount) {
-        return last.states;
-    }
-    const source = previous ?? last;
-    const circuit = stats.circuitDefinition;
-    const count = circuit.columns.length;
-    const kept = Math.min(count + 1, reusableStateCount(stats, wireCount, source));
-    // The state after the last column is the whole circuit's final state, which the stats hold.
-    const ran = stats.statesAfterSteps(
-        Array.from({length: Math.max(0, count - kept)}, (_, i) => kept + i), prefix, wireCount);
-    const states = Array.from({length: count + 1}, (_, k) =>
-        k < kept ? source.states[k] :
-        k === count ? overWires(stats.finalState, wireCount) :
-        ran[k - kept]);
-    lastStepStates = {stats, wireCount, circuit, seed: stats.seed, states};
-    return states;
+function stepStates(
+  stats,
+  wireCount,
+  previous = undefined,
+  prefix = undefined,
+) {
+  const last = lastStepStates;
+  if (
+    last !== undefined &&
+    last.stats === stats &&
+    last.wireCount === wireCount
+  ) {
+    return last.states;
+  }
+  const source = previous ?? last;
+  const circuit = stats.circuitDefinition;
+  const count = circuit.columns.length;
+  const kept = Math.min(
+    count + 1,
+    reusableStateCount(stats, wireCount, source),
+  );
+  // The state after the last column is the whole circuit's final state, which the stats hold.
+  const ran = stats.statesAfterSteps(
+    Array.from({ length: Math.max(0, count - kept) }, (_, i) => kept + i),
+    prefix,
+    wireCount,
+  );
+  const states = Array.from({ length: count + 1 }, (_, k) =>
+    k < kept
+      ? source.states[k]
+      : k === count
+        ? overWires(stats.finalState, wireCount)
+        : ran[k - kept],
+  );
+  lastStepStates = { stats, wireCount, circuit, seed: stats.seed, states };
+  return states;
 }
 
 /**
@@ -140,13 +163,13 @@ function stepStates(stats, wireCount, previous = undefined, prefix = undefined) 
  * @returns {!number}
  */
 function stateDistance(a, b) {
-    const x = a.rawBuffer();
-    const y = b.rawBuffer();
-    let worst = 0;
-    for (let i = 0; i < y.length; i += 2) {
-        worst = Math.max(worst, Math.hypot(x[i] - y[i], x[i + 1] - y[i + 1]));
-    }
-    return worst;
+  const x = a.rawBuffer();
+  const y = b.rawBuffer();
+  let worst = 0;
+  for (let i = 0; i < y.length; i += 2) {
+    worst = Math.max(worst, Math.hypot(x[i] - y[i], x[i + 1] - y[i + 1]));
+  }
+  return worst;
 }
 
 /**
@@ -157,24 +180,37 @@ function stateDistance(a, b) {
  * @returns {!string}
  */
 function describeColumn(column, registers = Registers.EMPTY) {
-    const actions = [];
-    const conditions = [];
-    column.gates.forEach((gate, row) => {
-        if (gate === undefined) {
-            return;
-        }
-        const wires = wiresLabel(registers, row, gate.height);
-        if (gate.isControl()) {
-            const bit = gate.controlBit();
-            conditions.push(bit === true ? `${wires} is 1` : bit === false ? `${wires} is 0` : `${wires} is ${bit}`);
-        } else {
-            actions.push(`${gate.name} on ${wires}${gate.definitelyHasNoEffect() ? " (no effect)" : ""}`);
-        }
-    });
-    if (actions.length === 0) {
-        return conditions.length === 0 ? "Nothing - the identity" : `Only controls, on ${conditions.join(", ")}`;
+  const actions = [];
+  const conditions = [];
+  column.gates.forEach((gate, row) => {
+    if (gate === undefined) {
+      return;
     }
-    return actions.join(", ") + (conditions.length === 0 ? "" : `, if ${conditions.join(" and ")}`);
+    const wires = wiresLabel(registers, row, gate.height);
+    if (gate.isControl()) {
+      const bit = gate.controlBit();
+      conditions.push(
+        bit === true
+          ? `${wires} is 1`
+          : bit === false
+            ? `${wires} is 0`
+            : `${wires} is ${bit}`,
+      );
+    } else {
+      actions.push(
+        `${gate.name} on ${wires}${gate.definitelyHasNoEffect() ? " (no effect)" : ""}`,
+      );
+    }
+  });
+  if (actions.length === 0) {
+    return conditions.length === 0
+      ? "Nothing - the identity"
+      : `Only controls, on ${conditions.join(", ")}`;
+  }
+  return (
+    actions.join(", ") +
+    (conditions.length === 0 ? "" : `, if ${conditions.join(" and ")}`)
+  );
 }
 
 /**
@@ -187,18 +223,27 @@ function describeColumn(column, registers = Registers.EMPTY) {
  * @returns {!int}
  */
 function reusableStateCount(stats, wireCount, previous) {
-    const circuit = stats.circuitDefinition;
-    if (previous === undefined || previous.wireCount !== wireCount || previous.seed !== stats.seed ||
-            previous.circuit.numWires !== circuit.numWires ||
-            !equate_Maps(previous.circuit.customInitialValues, circuit.customInitialValues)) {
-        return 0;
-    }
-    const unchanged = circuit.columns.findIndex((column, k) =>
-        column.stableDuration() !== Infinity ||
-        k >= previous.circuit.columns.length ||
-        !previous.circuit.columns[k].isEqualTo(column));
-    // State 0 precedes every column. With every column kept, the final state is kept too.
-    return (unchanged === -1 ? circuit.columns.length : unchanged) + 1;
+  const circuit = stats.circuitDefinition;
+  if (
+    previous === undefined ||
+    previous.wireCount !== wireCount ||
+    previous.seed !== stats.seed ||
+    previous.circuit.numWires !== circuit.numWires ||
+    !equate_Maps(
+      previous.circuit.customInitialValues,
+      circuit.customInitialValues,
+    )
+  ) {
+    return 0;
+  }
+  const unchanged = circuit.columns.findIndex(
+    (column, k) =>
+      column.stableDuration() !== Infinity ||
+      k >= previous.circuit.columns.length ||
+      !previous.circuit.columns[k].isEqualTo(column),
+  );
+  // State 0 precedes every column. With every column kept, the final state is kept too.
+  return (unchanged === -1 ? circuit.columns.length : unchanged) + 1;
 }
 
 /**
@@ -224,42 +269,68 @@ function reusableStateCount(stats, wireCount, previous) {
  *     description: !string, structure: (undefined|!ColumnStructure), matrix: (undefined|!Matrix),
  *     reason: (undefined|!string), residual: (undefined|!number)}>}} CircuitAlgebra
  */
-function circuitAlgebra(stats, wireCount, previous = undefined, prefix = undefined) {
-    const circuit = stats.circuitDefinition;
-    const {columns} = circuit;
-    const states = stepStates(stats, wireCount, previous, prefix);
+function circuitAlgebra(
+  stats,
+  wireCount,
+  previous = undefined,
+  prefix = undefined,
+) {
+  const circuit = stats.circuitDefinition;
+  const { columns } = circuit;
+  const states = stepStates(stats, wireCount, previous, prefix);
 
-    const steps = columns.map((column, k) => {
-        const reasons = Array.from({length: wireCount}, (_, row) => circuit.gateAtLocIsDisabledReason(k, row));
-        const context = circuit.colCustomContextFromGates(k, 0);
-        const old = previous !== undefined && previous.wireCount === wireCount ? previous.steps[k] : undefined;
-        const reusable = old !== undefined &&
-            column.stableDuration() === Infinity &&
-            old.column.isEqualTo(column) &&
-            old.reasons.every((reason, row) => reason === reasons[row]) &&
-            equate_Maps(old.context, context);
-        let structure, matrix, reason;
-        if (reusable) {
-            ({structure, matrix, reason} = old);
-        } else {
-            const built = columnStructure(circuit, k, wireCount, stats.time);
-            structure = built.ok ? built : undefined;
-            reason = built.ok ? undefined : built.reason;
-            matrix = structure !== undefined && wireCount <= DENSE_MATRIX_WIRES ? structureMatrix(structure) : undefined;
-        }
-        const predicted = structure === undefined ? undefined : applyStructure(structure, states[k], CHECK_BUDGET);
-        return {
-            column,
-            reasons,
-            context,
-            description: describeColumn(column, circuit.registers),
-            structure,
-            matrix,
-            reason,
-            residual: predicted === undefined ? undefined : stateDistance(predicted, states[k + 1]),
-        };
-    });
-    return {wireCount, circuit, seed: stats.seed, states, steps};
+  const steps = columns.map((column, k) => {
+    const reasons = Array.from({ length: wireCount }, (_, row) =>
+      circuit.gateAtLocIsDisabledReason(k, row),
+    );
+    const context = circuit.colCustomContextFromGates(k, 0);
+    const old =
+      previous !== undefined && previous.wireCount === wireCount
+        ? previous.steps[k]
+        : undefined;
+    const reusable =
+      old !== undefined &&
+      column.stableDuration() === Infinity &&
+      old.column.isEqualTo(column) &&
+      old.reasons.every((reason, row) => reason === reasons[row]) &&
+      equate_Maps(old.context, context);
+    let structure, matrix, reason;
+    if (reusable) {
+      ({ structure, matrix, reason } = old);
+    } else {
+      const built = columnStructure(circuit, k, wireCount, stats.time);
+      structure = built.ok ? built : undefined;
+      reason = built.ok ? undefined : built.reason;
+      matrix =
+        structure !== undefined && wireCount <= DENSE_MATRIX_WIRES
+          ? structureMatrix(structure)
+          : undefined;
+    }
+    const predicted =
+      structure === undefined
+        ? undefined
+        : applyStructure(structure, states[k], CHECK_BUDGET);
+    return {
+      column,
+      reasons,
+      context,
+      description: describeColumn(column, circuit.registers),
+      structure,
+      matrix,
+      reason,
+      residual:
+        predicted === undefined
+          ? undefined
+          : stateDistance(predicted, states[k + 1]),
+    };
+  });
+  return { wireCount, circuit, seed: stats.seed, states, steps };
 }
 
-export {circuitAlgebra, describeColumn, paddedState, releaseStepStates, stepStates}
+export {
+  circuitAlgebra,
+  describeColumn,
+  paddedState,
+  releaseStepStates,
+  stepStates,
+};

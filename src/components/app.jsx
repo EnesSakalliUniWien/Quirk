@@ -1,4 +1,5 @@
 import { useStore } from "zustand";
+import { AtomIcon } from "lucide-react";
 
 import { appStore } from "../state/appStore.js";
 import { Dock } from "./dock.jsx";
@@ -27,9 +28,22 @@ function App() {
     // so a panel placed at a size - the gate palette beside the circuit - keeps that size.
     // Every icon under here is drawn at the one stroke the provider sets.
     <IconProvider>
-      <div id="inspectorDiv" style={{ visibility: booted ? undefined : "hidden" }}>
-        <AppToolbar />
-        <TransportBar />
+      <div
+        id="inspectorDiv"
+        style={{ visibility: booted ? undefined : "hidden" }}
+      >
+        <header>
+          <div className="app-header">
+            <h1 className="app-brand" style={{ margin: 0 }}>
+              <span className="app-brand-mark" aria-hidden="true">
+                <AtomIcon />
+              </span>
+              <strong>Quirk-Bench</strong>
+            </h1>
+            <AppToolbar />
+          </div>
+          <TransportBar />
+        </header>
         <Dock />
       </div>
       <Toasts />

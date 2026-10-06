@@ -17,7 +17,7 @@
 import { CanvasTheme } from "../../config/CanvasTheme.js";
 import { DetailedError } from "../../base/DetailedError.js";
 import { GateBuilder } from "../../circuit/model/Gate.js";
-import {MAKE_HIGHLIGHTED_RENDERER} from '../../draw/gate/GateRenderers.js';
+import { MAKE_HIGHLIGHTED_RENDERER } from "../../draw/gate/GateRenderers.js";
 
 const ErrorInjectionGate = new GateBuilder()
   .setSerializedId("__error__")

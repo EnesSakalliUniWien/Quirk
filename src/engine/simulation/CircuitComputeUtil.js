@@ -51,7 +51,7 @@ function setGateBuilderEffectToCircuit(builder, circuitDefinition) {
             return r;
           }
           if (def.gateInSlot(col, row)?.measureEffect === "measure") {
-            return "hidden\nmeasure\nbroken";
+            return "No embedded\nmeasure";
           }
         }
       }
@@ -79,7 +79,13 @@ function setGateBuilderEffectToCircuit(builder, circuitDefinition) {
  *     customStatsMap: !Array.<*>
  * }}
  */
-function advanceStateWithCircuit(ctx, circuitDefinition, collectStats, afterStep = undefined, firstColumn = 0) {
+function advanceStateWithCircuit(
+  ctx,
+  circuitDefinition,
+  collectStats,
+  afterStep = undefined,
+  firstColumn = 0,
+) {
   // Prep stats collection.
   const colQubitDensities = [];
   const customStats = [];
@@ -136,7 +142,11 @@ function advanceStateWithCircuit(ctx, circuitDefinition, collectStats, afterStep
   } catch (ex) {
     // The caller only gets the stats of a run that finished, so a failed one is the last to hold them.
     // The state is the caller's: it is in the trader the caller gave.
-    for (const texture of [...colQubitDensities, ...colNorms, ...customStats.flat()]) {
+    for (const texture of [
+      ...colQubitDensities,
+      ...colNorms,
+      ...customStats.flat(),
+    ]) {
       texture.deallocByDepositingInPool("stat collected by a run that failed");
     }
     throw ex;

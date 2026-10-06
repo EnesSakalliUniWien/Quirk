@@ -14,57 +14,77 @@
  * limitations under the License.
  */
 
-import {Suite} from "../../TestUtil.js"
-import {ArithmeticGates} from "../../../src/gates/arithmetic/ArithmeticGates.js"
-import {InputGates} from "../../../src/gates/inputs/InputGates.js"
+import { Suite } from "../../TestUtil.js";
+import { ArithmeticGates } from "../../../src/gates/arithmetic/ArithmeticGates.js";
+import { InputGates } from "../../../src/gates/inputs/InputGates.js";
 import {
-    assertThatCircuitUpdateActsLikeMatrix,
-    assertThatGateActsLikePermutation,
-} from "../../CircuitOperationTestUtil.js"
-import {advanceStateWithCircuit} from "../../../src/engine/simulation/CircuitComputeUtil.js"
+  assertThatCircuitUpdateActsLikeMatrix,
+  assertThatGateActsLikePermutation,
+} from "../../CircuitOperationTestUtil.js";
+import { advanceStateWithCircuit } from "../../../src/engine/simulation/CircuitComputeUtil.js";
 
-import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js"
-import {GateColumn} from "../../../src/circuit/model/GateColumn.js"
-import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
+import { CircuitDefinition } from "../../../src/circuit/model/CircuitDefinition.js";
+import { GateColumn } from "../../../src/circuit/model/GateColumn.js";
+import { Matrix } from "../../../src/engine/math/matrix/Matrix.js";
 
 const suite = new Suite("ArithmeticGates");
 
-suite.testUsingWebGL('plus_A', () => {
-    assertThatCircuitUpdateActsLikeMatrix(
-        ctx => advanceStateWithCircuit(
-            ctx,
-            new CircuitDefinition(4, [new GateColumn([
-                ArithmeticGates.PlusAFamily.ofSize(2), undefined, InputGates.InputAFamily.ofSize(2), undefined])]),
-            false),
-        Matrix.generateTransition(16, i => {
-            const a = (i >> 2) & 3;
-            const t = i & 3;
-            return (a<<2) | (t+a)&3;
-        }));
+suite.testUsingWebGL("plus_A", () => {
+  assertThatCircuitUpdateActsLikeMatrix(
+    (ctx) =>
+      advanceStateWithCircuit(
+        ctx,
+        new CircuitDefinition(4, [
+          new GateColumn([
+            ArithmeticGates.PlusAFamily.ofSize(2),
+            undefined,
+            InputGates.InputAFamily.ofSize(2),
+            undefined,
+          ]),
+        ]),
+        false,
+      ),
+    Matrix.generateTransition(16, (i) => {
+      const a = (i >> 2) & 3;
+      const t = i & 3;
+      return (a << 2) | ((t + a) & 3);
+    }),
+  );
 });
 
-suite.testUsingWebGL('minus_A', () => {
-    assertThatCircuitUpdateActsLikeMatrix(
-        ctx => advanceStateWithCircuit(
-            ctx,
-            new CircuitDefinition(4, [new GateColumn([
-                InputGates.InputAFamily.ofSize(2), undefined, ArithmeticGates.MinusAFamily.ofSize(2), undefined])]),
-            false),
-        Matrix.generateTransition(16, i => {
-            const a = i & 3;
-            const t = (i >> 2) & 3;
-            return a | (((t-a)&3)<<2);
-        }));
+suite.testUsingWebGL("minus_A", () => {
+  assertThatCircuitUpdateActsLikeMatrix(
+    (ctx) =>
+      advanceStateWithCircuit(
+        ctx,
+        new CircuitDefinition(4, [
+          new GateColumn([
+            InputGates.InputAFamily.ofSize(2),
+            undefined,
+            ArithmeticGates.MinusAFamily.ofSize(2),
+            undefined,
+          ]),
+        ]),
+        false,
+      ),
+    Matrix.generateTransition(16, (i) => {
+      const a = i & 3;
+      const t = (i >> 2) & 3;
+      return a | (((t - a) & 3) << 2);
+    }),
+  );
 });
 
-suite.testUsingWebGL('plus_minus_A_like_permutation', () => {
-    assertThatGateActsLikePermutation(
-        ArithmeticGates.PlusAFamily.ofSize(3),
-        (t, a) => (t + a) & 7,
-        [2]);
+suite.testUsingWebGL("plus_minus_A_like_permutation", () => {
+  assertThatGateActsLikePermutation(
+    ArithmeticGates.PlusAFamily.ofSize(3),
+    (t, a) => (t + a) & 7,
+    [2],
+  );
 
-    assertThatGateActsLikePermutation(
-        ArithmeticGates.MinusAFamily.ofSize(3),
-        (t, a) => (t - a) & 7,
-        [4]);
+  assertThatGateActsLikePermutation(
+    ArithmeticGates.MinusAFamily.ofSize(3),
+    (t, a) => (t - a) & 7,
+    [4],
+  );
 });

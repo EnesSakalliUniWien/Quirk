@@ -1,6 +1,11 @@
-import {extend} from '@pixi/react';
-import {BitmapText, Color} from 'pixi.js';
-import {acquireBitmapFont, bitmapFontKey, inBitmapFont, releaseBitmapFont} from './BitmapFonts.js';
+import { extend } from "@pixi/react";
+import { BitmapText, Color } from "pixi.js";
+import {
+  acquireBitmapFont,
+  bitmapFontKey,
+  inBitmapFont,
+  releaseBitmapFont,
+} from "./BitmapFonts.js";
 
 /**
  * @param {*} text
@@ -10,8 +15,13 @@ import {acquireBitmapFont, bitmapFontKey, inBitmapFont, releaseBitmapFont} from 
  *     character has a glyph, on one line, in one weight and style, with no stroke around it.
  */
 export function canSetInBitmap(text, font, stroke) {
-    return stroke === undefined && !font.wordWrap && font.letterSpacing === undefined &&
-        font.lineHeight === undefined && inBitmapFont(text);
+  return (
+    stroke === undefined &&
+    !font.wordWrap &&
+    font.letterSpacing === undefined &&
+    font.lineHeight === undefined &&
+    inBitmapFont(text)
+  );
 }
 
 /**
@@ -20,30 +30,33 @@ export function canSetInBitmap(text, font, stroke) {
  * the label's tint is its colour.
  */
 export class BitmapLabelView extends BitmapText {
-    constructor() { super(); }
-    set label([text, font, fill, , , version]) {
-        const face = bitmapFontKey(font, version);
-        if (this.face !== face) {
-            if (this.bitmapFont !== undefined) releaseBitmapFont(this.bitmapFont);
-            this.bitmapFont = acquireBitmapFont(font, version);
-            this.face = face;
-            this.style.fontFamily = this.bitmapFont;
-        }
-        if (this.style.fontSize !== font.fontSize) this.style.fontSize = font.fontSize;
-        this.text = String(text);
-        if (this.ink !== fill) {
-            const colour = new Color(fill);
-            this.tint = colour.toNumber();
-            this.alpha = colour.alpha;
-            this.ink = fill;
-        }
-        if (!this.roundPixels) this.roundPixels = true;
+  constructor() {
+    super();
+  }
+  set label([text, font, fill, , , version]) {
+    const face = bitmapFontKey(font, version);
+    if (this.face !== face) {
+      if (this.bitmapFont !== undefined) releaseBitmapFont(this.bitmapFont);
+      this.bitmapFont = acquireBitmapFont(font, version);
+      this.face = face;
+      this.style.fontFamily = this.bitmapFont;
     }
-    destroy(options) {
-        if (this.bitmapFont !== undefined) releaseBitmapFont(this.bitmapFont);
-        this.bitmapFont = undefined;
-        super.destroy(options);
+    if (this.style.fontSize !== font.fontSize)
+      this.style.fontSize = font.fontSize;
+    this.text = String(text);
+    if (this.ink !== fill) {
+      const colour = new Color(fill);
+      this.tint = colour.toNumber();
+      this.alpha = colour.alpha;
+      this.ink = fill;
     }
+    if (!this.roundPixels) this.roundPixels = true;
+  }
+  destroy(options) {
+    if (this.bitmapFont !== undefined) releaseBitmapFont(this.bitmapFont);
+    this.bitmapFont = undefined;
+    super.destroy(options);
+  }
 }
 
-extend({BitmapLabelView});
+extend({ BitmapLabelView });

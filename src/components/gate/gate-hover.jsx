@@ -23,12 +23,19 @@ function GateHoverCard({ latestTime }) {
       >
         {({ payload }) => (
           <PreviewCard.Portal>
-            <PreviewCard.Positioner className="gate-hover-positioner" side="right" sideOffset={10} collisionPadding={12}>
+            <PreviewCard.Positioner
+              className="gate-hover-positioner"
+              side="right"
+              sideOffset={10}
+              collisionPadding={12}
+            >
               <PreviewCard.Popup className="gate-hover">
                 <div className="gate-details-header">
                   <h2 className="gate-details-title">{payload?.name}</h2>
                   <p className="gate-details-blurb">{payload?.blurb}</p>
-                  <p className="gate-details-note">Use the gate’s details button for matrices and diagrams.</p>
+                  <p className="gate-details-note">
+                    Use the gate’s details button for matrices and diagrams.
+                  </p>
                 </div>
               </PreviewCard.Popup>
             </PreviewCard.Positioner>
@@ -55,12 +62,22 @@ function GateHoverCard({ latestTime }) {
             >
               <Popover.Popup className="gate-details-popup">
                 <div className="gate-details-toolbar">
-                  <Popover.Title className="gate-details-title">{payload?.name}</Popover.Title>
-                  <Popover.Close render={<Button size="icon" />} aria-label="Close gate details">
+                  <Popover.Title className="gate-details-title">
+                    {payload?.name}
+                  </Popover.Title>
+                  <Popover.Close
+                    render={<Button size="icon" />}
+                    aria-label="Close gate details"
+                  >
                     <XIcon aria-hidden="true" />
                   </Popover.Close>
                 </div>
-                <GateDetails key={payload?.serializedId} gate={payload} time={time} title={null} />
+                <GateDetails
+                  key={payload?.serializedId}
+                  gate={payload}
+                  time={time}
+                  title={null}
+                />
               </Popover.Popup>
             </Popover.Positioner>
           </Popover.Portal>

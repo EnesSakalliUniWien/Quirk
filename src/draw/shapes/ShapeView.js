@@ -14,33 +14,46 @@
  * limitations under the License.
  */
 
-import {extend} from '@pixi/react';
-import {drawGraphics, recordGraphics} from '../scene/DisplayView.js';
-import {Graphics} from 'pixi.js';
-import {CanvasTheme} from '../../config/CanvasTheme.js';
-import {PathGeometry} from './PathGeometry.js';
-import {Appearance} from '../../appearance/Appearance.js';
+import { extend } from "@pixi/react";
+import { drawGraphics, recordGraphics } from "../scene/DisplayView.js";
+import { Graphics } from "pixi.js";
+import { CanvasTheme } from "../../config/CanvasTheme.js";
+import { PathGeometry } from "./PathGeometry.js";
+import { Appearance } from "../../appearance/Appearance.js";
 
 /** Fixed shapes keep their GraphicsContext until geometry or colours change. */
 class ShapeView extends Graphics {
-    constructor() { super(); }
-    set shape([kind, coordinates, {fill, stroke} = {}]) {
-        const values = [kind, ...coordinates, fill, stroke?.color, stroke?.width];
-        if (!this.values || values.length !== this.values.length || values.some((v, i) => !Object.is(v, this.values[i]))) {
-            this.clear();
-            this[kind](...coordinates);
-            if (fill !== undefined) this.fill(fill);
-            if (stroke !== undefined) this.stroke(stroke);
-            this.values = values;
-        }
+  constructor() {
+    super();
+  }
+  set shape([kind, coordinates, { fill, stroke } = {}]) {
+    const values = [kind, ...coordinates, fill, stroke?.color, stroke?.width];
+    if (
+      !this.values ||
+      values.length !== this.values.length ||
+      values.some((v, i) => !Object.is(v, this.values[i]))
+    ) {
+      this.clear();
+      this[kind](...coordinates);
+      if (fill !== undefined) this.fill(fill);
+      if (stroke !== undefined) this.stroke(stroke);
+      this.values = values;
     }
+  }
 }
 
-extend({ShapeView});
+extend({ ShapeView });
 
 export function rectangle(view, r, style, radius) {
-    return view.add('pixiShapeView', {shape: [radius === undefined ? 'rect' : 'roundRect',
-        radius === undefined ? [r.x, r.y, r.w, r.h] : [r.x, r.y, r.w, r.h, radius], style]});
+  return view.add("pixiShapeView", {
+    shape: [
+      radius === undefined ? "rect" : "roundRect",
+      radius === undefined
+        ? [r.x, r.y, r.w, r.h]
+        : [r.x, r.y, r.w, r.h, radius],
+      style,
+    ],
+  });
 }
 
 /**
@@ -50,14 +63,23 @@ export function rectangle(view, r, style, radius) {
  * strokes belong to their picture and scale with it, so they don't use this.
  */
 export function lineWidth(view, width) {
-    return width * view.lineScale;
+  return width * view.lineScale;
 }
 
 /** The 1px frame every container wears: displays, kets, output boxes, the resize tab. Its corners
  * are the tile's, like a gate's, so every box on the circuit is one shape. */
 export function frame(view, r, color = CanvasTheme.stroke.frame) {
-    return rectangle(view, r, {stroke: {color, width: lineWidth(view, Appearance.borders.width.regular)}},
-        Appearance.borders.radius.tile);
+  return rectangle(
+    view,
+    r,
+    {
+      stroke: {
+        color,
+        width: lineWidth(view, Appearance.borders.width.regular),
+      },
+    },
+    Appearance.borders.radius.tile,
+  );
 }
 
 /**
@@ -66,30 +88,65 @@ export function frame(view, r, color = CanvasTheme.stroke.frame) {
  * also lands it on whole pixels.
  */
 export function highlightRing(view, r) {
-    const {regular, strong} = Appearance.borders.width;
-    return rectangle(view, r.paddedBy(lineWidth(view, (regular + strong) / 2)),
-        {stroke: {color: CanvasTheme.interaction.outline, width: lineWidth(view, strong)}},
-        Appearance.borders.radius.tile + lineWidth(view, (regular + strong) / 2));
+  const { regular, strong } = Appearance.borders.width;
+  return rectangle(
+    view,
+    r.paddedBy(lineWidth(view, (regular + strong) / 2)),
+    {
+      stroke: {
+        color: CanvasTheme.interaction.outline,
+        width: lineWidth(view, strong),
+      },
+    },
+    Appearance.borders.radius.tile + lineWidth(view, (regular + strong) / 2),
+  );
 }
 
 export function circle(view, p, radius, style) {
-    // Preserve the existing scientific marker's diameter convention.
-    return view.add('pixiShapeView', {shape: ['circle', [p.x, p.y, Math.max(0, radius - 0.5)], style]});
+  // Preserve the existing scientific marker's diameter convention.
+  return view.add("pixiShapeView", {
+    shape: ["circle", [p.x, p.y, Math.max(0, radius - 0.5)], style],
+  });
 }
 
 export function polygon(view, points, style) {
-    if (points.length) return drawPath(view, path => path.poly(points.flatMap(p => [p.x, p.y])), [style]);
+  if (points.length)
+    return drawPath(
+      view,
+      (path) => path.poly(points.flatMap((p) => [p.x, p.y])),
+      [style],
+    );
 }
 
 /** A filled arrowhead at `tip`, pointing the way the line from `from` runs, in screen space. */
 export function arrowHead(view, from, tip, color, radius) {
-    const angle = Math.atan2(tip.y - from.y, tip.x - from.x);
-    return drawPath(view, path => PathGeometry.arrowHead(path, tip.x - Math.cos(angle) * radius * 0.5,
-        tip.y - Math.sin(angle) * radius * 0.5, radius, angle, Math.PI / 2.6), [{fill: color}]);
+  const angle = Math.atan2(tip.y - from.y, tip.x - from.x);
+  return drawPath(
+    view,
+    (path) =>
+      PathGeometry.arrowHead(
+        path,
+        tip.x - Math.cos(angle) * radius * 0.5,
+        tip.y - Math.sin(angle) * radius * 0.5,
+        radius,
+        angle,
+        Math.PI / 2.6,
+      ),
+    [{ fill: color }],
+  );
 }
 
-export function strokePath(view, points, color = CanvasTheme.text.primary, width = Appearance.borders.width.regular, dash = []) {
-    if (points.length) return drawPath(view, path => PathGeometry.polyline(path, points, dash), [{stroke: {color, width}}]);
+export function strokePath(
+  view,
+  points,
+  color = CanvasTheme.text.primary,
+  width = Appearance.borders.width.regular,
+  dash = [],
+) {
+  if (points.length)
+    return drawPath(view, (path) => PathGeometry.polyline(path, points, dash), [
+      { stroke: { color, width } },
+    ]);
 }
 
 /**
@@ -97,18 +154,19 @@ export function strokePath(view, points, color = CanvasTheme.text.primary, width
  * built into a GraphicsPath, so the drawing compares equal to the last frame's and is not rebuilt.
  */
 export function drawPath(view, draw, styles) {
-    const traced = recordGraphics(draw);
-    return drawGraphics(view, graphics => {
-        for (const {fill, stroke} of styles) {
-            // Pixi consumes a path once it is filled or stroked; trace it again for each style.
-            if (fill !== undefined) replayGraphics(graphics, traced).fill(fill);
-            if (stroke !== undefined) replayGraphics(graphics, traced).stroke(stroke);
-        }
-    });
+  const traced = recordGraphics(draw);
+  return drawGraphics(view, (graphics) => {
+    for (const { fill, stroke } of styles) {
+      // Pixi consumes a path once it is filled or stroked; trace it again for each style.
+      if (fill !== undefined) replayGraphics(graphics, traced).fill(fill);
+      if (stroke !== undefined) replayGraphics(graphics, traced).stroke(stroke);
+    }
+  });
 }
 
 /** @returns {!Object} The target, after running the recorded calls on it. */
 function replayGraphics(target, commands) {
-    for (let i = 0; i < commands.length; i += 2) target[commands[i]](...commands[i + 1]);
-    return target;
+  for (let i = 0; i < commands.length; i += 2)
+    target[commands[i]](...commands[i + 1]);
+  return target;
 }

@@ -1,0 +1,896 @@
+[
+  {
+    "slug": "action-button",
+    "title": "Action button",
+    "status": "not-applicable",
+    "reason": "No native hardware/spatial/game/motion/proximity/TV workflow. Standard keyboard/pointer/touch guidance assessed on their own pages. Implementing new hardware input has no demonstrated product need.",
+    "evidence": "package.json:4; src/app/canvas/canvasPointer.js:31",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/action-button",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "action-sheets",
+    "title": "Action sheets",
+    "status": "not-applicable",
+    "reason": "No native modal action-sheet/sheet implementation in this browser tool; scoped editing uses dock panels with Apply/Cancel. Native detents/swipe-confirmation are not missing product features.",
+    "evidence": "src/components/panels/gate-param/gate-param-panel.jsx:183; src/components/panels/forge/forge-panel-body.jsx:69",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/action-sheets",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "activity-rings",
+    "title": "Activity rings",
+    "status": "not-applicable",
+    "reason": "Corresponding feature is absent: no date/time/PIN/image/color/token/file hierarchy/rating/fitness/media/paginated-content workflow. Existing mathematical/gate choices use appropriate flat menus, native selects and lists; do not invent features.",
+    "evidence": "package.json:4; src/components/panels/panels.jsx:1; src/components/toolbox/gate-toolbox.jsx:154",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/activity-rings",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "activity-views",
+    "title": "Activity views",
+    "status": "not-applicable",
+    "reason": "Native operating-system integration or presentation is not implemented by this browser application. In-app Dockview/toasts do not equal system Dock/notifications. Host browser owns system menus/status/windows; no native feature wish list.",
+    "evidence": "package.json:4; src/components/app.jsx:1; src/components/ui/toasts.jsx:22",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/activity-views",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "alerts",
+    "title": "Alerts",
+    "status": "aligned",
+    "reason": "No unnecessary confirmation added for reversible edits: Clear all/circuit/delete commit to revision history; errors stay in context. Native alert accessories N/A.",
+    "evidence": "src/app/state/CircuitActions.js:66; src/components/math/angle-field.jsx:26",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/alerts",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "app-shortcuts",
+    "title": "App Shortcuts",
+    "status": "not-applicable",
+    "reason": "Native operating-system integration or presentation is not implemented by this browser application. In-app Dockview/toasts do not equal system Dock/notifications. Host browser owns system menus/status/windows; no native feature wish list.",
+    "evidence": "package.json:4; src/components/app.jsx:1; src/components/ui/toasts.jsx:22",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/app-shortcuts",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "apple-pencil-and-scribble",
+    "title": "Apple Pencil and Scribble",
+    "status": "unverified",
+    "reason": "Pen pointer enters the canvas standard pointer path; mathematical text entry uses MathLive and ordinary fields. Pencil hover/squeeze/barrel-roll native drawing features N/A, while actual Safari Scribble/text compatibility was not exercised.",
+    "evidence": "src/app/canvas/canvasPointer.js:260; src/components/math/math-field.jsx:1",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/apple-pencil-and-scribble",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "boxes",
+    "title": "Boxes",
+    "status": "aligned",
+    "reason": "Related panel sections are grouped with headings; advanced formula help uses native details/summary with a contextual name.",
+    "evidence": "src/components/panels/gate-param/gate-param-panel.jsx:175; src/components/panels/export/export-panel-body.jsx:90",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/boxes",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "buttons",
+    "title": "Buttons",
+    "status": "partial",
+    "reason": "Named buttons use native/Base UI semantics and coarse-pointer44px CSS; persistent Export action feedback is a gap. Native platform control styles are inapplicable.",
+    "evidence": "src/components/ui/button.jsx:15; src/styles/ui/buttons.css:117; src/components/panels/export/copy-button.jsx:19",
+    "findings": [
+      "CI-01"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/buttons",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "camera-control",
+    "title": "Camera Control",
+    "status": "not-applicable",
+    "reason": "No native hardware/spatial/game/motion/proximity/TV workflow. Standard keyboard/pointer/touch guidance assessed on their own pages. Implementing new hardware input has no demonstrated product need.",
+    "evidence": "package.json:4; src/app/canvas/canvasPointer.js:31",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/camera-control",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "charts",
+    "title": "Charts",
+    "status": "gap",
+    "reason": "Evolution chart image label omits a meaningful structural/encoding overview; existing State and small step MathML views mitigate exact values but chart equivalence needs testing.",
+    "evidence": "src/components/panels/algebra/evolution-chart.jsx:104; src/components/math/data-view.jsx:93; src/components/panels/algebra/state-factor.jsx:12",
+    "findings": [
+      "CI-04"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/charts",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "collections",
+    "title": "Collections",
+    "status": "partial",
+    "reason": "Gate palette uses rows/groups and Info details; state/probability values use semantic tables with scopes and virtual row indexes. Screen-reader traversal of virtualized rows remains unverified.",
+    "evidence": "src/components/toolbox/gate-toolbox.jsx:324; src/components/panels/probabilities/probabilities-panel.jsx:122; src/components/panels/state/state-panel.jsx:132",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/collections",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "color-wells",
+    "title": "Color wells",
+    "status": "not-applicable",
+    "reason": "Corresponding feature is absent: no date/time/PIN/image/color/token/file hierarchy/rating/fitness/media/paginated-content workflow. Existing mathematical/gate choices use appropriate flat menus, native selects and lists; do not invent features.",
+    "evidence": "package.json:4; src/components/panels/panels.jsx:1; src/components/toolbox/gate-toolbox.jsx:154",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/color-wells",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "column-views",
+    "title": "Column views",
+    "status": "not-applicable",
+    "reason": "Corresponding feature is absent: no date/time/PIN/image/color/token/file hierarchy/rating/fitness/media/paginated-content workflow. Existing mathematical/gate choices use appropriate flat menus, native selects and lists; do not invent features.",
+    "evidence": "package.json:4; src/components/panels/panels.jsx:1; src/components/toolbox/gate-toolbox.jsx:154",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/column-views",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "combo-boxes",
+    "title": "Combo boxes",
+    "status": "not-applicable",
+    "reason": "Corresponding feature is absent: no date/time/PIN/image/color/token/file hierarchy/rating/fitness/media/paginated-content workflow. Existing mathematical/gate choices use appropriate flat menus, native selects and lists; do not invent features.",
+    "evidence": "package.json:4; src/components/panels/panels.jsx:1; src/components/toolbox/gate-toolbox.jsx:154",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/combo-boxes",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "complications",
+    "title": "Complications",
+    "status": "not-applicable",
+    "reason": "Native operating-system integration or presentation is not implemented by this browser application. In-app Dockview/toasts do not equal system Dock/notifications. Host browser owns system menus/status/windows; no native feature wish list.",
+    "evidence": "package.json:4; src/components/app.jsx:1; src/components/ui/toasts.jsx:22",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/complications",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "components",
+    "title": "Components",
+    "status": "partial",
+    "reason": "Grouping/index page; descendant applicability assessed individually, with concrete gaps and native verification limits.",
+    "evidence": "components-inputs-report.md",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/components",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "content",
+    "title": "Content",
+    "status": "partial",
+    "reason": "Grouping/index page; descendant applicability assessed individually, with concrete gaps and native verification limits.",
+    "evidence": "components-inputs-report.md",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/content",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "context-menus",
+    "title": "Context menus",
+    "status": "gap",
+    "reason": "Short Base UI menus offer relevant actions with equivalent main controls, standard copy/cut/delete/undo, destructive styling and explicit keyboard focus return. Native edit/menu-bar APIs N/A; Ctrl-click and announcement need runtime verification. Live Chrome confirms macOS Ctrl-primary click fails to open app context menu while rightclick opens it.",
+    "evidence": "src/components/panels/circuit/selection-menu.jsx:36; src/components/panels/circuit/gate-menu.jsx:55; src/components/panels/circuit/useSelectionShortcuts.js:48; src/app/canvas/canvasPointer.js:429; input-evidence.json",
+    "findings": [
+      "CI-05"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/context-menus",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "controls",
+    "title": "Controls",
+    "status": "not-applicable",
+    "reason": "Native operating-system integration or presentation is not implemented by this browser application. In-app Dockview/toasts do not equal system Dock/notifications. Host browser owns system menus/status/windows; no native feature wish list.",
+    "evidence": "package.json:4; src/components/app.jsx:1; src/components/ui/toasts.jsx:22",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/controls",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "digit-entry-views",
+    "title": "Digit entry views",
+    "status": "not-applicable",
+    "reason": "Corresponding feature is absent: no date/time/PIN/image/color/token/file hierarchy/rating/fitness/media/paginated-content workflow. Existing mathematical/gate choices use appropriate flat menus, native selects and lists; do not invent features.",
+    "evidence": "package.json:4; src/components/panels/panels.jsx:1; src/components/toolbox/gate-toolbox.jsx:154",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/digit-entry-views",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "digital-crown",
+    "title": "Digital Crown",
+    "status": "not-applicable",
+    "reason": "No native hardware/spatial/game/motion/proximity/TV workflow. Standard keyboard/pointer/touch guidance assessed on their own pages. Implementing new hardware input has no demonstrated product need.",
+    "evidence": "package.json:4; src/app/canvas/canvasPointer.js:31",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/digital-crown",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "disclosure-controls",
+    "title": "Disclosure controls",
+    "status": "aligned",
+    "reason": "Related panel sections are grouped with headings; advanced formula help uses native details/summary with a contextual name.",
+    "evidence": "src/components/panels/gate-param/gate-param-panel.jsx:175; src/components/panels/export/export-panel-body.jsx:90",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/disclosure-controls",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "dock-menus",
+    "title": "Dock menus",
+    "status": "not-applicable",
+    "reason": "Native operating-system integration or presentation is not implemented by this browser application. In-app Dockview/toasts do not equal system Dock/notifications. Host browser owns system menus/status/windows; no native feature wish list.",
+    "evidence": "package.json:4; src/components/app.jsx:1; src/components/ui/toasts.jsx:22",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/dock-menus",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "edit-menus",
+    "title": "Edit menus",
+    "status": "partial",
+    "reason": "Short Base UI menus offer relevant actions with equivalent main controls, standard copy/cut/delete/undo, destructive styling and explicit keyboard focus return. Native edit/menu-bar APIs N/A; Ctrl-click and announcement need runtime verification.",
+    "evidence": "src/components/panels/circuit/selection-menu.jsx:36; src/components/panels/circuit/gate-menu.jsx:55; src/components/panels/circuit/useSelectionShortcuts.js:48",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/edit-menus",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "eyes",
+    "title": "Eyes",
+    "status": "not-applicable",
+    "reason": "No native hardware/spatial/game/motion/proximity/TV workflow. Standard keyboard/pointer/touch guidance assessed on their own pages. Implementing new hardware input has no demonstrated product need.",
+    "evidence": "package.json:4; src/app/canvas/canvasPointer.js:31",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/eyes",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "focus-and-selection",
+    "title": "Focus and selection",
+    "status": "partial",
+    "reason": "Keyboard circuit cursor, pointer selection, touch hold, cancellation and alternate controls are implemented; actual native FKA/pointer gestures and Control-click need live validation. Custom dial range is incorrect in the live accessibility tree.",
+    "evidence": "src/components/panels/circuit/useCircuitKeyboard.js:73; src/app/canvas/canvasPointer.js:240; src/editor/interaction/PixiPointerGestures.js:2",
+    "findings": [
+      "CI-02"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/focus-and-selection",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "game-controls",
+    "title": "Game controls",
+    "status": "not-applicable",
+    "reason": "No native hardware/spatial/game/motion/proximity/TV workflow. Standard keyboard/pointer/touch guidance assessed on their own pages. Implementing new hardware input has no demonstrated product need.",
+    "evidence": "package.json:4; src/app/canvas/canvasPointer.js:31",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/game-controls",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "gauges",
+    "title": "Gauges",
+    "status": "aligned",
+    "reason": "Time dial has text t value and separate native0..1 scrubber; probability bars have numeric values and explained scientific square-root scale. Native gauge rendering N/A.",
+    "evidence": "src/components/toolbar/time-lane.jsx:162; src/components/panels/probabilities/probabilities-panel.jsx:326",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/gauges",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "gestures",
+    "title": "Gestures",
+    "status": "gap",
+    "reason": "Keyboard circuit cursor, pointer selection, touch hold, cancellation and alternate controls are implemented; actual native FKA/pointer gestures and Control-click need live validation. Live Chrome confirms macOS Ctrl-primary click fails to open app context menu while rightclick opens it.",
+    "evidence": "src/components/panels/circuit/useCircuitKeyboard.js:73; src/app/canvas/canvasPointer.js:240; src/editor/interaction/PixiPointerGestures.js:2; src/app/canvas/canvasPointer.js:429; input-evidence.json",
+    "findings": [
+      "CI-05"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/gestures",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "gyro-and-accelerometer",
+    "title": "Gyroscope and accelerometer",
+    "status": "not-applicable",
+    "reason": "No native hardware/spatial/game/motion/proximity/TV workflow. Standard keyboard/pointer/touch guidance assessed on their own pages. Implementing new hardware input has no demonstrated product need.",
+    "evidence": "package.json:4; src/app/canvas/canvasPointer.js:31",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/gyro-and-accelerometer",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "home-screen-quick-actions",
+    "title": "Home Screen quick actions",
+    "status": "not-applicable",
+    "reason": "Native operating-system integration or presentation is not implemented by this browser application. In-app Dockview/toasts do not equal system Dock/notifications. Host browser owns system menus/status/windows; no native feature wish list.",
+    "evidence": "package.json:4; src/components/app.jsx:1; src/components/ui/toasts.jsx:22",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/home-screen-quick-actions",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "image-views",
+    "title": "Image views",
+    "status": "partial",
+    "reason": "Selectable preformatted export text and labeled scientific canvases/figures exist. Complex visual accessibility addressed by chart finding; native Dynamic Type/3D presentation APIs N/A.",
+    "evidence": "src/components/panels/export/export-panel-body.jsx:1; src/components/math/data-view.jsx:93",
+    "findings": [
+      "CI-04"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/image-views",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "image-wells",
+    "title": "Image wells",
+    "status": "not-applicable",
+    "reason": "Corresponding feature is absent: no date/time/PIN/image/color/token/file hierarchy/rating/fitness/media/paginated-content workflow. Existing mathematical/gate choices use appropriate flat menus, native selects and lists; do not invent features.",
+    "evidence": "package.json:4; src/components/panels/panels.jsx:1; src/components/toolbox/gate-toolbox.jsx:154",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/image-wells",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "inputs",
+    "title": "Inputs",
+    "status": "partial",
+    "reason": "Grouping/index page; descendant applicability assessed individually, with concrete gaps and native verification limits.",
+    "evidence": "components-inputs-report.md",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/inputs",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "keyboards",
+    "title": "Keyboards",
+    "status": "gap",
+    "reason": "Labeled native/math fields, standard shortcuts and circuit keyboard access exist, but register rename consumes composing Enter/Escape. Native keyboard/FKA remains untested.",
+    "evidence": "src/components/panels/circuit/rename-box.jsx:55; src/components/panels/registers/register-row.jsx:93; src/browser/typingTarget.js:17",
+    "findings": [
+      "CI-03"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/keyboards",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "labels",
+    "title": "Labels",
+    "status": "gap",
+    "reason": "Meaningful scientific labels and selectable export text exist; Export feedback is transient and unannounced.",
+    "evidence": "src/components/panels/export/copy-button.jsx:19; src/components/panels/state/state-panel.jsx:108",
+    "findings": [
+      "CI-01"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/labels",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "layout-and-organization",
+    "title": "Layout and organization",
+    "status": "partial",
+    "reason": "Grouping/index page; descendant applicability assessed individually, with concrete gaps and native verification limits.",
+    "evidence": "components-inputs-report.md",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/layout-and-organization",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "lists-and-tables",
+    "title": "Lists and tables",
+    "status": "partial",
+    "reason": "Gate palette uses rows/groups and Info details; state/probability values use semantic tables with scopes and virtual row indexes. Screen-reader traversal of virtualized rows remains unverified.",
+    "evidence": "src/components/toolbox/gate-toolbox.jsx:324; src/components/panels/probabilities/probabilities-panel.jsx:122; src/components/panels/state/state-panel.jsx:132",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/lists-and-tables",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "live-activities",
+    "title": "Live Activities",
+    "status": "not-applicable",
+    "reason": "Native operating-system integration or presentation is not implemented by this browser application. In-app Dockview/toasts do not equal system Dock/notifications. Host browser owns system menus/status/windows; no native feature wish list.",
+    "evidence": "package.json:4; src/components/app.jsx:1; src/components/ui/toasts.jsx:22",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/live-activities",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "lockups",
+    "title": "Lockups",
+    "status": "not-applicable",
+    "reason": "Corresponding feature is absent: no date/time/PIN/image/color/token/file hierarchy/rating/fitness/media/paginated-content workflow. Existing mathematical/gate choices use appropriate flat menus, native selects and lists; do not invent features.",
+    "evidence": "package.json:4; src/components/panels/panels.jsx:1; src/components/toolbox/gate-toolbox.jsx:154",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/lockups",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "menus",
+    "title": "Menus",
+    "status": "partial",
+    "reason": "Short Base UI menus offer relevant actions with equivalent main controls, standard copy/cut/delete/undo, destructive styling and explicit keyboard focus return. Native edit/menu-bar APIs N/A; Ctrl-click and announcement need runtime verification.",
+    "evidence": "src/components/panels/circuit/selection-menu.jsx:36; src/components/panels/circuit/gate-menu.jsx:55; src/components/panels/circuit/useSelectionShortcuts.js:48",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/menus",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "menus-and-actions",
+    "title": "Menus and actions",
+    "status": "partial",
+    "reason": "Grouping/index page; descendant applicability assessed individually, with concrete gaps and native verification limits.",
+    "evidence": "components-inputs-report.md",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/menus-and-actions",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "navigation-and-search",
+    "title": "Navigation and search",
+    "status": "partial",
+    "reason": "Grouping/index page; descendant applicability assessed individually, with concrete gaps and native verification limits.",
+    "evidence": "components-inputs-report.md",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/navigation-and-search",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "nearby-interactions",
+    "title": "Nearby interactions",
+    "status": "not-applicable",
+    "reason": "No native hardware/spatial/game/motion/proximity/TV workflow. Standard keyboard/pointer/touch guidance assessed on their own pages. Implementing new hardware input has no demonstrated product need.",
+    "evidence": "package.json:4; src/app/canvas/canvasPointer.js:31",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/nearby-interactions",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "notifications",
+    "title": "Notifications",
+    "status": "not-applicable",
+    "reason": "Native operating-system integration or presentation is not implemented by this browser application. In-app Dockview/toasts do not equal system Dock/notifications. Host browser owns system menus/status/windows; no native feature wish list.",
+    "evidence": "package.json:4; src/components/app.jsx:1; src/components/ui/toasts.jsx:22",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/notifications",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "ornaments",
+    "title": "Ornaments",
+    "status": "not-applicable",
+    "reason": "Native operating-system integration or presentation is not implemented by this browser application. In-app Dockview/toasts do not equal system Dock/notifications. Host browser owns system menus/status/windows; no native feature wish list.",
+    "evidence": "package.json:4; src/components/app.jsx:1; src/components/ui/toasts.jsx:22",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/ornaments",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "outline-views",
+    "title": "Outline views",
+    "status": "not-applicable",
+    "reason": "Corresponding feature is absent: no date/time/PIN/image/color/token/file hierarchy/rating/fitness/media/paginated-content workflow. Existing mathematical/gate choices use appropriate flat menus, native selects and lists; do not invent features.",
+    "evidence": "package.json:4; src/components/panels/panels.jsx:1; src/components/toolbox/gate-toolbox.jsx:154",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/outline-views",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "page-controls",
+    "title": "Page controls",
+    "status": "not-applicable",
+    "reason": "Corresponding feature is absent: no date/time/PIN/image/color/token/file hierarchy/rating/fitness/media/paginated-content workflow. Existing mathematical/gate choices use appropriate flat menus, native selects and lists; do not invent features.",
+    "evidence": "package.json:4; src/components/panels/panels.jsx:1; src/components/toolbox/gate-toolbox.jsx:154",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/page-controls",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "panels",
+    "title": "Panels",
+    "status": "partial",
+    "reason": "Browser owns native windows; in-page Dockview analogues have titles, restoration and bounded floating sizes. Native NSWindow key/main/inactive/Window-menu rules N/A.",
+    "evidence": "src/components/dock.jsx:196; src/components/panels/panels.jsx:1",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/panels",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "path-controls",
+    "title": "Path controls",
+    "status": "not-applicable",
+    "reason": "Corresponding feature is absent: no date/time/PIN/image/color/token/file hierarchy/rating/fitness/media/paginated-content workflow. Existing mathematical/gate choices use appropriate flat menus, native selects and lists; do not invent features.",
+    "evidence": "package.json:4; src/components/panels/panels.jsx:1; src/components/toolbox/gate-toolbox.jsx:154",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/path-controls",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "pickers",
+    "title": "Pickers",
+    "status": "not-applicable",
+    "reason": "Corresponding feature is absent: no date/time/PIN/image/color/token/file hierarchy/rating/fitness/media/paginated-content workflow. Existing mathematical/gate choices use appropriate flat menus, native selects and lists; do not invent features.",
+    "evidence": "package.json:4; src/components/panels/panels.jsx:1; src/components/toolbox/gate-toolbox.jsx:154",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/pickers",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "pointing-devices",
+    "title": "Pointing devices",
+    "status": "gap",
+    "reason": "Keyboard circuit cursor, pointer selection, touch hold, cancellation and alternate controls are implemented; actual native FKA/pointer gestures and Control-click need live validation. Live Chrome confirms macOS Ctrl-primary click fails to open app context menu while rightclick opens it.",
+    "evidence": "src/components/panels/circuit/useCircuitKeyboard.js:73; src/app/canvas/canvasPointer.js:240; src/editor/interaction/PixiPointerGestures.js:2; src/app/canvas/canvasPointer.js:429; input-evidence.json",
+    "findings": [
+      "CI-05"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/pointing-devices",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "pop-up-buttons",
+    "title": "Pop-up buttons",
+    "status": "aligned",
+    "reason": "Scoped source alignment: important controls remain visible, narrow overflow moves secondary actions to More; speed selections show current values and flat radio choices. This is not native-toolbar conformance.",
+    "evidence": "src/components/toolbar/app-toolbar.jsx:17; src/components/toolbar/speed-menu.jsx:42; src/styles/ui/menu.css:1",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/pop-up-buttons",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "popovers",
+    "title": "Popovers",
+    "status": "partial",
+    "reason": "Gate details uses one shared Base UI popover and suppresses hover preview; standard dismiss control and collision handling exist. Actual narrow touch layout and focus return unverified.",
+    "evidence": "src/components/gate/gate-hover.jsx:38; src/components/toolbox/gate-toolbox.jsx:133",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/popovers",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "presentation",
+    "title": "Presentation",
+    "status": "partial",
+    "reason": "Grouping/index page; descendant applicability assessed individually, with concrete gaps and native verification limits.",
+    "evidence": "components-inputs-report.md",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/presentation",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "progress-indicators",
+    "title": "Progress indicators",
+    "status": "unverified",
+    "reason": "Simulation placeholders and copy pending state exist, but long-operation thresholds/runtime responsiveness were not measured. Cyclic t and operation playhead are not task-completion progress.",
+    "evidence": "src/components/panels/probabilities/probabilities-panel.jsx:258; src/components/panels/export/copy-button.jsx:16",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/progress-indicators",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "pull-down-buttons",
+    "title": "Pull-down buttons",
+    "status": "aligned",
+    "reason": "Scoped source alignment: important controls remain visible, narrow overflow moves secondary actions to More; speed selections show current values and flat radio choices. This is not native-toolbar conformance.",
+    "evidence": "src/components/toolbar/app-toolbar.jsx:17; src/components/toolbar/speed-menu.jsx:42; src/styles/ui/menu.css:1",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/pull-down-buttons",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "rating-indicators",
+    "title": "Rating indicators",
+    "status": "not-applicable",
+    "reason": "Corresponding feature is absent: no date/time/PIN/image/color/token/file hierarchy/rating/fitness/media/paginated-content workflow. Existing mathematical/gate choices use appropriate flat menus, native selects and lists; do not invent features.",
+    "evidence": "package.json:4; src/components/panels/panels.jsx:1; src/components/toolbox/gate-toolbox.jsx:154",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/rating-indicators",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "remotes",
+    "title": "Remotes",
+    "status": "not-applicable",
+    "reason": "No native hardware/spatial/game/motion/proximity/TV workflow. Standard keyboard/pointer/touch guidance assessed on their own pages. Implementing new hardware input has no demonstrated product need.",
+    "evidence": "package.json:4; src/app/canvas/canvasPointer.js:31",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/remotes",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "scroll-views",
+    "title": "Scroll views",
+    "status": "partial",
+    "reason": "Native overflow, visible scrollbars, native horizontal wheel gestures, bounded zoom and selected-step auto-scroll exist; keyboard/VoiceOver virtualized scrolling unverified. Native Look to Scroll unsupported in web source.",
+    "evidence": "src/components/panels/algebra/useWheelScrollsSideways.js:25; src/components/panels/probabilities/probabilities-panel.jsx:93; src/styles/circuit/viewport.css:1",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/scroll-views",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "search-fields",
+    "title": "Search fields",
+    "status": "aligned",
+    "reason": "Scoped source alignment: inline native search adjacent to its gate list, immediate filtering, grouping, named field and explicit empty message; no global-search area needed. June2026 platform changes do not alter this local scope.",
+    "evidence": "src/components/toolbox/gate-toolbox.jsx:285",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/search-fields",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "segmented-controls",
+    "title": "Segmented controls",
+    "status": "aligned",
+    "reason": "Scoped source alignment: mutually exclusive view choices use tabs; toggle state exposes aria-pressed or checkbox; time nudges/step controls explicitly name affected lane/value. Native segmented appearance prescriptions N/A.",
+    "evidence": "src/components/toolbar/transport-bar.jsx:181; src/components/toolbar/time-lane.jsx:113; src/components/panels/export/export-panel-body.jsx:1",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/segmented-controls",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "selection-and-input",
+    "title": "Selection and input",
+    "status": "partial",
+    "reason": "Grouping/index page; descendant applicability assessed individually, with concrete gaps and native verification limits.",
+    "evidence": "components-inputs-report.md",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/selection-and-input",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "sheets",
+    "title": "Sheets",
+    "status": "not-applicable",
+    "reason": "No native modal action-sheet/sheet implementation in this browser tool; scoped editing uses dock panels with Apply/Cancel. Native detents/swipe-confirmation are not missing product features.",
+    "evidence": "src/components/panels/gate-param/gate-param-panel.jsx:183; src/components/panels/forge/forge-panel-body.jsx:69",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/sheets",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "sidebars",
+    "title": "Sidebars",
+    "status": "not-applicable",
+    "reason": "Gate toolbox is a tool palette, not hierarchy navigation; dock tabs are workspace views rather than a top-level native app tab bar. Apply list/search/dock guidance instead.",
+    "evidence": "src/components/toolbox/gate-toolbox.jsx:154; src/components/dock.jsx:110",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/sidebars",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "sliders",
+    "title": "Sliders",
+    "status": "gap",
+    "reason": "Native Steps/Time and Base UI Bloch controls have ranges and live feedback; custom unbounded rotation dial falsely implies ARIA 0..100.",
+    "evidence": "src/components/panels/circuit/wire-dial.jsx:157; src/components/panels/bloch/angle-control.jsx:30; src/components/toolbar/time-lane.jsx:162",
+    "findings": [
+      "CI-02"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/sliders",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "snippets",
+    "title": "Snippets",
+    "status": "not-applicable",
+    "reason": "Native operating-system integration or presentation is not implemented by this browser application. In-app Dockview/toasts do not equal system Dock/notifications. Host browser owns system menus/status/windows; no native feature wish list.",
+    "evidence": "package.json:4; src/components/app.jsx:1; src/components/ui/toasts.jsx:22",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/snippets",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "split-views",
+    "title": "Split views",
+    "status": "partial",
+    "reason": "Dockview/adaptive layout provides supplementary resizable/hideable views; Forge and Probabilities Base UI tabs expose closely related alternatives. Native splitter keyboard/compact behavior needs runtime validation.",
+    "evidence": "src/components/adaptive-dock.js:1; src/components/dock.jsx:133; src/components/panels/forge/forge-panel-body.jsx:69",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/split-views",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "status",
+    "title": "Status",
+    "status": "partial",
+    "reason": "Grouping/index page; descendant applicability assessed individually, with concrete gaps and native verification limits.",
+    "evidence": "components-inputs-report.md",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/status",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "status-bars",
+    "title": "Status bars",
+    "status": "not-applicable",
+    "reason": "Native operating-system integration or presentation is not implemented by this browser application. In-app Dockview/toasts do not equal system Dock/notifications. Host browser owns system menus/status/windows; no native feature wish list.",
+    "evidence": "package.json:4; src/components/app.jsx:1; src/components/ui/toasts.jsx:22",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/status-bars",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "steppers",
+    "title": "Steppers",
+    "status": "aligned",
+    "reason": "Scoped source alignment: mutually exclusive view choices use tabs; toggle state exposes aria-pressed or checkbox; time nudges/step controls explicitly name affected lane/value. Native segmented appearance prescriptions N/A.",
+    "evidence": "src/components/toolbar/transport-bar.jsx:181; src/components/toolbar/time-lane.jsx:113; src/components/panels/export/export-panel-body.jsx:1",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/steppers",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "system-experiences",
+    "title": "System experiences",
+    "status": "partial",
+    "reason": "Grouping/index page; descendant applicability assessed individually, with concrete gaps and native verification limits.",
+    "evidence": "components-inputs-report.md",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/system-experiences",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "tab-bars",
+    "title": "Tab bars",
+    "status": "not-applicable",
+    "reason": "Gate toolbox is a tool palette, not hierarchy navigation; dock tabs are workspace views rather than a top-level native app tab bar. Apply list/search/dock guidance instead.",
+    "evidence": "src/components/toolbox/gate-toolbox.jsx:154; src/components/dock.jsx:110",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/tab-bars",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "tab-views",
+    "title": "Tab views",
+    "status": "partial",
+    "reason": "Dockview/adaptive layout provides supplementary resizable/hideable views; Forge and Probabilities Base UI tabs expose closely related alternatives. Native splitter keyboard/compact behavior needs runtime validation.",
+    "evidence": "src/components/adaptive-dock.js:1; src/components/dock.jsx:133; src/components/panels/forge/forge-panel-body.jsx:69",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/tab-views",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "text-fields",
+    "title": "Text fields",
+    "status": "gap",
+    "reason": "Labeled native/math fields, standard shortcuts and circuit keyboard access exist, but register rename consumes composing Enter/Escape. Native keyboard/FKA remains untested.",
+    "evidence": "src/components/panels/circuit/rename-box.jsx:55; src/components/panels/registers/register-row.jsx:93; src/browser/typingTarget.js:17",
+    "findings": [
+      "CI-03"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/text-fields",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "text-views",
+    "title": "Text views",
+    "status": "partial",
+    "reason": "Selectable preformatted export text and labeled scientific canvases/figures exist. Complex visual accessibility addressed by chart finding; native Dynamic Type/3D presentation APIs N/A.",
+    "evidence": "src/components/panels/export/export-panel-body.jsx:1; src/components/math/data-view.jsx:93",
+    "findings": [
+      "CI-04"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/text-views",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "the-menu-bar",
+    "title": "The menu bar",
+    "status": "not-applicable",
+    "reason": "Native operating-system integration or presentation is not implemented by this browser application. In-app Dockview/toasts do not equal system Dock/notifications. Host browser owns system menus/status/windows; no native feature wish list.",
+    "evidence": "package.json:4; src/components/app.jsx:1; src/components/ui/toasts.jsx:22",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/the-menu-bar",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "toggles",
+    "title": "Toggles",
+    "status": "aligned",
+    "reason": "Scoped source alignment: mutually exclusive view choices use tabs; toggle state exposes aria-pressed or checkbox; time nudges/step controls explicitly name affected lane/value. Native segmented appearance prescriptions N/A.",
+    "evidence": "src/components/toolbar/transport-bar.jsx:181; src/components/toolbar/time-lane.jsx:113; src/components/panels/export/export-panel-body.jsx:1",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/toggles",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "token-fields",
+    "title": "Token fields",
+    "status": "not-applicable",
+    "reason": "Corresponding feature is absent: no date/time/PIN/image/color/token/file hierarchy/rating/fitness/media/paginated-content workflow. Existing mathematical/gate choices use appropriate flat menus, native selects and lists; do not invent features.",
+    "evidence": "package.json:4; src/components/panels/panels.jsx:1; src/components/toolbox/gate-toolbox.jsx:154",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/token-fields",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "toolbars",
+    "title": "Toolbars",
+    "status": "aligned",
+    "reason": "Scoped source alignment: important controls remain visible, narrow overflow moves secondary actions to More; speed selections show current values and flat radio choices. This is not native-toolbar conformance.",
+    "evidence": "src/components/toolbar/app-toolbar.jsx:17; src/components/toolbar/speed-menu.jsx:42; src/styles/ui/menu.css:1",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/toolbars",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "top-shelf",
+    "title": "Top Shelf",
+    "status": "not-applicable",
+    "reason": "Native operating-system integration or presentation is not implemented by this browser application. In-app Dockview/toasts do not equal system Dock/notifications. Host browser owns system menus/status/windows; no native feature wish list.",
+    "evidence": "package.json:4; src/components/app.jsx:1; src/components/ui/toasts.jsx:22",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/top-shelf",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "virtual-keyboards",
+    "title": "Virtual keyboards",
+    "status": "partial",
+    "reason": "MathLive supplies task-relevant mathematical input with labels, unit selection and keyboard-show handling. Native/iPad real keyboard occlusion and Scribble interoperability unverified.",
+    "evidence": "src/components/math/math-field.jsx:1; src/components/math/angle-field.jsx:22; src/components/panels/gate-param/gate-param-panel.jsx:162",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/virtual-keyboards",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "watch-faces",
+    "title": "Watch faces",
+    "status": "not-applicable",
+    "reason": "Native operating-system integration or presentation is not implemented by this browser application. In-app Dockview/toasts do not equal system Dock/notifications. Host browser owns system menus/status/windows; no native feature wish list.",
+    "evidence": "package.json:4; src/components/app.jsx:1; src/components/ui/toasts.jsx:22",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/watch-faces",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "web-views",
+    "title": "Web views",
+    "status": "not-applicable",
+    "reason": "This is the web app itself, not an embedded WKWebView/browser shell. Browser navigation is supplied by the host.",
+    "evidence": "src/components/app.jsx:1; package.json:4",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/web-views",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "widgets",
+    "title": "Widgets",
+    "status": "not-applicable",
+    "reason": "Native operating-system integration or presentation is not implemented by this browser application. In-app Dockview/toasts do not equal system Dock/notifications. Host browser owns system menus/status/windows; no native feature wish list.",
+    "evidence": "package.json:4; src/components/app.jsx:1; src/components/ui/toasts.jsx:22",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/widgets",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  },
+  {
+    "slug": "windows",
+    "title": "Windows",
+    "status": "partial",
+    "reason": "Browser owns native windows; in-page Dockview analogues have titles, restoration and bounded floating sizes. Native NSWindow key/main/inactive/Window-menu rules N/A.",
+    "evidence": "src/components/dock.jsx:196; src/components/panels/panels.jsx:1",
+    "findings": [],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/windows",
+    "platform_review": "All platform headings inventoried. Native/API-only prescriptions marked inapplicable; applicable browser analogue assessed in reason. No hardware or native conformance claim."
+  }
+]

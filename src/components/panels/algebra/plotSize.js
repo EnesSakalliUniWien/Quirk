@@ -1,5 +1,3 @@
-
-
 /** The longest side of a drawn matrix or state in a step card, in pixels. */
 const PLOT_SIZE = 180;
 

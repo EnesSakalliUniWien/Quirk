@@ -77,11 +77,7 @@ class FormulaParser {
     };
 
     const burnOps = (w) => {
-      while (
-        ops.length > 0 &&
-        vals.length >= 2 &&
-        vals.at(-1) !== undefined
-      ) {
+      while (ops.length > 0 && vals.length >= 2 && vals.at(-1) !== undefined) {
         const top = ops.at(-1);
         if (top.w === undefined || top.w < w) {
           break;

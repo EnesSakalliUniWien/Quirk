@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import {clock} from '../../base/Clock.js';
-import {createValueStore, observeStore} from '../../base/valueStore.js';
-import {alignColumns} from '../../circuit/columnAlignment.js';
-import {Animation} from "../../config/Animation.js"
+import { clock } from "../../base/Clock.js";
+import { createValueStore, observeStore } from "../../base/valueStore.js";
+import { alignColumns } from "../../circuit/columnAlignment.js";
+import { Animation } from "../../config/Animation.js";
 
 /**
  * Which point in the circuit the transport controls are parked at, independent of DOM elements.
@@ -31,361 +31,384 @@ import {Animation} from "../../config/Animation.js"
  * operation, and shows the state the circuit starts in.
  */
 class Playhead {
+  /**
+   * @param {!Observable.<!{columnCount: number, operationColumns: number[], columns: (undefined|!Array.<!GateColumn>)}>}
+   *     obsSchedule The columns are optional; without them breakpoints stay where they were.
+   * @param {!function(!function(): void, !number): *} setIntervalFunc
+   * @param {!function(*): void} clearIntervalFunc
+   */
+  constructor(
+    obsSchedule,
+    setIntervalFunc = (callback, delay) => clock.every(delay, callback),
+    clearIntervalFunc = (stop) => stop(),
+  ) {
+    this._setInterval = setIntervalFunc;
+    this._clearInterval = clearIntervalFunc;
     /**
-     * @param {!Observable.<!{columnCount: number, operationColumns: number[], columns: (undefined|!Array.<!GateColumn>)}>}
-     *     obsSchedule The columns are optional; without them breakpoints stay where they were.
-     * @param {!function(!function(): void, !number): *} setIntervalFunc
-     * @param {!function(*): void} clearIntervalFunc
-     */
-    constructor(obsSchedule,
-                setIntervalFunc = (callback, delay) => clock.every(delay, callback),
-                clearIntervalFunc = stop => stop()) {
-        this._setInterval = setIntervalFunc;
-        this._clearInterval = clearIntervalFunc;
-        /**
-         * How long Play rests on each operation, in milliseconds.
-         * @type {!number}
-         * @private
-         */
-        this._stepMillis = Animation.PLAYHEAD_STEP_DURATION_MS;
-        this._columnCount = 0;
-        this._operationColumns = [];
-        this._step = 0;
-        /**
-         * Whether the playhead stands at the circuit's end, and so moves with it through an edit.
-         * @type {!boolean}
-         * @private
-         */
-        this._atEnd = true;
-        /**
-         * The columns a run halts before: the user's breakpoints, and whatever else halts a run - the
-         * assertions that fail, which whoever evaluates them reports through setHaltColumns.
-         * @type {!Array.<!int>}
-         * @private
-         */
-        this._breakpoints = [];
-        /** @type {!Array.<!int>} @private */
-        this._haltColumns = [];
-        /** @type {undefined|!Array.<!GateColumn>} @private */
-        this._columns = undefined;
-        this._playing = false;
-        this.generation = 0;
-        this._restartOnPlay = true;
-        /** @type {undefined|*} */
-        this._timer = undefined;
-        this._state = createValueStore(this._snapshot());
-
-        obsSchedule.subscribe(({columnCount, operationColumns, columns}) => {
-            // Breakpoints follow their columns through an edit, the way a debugger's follow the
-            // lines of an edited file; one whose column went goes with it.
-            if (this._columns !== undefined && columns !== undefined) {
-                const moved = alignColumns(this._columns, columns);
-                this._breakpoints = this._breakpoints.flatMap(col => moved.has(col) ? [moved.get(col)] : []);
-            }
-            this._columns = columns;
-            this._columnCount = Math.max(0, columnCount);
-            this._operationColumns = operationColumns;
-            // At the end, the playhead stays at the end of the edited circuit. Inside it, it keeps
-            // the user's place; editing the circuit shorter than that pulls it back to the new end.
-            this._step = this._atEnd ? this._columnCount : Math.min(this._step, this._columnCount);
-            this._atEnd = this._step >= this._columnCount;
-            this._breakpoints = this._breakpoints.filter(col => operationColumns.includes(col));
-            if (!this._operationColumns.some(col => col >= this._step)) {
-                this._pause();
-            }
-            this._publish();
-        });
-
-    }
-
-    /**
-     * @returns {!{
-     *     step: !int,
-     *     columnCount: !int,
-     *     playing: !boolean,
-     *     canPlay: !boolean,
-     *     canStepBack: !boolean,
-     *     canStepForward: !boolean
-     * }}
+     * How long Play rests on each operation, in milliseconds.
+     * @type {!number}
      * @private
      */
-    _snapshot() {
-        return {
-            step: this._step,
-            columnCount: this._columnCount,
-            operationIndex: this._operationColumns.filter(col => col < this._step).length,
-            operationCount: this._operationColumns.length,
-            breakpoints: this._breakpoints,
-            nextColumn: this._operationColumns.find(col => col >= this._step),
-            playing: this._playing,
-            canPlay: this._operationColumns.length > 0,
-            canStepBack: this._step > 0,
-            canStepForward: this._operationColumns.some(col => col >= this._step)
-        };
-    }
-
+    this._stepMillis = Animation.PLAYHEAD_STEP_DURATION_MS;
+    this._columnCount = 0;
+    this._operationColumns = [];
+    this._step = 0;
     /**
+     * Whether the playhead stands at the circuit's end, and so moves with it through an edit.
+     * @type {!boolean}
      * @private
      */
-    _publish() {
-        this._state.setState({value: this._snapshot()});
-    }
-
+    this._atEnd = true;
     /**
-     * @returns {!Observable.<!{
-     *     step: !int,
-     *     columnCount: !int,
-     *     playing: !boolean,
-     *     canPlay: !boolean,
-     *     canStepBack: !boolean,
-     *     canStepForward: !boolean
-     * }>}
-     */
-    state() {
-        return observeStore(this._state);
-    }
-
-    /**
-     * @returns {!int} The number of columns that have executed at the playhead.
-     */
-    step() {
-        return this._step;
-    }
-
-    /**
-     * @param {!int} step
-     * @returns {void}
+     * The columns a run halts before: the user's breakpoints, and whatever else halts a run - the
+     * assertions that fail, which whoever evaluates them reports through setHaltColumns.
+     * @type {!Array.<!int>}
      * @private
      */
-    _stepTo(step) {
-        this._step = step;
-        this._atEnd = step >= this._columnCount;
-    }
+    this._breakpoints = [];
+    /** @type {!Array.<!int>} @private */
+    this._haltColumns = [];
+    /** @type {undefined|!Array.<!GateColumn>} @private */
+    this._columns = undefined;
+    this._playing = false;
+    this.generation = 0;
+    this._restartOnPlay = true;
+    /** @type {undefined|*} */
+    this._timer = undefined;
+    this._state = createValueStore(this._snapshot());
 
-    /**
-     * Moves the playhead without touching playback, which is what the play timer wants.
-     * @param {!int} step
-     * @returns {void}
-     * @private
-     */
-    _seek(step) {
-        if (!Number.isFinite(step)) {
-            return;
-        }
-        const clamped = Math.min(Math.max(0, Math.round(step)), this._columnCount);
-        if (clamped === this._step) {
-            return;
-        }
-        this._stepTo(clamped);
-        if (!this._operationColumns.some(col => col >= this._step)) {
-            this._pause();
-        }
-        this._publish();
-    }
-
-    /**
-     * Stops playing, if it was.
-     * @returns {void}
-     */
-    pause() {
-        if (!this._playing) {
-            return;
-        }
+    obsSchedule.subscribe(({ columnCount, operationColumns, columns }) => {
+      // Breakpoints follow their columns through an edit, the way a debugger's follow the
+      // lines of an edited file; one whose column went goes with it.
+      if (this._columns !== undefined && columns !== undefined) {
+        const moved = alignColumns(this._columns, columns);
+        this._breakpoints = this._breakpoints.flatMap((col) =>
+          moved.has(col) ? [moved.get(col)] : [],
+        );
+      }
+      this._columns = columns;
+      this._columnCount = Math.max(0, columnCount);
+      this._operationColumns = operationColumns;
+      // At the end, the playhead stays at the end of the edited circuit. Inside it, it keeps
+      // the user's place; editing the circuit shorter than that pulls it back to the new end.
+      this._step = this._atEnd
+        ? this._columnCount
+        : Math.min(this._step, this._columnCount);
+      this._atEnd = this._step >= this._columnCount;
+      this._breakpoints = this._breakpoints.filter((col) =>
+        operationColumns.includes(col),
+      );
+      if (!this._operationColumns.some((col) => col >= this._step)) {
         this._pause();
-        this._publish();
-    }
+      }
+      this._publish();
+    });
+  }
 
-    /**
-     * Moving the playhead by hand stops playback, so the two never fight over where it sits.
-     * @param {!int} step
-     * @returns {void}
-     */
-    seek(step) {
-        if (step <= 0) this._restartOnPlay = true;
-        this.pause();
-        this._seek(step);
-    }
+  /**
+   * @returns {!{
+   *     step: !int,
+   *     columnCount: !int,
+   *     playing: !boolean,
+   *     canPlay: !boolean,
+   *     canStepBack: !boolean,
+   *     canStepForward: !boolean
+   * }}
+   * @private
+   */
+  _snapshot() {
+    return {
+      step: this._step,
+      columnCount: this._columnCount,
+      operationIndex: this._operationColumns.filter((col) => col < this._step)
+        .length,
+      operationCount: this._operationColumns.length,
+      breakpoints: this._breakpoints,
+      nextColumn: this._operationColumns.find((col) => col >= this._step),
+      playing: this._playing,
+      canPlay: this._operationColumns.length > 0,
+      canStepBack: this._step > 0,
+      canStepForward: this._operationColumns.some((col) => col >= this._step),
+    };
+  }
 
-    /**
-     * Back to the start, before any operation has run.
-     * @returns {void}
-     */
-    reset() {
-        this.seek(0);
-    }
+  /**
+   * @private
+   */
+  _publish() {
+    this._state.setState({ value: this._snapshot() });
+  }
 
-    /**
-     * Puts the playhead at its rest, the end of the circuit, where the whole circuit has run: a
-     * circuit just opened shows its answer, and Play starts it from the top.
-     * @returns {void}
-     */
-    rest() {
-        this.pause();
-        this._stepTo(this._columnCount);
-        this._publish();
-    }
+  /**
+   * @returns {!Observable.<!{
+   *     step: !int,
+   *     columnCount: !int,
+   *     playing: !boolean,
+   *     canPlay: !boolean,
+   *     canStepBack: !boolean,
+   *     canStepForward: !boolean
+   * }>}
+   */
+  state() {
+    return observeStore(this._state);
+  }
 
-    /**
-     * @returns {void}
-     */
-    previous() {
-        this.seek(this._stops().findLast(step => step < this._step) ?? 0);
-    }
+  /**
+   * @returns {!int} The number of columns that have executed at the playhead.
+   */
+  step() {
+    return this._step;
+  }
 
-    /**
-     * @returns {void}
-     */
-    next() {
-        this.seek(this._nextStep());
-    }
+  /**
+   * @param {!int} step
+   * @returns {void}
+   * @private
+   */
+  _stepTo(step) {
+    this._step = step;
+    this._atEnd = step >= this._columnCount;
+  }
 
-    /** Simulation column boundaries after each operation; the final stop includes trailing displays. */
-    _stops() {
-        return [0, ...this._operationColumns.map((col, index) =>
-            index === this._operationColumns.length - 1 ? this._columnCount : col + 1)];
+  /**
+   * Moves the playhead without touching playback, which is what the play timer wants.
+   * @param {!int} step
+   * @returns {void}
+   * @private
+   */
+  _seek(step) {
+    if (!Number.isFinite(step)) {
+      return;
     }
+    const clamped = Math.min(Math.max(0, Math.round(step)), this._columnCount);
+    if (clamped === this._step) {
+      return;
+    }
+    this._stepTo(clamped);
+    if (!this._operationColumns.some((col) => col >= this._step)) {
+      this._pause();
+    }
+    this._publish();
+  }
 
-    _nextStep() {
-        return this._stops().find(step => step > this._step) ?? this._columnCount;
+  /**
+   * Stops playing, if it was.
+   * @returns {void}
+   */
+  pause() {
+    if (!this._playing) {
+      return;
     }
+    this._pause();
+    this._publish();
+  }
 
-    /** Scrub by operation number without changing the raw-column seek API used by Tape and panels. */
-    seekOperation(index) {
-        if (!Number.isFinite(index)) return;
-        this.seek(this._stops()[Math.min(this._operationColumns.length, Math.max(0, Math.round(index)))]);
-    }
+  /**
+   * Moving the playhead by hand stops playback, so the two never fight over where it sits.
+   * @param {!int} step
+   * @returns {void}
+   */
+  seek(step) {
+    if (step <= 0) this._restartOnPlay = true;
+    this.pause();
+    this._seek(step);
+  }
 
-    /**
-     * Runs to the end, or to the first breakpoint or halt column on the way: a debugger's continue.
-     * @returns {void}
-     */
-    end() {
-        this.seek(this._runTarget(this._columnCount));
-    }
+  /**
+   * Back to the start, before any operation has run.
+   * @returns {void}
+   */
+  reset() {
+    this.seek(0);
+  }
 
-    /**
-     * Sets or clears the breakpoint on an operation column. A run - Play, or End - halts before a
-     * column with a breakpoint; a single step does not care.
-     * @param {!int} column
-     * @returns {void}
-     */
-    toggleBreakpoint(column) {
-        if (!this._operationColumns.includes(column)) return;
-        this._breakpoints = this._breakpoints.includes(column) ?
-            this._breakpoints.filter(col => col !== column) :
-            [...this._breakpoints, column].sort((a, b) => a - b);
-        this._publish();
-    }
+  /**
+   * Puts the playhead at its rest, the end of the circuit, where the whole circuit has run: a
+   * circuit just opened shows its answer, and Play starts it from the top.
+   * @returns {void}
+   */
+  rest() {
+    this.pause();
+    this._stepTo(this._columnCount);
+    this._publish();
+  }
 
-    /**
-     * Replaces the breakpoints, keeping the columns that hold an operation: a link brings its own.
-     * @param {!Array.<!int>} columns
-     * @returns {void}
-     */
-    setBreakpoints(columns) {
-        this._breakpoints = [...new Set(columns)].
-            filter(col => this._operationColumns.includes(col)).
-            sort((a, b) => a - b);
-        this._publish();
-    }
+  /**
+   * @returns {void}
+   */
+  previous() {
+    this.seek(this._stops().findLast((step) => step < this._step) ?? 0);
+  }
 
-    /**
-     * @returns {!Array.<!int>} The columns with a breakpoint, in order.
-     */
-    breakpoints() {
-        return this._breakpoints;
-    }
+  /**
+   * @returns {void}
+   */
+  next() {
+    this.seek(this._nextStep());
+  }
 
-    /**
-     * The other columns a run halts before, of any kind: a failing assertion's, for one.
-     * @param {!Array.<!int>} columns
-     * @returns {void}
-     */
-    setHaltColumns(columns) {
-        this._haltColumns = columns;
-    }
+  /** Simulation column boundaries after each operation; the final stop includes trailing displays. */
+  _stops() {
+    return [
+      0,
+      ...this._operationColumns.map((col, index) =>
+        index === this._operationColumns.length - 1
+          ? this._columnCount
+          : col + 1,
+      ),
+    ];
+  }
 
-    /**
-     * @returns {!Array.<!int>} The steps that stand before a breakpoint or a halt column: every
-     *     operation left of the column has run, and none from it on.
-     * @private
-     */
-    _haltSteps() {
-        const stops = this._stops();
-        return [...this._breakpoints, ...this._haltColumns].
-            map(column => stops[this._operationColumns.filter(col => col < column).length]);
-    }
+  _nextStep() {
+    return this._stops().find((step) => step > this._step) ?? this._columnCount;
+  }
 
-    /**
-     * @param {!int} target The step a run is heading for.
-     * @returns {!int} Where it gets to: the first halt step on the way, or the target. The step the
-     *     run starts from never holds it back.
-     * @private
-     */
-    _runTarget(target) {
-        return Math.min(target, ...this._haltSteps().filter(step => step > this._step));
-    }
+  /** Scrub by operation number without changing the raw-column seek API used by Tape and panels. */
+  seekOperation(index) {
+    if (!Number.isFinite(index)) return;
+    this.seek(
+      this._stops()[
+        Math.min(this._operationColumns.length, Math.max(0, Math.round(index)))
+      ],
+    );
+  }
 
-    /**
-     * Starts or stops advancing an operation column at a time. Playing from the end starts over, so the
-     * button never sits enabled with nothing left to do.
-     * @returns {void}
-     */
-    togglePlay() {
-        if (this._playing) {
-            this._pause();
-            this._publish();
-            return;
-        }
-        if (this._operationColumns.length === 0) {
-            return;
-        }
-        if (!this._operationColumns.some(col => col >= this._step)) {
-            this._stepTo(0);
-            this._restartOnPlay = true;
-        }
-        if (this._step === 0 && this._restartOnPlay) this.generation++;
-        this._restartOnPlay = false;
-        this._playing = true;
-        this._startTimer();
-        this._publish();
-    }
+  /**
+   * Runs to the end, or to the first breakpoint or halt column on the way: a debugger's continue.
+   * @returns {void}
+   */
+  end() {
+    this.seek(this._runTarget(this._columnCount));
+  }
 
-    /**
-     * Changes how fast Play steps. A run under way carries on at the new pace from its next step.
-     *
-     * @param {!number} speed A multiple of the pace Animation.PLAYHEAD_STEP_DURATION_MS sets.
-     * @returns {void}
-     */
-    setSpeed(speed) {
-        this._stepMillis = Animation.PLAYHEAD_STEP_DURATION_MS / speed;
-        if (this._timer !== undefined) {
-            this._clearInterval(this._timer);
-            this._startTimer();
-        }
-    }
+  /**
+   * Sets or clears the breakpoint on an operation column. A run - Play, or End - halts before a
+   * column with a breakpoint; a single step does not care.
+   * @param {!int} column
+   * @returns {void}
+   */
+  toggleBreakpoint(column) {
+    if (!this._operationColumns.includes(column)) return;
+    this._breakpoints = this._breakpoints.includes(column)
+      ? this._breakpoints.filter((col) => col !== column)
+      : [...this._breakpoints, column].sort((a, b) => a - b);
+    this._publish();
+  }
 
-    /**
-     * @private
-     */
-    _startTimer() {
-        this._timer = this._setInterval(() => {
-            this._seek(this._runTarget(this._nextStep()));
-            // A halt ends the run where it stands, the way the end of the circuit does.
-            if (this._haltSteps().includes(this._step)) this.pause();
-        }, this._stepMillis);
-    }
+  /**
+   * Replaces the breakpoints, keeping the columns that hold an operation: a link brings its own.
+   * @param {!Array.<!int>} columns
+   * @returns {void}
+   */
+  setBreakpoints(columns) {
+    this._breakpoints = [...new Set(columns)]
+      .filter((col) => this._operationColumns.includes(col))
+      .sort((a, b) => a - b);
+    this._publish();
+  }
 
-    /**
-     * @private
-     */
-    _pause() {
-        if (this._timer !== undefined) {
-            this._clearInterval(this._timer);
-            this._timer = undefined;
-        }
-        this._playing = false;
+  /**
+   * @returns {!Array.<!int>} The columns with a breakpoint, in order.
+   */
+  breakpoints() {
+    return this._breakpoints;
+  }
+
+  /**
+   * The other columns a run halts before, of any kind: a failing assertion's, for one.
+   * @param {!Array.<!int>} columns
+   * @returns {void}
+   */
+  setHaltColumns(columns) {
+    this._haltColumns = columns;
+  }
+
+  /**
+   * @returns {!Array.<!int>} The steps that stand before a breakpoint or a halt column: every
+   *     operation left of the column has run, and none from it on.
+   * @private
+   */
+  _haltSteps() {
+    const stops = this._stops();
+    return [...this._breakpoints, ...this._haltColumns].map(
+      (column) =>
+        stops[this._operationColumns.filter((col) => col < column).length],
+    );
+  }
+
+  /**
+   * @param {!int} target The step a run is heading for.
+   * @returns {!int} Where it gets to: the first halt step on the way, or the target. The step the
+   *     run starts from never holds it back.
+   * @private
+   */
+  _runTarget(target) {
+    return Math.min(
+      target,
+      ...this._haltSteps().filter((step) => step > this._step),
+    );
+  }
+
+  /**
+   * Starts or stops advancing an operation column at a time. Playing from the end starts over, so the
+   * button never sits enabled with nothing left to do.
+   * @returns {void}
+   */
+  togglePlay() {
+    if (this._playing) {
+      this._pause();
+      this._publish();
+      return;
     }
+    if (this._operationColumns.length === 0) {
+      return;
+    }
+    if (!this._operationColumns.some((col) => col >= this._step)) {
+      this._stepTo(0);
+      this._restartOnPlay = true;
+    }
+    if (this._step === 0 && this._restartOnPlay) this.generation++;
+    this._restartOnPlay = false;
+    this._playing = true;
+    this._startTimer();
+    this._publish();
+  }
+
+  /**
+   * Changes how fast Play steps. A run under way carries on at the new pace from its next step.
+   *
+   * @param {!number} speed A multiple of the pace Animation.PLAYHEAD_STEP_DURATION_MS sets.
+   * @returns {void}
+   */
+  setSpeed(speed) {
+    this._stepMillis = Animation.PLAYHEAD_STEP_DURATION_MS / speed;
+    if (this._timer !== undefined) {
+      this._clearInterval(this._timer);
+      this._startTimer();
+    }
+  }
+
+  /**
+   * @private
+   */
+  _startTimer() {
+    this._timer = this._setInterval(() => {
+      this._seek(this._runTarget(this._nextStep()));
+      // A halt ends the run where it stands, the way the end of the circuit does.
+      if (this._haltSteps().includes(this._step)) this.pause();
+    }, this._stepMillis);
+  }
+
+  /**
+   * @private
+   */
+  _pause() {
+    if (this._timer !== undefined) {
+      this._clearInterval(this._timer);
+      this._timer = undefined;
+    }
+    this._playing = false;
+  }
 }
 
-export {Playhead}
+export { Playhead };

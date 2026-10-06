@@ -1,5 +1,10 @@
 import { DockviewDefaultTab, DockviewReact } from "dockview-react";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
+import { XIcon } from "lucide-react";
+import { Button } from "./ui/button.jsx";
+
+import { AdaptiveDock } from "./adaptive-dock.js";
+import { useColourScheme } from "./useColourScheme.js";
 
 import { Theme } from "../config/Theme.js";
 import { appStore } from "../state/appStore.js";
@@ -7,8 +12,9 @@ import { PANELS, PANEL_COMPONENTS } from "./panels/panels.jsx";
 
 /** Where the dock's arrangement is remembered between visits. */
 const LAYOUT_STORAGE_KEY = "shadow-quant.dock-layout";
-/** Below this width a permanent side panel starts as a tab behind the circuit, not beside it. */
-const NARROW_MEDIA_QUERY = "(max-width: 920px)";
+/** Below this width the dock temporarily shares one tab group, retaining its wide arrangement. */
+const NARROW_WIDTH = 920;
+const adaptiveDocks = new WeakMap();
 /** A side panel opens at this share of the dock's width, within the bounds below. */
 const SIDE_SHARE = 0.32;
 const SIDE_MIN_WIDTH = 340;
@@ -18,11 +24,11 @@ const SIDE_MAX_WIDTH = 480;
  * @param {!Object} api
  * @returns {void}
  */
-function saveLayout(api) {
+function saveLayout(api, adaptive) {
   try {
     window.localStorage.setItem(
       LAYOUT_STORAGE_KEY,
-      JSON.stringify(withoutFloatingPanels(api.toJSON())),
+      JSON.stringify(withoutFloatingPanels(adaptive.layout())),
     );
   } catch {
     // A browser that refuses site data just gets the default arrangement next time.
@@ -47,8 +53,8 @@ function withoutFloatingPanels(layout) {
   const panels = Object.fromEntries(
     Object.entries(layout.panels ?? {}).filter(([id]) => !floating.has(id)),
   );
-  const {floatingGroups: _dropped, ...rest} = layout;
-  return {...rest, panels};
+  const { floatingGroups: _dropped, ...rest } = layout;
+  return { ...rest, panels };
 }
 
 /**
@@ -64,16 +70,18 @@ function readLayout() {
 }
 
 /**
- * Where a permanent side panel starts: beside the circuit at its width, or, on a narrow screen, as
- * a tab behind the circuit. The user's own arrangement is remembered after that, at any width.
+ * Place permanent panels in the initial wide arrangement. AdaptiveDock borrows a single tab group
+ * on narrow screens and restores this arrangement when there is room.
  *
  * @param {!{direction: !string, width: !int}} side
  * @returns {!Object} Placement options for dockview's addPanel.
  */
-function besideOrBehindTheCircuit({ direction, width }) {
-  return window.matchMedia(NARROW_MEDIA_QUERY).matches
-    ? { position: { referencePanel: "circuit" }, inactive: true }
-    : { position: { referencePanel: "circuit", direction }, initialWidth: width };
+function besideTheCircuitAtWidth({ direction, width }) {
+  return {
+    position: { referencePanel: "circuit", direction },
+    initialWidth: width,
+    inactive: true,
+  };
 }
 
 /**
@@ -92,26 +100,73 @@ function addMissingPermanentPanels(api) {
         component: name,
         title: panel.title,
         renderer: "always",
-        ...(panel.side === undefined ? {} : besideOrBehindTheCircuit(panel.side)),
+        ...(panel.side === undefined
+          ? {}
+          : besideTheCircuitAtWidth(panel.side)),
       });
     }
   }
 }
 
 /**
- * Every tab as dockview draws it, with the panel's own mark before its title, and minus the close
- * control on a permanent panel. closePanel refuses to close one, so its tab should not offer to.
+ * Every tab as dockview draws it, with the panel's own mark before its title. Close belongs to
+ * the separate group header action, so tabs do not contain nested interactive buttons.
  *
  * @param {!Object} props dockview's tab props.
  */
 function DockTab(props) {
   const panel = PANELS[props.api.id];
   const Icon = panel?.icon;
+  const middlePointer = useRef(null);
+  const cancelMiddleClose = () => {
+    middlePointer.current = null;
+  };
   return (
     <span className="dock-tab">
-      {Icon === undefined ? undefined : <Icon className="dock-tab-icon" aria-hidden="true" />}
-      <DockviewDefaultTab {...props} hideClose={panel?.permanent === true} />
+      {Icon === undefined ? undefined : (
+        <Icon className="dock-tab-icon" aria-hidden="true" />
+      )}
+      <DockviewDefaultTab
+        {...props}
+        hideClose
+        onPointerDown={(event) => {
+          middlePointer.current =
+            event.button === 1 && panel?.permanent !== true
+              ? event.pointerId
+              : null;
+        }}
+        onPointerUp={(event) => {
+          const close =
+            event.button === 1 && middlePointer.current === event.pointerId;
+          cancelMiddleClose();
+          if (close) {
+            event.preventDefault();
+            closePanel(props.api.id);
+          }
+        }}
+        onPointerLeave={cancelMiddleClose}
+        onPointerCancel={cancelMiddleClose}
+      />
     </span>
+  );
+}
+
+/** A close action beside the tab list, so a tab never nests another interactive control. */
+function DockGroupActions({ activePanel }) {
+  if (activePanel === undefined || PANELS[activePanel.id]?.permanent === true)
+    return null;
+  return (
+    <Button
+      className="dock-group-close"
+      size="icon"
+      data-close-panel-id={activePanel.id}
+      aria-label={`Close ${activePanel.title}`}
+      title={`Close ${activePanel.title}`}
+      onPointerDown={(event) => event.stopPropagation()}
+      onClick={() => closePanel(activePanel.id)}
+    >
+      <XIcon aria-hidden="true" />
+    </Button>
   );
 }
 
@@ -127,6 +182,8 @@ function DockTab(props) {
  * @returns {!Object} A dockview position.
  */
 function besideTheCircuit(api) {
+  if (adaptiveDocks.get(api)?.narrow)
+    return { position: { referencePanel: "circuit" } };
   const sidePanel = api.panels.find(
     (candidate) =>
       PANELS[candidate.id]?.permanent !== true &&
@@ -138,7 +195,10 @@ function besideTheCircuit(api) {
     Math.min(SIDE_MAX_WIDTH, Math.max(SIDE_MIN_WIDTH, api.width * SIDE_SHARE)),
   );
   return sidePanel === undefined
-    ? { position: { referencePanel: "circuit", direction: "right" }, initialWidth: width }
+    ? {
+        position: { referencePanel: "circuit", direction: "right" },
+        initialWidth: width,
+      }
     : { position: { referenceGroup: sidePanel.group } };
 }
 
@@ -151,9 +211,10 @@ function besideTheCircuit(api) {
  * group is added or removed the remembered width is still the one from before.
  *
  * @param {!Object} api
- * @returns {void}
+ * @param {AdaptiveDock} adaptive
+ * @returns {() => void}
  */
-function keepPaletteWidth(api) {
+function keepPaletteWidth(api, adaptive) {
   // Only a column of its own: on a narrow screen the palette is a tab in the circuit's group.
   const paletteColumn = () => {
     const group = api.getPanel("gates")?.group;
@@ -164,17 +225,28 @@ function keepPaletteWidth(api) {
       : group;
   };
   let width = paletteColumn()?.api.width;
-  api.onDidLayoutChange(() => {
-    width = paletteColumn()?.api.width;
+  const layoutSubscription = api.onDidLayoutChange(() => {
+    if (!adaptive.narrow && !adaptive.changing)
+      width = paletteColumn()?.api.width;
   });
   const restore = () => {
+    if (adaptive.narrow || adaptive.changing) return;
     const column = paletteColumn();
-    if (column !== undefined && width !== undefined && column.api.width !== width) {
+    if (
+      column !== undefined &&
+      width !== undefined &&
+      column.api.width !== width
+    ) {
       column.api.setSize({ width });
     }
   };
-  api.onDidAddGroup(restore);
-  api.onDidRemoveGroup(restore);
+  const added = api.onDidAddGroup(restore);
+  const removed = api.onDidRemoveGroup(restore);
+  return () => {
+    layoutSubscription.dispose();
+    added.dispose();
+    removed.dispose();
+  };
 }
 
 /**
@@ -191,7 +263,10 @@ function floatingSizeWithin(wanted) {
   }
   const margin = 32;
   const width = Math.min(wanted.width, Math.max(1, dock.clientWidth - margin));
-  const height = Math.min(wanted.height, Math.max(1, dock.clientHeight - margin));
+  const height = Math.min(
+    wanted.height,
+    Math.max(1, dock.clientHeight - margin),
+  );
   return {
     width,
     height,
@@ -225,9 +300,11 @@ function openPanel(name, options = {}) {
     id: name,
     component: name,
     title: panel.title,
-    // Panels are destroyed while hidden unless told otherwise; the circuit must survive being
-    // tabbed behind another panel.
-    ...(panel.permanent === true ? {renderer: "always"} : {}),
+    // Tab changes and temporary narrow layouts must retain editor drafts as well as the circuit. A
+    // floating window is never folded into a tab, and dockview repositions an always-rendered
+    // overlay only on a later resize: with no glide to cause one under reduced motion, the Bloch
+    // window stayed at the sliver it was first laid out at, and blank.
+    renderer: panel.floating === undefined ? "always" : "onlyWhenVisible",
     ...(panel.floating === undefined
       ? besideTheCircuit(api)
       : { floating: floatingSizeWithin(panel.floating) }),
@@ -255,7 +332,10 @@ function closePanel(name) {
  * them into is remembered.
  */
 function Dock() {
-  const hostRef = useRef(null);
+  useColourScheme();
+  const cleanupRef = useRef(() => {});
+  useEffect(() => () => cleanupRef.current(), []);
+  const hostRef = useRef(/** @type {HTMLElement | null} */ (null));
   const onReady = (event) => {
     const { api } = event;
     appStore.setState({ dock: api });
@@ -264,7 +344,10 @@ function Dock() {
     // scaled with the grid afterwards instead of keeping its width.
     const host = hostRef.current;
     if (host !== null) {
-      api.layout(host.clientWidth, host.clientHeight);
+      api.layout(
+        host.clientWidth <= NARROW_WIDTH ? 1200 : host.clientWidth,
+        host.clientHeight,
+      );
     }
 
     const saved = readLayout();
@@ -275,7 +358,10 @@ function Dock() {
         // A layout from a version whose panels no longer exist. Start over rather than strand
         // the user in a dock that cannot render itself - but say so, because silently losing an
         // arrangement the user built is worse than the arrangement being wrong.
-        console.warn("Could not restore the dock layout; starting from the default.", ex);
+        console.warn(
+          "Could not restore the dock layout; starting from the default.",
+          ex,
+        );
         api.clear();
       }
     }
@@ -283,6 +369,7 @@ function Dock() {
     // A saved layout remembers each tab's title; the registry's is the one to show, so a panel
     // renamed since the layout was saved shows its new name.
     for (const panel of api.panels) {
+      panel.api.setRenderer("always");
       const title = PANELS[panel.id]?.title;
       if (title !== undefined && panel.title !== title) {
         panel.api.setTitle(title);
@@ -290,21 +377,68 @@ function Dock() {
     }
     // Subscribed after the restore, so the half-built states dockview reports while it rebuilds
     // are never written back.
-    api.onDidLayoutChange(() => saveLayout(api));
-    keepPaletteWidth(api);
+    const adaptive = new AdaptiveDock(api, withoutFloatingPanels(api.toJSON()));
+    adaptiveDocks.set(api, adaptive);
+    const resize = () => {
+      if (!host) return;
+      const narrow = host.clientWidth <= NARROW_WIDTH;
+      // Capture before shrinking; expanding needs the new dimensions before restoring splits.
+      if (narrow) adaptive.setNarrow(true);
+      api.layout(host.clientWidth, host.clientHeight);
+      if (!narrow) adaptive.setNarrow(false);
+      for (const group of api.groups) {
+        if (group.api.location.type !== "floating") continue;
+        group.api.setSize({
+          width: Math.min(group.api.width, Math.max(1, host.clientWidth - 16)),
+          height: Math.min(
+            group.api.height,
+            Math.max(1, host.clientHeight - 16),
+          ),
+        });
+      }
+    };
+    resize();
+    const layoutSubscription = api.onDidLayoutChange(() => {
+      if (adaptive.changing || (!adaptive.narrow && api.width <= NARROW_WIDTH))
+        return;
+      if (adaptive.narrow) {
+        adaptive.reconcile();
+        if (
+          api.groups.filter((group) => group.api.location.type === "grid")
+            .length > 1
+        )
+          adaptive.gather();
+      }
+      saveLayout(api, adaptive);
+    });
+    const releasePaletteWidth = keepPaletteWidth(api, adaptive);
+    const observer = new ResizeObserver(resize);
+    if (host) observer.observe(host);
+    cleanupRef.current = () => {
+      observer.disconnect();
+      layoutSubscription.dispose();
+      releasePaletteWidth();
+      adaptiveDocks.delete(api);
+    };
   };
 
   // Wrapped, because dockview's className lands on an inner element: the flex child the work area
   // sizes has to be one this file owns.
   return (
-    <div className="app-dock" ref={hostRef}>
+    <main
+      className="app-dock"
+      aria-label="Quantum circuit workspace"
+      ref={hostRef}
+    >
       <DockviewReact
         theme={Theme.dock}
+        floatingGroupBounds="boundedWithinViewport"
         components={PANEL_COMPONENTS}
         defaultTabComponent={DockTab}
+        rightHeaderActionsComponent={DockGroupActions}
         onReady={onReady}
       />
-    </div>
+    </main>
   );
 }
 

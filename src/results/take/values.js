@@ -13,7 +13,8 @@ function encodeNumber(value) {
 // is why large buffers take this loop rather than a generic call per value.
 function encodeNumbers(buffer) {
   const encoded = [];
-  for (let index = 0; index < buffer.length; index++) encoded.push(encodeNumber(buffer[index]));
+  for (let index = 0; index < buffer.length; index++)
+    encoded.push(encodeNumber(buffer[index]));
   return encoded;
 }
 
@@ -27,7 +28,8 @@ function encode(value) {
       buffer: encodeNumbers(value.rawBuffer()),
     };
   // DataView is not an iterable numeric buffer. Reject it instead of silently producing [].
-  if (value instanceof DataView) throw new TypeError("Unsupported DataView in take data");
+  if (value instanceof DataView)
+    throw new TypeError("Unsupported DataView in snapshot data");
   if (ArrayBuffer.isView(value)) return encodeNumbers(value);
   if (Array.isArray(value)) return value.map(encode);
   if (value !== null && typeof value === "object")
@@ -45,11 +47,7 @@ function decode(value) {
       return Number(unavailable.parse(value).unavailable);
     if (value.kind === "matrix") {
       const m = matrix.parse(value);
-      return new Matrix(
-        m.width,
-        m.height,
-        Float64Array.from(m.buffer, decode),
-      );
+      return new Matrix(m.width, m.height, Float64Array.from(m.buffer, decode));
     }
     if (Array.isArray(value)) return value.map(decode);
     return Object.fromEntries(

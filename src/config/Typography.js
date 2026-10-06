@@ -1,1 +1,1 @@
-export {Typography} from '../appearance/formats/typography.js';
+export { Typography } from "../appearance/formats/typography.js";

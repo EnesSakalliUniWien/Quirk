@@ -1,0 +1,66 @@
+
+> quirk-bench@2.3.2 build
+> vite build
+
+vite v8.2.2 building client environment for production...
+transforming...
+✓ 3548 modules transformed.
+rendering chunks...
+computing gzip size...
+out/assets/webworkerAll-DF6-LLe7.js                           0.07 kB
+out/assets/getTextureBatchBindGroup-DD98rsgH.js               0.44 kB
+out/assets/CanvasPool-BgJDkfEH.js                             0.79 kB
+out/assets/favicon-sBGDTa3e.svg                               1.38 kB │ gzip:   0.86 kB
+out/index.html                                                1.66 kB │ gzip:   0.72 kB
+out/assets/KaTeX_Size4-Regular-Dl5lxZxV.woff2                 4.92 kB
+out/assets/KaTeX_Size2-Regular-Dy4dx90m.woff2                 5.20 kB
+out/assets/KaTeX_Size1-Regular-mCD8mA8B.woff2                 5.46 kB
+out/assets/canvasUtils-BFT3E3IF.js                            6.18 kB
+out/assets/KaTeX_Caligraphic-Regular-Di6jR-x-.woff2           6.90 kB
+out/assets/KaTeX_Caligraphic-Bold-Dq_IR9rO.woff2              6.91 kB
+out/assets/geist-cyrillic-ext-wght-normal-DjL33-gN.woff2      7.42 kB
+out/assets/geist-vietnamese-wght-normal-6IgcOCM7.woff2        8.00 kB
+out/assets/KaTeX_Script-Regular-D3wIWfF6.woff2                9.64 kB
+out/assets/KaTeX_SansSerif-Regular-DDBCnlJ7.woff2            10.34 kB
+out/assets/BufferResource-D6UmS7r9.js                        11.25 kB
+out/assets/KaTeX_Fraktur-Regular-CTYiF6lA.woff2              11.31 kB
+out/assets/KaTeX_Fraktur-Bold-CL6g_b3V.woff2                 11.34 kB
+out/assets/KaTeX_SansSerif-Italic-C3H0VqGB.woff2             12.02 kB
+out/assets/KaTeX_SansSerif-Bold-D1sUS0GD.woff2               12.21 kB
+out/assets/KaTeX_Typewriter-Regular-CO6r4hn1.woff2           13.56 kB
+out/assets/geist-cyrillic-wght-normal-BEAKL7Jp.woff2         15.08 kB
+out/assets/init-BLZoQ1_f.js                                  15.62 kB
+out/assets/KaTeX_Math-BoldItalic-CZnvNsCZ.woff2              16.40 kB
+out/assets/KaTeX_Math-Italic-t53AETM-.woff2                  16.44 kB
+out/assets/geist-latin-ext-wght-normal-DC-KSUi6.woff2        16.51 kB
+out/assets/KaTeX_Main-BoldItalic-DxDJ3AOS.woff2              16.78 kB
+out/assets/KaTeX_Main-Italic-NWA7e6Wa.woff2                  16.98 kB
+out/assets/KaTeX_Main-Bold-Cx986IdX.woff2                    25.32 kB
+out/assets/KaTeX_Main-Regular-B22Nviop.woff2                 26.27 kB
+out/assets/KaTeX_AMS-Regular-BQhdFMY1.woff2                  28.07 kB
+out/assets/geist-latin-wght-normal-BgDaEnEv.woff2            29.40 kB
+out/assets/browserAll-DdCOw3y5.js                            43.41 kB
+out/assets/RenderTargetSystem-DVeh1bYK.js                    80.04 kB
+out/assets/Geometry-ULcMQDxf.js                             107.97 kB
+out/assets/operatorTiles.worker-BdHMmXYH.js               1,042.84 kB
+out/assets/math-live-runtime-BnjoTxG4.css                     8.00 kB │ gzip:   4.20 kB
+out/assets/index-qOiyVTBr.css                               188.85 kB │ gzip:  22.50 kB
+out/assets/webworkerAll-CA2qn2W2.js                           0.05 kB │ gzip:   0.06 kB
+out/assets/getTextureBatchBindGroup-zE7jwHpw.js               0.48 kB │ gzip:   0.32 kB
+out/assets/CanvasPool-W8JVBrJE.js                             0.82 kB │ gzip:   0.45 kB
+out/assets/rolldown-runtime-DiigMGAj.js                       0.85 kB │ gzip:   0.48 kB
+out/assets/canvasUtils-BPiVNHhv.js                            6.21 kB │ gzip:   2.09 kB
+out/assets/BufferResource-Cfn1GG5N.js                        11.28 kB │ gzip:   2.89 kB
+out/assets/init-CP5kvzdB.js                                  15.64 kB │ gzip:   4.85 kB
+out/assets/browserAll-DZpLghup.js                            43.50 kB │ gzip:  11.28 kB
+out/assets/RenderTargetSystem-BrK-H-l0.js                    80.06 kB │ gzip:  22.49 kB
+out/assets/Geometry-DByiNRig.js                             106.89 kB │ gzip:  32.35 kB
+out/assets/math-live-runtime-f_DGpk25.js                    801.22 kB │ gzip: 221.08 kB
+out/assets/index-n4diK63s.js                              2,254.80 kB │ gzip: 631.01 kB
+
+✓ built in 911ms
+[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.

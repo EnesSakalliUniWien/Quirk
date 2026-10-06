@@ -73,7 +73,11 @@ function numberForm(size, prefer = "cos") {
   for (const denominator of DENOMINATORS) {
     const numerator = size * denominator;
     if (Math.abs(numerator - Math.round(numerator)) < TOLERANCE) {
-      return { kind: "fraction", numerator: Math.round(numerator), denominator };
+      return {
+        kind: "fraction",
+        numerator: Math.round(numerator),
+        denominator,
+      };
     }
   }
   for (const root of ROOTS) {

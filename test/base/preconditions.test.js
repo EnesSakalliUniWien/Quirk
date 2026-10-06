@@ -20,7 +20,6 @@ import { need } from "../../src/base/preconditions.js";
 const suite = new Suite("preconditions");
 
 suite.test("need", () => {
-    assertThrows(() => need(false));
-    need(true);
+  assertThrows(() => need(false));
+  need(true);
 });
-

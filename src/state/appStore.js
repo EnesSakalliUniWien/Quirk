@@ -121,8 +121,8 @@ const appStore = createStore((set) => ({
    *  set by the click that opens it. Transient, so it is not part of the dock's layout. */
   gateParamTarget: undefined,
   forgeRange: undefined,
-  /** @type {undefined|!{cols: !string, rows: !string}} Column and wire ranges for Make Gate's Circuit
-   *  tab to take, set by "Make gate" on a selection; the panel clears it once taken. */
+  /** @type {undefined|!{cols: !string, rows: !string}} Column and wire ranges for Create gate's Circuit
+   *  tab to take, set by "Create gate" on a selection; the panel clears it once taken. */
   forgeCircuitDraft: undefined,
   customGateFocus: undefined,
 

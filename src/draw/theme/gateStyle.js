@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {CanvasTheme} from './CanvasTheme.js';
+import { CanvasTheme } from "./CanvasTheme.js";
 
 function gateStyle(gate) {
   const id = gate.serializedId || "";
@@ -25,14 +25,14 @@ function gateStyle(gate) {
   let family;
   if (id === "H") family = "hadamard";
   else if (id === "Measure") family = "measure";
-  else if (/^(Swap$|X($|\^(?!⌈))|Rx($|ft$)|e\^[-+]?iXt$)/.test(id)) family = "not";
+  else if (/^(Swap$|X($|\^(?!⌈))|Rx($|ft$)|e\^[-+]?iXt$)/.test(id))
+    family = "not";
   else if (/^(Y($|\^)|Ry($|ft$)|e\^[-+]?iYt$)/.test(id)) family = "rotation";
   else if (/^(Z($|\^)|Rz($|ft$)|e\^[-+]?iZt$)/.test(id)) family = "phase";
   if (family === undefined) {
-    return {fill: CanvasTheme.surface.gate, text: CanvasTheme.text.primary};
+    return { fill: CanvasTheme.surface.gate, text: CanvasTheme.text.primary };
   }
-  return {fill: CanvasTheme.iqp[family], text: CanvasTheme.iqpText[family]};
+  return { fill: CanvasTheme.iqp[family], text: CanvasTheme.iqpText[family] };
 }
 
-
-export {gateStyle};
+export { gateStyle };

@@ -17,10 +17,7 @@ import { useCircuitAlgebra } from "../algebra/useCircuitAlgebra.js";
  * }}
  */
 function useCircuitSteps(target, completed) {
-  const algebra = useCircuitAlgebra(
-    completed?.fullStats,
-    completed?.wireCount,
-  );
+  const algebra = useCircuitAlgebra(completed?.fullStats, completed?.wireCount);
   const circuit = completed?.fullStats.circuitDefinition;
 
   const steps = useMemo(() => {
@@ -29,20 +26,28 @@ function useCircuitSteps(target, completed) {
       // Impossible postselection has no normalized state. Match the marginal calculation's
       // normalization threshold, preserving the step with an unavailable vector.
       const norm = state.norm2();
-      const gates = index === 0 ? "" :
-        algebra.steps[index - 1].column.gates
-          .filter((gate) => gate !== undefined)
-          .map((gate) => gate.symbol)
-          .join(" ");
+      const gates =
+        index === 0
+          ? ""
+          : algebra.steps[index - 1].column.gates
+              .filter((gate) => gate !== undefined)
+              .map((gate) => gate.symbol)
+              .join(" ");
       return {
-        vec: Number.isFinite(norm) && norm > 1e-12
-          ? qubitMarginals(state, algebra.wireCount, circuit.colIsMeasuredMask(index))[target.row]?.bloch
-          : undefined,
+        vec:
+          Number.isFinite(norm) && norm > 1e-12
+            ? qubitMarginals(
+                state,
+                algebra.wireCount,
+                circuit.colIsMeasuredMask(index),
+              )[target.row]?.bloch
+            : undefined,
         label: index === 0 ? "start" : gates || "·",
         // The step's whole name, for assistive technology: where it stands and what the column holds.
-        name: index === 0
-          ? "Start, before the first column"
-          : `After column ${index}${gates === "" ? ", which is empty" : `: ${gates}`}`,
+        name:
+          index === 0
+            ? "Start, before the first column"
+            : `After column ${index}${gates === "" ? ", which is empty" : `: ${gates}`}`,
       };
     });
   }, [algebra, target, circuit]);

@@ -1,214 +1,215 @@
 /* The state-at-the-playhead panel: header, phase legend, and amplitude table. */
 @layer components {
-    /* The panel's full height, so the table can take what the header leaves instead of stopping
+  /* The panel's full height, so the table can take what the header leaves instead of stopping
        at a fixed height halfway down a tall panel. */
-    .state-panel {
-        display: flex;
-        flex-direction: column;
-        box-sizing: border-box;
-        height: 100%;
-        padding: calc(var(--spacing) * 3) calc(var(--spacing) * 3) calc(var(--spacing) * 4);
-    }
+  .state-panel {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    height: 100%;
+    padding: calc(var(--spacing) * 3) calc(var(--spacing) * 3)
+      calc(var(--spacing) * 4);
+  }
 
-    .state-panel-header {
-        display: flex;
-        align-items: baseline;
-        flex-wrap: wrap;
-        gap: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
-        margin-bottom: calc(var(--spacing) * 3);
-    }
+  .state-panel-header {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+    margin-bottom: calc(var(--spacing) * 3);
+  }
 
-    .state-panel-heading {
-        margin: 0;
-        font-size: var(--text-heading);
-        font-weight: 650;
-        letter-spacing: -0.015em;
-    }
+  .state-panel-heading {
+    margin: 0;
+    font-size: var(--text-heading);
+    font-weight: 650;
+    letter-spacing: -0.015em;
+  }
 
-    .state-summary {
-        color: var(--muted-foreground);
-        font-family: var(--font-mono);
-        font-size: var(--text-small);
-        font-variant-numeric: tabular-nums;
-    }
+  .state-summary {
+    color: var(--muted-foreground);
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    font-variant-numeric: tabular-nums;
+  }
 
-    .state-legend {
-        display: flex;
-        align-items: center;
-        gap: calc(var(--spacing) * 2);
-        margin-left: auto;
-        color: var(--muted-foreground);
-        font-size: var(--text-small);
-    }
+  .state-legend {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--spacing) * 2);
+    margin-left: auto;
+    color: var(--muted-foreground);
+    font-size: var(--text-small);
+  }
 
-    .state-legend-strip {
-        width: 96px;
-        height: 8px;
-        border-radius: 999px;
-        /* Matches the hue the phase column paints: -pi and +pi meet at the same colour. */
-        background: var(--phase-legend);
-    }
+  .state-legend-strip {
+    width: 96px;
+    height: 8px;
+    border-radius: 999px;
+    /* Matches the hue the phase column paints: -pi and +pi meet at the same colour. */
+    background: var(--phase-legend);
+  }
 
-    /* As tall as its rows, up to the room left in the panel; then it scrolls. The table renders only
+  /* As tall as its rows, up to the room left in the panel; then it scrolls. The table renders only
        the rows in view and keeps the position of the rest with spacers, so the browser must not
        also move the scroll position when they change. */
-    .state-table-scroll {
-        container-type: inline-size;
-        flex: 0 1 auto;
-        min-height: 0;
-        overflow: auto;
-        overflow-anchor: none;
-        border: var(--border-width) solid var(--border);
-        border-radius: 10px;
-    }
+  .state-table-scroll {
+    container-type: inline-size;
+    flex: 0 1 auto;
+    min-height: 0;
+    overflow: auto;
+    overflow-anchor: none;
+    border: var(--border-width) solid var(--border);
+    border-radius: 10px;
+  }
 
-    /* Fixed, so a column keeps its width however far the rows scroll: only the rows in view are
+  /* Fixed, so a column keeps its width however far the rows scroll: only the rows in view are
        there for the browser to size it from. Their widths are below. */
-    .state-table {
-        width: 100%;
-        table-layout: fixed;
-        border-collapse: collapse;
-        font-family: var(--font-mono);
-        font-size: var(--text-small);
-        font-variant-numeric: tabular-nums;
-    }
+  .state-table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    font-variant-numeric: tabular-nums;
+  }
 
-    .state-table th {
-        position: sticky;
-        top: 0;
-        z-index: 1;
-        padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
-        color: var(--muted-foreground);
-        background: var(--card);
-        border-bottom: var(--border-width) solid var(--border);
-        font-weight: 550;
-        text-align: left;
-        white-space: nowrap;
-    }
+  .state-table th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+    color: var(--muted-foreground);
+    background: var(--card);
+    border-bottom: var(--border-width) solid var(--border);
+    font-weight: 550;
+    text-align: left;
+    white-space: nowrap;
+  }
 
-    /* Every row is this tall, which is what lets the spacers stand in for the rows that are not
+  /* Every row is this tall, which is what lets the spacers stand in for the rows that are not
        rendered. A row's content is shorter, so this is the height it has. */
-    .state-table tbody tr {
-        height: 1.75rem;
-    }
+  .state-table tbody tr {
+    height: 1.75rem;
+  }
 
-    .state-table td {
-        padding: 3px calc(var(--spacing) * 3);
-        overflow: hidden;
-        border-bottom: var(--border-width) solid var(--table-divider);
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
+  .state-table td {
+    padding: 3px calc(var(--spacing) * 3);
+    overflow: hidden;
+    border-bottom: var(--border-width) solid var(--table-divider);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 
-    /* A narrow panel scrolls the table sideways; the first column stays, so every row keeps the
+  /* A narrow panel scrolls the table sideways; the first column stays, so every row keeps the
        value it belongs to in view. */
-    .state-table th:first-child,
-    .state-table td:first-child {
-        position: sticky;
-        left: 0;
-    }
+  .state-table th:first-child,
+  .state-table td:first-child {
+    position: sticky;
+    left: 0;
+  }
 
-    .state-table th:first-child {
-        z-index: 2;
-    }
+  .state-table th:first-child {
+    z-index: 2;
+  }
 
-    .state-table td:first-child {
-        z-index: 1;
-        background: var(--card);
-    }
+  .state-table td:first-child {
+    z-index: 1;
+    background: var(--card);
+  }
 
-    .state-table tr:last-child td {
-        border-bottom: 0;
-    }
+  .state-table tr:last-child td {
+    border-bottom: 0;
+  }
 
-    /* The rows that are not rendered: just their height, with nothing of a row's own. */
-    .state-table .state-spacer > td {
-        position: static;
-        padding: 0;
-        background: none;
-        border: 0;
-    }
+  /* The rows that are not rendered: just their height, with nothing of a row's own. */
+  .state-table .state-spacer > td {
+    position: static;
+    padding: 0;
+    background: none;
+    border: 0;
+  }
 
-    /* The registers read together: letters run into a word, so they get a little air. */
-    .state-sequence {
-        font-family: var(--font-mono);
-        font-weight: 600;
-        letter-spacing: 0.08em;
-    }
+  /* The registers read together: letters run into a word, so they get a little air. */
+  .state-sequence {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+  }
 
-    /* Each column is as wide as its widest cell or its header, in the units of what it holds, so
+  /* Each column is as wide as its widest cell or its header, in the units of what it holds, so
        the columns hold still as the numbers change from one step to the next. The panel sizes the
        columns of kets and registers, from the wires and the registers; a panel narrower than all
        the columns together scrolls the table sideways. */
-    .state-probability {
-        width: calc(88px + var(--spacing) * 8 + 6ch);
-    }
+  .state-probability {
+    width: calc(88px + var(--spacing) * 8 + 6ch);
+  }
 
-    .state-amplitude {
-        width: calc(14ch + var(--spacing) * 6);
-    }
+  .state-amplitude {
+    width: calc(14ch + var(--spacing) * 6);
+  }
 
-    .state-phase {
-        width: calc(11ch + var(--spacing) * 6);
-    }
+  .state-phase {
+    width: calc(11ch + var(--spacing) * 6);
+  }
 
-    .state-bar,
-    .state-swatch {
-        margin-right: calc(var(--spacing) * 2);
-        vertical-align: middle;
-    }
+  .state-bar,
+  .state-swatch {
+    margin-right: calc(var(--spacing) * 2);
+    vertical-align: middle;
+  }
 
+  .state-bar {
+    display: inline-block;
+    width: 88px;
+    height: 8px;
+    overflow: hidden;
+    background: var(--state-probability-back);
+    border-radius: 999px;
+  }
+
+  .state-bar-fill {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: var(--state-probability-fill);
+  }
+
+  .state-swatch {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+  }
+
+  .state-number {
+    vertical-align: middle;
+  }
+
+  .state-note:empty {
+    display: none;
+  }
+
+  .state-note {
+    margin: calc(var(--spacing) * 2) 0 0;
+    color: var(--muted-foreground);
+    font-size: var(--text-small);
+  }
+
+  @media (max-width: 920px) {
+    .state-legend {
+      display: none;
+    }
+  }
+
+  /* The bar is narrower, and so is the column that holds it. */
+  @container (max-width: 520px) {
     .state-bar {
-        display: inline-block;
-        width: 88px;
-        height: 8px;
-        overflow: hidden;
-        background: var(--state-probability-back);
-        border-radius: 999px;
+      width: 40px;
     }
 
-    .state-bar-fill {
-        display: block;
-        width: 0;
-        height: 100%;
-        background: var(--state-probability-fill);
+    .state-probability {
+      width: calc(40px + var(--spacing) * 8 + 6ch);
     }
-
-    .state-swatch {
-        display: inline-block;
-        width: 10px;
-        height: 10px;
-        border-radius: 3px;
-    }
-
-    .state-number {
-        vertical-align: middle;
-    }
-
-    .state-note:empty {
-        display: none;
-    }
-
-    .state-note {
-        margin: calc(var(--spacing) * 2) 0 0;
-        color: var(--muted-foreground);
-        font-size: var(--text-small);
-    }
-
-    @media (max-width: 920px) {
-        .state-legend {
-            display: none;
-        }
-    }
-
-    /* The bar is narrower, and so is the column that holds it. */
-    @container (max-width: 520px) {
-        .state-bar {
-            width: 40px;
-        }
-
-        .state-probability {
-            width: calc(40px + var(--spacing) * 8 + 6ch);
-        }
-    }
+  }
 }

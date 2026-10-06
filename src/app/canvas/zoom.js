@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import {Point} from "../../geometry/Point.js"
-import {iconElement} from "../../resources/icons/index.js"
-import {appStore} from "../../state/appStore.js"
+import { Point } from "../../geometry/Point.js";
+import { iconElement } from "../../resources/icons/index.js";
+import { appStore } from "../../state/appStore.js";
 
 /**
  * The circuit's camera: a zoom factor plus the scroll container's offset. 1 is the natural
@@ -34,18 +34,18 @@ let _scrollSource = undefined;
 
 /** @returns {!number} */
 function circuitZoom() {
-    return appStore.getState().zoom;
+  return appStore.getState().zoom;
 }
 
 /**
  * @param {!number} z
  */
 function setCircuitZoom(z) {
-    const clamped = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, z));
-    if (clamped === circuitZoom()) {
-        return;
-    }
-    appStore.getState().setZoom(clamped);
+  const clamped = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, z));
+  if (clamped === circuitZoom()) {
+    return;
+  }
+  appStore.getState().setZoom(clamped);
 }
 
 /**
@@ -53,11 +53,11 @@ function setCircuitZoom(z) {
  * @returns {!function(): void} Unsubscribes.
  */
 function onCircuitZoomChanged(listener) {
-    return appStore.subscribe((state, previous) => {
-        if (state.zoom !== previous.zoom) {
-            listener();
-        }
-    });
+  return appStore.subscribe((state, previous) => {
+    if (state.zoom !== previous.zoom) {
+      listener();
+    }
+  });
 }
 
 /**
@@ -67,7 +67,7 @@ function onCircuitZoomChanged(listener) {
  * @param {!HTMLElement} element
  */
 function attachCircuitScrollSource(element) {
-    _scrollSource = element;
+  _scrollSource = element;
 }
 
 /**
@@ -76,10 +76,10 @@ function attachCircuitScrollSource(element) {
  * @returns {!Point}
  */
 function pointIntoCircuitCoords(pt) {
-    const sx = _scrollSource === undefined ? 0 : _scrollSource.scrollLeft;
-    const sy = _scrollSource === undefined ? 0 : _scrollSource.scrollTop;
-    const zoom = circuitZoom();
-    return new Point((pt.x + sx) / zoom, (pt.y + sy) / zoom);
+  const sx = _scrollSource === undefined ? 0 : _scrollSource.scrollLeft;
+  const sy = _scrollSource === undefined ? 0 : _scrollSource.scrollTop;
+  const zoom = circuitZoom();
+  return new Point((pt.x + sx) / zoom, (pt.y + sy) / zoom);
 }
 
 /**
@@ -90,41 +90,53 @@ function pointIntoCircuitCoords(pt) {
  * @returns {void}
  */
 function initZoomControls(container, fitFactorProvider) {
-    const cluster = document.createElement('div');
-    cluster.className = 'circuit-zoom-controls';
-    cluster.setAttribute('role', 'group');
-    cluster.setAttribute('aria-label', 'Circuit zoom');
+  const cluster = document.createElement("div");
+  cluster.className = "circuit-zoom-controls";
+  cluster.setAttribute("role", "group");
+  cluster.setAttribute("aria-label", "Circuit zoom");
 
-    const makeButton = (content, label, onActivate) => {
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'circuit-zoom-button';
-        if (typeof content === 'string') {
-            button.textContent = content;
-        } else {
-            button.appendChild(content);
-        }
-        button.setAttribute('aria-label', label);
-        button.addEventListener('click', onActivate);
-        cluster.appendChild(button);
-        return button;
-    };
+  const makeButton = (content, label, onActivate) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "circuit-zoom-button";
+    if (typeof content === "string") {
+      button.textContent = content;
+    } else {
+      button.appendChild(content);
+    }
+    button.setAttribute("aria-label", label);
+    button.addEventListener("click", onActivate);
+    cluster.appendChild(button);
+    return button;
+  };
 
-    // The minus and plus come from src/resources/icons, where the app keeps the icons it draws
-    // itself; the stylesheet sizes them to the buttons' text line.
-    makeButton(iconElement('minus'), 'Zoom out', () => setCircuitZoom(circuitZoom() / ZOOM_STEP));
-    const readout = makeButton('100%', 'Reset zoom', () => setCircuitZoom(1));
-    readout.setAttribute('aria-live', 'polite');
-    makeButton(iconElement('plus'), 'Zoom in', () => setCircuitZoom(circuitZoom() * ZOOM_STEP));
-    makeButton('Fit', 'Fit the circuit to the visible area', () => setCircuitZoom(fitFactorProvider()));
+  // The minus and plus come from src/resources/icons, where the app keeps the icons it draws
+  // itself; the stylesheet sizes them to the buttons' text line.
+  makeButton(iconElement("minus"), "Zoom out", () =>
+    setCircuitZoom(circuitZoom() / ZOOM_STEP),
+  );
+  const readout = makeButton("100%", "Reset zoom", () => setCircuitZoom(1));
+  readout.setAttribute("aria-live", "polite");
+  makeButton(iconElement("plus"), "Zoom in", () =>
+    setCircuitZoom(circuitZoom() * ZOOM_STEP),
+  );
+  makeButton("Fit", "Fit the circuit to the visible area", () =>
+    setCircuitZoom(fitFactorProvider()),
+  );
 
-    const showZoom = () => {
-        readout.textContent = Math.round(circuitZoom() * 100) + '%';
-    };
-    onCircuitZoomChanged(showZoom);
-    showZoom();
+  const showZoom = () => {
+    readout.textContent = Math.round(circuitZoom() * 100) + "%";
+  };
+  onCircuitZoomChanged(showZoom);
+  showZoom();
 
-    container.appendChild(cluster);
+  container.appendChild(cluster);
 }
 
-export {circuitZoom, onCircuitZoomChanged, pointIntoCircuitCoords, initZoomControls, attachCircuitScrollSource}
+export {
+  circuitZoom,
+  onCircuitZoomChanged,
+  pointIntoCircuitCoords,
+  initZoomControls,
+  attachCircuitScrollSource,
+};

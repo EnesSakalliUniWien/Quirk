@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-import {Point} from '../../../geometry/Point.js';
-import {findOpHalfColumnAt, indexOfDisplayedRowAt} from '../../interaction/CircuitHitTesting.js';
-import {GateColumn} from '../../../circuit/model/GateColumn.js';
-import {Layout} from '../../../config/Layout.js';
-import {Simulation} from '../../../config/Simulation.js';
+import { Point } from "../../../geometry/Point.js";
+import {
+  findOpHalfColumnAt,
+  indexOfDisplayedRowAt,
+} from "../../interaction/CircuitHitTesting.js";
+import { GateColumn } from "../../../circuit/model/GateColumn.js";
+import { Layout } from "../../../config/Layout.js";
+import { Simulation } from "../../../config/Simulation.js";
 
 /**
  * @param {!Object} context Definition, geometry and editing queries supplied by CircuitEditing.
@@ -26,55 +29,58 @@ import {Simulation} from '../../../config/Simulation.js';
  * @returns {undefined|!Object} Proposed definition and drag-state changes; undefined means no edit.
  */
 function previewDropMovedGate(context, hand) {
-    const modificationPoint = findModificationIndex(context.geometry, hand);
-    if (modificationPoint === undefined) {
-        return undefined;
-    }
+  const modificationPoint = findModificationIndex(context.geometry, hand);
+  if (modificationPoint === undefined) {
+    return undefined;
+  }
 
-    // Use the grab offset instead of the gate height so that tall gates are 'sticky' when dragging downward: they
-    // aren't removed until the hand actually leaves the circuit area.
-    const handRowOffset = Math.floor(hand.holdOffset.y/Layout.WIRE_SPACING);
-    if (modificationPoint.row + handRowOffset >= context.definition.numWires) {
-        return undefined;
-    }
+  // Use the grab offset instead of the gate height so that tall gates are 'sticky' when dragging downward: they
+  // aren't removed until the hand actually leaves the circuit area.
+  const handRowOffset = Math.floor(hand.holdOffset.y / Layout.WIRE_SPACING);
+  if (modificationPoint.row + handRowOffset >= context.definition.numWires) {
+    return undefined;
+  }
 
-    const addedGate = hand.heldGate;
+  const addedGate = hand.heldGate;
 
-    const emptyCol = GateColumn.empty(context.definition.numWires);
-    const i = modificationPoint.col;
-    const isInserting = modificationPoint.isInsert;
-    const row = Math.min(modificationPoint.row, Math.max(0, Simulation.MAX_WIRE_COUNT - addedGate.height));
-    // Pad out to the drop column, open a slot if this is an insert, then pad out far enough
-    // for the gate's full width before folding it into the column it lands on.
-    const newCols = [...context.definition.columns];
-    while (newCols.length < i) {
-        newCols.push(emptyCol);
-    }
-    if (isInserting) {
-        newCols.splice(i, 0, emptyCol);
-    }
-    while (newCols.length < i + addedGate.width) {
-        newCols.push(emptyCol);
-    }
-    newCols[i] = newCols[i].withGatesAdded(row, new GateColumn([addedGate]));
-    const newWireCount = Math.max(
-        context.geometry.extraWireStartIndex || 0,
-        Math.max(
-            context.definition.numWires,
-            addedGate.height + row));
-    if (newWireCount > Simulation.MAX_WIRE_COUNT) {
-        return undefined;
-    }
+  const emptyCol = GateColumn.empty(context.definition.numWires);
+  const i = modificationPoint.col;
+  const isInserting = modificationPoint.isInsert;
+  const row = Math.min(
+    modificationPoint.row,
+    Math.max(0, Simulation.MAX_WIRE_COUNT - addedGate.height),
+  );
+  // Pad out to the drop column, open a slot if this is an insert, then pad out far enough
+  // for the gate's full width before folding it into the column it lands on.
+  const newCols = [...context.definition.columns];
+  while (newCols.length < i) {
+    newCols.push(emptyCol);
+  }
+  if (isInserting) {
+    newCols.splice(i, 0, emptyCol);
+  }
+  while (newCols.length < i + addedGate.width) {
+    newCols.push(emptyCol);
+  }
+  newCols[i] = newCols[i].withGatesAdded(row, new GateColumn([addedGate]));
+  const newWireCount = Math.max(
+    context.geometry.extraWireStartIndex || 0,
+    Math.max(context.definition.numWires, addedGate.height + row),
+  );
+  if (newWireCount > Simulation.MAX_WIRE_COUNT) {
+    return undefined;
+  }
 
-    const newCircuitDef = context.definition.
-        withColumns(newCols).
-        withWireCount(newWireCount);
-    return {
-        definition: newCircuitDef,
-        highlightedSlot: {row, col: modificationPoint.col, resizeStyle: false},
-        compressedColumnIndex: isInserting ? i : undefined,
-        extraWireStartIndex: context.geometry.extraWireStartIndex || context.definition.numWires
-    };
+  const newCircuitDef = context.definition
+    .withColumns(newCols)
+    .withWireCount(newWireCount);
+  return {
+    definition: newCircuitDef,
+    highlightedSlot: { row, col: modificationPoint.col, resizeStyle: false },
+    compressedColumnIndex: isInserting ? i : undefined,
+    extraWireStartIndex:
+      context.geometry.extraWireStartIndex || context.definition.numWires,
+  };
 }
 
 /**
@@ -85,37 +91,39 @@ function previewDropMovedGate(context, hand) {
  * @returns {undefined|!Object} Proposed definition, drag-state and hand changes.
  */
 function tryGrabGate(context, hand, duplicate, alt) {
-    if (hand.isBusy() || hand.pos === undefined) {
-        return undefined;
-    }
+  if (hand.isBusy() || hand.pos === undefined) {
+    return undefined;
+  }
 
-    const foundPt = context.findGateOverlappingPos(hand.pos);
-    if (foundPt === undefined) {
-        return undefined;
-    }
+  const foundPt = context.findGateOverlappingPos(hand.pos);
+  if (foundPt === undefined) {
+    return undefined;
+  }
 
-    const {col, row, offset} = foundPt;
-    let gate = context.definition.columns[col].gates[row];
-    if (alt) {
-        gate = gate.alternate;
-    }
+  const { col, row, offset } = foundPt;
+  let gate = context.definition.columns[col].gates[row];
+  if (alt) {
+    gate = gate.alternate;
+  }
 
-    const remainingGates = [...context.definition.columns[col].gates];
-    if (!duplicate) {
-        remainingGates[row] = undefined;
-    }
+  const remainingGates = [...context.definition.columns[col].gates];
+  if (!duplicate) {
+    remainingGates[row] = undefined;
+  }
 
-    const newCols = context.definition.columns.
-        with(col, new GateColumn(remainingGates));
-    return {
-        definition: context.definition.withColumns(newCols),
-        compressedColumnIndex: undefined,
-        highlightedSlot: undefined,
-        hand: hand.withHeldGate(gate, offset)
-    };
+  const newCols = context.definition.columns.with(
+    col,
+    new GateColumn(remainingGates),
+  );
+  return {
+    definition: context.definition.withColumns(newCols),
+    compressedColumnIndex: undefined,
+    highlightedSlot: undefined,
+    hand: hand.withHeldGate(gate, offset),
+  };
 }
 
-export {previewDropMovedGate, tryGrabGate};
+export { previewDropMovedGate, tryGrabGate };
 
 /**
  * @param {!CircuitGeometry} geometry
@@ -173,4 +181,3 @@ function findModificationIndex(geometry, hand) {
 
   return { col: col, row: row, isInsert: isInsert };
 }
-

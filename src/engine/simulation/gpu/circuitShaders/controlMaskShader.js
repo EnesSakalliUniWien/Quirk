@@ -14,10 +14,16 @@
  * limitations under the License.
  */
 
-import { Outputs, makePseudoShaderWithInputsAndOutputAndCode } from "../../../webgl/coder/ShaderCoders.js";
+import {
+  Outputs,
+  makePseudoShaderWithInputsAndOutputAndCode,
+} from "../../../webgl/coder/ShaderCoders.js";
 import { Simulation } from "../../../../config/Simulation.js";
 
-const CONTROL_MASK_SHADER = makePseudoShaderWithInputsAndOutputAndCode([], Outputs.bool(), `
+const CONTROL_MASK_SHADER = makePseudoShaderWithInputsAndOutputAndCode(
+  [],
+  Outputs.bool(),
+  `
     uniform float used;
     uniform float desired;
 
@@ -32,6 +38,7 @@ const CONTROL_MASK_SHADER = makePseudoShaderWithInputsAndOutputAndCode([], Outpu
             bit *= 2.0;
         }
         return pass == 1.0;
-    }`);
+    }`,
+);
 
 export { CONTROL_MASK_SHADER };

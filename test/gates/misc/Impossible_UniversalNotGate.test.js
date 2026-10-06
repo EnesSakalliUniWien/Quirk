@@ -14,53 +14,50 @@
  * limitations under the License.
  */
 
-import {Suite, assertThat} from "../../TestUtil.js"
-import {CircuitEvalContext} from "../../../src/engine/simulation/CircuitEvalContext.js"
-import {CircuitShaders} from "../../../src/engine/simulation/gpu/CircuitShaders.js"
-import {universalNot} from "../../../src/gates/misc/Impossible_UniversalNotGate.js"
+import { Suite, assertThat } from "../../TestUtil.js";
+import { CircuitEvalContext } from "../../../src/engine/simulation/CircuitEvalContext.js";
+import { CircuitShaders } from "../../../src/engine/simulation/gpu/CircuitShaders.js";
+import { universalNot } from "../../../src/gates/misc/Impossible_UniversalNotGate.js";
 
-import {Controls} from "../../../src/circuit/model/Controls.js"
-import {Shaders} from "../../../src/engine/webgl/operations/Shaders.js"
-import {WglTextureTrader} from "../../../src/engine/webgl/texture/WglTextureTrader.js"
+import { Controls } from "../../../src/circuit/model/Controls.js";
+import { Shaders } from "../../../src/engine/webgl/operations/Shaders.js";
+import { WglTextureTrader } from "../../../src/engine/webgl/texture/WglTextureTrader.js";
 
 const suite = new Suite("Impossible_UniverseNotGate");
 
-suite.testUsingWebGL('universalNot', () => {
-    const input = Shaders.vec2Data(new Float32Array([
-        1,2, 3,4,
-        5,6, 7,8
-    ])).toVec2Texture(2);
-    const assertAbout = (index, control) => {
-        const controlTex = CircuitShaders.controlMask(control).toBoolTexture(2);
-        const trader = new WglTextureTrader(input);
-        trader.dontDeallocCurrentTexture();
-        const ctx = new CircuitEvalContext(
-            0,
-            index,
-            2,
-            control,
-            controlTex,
-            control,
-            trader,
-            new Map());
-        try {
-            return assertThat(universalNot(ctx).readVec2Outputs(2));
-        } finally {
-            controlTex.deallocByDepositingInPool();
-        }
-    };
-    assertAbout(0, Controls.NONE).isEqualTo(new Float32Array([
-        3,-4, -1,2,
-        7,-8, -5,6
-    ]));
-    assertAbout(1, Controls.NONE).isEqualTo(new Float32Array([
-        5,-6, 7,-8,
-        -1,2, -3,4
-    ]));
-    assertAbout(0, Controls.bit(1, true)).isEqualTo(new Float32Array([
-        1,2,  3,4,
-        7,-8, -5,6
-    ]));
+suite.testUsingWebGL("universalNot", () => {
+  const input = Shaders.vec2Data(
+    new Float32Array([1, 2, 3, 4, 5, 6, 7, 8]),
+  ).toVec2Texture(2);
+  const assertAbout = (index, control) => {
+    const controlTex = CircuitShaders.controlMask(control).toBoolTexture(2);
+    const trader = new WglTextureTrader(input);
+    trader.dontDeallocCurrentTexture();
+    const ctx = new CircuitEvalContext(
+      0,
+      index,
+      2,
+      control,
+      controlTex,
+      control,
+      trader,
+      new Map(),
+    );
+    try {
+      return assertThat(universalNot(ctx).readVec2Outputs(2));
+    } finally {
+      controlTex.deallocByDepositingInPool();
+    }
+  };
+  assertAbout(0, Controls.NONE).isEqualTo(
+    new Float32Array([3, -4, -1, 2, 7, -8, -5, 6]),
+  );
+  assertAbout(1, Controls.NONE).isEqualTo(
+    new Float32Array([5, -6, 7, -8, -1, 2, -3, 4]),
+  );
+  assertAbout(0, Controls.bit(1, true)).isEqualTo(
+    new Float32Array([1, 2, 3, 4, 7, -8, -5, 6]),
+  );
 
-    input.deallocByDepositingInPool();
+  input.deallocByDepositingInPool();
 });

@@ -32,9 +32,9 @@ browser colour scheme and theme-colour metadata. Stylesheets consume the assigne
 for layout and interaction states; they do not define theme values or override a stock theme.
 
 The palette is the one the system's appearance asks for: the app has no appearance setting of its
-own. `browser/selectColourScheme.js` reads it before any theme module evaluates, and
-`browser/systemColourScheme.js` reloads the app when the system's appearance changes while it runs,
-once nothing is held or being typed.
+own. `browser/selectColourScheme.js` selects it before the first render.
+`browser/systemColourScheme.js` applies changes in place: immutable palette snapshots update,
+CSS properties are reassigned, and palette-dependent views repaint without resetting session state.
 
 `CanvasTheme.js` and `Typography.js` keep the existing drawing import paths without loading browser mappings.
 The canvas, toolbox chips and drag previews use the same `gateStyle()` function. Tape keeps its

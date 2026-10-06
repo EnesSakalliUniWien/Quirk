@@ -9,7 +9,7 @@ const IDLE_TIMEOUT_MILLIS = 2000;
  * offers them, else an idle callback, else a timer. `host` is the global scope to ask.
  *
  * @param {() => void} task
- * @param {!Object<string, *>=} host
+ * @param {{scheduler?: {postTask: (task: () => void, options: {priority: "background"}) => unknown}, requestIdleCallback?: (task: () => void, options: {timeout: number}) => unknown, setTimeout: (task: () => void, delay: number) => unknown}} [host]
  */
 function whenIdle(task, host = globalThis) {
   if (typeof host.scheduler?.postTask === "function") {

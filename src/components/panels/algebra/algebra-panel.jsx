@@ -38,7 +38,10 @@ function AlgebraPanel() {
   // The tile worker rebuilds the circuit from its JSON; one string per circuit, for every step.
   const circuit = circuitStats?.circuitDefinition;
   const circuitJson = useMemo(
-    () => (circuit === undefined ? undefined : JSON.stringify(Serializer.toJson(circuit))),
+    () =>
+      circuit === undefined
+        ? undefined
+        : JSON.stringify(Serializer.toJson(circuit)),
     [circuit],
   );
   // Kets by register, the way every other view writes them; bits when there are none.
@@ -63,9 +66,18 @@ function AlgebraPanel() {
     if (track !== null && card !== null && card !== undefined) {
       const left = card.offsetLeft;
       const right = left + card.offsetWidth;
-      if (left < track.scrollLeft || right > track.scrollLeft + track.clientWidth) {
-        track.scrollTo({left: card.offsetWidth > track.clientWidth ? left : Math.max(0, right - track.clientWidth),
-          behavior: !placed.current || prefersReducedMotion() ? "auto" : "smooth"});
+      if (
+        left < track.scrollLeft ||
+        right > track.scrollLeft + track.clientWidth
+      ) {
+        track.scrollTo({
+          left:
+            card.offsetWidth > track.clientWidth
+              ? left
+              : Math.max(0, right - track.clientWidth),
+          behavior:
+            !placed.current || prefersReducedMotion() ? "auto" : "smooth",
+        });
       }
       placed.current = true;
     }
@@ -91,33 +103,83 @@ function AlgebraPanel() {
   const seek = (step) => playhead?.seek(step);
 
   return (
-    <section className="debug-panel algebra-panel" aria-labelledby="algebra-heading">
-      {circuit.columns.some((_, col) => circuit.colIsMeasuredMask(col + 1) !== 0) && <p className="debug-panel-note">After deferred measurement, these kets are simulation amplitudes; use density matrices for the physical state.</p>}
+    <section
+      className="debug-panel algebra-panel"
+      aria-labelledby="algebra-heading"
+    >
+      {circuit.columns.some(
+        (_, col) => circuit.colIsMeasuredMask(col + 1) !== 0,
+      ) && (
+        <p className="debug-panel-note">
+          After deferred measurement, these kets are simulation amplitudes; use
+          density matrices for the physical state.
+        </p>
+      )}
       <header className="debug-panel-header">
         <h2 id="algebra-heading" className="debug-panel-heading">
           Operations and their matrices
         </h2>
         <span className="debug-panel-summary">
           {`${steps.length} step${steps.length === 1 ? "" : "s"} · ${wireCount} qubit${wireCount === 1 ? "" : "s"} · `}
-          <span className={off.length === 0 ? "algebra-check-ok" : "algebra-check-off"}>{checkText}</span>
+          <span
+            className={
+              off.length === 0 ? "algebra-check-ok" : "algebra-check-off"
+            }
+          >
+            {checkText}
+          </span>
         </span>
       </header>
 
-      <EvolutionChart states={states} wireCount={wireCount} current={current} formatKet={formatKet} />
+      <EvolutionChart
+        states={states}
+        wireCount={wireCount}
+        current={current}
+        formatKet={formatKet}
+      />
 
       {/* Focusable so the arrow keys scroll it: a region you can only scroll with a mouse is not
           one everyone can scroll. */}
-      <ol className="algebra-steps" ref={trackRef} tabIndex={0} aria-label="Steps, left to right">
-        <li className="algebra-step" data-step={0} aria-current={current === 0 ? "step" : undefined}>
-          <button type="button" className="algebra-step-header" onClick={() => seek(0)}>
+      {/* eslint-disable jsx-a11y-x/no-noninteractive-tabindex -- Native arrow-key scrolling needs a focusable list; its step actions are buttons. */}
+      <ol
+        className="algebra-steps"
+        ref={trackRef}
+        tabIndex={0}
+        aria-label="Steps, left to right"
+      >
+        <li
+          className="algebra-step"
+          data-step={0}
+          aria-current={current === 0 ? "step" : undefined}
+        >
+          <button
+            type="button"
+            className="algebra-step-header"
+            onClick={() => seek(0)}
+          >
             <span className="algebra-step-number">0</span>
             <span className="algebra-step-description">Start</span>
           </button>
           <div className="algebra-equation">
-            <StateFactor state={states[0]} step={0} wireCount={wireCount} formatKet={formatKet} label="Initial state" />
+            <StateFactor
+              state={states[0]}
+              step={0}
+              wireCount={wireCount}
+              formatKet={formatKet}
+              label="Initial state"
+            />
           </div>
-          <p className="algebra-step-note">Basis order: {Array.from({length: Math.min(8, 1 << wireCount)}, (_, i) =>
-            "|" + (formatKet === undefined ? bin(i, wireCount) : formatKet(i)) + "⟩").join(", ")}{wireCount > 3 ? ", …" : ""}.</p>
+          <p className="algebra-step-note">
+            Basis order:{" "}
+            {Array.from(
+              { length: Math.min(8, 1 << wireCount) },
+              (_, i) =>
+                "|" +
+                (formatKet === undefined ? bin(i, wireCount) : formatKet(i)) +
+                "⟩",
+            ).join(", ")}
+            {wireCount > 3 ? ", …" : ""}.
+          </p>
         </li>
         {steps.map((step, index) => (
           <StepCard
@@ -135,11 +197,15 @@ function AlgebraPanel() {
               col: index,
               wireCount,
               // A time-independent step's tiles stay valid while time runs.
-              time: step.column.stableDuration() === Infinity ? 0 : circuitStats.time,
+              time:
+                step.column.stableDuration() === Infinity
+                  ? 0
+                  : circuitStats.time,
             }}
           />
         ))}
       </ol>
+      {/* eslint-enable jsx-a11y-x/no-noninteractive-tabindex */}
     </section>
   );
 }

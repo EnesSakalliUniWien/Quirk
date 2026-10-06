@@ -1,6 +1,9 @@
 import { useEffect, useMemo } from "react";
 import { useStore } from "zustand";
-import { circuitAlgebra, releaseStepStates } from "../../../engine/simulation/stepAlgebra.js";
+import {
+  circuitAlgebra,
+  releaseStepStates,
+} from "../../../engine/simulation/stepAlgebra.js";
 import { appStore } from "../../../state/appStore.js";
 
 /**
@@ -48,7 +51,8 @@ function useCircuitAlgebra(stats, wireCount) {
     const circuit = stats.circuitDefinition;
     if (
       last !== undefined &&
-      last.algebra.wireCount === wireCount && last.seed === stats.seed &&
+      last.algebra.wireCount === wireCount &&
+      last.seed === stats.seed &&
       last.circuit.isEqualTo(circuit) &&
       (circuit.stableDuration() === Infinity || last.time === stats.time)
     ) {

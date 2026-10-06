@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import {DetailedError} from "../../base/DetailedError.js"
-import {Matrix} from "./matrix/Matrix.js"
+import { DetailedError } from "../../base/DetailedError.js";
+import { Matrix } from "./matrix/Matrix.js";
 
 /**
  * The states a prepare box puts its wires in, as amplitudes.
@@ -40,40 +40,40 @@ import {Matrix} from "./matrix/Matrix.js"
  * @returns {!Float64Array} The 2^length amplitudes, real and imaginary parts interleaved.
  */
 function preparedStateVector(preparation, length) {
-    const size = 1 << length;
-    const out = new Float64Array(size * 2);
-    if (preparation.kind === "value") {
-        out[preparation.value * 2] = 1;
-        return out;
-    }
-    if (preparation.kind === "amplitudes") {
-        preparation.amplitudes.forEach(([re, im], i) => {
-            out[i * 2] = re;
-            out[i * 2 + 1] = im;
-        });
-        return out;
-    }
-    switch (preparation.name) {
-        case "plus":
-            for (let i = 0; i < size; i++) {
-                out[i * 2] = 1 / Math.sqrt(size);
-            }
-            return out;
-        case "bell":
-        case "ghz":
-            // All zeros plus all ones; over two wires that is the Bell pair Φ⁺.
-            out[0] = Math.SQRT1_2;
-            out[(size - 1) * 2] = Math.SQRT1_2;
-            return out;
-        case "w":
-            // Exactly one wire is 1, each equally likely.
-            for (let k = 0; k < length; k++) {
-                out[(1 << k) * 2] = 1 / Math.sqrt(length);
-            }
-            return out;
-        default:
-            throw new DetailedError("Unknown named preparation.", {preparation});
-    }
+  const size = 1 << length;
+  const out = new Float64Array(size * 2);
+  if (preparation.kind === "value") {
+    out[preparation.value * 2] = 1;
+    return out;
+  }
+  if (preparation.kind === "amplitudes") {
+    preparation.amplitudes.forEach(([re, im], i) => {
+      out[i * 2] = re;
+      out[i * 2 + 1] = im;
+    });
+    return out;
+  }
+  switch (preparation.name) {
+    case "plus":
+      for (let i = 0; i < size; i++) {
+        out[i * 2] = 1 / Math.sqrt(size);
+      }
+      return out;
+    case "bell":
+    case "ghz":
+      // All zeros plus all ones; over two wires that is the Bell pair Φ⁺.
+      out[0] = Math.SQRT1_2;
+      out[(size - 1) * 2] = Math.SQRT1_2;
+      return out;
+    case "w":
+      // Exactly one wire is 1, each equally likely.
+      for (let k = 0; k < length; k++) {
+        out[(1 << k) * 2] = 1 / Math.sqrt(length);
+      }
+      return out;
+    default:
+      throw new DetailedError("Unknown named preparation.", { preparation });
+  }
 }
 
 /**
@@ -86,14 +86,14 @@ function preparedStateVector(preparation, length) {
  * @returns {!Matrix} 2^length by 2^length.
  */
 function preparationMatrix(preparation, length) {
-    const size = 1 << length;
-    const amplitudes = preparedStateVector(preparation, length);
-    const buffer = new Float64Array(size * size * 2);
-    for (let row = 0; row < size; row++) {
-        buffer[row * size * 2] = amplitudes[row * 2];
-        buffer[row * size * 2 + 1] = amplitudes[row * 2 + 1];
-    }
-    return new Matrix(size, size, buffer);
+  const size = 1 << length;
+  const amplitudes = preparedStateVector(preparation, length);
+  const buffer = new Float64Array(size * size * 2);
+  for (let row = 0; row < size; row++) {
+    buffer[row * size * 2] = amplitudes[row * 2];
+    buffer[row * size * 2 + 1] = amplitudes[row * 2 + 1];
+  }
+  return new Matrix(size, size, buffer);
 }
 
-export {preparationMatrix, preparedStateVector}
+export { preparationMatrix, preparedStateVector };

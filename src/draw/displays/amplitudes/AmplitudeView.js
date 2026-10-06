@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {isAmplitudeCoherent} from "../../../engine/math/amplitudeCoherence.js";
+import { isAmplitudeCoherent } from "../../../engine/math/amplitudeCoherence.js";
 import { fitParagraph } from "../../text/TextLayout.js";
 
 import { CanvasTheme } from "../../../config/CanvasTheme.js";
@@ -59,16 +59,23 @@ const AMPLITUDE_RENDERER_FROM_CUSTOM_STATS = makeDisplayRenderer((args) => {
   // The drawing is the shared state renderer's (src/draw/renderers/dataRenderers.js); this gate
   // only decides which amplitudes, where, and how sure it is of their phases. The renderer fits
   // the cells inside the gate, and the gate's frame follows what it drew.
-  const { grid, block } = DATA_RENDERERS.state(args.painter, matrix, args.rect, {
-    wireCount: n,
-    focusPoints: args.focusPoints,
-    coherent: !isIncoherent,
-    indicatorAlpha,
-    phaseLockIndex,
-    registers,
-  });
+  const { grid, block } = DATA_RENDERERS.state(
+    args.painter,
+    matrix,
+    args.rect,
+    {
+      wireCount: n,
+      focusPoints: args.focusPoints,
+      coherent: !isIncoherent,
+      indicatorAlpha,
+      phaseLockIndex,
+      registers,
+    },
+  );
 
-  const phaseKey = !isIncoherent && !matrix.hasNaN() &&
+  const phaseKey =
+    !isIncoherent &&
+    !matrix.hasNaN() &&
     drawsAsPixels(matrix.width(), matrix.height(), grid, n);
   paintCaption(args, indicatorAlpha, phaseLockIndex, registers, phaseKey);
   return block;
@@ -86,11 +93,23 @@ const AMPLITUDE_RENDERER_FROM_CUSTOM_STATS = makeDisplayRenderer((args) => {
  * @param {!Registers} registers
  * @param {!boolean} phaseKey
  */
-function paintCaption(args, indicatorAlpha, phaseLockIndex, registers, phaseKey) {
+function paintCaption(
+  args,
+  indicatorAlpha,
+  phaseLockIndex,
+  registers,
+  phaseKey,
+) {
   if (phaseKey) {
     // The wheel of hues the pixels wear, small, over the caption that names it.
     const radius = PHASE_KEY_HEIGHT / 2;
-    paintPhaseWheel(args.painter, args.rect.center().x - radius, args.rect.bottom() + CAPTION_GAP, radius, { labels: false });
+    paintPhaseWheel(
+      args.painter,
+      args.rect.center().x - radius,
+      args.rect.bottom() + CAPTION_GAP,
+      radius,
+      { labels: false },
+    );
   }
   const parts = phaseKey ? ["colour = phase"] : [];
   const { col, row } = args.positionInCircuit;
@@ -99,9 +118,7 @@ function paintCaption(args, indicatorAlpha, phaseLockIndex, registers, phaseKey)
       ((1 << args.gate.height) - 1)) !==
     0;
   if (measured) {
-    parts.push(
-      "Measurement deferred",
-    );
+    parts.push("Measurement deferred");
   }
   if (indicatorAlpha < 0.999) {
     parts.push("Entangled: phase undefined");

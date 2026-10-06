@@ -14,91 +14,102 @@
  * limitations under the License.
  */
 
-import {Gate} from "../../circuit/model/Gate.js"
-import {QubitMatrix} from "../../engine/math/matrix/QubitMatrix.js"
+import { Gate } from "../../circuit/model/Gate.js";
+import { QubitMatrix } from "../../engine/math/matrix/QubitMatrix.js";
 
 const VariousZGates = {};
 
 VariousZGates.Z3 = Gate.fromKnownMatrix(
-    "Z^⅓",
-    QubitMatrix.fromPauliRotation(0, 0, 1 / 6),
-    "Z^⅓ Gate",
-    "Principle third root of Z.");
+  "Z^⅓",
+  QubitMatrix.fromPauliRotation(0, 0, 1 / 6),
+  "Z^⅓ Gate",
+  "Principle third root of Z.",
+);
 VariousZGates.Z3i = Gate.fromKnownMatrix(
-    "Z^-⅓",
-    QubitMatrix.fromPauliRotation(0, 0, -1 / 6),
-    "Z^-⅓ Gate",
-    "Adjoint third root of Z.",
-    undefined,
-    VariousZGates.Z3);
+  "Z^-⅓",
+  QubitMatrix.fromPauliRotation(0, 0, -1 / 6),
+  "Z^-⅓ Gate",
+  "Adjoint third root of Z.",
+  undefined,
+  VariousZGates.Z3,
+);
 // Named after the symbol drawn on the circuit, with the power convention in parentheses, so a
 // toolbox row never shows two different names for one gate.
 VariousZGates.Z4 = Gate.fromKnownMatrix(
-    "T",
-    QubitMatrix.fromPauliRotation(0, 0, 1 / 8),
-    "T Gate (Z^¼)",
-    "Principle fourth root of Z.",
-    "Z^¼");
+  "T",
+  QubitMatrix.fromPauliRotation(0, 0, 1 / 8),
+  "T Gate (Z^¼)",
+  "Principle fourth root of Z.",
+  "Z^¼",
+);
 VariousZGates.Z4i = Gate.fromKnownMatrix(
-    "T^-1",
-    QubitMatrix.fromPauliRotation(0, 0, -1 / 8),
-    "T^-1 Gate (Z^-¼)",
-    "Adjoint fourth root of Z.",
-    "Z^-¼",
-    VariousZGates.Z4);
+  "T^-1",
+  QubitMatrix.fromPauliRotation(0, 0, -1 / 8),
+  "T^-1 Gate (Z^-¼)",
+  "Adjoint fourth root of Z.",
+  "Z^-¼",
+  VariousZGates.Z4,
+);
 VariousZGates.Z8 = Gate.fromKnownMatrix(
-    "Z^⅛",
-    QubitMatrix.fromPauliRotation(0, 0, 1 / 16),
-    "Z^⅛ Gate",
-    "Principle eighth root of Z.");
+  "Z^⅛",
+  QubitMatrix.fromPauliRotation(0, 0, 1 / 16),
+  "Z^⅛ Gate",
+  "Principle eighth root of Z.",
+);
 VariousZGates.Z8i = Gate.fromKnownMatrix(
-    "Z^-⅛",
-    QubitMatrix.fromPauliRotation(0, 0, -1 / 16),
-    "Z^-⅛ Gate",
-    "Adjoint eighth root of Z.",
-    undefined,
-    VariousZGates.Z8);
+  "Z^-⅛",
+  QubitMatrix.fromPauliRotation(0, 0, -1 / 16),
+  "Z^-⅛ Gate",
+  "Adjoint eighth root of Z.",
+  undefined,
+  VariousZGates.Z8,
+);
 VariousZGates.Z16 = Gate.fromKnownMatrix(
-    "Z^⅟₁₆",
-    QubitMatrix.fromPauliRotation(0, 0, 1 / 32),
-    "Z^⅟₁₆ Gate",
-    "Principle 16'th root of Z.");
+  "Z^⅟₁₆",
+  QubitMatrix.fromPauliRotation(0, 0, 1 / 32),
+  "Z^⅟₁₆ Gate",
+  "Principle 16'th root of Z.",
+);
 VariousZGates.Z16i = Gate.fromKnownMatrix(
-    "Z^-⅟₁₆",
-    QubitMatrix.fromPauliRotation(0, 0, -1 / 32),
-    "Z^-⅟₁₆ Gate",
-    "Adjoint 16'th root of Z.",
-    undefined,
-    VariousZGates.Z16);
+  "Z^-⅟₁₆",
+  QubitMatrix.fromPauliRotation(0, 0, -1 / 32),
+  "Z^-⅟₁₆ Gate",
+  "Adjoint 16'th root of Z.",
+  undefined,
+  VariousZGates.Z16,
+);
 
 VariousZGates.Z32 = Gate.fromKnownMatrix(
-    "Z^⅟₃₂",
-    QubitMatrix.fromPauliRotation(0, 0, 1 / 64),
-    "Z^⅟₃₂ Gate",
-    "Principle 32'nd root of Z.");
+  "Z^⅟₃₂",
+  QubitMatrix.fromPauliRotation(0, 0, 1 / 64),
+  "Z^⅟₃₂ Gate",
+  "Principle 32'nd root of Z.",
+);
 VariousZGates.Z64 = Gate.fromKnownMatrix(
-    "Z^⅟₆₄",
-    QubitMatrix.fromPauliRotation(0, 0, 1 / 128),
-    "Z^⅟₆₄ Gate",
-    "Principle 64'th root of Z.");
+  "Z^⅟₆₄",
+  QubitMatrix.fromPauliRotation(0, 0, 1 / 128),
+  "Z^⅟₆₄ Gate",
+  "Principle 64'th root of Z.",
+);
 VariousZGates.Z128 = Gate.fromKnownMatrix(
-    "Z^⅟₁₂₈",
-    QubitMatrix.fromPauliRotation(0, 0, 1 / 256),
-    "Z^⅟₁₂₈ Gate",
-    "Principle 128'th root of Z.");
+  "Z^⅟₁₂₈",
+  QubitMatrix.fromPauliRotation(0, 0, 1 / 256),
+  "Z^⅟₁₂₈ Gate",
+  "Principle 128'th root of Z.",
+);
 
-VariousZGates.all =[
-    VariousZGates.Z3,
-    VariousZGates.Z4,
-    VariousZGates.Z8,
-    VariousZGates.Z16,
-    VariousZGates.Z32,
-    VariousZGates.Z64,
-    VariousZGates.Z128,
-    VariousZGates.Z3i,
-    VariousZGates.Z4i,
-    VariousZGates.Z8i,
-    VariousZGates.Z16i
+VariousZGates.all = [
+  VariousZGates.Z3,
+  VariousZGates.Z4,
+  VariousZGates.Z8,
+  VariousZGates.Z16,
+  VariousZGates.Z32,
+  VariousZGates.Z64,
+  VariousZGates.Z128,
+  VariousZGates.Z3i,
+  VariousZGates.Z4i,
+  VariousZGates.Z8i,
+  VariousZGates.Z16i,
 ];
 
-export {VariousZGates}
+export { VariousZGates };

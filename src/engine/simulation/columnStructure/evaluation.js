@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import {Matrix} from "../../math/matrix/Matrix.js";
-import {evolve} from "./sparseEvolution.js";
+import { Matrix } from "../../math/matrix/Matrix.js";
+import { evolve } from "./sparseEvolution.js";
 
 /** @typedef {import("./columnStructure.js").ColumnStructure} ColumnStructure */
 
@@ -30,13 +30,13 @@ const NEGLIGIBLE = 1e-12;
  * @returns {!Map.<!int, !Array.<!number>>} Output basis state -> [re, im].
  */
 function columnImage(structure, basis) {
-    const amplitudes = evolve(structure, new Map([[basis, [1, 0]]]));
-    for (const [index, [re, im]] of amplitudes) {
-        if (re * re + im * im < NEGLIGIBLE * NEGLIGIBLE) {
-            amplitudes.delete(index);
-        }
+  const amplitudes = evolve(structure, new Map([[basis, [1, 0]]]));
+  for (const [index, [re, im]] of amplitudes) {
+    if (re * re + im * im < NEGLIGIBLE * NEGLIGIBLE) {
+      amplitudes.delete(index);
     }
-    return amplitudes;
+  }
+  return amplitudes;
 }
 
 /**
@@ -47,19 +47,23 @@ function columnImage(structure, basis) {
  * @returns {!number}
  */
 function structureFanOut(structure) {
-    let fanOut = 1;
-    for (const op of [...structure.setup, ...structure.core, ...structure.cleanup]) {
-        if (op.kind === 'single' || op.kind === 'inputRotation') {
-            fanOut *= 2;
-        } else if (op.kind === 'dense') {
-            fanOut *= 1 << op.height;
-        } else if (op.kind === 'prepare') {
-            fanOut *= op.nonzero;
-        } else if (op.kind === 'nested') {
-            fanOut *= op.fanOut;
-        }
+  let fanOut = 1;
+  for (const op of [
+    ...structure.setup,
+    ...structure.core,
+    ...structure.cleanup,
+  ]) {
+    if (op.kind === "single" || op.kind === "inputRotation") {
+      fanOut *= 2;
+    } else if (op.kind === "dense") {
+      fanOut *= 1 << op.height;
+    } else if (op.kind === "prepare") {
+      fanOut *= op.nonzero;
+    } else if (op.kind === "nested") {
+      fanOut *= op.fanOut;
     }
-    return Math.min(fanOut, 1 << structure.wireCount);
+  }
+  return Math.min(fanOut, 1 << structure.wireCount);
 }
 
 /**
@@ -70,15 +74,15 @@ function structureFanOut(structure) {
  * @returns {!Matrix}
  */
 function structureMatrix(structure) {
-    const size = 1 << structure.wireCount;
-    const buffer = new Float64Array(size * size * 2);
-    for (let basis = 0; basis < size; basis++) {
-        for (const [row, [re, im]] of columnImage(structure, basis)) {
-            buffer[(row * size + basis) * 2] = re;
-            buffer[(row * size + basis) * 2 + 1] = im;
-        }
+  const size = 1 << structure.wireCount;
+  const buffer = new Float64Array(size * size * 2);
+  for (let basis = 0; basis < size; basis++) {
+    for (const [row, [re, im]] of columnImage(structure, basis)) {
+      buffer[(row * size + basis) * 2] = re;
+      buffer[(row * size + basis) * 2 + 1] = im;
     }
-    return new Matrix(size, size, buffer);
+  }
+  return new Matrix(size, size, buffer);
 }
 
 /**
@@ -93,26 +97,27 @@ function structureMatrix(structure) {
  * @returns {undefined|!Matrix}
  */
 function applyStructure(structure, state, budget) {
-    const source = state.rawBuffer();
-    const size = 1 << structure.wireCount;
-    const buffer = new Float64Array(size * 2);
-    const fanOut = structureFanOut(structure);
-    let spent = 0;
-    for (let basis = 0; basis < size; basis++) {
-        const ar = source[basis * 2], ai = source[basis * 2 + 1];
-        if (ar * ar + ai * ai < NEGLIGIBLE * NEGLIGIBLE) {
-            continue;
-        }
-        spent += fanOut;
-        if (spent > budget) {
-            return undefined;
-        }
-        for (const [row, [re, im]] of columnImage(structure, basis)) {
-            buffer[row * 2] += ar * re - ai * im;
-            buffer[row * 2 + 1] += ar * im + ai * re;
-        }
+  const source = state.rawBuffer();
+  const size = 1 << structure.wireCount;
+  const buffer = new Float64Array(size * 2);
+  const fanOut = structureFanOut(structure);
+  let spent = 0;
+  for (let basis = 0; basis < size; basis++) {
+    const ar = source[basis * 2],
+      ai = source[basis * 2 + 1];
+    if (ar * ar + ai * ai < NEGLIGIBLE * NEGLIGIBLE) {
+      continue;
     }
-    return new Matrix(1, size, buffer);
+    spent += fanOut;
+    if (spent > budget) {
+      return undefined;
+    }
+    for (const [row, [re, im]] of columnImage(structure, basis)) {
+      buffer[row * 2] += ar * re - ai * im;
+      buffer[row * 2 + 1] += ar * im + ai * re;
+    }
+  }
+  return new Matrix(1, size, buffer);
 }
 
-export {applyStructure, columnImage, structureFanOut, structureMatrix};
+export { applyStructure, columnImage, structureFanOut, structureMatrix };

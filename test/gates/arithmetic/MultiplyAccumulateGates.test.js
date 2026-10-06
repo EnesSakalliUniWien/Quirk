@@ -14,64 +14,81 @@
  * limitations under the License.
  */
 
-import {Suite} from "../../TestUtil.js"
-import {MultiplyAccumulateGates} from "../../../src/gates/arithmetic/MultiplyAccumulateGates.js"
-import {InputGates} from "../../../src/gates/inputs/InputGates.js"
-import {assertThatCircuitOutputsBasisKet, assertThatCircuitUpdateActsLikeMatrix} from "../../CircuitOperationTestUtil.js"
-import {advanceStateWithCircuit} from "../../../src/engine/simulation/CircuitComputeUtil.js"
+import { Suite } from "../../TestUtil.js";
+import { MultiplyAccumulateGates } from "../../../src/gates/arithmetic/MultiplyAccumulateGates.js";
+import { InputGates } from "../../../src/gates/inputs/InputGates.js";
+import {
+  assertThatCircuitOutputsBasisKet,
+  assertThatCircuitUpdateActsLikeMatrix,
+} from "../../CircuitOperationTestUtil.js";
+import { advanceStateWithCircuit } from "../../../src/engine/simulation/CircuitComputeUtil.js";
 
-import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js"
-import {GateColumn} from "../../../src/circuit/model/GateColumn.js"
-import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
+import { CircuitDefinition } from "../../../src/circuit/model/CircuitDefinition.js";
+import { GateColumn } from "../../../src/circuit/model/GateColumn.js";
+import { Matrix } from "../../../src/engine/math/matrix/Matrix.js";
 
 const suite = new Suite("MultiplyAccumulateGates");
 
-suite.testUsingWebGL('plus_AB', () => {
-    assertThatCircuitUpdateActsLikeMatrix(
-        ctx => advanceStateWithCircuit(
-            ctx,
-            new CircuitDefinition(5, [new GateColumn([
-                MultiplyAccumulateGates.MultiplyAddInputsFamily.ofSize(2),
-                undefined,
-                InputGates.InputAFamily.ofSize(2),
-                undefined,
-                InputGates.InputBFamily.ofSize(1)])]),
-            false),
-        Matrix.generateTransition(32, i => {
-            const a = (i>>2)&3;
-            const b = (i>>4)&1;
-            const t = i & 3;
-            return (a<<2) | (b<<4) | ((t+a*b)&3);
-        }));
+suite.testUsingWebGL("plus_AB", () => {
+  assertThatCircuitUpdateActsLikeMatrix(
+    (ctx) =>
+      advanceStateWithCircuit(
+        ctx,
+        new CircuitDefinition(5, [
+          new GateColumn([
+            MultiplyAccumulateGates.MultiplyAddInputsFamily.ofSize(2),
+            undefined,
+            InputGates.InputAFamily.ofSize(2),
+            undefined,
+            InputGates.InputBFamily.ofSize(1),
+          ]),
+        ]),
+        false,
+      ),
+    Matrix.generateTransition(32, (i) => {
+      const a = (i >> 2) & 3;
+      const b = (i >> 4) & 1;
+      const t = i & 3;
+      return (a << 2) | (b << 4) | ((t + a * b) & 3);
+    }),
+  );
 });
 
-suite.testUsingWebGL('minus_AB', () => {
-    assertThatCircuitUpdateActsLikeMatrix(
-        ctx => advanceStateWithCircuit(
-            ctx,
-            new CircuitDefinition(5, [new GateColumn([
-                InputGates.InputAFamily.ofSize(2),
-                undefined,
-                MultiplyAccumulateGates.MultiplySubtractInputsFamily.ofSize(2),
-                undefined,
-                InputGates.InputBFamily.ofSize(1)])]),
-            false).output,
-        Matrix.generateTransition(32, i => {
-            const a = i&3;
-            const b = (i>>4)&1;
-            const t = (i>>2)&3;
-            return a | (b<<4) | (((t-a*b)&3)<<2);
-        }));
+suite.testUsingWebGL("minus_AB", () => {
+  assertThatCircuitUpdateActsLikeMatrix(
+    (ctx) =>
+      advanceStateWithCircuit(
+        ctx,
+        new CircuitDefinition(5, [
+          new GateColumn([
+            InputGates.InputAFamily.ofSize(2),
+            undefined,
+            MultiplyAccumulateGates.MultiplySubtractInputsFamily.ofSize(2),
+            undefined,
+            InputGates.InputBFamily.ofSize(1),
+          ]),
+        ]),
+        false,
+      ).output,
+    Matrix.generateTransition(32, (i) => {
+      const a = i & 3;
+      const b = (i >> 4) & 1;
+      const t = (i >> 2) & 3;
+      return a | (b << 4) | (((t - a * b) & 3) << 2);
+    }),
+  );
 });
 
-suite.testUsingWebGL('plus_big_AB', () => {
-    const circuit = CircuitDefinition.fromTextDiagram(new Map([
-        ['a', InputGates.SetA.withParam((1<<14)+1)],
-        ['b', InputGates.SetB.withParam((1<<14)+1)],
-        ['*', MultiplyAccumulateGates.MultiplyAddInputsFamily],
-        ['-', undefined],
-        ['/', null],
-    ]), `-a-*-
+suite.testUsingWebGL("plus_big_AB", () => {
+  const circuit = CircuitDefinition.fromTextDiagram(
+    new Map([
+      ["a", InputGates.SetA.withParam((1 << 14) + 1)],
+      ["b", InputGates.SetB.withParam((1 << 14) + 1)],
+      ["*", MultiplyAccumulateGates.MultiplyAddInputsFamily],
+      ["-", undefined],
+      ["/", null],
+    ]),
+    `-a-*-
          ---/-
          -b-/-
          ---/-
@@ -86,6 +103,46 @@ suite.testUsingWebGL('plus_big_AB', () => {
          ---/-
          ---/-
          ---/-
-         ---/-`);
-    assertThatCircuitOutputsBasisKet(circuit, 1 + (2<<14));
+         ---/-`,
+  );
+  assertThatCircuitOutputsBasisKet(circuit, 1 + (2 << 14));
+});
+
+// An untouched wire above the legacy gate catches routing relative to ctx.row.
+suite.testUsingWebGL("legacy_multiply_routes_both_inputs_and_target", () => {
+  for (const span of [3, 4, 5]) {
+    for (const [family, factor] of [
+      [MultiplyAccumulateGates.Legacy_MultiplyAddFamily, 1],
+      [MultiplyAccumulateGates.Legacy_MultiplySubtractFamily, -1],
+    ]) {
+      const requestedTargetSize = Math.ceil(span / 2);
+      const bSize = Math.ceil((span - requestedTargetSize) / 2);
+      const aSize = Math.max(span - bSize - requestedTargetSize, 1);
+      const cSize = span - aSize - bSize;
+      const targetShift = 1 + aSize + bSize;
+      assertThatCircuitUpdateActsLikeMatrix(
+        (ctx) =>
+          advanceStateWithCircuit(
+            ctx,
+            new CircuitDefinition(span + 1, [
+              new GateColumn([
+                undefined,
+                family.ofSize(span),
+                ...Array.from({ length: span - 1 }, () => undefined),
+              ]),
+            ]),
+            false,
+          ),
+        Matrix.generateTransition(1 << (span + 1), (input) => {
+          const a = (input >> 1) & ((1 << aSize) - 1);
+          const b = (input >> (1 + aSize)) & ((1 << bSize) - 1);
+          const c = input >> targetShift;
+          return (
+            (input & ((1 << targetShift) - 1)) |
+            (((c + factor * a * b) & ((1 << cSize) - 1)) << targetShift)
+          );
+        }),
+      );
+    }
+  }
 });

@@ -44,7 +44,7 @@ const SampleDisplayFamily = Gate.buildFamily(1, 16, (span, builder) =>
     .setProcessedStatsToJsonFunc(probabilityDataToJson)
     .setRenderer(SAMPLE_RENDERER)
     .setExtraDisableReasonFinder((args) =>
-      args.isNested ? "can't\nnest\ndisplays\n(sorry)" : undefined,
+      args.isNested ? "No nested\ndisplay" : undefined,
     ),
 );
 

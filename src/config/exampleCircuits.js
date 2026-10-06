@@ -471,8 +471,26 @@ const dagCopyLink = {
   ],
 };
 
-/** @type {!Array.<!{name: !string, circuit: !object}>} */
+/** @type {!Array.<!{name: !string, circuit: !object, category?: !string, goal?: !string}>} */
 const EXAMPLE_CIRCUITS = [
+  {
+    name: "Superposition",
+    category: "starter",
+    goal: "One H gate makes 0 and 1 equally likely.",
+    circuit: { cols: [["H"], ["Chance"]] },
+  },
+  {
+    name: "Interference",
+    category: "starter",
+    goal: "A second H gate returns the qubit to 0.",
+    circuit: { cols: [["H"], ["Chance"], ["H"], ["Chance"]] },
+  },
+  {
+    name: "Bell Pair",
+    category: "starter",
+    goal: "Two entangled qubits give 00 or 11 with equal probability.",
+    circuit: { cols: [["H"], ["•", "X"], ["Chance2"]] },
+  },
   { name: "Grover Search", circuit: groverLink },
   { name: "Shor Period Finding", circuit: shorLink },
   { name: "Bell Inequality Test (CHSH)", circuit: chshTestLink },
@@ -483,7 +501,10 @@ const EXAMPLE_CIRCUITS = [
   { name: "Quantum Fourier Transform", circuit: qftLink },
   { name: "Reversible Addition", circuit: additionLink },
   { name: "Magic State Distillation", circuit: distillLink },
-  { name: "Two State Model Unitary from Eigenvalues", circuit: twoStateUnitaryLink },
+  {
+    name: "Two State Model Unitary from Eigenvalues",
+    circuit: twoStateUnitaryLink,
+  },
   { name: "Amplitudes Copied into DAG Children", circuit: dagCopyLink },
 ];
 

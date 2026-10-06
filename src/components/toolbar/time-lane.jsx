@@ -1,7 +1,12 @@
 import styles from "./transport-bar.module.css";
 import { useEffect, useRef } from "react";
 import { useStore } from "zustand";
-import { ChevronLeftIcon, ChevronRightIcon, PauseIcon, PlayIcon } from "lucide-react";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  PauseIcon,
+  PlayIcon,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { observeStore } from "../../base/valueStore.js";
@@ -17,7 +22,7 @@ const NUDGE = `1/${Math.round(1 / Animation.T_NUDGE)}`;
 const HOLD_WORDS = Object.freeze({
   paused: "paused",
   recording: "recording",
-  take: "take",
+  take: "snapshot",
 });
 
 /**
@@ -28,7 +33,9 @@ const HOLD_WORDS = Object.freeze({
 function holdTitle(hold, speed) {
   switch (hold) {
     case undefined: {
-      const seconds = Number((Animation.CYCLE_DURATION_MS / 1000 / speed).toFixed(2));
+      const seconds = Number(
+        (Animation.CYCLE_DURATION_MS / 1000 / speed).toFixed(2),
+      );
       return `t runs from 0 to 1 every ${seconds} s; formula gates read twice it, from 0 to 2. Pause it to read one phase.`;
     }
     case "paused":
@@ -38,7 +45,7 @@ function holdTitle(hold, speed) {
     case "recording":
       return "Held while the whole run records.";
     default:
-      return "Held at the restored take's phase.";
+      return "Held at the restored snapshot's phase.";
   }
 }
 
@@ -61,9 +68,24 @@ function TimeLane() {
   const valueRef = useRef(null);
   const sectorRef = useRef(null);
   const scrubRef = useRef(null);
-  const dragging = useRef(false);
+  const dragging = useRef(/** @type {number | undefined} */ (undefined));
 
   const live = animates && controls !== undefined && deps !== undefined;
+  useEffect(() => {
+    const release = (event) => {
+      if (event.type === "blur" || event.pointerId === dragging.current)
+        dragging.current = undefined;
+    };
+    window.addEventListener("pointerup", release);
+    window.addEventListener("pointercancel", release);
+    window.addEventListener("blur", release);
+    return () => {
+      window.removeEventListener("pointerup", release);
+      window.removeEventListener("pointercancel", release);
+      window.removeEventListener("blur", release);
+      dragging.current = undefined;
+    };
+  }, [live]);
   useEffect(() => {
     if (!live) {
       return undefined;
@@ -81,7 +103,7 @@ function TimeLane() {
       }
       if (sector !== lastSector && sectorRef.current !== null) {
         sectorRef.current.setAttribute("d", sectorPath(sector));
-        if (!dragging.current && scrubRef.current !== null) {
+        if (dragging.current === undefined && scrubRef.current !== null) {
           scrubRef.current.value = String(sector);
         }
         lastSector = sector;
@@ -93,7 +115,10 @@ function TimeLane() {
   const usersToMove = running || hold === "paused";
   return (
     <div className={styles.lane} role="group" aria-label="Time">
-      <span className={`${styles.laneLabel} ${styles.timeLabel}`} aria-hidden="true">
+      <span
+        className={`${styles.laneLabel} ${styles.timeLabel}`}
+        aria-hidden="true"
+      >
         Time
       </span>
       {live ? (
@@ -122,7 +147,9 @@ function TimeLane() {
             ) : (
               <PlayIcon data-icon="inline-start" fill="currentColor" />
             )}
-            <span className={styles.word}>{running ? "Pause t" : "Play t"}</span>
+            <span className={styles.word}>
+              {running ? "Pause t" : "Play t"}
+            </span>
           </Button>
           <Button
             id="time-forward-button"
@@ -146,20 +173,34 @@ function TimeLane() {
             defaultValue="0"
             disabled={!usersToMove}
             aria-label="Scrub t"
-            onPointerDown={() => {
-              dragging.current = true;
+            onPointerDown={(event) => {
+              if (dragging.current === undefined)
+                dragging.current = event.pointerId;
             }}
-            onPointerUp={() => {
-              dragging.current = false;
+            onLostPointerCapture={(event) => {
+              if (dragging.current === event.pointerId)
+                dragging.current = undefined;
             }}
-            onInput={(event) => controls.scrub(Number(event.currentTarget.value))}
+            onInput={(event) =>
+              controls.scrub(Number(event.currentTarget.value))
+            }
           />
           <span className={styles.readout}>
-            <svg className={styles.dial} viewBox="-8 -8 16 16" aria-hidden="true">
+            <svg
+              className={styles.dial}
+              viewBox="-8 -8 16 16"
+              aria-hidden="true"
+            >
               <circle className={styles.face} r={DIAL_RADIUS} />
               <path className={styles.sector} ref={sectorRef} />
               {/* Zero, where every dial on the canvas starts. */}
-              <line className={styles.zero} x1="0" y1={-DIAL_RADIUS} x2="0" y2={-DIAL_RADIUS + 2.5} />
+              <line
+                className={styles.zero}
+                x1="0"
+                y1={-DIAL_RADIUS}
+                x2="0"
+                y2={-DIAL_RADIUS + 2.5}
+              />
             </svg>
             <span className={styles.value}>
               t <span ref={valueRef} />

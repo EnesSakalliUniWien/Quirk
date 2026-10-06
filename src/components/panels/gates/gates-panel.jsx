@@ -18,16 +18,27 @@ function GatesPanel() {
   if (gateToolbox === undefined) {
     return null;
   }
-  const grabShowingCircuit = (gate, pointer) => {
+  const showCircuit = () => {
     // Asked of the group, not the panel: the circuit renders "always", so it stays laid out - and
     // can report itself visible - while another tab of its group covers it.
     const circuit = appStore.getState().dock?.getPanel("circuit");
     if (circuit !== undefined && circuit.group.activePanel !== circuit) {
       circuit.api.setActive();
     }
-    gateToolbox.onGrab(gate, pointer);
   };
-  return <GateToolbox {...gateToolbox} onGrab={grabShowingCircuit} />;
+  return (
+    <GateToolbox
+      {...gateToolbox}
+      onGrab={(gate, pointer) => {
+        showCircuit();
+        gateToolbox.onGrab(gate, pointer);
+      }}
+      onPlace={(gate) => {
+        showCircuit();
+        gateToolbox.onPlace(gate);
+      }}
+    />
+  );
 }
 
 export { GatesPanel };

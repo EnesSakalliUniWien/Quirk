@@ -1,3 +1,4 @@
+import { useColourScheme } from "../useColourScheme.js";
 import { useEffect, useRef, useState } from "react";
 import { clock } from "../../base/Clock.js";
 import { RenderCanvas } from "../../draw/surface/RenderCanvas.jsx";
@@ -16,6 +17,7 @@ export function CircuitFigure({
   animate = false,
   cycleTime,
 }) {
+  const scheme = useColourScheme();
   const canvasRef = useRef(null);
   const host = useRef(null);
   const [ready, setReady] = useState(false);
@@ -31,11 +33,11 @@ export function CircuitFigure({
   }, [responsive]);
   useEffect(() => {
     if (!ready || !canvasRef.current) return;
-    const ratio = window.devicePixelRatio || 1;
     const draw = () => {
-      const painter = RenderSurface.forCanvas(canvasRef.current)
-        .resize(width * ratio, height * ratio)
-        .beginFrame(undefined, ratio);
+      const painter = RenderSurface.forCanvas(canvasRef.current).beginCssFrame(
+        width,
+        height,
+      );
       rectangle(painter, drawingArea(painter), {
         fill: CanvasTheme.surface.gate,
       });
@@ -50,7 +52,7 @@ export function CircuitFigure({
     };
     draw();
     return animate ? clock.onFrame(draw) : undefined;
-  }, [ready, width, height, circuit, time, animate, cycleTime]);
+  }, [ready, width, height, circuit, time, animate, cycleTime, scheme]);
   return (
     <div
       ref={host}

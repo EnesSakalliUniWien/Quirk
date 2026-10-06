@@ -15,18 +15,23 @@
  */
 
 import { makeDisplayRenderer } from "../../../draw/gate/GateRenderers.js";
-import { paintProbabilityBox, paintMultiProbabilityDisplay } from "../../../draw/displays/probability/ProbabilityView.js";
+import {
+  paintProbabilityBox,
+  paintMultiProbabilityDisplay,
+} from "../../../draw/displays/probability/ProbabilityView.js";
 
 const SINGLE_PROBABILITY_RENDERER = makeDisplayRenderer((args) => {
-        const { row, col } = args.positionInCircuit;
-        paintProbabilityBox(
-          args.painter,
-          args.stats.controlledWireProbabilityJustAfter(row, col),
-          args.rect,
-          args.focusPoints,
-        );
-      });
+  const { row, col } = args.positionInCircuit;
+  paintProbabilityBox(
+    args.painter,
+    args.stats.controlledWireProbabilityJustAfter(row, col),
+    args.rect,
+    args.focusPoints,
+  );
+});
 
-const MULTI_PROBABILITY_RENDERER = makeDisplayRenderer(paintMultiProbabilityDisplay);
+const MULTI_PROBABILITY_RENDERER = makeDisplayRenderer(
+  paintMultiProbabilityDisplay,
+);
 
 export { SINGLE_PROBABILITY_RENDERER, MULTI_PROBABILITY_RENDERER };

@@ -13,10 +13,13 @@ suite.test("failed parses never return the previously cached circuit", () => {
   }
 });
 
-suite.test("successful parses cache one text and replace it for a new circuit", () => {
-  const first = fromJsonText_CircuitDefinition('{"cols":[["X"]]}');
-  assertTrue(fromJsonText_CircuitDefinition('{"cols":[["X"]]}') === first);
-  const second = fromJsonText_CircuitDefinition('{"cols":[["Y"]]}');
-  assertThat(second.columns[0].gates[0].serializedId).isEqualTo("Y");
-  assertTrue(second !== first);
-});
+suite.test(
+  "successful parses cache one text and replace it for a new circuit",
+  () => {
+    const first = fromJsonText_CircuitDefinition('{"cols":[["X"]]}');
+    assertTrue(fromJsonText_CircuitDefinition('{"cols":[["X"]]}') === first);
+    const second = fromJsonText_CircuitDefinition('{"cols":[["Y"]]}');
+    assertThat(second.columns[0].gates[0].serializedId).isEqualTo("Y");
+    assertTrue(second !== first);
+  },
+);

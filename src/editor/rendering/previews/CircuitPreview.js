@@ -14,67 +14,99 @@
  * limitations under the License.
  */
 
-import {rectangle} from '../../../draw/shapes/ShapeView.js';
-import {DEFAULT_RENDERER, makeCycleRenderer} from '../../../draw/gate/GateRenderers.js';
-import {paintBackground, paintOutline} from '../../../draw/gate/GateFrame.js';
-import {CanvasTheme} from '../../../config/CanvasTheme.js';
-import {CircuitGeometry} from '../../geometry/CircuitGeometry.js';
-import {CircuitStats} from '../../../engine/simulation/CircuitStats.js';
-import {PointerInteractionState} from '../../interaction/PointerInteractionState.js';
-import {renderCircuitLayers} from '../CircuitLayers.js';
+import {
+  DEFAULT_RENDERER,
+  makeCycleRenderer,
+} from "../../../draw/gate/GateRenderers.js";
+import {
+  paintBackground,
+  paintOutline,
+  paintHoverOverlay,
+} from "../../../draw/gate/GateFrame.js";
+import { CanvasTheme } from "../../../config/CanvasTheme.js";
+import { CircuitGeometry } from "../../geometry/CircuitGeometry.js";
+import { CircuitStats } from "../../../engine/simulation/CircuitStats.js";
+import { PointerInteractionState } from "../../interaction/PointerInteractionState.js";
+import { renderCircuitLayers } from "../CircuitLayers.js";
 
 /** Renders circuit previews from a definition, without creating editor state. */
-export function drawCircuitTooltip(painter, circuitDefinition, rect, showWires, time) {
-    const geometry = new CircuitGeometry(0, circuitDefinition, undefined, undefined, 0);
-    const neededWidth = geometry.desiredWidth(true);
-    const neededHeight = geometry.desiredHeight(true);
-    let scaleX = rect.w / neededWidth;
-    let scaleY = rect.h / neededHeight;
-    if (showWires) {
-        const s = Math.min(scaleX, scaleY);
-        scaleX = s;
-        scaleY = s;
-    }
-    const stats = CircuitStats.withNanDataFromCircuitAtTime(circuitDefinition, time);
-    painter.group('circuit-preview', painter => {
-        painter.position.set(rect.x, rect.y);
-        painter.scale.set(Math.min(1, scaleX), Math.min(1, scaleY));
-        renderCircuitLayers({definition: circuitDefinition, geometry,
-            highlightedSlot: undefined,
-            highlightStatusAt: () => ({isHighlighted: false, isResizeShowing: false, isResizeHighlighted: false})
-        }, painter, PointerInteractionState.EMPTY, stats, true, showWires);
-    });
-    return {maxW: neededWidth*scaleX, maxH: neededHeight*scaleY};
+export function drawCircuitTooltip(
+  painter,
+  circuitDefinition,
+  rect,
+  showWires,
+  time,
+) {
+  const geometry = new CircuitGeometry(
+    0,
+    circuitDefinition,
+    undefined,
+    undefined,
+    0,
+  );
+  const neededWidth = geometry.desiredWidth(true);
+  const neededHeight = geometry.desiredHeight(true);
+  let scaleX = rect.w / neededWidth;
+  let scaleY = rect.h / neededHeight;
+  if (showWires) {
+    const s = Math.min(scaleX, scaleY);
+    scaleX = s;
+    scaleY = s;
+  }
+  const stats = CircuitStats.withNanDataFromCircuitAtTime(
+    circuitDefinition,
+    time,
+  );
+  painter.group("circuit-preview", (painter) => {
+    painter.position.set(rect.x, rect.y);
+    painter.scale.set(Math.min(1, scaleX), Math.min(1, scaleY));
+    renderCircuitLayers(
+      {
+        definition: circuitDefinition,
+        geometry,
+        highlightedSlot: undefined,
+        highlightStatusAt: () => ({
+          isHighlighted: false,
+          isResizeShowing: false,
+          isResizeHighlighted: false,
+        }),
+      },
+      painter,
+      PointerInteractionState.EMPTY,
+      stats,
+      true,
+      showWires,
+    );
+  });
+  return { maxW: neededWidth * scaleX, maxH: neededHeight * scaleY };
 }
 
 /**
  * @param {!GateRenderParams} args
  */
-export const GATE_CIRCUIT_RENDERER = args => {
-    const circuit = args.gate.knownCircuit;
-    if (circuit === undefined || args.gate.symbol !== '') {
-        if (args.gate.stableDuration() === Infinity) {
-            DEFAULT_RENDERER(args);
-        } else {
-            makeCycleRenderer()(args);
-        }
-        return;
+export const GATE_CIRCUIT_RENDERER = (args) => {
+  const circuit = args.gate.knownCircuit;
+  if (circuit === undefined || args.gate.symbol !== "") {
+    if (args.gate.stableDuration() === Infinity) {
+      DEFAULT_RENDERER(args);
+    } else {
+      makeCycleRenderer()(args);
     }
+    return;
+  }
 
-    const toolboxColor = args.gate.stableDuration() === Infinity ?
-        CanvasTheme.surface.gate :
-        CanvasTheme.gate.time;
-    paintBackground(args, toolboxColor);
-    drawCircuitTooltip(args.painter, args.gate.knownCircuitNested, args.rect, false, args.stats.time);
-    paintOutline(args);
-    if (args.isHighlighted) {
-        args.painter.group('hover-' + args.painter.order, painter => {
-            painter.alpha *= 0.9;
-            rectangle(painter, args.rect, {
-                fill: CanvasTheme.gate.hover
-            });
-        });
-    }
-    paintOutline(args);
+  const toolboxColor =
+    args.gate.stableDuration() === Infinity
+      ? CanvasTheme.surface.gate
+      : CanvasTheme.gate.time;
+  paintBackground(args, toolboxColor);
+  drawCircuitTooltip(
+    args.painter,
+    args.gate.knownCircuitNested,
+    args.rect,
+    false,
+    args.stats.time,
+  );
+  paintHoverOverlay(args);
+  paintOutline(args);
 };
-

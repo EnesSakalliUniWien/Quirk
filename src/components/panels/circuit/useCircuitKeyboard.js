@@ -1,6 +1,10 @@
 import { useEffect, useRef } from "react";
 import { gateCovering } from "../../../circuit/circuitDescription.js";
-import { clampCell as clampCursor, occupiedColumns, rangeFromCells } from "../../../circuit/circuitRange.js";
+import {
+  clampCell as clampCursor,
+  occupiedColumns,
+  rangeFromCells,
+} from "../../../circuit/circuitRange.js";
 import { appStore } from "../../../state/appStore.js";
 
 /**
@@ -11,12 +15,22 @@ import { appStore } from "../../../state/appStore.js";
  */
 function cellClientPoint(host, cell) {
   const { panelDeps: deps, zoom } = appStore.getState();
-  const rect = deps.syncArea(deps.displayed.getState().value).displayedCircuit.gateRect(cell.row, cell.col);
+  const rect = deps
+    .syncArea(deps.displayed.getState().value)
+    .displayedCircuit.gateRect(cell.row, cell.col);
   const box = host.getBoundingClientRect();
-  return { x: box.left - host.scrollLeft + rect.right() * zoom, y: box.top - host.scrollTop + rect.y * zoom };
+  return {
+    x: box.left - host.scrollLeft + rect.right() * zoom,
+    y: box.top - host.scrollTop + rect.y * zoom,
+  };
 }
 
-const MOVES = Object.freeze({ ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] });
+const MOVES = Object.freeze({
+  ArrowLeft: [-1, 0],
+  ArrowRight: [1, 0],
+  ArrowUp: [0, -1],
+  ArrowDown: [0, 1],
+});
 
 /**
  * The circuit by keyboard alone, while the circuit itself has the focus. The arrow keys move a cell
@@ -45,7 +59,9 @@ function useCircuitKeyboard(canvasDivRef, activate) {
     }
     /** Where a run of Shift and the arrows started. */
     let anchor = undefined;
-    const current = () => appStore.getState().panelDeps?.displayed.getState().value.displayedCircuit.circuitDefinition;
+    const current = () =>
+      appStore.getState().panelDeps?.displayed.getState().value.displayedCircuit
+        .circuitDefinition;
     const place = (cell) => appStore.setState({ circuitCursor: cell });
 
     const openMenu = (circuit, cursor) => {
@@ -56,8 +72,13 @@ function useCircuitKeyboard(canvasDivRef, activate) {
         return true;
       }
       const range = appStore.getState().selectionActions?.range();
-      if (range !== undefined && cursor.col >= range.colStart && cursor.col < range.colEnd &&
-          cursor.row >= range.wireStart && cursor.row < range.wireEnd) {
+      if (
+        range !== undefined &&
+        cursor.col >= range.colStart &&
+        cursor.col < range.colEnd &&
+        cursor.row >= range.wireStart &&
+        cursor.row < range.wireEnd
+      ) {
         appStore.setState({ selectionMenu: { ...at, viaKeyboard: true } });
         return true;
       }
@@ -65,7 +86,13 @@ function useCircuitKeyboard(canvasDivRef, activate) {
     };
 
     const onKeyDown = (event) => {
-      if (event.target !== element || event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) {
+      if (
+        event.target !== element ||
+        event.defaultPrevented ||
+        event.altKey ||
+        event.ctrlKey ||
+        event.metaKey
+      ) {
         return;
       }
       const circuit = current();
@@ -75,7 +102,11 @@ function useCircuitKeyboard(canvasDivRef, activate) {
       }
       const cursor = appStore.getState().circuitCursor;
       const range = selection.range();
-      const start = cursor ?? (range === undefined ? { col: 0, row: 0 } : { col: range.colStart, row: range.wireStart });
+      const start =
+        cursor ??
+        (range === undefined
+          ? { col: 0, row: 0 }
+          : { col: range.colStart, row: range.wireStart });
 
       if (event.key in MOVES || event.key === "Home" || event.key === "End") {
         event.preventDefault();
@@ -83,7 +114,12 @@ function useCircuitKeyboard(canvasDivRef, activate) {
         if (cursor !== undefined) {
           const [dc, dr] = MOVES[event.key] ?? [0, 0];
           next = clampCursor(circuit, {
-            col: event.key === "Home" ? 0 : event.key === "End" ? occupiedColumns(circuit) : cursor.col + dc,
+            col:
+              event.key === "Home"
+                ? 0
+                : event.key === "End"
+                  ? occupiedColumns(circuit)
+                  : cursor.col + dc,
             row: cursor.row + dr,
           });
         }
@@ -106,7 +142,10 @@ function useCircuitKeyboard(canvasDivRef, activate) {
         if (found !== undefined && !activateRef.current(found)) {
           openMenu(circuit, cursor);
         }
-      } else if (event.key === "ContextMenu" || (event.key === "F10" && event.shiftKey)) {
+      } else if (
+        event.key === "ContextMenu" ||
+        (event.key === "F10" && event.shiftKey)
+      ) {
         if (openMenu(circuit, cursor)) {
           event.preventDefault();
         }
@@ -125,11 +164,22 @@ function useCircuitKeyboard(canvasDivRef, activate) {
       pressing = false;
     };
     const onFocus = () => {
-      if (!pressing && appStore.getState().circuitCursor === undefined && element.matches(":focus-visible")) {
+      if (
+        !pressing &&
+        appStore.getState().circuitCursor === undefined &&
+        element.matches(":focus-visible")
+      ) {
         const circuit = current();
         const range = appStore.getState().selectionActions?.range();
         if (circuit !== undefined) {
-          place(clampCursor(circuit, range === undefined ? { col: 0, row: 0 } : { col: range.colStart, row: range.wireStart }));
+          place(
+            clampCursor(
+              circuit,
+              range === undefined
+                ? { col: 0, row: 0 }
+                : { col: range.colStart, row: range.wireStart },
+            ),
+          );
         }
       }
     };

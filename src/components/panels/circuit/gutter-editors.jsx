@@ -22,8 +22,17 @@ function GutterEditors({ host }) {
   }
   return (
     <>
-      {rename !== undefined && <RenameBox key={rename.name} rename={rename} zoom={zoom} actions={actions} />}
-      {menu !== undefined && <GutterMenu menu={menu} host={host} actions={actions} />}
+      {rename !== undefined && (
+        <RenameBox
+          key={rename.name}
+          rename={rename}
+          zoom={zoom}
+          actions={actions}
+        />
+      )}
+      {menu !== undefined && (
+        <GutterMenu menu={menu} host={host} actions={actions} />
+      )}
     </>
   );
 }

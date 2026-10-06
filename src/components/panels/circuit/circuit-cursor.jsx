@@ -1,6 +1,10 @@
 import { useEffect, useLayoutEffect, useReducer } from "react";
 import { useStore } from "zustand";
-import { describeCell, describeCircuit, gateCovering } from "../../../circuit/circuitDescription.js";
+import {
+  describeCell,
+  describeCircuit,
+  gateCovering,
+} from "../../../circuit/circuitDescription.js";
 import { clampCell } from "../../../circuit/circuitRange.js";
 import { appStore } from "../../../state/appStore.js";
 
@@ -20,7 +24,11 @@ const VIEW_MARGIN = 12;
  */
 function CircuitCursor({ host }) {
   const deps = useStore(appStore, (s) => s.panelDeps);
-  return deps === undefined ? <Speech summary="" cell="" /> : <Cursor deps={deps} host={host} />;
+  return deps === undefined ? (
+    <Speech summary="" cell="" />
+  ) : (
+    <Cursor deps={deps} host={host} />
+  );
 }
 
 /**
@@ -30,14 +38,20 @@ function Speech({ summary, cell }) {
   const output = useStore(appStore, (s) => s.outputSummary);
   return (
     <>
-      <p id="circuit-summary" className="visually-hidden">{summary}</p>
-      <p id="circuit-output" className="visually-hidden">{output}</p>
-      <p id="circuit-keys" className="visually-hidden">
-        Arrow keys move between cells, and Shift with them selects. Return opens the gate in the cell.
-        Shift-F10 opens its menu. Delete removes it. A gate chosen in the Gates list with Return lands in
-        the cell.
+      <p id="circuit-summary" className="visually-hidden">
+        {summary}
       </p>
-      <p id="circuit-cursor-status" className="visually-hidden" role="status">{cell}</p>
+      <p id="circuit-output" className="visually-hidden">
+        {output}
+      </p>
+      <p id="circuit-keys" className="visually-hidden">
+        Arrow keys move between cells, and Shift with them selects. Return opens
+        the gate in the cell. Shift-F10 opens its menu. Delete removes it. A
+        gate chosen in the Gates list with Return lands in the cell.
+      </p>
+      <p id="circuit-cursor-status" className="visually-hidden" role="status">
+        {cell}
+      </p>
     </>
   );
 }
@@ -45,7 +59,10 @@ function Speech({ summary, cell }) {
 function Cursor({ deps, host }) {
   const cursor = useStore(appStore, (s) => s.circuitCursor);
   const zoom = useStore(appStore, (s) => s.zoom);
-  const circuit = useStore(deps.displayed, (s) => s.value.displayedCircuit.circuitDefinition);
+  const circuit = useStore(
+    deps.displayed,
+    (s) => s.value.displayedCircuit.circuitDefinition,
+  );
   // The circuit centres in the cell, so a resized cell moves the cursor's ring without a new state.
   const [, resized] = useReducer((n) => n + 1, 0);
   useEffect(() => {
@@ -57,19 +74,32 @@ function Cursor({ deps, host }) {
   const cell = cursor === undefined ? undefined : clampCell(circuit, cursor);
   let rect = undefined;
   if (cell !== undefined) {
-    const shown = deps.syncArea(deps.displayed.getState().value).displayedCircuit;
+    const shown = deps.syncArea(
+      deps.displayed.getState().value,
+    ).displayedCircuit;
     const found = gateCovering(circuit, cell);
-    rect = (found === undefined ? shown.gateRect(cell.row, cell.col) :
-      shown.gateRect(found.row, found.col, found.gate.width, found.gate.height)).paddedBy(RING_PADDING);
+    rect = (
+      found === undefined
+        ? shown.gateRect(cell.row, cell.col)
+        : shown.gateRect(
+            found.row,
+            found.col,
+            found.gate.width,
+            found.gate.height,
+          )
+    ).paddedBy(RING_PADDING);
   }
 
   // Keeps the ring in view as the arrow keys move it, scrolling only the circuit, never the page.
+  const left = rect === undefined ? undefined : rect.x * zoom;
+  const top = rect === undefined ? undefined : rect.y * zoom;
+  const right = rect === undefined ? undefined : rect.right() * zoom;
+  const bottom = rect === undefined ? undefined : rect.bottom() * zoom;
   useLayoutEffect(() => {
     const view = host.current;
-    if (rect === undefined || view === null) {
+    if (left === undefined || view === null) {
       return;
     }
-    const [left, top, right, bottom] = [rect.x * zoom, rect.y * zoom, rect.right() * zoom, rect.bottom() * zoom];
     if (left < view.scrollLeft + VIEW_MARGIN) {
       view.scrollLeft = Math.max(0, left - VIEW_MARGIN);
     } else if (right > view.scrollLeft + view.clientWidth - VIEW_MARGIN) {
@@ -80,17 +110,24 @@ function Cursor({ deps, host }) {
     } else if (bottom > view.scrollTop + view.clientHeight - VIEW_MARGIN) {
       view.scrollTop = bottom - view.clientHeight + VIEW_MARGIN;
     }
-  }, [cell?.col, cell?.row, zoom]);
+  }, [host, left, top, right, bottom]);
 
   return (
     <>
-      <Speech summary={describeCircuit(circuit)} cell={cell === undefined ? "" : describeCell(circuit, cell)} />
+      <Speech
+        summary={describeCircuit(circuit)}
+        cell={cell === undefined ? "" : describeCell(circuit, cell)}
+      />
       {rect !== undefined && (
         <div
           className="circuit-cursor"
           aria-hidden="true"
-          style={{ left: `${rect.x * zoom}px`, top: `${rect.y * zoom}px`, width: `${rect.w * zoom}px`,
-            height: `${rect.h * zoom}px` }}
+          style={{
+            left: `${rect.x * zoom}px`,
+            top: `${rect.y * zoom}px`,
+            width: `${rect.w * zoom}px`,
+            height: `${rect.h * zoom}px`,
+          }}
         />
       )}
     </>

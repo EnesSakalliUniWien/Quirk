@@ -8,11 +8,7 @@ import { ForgePanelBody } from "./forge-panel-body.jsx";
  */
 function ForgePanel() {
   const deps = useStore(appStore, (s) => s.panelDeps);
-  return deps === undefined ? (
-    null
-  ) : (
-    <ForgePanelBody deps={deps} />
-  );
+  return deps === undefined ? null : <ForgePanelBody deps={deps} />;
 }
 
 export { ForgePanel };

@@ -102,12 +102,8 @@ class Matrix {
    * @param rows {!Array.<!Array.<Complex>>} The rows of complex coefficients making up the matrix.
    */
   static fromRows(rows) {
-    need(
-      Array.isArray(rows) && rows.every(Array.isArray),
-      "array rows",
-      rows,
-    );
-    need(rows.length > 0, "non-zero height", {rows});
+    need(Array.isArray(rows) && rows.every(Array.isArray), "array rows", rows);
+    need(rows.length > 0, "non-zero height", { rows });
 
     const h = rows.length;
     const widths = new Set(rows.map((e) => e.length));
@@ -276,7 +272,7 @@ class Matrix {
    * @returns {!Matrix}
    */
   static square(...coefs) {
-    need(Array.isArray(coefs), "Array.isArray(coefs)", {coefs});
+    need(Array.isArray(coefs), "Array.isArray(coefs)", { coefs });
     const n = Math.round(Math.sqrt(coefs.length));
     need(
       n * n === coefs.length,
@@ -291,7 +287,7 @@ class Matrix {
    * @returns {!Matrix}
    */
   static col(...coefs) {
-    need(Array.isArray(coefs), "Array.isArray(coefs)", {coefs});
+    need(Array.isArray(coefs), "Array.isArray(coefs)", { coefs });
     return Matrix.generate(1, coefs.length, (r) => coefs[r]);
   }
 

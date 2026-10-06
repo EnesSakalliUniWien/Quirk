@@ -10,9 +10,9 @@
 
 **Goal:** Establish a known-good state before any changes.
 
-| # | Milestone | Technical requirement |
-|---|-----------|----------------------|
-| 0.1 | Record test results | Run `npm test` and `npm run test:e2e`; confirm both pass. Save output for comparison. |
+| #   | Milestone              | Technical requirement                                                                     |
+| --- | ---------------------- | ----------------------------------------------------------------------------------------- |
+| 0.1 | Record test results    | Run `npm test` and `npm run test:e2e`; confirm both pass. Save output for comparison.     |
 | 0.2 | Snapshot palette state | Commit current `src/appearance/colours.js` so the dark palette is the unchanged baseline. |
 
 ---
@@ -29,11 +29,11 @@
 
   ```js
   const iqpText = Object.freeze({
-      hadamard: text.onBright,
-      not: text.onBright,
-      rotation: text.onBright,
-      phase: text.onBright,
-      measure: text.onBright,
+    hadamard: text.onBright,
+    not: text.onBright,
+    rotation: text.onBright,
+    phase: text.onBright,
+    measure: text.onBright,
   });
   ```
 
@@ -56,8 +56,8 @@
 
 - Replace `src/appearance/colours.js` contents with named re-exports:
   ```js
-  export { dark } from './colours/dark.js';
-  export { light } from './colours/light.js';
+  export { dark } from "./colours/dark.js";
+  export { light } from "./colours/light.js";
   ```
 - This preserves any external import path `src/appearance/colours.js` while delegating to scheme-specific files.
 
@@ -79,17 +79,17 @@
 A pure data module — no browser APIs, no DOM access. It holds a palette name only; the browser resolves a `'system'` preference before setting it (§3.1):
 
 ```js
-let scheme = 'dark';
+let scheme = "dark";
 
 export function setColourScheme(next) {
-    if (next !== 'light' && next !== 'dark') {
-        throw new RangeError(`Unknown colour scheme: ${next}`);
-    }
-    scheme = next;
+  if (next !== "light" && next !== "dark") {
+    throw new RangeError(`Unknown colour scheme: ${next}`);
+  }
+  scheme = next;
 }
 
 export function colourScheme() {
-    return scheme;
+  return scheme;
 }
 ```
 
@@ -100,25 +100,39 @@ export function colourScheme() {
 - No browser APIs in this module: resolving `'system'` belongs to `src/browser/colourSchemePreference.js`.
 
 ```js
-import {dark, light} from './colours.js';
-import {Typography} from './typography.js';
-import {Spacing} from './spacing.js';
-import {Borders} from './borders.js';
-import {setColourScheme, colourScheme} from './colourScheme.js';
+import { dark, light } from "./colours.js";
+import { Typography } from "./typography.js";
+import { Spacing } from "./spacing.js";
+import { Borders } from "./borders.js";
+import { setColourScheme, colourScheme } from "./colourScheme.js";
 
-const palettes = {dark, light};
-const opacity = Object.freeze({forgeRange: 0.08, ghostHover: 0.5, focus: 0.5, matrixActive: 0.22, operatorControl: 0.05});
+const palettes = { dark, light };
+const opacity = Object.freeze({
+  forgeRange: 0.08,
+  ghostHover: 0.5,
+  focus: 0.5,
+  matrixActive: 0.22,
+  operatorControl: 0.05,
+});
 
 export function appearanceFor(scheme) {
-    if (!Object.hasOwn(palettes, scheme)) throw new RangeError(`Unknown colour scheme: ${scheme}`);
-    const palette = palettes[scheme];
-    return Object.freeze({colours: palette.colours, typography: Typography, spacing: Spacing, borders: Borders,
-        opacity, phase: palette.phase, colorScheme: palette.scheme});
+  if (!Object.hasOwn(palettes, scheme))
+    throw new RangeError(`Unknown colour scheme: ${scheme}`);
+  const palette = palettes[scheme];
+  return Object.freeze({
+    colours: palette.colours,
+    typography: Typography,
+    spacing: Spacing,
+    borders: Borders,
+    opacity,
+    phase: palette.phase,
+    colorScheme: palette.scheme,
+  });
 }
 
 export const Appearance = appearanceFor(colourScheme());
 
-export {setColourScheme, colourScheme};
+export { setColourScheme, colourScheme };
 ```
 
 ### 2.3 Refactor `src/browser/theme/dom.js` into a factory
@@ -129,30 +143,30 @@ export {setColourScheme, colourScheme};
 - No `dom` singleton: `Theme.js` calls `domFor(colourScheme())`.
 
 ```js
-import {appearanceFor} from '../../appearance/Appearance.js';
-import {colourString} from '../../appearance/formats/colour.js';
-import {phaseColor} from '../../appearance/formats/phase.js';
-import {Typography as typography} from '../../appearance/formats/typography.js';
+import { appearanceFor } from "../../appearance/Appearance.js";
+import { colourString } from "../../appearance/formats/colour.js";
+import { phaseColor } from "../../appearance/formats/phase.js";
+import { Typography as typography } from "../../appearance/formats/typography.js";
 
 export function domFor(scheme) {
-    const appearance = appearanceFor(scheme);
-    const background = colourString(appearance.colours.ui.background);
-    const foreground = colourString(appearance.colours.ui.foreground);
-    const secondary = colourString(appearance.colours.ui.secondary);
-    const controlSurface = colourString(appearance.colours.ui.controlSurface);
-    const brandInk = colourString(appearance.colours.ui.brandInk);
-    const border = colourString(appearance.colours.ui.border);
-    const primary = colourString(appearance.colours.ui.primary);
+  const appearance = appearanceFor(scheme);
+  const background = colourString(appearance.colours.ui.background);
+  const foreground = colourString(appearance.colours.ui.foreground);
+  const secondary = colourString(appearance.colours.ui.secondary);
+  const controlSurface = colourString(appearance.colours.ui.controlSurface);
+  const brandInk = colourString(appearance.colours.ui.brandInk);
+  const border = colourString(appearance.colours.ui.border);
+  const primary = colourString(appearance.colours.ui.primary);
 
-    return Object.freeze({
-        "--forge-range-fill": `color-mix(in srgb, ${foreground} ${appearance.opacity.forgeRange * 100}%, transparent)`,
-        "--border-width": `${appearance.borders.width.regular}px`,
-        // ... all remaining properties, reading from appearance.colours instead of Appearance.colours
-        "--phase-legend": `linear-gradient(to right, ${Array.from({length: 9}, (_, i) => phaseColor(-180 + i * 45, 1, appearance.phase)).join(', ')})`,
-        "--background": background,
-        "--foreground": foreground,
-        // etc.
-    });
+  return Object.freeze({
+    "--forge-range-fill": `color-mix(in srgb, ${foreground} ${appearance.opacity.forgeRange * 100}%, transparent)`,
+    "--border-width": `${appearance.borders.width.regular}px`,
+    // ... all remaining properties, reading from appearance.colours instead of Appearance.colours
+    "--phase-legend": `linear-gradient(to right, ${Array.from({ length: 9 }, (_, i) => phaseColor(-180 + i * 45, 1, appearance.phase)).join(", ")})`,
+    "--background": background,
+    "--foreground": foreground,
+    // etc.
+  });
 }
 ```
 
@@ -189,7 +203,7 @@ const id = gate.serializedId || "";
 const p = CanvasTheme.iqp;
 const label = CanvasTheme.iqpText[id] ?? CanvasTheme.text.primary;
 // ... fill selection unchanged ...
-return {fill, text: label};
+return { fill, text: label };
 ```
 
 **Milestone:** `appearanceFor(scheme)`, `domFor(scheme)`, `dockPropertiesFor(scheme)` and `canvasThemeFor(scheme)` exist, and `phaseRgb`/`phaseColor` accept a scheme's `phase`. `Appearance`, `CanvasTheme` and `Theme` read the active scheme at import.
@@ -205,34 +219,36 @@ return {fill, text: label};
 Manages the persisted preference: `'system'`, `'light'` or `'dark'`. With nothing valid saved, or storage refused, the preference is `'dark'`, so the app starts dark. Only the `'system'` preference consults `matchMedia`, and it resolves to dark when the browser can't answer:
 
 ```js
-const STORAGE_KEY = 'shadow-quant.colour-scheme';
-const PREFERENCES = ['system', 'light', 'dark'];
+const STORAGE_KEY = "shadow-quant.colour-scheme";
+const PREFERENCES = ["system", "light", "dark"];
 
 export function readColourSchemePreference() {
-    try {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (PREFERENCES.includes(stored)) return stored;
-    } catch {
-        // Private browsing or storage disabled — fall through to the default
-    }
-    return 'dark';
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (PREFERENCES.includes(stored)) return stored;
+  } catch {
+    // Private browsing or storage disabled — fall through to the default
+  }
+  return "dark";
 }
 
 export function resolveColourScheme(preference) {
-    if (preference !== 'system') return preference;
-    try {
-        return matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-    } catch {
-        return 'dark';
-    }
+  if (preference !== "system") return preference;
+  try {
+    return matchMedia("(prefers-color-scheme: light)").matches
+      ? "light"
+      : "dark";
+  } catch {
+    return "dark";
+  }
 }
 
 export function writeColourSchemePreference(preference) {
-    try {
-        localStorage.setItem(STORAGE_KEY, preference);
-    } catch {
-        // Silently ignore — preference is best-effort
-    }
+  try {
+    localStorage.setItem(STORAGE_KEY, preference);
+  } catch {
+    // Silently ignore — preference is best-effort
+  }
 }
 ```
 
@@ -243,15 +259,18 @@ A change to the OS setting while the app is open applies on the next load.
 Entry point loaded from `index.html`. Static imports evaluate in order, so `selectColourScheme.js` sets the scheme before `main.jsx` loads any theme module. A dynamic `import('./main.jsx')` would delay mounting, and the e2e harness's `waitForQuirk` fails while `#inspectorDiv` doesn't exist yet:
 
 ```js
-import './browser/selectColourScheme.js';
-import './main.jsx';
+import "./browser/selectColourScheme.js";
+import "./main.jsx";
 ```
 
 `src/browser/selectColourScheme.js`:
 
 ```js
-import {setColourScheme} from '../appearance/colourScheme.js';
-import {readColourSchemePreference, resolveColourScheme} from './colourSchemePreference.js';
+import { setColourScheme } from "../appearance/colourScheme.js";
+import {
+  readColourSchemePreference,
+  resolveColourScheme,
+} from "./colourSchemePreference.js";
 
 setColourScheme(resolveColourScheme(readColourSchemePreference()));
 ```
@@ -281,12 +300,12 @@ Insert `<ColourSchemeMenu />` in `app-toolbar.jsx` between `ExamplesMenu` and th
 
 **Goal:** Ensure Dockview, Base UI, and MathLive render correctly under light mode.
 
-| # | Check | Action |
-|---|-------|--------|
-| 4.1 | Dockview theming | Dockview CSS has no `.dark` references (verified). Verify `--dv-*` variables from `dockPropertiesFor('light')` produce visible tabs, sashes, and panels on white background. Run `npm run test:e2e` with light preference and inspect dock panels. |
-| 4.2 | Base UI popups | Base UI popups inherit CSS variables from `:root`. Verify Menu, Tooltip, and Popover components use `--popover`, `--popover-foreground`, `--background` correctly. |
-| 4.3 | MathLive | `src/components/math/math-field.jsx` renders a `math-field` element. Confirm it inherits colour from CSS variables (not hardcoded). If MathLive uses its own colour tokens, pass them via inline `style` props derived from `domFor(scheme)`, never via CSS overrides. |
-| 4.4 | `.dark` class | `applyTheme.js:17` sets `classList.toggle('dark', ...)`. Verify Dockview and Base UI components still render correctly with or without the `.dark` class on `<html>`. |
+| #   | Check            | Action                                                                                                                                                                                                                                                                 |
+| --- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 4.1 | Dockview theming | Dockview CSS has no `.dark` references (verified). Verify `--dv-*` variables from `dockPropertiesFor('light')` produce visible tabs, sashes, and panels on white background. Run `npm run test:e2e` with light preference and inspect dock panels.                     |
+| 4.2 | Base UI popups   | Base UI popups inherit CSS variables from `:root`. Verify Menu, Tooltip, and Popover components use `--popover`, `--popover-foreground`, `--background` correctly.                                                                                                     |
+| 4.3 | MathLive         | `src/components/math/math-field.jsx` renders a `math-field` element. Confirm it inherits colour from CSS variables (not hardcoded). If MathLive uses its own colour tokens, pass them via inline `style` props derived from `domFor(scheme)`, never via CSS overrides. |
+| 4.4 | `.dark` class    | `applyTheme.js:17` sets `classList.toggle('dark', ...)`. Verify Dockview and Base UI components still render correctly with or without the `.dark` class on `<html>`.                                                                                                  |
 
 **Milestone:** All third-party components visually verified in both schemes.
 
@@ -303,6 +322,7 @@ npm install --save-dev culori@4.0.2 axe-core@4.13.0 @axe-core/puppeteer@4.13.0
 ### 5.2 Unit tests
 
 **Update `test/config/Appearance.test.js`:**
+
 - Assert `appearanceFor('dark').colours` and `appearanceFor('light').colours` each contain all expected top-level keys.
 - Assert `appearanceFor('light').colours.tape.length === 8`.
 - Assert `appearanceFor('dark').colourScheme === 'dark'` and `appearanceFor('light').colourScheme === 'light'`.
@@ -311,13 +331,13 @@ npm install --save-dev culori@4.0.2 axe-core@4.13.0 @axe-core/puppeteer@4.13.0
 
 Use `culori` functions (`wcagContrast`, `differenceEuclidean('oklab')`, `filterDeficiencyProt/Deutan/Trit`) to verify:
 
-| Test | Requirement |
-|------|-------------|
-| Text contrast | Every text/background pair ≥ 4.5:1. Every AAA-claimed pair ≥ 7:1. |
-| Non-text contrast | Every mark/background pair ≥ 3:1. |
-| Palette parity | `Object.keys(dark)` ≡ `Object.keys(light)` at every nesting level. |
+| Test                                                          | Requirement                                                                                                                                      |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Text contrast                                                 | Every text/background pair ≥ 4.5:1. Every AAA-claimed pair ≥ 7:1.                                                                                |
+| Non-text contrast                                             | Every mark/background pair ≥ 3:1.                                                                                                                |
+| Palette parity                                                | `Object.keys(dark)` ≡ `Object.keys(light)` at every nesting level.                                                                               |
 | Colour-blind separation (ΔE×100, Machado 2009, full severity) | Probability/amplitude/operation/highlight/error group ≥ 10. IQP gates ≥ 10. Bloch axes ≥ 10. Tape < 10 (documented as requiring non-colour cue). |
-| Semi-transparent tokens | Blended colour (alpha over `#FFFFFF`) ≥ 3:1 against white for non-text uses, ≥ 4.5:1 for text uses. |
+| Semi-transparent tokens                                       | Blended colour (alpha over `#FFFFFF`) ≥ 3:1 against white for non-text uses, ≥ 4.5:1 for text uses.                                              |
 
 ### 5.3 E2E tests
 
@@ -328,23 +348,30 @@ The current test asserts `Theme.dom["--card"]` from the Node import. Since `Them
 - Add a second test block that runs `withQuirkPage` with `page.emulateMediaFeatures([{name: 'prefers-color-scheme', value: 'light'}])` and `page.evaluateOnNewDocument(() => localStorage.setItem('shadow-quant.colour-scheme', 'light'))`.
 - Assertions must compare against the **page-computed** values, not the Node-side `Theme` singleton (which stays dark). Example:
   ```js
-  const lightCard = await page.evaluate(() => document.documentElement.style.getPropertyValue('--card'));
-  assert.notEqual(lightCard, Theme.dom['--card']); // Must differ from dark
+  const lightCard = await page.evaluate(() =>
+    document.documentElement.style.getPropertyValue("--card"),
+  );
+  assert.notEqual(lightCard, Theme.dom["--card"]); // Must differ from dark
   ```
 - Verify gate chip colours match `appearanceFor('light')` expectations.
 - Verify the toggle menu exists, has `menuitemradio` items, and selecting a scheme triggers a reload.
 
 **AXE accessibility audit:** Inside `withQuirkPage`, run:
+
 ```js
-import axe from 'axe-core';
-import {axeCore} from '@axe-core/puppeteer';
-await axeCore(page).analyse({runOnly: {type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21aa']}});
+import axe from "axe-core";
+import { axeCore } from "@axe-core/puppeteer";
+await axeCore(page).analyse({
+  runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21aa"] },
+});
 ```
+
 Run once per scheme.
 
 ### 5.4 Visual checks
 
 **Extend `scripts/screenshot-circuit.js`** with `--scheme` and `--vision` flags:
+
 - `--scheme light|dark` → set localStorage preference before load.
 - `--vision normal|protan|deutan|tritan` → call `page.emulateVisionDeficiency(...)` before load.
 - Review example circuits in each combination.
@@ -359,12 +386,12 @@ Run once per scheme.
 
 ## Phase 6 — Documentation and Cleanup
 
-| # | Task |
-|---|------|
+| #   | Task                                                                                                                                                                 |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 6.1 | Update `src/appearance/README.md`: document `appearanceFor(scheme)`, `colourScheme()`, the palette file structure, and that `Appearance` remains the dark singleton. |
-| 6.2 | Update `src/config/README.md`: document that `Theme.js` reads the active scheme at import, list `boot.js` as the entry point, note reload-based switching. |
-| 6.3 | Run `npm run knip` — remove any unused exports now that factories exist alongside singletons. |
-| 6.4 | Run `npm run lint` — fix any ESLint errors. |
+| 6.2 | Update `src/config/README.md`: document that `Theme.js` reads the active scheme at import, list `boot.js` as the entry point, note reload-based switching.           |
+| 6.3 | Run `npm run knip` — remove any unused exports now that factories exist alongside singletons.                                                                        |
+| 6.4 | Run `npm run lint` — fix any ESLint errors.                                                                                                                          |
 
 **Milestone:** Docs current, knip clean, lint clean.
 
@@ -372,24 +399,24 @@ Run once per scheme.
 
 ## Known Risks and Mitigations
 
-| Risk | Mitigation |
-|------|------------|
-| Reloading drops floating panels (saveLayout strips them). | Confirm undo history and playhead survive via existing persistence. Add user warning before reload if floating panels are open (extend `dock.jsx` saveLayout callback). |
+| Risk                                                                                                                | Mitigation                                                                                                                                                              |
+| ------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Reloading drops floating panels (saveLayout strips them).                                                           | Confirm undo history and playhead survive via existing persistence. Add user warning before reload if floating panels are open (extend `dock.jsx` saveLayout callback). |
 | Values read at import (`dom.js:5-11`, `GateRenderers.js:77`, `tape/colours.js:3`, `phase.js:18`) cache dark values. | Reload-based switching re-executes the module graph with the new scheme. Do not implement live switching until all import-time reads are replaced with dynamic lookups. |
-| Semi-transparent `ui.*` tokens tuned for dark may be invisible or muddy on light. | Phase 5.2 includes blended-contrast tests for all 16 tokens. |
-| `Theme.js` in Node tests defaults to dark. | `theme.test.js` dark assertions continue unchanged. Light-mode assertions use page-computed values, not the `Theme` singleton. |
-| ΔE of 10 threshold is a project rule, not WCAG. | Documented in §5.2. WCAG thresholds (4.5:1 text, 3:1 non-text) are enforced separately. |
+| Semi-transparent `ui.*` tokens tuned for dark may be invisible or muddy on light.                                   | Phase 5.2 includes blended-contrast tests for all 16 tokens.                                                                                                            |
+| `Theme.js` in Node tests defaults to dark.                                                                          | `theme.test.js` dark assertions continue unchanged. Light-mode assertions use page-computed values, not the `Theme` singleton.                                          |
+| ΔE of 10 threshold is a project rule, not WCAG.                                                                     | Documented in §5.2. WCAG thresholds (4.5:1 text, 3:1 non-text) are enforced separately.                                                                                 |
 
 ---
 
 ## ES6+ Conventions Applied Throughout
 
-| Pattern | Rule |
-|---------|------|
-| Variable declarations | `const` for bindings that never reassign; `let` for counters, flags, and loop variables. Never `var`. |
-| Functions | Arrow functions for all callbacks and short utilities. Named functions only for recursive or hoisted declarations. |
-| Async control flow | `async`/`await` exclusively. No `.then()` chains, no callback parameters. |
-| Modules | Named ESM exports (`export function`, `export const`). Default exports only for React components. |
-| Object construction | Object shorthand properties, `Object.freeze` for immutable records, spread for merging. |
-| Error handling | `try`/`catch` with specific error types; `finally` for cleanup (e.g., browser close, server close). |
-| Network requests | Fetch API only (none currently needed; would replace any future `XMLHttpRequest`). |
+| Pattern               | Rule                                                                                                               |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Variable declarations | `const` for bindings that never reassign; `let` for counters, flags, and loop variables. Never `var`.              |
+| Functions             | Arrow functions for all callbacks and short utilities. Named functions only for recursive or hoisted declarations. |
+| Async control flow    | `async`/`await` exclusively. No `.then()` chains, no callback parameters.                                          |
+| Modules               | Named ESM exports (`export function`, `export const`). Default exports only for React components.                  |
+| Object construction   | Object shorthand properties, `Object.freeze` for immutable records, spread for merging.                            |
+| Error handling        | `try`/`catch` with specific error types; `finally` for cleanup (e.g., browser close, server close).                |
+| Network requests      | Fetch API only (none currently needed; would replace any future `XMLHttpRequest`).                                 |

@@ -18,11 +18,11 @@ import { multiQubitOperationMaker } from "./multiQubitOperationMaker.js";
 import { hugeQubitOperationMaker } from "./hugeQubitOperationMaker.js";
 
 const matrix_operation_shaders = [
-    undefined,
-    undefined,
-    multiQubitOperationMaker(2),
-    multiQubitOperationMaker(3),
-    hugeQubitOperationMaker(4)
+  undefined,
+  undefined,
+  multiQubitOperationMaker(2),
+  multiQubitOperationMaker(3),
+  hugeQubitOperationMaker(4),
 ];
 
 export { matrix_operation_shaders };

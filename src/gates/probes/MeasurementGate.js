@@ -14,55 +14,64 @@
  * limitations under the License.
  */
 
-import {PathGeometry} from '../../draw/shapes/PathGeometry.js';
-import {drawPath} from '../../draw/shapes/ShapeView.js';
-import {gateStyle} from '../../config/CanvasTheme.js';
+import { PathGeometry } from "../../draw/shapes/PathGeometry.js";
+import { drawPath } from "../../draw/shapes/ShapeView.js";
+import { gateStyle } from "../../config/CanvasTheme.js";
 
-import {GateBuilder} from '../../circuit/model/Gate.js';
-import {paintBackground, paintOutline} from '../../draw/gate/GateFrame.js';
+import { GateBuilder } from "../../circuit/model/Gate.js";
+import { paintBackground, paintOutline } from "../../draw/gate/GateFrame.js";
 
 /**
  * @param {!GateRenderParams} args
  */
 function drawMeasurementGate(args) {
-    const style = gateStyle(args.gate);
-    paintBackground(args);
-    paintOutline(args);
+  const style = gateStyle(args.gate);
+  paintBackground(args);
+  paintOutline(args);
 
-    const τ = Math.PI * 2;
-    const r = args.rect.w*0.4;
-    let {x, y} = args.rect.center();
-    y += r*0.6;
-    const a = -τ/6;
-    const [c, s] = [Math.cos(a)*r*1.5, Math.sin(a)*r*1.5];
-    const [p, q] = [x + c, y + s];
+  const τ = Math.PI * 2;
+  const r = args.rect.w * 0.4;
+  let { x, y } = args.rect.center();
+  y += r * 0.6;
+  const a = -τ / 6;
+  const [c, s] = [Math.cos(a) * r * 1.5, Math.sin(a) * r * 1.5];
+  const [p, q] = [x + c, y + s];
 
-    // Draw the dial and shaft.
-    drawPath(args.painter, trace => {
-        trace.arc(x, y, r, τ/2, τ);
-        PathGeometry.line(trace, x, y, p, q);
-    }, [{stroke: {color: style.text, width: 1}}]);
-    // Draw the indicator head.
-    drawPath(args.painter, trace => PathGeometry.arrowHead(trace, p, q, r*0.3, a, τ/4), [{fill: style.text}]);
+  // Draw the dial and shaft.
+  drawPath(
+    args.painter,
+    (trace) => {
+      trace.arc(x, y, r, τ / 2, τ);
+      PathGeometry.line(trace, x, y, p, q);
+    },
+    [{ stroke: { color: style.text, width: 1 } }],
+  );
+  // Draw the indicator head.
+  drawPath(
+    args.painter,
+    (trace) => PathGeometry.arrowHead(trace, p, q, r * 0.3, a, τ / 4),
+    [{ fill: style.text }],
+  );
 }
 
-const MeasurementGate = new GateBuilder().
-    setSerializedIdAndSymbol("Measure").
-    setTitle("Measurement Gate").
-    setBlurb("Measures whether a qubit is ON or OFF, without conditioning on the result.").
-    setMeasureEffect("measure").
-    promiseHasNoNetEffectOnStateVector().  // Because in the simulation we defer measurement by preventing operations.
-    setRenderer(drawMeasurementGate).
-    setExtraDisableReasonFinder(args => {
-        if (args.isNested) {
-            return "can't\nnest\nmeasure\n(sorry)";
-        }
-        const isMeasured = (args.measuredMask & (1<<args.outerRow)) !== 0;
-        if (args.innerColumn.hasControl() && !isMeasured) {
-            return "can't\ncontrol\n(sorry)";
-        }
-        return undefined;
-    }).
-    gate;
+const MeasurementGate = new GateBuilder()
+  .setSerializedIdAndSymbol("Measure")
+  .setTitle("Measurement Gate")
+  .setBlurb(
+    "Measures whether a qubit is ON or OFF, without conditioning on the result.",
+  )
+  .setMeasureEffect("measure")
+  .promiseHasNoNetEffectOnStateVector() // Because in the simulation we defer measurement by preventing operations.
+  .setRenderer(drawMeasurementGate)
+  .setExtraDisableReasonFinder((args) => {
+    if (args.isNested) {
+      return "No nested\nmeasure";
+    }
+    const isMeasured = (args.measuredMask & (1 << args.outerRow)) !== 0;
+    if (args.innerColumn.hasControl() && !isMeasured) {
+      return "No control\non measure";
+    }
+    return undefined;
+  }).gate;
 
-export {MeasurementGate}
+export { MeasurementGate };

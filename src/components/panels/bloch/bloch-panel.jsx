@@ -20,7 +20,7 @@ import { useCircuitSteps } from "./useCircuitSteps.js";
 import { useExploreTransition } from "./useExploreTransition.js";
 
 /**
- * The Bloch sphere analyzer: one qubit read three ways - the sphere seen from above the equator,
+ * The Bloch sphere analyzer: one qubit read three ways - the rotatable sphere,
  * the meridian that holds θ and the equator that holds ϕ, both face on - with every number beside
  * the controls that change them. Escape closes it, and focus goes back to the circuit.
  *
@@ -86,7 +86,9 @@ function BlochPanel() {
   /** @param {number} index */
   const selectStep = (index) => {
     cancel();
-    setMode(index === currentStep ? { kind: "circuit" } : { kind: "step", index });
+    setMode(
+      index === currentStep ? { kind: "circuit" } : { kind: "step", index },
+    );
   };
   const close = () => {
     appStore.setState({ blochTarget: undefined });
@@ -112,7 +114,8 @@ function BlochPanel() {
     const focusTitle = () => {
       const title = titleRef.current;
       title?.focus({ preventScroll: true });
-      if (document.activeElement !== title && tries++ < 20) frame = requestAnimationFrame(focusTitle);
+      if (document.activeElement !== title && tries++ < 20)
+        frame = requestAnimationFrame(focusTitle);
     };
     focusTitle();
     return () => cancelAnimationFrame(frame);
@@ -128,11 +131,16 @@ function BlochPanel() {
   }, [summary]);
 
   return (
+    // eslint-disable-next-line jsx-a11y-x/no-noninteractive-element-interactions -- Escape bubbles from the focused panel controls; this named region is not an extra control.
     <div
       className="panel-body bloch-panel"
       role="region"
       aria-labelledby="bloch-title"
       onKeyDown={(event) => {
+        if (event.nativeEvent.isComposing) {
+          event.stopPropagation();
+          return;
+        }
         if (event.key === "Escape" && !event.defaultPrevented) {
           event.preventDefault();
           close();
@@ -144,74 +152,79 @@ function BlochPanel() {
         {announced}
       </p>
 
-      {/* What changes the state, the numbers it changes and the pictures of it: the numbers stand
-          beside the controls, so a slider and the values it moves are seen together. */}
+      {/* The sphere leads, then its state controls, then supporting projections and layers. */}
       <div className="bloch-analyzer">
-        <AnalyzerGroup
-          className="bloch-area-source"
-          title="State source"
-          purpose="a step of the circuit, or a free state"
-        >
-          <div className="bloch-source-controls">
-            <StepStrip
-              steps={steps}
-              selected={selectedStep}
-              canvasRef={figures.stripRef}
-              onSelect={selectStep}
-            />
-            <div className="bloch-explore-controls">
-              <ExploreControls
-                activePreset={mode.kind === "explore" ? mode.preset : undefined}
-                canReturn={mode.kind !== "circuit" && target !== undefined}
-                onPreset={(preset) =>
-                  explore(preset.vec, { preset: preset.name, glide: true })
+        <BlochFigures
+          sphereRef={figures.sphereRef}
+          meridianRef={figures.meridianRef}
+          equatorRef={figures.equatorRef}
+          readout={figures.readout}
+          rotated={figures.rotated}
+          onResetView={figures.resetView}
+          onPointerDown={figures.onPointerDown}
+          onPointerMove={figures.onPointerMove}
+          onKeyDown={figures.onKeyDown}
+          displayControls={
+            <div
+              className="bloch-display"
+              role="group"
+              aria-label="What the figures draw"
+            >
+              <AxisKey
+                pinnedAxis={pinnedAxis}
+                onTogglePin={(axis) =>
+                  setPinnedAxis((pinned) =>
+                    pinned === axis ? undefined : axis,
+                  )
                 }
-                onReturn={() => {
-                  cancel();
-                  setMode({ kind: "circuit" });
-                }}
-                angles={anglesOf(figures.readout)}
-                onAngles={exploreAngles}
+                onPreview={setHoverAxis}
+              />
+              <LayerSwitches
+                layers={layers}
+                onChange={(key, checked) =>
+                  setLayers((current) => ({ ...current, [key]: checked }))
+                }
               />
             </div>
-          </div>
-        </AnalyzerGroup>
-
-        <ReadoutSidebar className="bloch-area-readout" readout={figures.readout} />
-
-        <AnalyzerGroup
-          className="bloch-area-figures"
-          title="Figures"
-          purpose="the qubit drawn three ways"
+          }
         >
-          <BlochFigures
-            sphereRef={figures.sphereRef}
-            meridianRef={figures.meridianRef}
-            equatorRef={figures.equatorRef}
-            readout={figures.readout}
-            rotated={figures.rotated}
-            onResetView={figures.resetView}
-            onPointerDown={figures.onPointerDown}
-            onPointerMove={figures.onPointerMove}
-            onKeyDown={figures.onKeyDown}
-          />
-          {/* What the figures draw, under the figures it changes. */}
-          <div className="bloch-display" role="group" aria-label="What the figures draw">
-            <AxisKey
-              pinnedAxis={pinnedAxis}
-              onTogglePin={(axis) =>
-                setPinnedAxis((pinned) => (pinned === axis ? undefined : axis))
-              }
-              onPreview={setHoverAxis}
-            />
-            <LayerSwitches
-              layers={layers}
-              onChange={(key, checked) =>
-                setLayers((current) => ({ ...current, [key]: checked }))
-              }
-            />
-          </div>
-        </AnalyzerGroup>
+          <AnalyzerGroup
+            className="bloch-area-source"
+            title="State source"
+            purpose="a step of the circuit, or a free state"
+          >
+            <div className="bloch-source-controls">
+              <div className="bloch-explore-controls">
+                <ExploreControls
+                  activePreset={
+                    mode.kind === "explore" ? mode.preset : undefined
+                  }
+                  canReturn={mode.kind !== "circuit" && target !== undefined}
+                  onPreset={(preset) =>
+                    explore(preset.vec, { preset: preset.name, glide: true })
+                  }
+                  onReturn={() => {
+                    cancel();
+                    setMode({ kind: "circuit" });
+                  }}
+                  angles={anglesOf(figures.readout)}
+                  onAngles={exploreAngles}
+                />
+              </div>
+              <StepStrip
+                steps={steps}
+                selected={selectedStep}
+                canvasRef={figures.stripRef}
+                onSelect={selectStep}
+              />
+            </div>
+          </AnalyzerGroup>
+        </BlochFigures>
+
+        <ReadoutSidebar
+          className="bloch-area-readout"
+          readout={figures.readout}
+        />
       </div>
 
       <AnalyzerFooter onClose={close} />
@@ -229,7 +242,8 @@ const SUMMARY_SETTLE_MS = 700;
  * @returns {string}
  */
 function stateSummary(subtitle, readout) {
-  if (readout === null || readout === undefined) return `${subtitle}: no state to show.`;
+  if (readout === null || readout === undefined)
+    return `${subtitle}: no state to show.`;
   const mixed = Number(readout.length) < PURE_STATE_THRESHOLD;
   return `${subtitle}: θ ${readout.theta}, ϕ ${readout.phi}, |r| ${readout.length}${mixed ? ", mixed" : ""}.`;
 }

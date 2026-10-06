@@ -1,7 +1,7 @@
-import {CanvasTheme} from '../../config/CanvasTheme.js';
-import {Point} from '../../geometry/Point.js';
-import {drawGraphics} from '../scene/DisplayView.js';
-import {lineWidth} from '../shapes/ShapeView.js';
+import { CanvasTheme } from "../../config/CanvasTheme.js";
+import { Point } from "../../geometry/Point.js";
+import { drawGraphics } from "../scene/DisplayView.js";
+import { lineWidth } from "../shapes/ShapeView.js";
 
 /** @typedef {import('../../geometry/Rect.js').Rect} Rect */
 
@@ -12,9 +12,9 @@ import {lineWidth} from '../shapes/ShapeView.js';
  * in its turnsAt.
  */
 const DIAL_AXIS = Object.freeze({
-    X: Object.freeze({axis: 'x'}),
-    Y: Object.freeze({axis: 'y'}),
-    Z: Object.freeze({axis: 'z'}),
+  X: Object.freeze({ axis: "x" }),
+  Y: Object.freeze({ axis: "y" }),
+  Z: Object.freeze({ axis: "z" }),
 });
 
 /**
@@ -22,12 +22,16 @@ const DIAL_AXIS = Object.freeze({
  * @returns {!string} The sector's colour: the axis's hue, or t's own violet for a gate without one.
  */
 function sectorColor(axis) {
-    switch (axis?.axis) {
-        case 'x': return CanvasTheme.bloch.axisX;
-        case 'y': return CanvasTheme.bloch.axisY;
-        case 'z': return CanvasTheme.bloch.axisZ;
-        default: return CanvasTheme.operation.fill;
-    }
+  switch (axis?.axis) {
+    case "x":
+      return CanvasTheme.bloch.axisX;
+    case "y":
+      return CanvasTheme.bloch.axisY;
+    case "z":
+      return CanvasTheme.bloch.axisZ;
+    default:
+      return CanvasTheme.operation.fill;
+  }
 }
 
 /** How finely a swept sector follows its face. */
@@ -43,8 +47,8 @@ const STEPS_PER_TURN = 64;
  * @returns {!Point}
  */
 function dialPoint(turns, radius) {
-    const angle = turns * 2 * Math.PI;
-    return new Point(-Math.sin(angle) * radius, -Math.cos(angle) * radius);
+  const angle = turns * 2 * Math.PI;
+  return new Point(-Math.sin(angle) * radius, -Math.cos(angle) * radius);
 }
 
 /**
@@ -57,17 +61,24 @@ function dialPoint(turns, radius) {
  *     at no turn), the hand's tip, and a unit vector along the face the way the hand moves on.
  */
 function dialGeometry(turns, radius) {
-    // A backward gate at no turn is -0 turns round, and still heads its own way.
-    const direction = turns < 0 || Object.is(turns, -0) ? -1 : 1;
-    const swept = Math.abs(turns) % 1;
-    const steps = Math.ceil(swept * STEPS_PER_TURN);
-    const sector = steps === 0 ? [] : [new Point(0, 0),
-        ...Array.from({length: steps + 1}, (_, i) => dialPoint(direction * swept * i / steps, radius))];
-    const hand = dialPoint(direction * swept, radius);
-    const ahead = dialPoint(direction * (swept + 1 / STEPS_PER_TURN), radius);
-    const [dx, dy] = [ahead.x - hand.x, ahead.y - hand.y];
-    const length = Math.hypot(dx, dy);
-    return {sector, hand, heading: new Point(dx / length, dy / length)};
+  // A backward gate at no turn is -0 turns round, and still heads its own way.
+  const direction = turns < 0 || Object.is(turns, -0) ? -1 : 1;
+  const swept = Math.abs(turns) % 1;
+  const steps = Math.ceil(swept * STEPS_PER_TURN);
+  const sector =
+    steps === 0
+      ? []
+      : [
+          new Point(0, 0),
+          ...Array.from({ length: steps + 1 }, (_, i) =>
+            dialPoint((direction * swept * i) / steps, radius),
+          ),
+        ];
+  const hand = dialPoint(direction * swept, radius);
+  const ahead = dialPoint(direction * (swept + 1 / STEPS_PER_TURN), radius);
+  const [dx, dy] = [ahead.x - hand.x, ahead.y - hand.y];
+  const length = Math.hypot(dx, dy);
+  return { sector, hand, heading: new Point(dx / length, dy / length) };
 }
 
 /**
@@ -96,7 +107,13 @@ const RING_ALPHA = 0.75;
  * 2 past the hand's end, 4 back and 2.5 either side - and are a little heavier than that scaled
  * down, because a hand under a unit wide turns grey on a pale sector.
  */
-const HAND = Object.freeze({width: 0.16, halo: 0.36, tip: 0.15, back: 0.33, across: 0.2});
+const HAND = Object.freeze({
+  width: 0.16,
+  halo: 0.36,
+  tip: 0.15,
+  back: 0.33,
+  across: 0.2,
+});
 
 /**
  * Where a gate's dial sits: a small badge on the top-right corner of the gate's whole rectangle,
@@ -116,7 +133,10 @@ const HAND = Object.freeze({width: 0.16, halo: 0.36, tip: 0.15, back: 0.33, acro
  * @returns {!{center: !Point, radius: !number}} The face's centre, and its radius to its outer edge.
  */
 function dialPlacement(rect) {
-    return {center: new Point(rect.right() - DIAL_INSET, rect.y + DIAL_INSET), radius: DIAL_RADIUS};
+  return {
+    center: new Point(rect.right() - DIAL_INSET, rect.y + DIAL_INSET),
+    radius: DIAL_RADIUS,
+  };
 }
 
 /**
@@ -130,17 +150,22 @@ function dialPlacement(rect) {
  *     the arrowhead's three corners: its point, then a barb either side of the way it heads.
  */
 function dialArrowhead(hand, heading, radius) {
-    const [tip, back, across] = [HAND.tip, HAND.back, HAND.across].map(fraction => fraction * radius);
-    // Along the face and across it at the hand's tip, exactly: the heading is a chord a step on, and
-    // only on the true tangent does the outer barb land on the rim.
-    const out = hand.times(1 / radius);
-    const sideways = new Point(-out.y, out.x);
-    const along = sideways.times(Math.sign(sideways.x * heading.x + sideways.y * heading.y));
-    // The outer barb lies back from the hand's end and across it, so the end comes in far enough
-    // that the barb lands on the rim.
-    const base = out.times(Math.sqrt(radius * radius - back * back) - across);
-    const barb = sign => base.minus(along.times(back)).plus(out.times(across * sign));
-    return {base, head: [base.plus(along.times(tip)), barb(1), barb(-1)]};
+  const [tip, back, across] = [HAND.tip, HAND.back, HAND.across].map(
+    (fraction) => fraction * radius,
+  );
+  // Along the face and across it at the hand's tip, exactly: the heading is a chord a step on, and
+  // only on the true tangent does the outer barb land on the rim.
+  const out = hand.times(1 / radius);
+  const sideways = new Point(-out.y, out.x);
+  const along = sideways.times(
+    Math.sign(sideways.x * heading.x + sideways.y * heading.y),
+  );
+  // The outer barb lies back from the hand's end and across it, so the end comes in far enough
+  // that the barb lands on the rim.
+  const base = out.times(Math.sqrt(radius * radius - back * back) - across);
+  const barb = (sign) =>
+    base.minus(along.times(back)).plus(out.times(across * sign));
+  return { base, head: [base.plus(along.times(tip)), barb(1), barb(-1)] };
 }
 
 /**
@@ -165,38 +190,52 @@ function dialArrowhead(hand, heading, radius) {
  *     DIAL_AXIS. Without one the sector takes t's own violet.
  */
 function paintTimeDial(args, turns, axis = undefined) {
-    // The stats of a gate drawn on its own may name no circuit, and then nothing disables it.
-    const {positionInCircuit: at, stats} = args;
-    if (args.gate.deactivated ||
-            at !== undefined && stats.circuitDefinition?.gateAtLocIsDisabledReason(at.col, at.row) !== undefined) {
-        return;
-    }
-    const {center, radius} = dialPlacement(args.rect);
-    args.painter.group('cycle-' + args.painter.order, painter => {
-        painter.position.set(center.x, center.y);
-        // The ring is drawn inside the face's outer edge, so the badge reaches exactly its radius.
-        const ring = lineWidth(painter, 1);
-        // Inside the ring a channel of the face's own colour keeps the sector off it, so a pale sector
-        // on a pale tile, Z's on Z's, still has the dark face round it.
-        const inner = radius - 2 * ring;
-        const {sector, hand, heading} = dialGeometry(turns, inner);
-        const {base, head} = dialArrowhead(hand, heading, inner);
-        drawGraphics(painter, path => {
-            // The face, so the swept sector reads as a fraction of a whole turn.
-            path.circle(0, 0, radius).fill(CanvasTheme.surface.background);
-            if (sector.length > 0) {
-                path.poly(sector.flatMap(p => [p.x, p.y])).fill(sectorColor(axis));
-            }
-            path.circle(0, 0, radius - ring / 2).
-                stroke({color: CanvasTheme.text.primary, width: ring, alpha: RING_ALPHA});
-            // A halo under the hand, so it reads on a pale sector as on the dark face.
-            path.moveTo(0, 0).lineTo(base.x, base.y).
-                stroke({color: CanvasTheme.surface.background, width: HAND.halo * inner});
-            path.moveTo(0, 0).lineTo(base.x, base.y).
-                stroke({color: CanvasTheme.text.primary, width: HAND.width * inner});
-            path.poly(head.flatMap(p => [p.x, p.y])).fill(CanvasTheme.text.primary);
+  // The stats of a gate drawn on its own may name no circuit, and then nothing disables it.
+  const { positionInCircuit: at, stats } = args;
+  if (
+    args.gate.deactivated ||
+    (at !== undefined &&
+      stats.circuitDefinition?.gateAtLocIsDisabledReason(at.col, at.row) !==
+        undefined)
+  ) {
+    return;
+  }
+  const { center, radius } = dialPlacement(args.rect);
+  args.painter.group("cycle-" + args.painter.order, (painter) => {
+    painter.position.set(center.x, center.y);
+    // The ring is drawn inside the face's outer edge, so the badge reaches exactly its radius.
+    const ring = lineWidth(painter, 1);
+    // Inside the ring a channel of the face's own colour keeps the sector off it, so a pale sector
+    // on a pale tile, Z's on Z's, still has the dark face round it.
+    const inner = radius - 2 * ring;
+    const { sector, hand, heading } = dialGeometry(turns, inner);
+    const { base, head } = dialArrowhead(hand, heading, inner);
+    drawGraphics(painter, (path) => {
+      // The face, so the swept sector reads as a fraction of a whole turn.
+      path.circle(0, 0, radius).fill(CanvasTheme.surface.background);
+      if (sector.length > 0) {
+        path.poly(sector.flatMap((p) => [p.x, p.y])).fill(sectorColor(axis));
+      }
+      path.circle(0, 0, radius - ring / 2).stroke({
+        color: CanvasTheme.text.primary,
+        width: ring,
+        alpha: RING_ALPHA,
+      });
+      // A halo under the hand, so it reads on a pale sector as on the dark face.
+      path
+        .moveTo(0, 0)
+        .lineTo(base.x, base.y)
+        .stroke({
+          color: CanvasTheme.surface.background,
+          width: HAND.halo * inner,
         });
+      path
+        .moveTo(0, 0)
+        .lineTo(base.x, base.y)
+        .stroke({ color: CanvasTheme.text.primary, width: HAND.width * inner });
+      path.poly(head.flatMap((p) => [p.x, p.y])).fill(CanvasTheme.text.primary);
     });
+  });
 }
 
-export {paintTimeDial, dialGeometry, dialPlacement, dialArrowhead, DIAL_AXIS};
+export { paintTimeDial, dialGeometry, dialPlacement, dialArrowhead, DIAL_AXIS };

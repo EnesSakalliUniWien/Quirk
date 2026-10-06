@@ -1,0 +1,142 @@
+[
+  {
+    "path": "src/app/canvas/canvasPointer.js",
+    "before_sha256": "b4592bf0c2a8eca25320c2b6b753cf5483dc3cef10944bf1296ee1b8a8e5b7d6",
+    "after_sha256": "e3b3bd9bdb6e29a3a7c3ef410e55b1b26daac525ae5bfec22ab222c40378f412"
+  },
+  {
+    "path": "src/browser/theme/dom.js",
+    "before_sha256": "21971fbf2d5ca99325c94716a6b1d8206efe16b66376cf0ae053ec654a7fc3f4",
+    "after_sha256": "f65867bac9658e34becb116c0f3f6088e4bc01369f756712fc2f487a61a3a600"
+  },
+  {
+    "path": "src/components/math/data-view.jsx",
+    "before_sha256": "7c91d83651429a3bde5d8598fefbc8068e782aeb41f53dad2aef83809b63b6bc",
+    "after_sha256": "60ec4919b2c37616525008bffefe9b61c71949d505caa8b1bf609d5cea5cd6ab"
+  },
+  {
+    "path": "src/components/panels/algebra/evolution-chart.jsx",
+    "before_sha256": "c99dc75c9195ab04fb5a71e234156059c42466ed7ab36efa56aca28beefa636a",
+    "after_sha256": "7252481b8c7ed0707e022a0b351974c6148eaebf0c474af0596dc12076764037"
+  },
+  {
+    "path": "src/components/panels/bloch/angle-control.jsx",
+    "before_sha256": "9f59d38f59db77615b3e3dc24f37c0402a4c655369291d2a8c80519521f4792a",
+    "after_sha256": "36633c6c0921ddb5c8101991809a289c4f26c646fb364477d869452e865bd6b8"
+  },
+  {
+    "path": "src/components/panels/bloch/bloch-panel.jsx",
+    "before_sha256": "f09df460f9003c3764fac8bef15de83beec49e6a4ddd1802571fc6d21c1aef1e",
+    "after_sha256": "0719ee15f46cf651da934db130e700830bb01d48d2ff6c9e8cae35f53ad90a87"
+  },
+  {
+    "path": "src/components/panels/circuit/rename-box.jsx",
+    "before_sha256": "015263a99523e89f6316734524f2efa1a411df157cb8a48f906de23ec9a822bb",
+    "after_sha256": "4c42b771e28d474c199f2c20749fe5c29c4d31b674079a1de6a5657de0719af8"
+  },
+  {
+    "path": "src/components/panels/circuit/wire-dial.jsx",
+    "before_sha256": "ca0be964df7683e124abaa52198d12e7ff2896db3110279656bf72aa6938c0db",
+    "after_sha256": "9db0969de2d8d5eed4b4b76b6062cd4f9e48b70f6c8d58082c6dbb22ba2e8442"
+  },
+  {
+    "path": "src/components/panels/export/copy-button.jsx",
+    "before_sha256": "bee6ad6e1a98cca4a16fd3b7920ce7f7904098f8376f9e422b5aa4927145cc81",
+    "after_sha256": "14c27c580d80a17d1ed14baf9e93b31dd584863cd3796d246d20fee822fa1e71"
+  },
+  {
+    "path": "src/components/panels/export/export-panel-body.jsx",
+    "before_sha256": "763de1e578c5579d1cb69d1375dca32877a7c786bc6faafbb6f27257f4fd9be5",
+    "after_sha256": "a3d4210090b111bf6252b598851a99d451ab33687e46815e01cdee54609cc9c6"
+  },
+  {
+    "path": "src/components/panels/registers/register-row.jsx",
+    "before_sha256": "550974eb4b4dd83ab3070395c5e7f1b236afc8e4c053f8f5a91b410f6dd07f07",
+    "after_sha256": "05cd55ef60d05953047520453a483dd7f3f7795b3950d92c5c335a54537053db"
+  },
+  {
+    "path": "src/components/panels/tape/take-card.jsx",
+    "before_sha256": "63fca4df52312e0362bdd8c646fa01c8bbeaedce2361e151f7fc900c28ba7a3b",
+    "after_sha256": "3ed992e62e63a4be643df86d6b224ce5d6e9e96a296019b83cde47d41e920246"
+  },
+  {
+    "path": "src/components/panels/tape/tape-body.jsx",
+    "before_sha256": "63f4fc326fa239d4ed47cf27429abe73e7f829a5cd6f6077642e919f41cbe737",
+    "after_sha256": "fd4b25180f54778d5a75ffc2e2030bda318d90027f879bbc584a0a72f848c8df"
+  },
+  {
+    "path": "src/components/toolbar/transport-bar.module.css",
+    "before_sha256": "2fb7984fd83189b8a49d661f5c254f51e2e4c1deb61473984935d7344f15894c",
+    "after_sha256": "e4b481a6bc8821ee87aface84f1c88348228abb57319a386807bad1166bfd72a"
+  },
+  {
+    "path": "src/components/toolbox/gate-toolbox.jsx",
+    "before_sha256": "aabb064653fbf3d4bc5bc6b8bf4c9051cb4e368e7aca2ac578b8af2bae3713d6",
+    "after_sha256": "30d0c88b9f1e748a2202dd251e44cc42bc94c10c73dad5726283847a59710576"
+  },
+  {
+    "path": "src/editor/interaction/PixiPointerGestures.js",
+    "before_sha256": "bed7023f5caef3ac7a92a9a8d3f9537809e607ffdbe836639fac9df178095304",
+    "after_sha256": "f9e8e7282de89b66cba668975d5b4cedf69097ad48f569a4f7b50f84af313cb6"
+  },
+  {
+    "path": "src/results/tapeStore.js",
+    "before_sha256": "46578d2fdc4a7341b65c8734b74f9bcc5f37716cf7a54522085dbc99941d1f61",
+    "after_sha256": "95ac5067f3535ba891d662a545834eb18fe8bd48e10667fc8bb4450abd12330b"
+  },
+  {
+    "path": "src/styles/foundation/document.css",
+    "before_sha256": "67bd3f36e77c5b3efb9903afba2a8212d6443c9365f6f56b8d417123af09f772",
+    "after_sha256": "f7fc602afb6c218c4e6a72606036ef9a87104c09067d3255d8fe9c41a45eb2af"
+  },
+  {
+    "path": "src/styles/panels/forge/construction.css",
+    "before_sha256": "6a840441464f91439a6b7b3731e8ef23ad802849f4715fc3e450280281dee339",
+    "after_sha256": "00b844a8a9c7760f297bf19e569bfe21c2da81739d6e2039b7cbda998be08861"
+  },
+  {
+    "path": "src/styles/shell/layout.css",
+    "before_sha256": "9fadb966756592b092f51847fbba50c5b8e1fe22f2539a8a0084a3614732ba0a",
+    "after_sha256": "0c16576f3a7c037be00014cee64347186ed938e663897c04d6ea2cd943dfa279"
+  },
+  {
+    "path": "test/editor/interaction/PixiPointerGestures.test.js",
+    "before_sha256": "9c66884b0047928a4a260ecd33971dd43ce5150f7b49fd296d07691cc294824f",
+    "after_sha256": "5a69767d54976ebc7b8ae72b49c666187af4cd3aa9d1982e17ab6fadb6fd10f9"
+  },
+  {
+    "path": "test/results/tapeStore.test.js",
+    "before_sha256": "65e88e5cecbee573c9a7ab22a8da6afaa6fd72c7f575db3ddd2d1d5ccc8c9a41",
+    "after_sha256": "fd743543da3a6b37ab3d914855504c5df1c1129a0c669437f8d38213f916d59f"
+  },
+  {
+    "path": "test_e2e/debugPanels.test.js",
+    "before_sha256": "7cb574775d759250d231fc5cce210cc900dda88f3456e3032cd90e9d9f3ec594",
+    "after_sha256": "9639b53a13c83f28e60e65c071c191aa1312f223a633b50a1bbbec2ec7340acf"
+  },
+  {
+    "path": "test_e2e/gateMenu.test.js",
+    "before_sha256": "8f42a991976eb18b8f8397615a96542267d80fca1a4fab229773909ff111c436",
+    "after_sha256": "222695527ade5bd2b2f79e33e74b66d4514af88a471104f7b8860826314da821"
+  },
+  {
+    "path": "test_e2e/overlays.test.js",
+    "before_sha256": "96705f53784463b85db2c8e3396514cbde54a0cf10ee2b8add4ba43354f7eba4",
+    "after_sha256": "02692469992ca1c1fb2d0dcddd679edae2358426e4ea8a1da5a03d7f1ab3cbb3"
+  },
+  {
+    "path": "test_e2e/registers.test.js",
+    "before_sha256": "018e32de657c689a862010f0bacc25a62c1a4bffaccb0825ed50542b5251e962",
+    "after_sha256": "70ae7c8cf3503bd1f24e72f56d5b5cc85205b99b6deca4e29ba28207be3b44d0"
+  },
+  {
+    "path": "test_e2e/tape.test.js",
+    "before_sha256": "c7cfe76d62ea3346fbf1015d56f36d58216dcae4b5b453ad2da055728744dd97",
+    "after_sha256": "f79795da6b99905d55737b63b41484adb2623e4b1597caf49a5179067e5b38ad"
+  },
+  {
+    "path": "test_e2e/theme.test.js",
+    "before_sha256": "7a6e42e8e2b43f3d2563929bbc134a8bef36bf14ec9e5218769ca4b23f83162c",
+    "after_sha256": "e98fad27f6f672ccbfd405a8c620efa658f2a71e570c09ec5d524c771ca71156"
+  }
+]

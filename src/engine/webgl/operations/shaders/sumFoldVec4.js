@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-import { Inputs, Outputs, makePseudoShaderWithInputsAndOutputAndCode } from "../../coder/ShaderCoders.js";
+import {
+  Inputs,
+  Outputs,
+  makePseudoShaderWithInputsAndOutputAndCode,
+} from "../../coder/ShaderCoders.js";
 
 const sumFoldVec4 = makePseudoShaderWithInputsAndOutputAndCode(
   [Inputs.vec4("input")],

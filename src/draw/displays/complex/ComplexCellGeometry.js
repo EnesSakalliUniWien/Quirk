@@ -36,7 +36,7 @@ const GAUGE_ZERO = 1e-9;
 
 /** @returns {!number} The disc's radius: its entry's magnitude, as a share of the half-cell. */
 export function discRadius(real, imag, d) {
-  return Math.sqrt(real * real + imag * imag) * d / 2;
+  return (Math.sqrt(real * real + imag * imag) * d) / 2;
 }
 
 /**
@@ -47,7 +47,7 @@ export function discRadius(real, imag, d) {
 export function logRingRadius(real, imag, d) {
   const chance = real * real + imag * imag;
   const g = chance > 0 ? 1 + Math.log(chance) / 15 : 0;
-  return g > 0 ? g * d / 2 : 0;
+  return g > 0 ? (g * d) / 2 : 0;
 }
 
 /**
@@ -57,7 +57,9 @@ export function logRingRadius(real, imag, d) {
  */
 export function handLength(real, imag, d) {
   const mag = Math.sqrt(real * real + imag * imag);
-  return mag === 0 ? 0 : Math.max(mag * d / 2, Math.min(MIN_HAND_LENGTH, d / 4));
+  return mag === 0
+    ? 0
+    : Math.max((mag * d) / 2, Math.min(MIN_HAND_LENGTH, d / 4));
 }
 
 /**

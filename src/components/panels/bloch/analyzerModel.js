@@ -50,7 +50,11 @@ import { wireLabel } from "../../../circuit/registerLabels.js";
  *     glides by itself; another sphere starts afresh.
  */
 function glidesBetween(previous, next) {
-  if (previous === undefined || previous.target !== next.target || next.kind === "explore") {
+  if (
+    previous === undefined ||
+    previous.target !== next.target ||
+    next.kind === "explore"
+  ) {
     return false;
   }
   if (previous.kind !== next.kind || previous.index !== next.index) {
@@ -141,21 +145,32 @@ function densityMatrixOf(deps, result, target) {
  * @returns {string} The line under the title: whose state is shown, and from where. The wire is
  *     named as the canvas names it: q0, or by its register.
  */
-function subtitleFor(mode, target, { registers, playheadStep, columnCount } = {}) {
+function subtitleFor(
+  mode,
+  target,
+  { registers, playheadStep, columnCount } = {},
+) {
   if (mode.kind === "explore") {
     return "Exploring a free state — not from the circuit";
   }
   if (target === undefined) {
     return "Click a Bloch sphere in the circuit.";
   }
-  const wire = registers === undefined ? `q${target.row}` : wireLabel(registers, target.row);
+  const wire =
+    registers === undefined
+      ? `q${target.row}`
+      : wireLabel(registers, target.row);
   if (mode.kind === "step") {
     return `${wire} · ${mode.index === 0 ? "before the first column" : `after column ${mode.index}`}`;
   }
   if (target.col !== undefined) {
     return `${wire} · at its Bloch gate, column ${target.col + 1}`;
   }
-  if (playheadStep === undefined || columnCount === undefined || playheadStep >= columnCount) {
+  if (
+    playheadStep === undefined ||
+    columnCount === undefined ||
+    playheadStep >= columnCount
+  ) {
     return `${wire} · the whole circuit's result`;
   }
   return `${wire} · at the playhead, ${playheadStep === 0 ? "before the first column" : `after column ${playheadStep}`}`;

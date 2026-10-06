@@ -1,0 +1,1588 @@
+diff --git a/PRODUCT.md b/PRODUCT.md
+--- a/PRODUCT.md
++++ b/PRODUCT.md
+@@ -16,7 +16,7 @@
+ 
+ ## Operating Context
+ 
+-The existing application runs in a browser. People edit gates on a circuit workspace, use separate Steps and Time controls, inspect state/probability/Bloch/algebra views, construct or parameterize gates, and record, compare, import, or export Tape results. The workspace supports keyboard, pointer, and touch interaction and adapts its docked panels to available space.
++The existing application runs in a browser. People edit gates on a circuit workspace, use separate Steps and Time controls, inspect state/probability/Bloch/algebra views, construct or parameterize gates, and record, compare, import, or export recorded results. The workspace supports keyboard, pointer, and touch interaction and adapts its docked panels to available space.
+ 
+ ## Capabilities and Constraints
+ 
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -2,8 +2,8 @@
+ 
+ [![ci](https://github.com/EnesSakalliUniWien/Quirk/actions/workflows/ci.yml/badge.svg)](https://github.com/EnesSakalliUniWien/Quirk/actions/workflows/ci.yml)
+ 
+-Quirk-Bench is a toy quantum circuit simulator, intended to help people in learning about quantum
+-computing. It is a fork of Craig Gidney's [Quirk](https://github.com/Strilanc/Quirk)
++Quirk-Bench is a browser-based workbench for constructing, simulating, and inspecting small quantum
++circuits. It is a fork of Craig Gidney's [Quirk](https://github.com/Strilanc/Quirk)
+ ([algassert.com/quirk](http://algassert.com/quirk)), rebuilt around a modern app shell: a gate
+ sidebar with search and the circuit actions, a playhead transport docked with the state
+ table, circuit zoom with an overview minimap, adjustable Rx/Ry/Rz rotation gates, and floating
+@@ -13,9 +13,8 @@
+ If you want to quickly explore the behavior of a small quantum circuit, this is the tool for you:
+ drag gates onto the circuit and the output displays update in real time.
+ 
+-(If you're still trying to understand what a quantum circuit *even is*, then I recommend the video
+-series [Quantum Computing for the Determined](https://www.youtube.com/playlist?list=PL1826E60FD05B44E4).
+-Quirk-Bench assumes you already know background facts like "each wire represents a qubit".)
++**Prerequisites:** familiarity with qubits and quantum gates. For an introduction, see
++[Quantum Computing for the Determined](https://www.youtube.com/playlist?list=PL1826E60FD05B44E4).
+ 
+ **Defining features**:
+ 
+@@ -28,7 +27,7 @@
+ 
+ **Notable limitations**:
+ 
+-- Can't recohere measured qubits (because measurement is implemented as a hack based on the [deferred measurement principle](https://en.wikipedia.org/wiki/Deferred_Measurement_Principle)).
++- The simulator uses a [deferred-measurement implementation](https://en.wikipedia.org/wiki/Deferred_Measurement_Principle) and does not support restoring coherence to measured qubits.
+ 
+ # Manual
+ 
+@@ -36,11 +35,11 @@
+ 
+ # Examples
+ 
+-**The app**, with a small circuit using Bloch, amplitude, density, and chance displays:
++**The app**, with a small circuit using Bloch, amplitude, density, and probability displays:
+ 
+-![Demo](/doc/README_Demo.png)
++![Quirk-Bench circuit workspace](/doc/README_Demo.png)
+ 
+-**Grover search circuit** with chance displays (showing that the chance of success increases):
++**Grover search circuit** with probability displays (showing that the probability of success increases):
+ 
+ ![Grover search](/doc/README_Grover.png)
+ 
+diff --git a/doc/README.md b/doc/README.md
+--- a/doc/README.md
++++ b/doc/README.md
+@@ -17,7 +17,7 @@
+ - **add qubit**: `drag` gate onto extra wire that appears while dragging
+ - **remove qubit**: re-arrange gates so that the bottom wire is unused
+ - **show intermediate state**: `drag` a display gate onto the circuit
+-- **view tips**: `hover` with mouse **OR** awkwardly tap-hold with finger
++- **view tips**: `hover` with mouse **OR** touch and hold
+ - **step through the circuit**: the transport under the toolbar has two lanes. **Steps** walks
+   the playhead through the columns: Play steps plays and pauses, Reset goes back to the start,
+   Prev and Next step, the slider scrubs, and Breakpoint marks the column the playhead stands
+@@ -25,13 +25,13 @@
+   result, and stays there as the circuit is edited. Short of the end, the columns not yet run
+   stand back under a veil and the outputs show the state reached there - at the start, the state
+   the circuit starts in. Stepping never moves t
+-- **record a take**: Record, at the end of the Steps lane, keeps this step - the state at the
+-  playhead - or every step from the start to the end, on the Tape
++- **record a snapshot**: Record, at the end of the Steps lane, keeps this step - the state at the
++  playhead - or every step from the start to the end, in Recordings
+ - **pause what moves**: `space` pauses whatever is moving - the steps, t, or both - and the next
+   `space` brings it back; with nothing moving, it plays the steps
+-- **watch or stop time**: spinning, counting and formula gates follow t, which runs through its
++- **watch or stop time**: time-dependent powers, counting and formula gates follow t, which runs through its
+   cycle every 8 s. **Time**, the lane below, plays and pauses t, scrubs it and nudges it 1/32 at a
+-  time, and says what holds it when something does - a recording or a restored take. With the
++  time, and says what holds it when something does - a recording or a restored snapshot. With the
+   system's Reduce Motion on, t starts paused. Without a gate that uses t, the lane says so
+ - **change the speed**: each lane ends in its own speed, from 0.25× to 4×: Steps' paces Play and
+   Time's paces t's cycle; each choice says the pace it makes, and the browser keeps both
+@@ -97,18 +97,18 @@
+   keyboard's cell or the pointer and from the wire under it, or else after the selection or the
+   circuit; nothing is
+   overwritten, and the pasted gates are selected. Exported circuit JSON pastes the same way
+-- **make a gate of a selection**: the bar's wand opens Make gate's Circuit tab with its columns and
++- **create a gate from a selection**: the bar's wand opens Create gate's Circuit tab with its columns and
+   wires filled in
+ - **set a gate's parameter**: click the 'change' button on a parametrized gate (the Rx/Ry/Rz
+   rotation gates take their angle in radians)
+ - **fold a toolbox group**: click the group's heading; the folding is remembered
+ - **switch gates off and on**: Deactivate in a gate's menu or on the selection's bar
+-- **create custom gate**: click 'Make gate' button
++- **create custom gate**: click 'Create gate' button
+ - **remove custom gate**: [crummy support] have to use undo or clear all or manually edit URL
+ 
+ **Constructing custom gates**
+ 
+-Open **Make gate**, choose Rotation, Matrix, or Circuit, and inspect the operation and gate
++Open **Create gate**, choose Rotation, Matrix, or Circuit, and inspect the operation and gate
+ preview. Drafts survive switching methods. **Create gate** adds the gate to Custom Gates and
+ focuses it; press Enter to place it in the keyboard's cell, or on the top wire, or drag it into
+ the circuit.
+diff --git a/index.html b/index.html
+--- a/index.html
++++ b/index.html
+@@ -17,8 +17,8 @@
+ 
+     <noscript>
+       <div class="noscript-warning">
+-        You appear to have JavaScript blocked. And Quirk-Bench is made out of
+-        JavaScript... :(
++        Quirk-Bench requires JavaScript. Enable JavaScript in your browser to open
++        the circuit workspace.
+       </div>
+     </noscript>
+     <script type="module" src="/src/boot.js"></script>
+diff --git a/package.json b/package.json
+--- a/package.json
++++ b/package.json
+@@ -1,7 +1,7 @@
+ {
+   "name": "quirk-bench",
+   "type": "module",
+-  "description": "A drag-and-drop toy for exploring and understanding small quantum circuits.",
++  "description": "An interactive workbench for constructing, simulating, and inspecting quantum circuits.",
+   "license": "Apache-2.0",
+   "version": "2.3.2",
+   "engines": {
+diff --git a/src/app/session/url.js b/src/app/session/url.js
+--- a/src/app/session/url.js
++++ b/src/app/session/url.js
+@@ -116,8 +116,8 @@
+             historyPusher.currentStateIsMemorableButUnknown();
+             const params = getHashParameters();
+             if (params.has("take") && recorder !== undefined) {
+-                if (new TextEncoder().encode(document.location.hash).byteLength > LINK_LIMIT) throw new Error("Take link exceeds 32 KiB");
+-                if (JSON.parse(params.get("take")).format !== "shadow-quant-take/1") throw new Error("A take link must contain one take");
++                if (new TextEncoder().encode(document.location.hash).byteLength > LINK_LIMIT) throw new Error("Snapshot link exceeds 32 KiB");
++                if (JSON.parse(params.get("take")).format !== "shadow-quant-take/1") throw new Error("A snapshot link must contain one snapshot");
+                 const requestedHash = document.location.hash;
+                 recorder.importText(params.get("take")).then(takes => {
+                     if (version !== loadVersion || document.location.hash !== requestedHash) return;
+diff --git a/src/app/state/Recorder.js b/src/app/state/Recorder.js
+--- a/src/app/state/Recorder.js
++++ b/src/app/state/Recorder.js
+@@ -29,7 +29,7 @@
+ 
+     planTake(result = this.capture()) {
+         const n = this.store.items.getState().value.filter(r => !r.ghost).length + 1;
+-        return planTake(result, `take ${n}`, (n - 1) % 8);
++        return planTake(result, `snapshot ${n}`, (n - 1) % 8);
+     }
+ 
+     makeTake(result = this.capture()) {
+@@ -68,7 +68,7 @@
+                 await new Promise(resolve => setTimeout(resolve, 0));
+                 if (token.signal.aborted || this.batch !== token || checkpoint !== this.revision.peekActiveCommit() || this.simulator.playing ||
+                     this.simulator.seed !== initial.seed || this.simulator.cycleTime() !== initial.phase) {
+-                    throw new Error("Whole-run recording cancelled; no takes were saved.");
++                    throw new Error("Whole-run recording cancelled; no snapshots were saved.");
+                 }
+                 const result = this.simulator.evaluate(initial.circuit, initial.wireCount, step, false);
+                 const take = createTake(result, `run step ${step}`, step % 8);
+diff --git a/src/circuit/model/GateColumn.js b/src/circuit/model/GateColumn.js
+--- a/src/circuit/model/GateColumn.js
++++ b/src/circuit/model/GateColumn.js
+@@ -200,13 +200,13 @@
+         if (maskMeasured !== 0 && g.knownBitPermutationFunc === undefined) {
+             // Don't try to superpose measured qubits.
+             if (g.effectMightCreateSuperpositions()) {
+-                return "no\nremix\n(sorry)";
++                return "No mixing\nafter\nmeasure";
+             }
+ 
+             // Don't try to mix measured and coherent qubits, or coherently mix measured qubits.
+             if (g.effectMightPermutesStates()) {
+                 if (maskMeasured !== mask || this.hasCoherentControl(inputMeasureMask)) {
+-                    return "no\nremix\n(sorry)";
++                    return "No mixing\nafter\nmeasure";
+                 }
+             }
+         }
+@@ -227,7 +227,7 @@
+                 const coherentControlledMixingOfMeasured = hasMeasuredQubits && coherentControl;
+                 const controlledMixingOfCoherentAndMeasured = hasCoherentQubits && hasMeasuredQubits && controlled;
+                 if (coherentControlledMixingOfMeasured || controlledMixingOfCoherentAndMeasured) {
+-                    return "no\nremix\n(sorry)";
++                    return "No mixing\nafter\nmeasure";
+                 }
+             }
+         }
+@@ -332,7 +332,7 @@
+             if (hasMeasuredOutputs) {
+                 for (const {offset, length} of rangeVals) {
+                     if (((~args.measuredMask >> offset) & ((1 << length) - 1)) !== 0) {
+-                        return "no\nremix\n(sorry)";
++                        return "No mixing\nafter\nmeasure";
+                     }
+                 }
+             }
+diff --git a/src/components/panels/circuit/selection-bar.jsx b/src/components/panels/circuit/selection-bar.jsx
+--- a/src/components/panels/circuit/selection-bar.jsx
++++ b/src/components/panels/circuit/selection-bar.jsx
+@@ -17,7 +17,7 @@
+ const writeClipboard = (text) => navigator.clipboard.writeText(text);
+ 
+ /**
+- * The selection's actions, in a bar at its top edge: copy, cut, delete, make a gate of it, switch
++ * The selection's actions, in a bar at its top edge: copy, cut, delete, create a gate from it, switch
+  * its gates off or on, or let it go. It lives in the circuit's scroll content, at the drawing's zoom, so it stays with the
+  * selection as the circuit scrolls and zooms. Under the buttons it names what the selected gates
+  * rely on from outside the selection, which a copy leaves behind, and offers to take those wires in.
+@@ -105,7 +105,7 @@
+           onClick={() => cutSelection(actions, writeClipboard)} />
+         <BarButton action="delete" icon={Trash2Icon} label="Delete (Delete)"
+           onClick={() => deleteSelection(actions)} />
+-        <BarButton action="make-gate" icon={WandSparklesIcon} label="Make a gate of it"
++        <BarButton action="make-gate" icon={WandSparklesIcon} label="Create gate from selection"
+           onClick={() => makeGateFromSelection(actions)} />
+         {/* The gate menu's switch, here too, so it needs no right click or touch and hold. */}
+         {actions.allDeactivated() ? (
+diff --git a/src/components/panels/circuit/selection-menu.jsx b/src/components/panels/circuit/selection-menu.jsx
+--- a/src/components/panels/circuit/selection-menu.jsx
++++ b/src/components/panels/circuit/selection-menu.jsx
+@@ -48,7 +48,7 @@
+                 Cut
+               </Menu.Item>
+               <Menu.Item className="app-menu-item" data-action="make-gate" onClick={() => makeGateFromSelection(actions)}>
+-                Make Gate…
++                Create Gate…
+               </Menu.Item>
+               <Menu.Item className="app-menu-item" data-action={actions.allDeactivated() ? "activate" : "deactivate"}
+                 onClick={() => toggleSelectionActive(actions)}>
+diff --git a/src/components/panels/circuit/selectionCommands.js b/src/components/panels/circuit/selectionCommands.js
+--- a/src/components/panels/circuit/selectionCommands.js
++++ b/src/components/panels/circuit/selectionCommands.js
+@@ -140,7 +140,7 @@
+ }
+ 
+ /**
+- * Opens Make Gate on its Circuit tab, with the selection's columns and wires filled in.
++ * Opens Create gate on its Circuit tab, with the selection's columns and wires filled in.
+  *
+  * @param {!SelectionActions} actions
+  */
+diff --git a/src/components/panels/export/export-panel-body.jsx b/src/components/panels/export/export-panel-body.jsx
+--- a/src/components/panels/export/export-panel-body.jsx
++++ b/src/components/panels/export/export-panel-body.jsx
+@@ -62,7 +62,7 @@
+         <section className="panel-section">
+           <div className="panel-section-heading">
+             <strong className="panel-section-title">Circuit link</strong> — Link to the
+-            current circuit without special characters that confuse forums.
++            current circuit with an encoded circuit definition for sharing.
+           </div>
+           <div className="panel-section-body">
+             <CopyButton
+@@ -121,8 +121,8 @@
+               />{" "}
+               Full circuit (default: playhead)
+             </label>
+-            <button type="button" id="export-take-download" onClick={() => downloadFile(simulationJson(), "take.json")}>Download take JSON</button>
+-            <button type="button" onClick={() => downloadFile(takeCsv([currentTake()]), "take.csv", "text/csv")}>Download probabilities CSV</button>
++            <button type="button" id="export-take-download" onClick={() => downloadFile(simulationJson(), "snapshot.json")}>Download snapshot JSON</button>
++            <button type="button" onClick={() => downloadFile(takeCsv([currentTake()]), "snapshot.csv", "text/csv")}>Download probabilities CSV</button>
+             <CopyButton id="export-take-csv-copy" resultId="export-take-csv-result" label="Copy CSV" title="Probabilities CSV" fallback="Download probabilities CSV, or retry." text={() => takeCsv([currentTake()])} />
+             <pre id="export-amplitudes-pre" className="output-box">
+               {amplitudes}
+diff --git a/src/components/panels/forge/forge-panel-body.jsx b/src/components/panels/forge/forge-panel-body.jsx
+--- a/src/components/panels/forge/forge-panel-body.jsx
++++ b/src/components/panels/forge/forge-panel-body.jsx
+@@ -37,7 +37,7 @@
+         return () => cancelAnimationFrame(frame);
+     }, []);
+     useEffect(() => () => {appStore.setState({forgeRange:undefined});}, []);
+-    // "Make a gate of it" on a selection: its columns and wires, on the Circuit tab.
++    // "Create gate from selection" on a selection: its columns and wires, on the Circuit tab.
+     const circuitRequest = useStore(appStore, s => s.forgeCircuitDraft);
+     useEffect(() => {
+         if (circuitRequest === undefined) return;
+@@ -65,7 +65,7 @@
+         if (event.nativeEvent.isComposing) {if (event.key === 'Enter') event.preventDefault(); return;}
+         if (event.key === 'Escape' && !event.defaultPrevented) {event.preventDefault(); close();}
+     }}>
+-        <header className="panel-header"><h1 className="panel-title" id="forge-title">Make a gate</h1>
++        <header className="panel-header"><h1 className="panel-title" id="forge-title">Create gate</h1>
+             <p className="panel-description">Define the operation, inspect it, then add it to Custom Gates.</p></header>
+         <Tabs.Root className="forge-tabs" value={method} onValueChange={setMethod}>
+             <Tabs.List className="construction-tabs" aria-label="Construction method">
+diff --git a/src/components/panels/panels.jsx b/src/components/panels/panels.jsx
+--- a/src/components/panels/panels.jsx
++++ b/src/components/panels/panels.jsx
+@@ -70,7 +70,7 @@
+  *     floating: (undefined|!{width: !int, height: !int})}>}
+  */
+ const PANELS = {
+-  tape: {title: "Tape", icon: CassetteTapeIcon, component: TapePanel},
++  tape: {title: "Recordings", icon: CassetteTapeIcon, component: TapePanel},
+   circuit: {
+     title: "Circuit",
+     icon: GitCommitHorizontalIcon,
+@@ -95,7 +95,7 @@
+   qubits: { title: "Qubits", icon: OrbitIcon, component: QubitsPanel },
+   registers: { title: "Registers", icon: BracketsIcon, component: RegistersPanel },
+   export: { title: "Export", icon: DownloadIcon, component: ExportPanel },
+-  forge: { title: "Make gate", icon: WandSparklesIcon, component: ForgePanel },
++  forge: { title: "Create gate", icon: WandSparklesIcon, component: ForgePanel },
+   "gate-param": {
+     title: "Gate parameter",
+     icon: SlidersHorizontalIcon,
+diff --git a/src/components/panels/probabilities/probabilities-panel.jsx b/src/components/panels/probabilities/probabilities-panel.jsx
+--- a/src/components/panels/probabilities/probabilities-panel.jsx
++++ b/src/components/panels/probabilities/probabilities-panel.jsx
+@@ -260,10 +260,10 @@
+         {current < stops.length - 1
+           ? `Step ${current} of ${stops.length - 1}: each later step fills in when the playhead reaches it. `
+           : ""}
+-        ▲ and ▼ mark the chances a step raised or lowered. Bars in a table share one scale, each the
+-        square root of its chance’s share of the table’s largest, so small chances stay visible.
++        ▲ and ▼ mark probabilities that increased or decreased at a step. Bar lengths are proportional
++        to the square root of each probability divided by the largest in that table, keeping small probabilities visible.
+         {layout === "grouped" &&
+-          " Each table is a group of qubits independent of the others at every step, so an outcome’s chance is the product of its groups’ chances."}
++          " Each table is a group of qubits independent of the others at every step, so an outcome’s probability is the product of its groups’ probabilities."}
+       </p>
+     </section>
+   );
+diff --git a/src/components/panels/tape/compare.jsx b/src/components/panels/tape/compare.jsx
+--- a/src/components/panels/tape/compare.jsx
++++ b/src/components/panels/tape/compare.jsx
+@@ -12,7 +12,7 @@
+     const key = g => JSON.stringify([g.name, g.start, g.length]);
+     const rightByKey = new Map(right.groups.map(g => [key(g), g]));
+     const matched = new Set();
+-    return <section aria-label="Compare takes"><h3>Compare {takes[0].name} / {takes[1].name}</h3>
++    return <section aria-label="Compare snapshots"><h3>Compare {takes[0].name} / {takes[1].name}</h3>
+         {left.groups.map(a => {
+             const b = rightByKey.get(key(a));
+             if (!b) return <p key={key(a)}>Unmatched: {takes[0].name} / {a.name} (wires {a.start}–{a.start+a.length-1})</p>;
+diff --git a/src/components/panels/tape/ready-controls.jsx b/src/components/panels/tape/ready-controls.jsx
+--- a/src/components/panels/tape/ready-controls.jsx
++++ b/src/components/panels/tape/ready-controls.jsx
+@@ -42,17 +42,17 @@
+             <Menu.Positioner className="app-menu-positioner" side="bottom" align="end" sideOffset={4}>
+               <Menu.Popup className="app-menu" aria-label="Record">
+                 <Menu.Group>
+-                  <Menu.GroupLabel className="app-menu-label">Record to the Tape</Menu.GroupLabel>
++                  <Menu.GroupLabel className="app-menu-label">Save to Recordings</Menu.GroupLabel>
+                   <Menu.Item id="record-take" className="app-menu-item" onClick={() => run(false)}>
+                     <span className={styles.item}>
+                       This step
+-                      <span className={styles.detail}>one take, at the playhead</span>
++                      <span className={styles.detail}>one snapshot, at the playhead</span>
+                     </span>
+                   </Menu.Item>
+                   <Menu.Item id="record-run" className="app-menu-item" onClick={() => run(true)}>
+                     <span className={styles.item}>
+                       Every step
+-                      <span className={styles.detail}>a take per step, start to end</span>
++                      <span className={styles.detail}>a snapshot per step, start to end</span>
+                     </span>
+                   </Menu.Item>
+                 </Menu.Group>
+diff --git a/src/components/panels/tape/take-card.jsx b/src/components/panels/tape/take-card.jsx
+--- a/src/components/panels/tape/take-card.jsx
++++ b/src/components/panels/tape/take-card.jsx
+@@ -20,7 +20,7 @@
+     return <article className={`take-card ${ghost ? "take-ghost" : ""}`} style={{"--take-colour": COLOURS[take.colour]}} data-take-id={take.id}>
+         <label><input type="checkbox" checked={selected} onChange={onSelect} />Compare {take.name}</label>
+         <input aria-label={`Name ${take.name}`} value={name} maxLength={200} onChange={e => setName(e.target.value)} onBlur={saveMetadata} />
+-        <p>{ghost ? "Ghost · " : ""}Step {take.step} · phase {take.phase.toFixed(4)}</p>
++        <p>{ghost ? "Automatic snapshot · " : ""}Step {take.step} · phase {take.phase.toFixed(4)}</p>
+         <Distribution colour={COLOURS[take.colour]} probabilities={values.joint} label={`${take.name} probabilities`} />
+         <div className="take-readings">{values.groups.map(g => <p key={`${g.start}:${g.name}`}>{g.name}: {g.probabilities.flatMap((p,i) => p > 1e-9 ? [`${g.labels[i] ?? i} ${(100*p).toFixed(2)}%`] : []).slice(0,8).join(", ") || "unavailable"}</p>)}</div>
+         {Object.entries(take.result.samples).map(([key, v]) => <p key={key}>Sample {key}: {v.i}</p>)}
+@@ -30,9 +30,9 @@
+             <button type="button" onClick={() => act(() => recorder.restore(take))}>Restore</button>
+             <button type="button" onClick={() => act(() => downloadFile(takeJson(take), `${take.id}.json`))}>JSON</button>
+             <button type="button" onClick={() => act(() => downloadFile(takeCsv([take]), `${take.id}.csv`, "text/csv"))}>CSV</button>
+-            <CopyButton label="Copy JSON" title="Take JSON" text={() => takeJson(take)} fallback="Download this take using JSON, or retry." />
+-            <CopyButton label="Copy CSV" title="Take CSV" text={() => takeCsv([take])} fallback="Download this take using CSV, or retry." />
+-            <CopyButton label="Copy link" title="Take link" text={() => takeLink(take, location.href)} fallback="Download this take using JSON to share it, or retry." />
++            <CopyButton label="Copy JSON" title="Snapshot JSON" text={() => takeJson(take)} fallback="Download this snapshot using JSON, or retry." />
++            <CopyButton label="Copy CSV" title="Snapshot CSV" text={() => takeCsv([take])} fallback="Download this snapshot using CSV, or retry." />
++            <CopyButton label="Copy link" title="Snapshot link" text={() => takeLink(take, location.href)} fallback="Download this snapshot using JSON to share it, or retry." />
+             <button type="button" onClick={() => onDelete(take.id)}>Delete</button>
+         </div>
+     </article>;
+diff --git a/src/components/panels/tape/tape-body.jsx b/src/components/panels/tape/tape-body.jsx
+--- a/src/components/panels/tape/tape-body.jsx
++++ b/src/components/panels/tape/tape-body.jsx
+@@ -44,24 +44,24 @@
+     });
+     const saved = records.filter(r => !r.ghost).map(r => r.take);
+     return <section ref={section} className="tape-panel" onDragOver={e => e.preventDefault()} onDrop={e => {e.preventDefault(); importFile(e.dataTransfer.files[0]);}}>
+-        <h2>Tape</h2><p>Keep a result, compare two takes, or export an album.</p>
++        <h2>Recordings</h2><p>Keep a result, compare two snapshots, or export a collection.</p>
+         <div className="tape-actions">
+-            <label><input type="checkbox" checked={ghostsEnabled} onChange={e => recorder.ghostsEnabled.setState({value: e.target.checked})} />Keep eight ghosts before edits</label>
+-            <label>Import JSON<input aria-label="Import takes" type="file" accept=".json,application/json" onChange={e => {importFile(e.target.files[0]); e.target.value = "";}} /></label>
+-            <button type="button" onClick={() => downloadFile(takeJson(album(saved)), "tape.json")}>Download album</button>
+-            <button type="button" onClick={() => downloadFile(takeCsv(saved), "tape.csv", "text/csv")}>Download CSV</button>
++            <label><input type="checkbox" checked={ghostsEnabled} onChange={e => recorder.ghostsEnabled.setState({value: e.target.checked})} />Keep the eight most recent pre-edit snapshots</label>
++            <label>Import JSON<input aria-label="Import snapshots" type="file" accept=".json,application/json" onChange={e => {importFile(e.target.files[0]); e.target.value = "";}} /></label>
++            <button type="button" onClick={() => downloadFile(takeJson(album(saved)), "recordings.json")}>Download collection</button>
++            <button type="button" onClick={() => downloadFile(takeCsv(saved), "recordings.csv", "text/csv")}>Download CSV</button>
+         </div>
+         {recovery && <div className="tape-actions" role="status">
+             <span>Deleted {recovery.take.name}.</span>
+             <button ref={undoButton} type="button" disabled={recovering} onClick={undoDeletion}>Undo deletion</button>
+-            <button type="button" onClick={() => act(() => downloadFile(takeJson(recovery.take), `${recovery.id}.json`))}>Download deleted take</button>
++            <button type="button" onClick={() => act(() => downloadFile(takeJson(recovery.take), `${recovery.id}.json`))}>Download deleted snapshot</button>
+             <button type="button" disabled={recovering} onClick={() => act(() => recorder.store.dismissRecovery())}>Dismiss recovery</button>
+         </div>}
+         {(message || storageError) && <p role="alert">{message || storageError}</p>}
+-        {unsaved.length > 0 && <button type="button" onClick={() => downloadFile(takeJson(album(unsaved)), "unsaved-takes.json")}>Download unsaved takes</button>}
++        {unsaved.length > 0 && <button type="button" onClick={() => downloadFile(takeJson(album(unsaved)), "unsaved-snapshots.json")}>Download unsaved snapshots</button>}
+         <div className="tape-strip">{records.map(record => <TakeCard key={record.id} record={record} recorder={recorder} act={act} onDelete={deleteTake} selected={selected.includes(record.id)}
+             onSelect={() => setSelected(s => s.includes(record.id) ? s.filter(id => id !== record.id) : [...s.slice(-1), record.id])} />)}</div>
+-        {!records.length && <p>No takes yet. Press REC or drop a JSON file here.</p>}
++        {!records.length && <p>No snapshots yet. Select Record or drop a JSON file here.</p>}
+         <Compare takes={selectedTakes} />
+     </section>;
+ }
+diff --git a/src/components/panels/tape/tape-panel.jsx b/src/components/panels/tape/tape-panel.jsx
+--- a/src/components/panels/tape/tape-panel.jsx
++++ b/src/components/panels/tape/tape-panel.jsx
+@@ -4,7 +4,7 @@
+ 
+ function TapePanel() {
+     const recorder = useStore(appStore, s => s.recorder);
+-    return recorder ? <TapeBody recorder={recorder} /> : <p>Opening Tape…</p>;
++    return recorder ? <TapeBody recorder={recorder} /> : <p>Opening Recordings…</p>;
+ }
+ 
+ export { TapePanel };
+diff --git a/src/components/toolbar/time-lane.jsx b/src/components/toolbar/time-lane.jsx
+--- a/src/components/toolbar/time-lane.jsx
++++ b/src/components/toolbar/time-lane.jsx
+@@ -17,7 +17,7 @@
+ const HOLD_WORDS = Object.freeze({
+   paused: "paused",
+   recording: "recording",
+-  take: "take",
++  take: "snapshot",
+ });
+ 
+ /**
+@@ -38,7 +38,7 @@
+     case "recording":
+       return "Held while the whole run records.";
+     default:
+-      return "Held at the restored take's phase.";
++      return "Held at the restored snapshot's phase.";
+   }
+ }
+ 
+diff --git a/src/components/toolbox/gate-toolbox.jsx b/src/components/toolbox/gate-toolbox.jsx
+--- a/src/components/toolbox/gate-toolbox.jsx
++++ b/src/components/toolbox/gate-toolbox.jsx
+@@ -19,7 +19,7 @@
+ import {
+   MysteryGateSymbol,
+   MysteryGateMaker,
+-} from "../../gates/misc/Joke_MysteryGate.js";
++} from "../../gates/misc/RandomUnitaryGate.js";
+ import {
+   chipPartsOf,
+   listNameOf,
+@@ -145,7 +145,7 @@
+   const customGateSet = useObservedValue(obsCustomGateSet);
+   const [query, setQuery] = useState("");
+   const [stopKey, setStopKey] = useState(undefined);
+-  // Tile models live in state so taking the mystery gate can swap in a fresh random one.
++  // Tile models live in state so taking the random unitary gate can swap in a fresh random one.
+   const [models, setModels] = useState(() => buildTileModels(customGateSet));
+   const builtFor = useRef(customGateSet);
+   if (builtFor.current !== customGateSet) {
+@@ -232,7 +232,7 @@
+     tileElements.current.get(visibleKeys[to]).focus();
+   };
+ 
+-  // Taking the mystery gate leaves a different random gate behind it.
++  // Taking the random unitary gate leaves a different random gate behind it.
+   const afterTaking = (model) => {
+     if (model.gate.symbol === MysteryGateSymbol) {
+       const replacement = MysteryGateMaker();
+diff --git a/src/draw/displays/density/DensityMatrixView.js b/src/draw/displays/density/DensityMatrixView.js
+--- a/src/draw/displays/density/DensityMatrixView.js
++++ b/src/draw/displays/density/DensityMatrixView.js
+@@ -46,7 +46,7 @@
+             caption('opacity = |ρ| vs largest · diagonal outlined', 1);
+         } else {
+             caption('disc = |ρ| · colour = phase', 0);
+-            caption('diagonal shade = chance', 1);
++            caption('diagonal shade = probability', 1);
+         }
+     }
+     const n = Math.round(Math.log2(matrix.height()));
+@@ -56,7 +56,7 @@
+             `Coupling of |${bin(r, n)}⟩ to ⟨${bin(c, n)}| (decimal ${r} to ${c})`,
+         (c, r, v) => c === r ? (v.real * 100).toFixed(4) + '%' : v.toString(new Format(false, 0, 6, ', ')),
+         () => pixels ? 'Opacity is magnitude relative to the largest entry; the outlined diagonal holds probabilities.' :
+-            'Diagonal bars: chance; a disc: the size of its entry; a hand: its phase.');
++            'Diagonal bars: probability; a disc: the size of its entry; a hand: its phase.');
+ }
+ 
+ /** Traces the diagonal cells along their edges, so the outline marks them without covering one. */
+diff --git a/src/draw/displays/probability/ProbabilityView.js b/src/draw/displays/probability/ProbabilityView.js
+--- a/src/draw/displays/probability/ProbabilityView.js
++++ b/src/draw/displays/probability/ProbabilityView.js
+@@ -96,7 +96,7 @@
+  */
+ function chartKey(names, split) {
+     const bits = names.length <= KEY_WIRES_NAMED ? names.join('') : `${names[0]}…${names.at(-1)}`;
+-    return `bits ${bits} · bar length = chance${split ? ' · dashed rule: independent outcomes' : ''}`;
++    return `bits ${bits} · bar length = probability${split ? ' · dashed rule: independent outcomes' : ''}`;
+ }
+ 
+ /**
+@@ -193,7 +193,7 @@
+         TooltipLayer.forView(painter).show(painter, {
+             x: drawArea.right(),
+             y: drawArea.y,
+-            labelText: 'Chance of being ON if measured',
++            labelText: 'Probability of being ON if measured',
+             valueText: (100*probability).toFixed(5) + "%"
+         });
+     }
+diff --git a/src/draw/displays/probability/SampleView.js b/src/draw/displays/probability/SampleView.js
+--- a/src/draw/displays/probability/SampleView.js
++++ b/src/draw/displays/probability/SampleView.js
+@@ -78,7 +78,7 @@
+                 y: y + k * d,
+                 labelText: `Sampled |${bin(sample, args.gate.height)}⟩`,
+                 valueText: `decimal: |${sample}⟩`,
+-                valueText2: "chance: " + (p * 100).toFixed(4) + "%",
++                valueText2: "probability: " + (p * 100).toFixed(4) + "%",
+                 backColor: CanvasTheme.probability.background
+             });
+         }
+diff --git a/src/draw/renderers/dataRenderers.js b/src/draw/renderers/dataRenderers.js
+--- a/src/draw/renderers/dataRenderers.js
++++ b/src/draw/renderers/dataRenderers.js
+@@ -237,7 +237,7 @@
+ 
+     if (!coherent) {
+         paintMatrixTooltip(view, matrix, grid, focusPoints,
+-            (c, r) => `Chance of |${basis(index(c, r))}⟩ (decimal ${index(c, r)}) [amplitude not defined]`,
++            (c, r) => `Probability of |${basis(index(c, r))}⟩ (decimal ${index(c, r)}) [amplitude not defined]`,
+             (c, r, v) => `raw: ${(v.norm2()*100).toFixed(4)}%, log: ${(Math.log10(v.norm2())*10).toFixed(1)} dB`,
+             () => '[entangled with other qubits]');
+         return layout;
+@@ -445,8 +445,8 @@
+                 x: x + w,
+                 y: y + k * d,
+                 labelText: wireNames === undefined ?
+-                    `Chance of |${bin(k, wireCount)}⟩ (decimal ${k}) if measured` :
+-                    `Chance of |${bin(k, wireCount)}⟩ on ${wireNames.join('')} if measured`,
++                    `Probability of |${bin(k, wireCount)}⟩ (decimal ${k}) if measured` :
++                    `Probability of |${bin(k, wireCount)}⟩ on ${wireNames.join('')} if measured`,
+                 valueText: `raw ${(p * 100).toFixed(4)}% · log ${(Math.log10(p) * 10).toFixed(1)} dB`,
+                 valueText2: key,
+             });
+diff --git a/src/editor/rendering/outputs/CircuitAmplitudes.js b/src/editor/rendering/outputs/CircuitAmplitudes.js
+--- a/src/editor/rendering/outputs/CircuitAmplitudes.js
++++ b/src/editor/rendering/outputs/CircuitAmplitudes.js
+@@ -66,7 +66,7 @@
+     // The chance first, the number a reader came for; then the phase, said from where it is measured.
+     paintMatrixTooltip(painter, amplitudeGrid, gridRect, hand.hoverPoints(),
+         (c, r) => `${ket(r*amplitudeGrid.width() + c)} (decimal ${r*amplitudeGrid.width() + c})`,
+-        (c, r, v) => `${formatProbability(v.norm2(), 2)} chance · phase ${signedFixed(v.phase() * 180 / Math.PI, 2)}°`,
++        (c, r, v) => `${formatProbability(v.norm2(), 2)} probability · phase ${signedFixed(v.phase() * 180 / Math.PI, 2)}°`,
+         (c, r, v) => `amplitude ${v.toString(Format.SIMPLIFIED)}` +
+             (reference === undefined ? '' : `, phases from ${ket(reference)}`));
+ 
+diff --git a/src/editor/rendering/outputs/CircuitCaptions.js b/src/editor/rendering/outputs/CircuitCaptions.js
+--- a/src/editor/rendering/outputs/CircuitCaptions.js
++++ b/src/editor/rendering/outputs/CircuitCaptions.js
+@@ -57,7 +57,7 @@
+   fitParagraph(
+     painter,
+     context.follow === undefined
+-      ? "Local wire states\n(Chance/Bloch)"
++      ? "Local wire states\n(Prob./Bloch)"
+       : `Local wire states\n${followedPoint(context.follow)}`,
+     new Rect(capX, bottom + 8, capW, 40),
+     {
+@@ -105,7 +105,7 @@
+   // the wheel below; every other mark is a neutral ink.
+   const lines = pixels
+     ? ["opacity = magnitude vs largest"]
+-    : ["disc size = magnitude", "bar = chance · ring = log chance"];
++    : ["disc size = magnitude", "bar = prob. · ring = log prob."];
+   // Which amplitude the phases are measured from, since only the phases between them are physical:
+   // its phase is the wheel's 0°.
+   const { reference } = referencedOutputGrid(context);
+@@ -160,7 +160,7 @@
+     if (survivalRate < 1) {
+       const rate = Math.round(survivalRate * 100);
+       const kept = survivalRate === 0 ? "0" : rate > 0 ? rate : "<1";
+-      caveat(`Post-selection keeps ${kept}% of runs; the chances shown are of those.`);
++      caveat(`Post-selection keeps ${kept}% of runs; the probabilities shown are conditional on those runs.`);
+     } else {
+       // More than every run surviving is not physical: that one is a mistake in the circuit.
+       caveat(`Over-unity: ${Math.round(survivalRate * 100)}% of runs survive, so an operation is not unitary.`,
+diff --git a/src/engine/simulation/CircuitComputeUtil.js b/src/engine/simulation/CircuitComputeUtil.js
+--- a/src/engine/simulation/CircuitComputeUtil.js
++++ b/src/engine/simulation/CircuitComputeUtil.js
+@@ -51,7 +51,7 @@
+             return r;
+           }
+           if (def.gateInSlot(col, row)?.measureEffect === "measure") {
+-            return "hidden\nmeasure\nbroken";
++            return "No embedded\nmeasure";
+           }
+         }
+       }
+diff --git a/src/gates/AllGates.js b/src/gates/AllGates.js
+--- a/src/gates/AllGates.js
++++ b/src/gates/AllGates.js
+@@ -74,9 +74,9 @@
+   AntiImaginaryGate,
+   SqrtImaginaryGate,
+   AntiSqrtImaginaryGate,
+-} from "./misc/Joke_ImaginaryGate.js";
+-import { NeGate } from "./misc/Joke_NeGate.js";
+-import { ZeroGate } from "./misc/Joke_ZeroGate.js";
++} from "./misc/ScalarPhaseGates.js";
++import { NeGate } from "./misc/AmplitudeNegationGate.js";
++import { ZeroGate } from "./misc/ZeroGate.js";
+ import { SpacerGate } from "./misc/SpacerGate.js";
+ import { SwapGateHalf } from "./misc/SwapGateHalf.js";
+ import { PrepareGates } from "./prepare/PrepareGates.js";
+@@ -318,7 +318,7 @@
+     ],
+   },
+   {
+-    hint: "Spinning",
++    hint: "Time-dependent powers",
+     gates: [
+       PoweringGates.ZForward,
+       PoweringGates.ZBackward,
+diff --git a/src/gates/assertions/AssertionGates.js b/src/gates/assertions/AssertionGates.js
+--- a/src/gates/assertions/AssertionGates.js
++++ b/src/gates/assertions/AssertionGates.js
+@@ -47,7 +47,7 @@
+     setTitle(title).
+     setBlurb(blurb).
+     promiseHasNoNetEffectOnStateVector().
+-    setExtraDisableReasonFinder(args => args.isNested ? "can't\nnest\nassertions\n(sorry)" : undefined).
++    setExtraDisableReasonFinder(args => args.isNested ? "No nested\nassertion" : undefined).
+     setRenderer(assertionRenderer).
+     setStatTexturesMaker(ctx => densityDisplayStatTexture(
+         ctx.stateTrader.currentTexture, ctx.wireCount, ctx.controls, ctx.row, span)).
+diff --git a/src/gates/displays/amplitudes/AmplitudeDisplay.js b/src/gates/displays/amplitudes/AmplitudeDisplay.js
+--- a/src/gates/displays/amplitudes/AmplitudeDisplay.js
++++ b/src/gates/displays/amplitudes/AmplitudeDisplay.js
+@@ -31,7 +31,7 @@
+     .setWidth(span === 1 ? 2 : span % 2 === 0 ? span : Math.ceil(span / 2))
+     .promiseHasNoNetEffectOnStateVector()
+     .setExtraDisableReasonFinder((args) =>
+-      args.isNested ? "can't\nnest\ndisplays\n(sorry)" : undefined,
++      args.isNested ? "No nested\ndisplay" : undefined,
+     )
+     .setStatTexturesMaker((ctx) =>
+       amplitudeDisplayStatTextures(
+diff --git a/src/gates/displays/bloch/BlochSphereDisplay.js b/src/gates/displays/bloch/BlochSphereDisplay.js
+--- a/src/gates/displays/bloch/BlochSphereDisplay.js
++++ b/src/gates/displays/bloch/BlochSphereDisplay.js
+@@ -24,7 +24,7 @@
+     markAsRendererNeedsSingleQubitDensityStats().
+     setRenderer(BLOCH_SPHERE_RENDERER).
+     promiseHasNoNetEffectOnStateVector().
+-    setExtraDisableReasonFinder(args => args.isNested ? "can't\nnest\ndisplays\n(sorry)" : undefined).
++    setExtraDisableReasonFinder(args => args.isNested ? "No nested\ndisplay" : undefined).
+     gate;
+ 
+ export { BlochSphereDisplay };
+diff --git a/src/gates/displays/density/DensityMatrixDisplay.js b/src/gates/displays/density/DensityMatrixDisplay.js
+--- a/src/gates/displays/density/DensityMatrixDisplay.js
++++ b/src/gates/displays/density/DensityMatrixDisplay.js
+@@ -30,7 +30,7 @@
+         setBlurb("Shows the density matrix of the local mixed state of some wires.\n" +
+             "Use controls to see conditional states.").
+         promiseHasNoNetEffectOnStateVector().
+-        setExtraDisableReasonFinder(args => args.isNested ? "can't\nnest\ndisplays\n(sorry)" : undefined);
++        setExtraDisableReasonFinder(args => args.isNested ? "No nested\ndisplay" : undefined);
+ }
+ 
+ /**
+diff --git a/src/gates/displays/probability/ProbabilityDisplay.js b/src/gates/displays/probability/ProbabilityDisplay.js
+--- a/src/gates/displays/probability/ProbabilityDisplay.js
++++ b/src/gates/displays/probability/ProbabilityDisplay.js
+@@ -26,15 +26,15 @@
+  */
+ function shared_chanceGateMaker(builder) {
+   return builder
+-    .setSymbol("Chance")
++    .setSymbol("Prob.")
+     .setTitle("Probability Display")
+     .setBlurb(
+-      "Shows chances of outcomes if a measurement was performed.\n" +
++      "Shows probabilities of outcomes if a measurement were performed.\n" +
+         "Use controls to see conditional probabilities.",
+     )
+     .promiseHasNoNetEffectOnStateVector()
+     .setExtraDisableReasonFinder((args) =>
+-      args.isNested ? "can't\nnest\ndisplays\n(sorry)" : undefined,
++      args.isNested ? "No nested\ndisplay" : undefined,
+     );
+ }
+ 
+diff --git a/src/gates/displays/sample/SampleDisplay.js b/src/gates/displays/sample/SampleDisplay.js
+--- a/src/gates/displays/sample/SampleDisplay.js
++++ b/src/gates/displays/sample/SampleDisplay.js
+@@ -44,7 +44,7 @@
+     .setProcessedStatsToJsonFunc(probabilityDataToJson)
+     .setRenderer(SAMPLE_RENDERER)
+     .setExtraDisableReasonFinder((args) =>
+-      args.isNested ? "can't\nnest\ndisplays\n(sorry)" : undefined,
++      args.isNested ? "No nested\ndisplay" : undefined,
+     ),
+ );
+ 
+diff --git a/src/gates/misc/AmplitudeNegationGate.js b/src/gates/misc/AmplitudeNegationGate.js
+--- /dev/null
++++ b/src/gates/misc/AmplitudeNegationGate.js
+@@ -0,0 +1,37 @@
++/**
++ * Copyright 2017 Google Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++import {strokePath} from '../../draw/shapes/ShapeView.js';
++
++import {CanvasTheme} from '../../config/CanvasTheme.js';
++import {GateBuilder} from '../../circuit/model/Gate.js';
++import {Matrix} from '../../engine/math/matrix/Matrix.js';
++import {Point} from '../../geometry/Point.js';
++import {paintLocationIndependentFrame} from '../../draw/gate/GateFrame.js';
++
++const NeGate = new GateBuilder().
++    setSerializedId("NeGate").
++    setTitle("Amplitude negation").
++    setBlurb("Negates all amplitudes.").
++    setRenderer(args => {
++        paintLocationIndependentFrame(args);
++        const {x, y} = args.rect.center();
++        strokePath(args.painter, [new Point(x - 6, y), new Point(x + 6, y)], CanvasTheme.text.primary, 2);
++    }).
++    setKnownEffectToMatrix(Matrix.square(-1, 0, 0, -1)).
++    gate;
++
++export {NeGate}
+diff --git a/src/gates/misc/Joke_ImaginaryGate.js b/src/gates/misc/Joke_ImaginaryGate.js
+--- a/src/gates/misc/Joke_ImaginaryGate.js
++++ /dev/null
+@@ -1,80 +0,0 @@
+-/**
+- * Copyright 2017 Google Inc.
+- *
+- * Licensed under the Apache License, Version 2.0 (the "License");
+- * you may not use this file except in compliance with the License.
+- * You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-import { GateBuilder } from "../../circuit/model/Gate.js";
+-import { Matrix } from "../../engine/math/matrix/Matrix.js";
+-import { Complex } from "../../engine/math/complex/Complex.js";
+-import {paintLocationIndependentFrame} from '../../draw/gate/GateFrame.js';
+-import {paintGateSymbol} from '../../draw/gate/GateSymbol.js';
+-
+-const ImaginaryGate = new GateBuilder()
+-  .setSerializedIdAndSymbol("i")
+-  .setTitle("Imaginary Gate")
+-  .setBlurb("Phases everything by i.")
+-  .setRenderer((args) => {
+-    paintLocationIndependentFrame(args);
+-    paintGateSymbol(args);
+-  })
+-  .setKnownEffectToMatrix(Matrix.square(Complex.I, 0, 0, Complex.I)).gate;
+-
+-const AntiImaginaryGate = new GateBuilder()
+-  .setAlternate(ImaginaryGate)
+-  .setSerializedIdAndSymbol("-i")
+-  .setTitle("Anti-Imaginary Gate")
+-  .setBlurb("Phases everything by -i.")
+-  .setRenderer((args) => {
+-    paintLocationIndependentFrame(args);
+-    paintGateSymbol(args);
+-  })
+-  .setKnownEffectToMatrix(
+-    Matrix.square(Complex.I.neg(), 0, 0, Complex.I.neg()),
+-  ).gate;
+-
+-const SqrtImaginaryGate = new GateBuilder()
+-  .setSerializedIdAndSymbol("√i")
+-  .setTitle("Half Imaginary Gate")
+-  .setBlurb("Phases everything by √i.")
+-  .setRenderer((args) => {
+-    paintLocationIndependentFrame(args);
+-    paintGateSymbol(args);
+-  })
+-  .setKnownEffectToMatrix(
+-    Matrix.square(1, 0, 0, 1).times(
+-      new Complex(Math.sqrt(0.5), Math.sqrt(0.5)),
+-    ),
+-  ).gate;
+-
+-const AntiSqrtImaginaryGate = new GateBuilder()
+-  .setAlternate(SqrtImaginaryGate)
+-  .setSerializedIdAndSymbol("√-i")
+-  .setTitle("Half Anti-Imaginary Gate")
+-  .setBlurb("Phases everything by √-i.")
+-  .setRenderer((args) => {
+-    paintLocationIndependentFrame(args);
+-    paintGateSymbol(args);
+-  })
+-  .setKnownEffectToMatrix(
+-    Matrix.square(1, 0, 0, 1).times(
+-      new Complex(Math.sqrt(0.5), -Math.sqrt(0.5)),
+-    ),
+-  ).gate;
+-
+-export {
+-  AntiImaginaryGate,
+-  ImaginaryGate,
+-  SqrtImaginaryGate,
+-  AntiSqrtImaginaryGate,
+-};
+diff --git a/src/gates/misc/Joke_MysteryGate.js b/src/gates/misc/Joke_MysteryGate.js
+--- a/src/gates/misc/Joke_MysteryGate.js
++++ /dev/null
+@@ -1,43 +0,0 @@
+-/**
+- * Copyright 2017 Google Inc.
+- *
+- * Licensed under the Apache License, Version 2.0 (the "License");
+- * you may not use this file except in compliance with the License.
+- * You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-import { Complex } from "../../engine/math/complex/Complex.js";
+-import { GateBuilder } from "../../circuit/model/Gate.js";
+-import {MATRIX_RENDERER} from '../../draw/gate/GateRenderers.js';
+-import { Matrix } from "../../engine/math/matrix/Matrix.js";
+-import { MatrixDecomposition } from "../../engine/math/matrix/MatrixDecomposition.js";
+-
+-const MysteryGateSymbol = "?";
+-
+-const MysteryGateMakerWithMatrix = (matrix) =>
+-  new GateBuilder()
+-    .setSerializedIdAndSymbol(MysteryGateSymbol)
+-    .setTitle("Mystery Gate")
+-    .setBlurb("Different every time.\n(Hold Option or Alt while dragging to copy circuit gates.)")
+-    .setRenderer(MATRIX_RENDERER)
+-    .setKnownEffectToMatrix(matrix).gate;
+-
+-const MysteryGateMaker = () =>
+-  MysteryGateMakerWithMatrix(
+-    MatrixDecomposition.closestUnitary(Matrix.square(
+-      new Complex(Math.random() - 0.5, Math.random() - 0.5),
+-      new Complex(Math.random() - 0.5, Math.random() - 0.5),
+-      new Complex(Math.random() - 0.5, Math.random() - 0.5),
+-      new Complex(Math.random() - 0.5, Math.random() - 0.5),
+-    ), 0.00001),
+-  );
+-
+-export { MysteryGateSymbol, MysteryGateMaker, MysteryGateMakerWithMatrix };
+diff --git a/src/gates/misc/Joke_NeGate.js b/src/gates/misc/Joke_NeGate.js
+--- a/src/gates/misc/Joke_NeGate.js
++++ /dev/null
+@@ -1,37 +0,0 @@
+-/**
+- * Copyright 2017 Google Inc.
+- *
+- * Licensed under the Apache License, Version 2.0 (the "License");
+- * you may not use this file except in compliance with the License.
+- * You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-import {strokePath} from '../../draw/shapes/ShapeView.js';
+-
+-import {CanvasTheme} from '../../config/CanvasTheme.js';
+-import {GateBuilder} from '../../circuit/model/Gate.js';
+-import {Matrix} from '../../engine/math/matrix/Matrix.js';
+-import {Point} from '../../geometry/Point.js';
+-import {paintLocationIndependentFrame} from '../../draw/gate/GateFrame.js';
+-
+-const NeGate = new GateBuilder().
+-    setSerializedId("NeGate").
+-    setTitle("Ne-Gate").
+-    setBlurb("Negates all amplitudes.").
+-    setRenderer(args => {
+-        paintLocationIndependentFrame(args);
+-        const {x, y} = args.rect.center();
+-        strokePath(args.painter, [new Point(x - 6, y), new Point(x + 6, y)], CanvasTheme.text.primary, 2);
+-    }).
+-    setKnownEffectToMatrix(Matrix.square(-1, 0, 0, -1)).
+-    gate;
+-
+-export {NeGate}
+diff --git a/src/gates/misc/Joke_ZeroGate.js b/src/gates/misc/Joke_ZeroGate.js
+--- a/src/gates/misc/Joke_ZeroGate.js
++++ /dev/null
+@@ -1,31 +0,0 @@
+-/**
+- * Copyright 2017 Google Inc.
+- *
+- * Licensed under the Apache License, Version 2.0 (the "License");
+- * you may not use this file except in compliance with the License.
+- * You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-import {GateBuilder} from "../../circuit/model/Gate.js"
+-import {LOCATION_INDEPENDENT_GATE_RENDERER} from '../../draw/gate/GateRenderers.js';
+-import {Matrix} from "../../engine/math/matrix/Matrix.js"
+-
+-/** @type {!Gate} */
+-const ZeroGate = new GateBuilder().
+-    setSerializedIdAndSymbol("0").
+-    setTitle("Nothing Gate").
+-    setBlurb("Destroys the universe.").
+-    // A plain tile: a grey fill under the white 0 read at 2:1, and its blurb already says what it does.
+-    setRenderer(LOCATION_INDEPENDENT_GATE_RENDERER).
+-    setKnownEffectToMatrix(Matrix.square(0, 0, 0, 0)).
+-    gate;
+-
+-export {ZeroGate}
+diff --git a/src/gates/misc/RandomUnitaryGate.js b/src/gates/misc/RandomUnitaryGate.js
+--- /dev/null
++++ b/src/gates/misc/RandomUnitaryGate.js
+@@ -0,0 +1,43 @@
++/**
++ * Copyright 2017 Google Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++import { Complex } from "../../engine/math/complex/Complex.js";
++import { GateBuilder } from "../../circuit/model/Gate.js";
++import {MATRIX_RENDERER} from '../../draw/gate/GateRenderers.js';
++import { Matrix } from "../../engine/math/matrix/Matrix.js";
++import { MatrixDecomposition } from "../../engine/math/matrix/MatrixDecomposition.js";
++
++const MysteryGateSymbol = "?";
++
++const MysteryGateMakerWithMatrix = (matrix) =>
++  new GateBuilder()
++    .setSerializedIdAndSymbol(MysteryGateSymbol)
++    .setTitle("Random single-qubit unitary")
++    .setBlurb("A sampled single-qubit unitary matrix.")
++    .setRenderer(MATRIX_RENDERER)
++    .setKnownEffectToMatrix(matrix).gate;
++
++const MysteryGateMaker = () =>
++  MysteryGateMakerWithMatrix(
++    MatrixDecomposition.closestUnitary(Matrix.square(
++      new Complex(Math.random() - 0.5, Math.random() - 0.5),
++      new Complex(Math.random() - 0.5, Math.random() - 0.5),
++      new Complex(Math.random() - 0.5, Math.random() - 0.5),
++      new Complex(Math.random() - 0.5, Math.random() - 0.5),
++    ), 0.00001),
++  );
++
++export { MysteryGateSymbol, MysteryGateMaker, MysteryGateMakerWithMatrix };
+diff --git a/src/gates/misc/ScalarPhaseGates.js b/src/gates/misc/ScalarPhaseGates.js
+--- /dev/null
++++ b/src/gates/misc/ScalarPhaseGates.js
+@@ -0,0 +1,80 @@
++/**
++ * Copyright 2017 Google Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++import { GateBuilder } from "../../circuit/model/Gate.js";
++import { Matrix } from "../../engine/math/matrix/Matrix.js";
++import { Complex } from "../../engine/math/complex/Complex.js";
++import {paintLocationIndependentFrame} from '../../draw/gate/GateFrame.js';
++import {paintGateSymbol} from '../../draw/gate/GateSymbol.js';
++
++const ImaginaryGate = new GateBuilder()
++  .setSerializedIdAndSymbol("i")
++  .setTitle("Scalar phase (π/2)")
++  .setBlurb("Multiplies all amplitudes by i.")
++  .setRenderer((args) => {
++    paintLocationIndependentFrame(args);
++    paintGateSymbol(args);
++  })
++  .setKnownEffectToMatrix(Matrix.square(Complex.I, 0, 0, Complex.I)).gate;
++
++const AntiImaginaryGate = new GateBuilder()
++  .setAlternate(ImaginaryGate)
++  .setSerializedIdAndSymbol("-i")
++  .setTitle("Scalar phase (−π/2)")
++  .setBlurb("Multiplies all amplitudes by −i.")
++  .setRenderer((args) => {
++    paintLocationIndependentFrame(args);
++    paintGateSymbol(args);
++  })
++  .setKnownEffectToMatrix(
++    Matrix.square(Complex.I.neg(), 0, 0, Complex.I.neg()),
++  ).gate;
++
++const SqrtImaginaryGate = new GateBuilder()
++  .setSerializedIdAndSymbol("√i")
++  .setTitle("Scalar phase (π/4)")
++  .setBlurb("Multiplies all amplitudes by √i.")
++  .setRenderer((args) => {
++    paintLocationIndependentFrame(args);
++    paintGateSymbol(args);
++  })
++  .setKnownEffectToMatrix(
++    Matrix.square(1, 0, 0, 1).times(
++      new Complex(Math.sqrt(0.5), Math.sqrt(0.5)),
++    ),
++  ).gate;
++
++const AntiSqrtImaginaryGate = new GateBuilder()
++  .setAlternate(SqrtImaginaryGate)
++  .setSerializedIdAndSymbol("√-i")
++  .setTitle("Scalar phase (−π/4)")
++  .setBlurb("Multiplies all amplitudes by √−i.")
++  .setRenderer((args) => {
++    paintLocationIndependentFrame(args);
++    paintGateSymbol(args);
++  })
++  .setKnownEffectToMatrix(
++    Matrix.square(1, 0, 0, 1).times(
++      new Complex(Math.sqrt(0.5), -Math.sqrt(0.5)),
++    ),
++  ).gate;
++
++export {
++  AntiImaginaryGate,
++  ImaginaryGate,
++  SqrtImaginaryGate,
++  AntiSqrtImaginaryGate,
++};
+diff --git a/src/gates/misc/SwapGateHalf.js b/src/gates/misc/SwapGateHalf.js
+--- a/src/gates/misc/SwapGateHalf.js
++++ b/src/gates/misc/SwapGateHalf.js
+@@ -78,10 +78,10 @@
+       (r) => (args.measuredMask & (1 << r)) === 0,
+     );
+     if (affectsMeasured && col.hasCoherentControl(args.measuredMask)) {
+-      return "no\nremix\n(sorry)";
++      return "No mixing\nafter\nmeasure";
+     }
+     if (affectsMeasured && affectsUnmeasured && col.hasControl()) {
+-      return "no\nremix\n(sorry)";
++      return "No mixing\nafter\nmeasure";
+     }
+ 
+     return undefined;
+diff --git a/src/gates/misc/ZeroGate.js b/src/gates/misc/ZeroGate.js
+--- /dev/null
++++ b/src/gates/misc/ZeroGate.js
+@@ -0,0 +1,31 @@
++/**
++ * Copyright 2017 Google Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++import {GateBuilder} from "../../circuit/model/Gate.js"
++import {LOCATION_INDEPENDENT_GATE_RENDERER} from '../../draw/gate/GateRenderers.js';
++import {Matrix} from "../../engine/math/matrix/Matrix.js"
++
++/** @type {!Gate} */
++const ZeroGate = new GateBuilder().
++    setSerializedIdAndSymbol("0").
++    setTitle("Zero operator").
++    setBlurb("Maps all amplitudes to zero. This nonunitary operator does not produce a normalized state.").
++    // A plain tile: a grey fill under the white 0 read at 2:1, and its blurb already says what it does.
++    setRenderer(LOCATION_INDEPENDENT_GATE_RENDERER).
++    setKnownEffectToMatrix(Matrix.square(0, 0, 0, 0)).
++    gate;
++
++export {ZeroGate}
+diff --git a/src/gates/probes/MeasurementGate.js b/src/gates/probes/MeasurementGate.js
+--- a/src/gates/probes/MeasurementGate.js
++++ b/src/gates/probes/MeasurementGate.js
+@@ -55,11 +55,11 @@
+     setRenderer(drawMeasurementGate).
+     setExtraDisableReasonFinder(args => {
+         if (args.isNested) {
+-            return "can't\nnest\nmeasure\n(sorry)";
++            return "No nested\nmeasure";
+         }
+         const isMeasured = (args.measuredMask & (1<<args.outerRow)) !== 0;
+         if (args.innerColumn.hasControl() && !isMeasured) {
+-            return "can't\ncontrol\n(sorry)";
++            return "No control\non measure";
+         }
+         return undefined;
+     }).
+diff --git a/src/results/README.md b/src/results/README.md
+--- a/src/results/README.md
++++ b/src/results/README.md
+@@ -1,23 +1,23 @@
+-# Tape files and simulation results
++# Recording files and simulation results
+ 
+-`take/` groups take creation, validation, restoration and probability tables by responsibility:
++`take/` groups snapshot creation, validation, restoration and probability tables by responsibility:
+ `schema.js` defines stored shapes, `values.js` encodes matrices and non-finite numbers,
+ `snapshot.js` creates and restores snapshots, `validation.js` checks circuits and dimensions,
+ `displays.js` validates display results and Sample outcomes, `distributions.js` computes
+ probability tables, and `size.js` estimates a record's serialised size. Snapshots read collected
+-histories through `CircuitStats.snapshotData()`; the engine owns their internal storage. Tape owns
++histories through `CircuitStats.snapshotData()`; the engine owns their internal storage. Recording code owns
+ number encoding and displayed-wire padding, and retains the existing circuit serializer.
+ 
+-`files/` contains `json.js` for take/album import and export, `csv.js` for probability CSV,
++`files/` contains `json.js` for snapshot/collection import and export, `csv.js` for probability CSV,
+ `link.js` for portable links, and `limits.js` for shared size limits. These modules have no DOM
+ access. `takeLink(take, base)` receives its base URL from the caller. `LINK_LIMIT` is also used
+ by the URL loader. `tapeStore.js` owns IndexedDB admission, eviction, atomic writes and the deferral
+-of automatic ghosts, which `idle.js` schedules.
++of automatic snapshots, which `idle.js` schedules.
+ 
+ The application `Recorder` coordinates these operations. React panels own selection and editing
+ controls, and use `src/browser/downloadFile.js` to download already formatted content.
+ 
+-`shadow-quant-take/1` stores `id`, `name`, `colour` (0–7), `recorded` (UTC ISO date),
++`shadow-quant-take/1` is the snapshot format and stores `id`, `name`, `colour` (0–7), `recorded` (UTC ISO date),
+ `notes`, the complete serialized `circuit`, displayed `wires`, `step` (columns already
+ executed), animation `phase` in [0,1), `seed`, `randomFormat`, `result` (playhead),
+ and `fullResult` (the whole circuit at the same phase and seed).
+@@ -35,14 +35,14 @@
+ `{unavailable:"-Infinity"}` values. Existing nullable fields in the readable export
+ retain their original meaning. Optional undefined object properties are omitted.
+ 
+-`shadow-quant-album/1` contains `takes`, an array of these objects. Import validates the
++`shadow-quant-album/1` is the collection format and contains `takes`, an array of these snapshot objects. Import validates the
+ entire array before any writes. Conflicting existing identities receive new ids; identical
+-imports retain their ids. Stored results are authoritative when restoring a take.
++imports retain their ids. Stored results are authoritative when restoring a snapshot.
+ Resuming playback computes new results. The first random format is `seedrandom-arc4/1`;
+ detector simulations restart the same local generator for every prefix, without replacing
+ global randomness. Sample uses a separate generator keyed by seed and gate location.
+ 
+-CSV is an export-only probability table. It contains take id/name, register name/start/width,
++CSV is an export-only probability table. It contains snapshot id/name, register name/start/width,
+ numeric value, optional label, bits (highest bit first), and probability. `joint` rows retain
+ the whole basis-state distribution; unnamed wires are individual `qN` groups. Spreadsheet
+ formula prefixes are escaped in text cells. CSV does not restore circuits or amplitudes.
+@@ -51,21 +51,25 @@
+ The complete encoded fragment must fit 32 KiB; larger results travel as JSON files.
+ No identifier depends on another browser's local storage or a server.
+ 
+-IndexedDB admission counts the UTF-8 JSON bytes of each record, caps the tape at 200 MiB, and
+-retains at most eight ghosts. The count is exact except for lists longer than 64 elements, which
++IndexedDB admission counts the UTF-8 JSON bytes of each record, caps recordings at 200 MiB, and
++retains at most eight automatic snapshots. The count is exact except for lists longer than 64 elements, which
+ `size.js` measures on an evenly spaced sample and scales, usually to within a percent: serialising
+-every amplitude to count it cost about as much as encoding the take. Oldest ghosts are evicted
+-first. Saved takes are never evicted automatically. Batch writes are atomic. Storage failure leaves
++every amplitude to count it cost about as much as encoding the snapshot. Oldest automatic snapshots are evicted
++first. Saved snapshots are never evicted automatically. Batch writes are atomic. Storage failure leaves
+ the batch available for download, without reporting it as saved. Browser quota and storage deletion
+ remain outside the app's control.
+ 
+-A ghost is recorded in two steps so that an edit does not wait for it. The commit only captures the
++An automatic snapshot is recorded in two steps so that an edit does not wait for it. The commit only captures the
+ results it needs, by reference because results are immutable, and `TapeStore.deferGhost` builds,
+-sizes and writes the take when the page is idle: a background-priority task where the browser has
++sizes and writes the snapshot when the page is idle: a background-priority task where the browser has
+ them, else an idle callback, else a timer. Every other operation on the store (a write, a deletion,
+-keeping a ghost, an import, `refresh`) first writes the ghosts still waiting, in commit order, so
++keeping an automatic snapshot, an import, `refresh`) first writes the automatic snapshots still waiting, in commit order, so
+ none is missed or overtaken. Of more than eight waiting, only the newest eight are built, because
+ the limit would evict the rest as soon as they were written. The store keeps every record in memory:
+ admission and eviction decide from that index and publish `items` from it, rather than reading the
+ database back. Another tab announces its writes on a `BroadcastChannel`, and the next write here
+ then reads the database afresh.
++
++Visible controls use Recordings, snapshot, automatic snapshot and collection. Internal API names,
++storage keys, `ghost` flags, schema fields, format tags and the URL `take` parameter remain
++unchanged for compatibility. Existing user-saved names are retained.
+diff --git a/src/results/files/json.js b/src/results/files/json.js
+--- a/src/results/files/json.js
++++ b/src/results/files/json.js
+@@ -9,7 +9,7 @@
+ const takeJson = value => JSON.stringify(value);
+ 
+ function parseTakes(text) {
+-  if (typeof text !== "string") throw new TypeError("Take input must be JSON text");
++  if (typeof text !== "string") throw new TypeError("Snapshot input must be JSON text");
+   // Reject obviously oversized strings before allocating their UTF-8 representation.
+   if (text.length > MAX_FILE_BYTES || encoder.encode(text).byteLength > MAX_FILE_BYTES) {
+     throw new Error("File exceeds 200 MiB");
+@@ -18,12 +18,12 @@
+   try {
+     value = JSON.parse(text);
+   } catch (cause) {
+-    throw new Error("Invalid take JSON", { cause });
++    throw new Error("Invalid snapshot JSON", { cause });
+   }
+   let list = [value];
+   if (value?.format === ALBUM_FORMAT) {
+     const parsed = albumSchema.safeParse(value);
+-    if (!parsed.success) throw new Error("Invalid album", { cause: parsed.error });
++    if (!parsed.success) throw new Error("Invalid collection", { cause: parsed.error });
+     list = parsed.data.takes;
+   }
+   // Validate the entire album before Recorder can save any take.
+@@ -33,9 +33,9 @@
+     try {
+       take = validateTake(item);
+     } catch (cause) {
+-      throw new Error(`Invalid take at index ${index}: ${cause.message}`, { cause });
++      throw new Error(`Invalid snapshot at index ${index}: ${cause.message}`, { cause });
+     }
+-    if (seen.has(take.id)) throw new Error(`Duplicate take identity at index ${index}`);
++    if (seen.has(take.id)) throw new Error(`Duplicate snapshot identity at index ${index}`);
+     seen.add(take.id);
+     return take;
+   });
+diff --git a/src/results/files/link.js b/src/results/files/link.js
+--- a/src/results/files/link.js
++++ b/src/results/files/link.js
+@@ -5,7 +5,7 @@
+   const fragment = `#take=${encodeURIComponent(takeJson(take))}`;
+   // encodeURIComponent produces ASCII, so character length equals UTF-8 byte length here.
+   if (fragment.length > LINK_LIMIT) {
+-    throw new Error("Take exceeds the 32 KiB link limit. Download JSON instead.");
++    throw new Error("Snapshot exceeds the 32 KiB link limit. Download JSON instead.");
+   }
+   // Preserve the caller's base string and the existing fragment format.
+   return base.split("#", 1)[0] + fragment;
+diff --git a/src/results/take/snapshot.js b/src/results/take/snapshot.js
+--- a/src/results/take/snapshot.js
++++ b/src/results/take/snapshot.js
+@@ -42,7 +42,7 @@
+  * @param {!Object} result What Simulator.evaluate returns: circuit, wireCount, step, phase, seed, stats and fullStats.
+  * @returns {() => Object} Builds the take; each call encodes it afresh.
+  */
+-function planTake(result, name = "take", colour = 0) {
++function planTake(result, name = "snapshot", colour = 0) {
+   const id = freshSeed();
+   const recorded = new Date().toISOString();
+   return () => ({
+@@ -63,7 +63,7 @@
+   });
+ }
+ 
+-function createTake(result, name = "take", colour = 0) {
++function createTake(result, name = "snapshot", colour = 0) {
+   return planTake(result, name, colour)();
+ }
+ 
+diff --git a/src/results/take/validation.js b/src/results/take/validation.js
+--- a/src/results/take/validation.js
++++ b/src/results/take/validation.js
+@@ -72,18 +72,18 @@
+   if (!parsed.success) {
+     const issue = parsed.error.issues[0];
+     const location = issue.path.join(".") || "root";
+-    throw new Error(`Invalid take at ${location}: ${issue.message}`, { cause: parsed.error });
++    throw new Error(`Invalid snapshot at ${location}: ${issue.message}`, { cause: parsed.error });
+   }
+   const take = parsed.data;
+   const circuit = circuitFromJson(take.circuit);
+   if (take.step > circuit.columns.length || circuit.numWires > Math.max(1, take.wires)) {
+-    throw new Error("Invalid take step or wire count");
++    throw new Error("Invalid snapshot step or wire count");
+   }
+   for (const [field, step] of [["result", take.step], ["fullResult", circuit.columns.length]]) {
+     try {
+       validateStats(take[field], take, circuit, step);
+     } catch (cause) {
+-      throw new Error(`Invalid take at ${field}: ${cause.message}`, { cause });
++      throw new Error(`Invalid snapshot at ${field}: ${cause.message}`, { cause });
+     }
+   }
+   return take;
+diff --git a/src/results/take/values.js b/src/results/take/values.js
+--- a/src/results/take/values.js
++++ b/src/results/take/values.js
+@@ -27,7 +27,7 @@
+       buffer: encodeNumbers(value.rawBuffer()),
+     };
+   // DataView is not an iterable numeric buffer. Reject it instead of silently producing [].
+-  if (value instanceof DataView) throw new TypeError("Unsupported DataView in take data");
++  if (value instanceof DataView) throw new TypeError("Unsupported DataView in snapshot data");
+   if (ArrayBuffer.isView(value)) return encodeNumbers(value);
+   if (Array.isArray(value)) return value.map(encode);
+   if (value !== null && typeof value === "object")
+diff --git a/src/results/tapeStore.js b/src/results/tapeStore.js
+--- a/src/results/tapeStore.js
++++ b/src/results/tapeStore.js
+@@ -47,9 +47,9 @@
+         this._queue = Promise.resolve();
+         this.db = openDB(name, 1, {
+             upgrade: db => db.createObjectStore("takes", {keyPath: "id"}),
+-            blocked: () => this.error.setState({value: "Close older app tabs to open Tape storage."}),
++            blocked: () => this.error.setState({value: "Close older app tabs to open Recordings storage."}),
+             blocking: () => this.db.then(db => db.close()),
+-            terminated: () => this.error.setState({value: "Tape storage closed unexpectedly. Reload to reopen it."}),
++            terminated: () => this.error.setState({value: "Recordings storage closed unexpectedly. Reload to reopen it."}),
+         });
+         if (typeof BroadcastChannel === "function") {
+             this._channel = new BroadcastChannel(name);
+@@ -108,7 +108,7 @@
+             let deleted;
+             await this._commit([], [id], undefined, () => {
+                 deleted = this._index.get(id);
+-                if (!deleted) throw new Error("This take is already gone. Refresh Tape to see current takes.");
++                if (!deleted) throw new Error("This snapshot is already gone. Refresh Recordings to see current snapshots.");
+                 return [];
+             });
+             this.recovery.setState({value: structuredClone(deleted)});
+@@ -122,7 +122,7 @@
+             const record = this.recovery.getState().value;
+             if (!record) return;
+             await this._commit([], [], undefined, () => {
+-                if (this._index.has(record.id)) throw new Error("A take with this ID already exists. Download the deleted take before resolving the conflict.");
++                if (this._index.has(record.id)) throw new Error("A snapshot with this ID already exists. Download the deleted snapshot before resolving the conflict.");
+                 return record.ghost ? recordsFor([record.take], true, [...this._index.values()].reduce((latest, r) => Math.max(latest, r.order + 1), Date.now())) : [record];
+             }, record.id);
+             this.recovery.setState({value: null});
+@@ -178,7 +178,7 @@
+     }
+ 
+     _fail(error) {
+-        this.error.setState({value: error.name === "QuotaExceededError" ? "Browser storage is full. Download your unsaved takes." : error.message});
++        this.error.setState({value: error.name === "QuotaExceededError" ? "Browser storage is full. Download your unsaved snapshots." : error.message});
+     }
+ 
+     /** @param {(() => any[]) | undefined} prepare */
+@@ -205,8 +205,8 @@
+                 merged.delete(r.id);
+                 bytes -= r.bytes;
+             }
+-            if (requiredId && !merged.has(requiredId)) throw new Error("The deleted ghost does not fit in Tape storage. Download it or free space, then retry Undo.");
+-            if (bytes > this.cap) throw new Error("Tape is full. Download the unsaved take or delete saved takes.");
++            if (requiredId && !merged.has(requiredId)) throw new Error("The deleted automatic snapshot does not fit in Recordings storage. Download it or free space, then retry Undo.");
++            if (bytes > this.cap) throw new Error("Recordings storage is full. Download the unsaved snapshot or delete saved snapshots.");
+             // Requests are not awaited one by one: a failed request aborts the transaction, and `done` rejects.
+             for (const id of this._index.keys()) if (!merged.has(id)) tx.store.delete(id).catch(ignore);
+             for (const r of records) if (merged.has(r.id)) tx.store.put(merged.get(r.id)).catch(ignore);
+diff --git a/src/serialization/gates/matrix.js b/src/serialization/gates/matrix.js
+--- a/src/serialization/gates/matrix.js
++++ b/src/serialization/gates/matrix.js
+@@ -16,7 +16,7 @@
+ 
+ import { isPowerOf2 } from "../../engine/math/powersOfTwo.js";
+ import { GateBuilder } from "../../circuit/model/Gate.js";
+-import { MysteryGateSymbol, MysteryGateMakerWithMatrix } from "../../gates/misc/Joke_MysteryGate.js";
++import { MysteryGateSymbol, MysteryGateMakerWithMatrix } from "../../gates/misc/RandomUnitaryGate.js";
+ import { MATRIX_RENDERER, LABEL_RENDERER, LOCATION_INDEPENDENT_GATE_RENDERER } from "../../draw/gate/GateRenderers.js";
+ import { fromJson_Matrix } from "../numeric/values.js";
+ 
+@@ -51,7 +51,7 @@
+ function fromJson_Gate_Matrix(props) {
+   const matrix = _parseGateMatrix(props.matrix);
+ 
+-  // Special case the mystery gate.
++  // Preserve the legacy random unitary gate ID.
+   if (props.id === MysteryGateSymbol) {
+     return MysteryGateMakerWithMatrix(matrix);
+   }
+diff --git a/src/state/appStore.js b/src/state/appStore.js
+--- a/src/state/appStore.js
++++ b/src/state/appStore.js
+@@ -121,8 +121,8 @@
+    *  set by the click that opens it. Transient, so it is not part of the dock's layout. */
+   gateParamTarget: undefined,
+   forgeRange: undefined,
+-  /** @type {undefined|!{cols: !string, rows: !string}} Column and wire ranges for Make Gate's Circuit
+-   *  tab to take, set by "Make gate" on a selection; the panel clears it once taken. */
++  /** @type {undefined|!{cols: !string, rows: !string}} Column and wire ranges for Create gate's Circuit
++   *  tab to take, set by "Create gate" on a selection; the panel clears it once taken. */
+   forgeCircuitDraft: undefined,
+   customGateFocus: undefined,
+ 
+diff --git a/src/styles/panels/tape.css b/src/styles/panels/tape.css
+--- a/src/styles/panels/tape.css
++++ b/src/styles/panels/tape.css
+@@ -2,6 +2,10 @@
+     .tape-panel { padding: 16px; }
+ 
+     .tape-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; align-items: center; }
++
++    .tape-actions > label { min-width: 0; max-width: 100%; }
++
++    .tape-actions input[type="file"] { max-width: 100%; }
+ 
+     .tape-strip { display: flex; gap: 12px; overflow-x: auto; padding: 12px 0; }
+ 
+diff --git a/test/results/take-validation.test.js b/test/results/take-validation.test.js
+--- a/test/results/take-validation.test.js
++++ b/test/results/take-validation.test.js
+@@ -17,7 +17,7 @@
+ suite.test("null imports report a validation error", () => {
+   const error = assertThrows(() => parseTakes("null")).subject;
+   assertThat(error.name).isEqualTo("Error");
+-  assertTrue(error.message.includes("Invalid take"));
++  assertTrue(error.message.includes("Invalid snapshot"));
+ });
+ 
+ suite.testUsingWebGL("all unused-wire padding must be numeric zero", () => {
+diff --git a/test/serialization/Serializer.test.js b/test/serialization/Serializer.test.js
+--- a/test/serialization/Serializer.test.js
++++ b/test/serialization/Serializer.test.js
+@@ -27,7 +27,7 @@
+ import {GateColumn} from "../../src/circuit/model/GateColumn.js"
+ import {Gates} from "../../src/gates/AllGates.js"
+ import {Matrix} from "../../src/engine/math/matrix/Matrix.js"
+-import {MysteryGateMaker} from "../../src/gates/misc/Joke_MysteryGate.js"
++import {MysteryGateMaker} from "../../src/gates/misc/RandomUnitaryGate.js"
+ import { STRICT_EQUALITY } from "../../src/base/Equate.js";
+ 
+ const suite = new Suite("Serializer");
+diff --git a/test_e2e/overlays.test.js b/test_e2e/overlays.test.js
+--- a/test_e2e/overlays.test.js
++++ b/test_e2e/overlays.test.js
+@@ -448,7 +448,7 @@
+             title: element.querySelector('.panel-title')?.textContent,
+             methodCount: element.querySelectorAll('.forge-method').length
+         }));
+-        assert.equal(forge.title, 'Make a gate');
++        assert.equal(forge.title, 'Create gate');
+         assert.equal(forge.methodCount, 1);
+         assert.equal(await page.$$eval('.construction-tabs [role="tab"]', tabs => tabs.length), 3);
+         await closePanel(page, 'forge');
+diff --git a/test_e2e/selection.test.js b/test_e2e/selection.test.js
+--- a/test_e2e/selection.test.js
++++ b/test_e2e/selection.test.js
+@@ -137,7 +137,7 @@
+         await page.waitForFunction(() => window.__copied.length === 1, {timeout: TEST_TIMEOUT_MILLIS});
+         assert.deepEqual(JSON.parse(await page.evaluate(() => window.__copied[0])), {cols: [['H', 'X'], ['Z']]});
+ 
+-        // Make a gate of it: the forge opens on its Circuit tab with the selection's ranges.
++        // Create gate from selection: the forge opens on its Circuit tab with the selection's ranges.
+         await page.click('.selection-bar [data-action="make-gate"]');
+         await waitForPanel(page, 'forge', true);
+         await page.waitForFunction(() => document.getElementById('gate-forge-circuit-cols')?.value === '1:2' &&
+diff --git a/test_e2e/tape.test.js b/test_e2e/tape.test.js
+--- a/test_e2e/tape.test.js
++++ b/test_e2e/tape.test.js
+@@ -61,13 +61,13 @@
+             await page.click("#undo-button");
+             await page.waitForFunction(() => document.querySelector("#playhead-position").textContent.includes("/ 0"));
+ 
+-            await page.evaluate(() => [...document.querySelectorAll("button")].find(e => e.textContent === "Download album").click());
++            await page.evaluate(() => [...document.querySelectorAll("button")].find(e => e.textContent === "Download collection").click());
+             const started = Date.now();
+-            while (!(await readdir(directory)).includes("tape.json")) {
++            while (!(await readdir(directory)).includes("recordings.json")) {
+                 if (Date.now()-started > TEST_TIMEOUT_MILLIS) throw new Error("Album download did not finish");
+                 await new Promise(resolve => setTimeout(resolve, 50));
+             }
+-            const album = JSON.parse(await readFile(join(directory, "tape.json"), "utf8"));
++            const album = JSON.parse(await readFile(join(directory, "recordings.json"), "utf8"));
+             assert.equal(album.format, "shadow-quant-album/1");
+             assert.equal(album.takes.length, 2);
+             assert.equal(album.takes[0].result.amplitudes.length, 8);
+@@ -119,7 +119,7 @@
+             await writeFile(path, JSON.stringify({format: "shadow-quant-album/1", takes: [
+                 {...take, id: "valid-first"}, {...take, id: "invalid-second", phase: 2},
+             ]}));
+-            const input = await page.$('input[aria-label="Import takes"]');
++            const input = await page.$('input[aria-label="Import snapshots"]');
+             await input.uploadFile(path);
+             await page.waitForFunction(() => document.querySelector('[data-panel-id="tape"] [role="alert"]')?.textContent.includes("phase"));
+             assert.equal((await records(page)).length, 1);
+@@ -183,7 +183,7 @@
+             await writeFile(path, JSON.stringify({format: "shadow-quant-album/1", takes: [
+                 {...take, id: "valid-first"}, bad,
+             ]}));
+-            await (await page.$('input[aria-label="Import takes"]')).uploadFile(path);
++            await (await page.$('input[aria-label="Import snapshots"]')).uploadFile(path);
+             await page.waitForFunction(() => document.querySelector('[data-panel-id="tape"] [role="alert"]')?.textContent.includes("Missing ZDetector"));
+             assert.deepEqual(await records(page), before);
+         });
+diff --git a/test_e2e/toolbar.test.js b/test_e2e/toolbar.test.js
+--- a/test_e2e/toolbar.test.js
++++ b/test_e2e/toolbar.test.js
+@@ -68,8 +68,8 @@
+         const labels = await page.$$eval('.app-toolbar [data-slot="button"]',
+             els => els.map(el => el.getAttribute('aria-label')));
+         assert.deepEqual(labels,
+-            ['Examples', 'Undo', 'Redo', 'Clear circuit', 'Inspect', 'Make gate', 'Gate parameter', 'State', 'Probabilities',
+-             'Qubits', 'Registers', 'Algebra', 'Tape', 'Export', 'Clear all']);
++            ['Examples', 'Undo', 'Redo', 'Clear circuit', 'Inspect', 'Create gate', 'Gate parameter', 'State', 'Probabilities',
++             'Qubits', 'Registers', 'Algebra', 'Recordings', 'Export', 'Clear all']);
+         // No two buttons wear the same mark.
+         const marks = await page.$$eval('.app-toolbar [data-slot="button"] svg', els => els.map(el => el.getAttribute('class')));
+         assert.equal(new Set(marks).size, marks.length, `Toolbar icons must be distinct: ${marks.join(', ')}`);
+@@ -177,7 +177,7 @@
+         await page.click('#inspect-button');
+         await page.waitForSelector('[data-inspect-panel="state"]');
+         const names = await page.$$eval('[data-inspect-panel]', items => items.map(item => item.textContent.trim()));
+-        assert.deepEqual(names, ['State', 'Probabilities', 'Qubits', 'Registers', 'Algebra', 'Tape']);
++        assert.deepEqual(names, ['State', 'Probabilities', 'Qubits', 'Registers', 'Algebra', 'Recordings']);
+         await page.click('[data-inspect-panel="state"]');
+         await page.waitForSelector('[data-panel-id="state"]');
+         await page.waitForSelector('[data-inspect-panel="state"]', {hidden: true});

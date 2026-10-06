@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import {INITIAL_STATES_TO_GATES} from "../../../gates/AllGates.js";
-import {preparedStateVector} from "../../math/preparedStates.js";
-import {gateTables, inputsFor} from "./gateContext.js";
-import {structureFanOut} from "./evaluation.js";
+import { INITIAL_STATES_TO_GATES } from "../../../gates/AllGates.js";
+import { preparedStateVector } from "../../math/preparedStates.js";
+import { gateTables, inputsFor } from "./gateContext.js";
+import { structureFanOut } from "./evaluation.js";
 
 /** @typedef {import("../../../circuit/model/CircuitDefinition.js").CircuitDefinition} CircuitDefinition */
 
@@ -61,151 +61,260 @@ const MAX_DENSE_BLOCK_QUBITS = 10;
  * @typedef {!{ok: true, wireCount: !int, inclusionMask: !int, desiredValueMask: !int,
  *     setup: !Array.<!Object>, core: !Array.<!Object>, cleanup: !Array.<!Object>}} ColumnStructure
  */
-function columnStructure(circuit, colIndex, wireCount, time, rowOffset = 0, outerContext = undefined) {
-    const context = columnContext(circuit, colIndex, rowOffset, outerContext);
-    const controls = circuit.colControls(colIndex).shift(rowOffset);
-    const structure = emptyStructure(wireCount, controls.inclusionMask, controls.desiredValueMask);
-    const failure = appendGateOperations(circuit, colIndex, rowOffset, time, context, structure);
-    if (failure !== undefined) {
-        return failure;
-    }
-    appendSwapOperation(circuit, colIndex, rowOffset, structure);
-    appendParityOperations(controls, structure);
-    return structure;
+function columnStructure(
+  circuit,
+  colIndex,
+  wireCount,
+  time,
+  rowOffset = 0,
+  outerContext = undefined,
+) {
+  const context = columnContext(circuit, colIndex, rowOffset, outerContext);
+  const controls = circuit.colControls(colIndex).shift(rowOffset);
+  const structure = emptyStructure(
+    wireCount,
+    controls.inclusionMask,
+    controls.desiredValueMask,
+  );
+  const failure = appendGateOperations(
+    circuit,
+    colIndex,
+    rowOffset,
+    time,
+    context,
+    structure,
+  );
+  if (failure !== undefined) {
+    return failure;
+  }
+  appendSwapOperation(circuit, colIndex, rowOffset, structure);
+  appendParityOperations(controls, structure);
+  return structure;
 }
 
 /** Creates the setup/core/cleanup representation, optionally under controls. */
 function emptyStructure(wireCount, inclusionMask = 0, desiredValueMask = 0) {
-    return {ok: true, wireCount, inclusionMask, desiredValueMask, setup: [], core: [], cleanup: []};
+  return {
+    ok: true,
+    wireCount,
+    inclusionMask,
+    desiredValueMask,
+    setup: [],
+    core: [],
+    cleanup: [],
+  };
 }
 
 /** Resolves absolute inputs, allowing the inner column to override its outer context. */
 function columnContext(circuit, colIndex, rowOffset, outerContext) {
-    const local = circuit.colCustomContextFromGates(colIndex, rowOffset);
-    return outerContext === undefined ? local : new Map([...outerContext, ...local]);
+  const local = circuit.colCustomContextFromGates(colIndex, rowOffset);
+  return outerContext === undefined
+    ? local
+    : new Map([...outerContext, ...local]);
 }
 
 /** Visits enabled gates in wire order, checking bounds before building their operations. */
-function appendGateOperations(circuit, colIndex, rowOffset, time, context, structure) {
-    // JSON omits trailing empty columns, which have no gate operations.
-    const gates = circuit.columns[colIndex]?.gates ?? [];
-    for (let row = 0; row < gates.length; row++) {
-        const gate = gates[row];
-        if (gate === undefined || circuit.gateAtLocIsDisabledReason(colIndex, row) !== undefined) {
-            continue;
-        }
-        const at = rowOffset + row;
-        if (at + gate.height > structure.wireCount) {
-            return {ok: false, reason: "This step uses wires beyond the ones the state covers."};
-        }
-        const failure = appendAroundOperations(gate, at, structure);
-        if (failure !== undefined) {
-            return failure;
-        }
-        const operation = gateOperation(gate, at, structure.wireCount, time, context);
-        if (operation?.ok === false) {
-            return operation;
-        }
-        if (operation !== undefined) {
-            structure.core.push(operation);
-        }
+function appendGateOperations(
+  circuit,
+  colIndex,
+  rowOffset,
+  time,
+  context,
+  structure,
+) {
+  // JSON omits trailing empty columns, which have no gate operations.
+  const gates = circuit.columns[colIndex]?.gates ?? [];
+  for (let row = 0; row < gates.length; row++) {
+    const gate = gates[row];
+    if (
+      gate === undefined ||
+      circuit.gateAtLocIsDisabledReason(colIndex, row) !== undefined
+    ) {
+      continue;
     }
-    return undefined;
+    const at = rowOffset + row;
+    if (at + gate.height > structure.wireCount) {
+      return {
+        ok: false,
+        reason: "This step uses wires beyond the ones the state covers.",
+      };
+    }
+    const failure = appendAroundOperations(gate, at, structure);
+    if (failure !== undefined) {
+      return failure;
+    }
+    const operation = gateOperation(
+      gate,
+      at,
+      structure.wireCount,
+      time,
+      context,
+    );
+    if (operation?.ok === false) {
+      return operation;
+    }
+    if (operation !== undefined) {
+      structure.core.push(operation);
+    }
+  }
+  return undefined;
 }
 
 /** Adds basis changes or reversed inputs around the core; rejects unsupported effects. */
 function appendAroundOperations(gate, at, structure) {
-    if (gate.customBeforeOperation === undefined && gate.customAfterOperation === undefined) {
-        return undefined;
-    }
-    const {basisChanges, detectors} = gateTables();
-    if (basisChanges.has(gate)) {
-        const {setup, cleanup} = basisChanges.get(gate);
-        if (setup !== undefined) {
-            structure.setup.push({kind: 'single', wire: at, m: setup});
-            structure.cleanup.unshift({kind: 'single', wire: at, m: cleanup});
-        }
-    } else if (/^revinput/.test(gate.serializedId)) {
-        const positions = Array.from({length: gate.height}, (_, i) => gate.height - 1 - i);
-        structure.setup.push({kind: 'bits', row: at, height: gate.height, positions});
-        structure.cleanup.unshift({kind: 'bits', row: at, height: gate.height, positions});
-    } else if (detectors.has(gate)) {
-        return {ok: false, reason: `The ${gate.name} measures at random, so this step is ` +
-            "not a linear operation and has no matrix."};
-    } else {
-        return {ok: false, reason: `The ${gate.name} acts around its column in a way ` +
-            "that has no matrix."};
-    }
+  if (
+    gate.customBeforeOperation === undefined &&
+    gate.customAfterOperation === undefined
+  ) {
     return undefined;
+  }
+  const { basisChanges, detectors } = gateTables();
+  if (basisChanges.has(gate)) {
+    const { setup, cleanup } = basisChanges.get(gate);
+    if (setup !== undefined) {
+      structure.setup.push({ kind: "single", wire: at, m: setup });
+      structure.cleanup.unshift({ kind: "single", wire: at, m: cleanup });
+    }
+  } else if (/^revinput/.test(gate.serializedId)) {
+    const positions = Array.from(
+      { length: gate.height },
+      (_, i) => gate.height - 1 - i,
+    );
+    structure.setup.push({
+      kind: "bits",
+      row: at,
+      height: gate.height,
+      positions,
+    });
+    structure.cleanup.unshift({
+      kind: "bits",
+      row: at,
+      height: gate.height,
+      positions,
+    });
+  } else if (detectors.has(gate)) {
+    return {
+      ok: false,
+      reason:
+        `The ${gate.name} measures at random, so this step is ` +
+        "not a linear operation and has no matrix.",
+    };
+  } else {
+    return {
+      ok: false,
+      reason:
+        `The ${gate.name} acts around its column in a way ` +
+        "that has no matrix.",
+    };
+  }
+  return undefined;
 }
 
 /** Selects a gate's representation, or returns its unsupported-effect reason. */
 function gateOperation(gate, at, wireCount, time, context) {
-    if (gate.isControl() || gate.isSwapHalf || gate.definitelyHasNoEffect()) {
-        return undefined;
-    }
-    const {inputRotations} = gateTables();
-    if (inputRotations.has(gate)) {
-        return inputRotationOperation(gate, at, context, inputRotations.get(gate));
-    }
-    if (gate.knownPreparation !== undefined) {
-        return preparationOperation(gate, at);
-    }
-    if (gate.knownPermutationFuncTakingInputs !== undefined) {
-        return {kind: 'permutation', row: at, height: gate.height,
-            func: gate.knownPermutationFuncTakingInputs, inputs: inputsFor(gate, context)};
-    }
-    if (gate.knownBitPermutationFunc !== undefined) {
-        const positions = Array.from({length: gate.height}, (_, i) => gate.knownBitPermutationFunc(i));
-        return {kind: 'bits', row: at, height: gate.height, positions};
-    }
-    const matrix = gate.height <= MAX_DENSE_BLOCK_QUBITS ? gate.knownMatrixAt(time) : undefined;
-    if (matrix !== undefined) {
-        return {kind: 'dense', row: at, height: gate.height, buffer: matrix.rawBuffer(), columns: []};
-    }
-    if (gate.knownCircuit !== undefined) {
-        return nestedCircuitOperation(gate, at, wireCount, time, context);
-    }
-    return {ok: false, reason: gate.height > MAX_DENSE_BLOCK_QUBITS
+  if (gate.isControl() || gate.isSwapHalf || gate.definitelyHasNoEffect()) {
+    return undefined;
+  }
+  const { inputRotations } = gateTables();
+  if (inputRotations.has(gate)) {
+    return inputRotationOperation(gate, at, context, inputRotations.get(gate));
+  }
+  if (gate.knownPreparation !== undefined) {
+    return preparationOperation(gate, at);
+  }
+  if (gate.knownPermutationFuncTakingInputs !== undefined) {
+    return {
+      kind: "permutation",
+      row: at,
+      height: gate.height,
+      func: gate.knownPermutationFuncTakingInputs,
+      inputs: inputsFor(gate, context),
+    };
+  }
+  if (gate.knownBitPermutationFunc !== undefined) {
+    const positions = Array.from({ length: gate.height }, (_, i) =>
+      gate.knownBitPermutationFunc(i),
+    );
+    return { kind: "bits", row: at, height: gate.height, positions };
+  }
+  const matrix =
+    gate.height <= MAX_DENSE_BLOCK_QUBITS
+      ? gate.knownMatrixAt(time)
+      : undefined;
+  if (matrix !== undefined) {
+    return {
+      kind: "dense",
+      row: at,
+      height: gate.height,
+      buffer: matrix.rawBuffer(),
+      columns: [],
+    };
+  }
+  if (gate.knownCircuit !== undefined) {
+    return nestedCircuitOperation(gate, at, wireCount, time, context);
+  }
+  return {
+    ok: false,
+    reason:
+      gate.height > MAX_DENSE_BLOCK_QUBITS
         ? `The ${gate.name} over ${gate.height} qubits declares no permutation, and its matrix ` +
-            "is too large to build from its definition."
-        : `The ${gate.name} has no known effect that can be written as a matrix.`};
+          "is too large to build from its definition."
+        : `The ${gate.name} has no known effect that can be written as a matrix.`,
+  };
 }
 
 /** Resolves input A for a parametrized rotation and creates its matrix cache. */
 function inputRotationOperation(gate, at, context, rotation) {
-    const range = context.get('Input Range A');
-    if (range === undefined) {
-        return {ok: false, reason: `The ${gate.name} needs input A in its column.`};
-    }
-    return {kind: 'inputRotation', wire: at, ...rotation,
-        input: {offset: range.offset, length: range.length, fallback: 0}, cache: new Map()};
+  const range = context.get("Input Range A");
+  if (range === undefined) {
+    return {
+      ok: false,
+      reason: `The ${gate.name} needs input A in its column.`,
+    };
+  }
+  return {
+    kind: "inputRotation",
+    wire: at,
+    ...rotation,
+    input: { offset: range.offset, length: range.length, fallback: 0 },
+    cache: new Map(),
+  };
 }
 
 /** Builds ψ⟨0…0| and counts its nonzero outputs for the fan-out estimate. */
 function preparationOperation(gate, at) {
-    const amplitudes = preparedStateVector(gate.knownPreparation, gate.height);
-    let nonzero = 0;
-    for (let v = 0; v < amplitudes.length; v += 2) {
-        nonzero += amplitudes[v] !== 0 || amplitudes[v + 1] !== 0 ? 1 : 0;
-    }
-    return {kind: 'prepare', row: at, height: gate.height, amplitudes, nonzero};
+  const amplitudes = preparedStateVector(gate.knownPreparation, gate.height);
+  let nonzero = 0;
+  for (let v = 0; v < amplitudes.length; v += 2) {
+    nonzero += amplitudes[v] !== 0 || amplitudes[v + 1] !== 0 ? 1 : 0;
+  }
+  return { kind: "prepare", row: at, height: gate.height, amplitudes, nonzero };
 }
 
 /** Builds nested initial-state operations, then columns at their absolute offset. */
 function nestedCircuitOperation(gate, at, wireCount, time, context) {
-    const inner = gate.knownCircuit.withDisabledReasonsForEmbeddedContext(at, context);
-    const initial = initialStateStructure(inner, at, wireCount, time);
-    const structures = initial.core.length === 0 ? [] : [initial];
-    for (let col = 0; col < inner.columns.length; col++) {
-        const built = columnStructure(inner, col, wireCount, time, at, context);
-        if (!built.ok) {
-            return {ok: false, reason: `Inside the ${gate.name}: ${built.reason}`};
-        }
-        structures.push(built);
+  const inner = gate.knownCircuit.withDisabledReasonsForEmbeddedContext(
+    at,
+    context,
+  );
+  const initial = initialStateStructure(inner, at, wireCount, time);
+  const structures = initial.core.length === 0 ? [] : [initial];
+  for (let col = 0; col < inner.columns.length; col++) {
+    const built = columnStructure(inner, col, wireCount, time, at, context);
+    if (!built.ok) {
+      return { ok: false, reason: `Inside the ${gate.name}: ${built.reason}` };
     }
-    const fanOut = structures.reduce((product, built) => product * structureFanOut(built), 1);
-    return {kind: 'nested', structures, fanOut: Math.min(fanOut, 1 << gate.height)};
+    structures.push(built);
+  }
+  const fanOut = structures.reduce(
+    (product, built) => product * structureFanOut(built),
+    1,
+  );
+  return {
+    kind: "nested",
+    structures,
+    fanOut: Math.min(fanOut, 1 << gate.height),
+  };
 }
 
 /**
@@ -214,36 +323,50 @@ function nestedCircuitOperation(gate, at, wireCount, time, context) {
  * It is added once per nested circuit, never to each ordinary column.
  */
 function initialStateStructure(circuit, rowOffset, wireCount, time) {
-    const structure = emptyStructure(wireCount);
-    for (let wire = 0; wire < circuit.numWires; wire++) {
-        const state = circuit.customInitialValues.get(wire);
-        const gates = INITIAL_STATES_TO_GATES.get(state);
-        if (gates === undefined) {
-            throw new Error(`Unrecognized initial state: ${state}`);
-        }
-        for (const gate of gates) {
-            structure.core.push({kind: 'single', wire: rowOffset + wire, m: gate.knownMatrixAt(time).rawBuffer()});
-        }
+  const structure = emptyStructure(wireCount);
+  for (let wire = 0; wire < circuit.numWires; wire++) {
+    const state = circuit.customInitialValues.get(wire);
+    const gates = INITIAL_STATES_TO_GATES.get(state);
+    if (gates === undefined) {
+      throw new Error(`Unrecognized initial state: ${state}`);
     }
-    return structure;
+    for (const gate of gates) {
+      structure.core.push({
+        kind: "single",
+        wire: rowOffset + wire,
+        m: gate.knownMatrixAt(time).rawBuffer(),
+      });
+    }
+  }
+  return structure;
 }
 
 /** A pair of swap halves is one operation under the column's controls. */
 function appendSwapOperation(circuit, colIndex, rowOffset, structure) {
-    const rows = circuit.colGetEnabledSwapGate(colIndex);
-    if (rows !== undefined) {
-        structure.core.push({kind: 'swap', a: rowOffset + rows[0], b: rowOffset + rows[1]});
-    }
+  const rows = circuit.colGetEnabledSwapGate(colIndex);
+  if (rows !== undefined) {
+    structure.core.push({
+      kind: "swap",
+      a: rowOffset + rows[0],
+      b: rowOffset + rows[1],
+    });
+  }
 }
 
 /** Folds parity after basis changes and unfolds it before their cleanup. */
 function appendParityOperations(controls, structure) {
-    if (controls.parityMask !== 0) {
-        const target = Math.round(Math.log2(controls.parityMask & controls.inclusionMask));
-        const fold = {kind: 'xorParity', target, mask: controls.parityMask & ~(1 << target)};
-        structure.setup.push(fold);
-        structure.cleanup.unshift(fold);
-    }
+  if (controls.parityMask !== 0) {
+    const target = Math.round(
+      Math.log2(controls.parityMask & controls.inclusionMask),
+    );
+    const fold = {
+      kind: "xorParity",
+      target,
+      mask: controls.parityMask & ~(1 << target),
+    };
+    structure.setup.push(fold);
+    structure.cleanup.unshift(fold);
+  }
 }
 
-export {columnStructure};
+export { columnStructure };

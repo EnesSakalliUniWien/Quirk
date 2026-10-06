@@ -12,11 +12,11 @@ const TOLERANCE = 1e-4;
  *     superposition, or a mixture, of basis states rather than in one of them.
  */
 function isSuperposition(density) {
-    let outcomes = 0;
-    for (let k = 0; k < density.width(); k++) {
-        if (density.cell(k, k).real > TOLERANCE) outcomes++;
-    }
-    return outcomes > 1;
+  let outcomes = 0;
+  for (let k = 0; k < density.width(); k++) {
+    if (density.cell(k, k).real > TOLERANCE) outcomes++;
+  }
+  return outcomes > 1;
 }
 
 /**
@@ -28,21 +28,25 @@ function isSuperposition(density) {
  * @returns {!Array.<!Array.<!{real: !number, imag: !number}>>} Indexed [row][col].
  */
 function marginal(density, wireCount, kept) {
-    const size = 1 << kept.length;
-    const others = Array.from({length: wireCount}, (_, wire) => wire).filter(wire => !kept.includes(wire));
-    const index = (keptBits, otherBits) =>
-        kept.reduce((sum, wire, k) => sum | (((keptBits >> k) & 1) << wire), 0) |
-        others.reduce((sum, wire, k) => sum | (((otherBits >> k) & 1) << wire), 0);
-    return Array.from({length: size}, (_, row) => Array.from({length: size}, (_, col) => {
-        let real = 0;
-        let imag = 0;
-        for (let rest = 0; rest < 1 << others.length; rest++) {
-            const cell = density.cell(index(col, rest), index(row, rest));
-            real += cell.real;
-            imag += cell.imag;
-        }
-        return {real, imag};
-    }));
+  const size = 1 << kept.length;
+  const others = Array.from({ length: wireCount }, (_, wire) => wire).filter(
+    (wire) => !kept.includes(wire),
+  );
+  const index = (keptBits, otherBits) =>
+    kept.reduce((sum, wire, k) => sum | (((keptBits >> k) & 1) << wire), 0) |
+    others.reduce((sum, wire, k) => sum | (((otherBits >> k) & 1) << wire), 0);
+  return Array.from({ length: size }, (_, row) =>
+    Array.from({ length: size }, (_, col) => {
+      let real = 0;
+      let imag = 0;
+      for (let rest = 0; rest < 1 << others.length; rest++) {
+        const cell = density.cell(index(col, rest), index(row, rest));
+        real += cell.real;
+        imag += cell.imag;
+      }
+      return { real, imag };
+    }),
+  );
 }
 
 /**
@@ -53,24 +57,33 @@ function marginal(density, wireCount, kept) {
  *     simulator defers, it is also true of wires that merely agree classically.
  */
 function isEntangled(density, wireCount) {
-    for (let a = 0; a < wireCount; a++) {
-        for (let b = a + 1; b < wireCount; b++) {
-            const joint = marginal(density, wireCount, [a, b]);
-            const [first, second] = [marginal(density, wireCount, [a]), marginal(density, wireCount, [b])];
-            let distance = 0;
-            for (let row = 0; row < 4; row++) {
-                for (let col = 0; col < 4; col++) {
-                    const p = first[row & 1][col & 1];
-                    const q = second[row >> 1][col >> 1];
-                    distance = Math.max(distance,
-                        Math.abs(joint[row][col].real - (p.real * q.real - p.imag * q.imag)),
-                        Math.abs(joint[row][col].imag - (p.real * q.imag + p.imag * q.real)));
-                }
-            }
-            if (distance <= TOLERANCE) return false;
+  for (let a = 0; a < wireCount; a++) {
+    for (let b = a + 1; b < wireCount; b++) {
+      const joint = marginal(density, wireCount, [a, b]);
+      const [first, second] = [
+        marginal(density, wireCount, [a]),
+        marginal(density, wireCount, [b]),
+      ];
+      let distance = 0;
+      for (let row = 0; row < 4; row++) {
+        for (let col = 0; col < 4; col++) {
+          const p = first[row & 1][col & 1];
+          const q = second[row >> 1][col >> 1];
+          distance = Math.max(
+            distance,
+            Math.abs(
+              joint[row][col].real - (p.real * q.real - p.imag * q.imag),
+            ),
+            Math.abs(
+              joint[row][col].imag - (p.real * q.imag + p.imag * q.real),
+            ),
+          );
         }
+      }
+      if (distance <= TOLERANCE) return false;
     }
-    return true;
+  }
+  return true;
 }
 
 /**
@@ -81,17 +94,18 @@ function isEntangled(density, wireCount) {
  *     fidelity ⟨ψ|ρ|ψ⟩ is 1.
  */
 function isState(density, amplitudes) {
-    let fidelity = 0;
-    for (let row = 0; row < amplitudes.length; row++) {
-        for (let col = 0; col < amplitudes.length; col++) {
-            const cell = density.cell(col, row);
-            const [ar, ai] = amplitudes[row];
-            const [br, bi] = amplitudes[col];
-            // The real part of conj(a) · cell · b; the imaginary parts cancel over the sum.
-            fidelity += (ar * br + ai * bi) * cell.real - (ar * bi - ai * br) * cell.imag;
-        }
+  let fidelity = 0;
+  for (let row = 0; row < amplitudes.length; row++) {
+    for (let col = 0; col < amplitudes.length; col++) {
+      const cell = density.cell(col, row);
+      const [ar, ai] = amplitudes[row];
+      const [br, bi] = amplitudes[col];
+      // The real part of conj(a) · cell · b; the imaginary parts cancel over the sum.
+      fidelity +=
+        (ar * br + ai * bi) * cell.real - (ar * bi - ai * br) * cell.imag;
     }
-    return fidelity >= 1 - TOLERANCE;
+  }
+  return fidelity >= 1 - TOLERANCE;
 }
 
 /**
@@ -101,20 +115,22 @@ function isState(density, amplitudes) {
  *     entangled with other wires, or measured.
  */
 function pureStateOf(density) {
-    const size = density.width();
-    let purity = 0;
-    let largest = 0;
-    for (let row = 0; row < size; row++) {
-        for (let col = 0; col < size; col++) purity += density.cell(row, col).norm2();
-        if (density.cell(row, row).real > density.cell(largest, largest).real) largest = row;
-    }
-    if (!(purity >= 1 - TOLERANCE)) return undefined;
-    // A pure ρ is |ψ⟩⟨ψ|, so its column at ψ's largest amplitude is ψ, scaled by that amplitude.
-    const scale = Math.sqrt(density.cell(largest, largest).real);
-    return Array.from({length: size}, (_, row) => {
-        const cell = density.cell(largest, row);
-        return [cell.real / scale, cell.imag / scale];
-    });
+  const size = density.width();
+  let purity = 0;
+  let largest = 0;
+  for (let row = 0; row < size; row++) {
+    for (let col = 0; col < size; col++)
+      purity += density.cell(row, col).norm2();
+    if (density.cell(row, row).real > density.cell(largest, largest).real)
+      largest = row;
+  }
+  if (!(purity >= 1 - TOLERANCE)) return undefined;
+  // A pure ρ is |ψ⟩⟨ψ|, so its column at ψ's largest amplitude is ψ, scaled by that amplitude.
+  const scale = Math.sqrt(density.cell(largest, largest).real);
+  return Array.from({ length: size }, (_, row) => {
+    const cell = density.cell(largest, row);
+    return [cell.real / scale, cell.imag / scale];
+  });
 }
 
-export {isSuperposition, isEntangled, isState, pureStateOf};
+export { isSuperposition, isEntangled, isState, pureStateOf };

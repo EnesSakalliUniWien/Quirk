@@ -18,7 +18,10 @@ import { Gate } from "../../../circuit/model/Gate.js";
 import { probabilityStatTexture } from "./probabilityStatTexture.js";
 import { probabilityPixelsToColumnVector } from "./probabilityPixelsToColumnVector.js";
 import { probabilityDataToJson } from "./probabilityDataToJson.js";
-import { SINGLE_PROBABILITY_RENDERER, MULTI_PROBABILITY_RENDERER } from "./probabilityRenderers.js";
+import {
+  SINGLE_PROBABILITY_RENDERER,
+  MULTI_PROBABILITY_RENDERER,
+} from "./probabilityRenderers.js";
 
 /**
  * @param {!GateBuilder} builder
@@ -26,15 +29,15 @@ import { SINGLE_PROBABILITY_RENDERER, MULTI_PROBABILITY_RENDERER } from "./proba
  */
 function shared_chanceGateMaker(builder) {
   return builder
-    .setSymbol("Chance")
+    .setSymbol("Prob.")
     .setTitle("Probability Display")
     .setBlurb(
-      "Shows chances of outcomes if a measurement was performed.\n" +
+      "Shows probabilities of outcomes if a measurement were performed.\n" +
         "Use controls to see conditional probabilities.",
     )
     .promiseHasNoNetEffectOnStateVector()
     .setExtraDisableReasonFinder((args) =>
-      args.isNested ? "can't\nnest\ndisplays\n(sorry)" : undefined,
+      args.isNested ? "No nested\ndisplay" : undefined,
     );
 }
 
@@ -69,9 +72,7 @@ function singleChangeGateMaker(builder) {
   return shared_chanceGateMaker(builder)
     .setSerializedId("Chance")
     .markAsRendererNeedsSingleQubitDensityStats()
-    .setRenderer(
-      SINGLE_PROBABILITY_RENDERER,
-    );
+    .setRenderer(SINGLE_PROBABILITY_RENDERER);
 }
 
 const ProbabilityDisplayFamily = Gate.buildFamily(1, 16, (span, builder) =>

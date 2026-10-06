@@ -16,117 +16,302 @@
 
 // The gate menu a right click opens, and the dial beside a rotation gate's angle.
 
-import assert from 'node:assert/strict';
+import assert from "node:assert/strict";
 import {
-    test, withQuirkPage, waitForCircuit, waitForPanel, waitForCanvasViewport, circuitTopForWires, circuitMetrics,
-    TEST_TIMEOUT_MILLIS,
-} from './harness.js';
+  test,
+  withQuirkPage,
+  waitForCircuit,
+  waitForPanel,
+  waitForCanvasViewport,
+  circuitTopForWires,
+  circuitMetrics,
+  TEST_TIMEOUT_MILLIS,
+} from "./harness.js";
 
 /** The centre of the gate in the first column on the first wire, in page coordinates. */
 async function firstGateCentre(page, wireCount) {
-    await waitForCanvasViewport(page);
-    const canvas = await page.$eval('#drawCanvas canvas', element => {
-        const bounds = element.getBoundingClientRect();
-        return {x: bounds.x, y: bounds.y};
-    });
-    const top = await circuitTopForWires(page, wireCount);
-    return {
-        x: canvas.x + circuitMetrics.firstColumnLeft + circuitMetrics.gateSize / 2,
-        y: canvas.y + top + circuitMetrics.wireSpacing / 2,
-    };
+  await waitForCanvasViewport(page);
+  const canvas = await page.$eval("#drawCanvas canvas", (element) => {
+    const bounds = element.getBoundingClientRect();
+    return { x: bounds.x, y: bounds.y };
+  });
+  const top = await circuitTopForWires(page, wireCount);
+  return {
+    x: canvas.x + circuitMetrics.firstColumnLeft + circuitMetrics.gateSize / 2,
+    y: canvas.y + top + circuitMetrics.wireSpacing / 2,
+  };
 }
 
 async function chooseFromGateMenu(page, action) {
-    const item = await page.waitForSelector(`.gate-menu [data-action="${action}"]`, {timeout: TEST_TIMEOUT_MILLIS});
-    await item.click();
+  const item = await page.waitForSelector(
+    `.gate-menu [data-action="${action}"]`,
+    { timeout: TEST_TIMEOUT_MILLIS },
+  );
+  await item.click();
 }
 
-test('a right click on a gate switches it off and on, and deletes it, through its menu', async browser => {
-    await withQuirkPage(browser, {cols: [['X']]}, async page => {
-        const gate = await firstGateCentre(page, 2);
-        await page.mouse.click(gate.x, gate.y, {button: 'right'});
-        const label = await page.waitForSelector('.gate-menu .app-menu-label', {timeout: TEST_TIMEOUT_MILLIS});
-        assert.equal(await label.evaluate(e => e.textContent), 'Pauli X Gate');
-        // A gate without a parameter offers no parameter item.
-        assert.equal(await page.$('.gate-menu [data-action="edit"]'), null);
-        await chooseFromGateMenu(page, 'deactivate');
-        await waitForCircuit(page, {cols: [[{id: 'X', off: true}]]});
-        await page.waitForFunction(() => document.querySelector('.gate-menu') === null, {timeout: TEST_TIMEOUT_MILLIS});
-
-        // Off, the gate keeps its slot; the menu now offers to switch it back on.
-        await page.mouse.click(gate.x, gate.y, {button: 'right'});
-        await chooseFromGateMenu(page, 'activate');
-        await waitForCircuit(page, {cols: [['X']]});
-
-        // Each edit is one commit.
-        await page.click('#undo-button');
-        await waitForCircuit(page, {cols: [[{id: 'X', off: true}]]});
-        await page.click('#redo-button');
-        await waitForCircuit(page, {cols: [['X']]});
-
-        await page.mouse.click(gate.x, gate.y, {button: 'right'});
-        await chooseFromGateMenu(page, 'delete');
-        await waitForCircuit(page, {cols: []});
+test("a right click on a gate switches it off and on, and deletes it, through its menu", async (browser) => {
+  await withQuirkPage(browser, { cols: [["X"]] }, async (page) => {
+    const gate = await firstGateCentre(page, 2);
+    await page.mouse.click(gate.x, gate.y, { button: "right" });
+    const label = await page.waitForSelector(".gate-menu .app-menu-label", {
+      timeout: TEST_TIMEOUT_MILLIS,
     });
+    assert.equal(await label.evaluate((e) => e.textContent), "Pauli X Gate");
+    // A gate without a parameter offers no parameter item.
+    assert.equal(await page.$('.gate-menu [data-action="edit"]'), null);
+    await chooseFromGateMenu(page, "deactivate");
+    await waitForCircuit(page, { cols: [[{ id: "X", off: true }]] });
+    await page.waitForFunction(
+      () => document.querySelector(".gate-menu") === null,
+      { timeout: TEST_TIMEOUT_MILLIS },
+    );
+
+    // Off, the gate keeps its slot; the menu now offers to switch it back on.
+    await page.mouse.click(gate.x, gate.y, { button: "right" });
+    await chooseFromGateMenu(page, "activate");
+    await waitForCircuit(page, { cols: [["X"]] });
+
+    // Each edit is one commit.
+    await page.click("#undo-button");
+    await waitForCircuit(page, { cols: [[{ id: "X", off: true }]] });
+    await page.click("#redo-button");
+    await waitForCircuit(page, { cols: [["X"]] });
+
+    await page.mouse.click(gate.x, gate.y, { button: "right" });
+    await chooseFromGateMenu(page, "delete");
+    await waitForCircuit(page, { cols: [] });
+  });
 });
 
-test('a rotation gate wears a dial on its wire, and each turn of it is one commit', async browser => {
-    await withQuirkPage(browser, {cols: [[{id: 'Rx', arg: 'pi/2'}]]}, async page => {
-        // The dial is there from the start, in the column past the gate's box, on its wire.
-        await page.waitForSelector('#wire-dial-0-0', {visible: true, timeout: TEST_TIMEOUT_MILLIS});
-        const gate = await firstGateCentre(page, 2);
-        const dial = await page.$eval('#wire-dial-0-0', e => e.getBoundingClientRect().toJSON());
-        assert.ok(Math.abs(dial.left - (gate.x + 2 * circuitMetrics.columnSpacing - circuitMetrics.gateSize / 2)) < 2,
-            `The dial must sit two columns past the gate's centre: ${dial.left}`);
-        assert.ok(Math.abs(dial.top + dial.height / 2 - gate.y) < 2, 'The dial must sit on the wire.');
-        const angle = () => page.$eval('#wire-dial-0-0', e => Number(e.getAttribute('aria-valuenow')));
-        assert.equal(await angle(), 90);
+test("a rotation gate wears a dial on its wire, and each turn of it is one commit", async (browser) => {
+  await withQuirkPage(
+    browser,
+    { cols: [[{ id: "Rx", arg: "pi/2" }]] },
+    async (page) => {
+      // The dial is there from the start, in the column past the gate's box, on its wire.
+      await page.waitForSelector("#wire-dial-0-0", {
+        visible: true,
+        timeout: TEST_TIMEOUT_MILLIS,
+      });
+      const gate = await firstGateCentre(page, 2);
+      const dial = await page.$eval("#wire-dial-0-0", (e) =>
+        e.getBoundingClientRect().toJSON(),
+      );
+      assert.ok(
+        Math.abs(
+          dial.left -
+            (gate.x +
+              2 * circuitMetrics.columnSpacing -
+              circuitMetrics.gateSize / 2),
+        ) < 2,
+        `The dial must sit two columns past the gate's centre: ${dial.left}`,
+      );
+      assert.ok(
+        Math.abs(dial.top + dial.height / 2 - gate.y) < 2,
+        "The dial must sit on the wire.",
+      );
+      const angle = () =>
+        page.$eval("#wire-dial-0-0", (e) =>
+          Number(e.getAttribute("aria-valuenow")),
+        );
+      assert.equal(await angle(), 90);
 
-        // The arrow keys turn by a degree, shift by a detent; the gate takes the exact angle.
-        await page.focus('#wire-dial-0-0');
-        await page.keyboard.press('ArrowUp');
-        await page.keyboard.press('ArrowUp');
-        assert.equal(await angle(), 92);
-        await waitForCircuit(page, {cols: [[{id: 'Rx', arg: '23pi/45'}]]});
-        await page.keyboard.down('Shift');
-        await page.keyboard.press('ArrowUp');
-        await page.keyboard.up('Shift');
-        await waitForCircuit(page, {cols: [[{id: 'Rx', arg: '7pi/12'}]]});
+      // The arrow keys turn by a degree, shift by a detent; the gate takes the exact angle.
+      await page.focus("#wire-dial-0-0");
+      await page.keyboard.press("ArrowUp");
+      await page.keyboard.press("ArrowUp");
+      assert.equal(await angle(), 92);
+      await waitForCircuit(page, { cols: [[{ id: "Rx", arg: "23pi/45" }]] });
+      await page.keyboard.down("Shift");
+      await page.keyboard.press("ArrowUp");
+      await page.keyboard.up("Shift");
+      await waitForCircuit(page, { cols: [[{ id: "Rx", arg: "7pi/12" }]] });
 
-        // A drag round the face turns it too, anticlockwise up as every dial sweeps, and settles when
-        // it is let go. The box
-        // keeps its width as the angle's text changes, so the dial is where it was.
-        const now = await page.$eval('#wire-dial-0-0', e => e.getBoundingClientRect().toJSON());
-        assert.deepEqual([now.left, now.top], [dial.left, dial.top], 'The dial must not move as it turns.');
-        const centre = {x: dial.left + dial.width / 2, y: dial.top + dial.height / 2, r: dial.width / 2};
-        await page.mouse.move(centre.x, centre.y - centre.r * 0.7);
-        await page.mouse.down();
-        await page.mouse.move(centre.x - centre.r * 0.5, centre.y - centre.r * 0.5, {steps: 4});
-        await page.mouse.move(centre.x - centre.r * 0.7, centre.y, {steps: 4});
-        await page.mouse.up();
-        const dragged = await angle();
-        assert.ok(dragged > 150 && dragged < 210, `A quarter turn anticlockwise must add about 90°, not land on ${dragged}`);
-        await page.waitForFunction(
-            () => !document.location.hash.includes(encodeURIComponent('7pi/12')), {timeout: TEST_TIMEOUT_MILLIS});
+      // A drag round the face turns it too, anticlockwise up as every dial sweeps, and settles when
+      // it is let go. The box
+      // keeps its width as the angle's text changes, so the dial is where it was.
+      const now = await page.$eval("#wire-dial-0-0", (e) =>
+        e.getBoundingClientRect().toJSON(),
+      );
+      assert.deepEqual(
+        [now.left, now.top],
+        [dial.left, dial.top],
+        "The dial must not move as it turns.",
+      );
+      const centre = {
+        x: dial.left + dial.width / 2,
+        y: dial.top + dial.height / 2,
+        r: dial.width / 2,
+      };
+      await page.mouse.move(centre.x, centre.y - centre.r * 0.7);
+      await page.mouse.down();
+      await page.mouse.move(
+        centre.x - centre.r * 0.5,
+        centre.y - centre.r * 0.5,
+        { steps: 4 },
+      );
+      await page.mouse.move(centre.x - centre.r * 0.7, centre.y, { steps: 4 });
+      await page.mouse.up();
+      const dragged = await angle();
+      assert.ok(
+        dragged > 150 && dragged < 210,
+        `A quarter turn anticlockwise must add about 90°, not land on ${dragged}`,
+      );
+      await page.waitForFunction(
+        () => !document.location.hash.includes(encodeURIComponent("7pi/12")),
+        { timeout: TEST_TIMEOUT_MILLIS },
+      );
 
-        // Each settled turn is one commit: undo takes the drag back, then the detent.
-        await page.click('#undo-button');
-        await waitForCircuit(page, {cols: [[{id: 'Rx', arg: '7pi/12'}]]});
-        await page.click('#undo-button');
-        await waitForCircuit(page, {cols: [[{id: 'Rx', arg: '23pi/45'}]]});
-        assert.equal(await angle(), 92);
+      // Each settled turn is one commit: undo takes the drag back, then the detent.
+      await page.click("#undo-button");
+      await waitForCircuit(page, { cols: [[{ id: "Rx", arg: "7pi/12" }]] });
+      await page.click("#undo-button");
+      await waitForCircuit(page, { cols: [[{ id: "Rx", arg: "23pi/45" }]] });
+      assert.equal(await angle(), 92);
 
-        // The menu still opens the panel for a typed formula, and the dial follows what is typed.
-        await page.mouse.click(gate.x, gate.y, {button: 'right'});
-        await chooseFromGateMenu(page, 'edit');
-        await waitForPanel(page, 'gate-param', true);
-        await page.waitForFunction(() => document.activeElement?.id === 'gate-param-input', {timeout: TEST_TIMEOUT_MILLIS});
-        await page.keyboard.type('pi');
-        await page.keyboard.press('Enter');
-        await waitForCircuit(page, {cols: [[{id: 'Rx', arg: 'pi'}]]});
-        assert.equal(await angle(), 180);
+      // The menu still opens the panel for a typed formula, and the dial follows what is typed.
+      await page.mouse.click(gate.x, gate.y, { button: "right" });
+      await chooseFromGateMenu(page, "edit");
+      await waitForPanel(page, "gate-param", true);
+      await page.waitForFunction(
+        () => document.activeElement?.id === "gate-param-input",
+        { timeout: TEST_TIMEOUT_MILLIS },
+      );
+      await page.keyboard.type("pi");
+      await page.keyboard.press("Enter");
+      await waitForCircuit(page, { cols: [[{ id: "Rx", arg: "pi" }]] });
+      assert.equal(await angle(), 180);
 
-        // A gate dropped where the dial is lands past it: the dial's column is the gate's.
-        assert.equal((await page.$$('.wire-dial')).length, 1);
+      // A gate dropped where the dial is lands past it: the dial's column is the gate's.
+      assert.equal((await page.$$(".wire-dial")).length, 1);
+    },
+  );
+});
+
+test("dial semantics preserve signed, fractional and multiple-turn expressions", async (browser) => {
+  for (const [arg, degrees] of [
+    ["-pi/2", -90],
+    ["pi", 180],
+    ["4pi", 720],
+    ["pi/360", 0.5],
+  ]) {
+    const circuit = { cols: [[{ id: "Rx", arg }]] };
+    await withQuirkPage(browser, circuit, async (page) => {
+      await page.waitForSelector("#wire-dial-0-0", {
+        timeout: TEST_TIMEOUT_MILLIS,
+      });
+      await page.focus("#wire-dial-0-0");
+      const attributes = await page.$eval("#wire-dial-0-0", (e) => ({
+        role: e.getAttribute("role"),
+        value: Number(e.getAttribute("aria-valuenow")),
+        min: e.getAttribute("aria-valuemin"),
+        max: e.getAttribute("aria-valuemax"),
+      }));
+      assert.equal(attributes.role, "spinbutton");
+      assert.ok(Math.abs(attributes.value - degrees) < 1e-10);
+      assert.equal(attributes.min, null);
+      assert.equal(attributes.max, null);
+      const cdp = await page.createCDPSession();
+      const tree = await cdp.send("Accessibility.getFullAXTree");
+      const dial = tree.nodes.find(
+        (node) =>
+          node.role?.value === "spinbutton" &&
+          node.name?.value?.includes("angle"),
+      );
+      assert.ok(
+        dial,
+        "The dial must reach the accessibility tree as a spinbutton.",
+      );
+      assert.ok(
+        Math.abs(Number(dial.value?.value) - degrees) < 1e-10,
+        "The accessibility value must not clamp to 0–100.",
+      );
+      await cdp.detach();
+      await page.keyboard.press("Home");
+      await page.keyboard.press("End");
+      await waitForCircuit(page, circuit);
     });
+  }
+});
+
+test("a formula dial opens the parameter editor without numeric conversion", async (browser) => {
+  const circuit = { cols: [[{ id: "Rx", arg: "t*pi" }]] };
+  await withQuirkPage(
+    browser,
+    { cols: [[{ id: "Rx", arg: "pi/2" }]] },
+    async (page) => {
+      await page.waitForSelector("#wire-dial-0-0", {
+        timeout: TEST_TIMEOUT_MILLIS,
+      });
+      // A loaded non-constant parameter can replace a numeric gate in the same slot. The
+      // constant-angle editor deliberately rejects it, but must remain reachable to repair it.
+      await page.evaluate((circuit) => {
+        location.hash =
+          "circuit=" + encodeURIComponent(JSON.stringify(circuit));
+      }, circuit);
+      await waitForCircuit(page, circuit);
+      assert.deepEqual(
+        await page.$eval("#wire-dial-0-0", (e) => [
+          e.getAttribute("role"),
+          e.getAttribute("aria-valuenow"),
+          e.getAttribute("aria-valuetext"),
+        ]),
+        ["button", null, null],
+      );
+      await page.focus("#wire-dial-0-0");
+      await page.keyboard.press("ArrowUp");
+      await page.$eval("#wire-dial-0-0", (e) =>
+        e.dispatchEvent(
+          new WheelEvent("wheel", {
+            deltaY: -1,
+            bubbles: true,
+            cancelable: true,
+          }),
+        ),
+      );
+      await waitForCircuit(page, circuit);
+      await page.keyboard.press("Enter");
+      await waitForPanel(page, "gate-param", true);
+      await page.waitForFunction(
+        () => document.activeElement?.id === "gate-param-input",
+        { timeout: TEST_TIMEOUT_MILLIS },
+      );
+      assert.equal(
+        await page.$eval("#gate-param-input", (e) => e.value),
+        "t*pi",
+      );
+      await waitForCircuit(page, circuit);
+    },
+  );
+});
+
+test("Apple Control-primary click opens the gate menu without a live drag", async (browser) => {
+  await withQuirkPage(browser, { cols: [["X"]] }, async (page) => {
+    // This asserts the macOS branch in Chromium, separately from native OS input delivery.
+    const apple = await page.evaluate(() =>
+      /Mac|iPhone|iPad/.test(navigator.platform),
+    );
+    if (!apple) {
+      await page.evaluateOnNewDocument(() =>
+        Object.defineProperty(navigator, "platform", { value: "MacIntel" }),
+      );
+      await page.reload();
+    }
+    const gate = await firstGateCentre(page, 2);
+    await page.keyboard.down("Control");
+    await page.mouse.click(gate.x, gate.y);
+    await page.keyboard.up("Control");
+    await page.waitForSelector(".gate-menu", { timeout: TEST_TIMEOUT_MILLIS });
+    await waitForCircuit(page, { cols: [["X"]] });
+    await page.keyboard.press("Escape");
+    await page.waitForSelector(".gate-menu", { hidden: true });
+    await page.mouse.move(gate.x, gate.y);
+    await page.mouse.down();
+    await page.mouse.move(gate.x, gate.y + circuitMetrics.wireSpacing, {
+      steps: 5,
+    });
+    await page.mouse.up();
+    await waitForCircuit(page, { cols: [[1, "X"]] });
+  });
 });

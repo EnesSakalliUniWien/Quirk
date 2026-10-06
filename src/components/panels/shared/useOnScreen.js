@@ -48,7 +48,9 @@ function useOnScreen(ref) {
   const [inView, setInView] = useState(!observable);
   useEffect(() => {
     const element = ref.current;
-    return observable && element !== null ? watch(element, setInView) : undefined;
+    return observable && element !== null
+      ? watch(element, setInView)
+      : undefined;
   }, [ref, observable]);
   return panelShowing && inView;
 }

@@ -16,9 +16,15 @@ import {
 import { phaseTint } from "../../../config/CanvasTheme.js";
 import { Typography } from "../../../config/Typography.js";
 import { rasterMatrix } from "../../renderers/rasters.js";
-import { acquireBitmapFont, releaseBitmapFont } from "../../text/BitmapFonts.js";
+import {
+  acquireBitmapFont,
+  releaseBitmapFont,
+} from "../../text/BitmapFonts.js";
 import { textLayoutVersion } from "../../text/TextLayout.js";
-import { formatProbability, ZERO_PROBABILITY } from "../probability/ProbabilityScale.js";
+import {
+  formatProbability,
+  ZERO_PROBABILITY,
+} from "../probability/ProbabilityScale.js";
 import {
   PHASE_HAND_WIDTH,
   chanceGauge,
@@ -68,7 +74,11 @@ function marks() {
   g.stroke();
   g.fillRect(0, 512, 16, 16);
   // Mipmapped, so a disc drawn small is a smooth disc rather than a shimmering one.
-  const source = new CanvasSource({ resource: canvas, autoGenerateMipmaps: true, scaleMode: "linear" });
+  const source = new CanvasSource({
+    resource: canvas,
+    autoGenerateMipmaps: true,
+    scaleMode: "linear",
+  });
   markTextures = {
     disc: new Texture({ source, frame: new Rectangle(0, 0, 512, 512) }),
     ring: new Texture({ source, frame: new Rectangle(512, 0, 512, 512) }),
@@ -78,7 +88,10 @@ function marks() {
 }
 
 /** The font chance labels are set in, a bitmap font shared with every other label that changes often. */
-const CHANCE_FONT = { fontFamily: Typography.MONO_FONT_FAMILY, fontSize: Typography.LABEL_FONT_SIZE };
+const CHANCE_FONT = {
+  fontFamily: Typography.MONO_FONT_FAMILY,
+  fontSize: Typography.LABEL_FONT_SIZE,
+};
 
 /** How far a chance label sits in from its cell's bottom-right corner. */
 const CHANCE_LABEL_INSET = 4;
@@ -96,10 +109,12 @@ function samePicture(a, b) {
     if (key === "buf" || key === "colours") continue;
     if (!Object.is(a[key], b[key])) return false;
   }
-  const ac = a.colours, bc = b.colours;
+  const ac = a.colours,
+    bc = b.colours;
   for (const key of Object.keys(bc)) if (ac[key] !== bc[key]) return false;
   if (a.buf.length !== b.buf.length) return false;
-  for (let i = 0; i < b.buf.length; i++) if (!Object.is(a.buf[i], b.buf[i])) return false;
+  for (let i = 0; i < b.buf.length; i++)
+    if (!Object.is(a.buf[i], b.buf[i])) return false;
   return true;
 }
 
@@ -129,10 +144,18 @@ class MatrixCells extends Container {
     this.ground = this.addChild(new Graphics());
     this.pixelSprite = undefined;
     this.pixelSource = undefined;
-    this.marks = this.addChild(new ParticleContainer({
-      texture: marks().block,
-      dynamicProperties: { vertex: true, position: true, rotation: true, color: true, uvs: false },
-    }));
+    this.marks = this.addChild(
+      new ParticleContainer({
+        texture: marks().block,
+        dynamicProperties: {
+          vertex: true,
+          position: true,
+          rotation: true,
+          color: true,
+          uvs: false,
+        },
+      }),
+    );
     this.labels = this.addChild(new Container());
     /** @type {!Array<!Array<!Particle>>} discs, rings, rails, gauges, ticks, hands, plates */
     this.kinds = [[], [], [], [], [], [], []];
@@ -143,14 +166,19 @@ class MatrixCells extends Container {
   /** @param {MatrixPicture} picture */
   set picture(picture) {
     if (samePicture(this.previous, picture)) return;
-    this.previous = { ...picture, buf: picture.buf.slice(), colours: { ...picture.colours } };
+    this.previous = {
+      ...picture,
+      buf: picture.buf.slice(),
+      colours: { ...picture.colours },
+    };
     const { x, y, diam, cols, rows } = picture;
     this.marks.boundsArea = new Rectangle(x, y, diam * cols, diam * rows);
     this.drawGround(picture);
     const drawsMarks = !picture.hasNaN && !picture.asPixels;
     this.marks.visible = drawsMarks;
     this.labels.visible = drawsMarks && picture.chanceLabels;
-    if (this.pixelSprite !== undefined) this.pixelSprite.visible = !picture.hasNaN && picture.asPixels;
+    if (this.pixelSprite !== undefined)
+      this.pixelSprite.visible = !picture.hasNaN && picture.asPixels;
     if (picture.hasNaN) return;
     if (picture.asPixels) {
       this.drawPixels(picture);
@@ -161,14 +189,26 @@ class MatrixCells extends Container {
 
   /** The cells' ground and, for marks, the lines between them; redrawn only when those change. */
   drawGround({ x, y, diam, cols, rows, asPixels, colours }) {
-    const key = [x, y, diam, cols, rows, asPixels, colours.back, colours.grid].join("|");
+    const key = [
+      x,
+      y,
+      diam,
+      cols,
+      rows,
+      asPixels,
+      colours.back,
+      colours.grid,
+    ].join("|");
     if (this.groundKey === key) return;
     this.groundKey = key;
-    const w = diam * cols, h = diam * rows;
+    const w = diam * cols,
+      h = diam * rows;
     this.ground.clear().rect(x, y, w, h).fill(colours.back);
     if (asPixels) return;
-    for (let c = 0; c <= cols; c++) this.ground.moveTo(x + c * diam, y).lineTo(x + c * diam, y + h);
-    for (let r = 0; r <= rows; r++) this.ground.moveTo(x, y + r * diam).lineTo(x + w, y + r * diam);
+    for (let c = 0; c <= cols; c++)
+      this.ground.moveTo(x + c * diam, y).lineTo(x + c * diam, y + h);
+    for (let r = 0; r <= rows; r++)
+      this.ground.moveTo(x, y + r * diam).lineTo(x + w, y + r * diam);
     this.ground.stroke({ color: colours.grid, width: 1 });
   }
 
@@ -176,11 +216,26 @@ class MatrixCells extends Container {
   ensureParticles(count, plates) {
     const { disc, ring, block } = marks();
     const textures = [disc, ring, block, block, block, block, block];
-    const wanted = [count, count, count, count, count, count, plates ? count : 0];
+    const wanted = [
+      count,
+      count,
+      count,
+      count,
+      count,
+      count,
+      plates ? count : 0,
+    ];
     let changed = false;
     this.kinds.forEach((list, kind) => {
       while (list.length < wanted[kind]) {
-        list.push(new Particle({ texture: textures[kind], anchorX: 0.5, anchorY: 0.5, alpha: 0 }));
+        list.push(
+          new Particle({
+            texture: textures[kind],
+            anchorX: 0.5,
+            anchorY: 0.5,
+            alpha: 0,
+          }),
+        );
         changed = true;
       }
       if (list.length > wanted[kind]) {
@@ -196,21 +251,32 @@ class MatrixCells extends Container {
 
   /** @param {MatrixPicture} picture */
   drawMarks(picture) {
-    const { x, y, diam, cols, rows, buf, density, colours, phaseAlpha } = picture;
+    const { x, y, diam, cols, rows, buf, density, colours, phaseAlpha } =
+      picture;
     const count = cols * rows;
     this.ensureParticles(count, picture.chanceLabels);
     const [discs, rings, rails, gauges, ticks, hands, plates] = this.kinds;
-    const hand = ink(colours.hand), handOff = ink(colours.handOff), ring = ink(colours.ring);
-    const tick = ink(colours.tick), chance = ink(colours.chance), track = ink(colours.track);
-    const unknown = ink(colours.unknown).tint, plate = ink(colours.plate), label = ink(colours.label);
+    const hand = ink(colours.hand),
+      handOff = ink(colours.handOff),
+      ring = ink(colours.ring);
+    const tick = ink(colours.tick),
+      chance = ink(colours.chance),
+      track = ink(colours.track);
+    const unknown = ink(colours.unknown).tint,
+      plate = ink(colours.plate),
+      label = ink(colours.label);
     const phased = phaseAlpha > 0;
     if (picture.chanceLabels) this.useChanceFont();
     let labelled = 0;
     for (let i = 0; i < count; i++) {
-      const re = buf[2 * i], im = buf[2 * i + 1];
-      const col = i % cols, row = (i - col) / cols;
-      const left = x + diam * col, top = y + diam * row;
-      const cx = left + diam / 2, cy = top + diam / 2;
+      const re = buf[2 * i],
+        im = buf[2 * i + 1];
+      const col = i % cols,
+        row = (i - col) / cols;
+      const left = x + diam * col,
+        top = y + diam * row;
+      const cx = left + diam / 2,
+        cy = top + diam / 2;
       const angle = Math.atan2(im, re);
 
       // The disc: as wide as the entry is large, in its phase's hue.
@@ -219,7 +285,7 @@ class MatrixCells extends Container {
       disc.x = cx;
       disc.y = cy;
       disc.scaleX = disc.scaleY = r / DISC_TEXTURE_RADIUS;
-      disc.tint = phased ? phaseTint(angle * 180 / Math.PI) : unknown;
+      disc.tint = phased ? phaseTint((angle * 180) / Math.PI) : unknown;
       disc.alpha = 2 * r > 0.5 ? 1 : 0;
 
       // The ring: the chance on a logarithmic scale, so a tiny amplitude still shows.
@@ -233,7 +299,8 @@ class MatrixCells extends Container {
 
       // The chance: a gauge up the left edge for an amplitude, a fill from the foot on a density
       // matrix's diagonal, where its chances are.
-      const rail = rails[i], gauge = gauges[i];
+      const rail = rails[i],
+        gauge = gauges[i];
       rail.alpha = 0;
       gauge.alpha = 0;
       if (density) {
@@ -244,15 +311,33 @@ class MatrixCells extends Container {
       } else if (picture.gauges) {
         const g = chanceGauge(re, im, left, top, diam);
         if (g !== undefined) {
-          setBar(rail, g.left, g.bottom, g.width, g.rail, track.tint, 0.55 * track.alpha);
-          setBar(gauge, g.left, g.bottom, g.width, g.level, chance.tint, chance.alpha);
+          setBar(
+            rail,
+            g.left,
+            g.bottom,
+            g.width,
+            g.rail,
+            track.tint,
+            0.55 * track.alpha,
+          );
+          setBar(
+            gauge,
+            g.left,
+            g.bottom,
+            g.width,
+            g.level,
+            chance.tint,
+            chance.alpha,
+          );
         }
       }
 
       // The hand: the exact phase, as long as the amplitude; dark on its disc, light where a small
       // amplitude's hand reaches past it. Its zero is a tick at the cell's right, inside the line.
-      const length = phased && re * re + im * im > 0 ? handLength(re, im, diam) : 0;
-      const handMark = hands[i], tickMark = ticks[i];
+      const length =
+        phased && re * re + im * im > 0 ? handLength(re, im, diam) : 0;
+      const handMark = hands[i],
+        tickMark = ticks[i];
       if (length > 0) {
         const onDisc = length <= r;
         handMark.x = cx;
@@ -268,7 +353,15 @@ class MatrixCells extends Container {
         handMark.alpha = 0;
       }
       if (length > 0 && picture.ticks) {
-        setBar(tickMark, left + diam - 2 - 4, cy + 0.5, 4, 1, tick.tint, tick.alpha * phaseAlpha);
+        setBar(
+          tickMark,
+          left + diam - 2 - 4,
+          cy + 0.5,
+          4,
+          1,
+          tick.tint,
+          tick.alpha * phaseAlpha,
+        );
       } else {
         tickMark.alpha = 0;
       }
@@ -285,12 +378,14 @@ class MatrixCells extends Container {
           text.tint = label.tint;
           text.x = left + diam - CHANCE_LABEL_INSET;
           text.y = top + diam - CHANCE_LABEL_INSET;
-          const w = text.width + 4, h = text.height;
+          const w = text.width + 4,
+            h = text.height;
           setBar(plateMark, text.x - w + 2, text.y, w, h, plate.tint, 0.78);
         }
       }
     }
-    for (let i = labelled; i < this.labelPool.length; i++) this.labelPool[i].visible = false;
+    for (let i = labelled; i < this.labelPool.length; i++)
+      this.labelPool[i].visible = false;
   }
 
   /** Sets the pool's labels in the chance font of the current version, and lets go of an older one's. */
@@ -307,7 +402,10 @@ class MatrixCells extends Container {
   label(index) {
     let text = this.labelPool[index];
     if (text === undefined) {
-      text = new BitmapText({ text: "", style: { fontFamily: this.chanceFont, fontSize: CHANCE_FONT.fontSize } });
+      text = new BitmapText({
+        text: "",
+        style: { fontFamily: this.chanceFont, fontSize: CHANCE_FONT.fontSize },
+      });
       text.anchor.set(1, 1);
       this.labels.addChild(text);
       this.labelPool[index] = text;
@@ -320,7 +418,11 @@ class MatrixCells extends Container {
   drawPixels({ x, y, diam, cols, rows, buf, phaseAlpha, colours }) {
     const width = Math.max(1, Math.min(cols, Math.ceil(diam * cols)));
     const height = Math.max(1, Math.min(rows, Math.ceil(diam * rows)));
-    const rgba = rasterMatrix({ width: () => cols, height: () => rows, rawBuffer: () => buf }, width, height);
+    const rgba = rasterMatrix(
+      { width: () => cols, height: () => rows, rawBuffer: () => buf },
+      width,
+      height,
+    );
     if (phaseAlpha <= 0) {
       // Without defined phases the pixels have no hue to wear: the neutral ink, at their opacity.
       const { tint } = ink(colours.unknown);
@@ -331,9 +433,18 @@ class MatrixCells extends Container {
       }
     }
     const bytes = new Uint8Array(rgba.buffer, rgba.byteOffset, rgba.byteLength);
-    if (this.pixelSource === undefined || this.pixelSource.width !== width || this.pixelSource.height !== height) {
+    if (
+      this.pixelSource === undefined ||
+      this.pixelSource.width !== width ||
+      this.pixelSource.height !== height
+    ) {
       this.pixelSource?.destroy();
-      this.pixelSource = new BufferImageSource({ resource: new Uint8Array(bytes), width, height, scaleMode: "nearest" });
+      this.pixelSource = new BufferImageSource({
+        resource: new Uint8Array(bytes),
+        width,
+        height,
+        scaleMode: "nearest",
+      });
       if (this.pixelSprite === undefined) {
         this.pixelSprite = this.addChildAt(new Sprite(), 1);
       }

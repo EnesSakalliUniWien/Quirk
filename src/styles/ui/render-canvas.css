@@ -1,5 +1,29 @@
 /* Presentation belongs to React; Pixi owns the canvas backing dimensions. The scene sets the
    canvas's own size from its backing store, which may outgrow the element while it resizes, so the
    element clips it. */
-.render-canvas { overflow: hidden; }
-.render-canvas > canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+.render-canvas {
+  overflow: hidden;
+}
+.render-canvas > canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+@layer components {
+  /* Shared by canvases whose pointer interaction turns or pans their content. */
+  .drag-canvas {
+    cursor: grab;
+    touch-action: none;
+  }
+
+  .drag-canvas:active {
+    cursor: grabbing;
+  }
+
+  .drag-canvas:focus-visible {
+    outline: var(--border-width-strong) solid var(--ring);
+    outline-offset: 2px;
+  }
+}

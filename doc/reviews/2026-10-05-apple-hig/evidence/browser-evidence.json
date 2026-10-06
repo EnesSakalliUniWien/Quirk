@@ -1,0 +1,116 @@
+{
+  "browser": "Chrome/154.0.8037.57",
+  "checks": [
+    {
+      "name": "Tape delete recovery",
+      "result": {
+        "before": 1,
+        "after": 0,
+        "afterUndo": 0,
+        "afterReload": 0,
+        "deletedId": "51b828b5792bd7de711d992406cccba0",
+        "confirmationDialogs": 0
+      }
+    },
+    {
+      "name": "Clipboard failure feedback",
+      "result": {
+        "immediate": {
+          "text": "It didn’t work…",
+          "role": null,
+          "live": null,
+          "parentLive": null,
+          "describedBy": null
+        },
+        "after1200ms": ""
+      }
+    },
+    {
+      "name": "Virtualized state table",
+      "result": {
+        "initial": {
+          "ariaRowCount": "257",
+          "renderedRows": 24,
+          "first": "2",
+          "last": "25",
+          "scrollTabIndex": null,
+          "nearbyControls": []
+        },
+        "scrolled": {
+          "ariaRowCount": "257",
+          "renderedRows": 24,
+          "first": "234",
+          "last": "257",
+          "scrollTabIndex": null,
+          "nearbyControls": []
+        },
+        "qualification": "DOM evidence only; VoiceOver navigation not tested"
+      }
+    },
+    {
+      "name": "Responsive widths and coarse-pointer controls",
+      "result": [
+        {
+          "width": 1280,
+          "documentWidth": 1280,
+          "inspect": {
+            "x": 192,
+            "y": 0,
+            "width": 91,
+            "height": 44
+          },
+          "toolbarHeight": 44,
+          "visibleButtons": []
+        },
+        {
+          "width": 768,
+          "documentWidth": 768,
+          "inspect": {
+            "x": 192,
+            "y": 0,
+            "width": 91,
+            "height": 44
+          },
+          "toolbarHeight": 44,
+          "visibleButtons": []
+        },
+        {
+          "width": 390,
+          "documentWidth": 390,
+          "inspect": {
+            "x": 192,
+            "y": 0,
+            "width": 91,
+            "height": 44
+          },
+          "toolbarHeight": 44,
+          "visibleButtons": []
+        },
+        {
+          "width": 320,
+          "documentWidth": 320,
+          "inspect": {
+            "x": 192,
+            "y": 0,
+            "width": 91,
+            "height": 44
+          },
+          "toolbarHeight": 92,
+          "visibleButtons": []
+        },
+        {
+          "width": 1280,
+          "documentWidth": 1280,
+          "inspect": {
+            "x": 192,
+            "y": 0,
+            "width": 91,
+            "height": 44
+          },
+          "toolbarHeight": 44,
+          "visibleButtons": []
+        }
+      ]
+    }
+  ]
+}

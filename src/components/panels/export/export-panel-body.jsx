@@ -33,12 +33,23 @@ function ExportPanelBody({ deps }) {
   const [fullCircuit, setFullCircuit] = useState(false);
 
   const escapedUrlHash =
-    "#" + AppInfo.URL_CIRCUIT_PARAM_KEY + "=" + encodeURIComponent(jsonText ?? "");
+    "#" +
+    AppInfo.URL_CIRCUIT_PARAM_KEY +
+    "=" +
+    encodeURIComponent(jsonText ?? "");
   const escapedLink = document.location.href.split("#")[0] + escapedUrlHash;
 
   const currentTake = () => {
     const result = deps.recorder.capture();
-    return createTake(fullCircuit ? {...result, step: result.circuit.columns.length, stats: result.fullStats} : result);
+    return createTake(
+      fullCircuit
+        ? {
+            ...result,
+            step: result.circuit.columns.length,
+            stats: result.fullStats,
+          }
+        : result,
+    );
   };
   const simulationJson = () => {
     const text = takeJson(currentTake());
@@ -48,7 +59,11 @@ function ExportPanelBody({ deps }) {
 
   return (
     <>
-      <div className="panel-body panel-stack" aria-labelledby="export-title">
+      <div
+        className="panel-body panel-stack"
+        role="region"
+        aria-labelledby="export-title"
+      >
         <header className="panel-header">
           <p className="panel-eyebrow">Share and inspect</p>
           <h1 id="export-title" className="panel-title">
@@ -61,13 +76,15 @@ function ExportPanelBody({ deps }) {
 
         <section className="panel-section">
           <div className="panel-section-heading">
-            <strong className="panel-section-title">Escaped link</strong> — Link to the
-            current circuit without special characters that confuse forums.
+            <strong className="panel-section-title">Circuit link</strong> — Link
+            to the current circuit with an encoded circuit definition for
+            sharing.
           </div>
           <div className="panel-section-body">
             <CopyButton
               id="export-link-copy-button"
               resultId="export-link-copy-result"
+              title="Circuit link"
               label="Copy to clipboard"
               text={() => escapedLink}
             />
@@ -81,31 +98,44 @@ function ExportPanelBody({ deps }) {
 
         <section className="panel-section">
           <div className="panel-section-heading">
-            <strong className="panel-section-title">Circuit JSON</strong> — Parsable
-            representation of the current circuit.
+            <strong className="panel-section-title">Circuit JSON</strong> —
+            Parsable representation of the current circuit.
           </div>
           <div className="panel-section-body">
             <CopyButton
               id="export-json-copy-button"
               resultId="export-json-copy-result"
+              title="Circuit JSON"
               label="Copy to clipboard"
               text={() => prettyCircuitJson(jsonText ?? "")}
             />
-            <pre id="export-circuit-json-pre" className="output-box">
+            {/* eslint-disable jsx-a11y-x/no-noninteractive-tabindex -- Native keyboard scrolling requires focus on this exported text. */}
+            <pre
+              id="export-circuit-json-pre"
+              className="output-box"
+              tabIndex={0}
+              aria-label="Circuit JSON"
+              role="region"
+            >
               {prettyCircuitJson(jsonText ?? "")}
             </pre>
+            {/* eslint-enable jsx-a11y-x/no-noninteractive-tabindex */}
           </div>
         </section>
 
         <section className="panel-section">
           <div className="panel-section-heading">
-            <strong className="panel-section-title">Simulation data JSON</strong> — Output
-            amplitudes, detector results, display data, and related values.
+            <strong className="panel-section-title">
+              Simulation data JSON
+            </strong>{" "}
+            — Output amplitudes, detector results, display data, and related
+            values.
           </div>
           <div className="panel-section-body">
             <CopyButton
               id="export-amplitudes-button"
               resultId="export-amplitudes-result"
+              title="Simulation data JSON"
               label="Generate and copy to clipboard"
               text={simulationJson}
             />
@@ -118,12 +148,44 @@ function ExportPanelBody({ deps }) {
               />{" "}
               Full circuit (default: playhead)
             </label>
-            <button type="button" id="export-take-download" onClick={() => downloadFile(simulationJson(), "take.json")}>Download take JSON</button>
-            <button type="button" onClick={() => downloadFile(takeCsv([currentTake()]), "take.csv", "text/csv")}>Download probabilities CSV</button>
-            <CopyButton id="export-take-csv-copy" resultId="export-take-csv-result" label="Copy CSV" text={() => takeCsv([currentTake()])} />
-            <pre id="export-amplitudes-pre" className="output-box">
+            <button
+              type="button"
+              id="export-take-download"
+              onClick={() => downloadFile(simulationJson(), "snapshot.json")}
+            >
+              Download snapshot JSON
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                downloadFile(
+                  takeCsv([currentTake()]),
+                  "snapshot.csv",
+                  "text/csv",
+                )
+              }
+            >
+              Download probabilities CSV
+            </button>
+            <CopyButton
+              id="export-take-csv-copy"
+              resultId="export-take-csv-result"
+              label="Copy CSV"
+              title="Probabilities CSV"
+              fallback="Download probabilities CSV, or retry."
+              text={() => takeCsv([currentTake()])}
+            />
+            {/* eslint-disable jsx-a11y-x/no-noninteractive-tabindex -- Native keyboard scrolling requires focus on this exported text. */}
+            <pre
+              id="export-amplitudes-pre"
+              className="output-box"
+              tabIndex={0}
+              aria-label="Output amplitudes"
+              role="region"
+            >
               {amplitudes}
             </pre>
+            {/* eslint-enable jsx-a11y-x/no-noninteractive-tabindex */}
           </div>
         </section>
       </div>

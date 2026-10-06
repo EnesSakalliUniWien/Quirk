@@ -1,5 +1,5 @@
-import {BitmapFontManager} from 'pixi.js';
-import {textStyle} from './LabelView.js';
+import { BitmapFontManager } from "pixi.js";
+import { textStyle } from "./LabelView.js";
 
 /**
  * Bitmap fonts for text that changes as often as every frame. A canvas label rasterises its text on a
@@ -30,21 +30,21 @@ let latestVersion;
 
 /** @returns {!boolean} Whether every character of the text has a glyph in the bitmap fonts. */
 export function inBitmapFont(text) {
-    for (const char of String(text)) if (!GLYPHS.has(char)) return false;
-    return true;
+  for (const char of String(text)) if (!GLYPHS.has(char)) return false;
+  return true;
 }
 
 /** @returns {!string} What the installed font for a font description and version is known by. */
 export function bitmapFontKey(font, version) {
-    return `${version}|${font.fontFamily}|${font.fontWeight}|${font.fontStyle}`;
+  return `${version}|${font.fontFamily}|${font.fontWeight}|${font.fontStyle}`;
 }
 
 /** Lets go of a font of an earlier version that no label is set in any longer. */
 function discardIfStale(font) {
-    if (font.uses > 0 || font.version === latestVersion) return;
-    BitmapFontManager.uninstall(font.name);
-    fonts.delete(font.key);
-    fontsByName.delete(font.name);
+  if (font.uses > 0 || font.version === latestVersion) return;
+  BitmapFontManager.uninstall(font.name);
+  fonts.delete(font.key);
+  fontsByName.delete(font.name);
 }
 
 /**
@@ -60,34 +60,39 @@ function discardIfStale(font) {
  * @returns {!string}
  */
 export function acquireBitmapFont(font, version) {
-    if (version !== latestVersion) {
-        latestVersion = version;
-        for (const earlier of [...fonts.values()]) discardIfStale(earlier);
-    }
-    const key = bitmapFontKey(font, version);
-    let installed = fonts.get(key);
-    if (installed === undefined) {
-        const name = `quirk-bitmap-${installedCount++}`;
-        BitmapFontManager.install({
-            name,
-            style: textStyle({fontFamily: font.fontFamily, fontWeight: font.fontWeight, fontStyle: font.fontStyle,
-                fontSize: GLYPH_FONT_SIZE, fill: 0xffffff}),
-            chars: BITMAP_CHARACTERS,
-            resolution: GLYPH_RESOLUTION,
-            padding: 2,
-        });
-        installed = {key, name, version, uses: 0};
-        fonts.set(key, installed);
-        fontsByName.set(name, installed);
-    }
-    installed.uses++;
-    return installed.name;
+  if (version !== latestVersion) {
+    latestVersion = version;
+    for (const earlier of [...fonts.values()]) discardIfStale(earlier);
+  }
+  const key = bitmapFontKey(font, version);
+  let installed = fonts.get(key);
+  if (installed === undefined) {
+    const name = `quirk-bitmap-${installedCount++}`;
+    BitmapFontManager.install({
+      name,
+      style: textStyle({
+        fontFamily: font.fontFamily,
+        fontWeight: font.fontWeight,
+        fontStyle: font.fontStyle,
+        fontSize: GLYPH_FONT_SIZE,
+        fill: 0xffffff,
+      }),
+      chars: BITMAP_CHARACTERS,
+      resolution: GLYPH_RESOLUTION,
+      padding: 2,
+    });
+    installed = { key, name, version, uses: 0 };
+    fonts.set(key, installed);
+    fontsByName.set(name, installed);
+  }
+  installed.uses++;
+  return installed.name;
 }
 
 /** @param {!string} name A name acquireBitmapFont returned, no longer used by whoever acquired it. */
 export function releaseBitmapFont(name) {
-    const installed = fontsByName.get(name);
-    if (installed === undefined) return;
-    installed.uses--;
-    discardIfStale(installed);
+  const installed = fontsByName.get(name);
+  if (installed === undefined) return;
+  installed.uses--;
+  discardIfStale(installed);
 }

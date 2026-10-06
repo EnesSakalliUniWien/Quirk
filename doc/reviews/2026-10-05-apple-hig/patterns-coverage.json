@@ -1,0 +1,557 @@
+[
+  {
+    "slug": "charting-data",
+    "title": "Charting data",
+    "status": "partial",
+    "reason": "Common probability bars and phase/amplitude views preserve scientific meaning; per-step chart access requires assistive-technology check.",
+    "evidence": "src/components/panels/algebra/evolution-chart.jsx:80-104; src/components/panels/state/state-panel.jsx:153-185",
+    "findings": [],
+    "subsections": [
+      "# Charting data",
+      "## Best practices",
+      "## Designing effective charts",
+      "## Platform considerations",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "platform_applicability": "Browser-relevant general guidance applies. Native framework/system-integration sections N/A; no-extra-considerations inherits page verdict. tvOS/watchOS/visionOS native target absent. Resources and change log are reference material."
+  },
+  {
+    "slug": "collaboration-and-sharing",
+    "title": "Collaboration and sharing",
+    "status": "partial",
+    "reason": "Copyable circuit/take links support sending copies; clipboard feedback gap. No live collaborators or permission-management feature; native SharePlay/CloudKit and Collaboration buttons N/A.",
+    "evidence": "src/components/panels/tape/take-card.jsx:34",
+    "findings": [
+      "PAT-02"
+    ],
+    "subsections": [
+      "# Collaboration and sharing",
+      "## Best practices",
+      "## Platform considerations",
+      "### visionOS",
+      "### watchOS",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "platform_applicability": "Browser-relevant general guidance applies. Native framework/system-integration sections N/A; no-extra-considerations inherits page verdict. tvOS/watchOS/visionOS native target absent. Resources and change log are reference material."
+  },
+  {
+    "slug": "drag-and-drop",
+    "title": "Drag and drop",
+    "status": "partial",
+    "reason": "Gate placement and selection clipboard alternatives exist; Tape supports native input. Drag cues, Option-copy, scrolling and drop selection need live validation; native cross-app launch and flocking APIs N/A.",
+    "evidence": "src/components/toolbox/gate-toolbox.jsx; src/components/panels/circuit/useSelectionShortcuts.js; src/components/panels/tape/tape-body.jsx:25",
+    "findings": [],
+    "subsections": [
+      "# Drag and drop",
+      "## Best practices",
+      "## Providing feedback",
+      "## Accepting drops",
+      "## Platform considerations",
+      "### iOS, iPadOS",
+      "### macOS",
+      "### visionOS",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "platform_applicability": "Browser-relevant general guidance applies. Native framework/system-integration sections N/A; no-extra-considerations inherits page verdict. tvOS/watchOS/visionOS native target absent. Resources and change log are reference material."
+  },
+  {
+    "slug": "entering-data",
+    "title": "Entering data",
+    "status": "aligned",
+    "reason": "Forge defaults, presets, mathematical preview and validation reduce errors; register edits group typing into commit. Secure/password fields N/A; expansion tooltip browser behavior unverified.",
+    "evidence": "src/components/panels/forge/forge-panel-body.jsx:24-26,88-93; src/components/panels/registers/register-row.jsx:40-54",
+    "findings": [],
+    "subsections": [
+      "# Entering data",
+      "## Best practices",
+      "## Platform considerations",
+      "### macOS",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "platform_applicability": "Browser-relevant general guidance applies. Native framework/system-integration sections N/A; no-extra-considerations inherits page verdict. tvOS/watchOS/visionOS native target absent. Resources and change log are reference material."
+  },
+  {
+    "slug": "feedback",
+    "title": "Feedback",
+    "status": "gap",
+    "reason": "Persistent toasts and inline error alerts exist, but clipboard outcomes clear too soon or silently. Tape destructive action lacks reversal.",
+    "evidence": "src/components/panels/export/copy-button.jsx:21-34; src/components/panels/tape/tape-card.jsx:35",
+    "findings": [
+      "PAT-01",
+      "PAT-02"
+    ],
+    "subsections": [
+      "# Feedback",
+      "## Best practices",
+      "## Platform considerations",
+      "### watchOS",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos"
+    ],
+    "platform_applicability": "Browser-relevant general guidance applies. Native framework/system-integration sections N/A; no-extra-considerations inherits page verdict. tvOS/watchOS/visionOS native target absent. Resources and change log are reference material."
+  },
+  {
+    "slug": "file-management",
+    "title": "File management",
+    "status": "partial",
+    "reason": "Native file picker, downloads, IndexedDB autosave and unsaved export exist. Tape removal unrecoverable. Quick Look, document launcher, Finder Sync and file-provider extensions N/A for browser.",
+    "evidence": "src/results/tapeStore.js:62-65,164-175; src/components/panels/tape/tape-body.jsx:29-34",
+    "findings": [
+      "PAT-01"
+    ],
+    "subsections": [
+      "# File management",
+      "## Creating and opening files",
+      "## Saving work",
+      "## Quick Look previews",
+      "## Platform considerations",
+      "### iOS, iPadOS",
+      "#### Document launcher",
+      "#### File provider app extension",
+      "### macOS",
+      "#### Custom file management",
+      "#### Finder Sync extensions",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "platform_applicability": "Browser-relevant general guidance applies. Native framework/system-integration sections N/A; no-extra-considerations inherits page verdict. tvOS/watchOS/visionOS native target absent. Resources and change log are reference material."
+  },
+  {
+    "slug": "going-full-screen",
+    "title": "Going full screen",
+    "status": "unverified",
+    "reason": "Browser/system full screen supplies native window mode; toolbar remains in shell. Resize and essential controls in full screen not exercised. Native Dock/gesture API instructions N/A.",
+    "evidence": "src/components/app.jsx:30-33",
+    "findings": [],
+    "subsections": [
+      "# Going full screen",
+      "## Best practices",
+      "## Platform considerations",
+      "### iOS, iPadOS",
+      "### macOS",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "platform_applicability": "Browser-relevant general guidance applies. Native framework/system-integration sections N/A; no-extra-considerations inherits page verdict. tvOS/watchOS/visionOS native target absent. Resources and change log are reference material."
+  },
+  {
+    "slug": "launching",
+    "title": "Launching",
+    "status": "partial",
+    "reason": "Synchronous boot and restored dock/URL state exist; first-frame delay and granular scroll restoration unmeasured. Native launch-screen/TV/Shared Space APIs N/A.",
+    "evidence": "src/boot.js:3-4; src/components/app.jsx:30; src/components/dock.jsx:63",
+    "findings": [],
+    "subsections": [
+      "# Launching",
+      "## Best practices",
+      "## Launch screens",
+      "## Platform considerations",
+      "### iOS, iPadOS",
+      "### tvOS",
+      "### visionOS",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "platform_applicability": "Browser-relevant general guidance applies. Native framework/system-integration sections N/A; no-extra-considerations inherits page verdict. tvOS/watchOS/visionOS native target absent. Resources and change log are reference material."
+  },
+  {
+    "slug": "live-viewing-apps",
+    "title": "Live-viewing apps",
+    "status": "not-applicable",
+    "reason": "No live TV, EPG, VOD or cloud DVR; circuit simulation and Tape scientific snapshots are distinct from streamed media.",
+    "evidence": "src/components/app.jsx",
+    "findings": [],
+    "subsections": [
+      "# Live-viewing apps",
+      "## Best practices",
+      "## EPG experience",
+      "## Cloud DVR",
+      "## Platform considerations",
+      "## Resources",
+      "#### Related"
+    ],
+    "platform_applicability": "Browser-relevant general guidance applies. Native framework/system-integration sections N/A; no-extra-considerations inherits page verdict. tvOS/watchOS/visionOS native target absent. Resources and change log are reference material."
+  },
+  {
+    "slug": "loading",
+    "title": "Loading",
+    "status": "unverified",
+    "reason": "Math input provides Loading label; cold-boot shell and large Tape import pending feedback require timing before defect classification. Watch/native assets APIs N/A.",
+    "evidence": "src/components/math/math-field.jsx:78-79; src/components/panels/tape/tape-body.jsx:19-23",
+    "findings": [],
+    "subsections": [
+      "# Loading",
+      "## Best practices",
+      "## Showing progress",
+      "## Platform considerations",
+      "### watchOS",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "platform_applicability": "Browser-relevant general guidance applies. Native framework/system-integration sections N/A; no-extra-considerations inherits page verdict. tvOS/watchOS/visionOS native target absent. Resources and change log are reference material."
+  },
+  {
+    "slug": "managing-accounts",
+    "title": "Managing accounts",
+    "status": "aligned",
+    "reason": "Core circuit experience does not require account. Account creation/deletion, billing, biometrics, TV-provider and credential guidance N/A without account feature.",
+    "evidence": "src/components/app.jsx",
+    "findings": [],
+    "subsections": [
+      "# Managing accounts",
+      "## Best practices",
+      "## Deleting accounts",
+      "## TV provider accounts",
+      "## Platform considerations",
+      "### tvOS",
+      "### watchOS",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos"
+    ],
+    "platform_applicability": "Browser-relevant general guidance applies. Native framework/system-integration sections N/A; no-extra-considerations inherits page verdict. tvOS/watchOS/visionOS native target absent. Resources and change log are reference material."
+  },
+  {
+    "slug": "managing-notifications",
+    "title": "Managing notifications",
+    "status": "not-applicable",
+    "reason": "No system/push or marketing notifications; inline Toast feedback is covered by Feedback. Focus levels and entitlement guidance N/A.",
+    "evidence": "src/components/app.jsx",
+    "findings": [],
+    "subsections": [
+      "# Managing notifications",
+      "## Integrating with Focus",
+      "## Best practices",
+      "## Sending marketing notifications",
+      "## Platform considerations",
+      "### watchOS",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos"
+    ],
+    "platform_applicability": "Browser-relevant general guidance applies. Native framework/system-integration sections N/A; no-extra-considerations inherits page verdict. tvOS/watchOS/visionOS native target absent. Resources and change log are reference material."
+  },
+  {
+    "slug": "modality",
+    "title": "Modality",
+    "status": "aligned",
+    "reason": "Inspectors use dock panels instead of blocking tasks; narrow editing has task titles and escape/cancel routes. Native full-screen sheet requirements N/A.",
+    "evidence": "src/components/panels/panels.jsx:52; src/components/panels/forge/forge-panel-body.jsx:58-62,75-80",
+    "findings": [],
+    "subsections": [
+      "# Modality",
+      "## Best practices",
+      "## Platform considerations",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "platform_applicability": "Browser-relevant general guidance applies. Native framework/system-integration sections N/A; no-extra-considerations inherits page verdict. tvOS/watchOS/visionOS native target absent. Resources and change log are reference material."
+  },
+  {
+    "slug": "multitasking",
+    "title": "Multitasking",
+    "status": "partial",
+    "reason": "Dock adapts and preserves draft panels; Tape ghosts flush on hidden/pagehide. Background transport and scroll restoration unverified; media/audio/notification sections N/A.",
+    "evidence": "src/components/dock.jsx:234; src/results/tapeStore.js:62-65",
+    "findings": [],
+    "subsections": [
+      "# Multitasking",
+      "## Best practices",
+      "## Platform considerations",
+      "### iOS",
+      "### iPadOS",
+      "### macOS",
+      "### tvOS",
+      "### visionOS",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "platform_applicability": "Browser-relevant general guidance applies. Native framework/system-integration sections N/A; no-extra-considerations inherits page verdict. tvOS/watchOS/visionOS native target absent. Resources and change log are reference material."
+  },
+  {
+    "slug": "offering-help",
+    "title": "Offering help",
+    "status": "aligned",
+    "reason": "Task-local formula help, gate details, labels and examples exist. No need to add TipKit eligibility engine; native tooltip APIs N/A. Touch/help reachability requires live coverage.",
+    "evidence": "src/components/panels/gate-param/gate-param-panel.jsx:180; src/components/toolbox/gate-toolbox.jsx:129",
+    "findings": [],
+    "subsections": [
+      "# Offering help",
+      "## Best practices",
+      "## Creating tips",
+      "## Platform considerations",
+      "### macOS, visionOS",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "platform_applicability": "Browser-relevant general guidance applies. Native framework/system-integration sections N/A; no-extra-considerations inherits page verdict. tvOS/watchOS/visionOS native target absent. Resources and change log are reference material."
+  },
+  {
+    "slug": "onboarding",
+    "title": "Onboarding",
+    "status": "aligned",
+    "reason": "No forced setup/sign-in/download or rating flow; examples and contextual help allow exploration. No standalone onboarding is required by HIG.",
+    "evidence": "src/components/toolbar/examples-menu.jsx; src/components/panels/gate-param/gate-param-panel.jsx:180",
+    "findings": [],
+    "subsections": [
+      "# Onboarding",
+      "## Best practices",
+      "## Additional content",
+      "## Additional requests",
+      "## Platform considerations",
+      "## Resources",
+      "#### Related",
+      "#### Videos",
+      "## Change log"
+    ],
+    "platform_applicability": "Browser-relevant general guidance applies. Native framework/system-integration sections N/A; no-extra-considerations inherits page verdict. tvOS/watchOS/visionOS native target absent. Resources and change log are reference material."
+  },
+  {
+    "slug": "patterns",
+    "title": "Patterns",
+    "status": "partial",
+    "reason": "Category navigation reviewed; 25 leaves mapped below.",
+    "evidence": "manifest.json",
+    "findings": [],
+    "subsections": [
+      "# Patterns"
+    ],
+    "platform_applicability": "Browser-relevant general guidance applies. Native framework/system-integration sections N/A; no-extra-considerations inherits page verdict. tvOS/watchOS/visionOS native target absent. Resources and change log are reference material."
+  },
+  {
+    "slug": "playing-audio",
+    "title": "Playing audio",
+    "status": "not-applicable",
+    "reason": "No audio playback or recording; audio categories, interruption, rerouting, spatial sound and Now Playing guidance N/A.",
+    "evidence": "src/components/app.jsx",
+    "findings": [],
+    "subsections": [
+      "# Playing audio",
+      "## Best practices",
+      "## Handling interruptions",
+      "## Platform considerations",
+      "### iOS, iPadOS",
+      "### macOS",
+      "### tvOS",
+      "### visionOS",
+      "### watchOS",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "platform_applicability": "Browser-relevant general guidance applies. Native framework/system-integration sections N/A; no-extra-considerations inherits page verdict. tvOS/watchOS/visionOS native target absent. Resources and change log are reference material."
+  },
+  {
+    "slug": "playing-haptics",
+    "title": "Playing haptics",
+    "status": "not-applicable",
+    "reason": "No haptic feature; native system/custom haptic patterns, force trackpad and Crown feedback N/A.",
+    "evidence": "src/components/app.jsx",
+    "findings": [],
+    "subsections": [
+      "# Playing haptics",
+      "## Best practices",
+      "## Custom haptics",
+      "## Platform considerations",
+      "### iOS",
+      "#### Notification",
+      "#### Impact",
+      "#### Selection",
+      "### macOS",
+      "### watchOS",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "platform_applicability": "Browser-relevant general guidance applies. Native framework/system-integration sections N/A; no-extra-considerations inherits page verdict. tvOS/watchOS/visionOS native target absent. Resources and change log are reference material."
+  },
+  {
+    "slug": "playing-video",
+    "title": "Playing video",
+    "status": "not-applicable",
+    "reason": "No media video playback; circuit Steps/Time controls are simulation transport. TV integration, AVKit, thumbnails, PiP and codec guidance N/A.",
+    "evidence": "src/components/app.jsx",
+    "findings": [],
+    "subsections": [
+      "# Playing video",
+      "## Best practices",
+      "## Integrating with the TV app",
+      "### Loading content",
+      "### Exiting playback",
+      "## Platform considerations",
+      "### tvOS",
+      "### visionOS",
+      "### watchOS",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "platform_applicability": "Browser-relevant general guidance applies. Native framework/system-integration sections N/A; no-extra-considerations inherits page verdict. tvOS/watchOS/visionOS native target absent. Resources and change log are reference material."
+  },
+  {
+    "slug": "printing",
+    "title": "Printing",
+    "status": "not-applicable",
+    "reason": "No application print workflow; browser system printing exists but scientific print export not promised. Native print-panel customization N/A.",
+    "evidence": "src/components/app.jsx",
+    "findings": [],
+    "subsections": [
+      "# Printing",
+      "## Best practices",
+      "## Platform considerations",
+      "### macOS",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation"
+    ],
+    "platform_applicability": "Browser-relevant general guidance applies. Native framework/system-integration sections N/A; no-extra-considerations inherits page verdict. tvOS/watchOS/visionOS native target absent. Resources and change log are reference material."
+  },
+  {
+    "slug": "ratings-and-reviews",
+    "title": "Ratings and reviews",
+    "status": "not-applicable",
+    "reason": "Browser circuit app has no App Store rating prompt; engagement timing, reset and StoreKit rules N/A.",
+    "evidence": "src/components/app.jsx",
+    "findings": [],
+    "subsections": [
+      "# Ratings and reviews",
+      "## Best practices",
+      "## Platform considerations",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "## Change log"
+    ],
+    "platform_applicability": "Browser-relevant general guidance applies. Native framework/system-integration sections N/A; no-extra-considerations inherits page verdict. tvOS/watchOS/visionOS native target absent. Resources and change log are reference material."
+  },
+  {
+    "slug": "searching",
+    "title": "Searching",
+    "status": "aligned",
+    "reason": "Native search field at palette top, clear Search gates scope, immediate filtering and empty result. Spotlight/importer/Quick Look native integrations N/A. No need for history/suggestions absent observed difficulty.",
+    "evidence": "src/components/toolbox/gate-toolbox.jsx:284-307,359-365",
+    "findings": [],
+    "subsections": [
+      "# Searching",
+      "## Best practices",
+      "## Systemwide search",
+      "## Platform considerations",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "platform_applicability": "Browser-relevant general guidance applies. Native framework/system-integration sections N/A; no-extra-considerations inherits page verdict. tvOS/watchOS/visionOS native target absent. Resources and change log are reference material."
+  },
+  {
+    "slug": "settings",
+    "title": "Settings",
+    "status": "aligned",
+    "reason": "System appearance/reduced-motion helpers and contextual inspector options exist; no broad preferences screen needed. Native Settings menu, pane window controls, watch settings N/A.",
+    "evidence": "src/browser/systemColourScheme.js; src/browser/reducedMotion.js; src/components/panels/bloch/layer-switches.jsx",
+    "findings": [],
+    "subsections": [
+      "# Settings",
+      "## Best practices",
+      "## General settings",
+      "## Task-specific options",
+      "## System settings",
+      "## Platform considerations",
+      "### macOS",
+      "### watchOS",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "## Change log"
+    ],
+    "platform_applicability": "Browser-relevant general guidance applies. Native framework/system-integration sections N/A; no-extra-considerations inherits page verdict. tvOS/watchOS/visionOS native target absent. Resources and change log are reference material."
+  },
+  {
+    "slug": "undo-and-redo",
+    "title": "Undo and redo",
+    "status": "gap",
+    "reason": "Circuit undo/redo uses platform shortcuts and buttons, but Tape Delete bypasses revision history with permanent IndexedDB deletion. Native Edit menu/gestures N/A to browser-owned chrome.",
+    "evidence": "src/components/toolbar/app-toolbar.jsx:292-315; src/components/panels/tape/take-card.jsx:35",
+    "findings": [
+      "PAT-01"
+    ],
+    "subsections": [
+      "# Undo and redo",
+      "## Best practices",
+      "## Platform considerations",
+      "### iOS, iPadOS",
+      "### macOS",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos"
+    ],
+    "platform_applicability": "Browser-relevant general guidance applies. Native framework/system-integration sections N/A; no-extra-considerations inherits page verdict. tvOS/watchOS/visionOS native target absent. Resources and change log are reference material."
+  },
+  {
+    "slug": "workouts",
+    "title": "Workouts",
+    "status": "not-applicable",
+    "reason": "No fitness sessions, sensors or Activity rings; workout metrics, lifecycle and Watch guidance N/A.",
+    "evidence": "src/components/app.jsx",
+    "findings": [],
+    "subsections": [
+      "# Workouts",
+      "## Best practices",
+      "## Platform considerations",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos"
+    ],
+    "platform_applicability": "Browser-relevant general guidance applies. Native framework/system-integration sections N/A; no-extra-considerations inherits page verdict. tvOS/watchOS/visionOS native target absent. Resources and change log are reference material."
+  }
+]

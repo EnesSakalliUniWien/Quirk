@@ -7,12 +7,20 @@ import {
   formatProbability,
   probabilityBarFraction,
 } from "../../../draw/displays/probability/ProbabilityScale.js";
-import { releaseStepStates, stepStates } from "../../../engine/simulation/stepAlgebra.js";
+import {
+  releaseStepStates,
+  stepStates,
+} from "../../../engine/simulation/stepAlgebra.js";
 import { prefersReducedMotion } from "../../../browser/reducedMotion.js";
 import { appStore } from "../../../state/appStore.js";
 import { useWheelScrollsSideways } from "../algebra/useWheelScrollsSideways.js";
 import { usePlayheadStats } from "../shared/usePlayheadStats.js";
-import { MAX_ROWS, probabilitiesOf, stepStops, stepTables } from "./stepTables.js";
+import {
+  MAX_ROWS,
+  probabilitiesOf,
+  stepStops,
+  stepTables,
+} from "./stepTables.js";
 
 /** Decimals of the exact chance a cell's title gives. */
 const EXACT_DIGITS = 4;
@@ -51,14 +59,23 @@ function StepTable({ table, stops, current, onSeek }) {
   useEffect(() => {
     const scroller = scrollerRef.current;
     const figure = scroller?.parentElement;
-    if (scroller === null || scroller === undefined || figure === null || figure === undefined) {
+    if (
+      scroller === null ||
+      scroller === undefined ||
+      figure === null ||
+      figure === undefined
+    ) {
       return undefined;
     }
     const fit = () => {
-      const kets = scroller.querySelector(".probabilities-corner")?.offsetWidth ?? 0;
+      const kets =
+        scroller.querySelector(".probabilities-corner")?.offsetWidth ?? 0;
       const step = scroller.querySelector("th[data-step]")?.offsetWidth ?? 0;
       if (step > 0) {
-        const whole = Math.max(1, Math.floor((figure.clientWidth - kets) / step));
+        const whole = Math.max(
+          1,
+          Math.floor((figure.clientWidth - kets) / step),
+        );
         scroller.style.maxWidth = `${kets + whole * step}px`;
       }
     };
@@ -74,16 +91,27 @@ function StepTable({ table, stops, current, onSeek }) {
   useEffect(() => {
     const scroller = scrollerRef.current;
     const header = scroller?.querySelector(`th[data-step="${current}"]`);
-    if (scroller === null || scroller === undefined || header === null || header === undefined) {
+    if (
+      scroller === null ||
+      scroller === undefined ||
+      header === null ||
+      header === undefined
+    ) {
       return;
     }
-    const kets = scroller.querySelector(".probabilities-corner")?.offsetWidth ?? 0;
+    const kets =
+      scroller.querySelector(".probabilities-corner")?.offsetWidth ?? 0;
     scroller.style.scrollPaddingInlineStart = `${kets}px`;
     const right = header.offsetLeft + header.offsetWidth;
-    if (right > scroller.scrollLeft + scroller.clientWidth || header.offsetLeft - kets < scroller.scrollLeft) {
+    if (
+      right > scroller.scrollLeft + scroller.clientWidth ||
+      header.offsetLeft - kets < scroller.scrollLeft
+    ) {
       // The first whole step that still leaves the playhead's step in view starts the scrolled part.
-      const first = [...scroller.querySelectorAll("th[data-step]")]
-        .find((step) => step.offsetLeft - kets >= right - scroller.clientWidth) ?? header;
+      const first =
+        [...scroller.querySelectorAll("th[data-step]")].find(
+          (step) => step.offsetLeft - kets >= right - scroller.clientWidth,
+        ) ?? header;
       scroller.scrollTo({
         left: Math.max(0, first.offsetLeft - kets),
         behavior: prefersReducedMotion() ? "auto" : "smooth",
@@ -94,7 +122,9 @@ function StepTable({ table, stops, current, onSeek }) {
   return (
     <figure className="probabilities-group">
       {table.title !== undefined && (
-        <figcaption className="probabilities-group-title">{table.title}</figcaption>
+        <figcaption className="probabilities-group-title">
+          {table.title}
+        </figcaption>
       )}
       <div className="probabilities-trace-scroll" ref={scrollerRef}>
         <table
@@ -103,7 +133,9 @@ function StepTable({ table, stops, current, onSeek }) {
         >
           <thead>
             <tr>
-              <th scope="col" className="probabilities-corner">outcome</th>
+              <th scope="col" className="probabilities-corner">
+                outcome
+              </th>
               {stops.map((stop, step) => (
                 <th
                   key={step}
@@ -119,7 +151,9 @@ function StepTable({ table, stops, current, onSeek }) {
                     onClick={() => onSeek(stop.column)}
                   >
                     <span className="probabilities-step-number">{step}</span>
-                    <span className="probabilities-step-gates">{stop.label}</span>
+                    <span className="probabilities-step-gates">
+                      {stop.label}
+                    </span>
                   </button>
                 </th>
               ))}
@@ -131,7 +165,9 @@ function StepTable({ table, stops, current, onSeek }) {
                 <th
                   scope="row"
                   className="probabilities-ket"
-                  data-possible={row.values.some((p, step) => step <= current && p > ZERO_PROBABILITY)}
+                  data-possible={row.values.some(
+                    (p, step) => step <= current && p > ZERO_PROBABILITY,
+                  )}
                 >
                   {`|${row.ket}⟩`}
                 </th>
@@ -146,15 +182,30 @@ function StepTable({ table, stops, current, onSeek }) {
                       data-reached="true"
                       data-current={step === current}
                       data-possible={p > ZERO_PROBABILITY}
-                      data-change={change === undefined ? undefined : change === 0 ? "none" : change > 0 ? "up" : "down"}
+                      data-change={
+                        change === undefined
+                          ? undefined
+                          : change === 0
+                            ? "none"
+                            : change > 0
+                              ? "up"
+                              : "down"
+                      }
                       title={`|${row.ket}⟩ ${whenOf(step)}: ${formatProbability(p, EXACT_DIGITS)}`}
                     >
                       <span
                         className="probabilities-bar"
                         aria-hidden="true"
-                        style={{ "--fraction": probabilityBarFraction(p, table.largest) }}
+                        style={{
+                          "--fraction": probabilityBarFraction(
+                            p,
+                            table.largest,
+                          ),
+                        }}
                       />
-                      <span className="probabilities-value">{formatProbability(p).replace("%", "")}</span>
+                      <span className="probabilities-value">
+                        {formatProbability(p).replace("%", "")}
+                      </span>
                       <span className="probabilities-change">
                         {change === 1 ? "▲" : change === -1 ? "▼" : ""}
                       </span>
@@ -184,7 +235,9 @@ function StepTable({ table, stops, current, onSeek }) {
 function ProbabilitiesPanel() {
   const sample = usePlayheadStats();
   const playhead = useStore(appStore, (s) => s.playhead);
-  const [layout, setLayout] = useState(/** @type {"index" | "grouped"} */ ("index"));
+  const [layout, setLayout] = useState(
+    /** @type {"index" | "grouped"} */ ("index"),
+  );
 
   // Keyed on the stats, not the sample: a playhead step publishes a new sample around the same
   // stats, and the steps' chances do not depend on where the playhead stands.
@@ -209,7 +262,15 @@ function ProbabilitiesPanel() {
     };
   }, [fullStats, wireCount, prefix]);
   const tables = useMemo(
-    () => (history === undefined ? [] : stepTables(history.steps, layout, history.wireCount, history.registers)),
+    () =>
+      history === undefined
+        ? []
+        : stepTables(
+            history.steps,
+            layout,
+            history.wireCount,
+            history.registers,
+          ),
     [history, layout],
   );
 
@@ -218,7 +279,10 @@ function ProbabilitiesPanel() {
   }
 
   const { stops, steps } = history;
-  const current = Math.max(0, stops.findLastIndex((stop) => stop.column <= sample.step));
+  const current = Math.max(
+    0,
+    stops.findLastIndex((stop) => stop.column <= sample.step),
+  );
   const now = steps[current];
   const possible = now.filter((p) => p > ZERO_PROBABILITY).length;
   const largest = now.reduce((most, p) => Math.max(most, p), 0);
@@ -233,16 +297,28 @@ function ProbabilitiesPanel() {
           {`${possible} of ${now.length} outcomes possible · largest ${formatProbability(largest)}`}
         </span>
       </header>
-      <Tabs.Root className="probabilities-layouts" value={layout} onValueChange={setLayout}>
+      <Tabs.Root
+        className="probabilities-layouts"
+        value={layout}
+        onValueChange={setLayout}
+      >
         <Tabs.List className="probabilities-tabs" aria-label="Layout">
           {LAYOUTS.map(([value, label]) => (
-            <Tabs.Tab key={value} value={value} id={`probabilities-layout-${value}`}>
+            <Tabs.Tab
+              key={value}
+              value={value}
+              id={`probabilities-layout-${value}`}
+            >
               {label}
             </Tabs.Tab>
           ))}
         </Tabs.List>
         {LAYOUTS.map(([value]) => (
-          <Tabs.Panel key={value} value={value} className="probabilities-tab-panel">
+          <Tabs.Panel
+            key={value}
+            value={value}
+            className="probabilities-tab-panel"
+          >
             {value === layout &&
               tables.map((table) => (
                 <StepTable
@@ -260,10 +336,11 @@ function ProbabilitiesPanel() {
         {current < stops.length - 1
           ? `Step ${current} of ${stops.length - 1}: each later step fills in when the playhead reaches it. `
           : ""}
-        ▲ and ▼ mark the chances a step raised or lowered. Bars in a table share one scale, each the
-        square root of its chance’s share of the table’s largest, so small chances stay visible.
+        ▲ and ▼ mark probabilities that increased or decreased at a step. Bar
+        lengths are proportional to the square root of each probability divided
+        by the largest in that table, keeping small probabilities visible.
         {layout === "grouped" &&
-          " Each table is a group of qubits independent of the others at every step, so an outcome’s chance is the product of its groups’ chances."}
+          " Each table is a group of qubits independent of the others at every step, so an outcome’s probability is the product of its groups’ probabilities."}
       </p>
     </section>
   );

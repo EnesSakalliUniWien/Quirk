@@ -14,56 +14,81 @@
  * limitations under the License.
  */
 
-import {Suite} from "../../TestUtil.js"
-import {assertThatCircuitOutputsBasisKet} from "../../CircuitOperationTestUtil.js"
+import { Suite } from "../../TestUtil.js";
+import { assertThatCircuitOutputsBasisKet } from "../../CircuitOperationTestUtil.js";
 
-import {PivotFlipGates} from "../../../src/gates/ordering/PivotFlipGates.js"
-import {Gates} from "../../../src/gates/AllGates.js"
-import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js"
+import { PivotFlipGates } from "../../../src/gates/ordering/PivotFlipGates.js";
+import { Gates } from "../../../src/gates/AllGates.js";
+import { CircuitDefinition } from "../../../src/circuit/model/CircuitDefinition.js";
 
 const suite = new Suite("PivotFlipGates");
 
-suite.testUsingWebGL('pivot_flip', () => {
-    const circ = diagram => CircuitDefinition.fromTextDiagram(new Map([
-        ['5', Gates.InputGates.SetA.withParam(5)],
-        ['X', Gates.HalfTurns.X],
-        ['F', PivotFlipGates.FlipUnderA],
-        ['-', undefined],
-        ['/', null],
-    ]), diagram);
+suite.testUsingWebGL("pivot_flip", () => {
+  const circ = (diagram) =>
+    CircuitDefinition.fromTextDiagram(
+      new Map([
+        ["5", Gates.InputGates.SetA.withParam(5)],
+        ["X", Gates.HalfTurns.X],
+        ["F", PivotFlipGates.FlipUnderA],
+        ["-", undefined],
+        ["/", null],
+      ]),
+      diagram,
+    );
 
-    assertThatCircuitOutputsBasisKet(circ(`-5-F-
+  assertThatCircuitOutputsBasisKet(
+    circ(`-5-F-
                                            ---/-
                                            ---/-
-                                           ---/-`), 4);
+                                           ---/-`),
+    4,
+  );
 
-    assertThatCircuitOutputsBasisKet(circ(`-X-5-F-
+  assertThatCircuitOutputsBasisKet(
+    circ(`-X-5-F-
                                            -----/-
                                            -----/-
-                                           -----/-`), 3);
+                                           -----/-`),
+    3,
+  );
 
-    assertThatCircuitOutputsBasisKet(circ(`---5-F-
+  assertThatCircuitOutputsBasisKet(
+    circ(`---5-F-
                                            -X---/-
                                            -----/-
-                                           -----/-`), 2);
+                                           -----/-`),
+    2,
+  );
 
-    assertThatCircuitOutputsBasisKet(circ(`-X-5-F-
+  assertThatCircuitOutputsBasisKet(
+    circ(`-X-5-F-
                                            -X---/-
                                            -----/-
-                                           -----/-`), 1);
+                                           -----/-`),
+    1,
+  );
 
-    assertThatCircuitOutputsBasisKet(circ(`---5-F-
+  assertThatCircuitOutputsBasisKet(
+    circ(`---5-F-
                                            -----/-
                                            -X---/-
-                                           -----/-`), 0);
+                                           -----/-`),
+    0,
+  );
 
-    assertThatCircuitOutputsBasisKet(circ(`-X-5-F-
+  assertThatCircuitOutputsBasisKet(
+    circ(`-X-5-F-
                                            -----/-
                                            -X---/-
-                                           -----/-`), 5);
+                                           -----/-`),
+    5,
+  );
 
-    assertThatCircuitOutputsBasisKet(circ(`-X-5-F-
+  assertThatCircuitOutputsBasisKet(
+    circ(`-X-5-F-
                                            -----/-
                                            -X---/-
-                                           -X---/-`), 13);
+                                           -X---/-`),
+    13,
+  );
 });

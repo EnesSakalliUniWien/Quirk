@@ -18,18 +18,32 @@
  *     but not including, end, and the heights of the spacers that stand in for the rows either
  *     side of them.
  */
-function visibleRowRange({ scrollTop, viewportHeight, rowHeight, rowCount, overscan }) {
+function visibleRowRange({
+  scrollTop,
+  viewportHeight,
+  rowHeight,
+  rowCount,
+  overscan,
+}) {
   if (!(rowHeight > 0) || !(rowCount > 0)) {
     return { start: 0, end: 0, before: 0, after: 0 };
   }
   const top = Math.max(0, scrollTop);
   const inView = Math.ceil(Math.max(0, viewportHeight) / rowHeight);
   // A list that has shrunk under a scroll position it no longer reaches shows its last rows, not none.
-  const first = Math.min(Math.floor(top / rowHeight), Math.max(0, rowCount - inView));
+  const first = Math.min(
+    Math.floor(top / rowHeight),
+    Math.max(0, rowCount - inView),
+  );
   const last = Math.ceil((top + Math.max(0, viewportHeight)) / rowHeight);
   const start = Math.max(0, first - overscan);
   const end = Math.min(rowCount, last + overscan);
-  return { start, end, before: start * rowHeight, after: (rowCount - end) * rowHeight };
+  return {
+    start,
+    end,
+    before: start * rowHeight,
+    after: (rowCount - end) * rowHeight,
+  };
 }
 
 export { visibleRowRange };

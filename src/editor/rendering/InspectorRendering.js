@@ -14,27 +14,68 @@
  * limitations under the License.
  */
 
-import {renderCircuitTargets} from '../interaction/CircuitTargets.js';
-import {paintCircuit} from './CircuitRendering.js';
-import {rectangle} from '../../draw/shapes/ShapeView.js';
-import {CanvasTheme} from '../../config/CanvasTheme.js';
-import {GateRenderParams} from '../../draw/gate/GateRenderParams.js';
-import {DEFAULT_RENDERER} from '../../draw/gate/GateRenderers.js';
-import {heldGateRect} from '../geometry/InspectorLayout.js';
+import { renderCircuitTargets } from "../interaction/CircuitTargets.js";
+import { paintCircuit } from "./CircuitRendering.js";
+import { rectangle } from "../../draw/shapes/ShapeView.js";
+import { CanvasTheme } from "../../config/CanvasTheme.js";
+import { GateRenderParams } from "../../draw/gate/GateRenderParams.js";
+import { DEFAULT_RENDERER } from "../../draw/gate/GateRenderers.js";
+import { heldGateRect } from "../geometry/InspectorLayout.js";
 
 /**
  * Compose the background, circuit and held gate from snapshot inputs. `range`, as {left, right} in
  * circuit units, is the stretch of the circuit to describe, columns and their hit areas alike.
  */
-export function renderInspector({drawArea, displayedCircuit, hand}, view, stats, playheadStep, breakpoints = [], selection = undefined, follow = undefined, scrollX = 0, range = undefined) {
-    rectangle(view, drawArea, {fill: CanvasTheme.surface.background});
-    view.group('circuit', child => paintCircuit(displayedCircuit, child, hand, stats, false, true, playheadStep, breakpoints, selection, follow, scrollX, range));
-    // The gate riding the cursor takes no pointer: the press lands on what lies under it.
-    view.group('held-gates', child => {
-        if (hand.pos === undefined || hand.heldGate === undefined) return;
-        const gate = hand.heldGate;
-        const renderer = gate.customRenderer || DEFAULT_RENDERER;
-        renderer(GateRenderParams.held(child, hand, heldGateRect(hand), gate, stats));
-    }, {pointer: false});
-    view.group('interaction', child => renderCircuitTargets(child, {definition: displayedCircuit.circuitDefinition, geometry: displayedCircuit.geometry()}, hand, range));
+export function renderInspector(
+  { drawArea, displayedCircuit, hand },
+  view,
+  stats,
+  playheadStep,
+  breakpoints = [],
+  selection = undefined,
+  follow = undefined,
+  scrollX = 0,
+  range = undefined,
+) {
+  rectangle(view, drawArea, { fill: CanvasTheme.surface.background });
+  view.group("circuit", (child) =>
+    paintCircuit(
+      displayedCircuit,
+      child,
+      hand,
+      stats,
+      false,
+      true,
+      playheadStep,
+      breakpoints,
+      selection,
+      follow,
+      scrollX,
+      range,
+    ),
+  );
+  // The gate riding the cursor takes no pointer: the press lands on what lies under it.
+  view.group(
+    "held-gates",
+    (child) => {
+      if (hand.pos === undefined || hand.heldGate === undefined) return;
+      const gate = hand.heldGate;
+      const renderer = gate.customRenderer || DEFAULT_RENDERER;
+      renderer(
+        GateRenderParams.held(child, hand, heldGateRect(hand), gate, stats),
+      );
+    },
+    { pointer: false },
+  );
+  view.group("interaction", (child) =>
+    renderCircuitTargets(
+      child,
+      {
+        definition: displayedCircuit.circuitDefinition,
+        geometry: displayedCircuit.geometry(),
+      },
+      hand,
+      range,
+    ),
+  );
 }

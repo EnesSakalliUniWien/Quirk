@@ -176,7 +176,6 @@ const tape = Object.freeze([
   colour(170, 191, 255),
 ]);
 
-
 // ── Dial ────────────────────────────────────────────────────────────────────
 // The encoder beside a rotation gate, seen from above after a pocket synthesizer's knobs: a pale
 // face, a ring, a dark core, and an index mark in the gate's axis hue. X's blue is lifted to clear
@@ -194,8 +193,22 @@ const dial = Object.freeze({
 });
 
 const Colours = Object.freeze({
-  surface, text, iqp, axis, iqpText, stroke, gate, probability, amplitude,
-  operation, bloch, interaction, error, ui, tape, dial,
+  surface,
+  text,
+  iqp,
+  axis,
+  iqpText,
+  stroke,
+  gate,
+  probability,
+  amplitude,
+  operation,
+  bloch,
+  interaction,
+  error,
+  ui,
+  tape,
+  dial,
   transparent: colour(0, 0, 0, 0),
 });
 

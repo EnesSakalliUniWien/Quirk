@@ -14,13 +14,23 @@
  * limitations under the License.
  */
 
-import {CanvasTheme} from '../../../config/CanvasTheme.js';
+import { CanvasTheme } from "../../../config/CanvasTheme.js";
 
 /**
  * What an axis's letter, its readout name, the projection triangle whose leg runs along it and the
  * plane triangle normal to it are all drawn in, on both the circuit's sphere and the enlarged one.
  */
-export const AXIS_COLOR = {x: CanvasTheme.bloch.axisX, y: CanvasTheme.bloch.axisY, z: CanvasTheme.bloch.axisZ};
+export const AXIS_COLOR = Object.freeze({
+  get x() {
+    return CanvasTheme.bloch.axisX;
+  },
+  get y() {
+    return CanvasTheme.bloch.axisY;
+  },
+  get z() {
+    return CanvasTheme.bloch.axisZ;
+  },
+});
 
 /**
  * How much of its square plot a Bloch figure's unit circle takes as its radius. The analyzer's
@@ -37,6 +47,6 @@ export const PLOT_RADIUS = 0.36;
  * @returns {!{cx: !number, cy: !number, radius: !number, plot: !number}} plot is the square's side.
  */
 export function unitCircleOf(width, plotHeight = width) {
-    const plot = Math.min(width, plotHeight);
-    return {cx: width / 2, cy: plot / 2, radius: plot * PLOT_RADIUS, plot};
+  const plot = Math.min(width, plotHeight);
+  return { cx: width / 2, cy: plot / 2, radius: plot * PLOT_RADIUS, plot };
 }

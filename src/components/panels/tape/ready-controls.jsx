@@ -34,25 +34,51 @@ function ReadyControls({ recorder }) {
         </Button>
       ) : (
         <Menu.Root>
-          <Menu.Trigger render={<Button id="record-button" className={styles.trigger} />}>
-            <CircleIcon className={styles.dot} data-icon="inline-start" fill="currentColor" aria-hidden="true" />
-            <span className={styles.word}>Record</span>
+          <Menu.Trigger
+            render={<Button id="record-button" className={styles.trigger} />}
+          >
+            <CircleIcon
+              className={styles.dot}
+              data-icon="inline-start"
+              fill="currentColor"
+              aria-hidden="true"
+            />
+            <span>Record</span>
           </Menu.Trigger>
           <Menu.Portal>
-            <Menu.Positioner className="app-menu-positioner" side="bottom" align="end" sideOffset={4}>
+            <Menu.Positioner
+              className="app-menu-positioner"
+              side="bottom"
+              align="end"
+              sideOffset={4}
+            >
               <Menu.Popup className="app-menu" aria-label="Record">
                 <Menu.Group>
-                  <Menu.GroupLabel className="app-menu-label">Record to the Tape</Menu.GroupLabel>
-                  <Menu.Item id="record-take" className="app-menu-item" onClick={() => run(false)}>
+                  <Menu.GroupLabel className="app-menu-label">
+                    Save to Recordings
+                  </Menu.GroupLabel>
+                  <Menu.Item
+                    id="record-take"
+                    className="app-menu-item"
+                    onClick={() => run(false)}
+                  >
                     <span className={styles.item}>
                       This step
-                      <span className={styles.detail}>one take, at the playhead</span>
+                      <span className={styles.detail}>
+                        one snapshot, at the playhead
+                      </span>
                     </span>
                   </Menu.Item>
-                  <Menu.Item id="record-run" className="app-menu-item" onClick={() => run(true)}>
+                  <Menu.Item
+                    id="record-run"
+                    className="app-menu-item"
+                    onClick={() => run(true)}
+                  >
                     <span className={styles.item}>
                       Every step
-                      <span className={styles.detail}>a take per step, start to end</span>
+                      <span className={styles.detail}>
+                        a snapshot per step, start to end
+                      </span>
                     </span>
                   </Menu.Item>
                 </Menu.Group>

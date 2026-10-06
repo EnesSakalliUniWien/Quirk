@@ -14,21 +14,37 @@
  * limitations under the License.
  */
 
-import {CircuitGeometry} from './CircuitGeometry.js';
+import { CircuitGeometry } from "./CircuitGeometry.js";
 
 const geometries = new WeakMap();
 
 /** Derives layout once per immutable display snapshot, without modifying that snapshot. */
 export function geometryForCircuit(circuit) {
-    let geometry = geometries.get(circuit);
-    if (geometry === undefined) {
-        const unshifted = new CircuitGeometry(circuit.top, circuit.circuitDefinition,
-            circuit._compressedColumnIndex, circuit._extraWireStartIndex, 0);
-        const shift = Math.max(0, circuit._availableWidth - unshifted.desiredWidth());
-        geometry = shift === 0 ? unshifted : new CircuitGeometry(circuit.top, circuit.circuitDefinition,
-            circuit._compressedColumnIndex, circuit._extraWireStartIndex, shift);
-        Object.freeze(geometry);
-        geometries.set(circuit, geometry);
-    }
-    return geometry;
+  let geometry = geometries.get(circuit);
+  if (geometry === undefined) {
+    const unshifted = new CircuitGeometry(
+      circuit.top,
+      circuit.circuitDefinition,
+      circuit._compressedColumnIndex,
+      circuit._extraWireStartIndex,
+      0,
+    );
+    const shift = Math.max(
+      0,
+      circuit._availableWidth - unshifted.desiredWidth(),
+    );
+    geometry =
+      shift === 0
+        ? unshifted
+        : new CircuitGeometry(
+            circuit.top,
+            circuit.circuitDefinition,
+            circuit._compressedColumnIndex,
+            circuit._extraWireStartIndex,
+            shift,
+          );
+    Object.freeze(geometry);
+    geometries.set(circuit, geometry);
+  }
+  return geometry;
 }

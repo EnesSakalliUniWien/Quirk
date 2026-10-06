@@ -1,3 +1,4 @@
+import { useColourScheme } from "../useColourScheme.js";
 import { useEffect, useRef } from "react";
 
 import { paintInto } from "../../draw/surface/SharedPaintSurface.js";
@@ -25,10 +26,20 @@ const PIXEL_RENDERERS = { matrix: rasterMatrix, state: rasterMatrix };
  * the data it holds once it is on screen.
  *
  * @param {!{kind: ("matrix"|"state"|"probabilities"), data: (undefined|!Matrix), width: !number,
- *     height: !number, options: (undefined|!Object), label: !string, className: (undefined|!string)}} props
+ *     height: !number, options: (undefined|!Object), label: !string, describedBy?: !string, className?: !string}} props
  *     options must hold plain values: it is compared by content, so a caller need not memoise it.
  */
-function DataView({ kind, data, width, height, options, label, className }) {
+function DataView({
+  kind,
+  data,
+  width,
+  height,
+  options,
+  label,
+  describedBy,
+  className,
+}) {
+  const scheme = useColourScheme();
   const ref = useRef(null);
   const optionsKey = JSON.stringify(options ?? {});
   const onScreen = useOnScreen(ref);
@@ -46,7 +57,9 @@ function DataView({ kind, data, width, height, options, label, className }) {
       canvas.width = pixelWidth;
       canvas.height = pixelHeight;
       const pixels = PIXEL_RENDERERS[kind](data, pixelWidth, pixelHeight);
-      canvas.getContext("2d").putImageData(new ImageData(pixels, pixelWidth, pixelHeight), 0, 0);
+      canvas
+        .getContext("2d")
+        .putImageData(new ImageData(pixels, pixelWidth, pixelHeight), 0, 0);
       canvas.dataset.detail = "pixels";
       canvas.dataset.painted = "true";
       return undefined;
@@ -60,17 +73,20 @@ function DataView({ kind, data, width, height, options, label, className }) {
       height,
       (view) => DATA_RENDERERS[kind](view, data, rect, JSON.parse(optionsKey)),
       () => current,
-    ).then((painted) => {
-      if (painted !== false && current) {
-        canvas.dataset.painted = "true";
-      }
-    }, () => {
-      // The rendering surface reports failures; leave this canvas unpainted for a later update.
-    });
+    ).then(
+      (painted) => {
+        if (painted !== false && current) {
+          canvas.dataset.painted = "true";
+        }
+      },
+      () => {
+        // The rendering surface reports failures; leave this canvas unpainted for a later update.
+      },
+    );
     return () => {
       current = false;
     };
-  }, [kind, data, width, height, optionsKey, onScreen]);
+  }, [kind, data, width, height, optionsKey, onScreen, scheme]);
 
   return (
     <canvas
@@ -78,6 +94,7 @@ function DataView({ kind, data, width, height, options, label, className }) {
       className={className ?? "data-view"}
       role="img"
       aria-label={label}
+      aria-describedby={describedBy}
       style={{ width: `${width}px`, height: `${height}px` }}
     />
   );

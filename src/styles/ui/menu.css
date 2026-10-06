@@ -5,71 +5,81 @@
    Portalled to the body, so lifted over the dock the way the hover card is. Unlayered, like the
    dock's own rules, so it is not outranked by them. */
 .app-menu-positioner {
-    z-index: var(--layer-menu);
+  z-index: var(--layer-menu);
 }
 
 .app-menu {
-    box-sizing: border-box;
-    min-width: 200px;
-    padding: calc(var(--spacing) * 1);
-    color: var(--card-foreground);
-    background: var(--card);
-    border: var(--border-width) solid var(--border);
-    border-radius: 10px;
-    box-shadow: 0 12px 32px var(--shadow-popup);
-    font-size: var(--text-small);
-    outline: none;
+  box-sizing: border-box;
+  min-width: 200px;
+  max-width: min(420px, calc(100vw - 16px));
+  max-height: min(var(--available-height, 80dvh), 80dvh);
+  overflow-y: auto;
+  padding: calc(var(--spacing) * 1);
+  color: var(--card-foreground);
+  background: var(--card);
+  border: var(--border-width) solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px var(--shadow-popup);
+  font-size: var(--text-small);
+  outline: none;
 }
 
 .app-menu-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: calc(var(--spacing) * 3);
-    padding: 6px calc(var(--spacing) * 2);
-    border-radius: 6px;
-    cursor: default;
-    user-select: none;
-    outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--spacing) * 3);
+  padding: 6px calc(var(--spacing) * 2);
+  border-radius: 6px;
+  cursor: default;
+  user-select: none;
+  outline: none;
 }
 
 .app-menu-item[data-highlighted] {
-    background: var(--accent);
+  background: var(--accent);
 }
 
 .app-menu-item[data-checked]::after {
-    content: "✓";
-    color: var(--muted-foreground);
+  content: "✓";
+  color: var(--muted-foreground);
 }
 
 /* An item with its command's mark before its name, the mark the toolbar button wears. */
 .app-menu-item-label {
-    display: inline-flex;
-    align-items: center;
-    gap: calc(var(--spacing) * 2);
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 2);
 }
 
 .app-menu-item-icon {
-    flex: none;
-    width: 16px;
-    height: 16px;
+  flex: none;
+  width: 16px;
+  height: 16px;
 }
 
 /* An item that takes gates out of the circuit says so before it is chosen. */
 .app-menu-item[data-action="delete"] {
-    color: var(--destructive);
+  color: var(--destructive);
 }
 
 /* A section's title, in the items' own capitalization. */
 .app-menu-label {
-    padding: 6px calc(var(--spacing) * 2) 2px;
-    color: var(--muted-foreground);
-    font-size: var(--text-caption);
-    font-weight: 600;
+  padding: 6px calc(var(--spacing) * 2) 2px;
+  color: var(--muted-foreground);
+  font-size: var(--text-caption);
+  font-weight: 600;
 }
 
 .app-menu-separator {
-    height: 1px;
-    margin: calc(var(--spacing) * 1) 0;
-    background: var(--border);
+  height: 1px;
+  margin: calc(var(--spacing) * 1) 0;
+  background: var(--border);
+}
+
+@media (any-pointer: coarse) {
+  .app-menu-item {
+    box-sizing: border-box;
+    min-height: 44px;
+  }
 }

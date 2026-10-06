@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 import { Rendering } from "../../../config/Rendering.js";
 import { CanvasTheme, phaseColor } from "../../../config/CanvasTheme.js";
 import { Typography } from "../../../config/Typography.js";
@@ -65,7 +64,8 @@ export function paintMatrix(
     numRows = matrix.height();
   const hasNaN = matrix.hasNaN();
   const diam = Math.min(drawArea.w / numCols, drawArea.h / numRows);
-  const asPixels = !hasNaN && drawsAsPixels(numCols, numRows, drawArea, wireCount);
+  const asPixels =
+    !hasNaN && drawsAsPixels(numCols, numRows, drawArea, wireCount);
   painter.add("pixiMatrixCells", {
     picture: {
       x: drawArea.x,
@@ -116,9 +116,16 @@ export function paintMatrix(
  * magnitude - rather than discs, rings and hands. A matrix over at most MATRIX_DETAIL_MAX_QUBITS
  * qubits always keeps its marks.
  */
-export function drawsAsPixels(numCols, numRows, drawArea, wireCount = undefined) {
+export function drawsAsPixels(
+  numCols,
+  numRows,
+  drawArea,
+  wireCount = undefined,
+) {
   const diam = Math.min(drawArea.w / numCols, drawArea.h / numRows);
-  const detailed = (wireCount ?? Math.log2(Math.max(numRows, numCols))) <= Rendering.MATRIX_DETAIL_MAX_QUBITS;
+  const detailed =
+    (wireCount ?? Math.log2(Math.max(numRows, numCols))) <=
+    Rendering.MATRIX_DETAIL_MAX_QUBITS;
   return !detailed && diam < PIXEL_CELL_SIZE;
 }
 
@@ -126,7 +133,10 @@ export function drawsAsPixels(numCols, numRows, drawArea, wireCount = undefined)
 const PHASE_WHEEL_STEPS = 48;
 /** How far the wheel's labels stand off its rim. */
 const PHASE_WHEEL_LABEL_GAP = 4;
-const PHASE_WHEEL_FONT = { fontSize: 10, fontFamily: Typography.MONO_FONT_FAMILY };
+const PHASE_WHEEL_FONT = {
+  fontSize: 10,
+  fontFamily: Typography.MONO_FONT_FAMILY,
+};
 
 /**
  * The size of the phase wheel's box, labels and all, for a wheel of `radius`.
@@ -136,8 +146,11 @@ const PHASE_WHEEL_FONT = { fontSize: 10, fontFamily: Typography.MONO_FONT_FAMILY
  */
 function phaseWheelSize(radius, { labels = true } = {}) {
   if (!labels) return { width: 2 * radius, height: 2 * radius };
-  const side = measureText("180°", PHASE_WHEEL_FONT).width + PHASE_WHEEL_LABEL_GAP;
-  const line = measureText("0", PHASE_WHEEL_FONT).fontProperties.fontSize + PHASE_WHEEL_LABEL_GAP;
+  const side =
+    measureText("180°", PHASE_WHEEL_FONT).width + PHASE_WHEEL_LABEL_GAP;
+  const line =
+    measureText("0", PHASE_WHEEL_FONT).fontProperties.fontSize +
+    PHASE_WHEEL_LABEL_GAP;
   return { width: 2 * (radius + side), height: 2 * (radius + line) };
 }
 
@@ -155,13 +168,15 @@ function phaseWheelSize(radius, { labels = true } = {}) {
  */
 export function paintPhaseWheel(painter, x, y, radius, { labels = true } = {}) {
   const size = phaseWheelSize(radius, { labels });
-  const cx = x + size.width / 2, cy = y + size.height / 2;
+  const cx = x + size.width / 2,
+    cy = y + size.height / 2;
   const inner = radius * 0.55;
   const step = (2 * Math.PI) / PHASE_WHEEL_STEPS;
   drawGraphics(painter, (graphics) => {
     for (let i = 0; i < PHASE_WHEEL_STEPS; i++) {
       // A phase φ turns counter-clockwise on screen, where y runs down: its canvas angle is −φ.
-      const from = (i - 0.5) * step, to = (i + 0.5) * step;
+      const from = (i - 0.5) * step,
+        to = (i + 0.5) * step;
       graphics
         .moveTo(cx + Math.cos(from) * inner, cy - Math.sin(from) * inner)
         .arc(cx, cy, radius, -from, -to, true)
@@ -172,9 +187,15 @@ export function paintPhaseWheel(painter, x, y, radius, { labels = true } = {}) {
     }
   });
   if (labels) {
-    const at = (text, dx, dy, align, baseline) => drawText(painter, text, {
-      x: cx + dx, y: cy + dy, align, baseline, font: PHASE_WHEEL_FONT, fill: CanvasTheme.text.muted,
-    });
+    const at = (text, dx, dy, align, baseline) =>
+      drawText(painter, text, {
+        x: cx + dx,
+        y: cy + dy,
+        align,
+        baseline,
+        font: PHASE_WHEEL_FONT,
+        fill: CanvasTheme.text.muted,
+      });
     const gap = radius + PHASE_WHEEL_LABEL_GAP;
     at("0°", gap, 0, "left", "middle");
     at("90°", 0, -gap, "center", "bottom");

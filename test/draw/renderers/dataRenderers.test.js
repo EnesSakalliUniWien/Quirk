@@ -14,44 +14,66 @@
  * limitations under the License.
  */
 
-import {Suite, assertThat} from "../../TestUtil.js"
-import {Complex} from "../../../src/engine/math/complex/Complex.js"
-import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
-import {Rect} from "../../../src/geometry/Rect.js"
-import {DisplayView} from "../scene/TestDisplayView.js"
-import {LabelView} from "../../../src/draw/text/LabelView.js"
-import {Registers} from "../../../src/circuit/model/Registers.js"
-import {DATA_RENDERERS, stateGrid} from "../../../src/draw/renderers/dataRenderers.js"
-import {CanvasTheme} from "../../../src/config/CanvasTheme.js"
-import {Color} from "pixi.js"
+import { Suite, assertThat } from "../../TestUtil.js";
+import { Complex } from "../../../src/engine/math/complex/Complex.js";
+import { Matrix } from "../../../src/engine/math/matrix/Matrix.js";
+import { Rect } from "../../../src/geometry/Rect.js";
+import { DisplayView } from "../scene/TestDisplayView.js";
+import { LabelView } from "../../../src/draw/text/LabelView.js";
+import { Registers } from "../../../src/circuit/model/Registers.js";
+import {
+  DATA_RENDERERS,
+  stateGrid,
+} from "../../../src/draw/renderers/dataRenderers.js";
+import { CanvasTheme } from "../../../src/config/CanvasTheme.js";
+import { Color } from "pixi.js";
 
 const suite = new Suite("dataRenderers");
 
-suite.test("a state's cells carry their basis states, in the registers' words, where they fit", async () => {
+suite.test(
+  "a state's cells carry their basis states, in the registers' words, where they fit",
+  async () => {
     const labels = async (rect, registers) => {
-        const view = new DisplayView(document.createElement("canvas"));
-        DATA_RENDERERS.state(view, stateGrid(Matrix.col(0.5, 0.5, 0.5, 0.5)), rect, {wireCount: 2, registers});
-        await view.commit();
-        const texts = [];
-        const walk = node => {
-            if (node instanceof LabelView) {
-                texts.push(node.text);
-            }
-            for (const child of node.children ?? []) {
-                walk(child);
-            }
-        };
-        walk(view);
-        return texts;
+      const view = new DisplayView(document.createElement("canvas"));
+      DATA_RENDERERS.state(
+        view,
+        stateGrid(Matrix.col(0.5, 0.5, 0.5, 0.5)),
+        rect,
+        { wireCount: 2, registers },
+      );
+      await view.commit();
+      const texts = [];
+      const walk = (node) => {
+        if (node instanceof LabelView) {
+          texts.push(node.text);
+        }
+        for (const child of node.children ?? []) {
+          walk(child);
+        }
+      };
+      walk(view);
+      return texts;
     };
     const roomy = new Rect(0, 0, 100, 100);
-    assertThat(await labels(roomy, Registers.EMPTY)).isEqualTo(["00", "01", "10", "11"]);
-    assertThat(await labels(roomy, new Registers([{name: "a", start: 0, length: 2}]))).isEqualTo(["a=0", "a=1", "a=2", "a=3"]);
+    assertThat(await labels(roomy, Registers.EMPTY)).isEqualTo([
+      "00",
+      "01",
+      "10",
+      "11",
+    ]);
+    assertThat(
+      await labels(roomy, new Registers([{ name: "a", start: 0, length: 2 }])),
+    ).isEqualTo(["a=0", "a=1", "a=2", "a=3"]);
     // A cell too small to read a label in carries none.
-    assertThat(await labels(new Rect(0, 0, 40, 40), Registers.EMPTY)).isEqualTo([]);
-});
+    assertThat(await labels(new Rect(0, 0, 40, 40), Registers.EMPTY)).isEqualTo(
+      [],
+    );
+  },
+);
 
-suite.test("a state is laid out the way the amplitude display lays it out", async () => {
+suite.test(
+  "a state is laid out the way the amplitude display lays it out",
+  async () => {
     // Four amplitudes become a 2x2 grid, row-major, so index r*width + c is the basis state.
     const grid = stateGrid(Matrix.col(1, new Complex(0, 2), 3, 4));
     assertThat(grid.width()).isEqualTo(2);
@@ -65,94 +87,183 @@ suite.test("a state is laid out the way the amplitude display lays it out", asyn
     assertThat(single.height()).isEqualTo(1);
 
     // Odd qubit counts are taller than wide.
-    const three = stateGrid(Matrix.generate(1, 8, r => r));
+    const three = stateGrid(Matrix.generate(1, 8, (r) => r));
     assertThat(three.width()).isEqualTo(2);
     assertThat(three.height()).isEqualTo(4);
-});
+  },
+);
 
-suite.test("probability bars are their chance, as a one-wire tile's is, with no second scale drawn over them", async () => {
+suite.test(
+  "probability bars are their chance, as a one-wire tile's is, with no second scale drawn over them",
+  async () => {
     const rect = new Rect(0, 0, 100, 200);
     const view = new DisplayView(document.createElement("canvas"));
     // 64%, 16%, nothing, 1e-6: bars of 0.64 and 0.16 of the track, none, and at least a dot.
-    DATA_RENDERERS.probabilities(view, Matrix.col(0.64, 0.16, 0, 0.000001), rect, {wireCount: 2});
+    DATA_RENDERERS.probabilities(
+      view,
+      Matrix.col(0.64, 0.16, 0, 0.000001),
+      rect,
+      { wireCount: 2 },
+    );
     await view.commit();
     const bar = new Color(CanvasTheme.probability.fill).toNumber();
-    const graphics = view.children.filter(child => child.context !== undefined);
-    const bars = graphics.find(child => child.context.instructions.some(i => i.action === "fill" && i.data.style.color === bar));
+    const graphics = view.children.filter(
+      (child) => child.context !== undefined,
+    );
+    const bars = graphics.find((child) =>
+      child.context.instructions.some(
+        (i) => i.action === "fill" && i.data.style.color === bar,
+      ),
+    );
     // Rows this tall carry a thin bar each along a track at the row's foot, inset from its edges.
-    const rects = bars.context.instructions.find(i => i.action === "fill").data.path.instructions.
-        filter(i => i.action === "roundRect").map(i => i.data.slice(0, 4));
-    assertThat(rects.map(([, , w]) => w)).withInfo({rects}).isApproximatelyEqualTo([96 * 0.64, 96 * 0.16, 3]);
+    const rects = bars.context.instructions
+      .find((i) => i.action === "fill")
+      .data.path.instructions.filter((i) => i.action === "roundRect")
+      .map((i) => i.data.slice(0, 4));
+    assertThat(rects.map(([, , w]) => w))
+      .withInfo({ rects })
+      .isApproximatelyEqualTo([96 * 0.64, 96 * 0.16, 3]);
     assertThat(rects.map(([, y]) => Math.floor(y / 50))).isEqualTo([0, 1, 3]);
-    assertThat(rects.every(([, y, , h]) => h === 3 && (y + h) % 50 === 48)).withInfo({rects}).isEqualTo(true);
+    assertThat(rects.every(([, y, , h]) => h === 3 && (y + h) % 50 === 48))
+      .withInfo({ rects })
+      .isEqualTo(true);
     // Nothing else is stroked through every row: no logarithmic outline over the bars.
-    const outlines = graphics.filter(child => child.context.instructions.some(i =>
-        i.action === "stroke" && (i.data.path?.instructions ?? []).filter(step => step.action === "lineTo").length >= 4));
+    const outlines = graphics.filter((child) =>
+      child.context.instructions.some(
+        (i) =>
+          i.action === "stroke" &&
+          (i.data.path?.instructions ?? []).filter(
+            (step) => step.action === "lineTo",
+          ).length >= 4,
+      ),
+    );
     assertThat(outlines.length).isEqualTo(0);
-});
+  },
+);
 
-suite.test("rows too thin for kets group by their leading bits, with the prefix beside each group", async () => {
+suite.test(
+  "rows too thin for kets group by their leading bits, with the prefix beside each group",
+  async () => {
     const rect = new Rect(40, 0, 40, 200);
     const view = new DisplayView(document.createElement("canvas"));
     // 64 rows of 3.125 units: groups of 8 are the smallest 24 units tall, so the prefixes have 3 bits.
-    DATA_RENDERERS.probabilities(view, Matrix.generate(1, 64, () => 1 / 64), rect, {wireCount: 6, groupLabels: true});
+    DATA_RENDERERS.probabilities(
+      view,
+      Matrix.generate(1, 64, () => 1 / 64),
+      rect,
+      { wireCount: 6, groupLabels: true },
+    );
     await view.commit();
     const labels = [];
-    const walk = node => {
-        if (node instanceof LabelView) labels.push(node);
-        for (const child of node.children ?? []) walk(child);
+    const walk = (node) => {
+      if (node instanceof LabelView) labels.push(node);
+      for (const child of node.children ?? []) walk(child);
     };
     walk(view);
-    assertThat(labels.map(label => label.text)).isEqualTo(["000⋯", "001⋯", "010⋯", "011⋯", "100⋯", "101⋯", "110⋯", "111⋯"]);
-    assertThat(labels.every(label => label.getBounds().maxX <= rect.x)).isEqualTo(true);
+    assertThat(labels.map((label) => label.text)).isEqualTo([
+      "000⋯",
+      "001⋯",
+      "010⋯",
+      "011⋯",
+      "100⋯",
+      "101⋯",
+      "110⋯",
+      "111⋯",
+    ]);
+    assertThat(
+      labels.every((label) => label.getBounds().maxX <= rect.x),
+    ).isEqualTo(true);
     // Each group's bars are one outline, broken where the groups meet.
     const bar = new Color(CanvasTheme.probability.fill).toNumber();
-    const fill = view.children.flatMap(child => child.context?.instructions ?? []).
-        find(i => i.action === "fill" && i.data.style.color === bar);
-    assertThat(fill.data.path.instructions.filter(i => i.action === "moveTo").length).isEqualTo(8);
+    const fill = view.children
+      .flatMap((child) => child.context?.instructions ?? [])
+      .find((i) => i.action === "fill" && i.data.style.color === bar);
+    assertThat(
+      fill.data.path.instructions.filter((i) => i.action === "moveTo").length,
+    ).isEqualTo(8);
     const guide = new Color(CanvasTheme.stroke.guide).toNumber();
-    assertThat(view.children.some(child => (child.context?.instructions ?? []).some(i =>
-        i.action === "stroke" && i.data.style.color === guide && i.data.style.width === 2))).isEqualTo(true);
-});
+    assertThat(
+      view.children.some((child) =>
+        (child.context?.instructions ?? []).some(
+          (i) =>
+            i.action === "stroke" &&
+            i.data.style.color === guide &&
+            i.data.style.width === 2,
+        ),
+      ),
+    ).isEqualTo(true);
+  },
+);
 
-suite.test("an impossible outcome reads 0% in muted ink beside its basis label", async () => {
+suite.test(
+  "an impossible outcome reads 0% in muted ink beside its basis label",
+  async () => {
     const view = new DisplayView(document.createElement("canvas"));
-    DATA_RENDERERS.probabilities(view, Matrix.col(0.5, 0, 0, 0.5), new Rect(0, 0, 300, 120), {wireCount: 2});
+    DATA_RENDERERS.probabilities(
+      view,
+      Matrix.col(0.5, 0, 0, 0.5),
+      new Rect(0, 0, 300, 120),
+      { wireCount: 2 },
+    );
     await view.commit();
     const labelled = [];
-    const walk = node => {
-        if (typeof node.text === "string") labelled.push(node);
-        for (const child of node.children ?? []) walk(child);
+    const walk = (node) => {
+      if (typeof node.text === "string") labelled.push(node);
+      for (const child of node.children ?? []) walk(child);
     };
     walk(view);
-    assertThat(labelled.map(label => label.text)).isEqualTo(["|00⟩", "50.0%", "|01⟩", "0%", "|10⟩", "0%", "|11⟩", "50.0%"]);
+    assertThat(labelled.map((label) => label.text)).isEqualTo([
+      "|00⟩",
+      "50.0%",
+      "|01⟩",
+      "0%",
+      "|10⟩",
+      "0%",
+      "|11⟩",
+      "50.0%",
+    ]);
     // The percentages change as the circuit animates, so they are bitmap labels, tinted; the kets are canvas labels.
-    assertThat(labelled.filter(label => label instanceof LabelView).map(label => label.text)).
-        isEqualTo(["|00⟩", "|01⟩", "|10⟩", "|11⟩"]);
-    const zero = labelled.find(label => label.text === "0%");
+    assertThat(
+      labelled
+        .filter((label) => label instanceof LabelView)
+        .map((label) => label.text),
+    ).isEqualTo(["|00⟩", "|01⟩", "|10⟩", "|11⟩"]);
+    const zero = labelled.find((label) => label.text === "0%");
     const muted = new Color(CanvasTheme.text.muted).toNumber();
-    assertThat(zero instanceof LabelView ? new Color(zero.style.fill).toNumber() : zero.tint).isEqualTo(muted);
-});
+    assertThat(
+      zero instanceof LabelView
+        ? new Color(zero.style.fill).toNumber()
+        : zero.tint,
+    ).isEqualTo(muted);
+  },
+);
 
-suite.test("every kind of data has a renderer that draws into a view", async () => {
+suite.test(
+  "every kind of data has a renderer that draws into a view",
+  async () => {
     const rect = new Rect(0, 0, 100, 100);
-    const drawn = async kind => {
-        const view = new DisplayView(document.createElement("canvas"));
-        const data = {
-            matrix: Matrix.square(1, 0, 0, new Complex(0, 1)),
-            state: stateGrid(Matrix.col(Math.SQRT1_2, 0, 0, Math.SQRT1_2)),
-            probabilities: Matrix.col(0.5, 0, 0, 0.5),
-        }[kind];
-        DATA_RENDERERS[kind](view, data, rect, {wireCount: 2});
-        await view.commit();
-        return view.children.length;
+    const drawn = async (kind) => {
+      const view = new DisplayView(document.createElement("canvas"));
+      const data = {
+        matrix: Matrix.square(1, 0, 0, new Complex(0, 1)),
+        state: stateGrid(Matrix.col(Math.SQRT1_2, 0, 0, Math.SQRT1_2)),
+        probabilities: Matrix.col(0.5, 0, 0, 0.5),
+      }[kind];
+      DATA_RENDERERS[kind](view, data, rect, { wireCount: 2 });
+      await view.commit();
+      return view.children.length;
     };
     for (const kind of ["matrix", "state", "probabilities"]) {
-        assertThat(await drawn(kind) > 0).withInfo({kind}).isEqualTo(true);
+      assertThat((await drawn(kind)) > 0)
+        .withInfo({ kind })
+        .isEqualTo(true);
     }
     // A density matrix is a matrix drawn another way.
     const view = new DisplayView(document.createElement("canvas"));
-    DATA_RENDERERS.matrix(view, Matrix.square(0.5, 0.5, 0.5, 0.5), rect, {style: "density"});
+    DATA_RENDERERS.matrix(view, Matrix.square(0.5, 0.5, 0.5, 0.5), rect, {
+      style: "density",
+    });
     await view.commit();
     assertThat(view.children.length > 0).isEqualTo(true);
-});
+  },
+);

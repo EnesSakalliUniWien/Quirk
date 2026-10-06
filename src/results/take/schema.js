@@ -27,7 +27,9 @@ const statsSchema = z.strictObject({
   amplitudes: z.array(number).max(131072),
   survival: z.array(number),
   densities: z.array(z.array(z.array(number).length(8))),
-  custom: z.array(z.tuple([z.string().regex(/^(0|[1-9]\d*):(0|[1-9]\d*)$/), json])),
+  custom: z.array(
+    z.tuple([z.string().regex(/^(0|[1-9]\d*):(0|[1-9]\d*)$/), json]),
+  ),
   samples: z.record(
     z.string(),
     z.strictObject({ i: z.int().min(0), p: z.number().min(0).max(1.00001) }),

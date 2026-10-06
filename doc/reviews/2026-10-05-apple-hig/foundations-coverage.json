@@ -1,0 +1,183 @@
+[
+  {
+    "slug": "foundations",
+    "title": "Foundations",
+    "status": "partial",
+    "reason": "All 18 direct leaves reviewed with inline/platform guidance; platform-only systems scoped appropriately.",
+    "evidence": "foundation-pages/*.json and *.txt",
+    "findings": [
+      "FND-01",
+      "FND-02",
+      "FND-03",
+      "FND-04"
+    ]
+  },
+  {
+    "slug": "accessibility",
+    "title": "Accessibility",
+    "status": "partial",
+    "reason": "Keyboard, labels, live status, motion preferences exist; virtualized state access and text/contrast preferences remain.",
+    "evidence": "src/components/panels/circuit/circuit-cursor.jsx:31; src/components/panels/state/state-panel.jsx:158",
+    "findings": [
+      "FND-01",
+      "FND-02",
+      "FND-03"
+    ]
+  },
+  {
+    "slug": "app-icons",
+    "title": "App icons",
+    "status": "unverified",
+    "reason": "Native Icon Composer/layer/masking/store specifications do not apply to this browser favicon; favicon recognition across sizes not visually checked.",
+    "evidence": "index.html:15",
+    "findings": []
+  },
+  {
+    "slug": "branding",
+    "title": "Branding",
+    "status": "partial",
+    "reason": "Small toolbox branding and familiar controls defer to circuit content; complete visual consistency not browser-verified.",
+    "evidence": "src/components/toolbox/gate-toolbox.jsx:140; src/components/toolbar/app-toolbar.jsx:326",
+    "findings": []
+  },
+  {
+    "slug": "color",
+    "title": "Color",
+    "status": "partial",
+    "reason": "Phase color has number and geometric companions; shared custom light/dark palettes; no increased-contrast path.",
+    "evidence": "src/appearance/colours/light.js; src/appearance/colours/dark.js; src/components/panels/complex-display/complex-display-panel.jsx:52",
+    "findings": [
+      "FND-03"
+    ]
+  },
+  {
+    "slug": "dark-mode",
+    "title": "Dark Mode",
+    "status": "aligned",
+    "reason": "System scheme is followed live with separately designed light/dark tokens; no app-specific override. Physical/visual contrast checks remain outstanding.",
+    "evidence": "src/browser/systemColourScheme.js:24; src/components/useColourScheme.js:5",
+    "findings": []
+  },
+  {
+    "slug": "icons",
+    "title": "Icons",
+    "status": "partial",
+    "reason": "Consistent SVG Lucide icons and labelled actions; no requirement to replace them with SF Symbols; optical alignment unverified.",
+    "evidence": "src/components/ui/icon.jsx; src/components/toolbar/app-toolbar.jsx:59",
+    "findings": []
+  },
+  {
+    "slug": "images",
+    "title": "Images",
+    "status": "partial",
+    "reason": "Scientific canvas rendering and SVG suit dynamic content; no photo asset-resolution pipeline required. Device sharpness unverified.",
+    "evidence": "src/draw/surface/SharedPaintSurface.js:36; src/app/canvas/redrawLoop.js:220",
+    "findings": []
+  },
+  {
+    "slug": "immersive-experiences",
+    "title": "Immersive experiences",
+    "status": "not-applicable",
+    "reason": "visionOS Full Space, passthrough, virtual hands and environment guidance do not apply to 2D browser simulator.",
+    "evidence": "src/components/app.jsx",
+    "findings": []
+  },
+  {
+    "slug": "inclusion",
+    "title": "Inclusion",
+    "status": "partial",
+    "reason": "Scientific terms partly explained; no unnecessary demographic collection observed. Export label jargon can be simplified; broader audience study unverified.",
+    "evidence": "src/components/panels/complex-display/complex-display-panel.jsx:60; src/components/panels/export/export-panel-body.jsx:64",
+    "findings": [
+      "FND-04"
+    ]
+  },
+  {
+    "slug": "layout",
+    "title": "Layout",
+    "status": "partial",
+    "reason": "Adaptive dock/overflow disclosure preserve feature access; 200% text and smallest browser widths need live checks.",
+    "evidence": "src/components/adaptive-dock.js:102; src/components/toolbar/app-toolbar.jsx:28; src/styles/foundation/document.css:5",
+    "findings": [
+      "FND-02"
+    ]
+  },
+  {
+    "slug": "materials",
+    "title": "Materials",
+    "status": "not-applicable",
+    "reason": "Native Liquid Glass/vibrancy APIs are not web requirements; existing solid semantic surfaces avoid adding ornamental blur.",
+    "evidence": "src/browser/theme/dom.js:96; src/appearance/colours.js",
+    "findings": []
+  },
+  {
+    "slug": "motion",
+    "title": "Motion",
+    "status": "aligned",
+    "reason": "Automatic cycling and transitions honor reduced motion; user-directed scientific dynamics retain controls. Device performance unverified.",
+    "evidence": "src/app/QuirkApp.js:223; src/components/panels/bloch/useExploreTransition.js:34",
+    "findings": []
+  },
+  {
+    "slug": "privacy",
+    "title": "Privacy",
+    "status": "partial",
+    "reason": "Local circuit persistence and clipboard sharing follow user actions; no sensitive permissions observed in reviewed source. Local storage/share disclosure and deployment traffic not fully audited.",
+    "evidence": "src/app/session/url.js:59,72; src/components/panels/export/copy-button.jsx:18",
+    "findings": []
+  },
+  {
+    "slug": "right-to-left",
+    "title": "Right to left",
+    "status": "not-applicable",
+    "reason": "Current document declares English; no RTL localization promised. Future localization should mirror navigation but preserve scientific physical axes and number order.",
+    "evidence": "index.html:2; src/components/dock.jsx:144",
+    "findings": []
+  },
+  {
+    "slug": "sf-symbols",
+    "title": "SF Symbols",
+    "status": "not-applicable",
+    "reason": "App uses existing SVG Lucide vocabulary; SF Symbols native APIs/render modes/animations/custom-symbol tooling not required for browser target. Labels still assessed under Icons/VoiceOver.",
+    "evidence": "src/components/ui/icon.jsx; src/components/ui/button.jsx",
+    "findings": []
+  },
+  {
+    "slug": "spatial-layout",
+    "title": "Spatial layout",
+    "status": "not-applicable",
+    "reason": "No visionOS spatial windows, volumes, passthrough or immersive content; Bloch mathematical 3D figure is not spatial OS layout.",
+    "evidence": "src/components/panels/bloch/bloch-figure.jsx",
+    "findings": []
+  },
+  {
+    "slug": "typography",
+    "title": "Typography",
+    "status": "partial",
+    "reason": "Shared font/size hierarchy exists, but fixed root and Forge px text ignore browser default-font preference; native Dynamic Type/point tables not directly web requirements.",
+    "evidence": "src/appearance/typography.js:5; src/browser/theme/dom.js:33; src/styles/panels/forge/construction.css:26",
+    "findings": [
+      "FND-02"
+    ]
+  },
+  {
+    "slug": "writing",
+    "title": "Writing",
+    "status": "partial",
+    "reason": "Action labels, contextual explanations and meaningful empty state copy generally present; share section jargon can be simplified.",
+    "evidence": "src/components/panels/export/export-panel-body.jsx:64; src/components/panels/complex-display/complex-display-panel.jsx:24",
+    "findings": [
+      "FND-04"
+    ]
+  },
+  {
+    "slug": "voiceover",
+    "title": "VoiceOver",
+    "status": "partial",
+    "reason": "Circuit live cursor and numerical scientific alternatives exist; virtualized table omits data. Actual speech/navigation not tested.",
+    "evidence": "src/components/panels/circuit/circuit-cursor.jsx:31; src/components/panels/state/state-panel.jsx:158",
+    "findings": [
+      "FND-01"
+    ]
+  }
+]

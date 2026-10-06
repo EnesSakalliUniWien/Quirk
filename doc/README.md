@@ -1,3 +1,5 @@
+# Quirk-Bench Manual
+
 **Basic Actions**
 
 - **add gate**: `drag` gate from toolbox to circuit
@@ -15,7 +17,7 @@
 - **add qubit**: `drag` gate onto extra wire that appears while dragging
 - **remove qubit**: re-arrange gates so that the bottom wire is unused
 - **show intermediate state**: `drag` a display gate onto the circuit
-- **view tips**: `hover` with mouse **OR** awkwardly tap-hold with finger
+- **view tips**: `hover` with mouse **OR** touch and hold
 - **step through the circuit**: the transport under the toolbar has two lanes. **Steps** walks
   the playhead through the columns: Play steps plays and pauses, Reset goes back to the start,
   Prev and Next step, the slider scrubs, and Breakpoint marks the column the playhead stands
@@ -23,13 +25,13 @@
   result, and stays there as the circuit is edited. Short of the end, the columns not yet run
   stand back under a veil and the outputs show the state reached there - at the start, the state
   the circuit starts in. Stepping never moves t
-- **record a take**: Record, at the end of the Steps lane, keeps this step - the state at the
-  playhead - or every step from the start to the end, on the Tape
+- **record a snapshot**: Record, at the end of the Steps lane, keeps this step - the state at the
+  playhead - or every step from the start to the end, in Recordings
 - **pause what moves**: `space` pauses whatever is moving - the steps, t, or both - and the next
   `space` brings it back; with nothing moving, it plays the steps
-- **watch or stop time**: spinning, counting and formula gates follow t, which runs through its
+- **watch or stop time**: time-dependent powers, counting and formula gates follow t, which runs through its
   cycle every 8 s. **Time**, the lane below, plays and pauses t, scrubs it and nudges it 1/32 at a
-  time, and says what holds it when something does - a recording or a restored take. With the
+  time, and says what holds it when something does - a recording or a restored snapshot. With the
   system's Reduce Motion on, t starts paused. Without a gate that uses t, the lane says so
 - **change the speed**: each lane ends in its own speed, from 0.25× to 4×: Steps' paces Play and
   Time's paces t's cycle; each choice says the pace it makes, and the browser keeps both
@@ -95,18 +97,18 @@
   keyboard's cell or the pointer and from the wire under it, or else after the selection or the
   circuit; nothing is
   overwritten, and the pasted gates are selected. Exported circuit JSON pastes the same way
-- **make a gate of a selection**: the bar's wand opens Make gate's Circuit tab with its columns and
+- **create a gate from a selection**: the bar's wand opens Create gate's Circuit tab with its columns and
   wires filled in
 - **set a gate's parameter**: click the 'change' button on a parametrized gate (the Rx/Ry/Rz
   rotation gates take their angle in radians)
 - **fold a toolbox group**: click the group's heading; the folding is remembered
 - **switch gates off and on**: Deactivate in a gate's menu or on the selection's bar
-- **create custom gate**: click 'Make gate' button
+- **create custom gate**: click 'Create gate' button
 - **remove custom gate**: [crummy support] have to use undo or clear all or manually edit URL
 
 **Constructing custom gates**
 
-Open **Make gate**, choose Rotation, Matrix, or Circuit, and inspect the operation and gate
+Open **Create gate**, choose Rotation, Matrix, or Circuit, and inspect the operation and gate
 preview. Drafts survive switching methods. **Create gate** adds the gate to Custom Gates and
 focuses it; press Enter to place it in the keyboard's cell, or on the top wire, or drag it into
 the circuit.

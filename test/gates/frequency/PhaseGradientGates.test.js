@@ -14,38 +14,53 @@
  * limitations under the License.
  */
 
-import {Suite} from "../../TestUtil.js"
+import { Suite } from "../../TestUtil.js";
 import {
-    assertThatCircuitShaderActsLikeMatrix,
-    assertThatGateActsLikePhaser,
-} from "../../CircuitOperationTestUtil.js"
-import {PHASE_GRADIENT_SHADER, PhaseGradientGates} from "../../../src/gates/frequency/PhaseGradientGates.js"
+  assertThatCircuitShaderActsLikeMatrix,
+  assertThatGateActsLikePhaser,
+} from "../../CircuitOperationTestUtil.js";
+import {
+  PHASE_GRADIENT_SHADER,
+  PhaseGradientGates,
+} from "../../../src/gates/frequency/PhaseGradientGates.js";
 
-import {Complex} from "../../../src/engine/math/complex/Complex.js"
-import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
-import {ketArgs} from "../../../src/engine/simulation/gpu/KetShaderUtil.js"
-import {WglArg} from "../../../src/engine/webgl/shader/WglArg.js"
+import { Complex } from "../../../src/engine/math/complex/Complex.js";
+import { Matrix } from "../../../src/engine/math/matrix/Matrix.js";
+import { ketArgs } from "../../../src/engine/simulation/gpu/KetShaderUtil.js";
+import { WglArg } from "../../../src/engine/webgl/shader/WglArg.js";
 
 const suite = new Suite("PhaseGradientGates");
 
-suite.testUsingWebGL('PHASE_GRADIENT_SHADER', () => {
-    assertThatCircuitShaderActsLikeMatrix(
-        ctx => PHASE_GRADIENT_SHADER.withArgs(...ketArgs(ctx, 3), WglArg.float('factor', Math.PI/8)),
-        Matrix.generateDiagonal(8, i => Complex.polar(1, i*Math.PI/8)));
+suite.testUsingWebGL("PHASE_GRADIENT_SHADER", () => {
+  assertThatCircuitShaderActsLikeMatrix(
+    (ctx) =>
+      PHASE_GRADIENT_SHADER.withArgs(
+        ...ketArgs(ctx, 3),
+        WglArg.float("factor", Math.PI / 8),
+      ),
+    Matrix.generateDiagonal(8, (i) => Complex.polar(1, (i * Math.PI) / 8)),
+  );
 
-    assertThatCircuitShaderActsLikeMatrix(
-        ctx => PHASE_GRADIENT_SHADER.withArgs(...ketArgs(ctx, 4), WglArg.float('factor', -Math.PI/16)),
-        Matrix.generateDiagonal(16, i => Complex.polar(1, -i*Math.PI/16)));
+  assertThatCircuitShaderActsLikeMatrix(
+    (ctx) =>
+      PHASE_GRADIENT_SHADER.withArgs(
+        ...ketArgs(ctx, 4),
+        WglArg.float("factor", -Math.PI / 16),
+      ),
+    Matrix.generateDiagonal(16, (i) => Complex.polar(1, (-i * Math.PI) / 16)),
+  );
 });
 
-suite.testUsingWebGL('DynamicPhaseGradientFamily', () => {
-    assertThatGateActsLikePhaser(
-        PhaseGradientGates.DynamicPhaseGradientFamily.ofSize(3),
-        k => 0.3*k,
-        0.3);
+suite.testUsingWebGL("DynamicPhaseGradientFamily", () => {
+  assertThatGateActsLikePhaser(
+    PhaseGradientGates.DynamicPhaseGradientFamily.ofSize(3),
+    (k) => 0.3 * k,
+    0.3,
+  );
 
-    assertThatGateActsLikePhaser(
-        PhaseGradientGates.DynamicPhaseDegradientFamily.ofSize(2),
-        k => -0.1*k,
-        0.1);
+  assertThatGateActsLikePhaser(
+    PhaseGradientGates.DynamicPhaseDegradientFamily.ofSize(2),
+    (k) => -0.1 * k,
+    0.1,
+  );
 });

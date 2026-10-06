@@ -14,39 +14,39 @@
  * limitations under the License.
  */
 
-import {Suite, assertThat} from "../TestUtil.js"
-import {RestartableRng} from "../../src/base/RestartableRng.js"
+import { Suite, assertThat } from "../TestUtil.js";
+import { RestartableRng } from "../../src/base/RestartableRng.js";
 
 const suite = new Suite("RestartableRng");
 
 suite.test("pre-repeat_multiple-copies", () => {
-    const rng1 = new RestartableRng();
-    const v1 = rng1.random();
-    const v2 = rng1.random();
+  const rng1 = new RestartableRng();
+  const v1 = rng1.random();
+  const v2 = rng1.random();
 
-    const rng2 = rng1.restarted();
-    assertThat(rng2.random()).isEqualTo(v1);
-    assertThat(rng2.random()).isEqualTo(v2);
+  const rng2 = rng1.restarted();
+  assertThat(rng2.random()).isEqualTo(v1);
+  assertThat(rng2.random()).isEqualTo(v2);
 
-    const rng3 = rng2.restarted();
-    assertThat(rng3.random()).isEqualTo(v1);
-    assertThat(rng3.random()).isEqualTo(v2);
+  const rng3 = rng2.restarted();
+  assertThat(rng3.random()).isEqualTo(v1);
+  assertThat(rng3.random()).isEqualTo(v2);
 
-    const rng4 = rng1.restarted();
-    assertThat(rng4.random()).isEqualTo(v1);
-    assertThat(rng4.random()).isEqualTo(v2);
+  const rng4 = rng1.restarted();
+  assertThat(rng4.random()).isEqualTo(v1);
+  assertThat(rng4.random()).isEqualTo(v2);
 });
 
 suite.test("post-repeat", () => {
-    const rng1 = new RestartableRng();
-    const rng2 = rng1.restarted();
-    const v1 = rng1.random();
-    assertThat(rng2.random()).isEqualTo(v1);
+  const rng1 = new RestartableRng();
+  const rng2 = rng1.restarted();
+  const v1 = rng1.random();
+  assertThat(rng2.random()).isEqualTo(v1);
 });
 
 suite.test("reverse-repeat", () => {
-    const rng1 = new RestartableRng();
-    const rng2 = rng1.restarted();
-    const v1 = rng2.random();
-    assertThat(rng1.random()).isEqualTo(v1);
+  const rng1 = new RestartableRng();
+  const rng2 = rng1.restarted();
+  const v1 = rng2.random();
+  assertThat(rng1.random()).isEqualTo(v1);
 });

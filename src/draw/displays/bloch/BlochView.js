@@ -14,20 +14,32 @@
  * limitations under the License.
  */
 
-import {TooltipLayer} from '../../tooltips/TooltipView.js';
-import {AXIS_COLOR} from './BlochGeometry.js';
-import {DEFAULT_VIEW, axisLabelPosition, glanceBoxFor, paintBlochScene, projectPoint} from './BlochScene.js';
-import {fitText} from '../../text/TextLayout.js';
-import {circle, rectangle} from '../../shapes/ShapeView.js';
+import { signedFixed } from "../../../base/Format.js";
+import { TooltipLayer } from "../../tooltips/TooltipView.js";
+import { AXIS_COLOR } from "./BlochGeometry.js";
+import {
+  DEFAULT_VIEW,
+  axisLabelPosition,
+  glanceBoxFor,
+  paintBlochScene,
+  projectPoint,
+} from "./BlochScene.js";
+import { fitText } from "../../text/TextLayout.js";
+import { circle, rectangle } from "../../shapes/ShapeView.js";
 
 /** @typedef {import('../../scene/DisplayView.js').DisplayView} DisplayView */
 
-import {CanvasTheme} from '../../../config/CanvasTheme.js';
-import {Layout} from '../../../config/Layout.js';
-import {Point} from '../../../geometry/Point.js';
-import {Rect} from '../../../geometry/Rect.js';
-import {Typography} from '../../../config/Typography.js';
-import {blochCoordinates, blochReading, degreesText, PURE_STATE_THRESHOLD} from '../../../engine/math/bloch.js';
+import { CanvasTheme } from "../../../config/CanvasTheme.js";
+import { Layout } from "../../../config/Layout.js";
+import { Point } from "../../../geometry/Point.js";
+import { Rect } from "../../../geometry/Rect.js";
+import { Typography } from "../../../config/Typography.js";
+import {
+  blochCoordinates,
+  blochReading,
+  degreesText,
+  PURE_STATE_THRESHOLD,
+} from "../../../engine/math/bloch.js";
 
 /**
  * The hover ring and tooltip: the same reading the analyzer gives, with the same rules - an angle
@@ -39,22 +51,31 @@ import {blochCoordinates, blochReading, degreesText, PURE_STATE_THRESHOLD} from 
  * @param {!import('../../../engine/math/bloch.js').BlochReading} reading
  * @param {!Array.<!Point>} focusPoints
  */
-function _paintBlochSphereDisplay_tooltips(painter, c, u, vec, reading, focusPoints) {
-    if (focusPoints.every(pt => pt.distanceTo(c) >= u)) {
-        return;
-    }
-    const {r, theta, phi} = reading;
-    const forceSign = v => (v >= 0 ? '+' : '') + v.toFixed(4);
-    circle(painter, c, u, {stroke: {color: CanvasTheme.interaction.outline, width: 2}});
-    TooltipLayer.forView(painter).show(painter, {
-        x: c.x+u*Math.sqrt(0.5),
-        y: c.y-u*Math.sqrt(0.5),
-        labelText: 'Bloch sphere · click to enlarge',
-        // |r| is the vector's length: 1 for a pure qubit, less when it is mixed or entangled.
-        valueText: `|r| ${r.toFixed(3)} (${r > PURE_STATE_THRESHOLD ? 'pure' : 'mixed or entangled, no single direction'}), ` +
-            `θ:${degreesText(theta)}, ϕ:${degreesText(phi)}`,
-        valueText2: `x:${forceSign(vec.x)}, y:${forceSign(vec.y)}, z:${forceSign(vec.z)}`
-    });
+function _paintBlochSphereDisplay_tooltips(
+  painter,
+  c,
+  u,
+  vec,
+  reading,
+  focusPoints,
+) {
+  if (focusPoints.every((pt) => pt.distanceTo(c) >= u)) {
+    return;
+  }
+  const { r, theta, phi } = reading;
+  circle(painter, c, u, {
+    stroke: { color: CanvasTheme.interaction.outline, width: 2 },
+  });
+  TooltipLayer.forView(painter).show(painter, {
+    x: c.x + u * Math.sqrt(0.5),
+    y: c.y - u * Math.sqrt(0.5),
+    labelText: "Bloch sphere · click to enlarge",
+    // |r| is the vector's length: 1 for a pure qubit, less when it is mixed or entangled.
+    valueText:
+      `|r| ${r.toFixed(3)} (${r > PURE_STATE_THRESHOLD ? "pure" : "mixed or entangled, no single direction"}), ` +
+      `θ:${degreesText(theta)}, ϕ:${degreesText(phi)}`,
+    valueText2: `x:${signedFixed(vec.x, 4)}, y:${signedFixed(vec.y, 4)}, z:${signedFixed(vec.z, 4)}`,
+  });
 }
 
 /**
@@ -63,31 +84,35 @@ function _paintBlochSphereDisplay_tooltips(painter, c, u, vec, reading, focusPoi
  * @param {!number} r The length of the reduced Bloch vector.
  */
 function _paintBlochSphereDisplay_purity(painter, drawArea, r) {
-    const x = drawArea.center().x;
-    const y = drawArea.bottom();
-    const readoutHeight = drawArea.w * Layout.BLOCH_READOUT_HEIGHT /
-        (2 * (Layout.BLOCH_RADIUS + Layout.BLOCH_LABEL_MARGIN));
-    const fontSize = readoutHeight * 0.75;
-    // A mixed state greys out, as its ball does; a pure one reads in the primary ink.
-    fitText(painter, `|r| ${r.toFixed(3)}`, {
-        x,
-        y,
-        align: 'center',
-        baseline: 'bottom',
-        fill: r > PURE_STATE_THRESHOLD ? CanvasTheme.text.primary : CanvasTheme.bloch.mixed,
-        font: {fontSize: fontSize, fontFamily: Typography.MONO_FONT_FAMILY},
-        width: drawArea.w,
-        height: readoutHeight,
-        changing: true,
-        beforeDraw: (w, h) => {
-            painter.group('purity-plate-' + painter.order, painter => {
-                painter.alpha *= 0.7;
-                rectangle(painter, new Rect(x - w / 2 - 1, y - h, w + 2, h), {
-                    fill: CanvasTheme.surface.background
-                });
-            });
-        }
-    });
+  const x = drawArea.center().x;
+  const y = drawArea.bottom();
+  const readoutHeight =
+    (drawArea.w * Layout.BLOCH_READOUT_HEIGHT) /
+    (2 * (Layout.BLOCH_RADIUS + Layout.BLOCH_LABEL_MARGIN));
+  const fontSize = readoutHeight * 0.75;
+  // A mixed state greys out, as its ball does; a pure one reads in the primary ink.
+  fitText(painter, `|r| ${r.toFixed(3)}`, {
+    x,
+    y,
+    align: "center",
+    baseline: "bottom",
+    fill:
+      r > PURE_STATE_THRESHOLD
+        ? CanvasTheme.text.primary
+        : CanvasTheme.bloch.mixed,
+    font: { fontSize: fontSize, fontFamily: Typography.MONO_FONT_FAMILY },
+    width: drawArea.w,
+    height: readoutHeight,
+    changing: true,
+    beforeDraw: (w, h) => {
+      painter.group("purity-plate-" + painter.order, (painter) => {
+        painter.alpha *= 0.7;
+        rectangle(painter, new Rect(x - w / 2 - 1, y - h, w + 2, h), {
+          fill: CanvasTheme.surface.background,
+        });
+      });
+    },
+  });
 }
 
 /**
@@ -104,54 +129,67 @@ function _paintBlochSphereDisplay_purity(painter, drawArea, r) {
  * @param {!Array.<!Point>=} focusPoints
  */
 function paintBlochSphereDisplay(
-        painter,
-        qubitDensityMatrix,
-        drawArea,
-        focusPoints = []) {
-    const u = Math.min(
-        drawArea.w * Layout.BLOCH_RADIUS / (2 * (Layout.BLOCH_RADIUS + Layout.BLOCH_LABEL_MARGIN)),
-        drawArea.h * Layout.BLOCH_RADIUS /
-            (2 * (Layout.BLOCH_RADIUS + Layout.BLOCH_LABEL_MARGIN) + Layout.BLOCH_READOUT_HEIGHT));
-    const margin = u * Layout.BLOCH_LABEL_MARGIN / Layout.BLOCH_RADIUS;
-    const c = new Point(drawArea.center().x, drawArea.y + margin + u);
+  painter,
+  qubitDensityMatrix,
+  drawArea,
+  focusPoints = [],
+) {
+  const u = Math.min(
+    (drawArea.w * Layout.BLOCH_RADIUS) /
+      (2 * (Layout.BLOCH_RADIUS + Layout.BLOCH_LABEL_MARGIN)),
+    (drawArea.h * Layout.BLOCH_RADIUS) /
+      (2 * (Layout.BLOCH_RADIUS + Layout.BLOCH_LABEL_MARGIN) +
+        Layout.BLOCH_READOUT_HEIGHT),
+  );
+  const margin = (u * Layout.BLOCH_LABEL_MARGIN) / Layout.BLOCH_RADIUS;
+  const c = new Point(drawArea.center().x, drawArea.y + margin + u);
 
-    const hasNaN = qubitDensityMatrix.hasNaN();
-    const vec = hasNaN ? undefined : blochCoordinates(qubitDensityMatrix);
-    const reading = hasNaN ? undefined : blochReading(vec);
-    const r = hasNaN ? NaN : Math.min(1, reading.r);
+  const hasNaN = qubitDensityMatrix.hasNaN();
+  const vec = hasNaN ? undefined : blochCoordinates(qubitDensityMatrix);
+  const reading = hasNaN ? undefined : blochReading(vec);
+  const r = hasNaN ? NaN : Math.min(1, reading.r);
 
-    // The shared painter, sized so its sphere has radius u about c, drawn in this painter's own
-    // coordinates and unfilled, so a hovered gate's tint shows around the sphere.
-    const size = glanceBoxFor(u);
-    paintBlochScene(painter, size, vec, DEFAULT_VIEW.yaw, DEFAULT_VIEW.pitch,
-        {origin: {x: c.x - size / 2, y: c.y - size / 2}, transparent: true, reading});
+  // The shared painter, sized so its sphere has radius u about c, drawn in this painter's own
+  // coordinates and unfilled, so a hovered gate's tint shows around the sphere.
+  const size = glanceBoxFor(u);
+  paintBlochScene(painter, size, vec, DEFAULT_VIEW.yaw, DEFAULT_VIEW.pitch, {
+    origin: { x: c.x - size / 2, y: c.y - size / 2 },
+    transparent: true,
+    reading,
+  });
 
-    // Each positive axis named in its colour, where the analyzer puts the same axis's ket: past the
-    // axis's end, and clear of the state's tip.
-    const onScreen = ([x, y, z]) => {
-        const p = projectPoint(x, y, z, DEFAULT_VIEW.yaw, DEFAULT_VIEW.pitch);
-        return {x: c.x + p.sx * u, y: c.y - p.sy * u};
-    };
-    const tip = vec === undefined ? undefined : onScreen([vec.x, vec.y, vec.z]);
-    for (const [label, dir, color] of [['X', [1, 0, 0], AXIS_COLOR.x], ['Y', [0, 1, 0], AXIS_COLOR.y],
-            ['Z', [0, 0, 1], AXIS_COLOR.z]]) {
-        const p = axisLabelPosition(c, onScreen(dir), tip, {reach: u * 0.24, clearance: u * 0.3});
-        fitText(painter, label, {
-            x: p.x,
-            y: p.y,
-            align: 'center',
-            baseline: 'middle',
-            fill: color,
-            font: {fontSize: u * 0.36, fontFamily: Typography.MONO_FONT_FAMILY},
-            width: u * 0.45,
-            height: u * 0.6
-        });
-    }
+  // Each positive axis named in its colour, where the analyzer puts the same axis's ket: past the
+  // axis's end, and clear of the state's tip.
+  const onScreen = ([x, y, z]) => {
+    const p = projectPoint(x, y, z, DEFAULT_VIEW.yaw, DEFAULT_VIEW.pitch);
+    return { x: c.x + p.sx * u, y: c.y - p.sy * u };
+  };
+  const tip = vec === undefined ? undefined : onScreen([vec.x, vec.y, vec.z]);
+  for (const [label, dir, color] of [
+    ["X", [1, 0, 0], AXIS_COLOR.x],
+    ["Y", [0, 1, 0], AXIS_COLOR.y],
+    ["Z", [0, 0, 1], AXIS_COLOR.z],
+  ]) {
+    const p = axisLabelPosition(c, onScreen(dir), tip, {
+      reach: u * 0.24,
+      clearance: u * 0.3,
+    });
+    fitText(painter, label, {
+      x: p.x,
+      y: p.y,
+      align: "center",
+      baseline: "middle",
+      fill: color,
+      font: { fontSize: u * 0.36, fontFamily: Typography.MONO_FONT_FAMILY },
+      width: u * 0.45,
+      height: u * 0.6,
+    });
+  }
 
-    if (!hasNaN) {
-        _paintBlochSphereDisplay_purity(painter, drawArea, r);
-        _paintBlochSphereDisplay_tooltips(painter, c, u, vec, reading, focusPoints);
-    }
+  if (!hasNaN) {
+    _paintBlochSphereDisplay_purity(painter, drawArea, r);
+    _paintBlochSphereDisplay_tooltips(painter, c, u, vec, reading, focusPoints);
+  }
 }
 
-export {paintBlochSphereDisplay};
+export { paintBlochSphereDisplay };

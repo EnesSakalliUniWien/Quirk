@@ -13,7 +13,7 @@ import { ReadoutSection } from "./readout-section.jsx";
 const UNAVAILABLE = "n/a";
 
 /**
- * The readout beside the controls, in two groups by what they describe: the Bloch vector - its
+ * The readout below the figures, in two groups by what they describe: the Bloch vector - its
  * length and angles, its Cartesian components and the quaternion that turns |0⟩ onto it - and the
  * quantum state - its amplitudes, its purity and its ket. Each value sits in one right-aligned
  * column so they scan down.
@@ -36,7 +36,10 @@ function ReadoutSidebar({ readout, className }) {
   ];
 
   return (
-    <aside className={["bloch-sidebar", className].filter(Boolean).join(" ")} aria-label="Readout">
+    <aside
+      className={["bloch-sidebar", className].filter(Boolean).join(" ")}
+      aria-label="Readout"
+    >
       <AnalyzerGroup title="Bloch vector" purpose="where the state points">
         <ReadoutSection title="Length and angles">
           <dl className="bloch-readout">
@@ -104,7 +107,7 @@ function ReadoutSidebar({ readout, className }) {
 
       <AnalyzerGroup title="Quantum state" purpose="what the qubit holds">
         <ReadoutSection title="Quantum amplitudes">
-          <dl className="bloch-readout">
+          <dl className="bloch-readout bloch-readout-amplitudes">
             {amplitudes.map(({ name, formula, value: amplitude }) => (
               <ReadoutRow
                 key={name}

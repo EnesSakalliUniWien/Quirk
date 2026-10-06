@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-import { Inputs, Outputs, makePseudoShaderWithInputsAndOutputAndCode } from "../../coder/ShaderCoders.js";
+import {
+  Inputs,
+  Outputs,
+  makePseudoShaderWithInputsAndOutputAndCode,
+} from "../../coder/ShaderCoders.js";
 
 const LINEAR_OVERLAY_SHADER = makePseudoShaderWithInputsAndOutputAndCode(
-    [
-        Inputs.vec4('back'),
-        Inputs.vec4('fore')
-    ],
-    Outputs.vec4(),
-    `
+  [Inputs.vec4("back"), Inputs.vec4("fore")],
+  Outputs.vec4(),
+  `
     uniform float offset;
     vec4 outputFor(float k) {
         // Note: can't use multiplication to combine because it spreads NaNs from the background into the foreground.
         return k >= offset && k < offset + len_fore() ? read_fore(k - offset) : read_back(k);
-    }`);
+    }`,
+);
 
 export { LINEAR_OVERLAY_SHADER };

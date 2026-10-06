@@ -15,11 +15,13 @@ const secondsText = (seconds) => `${Number(seconds.toFixed(2))} s`;
 const PACES = Object.freeze({
   steps: Object.freeze({
     name: "Step speed",
-    pace: (speed) => `a step every ${secondsText(Animation.PLAYHEAD_STEP_DURATION_MS / 1000 / speed)}`,
+    pace: (speed) =>
+      `a step every ${secondsText(Animation.PLAYHEAD_STEP_DURATION_MS / 1000 / speed)}`,
   }),
   time: Object.freeze({
     name: "t speed",
-    pace: (speed) => `t cycles in ${secondsText(Animation.CYCLE_DURATION_MS / 1000 / speed)}`,
+    pace: (speed) =>
+      `t cycles in ${secondsText(Animation.CYCLE_DURATION_MS / 1000 / speed)}`,
   }),
 });
 
@@ -39,21 +41,40 @@ function SpeedMenu({ lane, value, onChange }) {
     <Menu.Root>
       <Menu.Trigger
         render={
-          <Button id={`${lane}-speed-button`} aria-label={`${name}, ${value}×`} title={`${name}: ${pace(value)}`} />
+          <Button
+            id={`${lane}-speed-button`}
+            aria-label={`${name}, ${value}×`}
+            title={`${name}: ${pace(value)}`}
+          />
         }
       >
         <GaugeIcon data-icon="inline-start" aria-hidden="true" />
         <span className={styles.value}>{value}×</span>
       </Menu.Trigger>
       <Menu.Portal>
-        <Menu.Positioner className="app-menu-positioner" side="bottom" align="end" sideOffset={4}>
+        <Menu.Positioner
+          className="app-menu-positioner"
+          side="bottom"
+          align="end"
+          sideOffset={4}
+        >
           <Menu.Popup className="app-menu" aria-label={name}>
             <Menu.Group>
-              <Menu.GroupLabel className="app-menu-label">{name}</Menu.GroupLabel>
-              <Menu.RadioGroup value={value} onValueChange={(speed) => onChange(speed)}>
+              <Menu.GroupLabel className="app-menu-label">
+                {name}
+              </Menu.GroupLabel>
+              <Menu.RadioGroup
+                value={value}
+                onValueChange={(speed) => onChange(speed)}
+              >
                 {Animation.SPEEDS.map((option) => (
                   // A speed is chosen once; the menu gets out of the way of the lane it paces.
-                  <Menu.RadioItem key={option} className="app-menu-item" value={option} closeOnClick>
+                  <Menu.RadioItem
+                    key={option}
+                    className="app-menu-item"
+                    value={option}
+                    closeOnClick
+                  >
                     <span className={styles.item}>
                       <span className={styles.value}>{option}×</span>
                       <span className={styles.paces}>{pace(option)}</span>

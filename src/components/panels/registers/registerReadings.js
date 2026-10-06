@@ -42,7 +42,10 @@ function registerReadings(stats, wireCount) {
     return {
       register,
       values,
-      qubits: Array.from({ length: register.length }, (_, k) => marginals[register.start + k]),
+      qubits: Array.from(
+        { length: register.length },
+        (_, k) => marginals[register.start + k],
+      ),
     };
   });
 }

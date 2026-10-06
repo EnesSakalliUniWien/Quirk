@@ -15,7 +15,7 @@
  */
 
 import { Matrix } from "../../../engine/math/matrix/Matrix.js";
-import { decohereMeasuredBitsInDensityMatrix } from "./decohereMeasuredBitsInDensityMatrix.js";
+import { decohereMeasuredBitsInDensityMatrix } from "../../../engine/math/matrix/densityMatrix.js";
 
 /**
  * Normalizes density pixels, removes measured-bit coherences, and transposes for display.
@@ -26,21 +26,24 @@ import { decohereMeasuredBitsInDensityMatrix } from "./decohereMeasuredBitsInDen
  * @returns {!Matrix}
  */
 function densityPixelsToMatrix(pixels, circuitDefinition, col, row) {
-    const n = pixels.length >> 1;
-    const d = Math.round(Math.sqrt(n));
-    let unity = 0;
-    for (let i = 0; i < d; i++) {
-        unity += pixels[2*i*(d+1)];
-    }
-    if (Number.isNaN(unity) || unity < 0.000001) {
-        return Matrix.zero(d, d).times(NaN);
-    }
-    for (let i = 0; i < pixels.length; i++) {
-        pixels[i] /= unity;
-    }
+  const n = pixels.length >> 1;
+  const d = Math.round(Math.sqrt(n));
+  let unity = 0;
+  for (let i = 0; i < d; i++) {
+    unity += pixels[2 * i * (d + 1)];
+  }
+  if (Number.isNaN(unity) || unity < 0.000001) {
+    return Matrix.zero(d, d).times(NaN);
+  }
+  for (let i = 0; i < pixels.length; i++) {
+    pixels[i] /= unity;
+  }
 
-    const isMeasuredMask = circuitDefinition.colIsMeasuredMask(col) >> row;
-    return decohereMeasuredBitsInDensityMatrix(new Matrix(d, d, pixels), isMeasuredMask).transpose();
+  const isMeasuredMask = circuitDefinition.colIsMeasuredMask(col) >> row;
+  return decohereMeasuredBitsInDensityMatrix(
+    new Matrix(d, d, pixels),
+    isMeasuredMask,
+  ).transpose();
 }
 
 export { densityPixelsToMatrix };

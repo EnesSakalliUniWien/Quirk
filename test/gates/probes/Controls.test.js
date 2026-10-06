@@ -14,204 +14,226 @@
  * limitations under the License.
  */
 
-import {assertThat, Suite} from "../../TestUtil.js"
-import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js"
-import {CircuitStats} from "../../../src/engine/simulation/CircuitStats.js";
-import {Gate} from "../../../src/circuit/model/Gate.js"
-import {GateColumn} from "../../../src/circuit/model/GateColumn.js"
-import {Gates} from "../../../src/gates/AllGates.js"
+import { assertThat, Suite } from "../../TestUtil.js";
+import { CircuitDefinition } from "../../../src/circuit/model/CircuitDefinition.js";
+import { CircuitStats } from "../../../src/engine/simulation/CircuitStats.js";
+import { Gate } from "../../../src/circuit/model/Gate.js";
+import { GateColumn } from "../../../src/circuit/model/GateColumn.js";
+import { Gates } from "../../../src/gates/AllGates.js";
 
-import {Complex} from "../../../src/engine/math/complex/Complex.js"
-import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
+import { Complex } from "../../../src/engine/math/complex/Complex.js";
+import { Matrix } from "../../../src/engine/math/matrix/Matrix.js";
 import { popcnt } from "../../../src/engine/math/bitOperations.js";
-import {advanceStateWithCircuit} from "../../../src/engine/simulation/CircuitComputeUtil.js";
-import {
-    assertThatCircuitUpdateActsLikeMatrix,
-} from "../../CircuitOperationTestUtil.js";
-import {determinant} from "../../MatrixTestUtil.js"
+import { advanceStateWithCircuit } from "../../../src/engine/simulation/CircuitComputeUtil.js";
+import { assertThatCircuitUpdateActsLikeMatrix } from "../../CircuitOperationTestUtil.js";
+import { determinant } from "../../MatrixTestUtil.js";
 
 const suite = new Suite("Gates.Controls");
 
 function assertControlOverlapState(control, expectedOverlap, state) {
-    const [a, b] = state;
-    let u = Matrix.square(a, Complex.from(b).conjugate().neg(),
-                          b, Complex.from(a).conjugate());
-    u = u.times(1/Math.sqrt(determinant(u).abs()));
-    assertThat(u.isUnitary(0.00001)).withInfo({state, u}).isEqualTo(true);
+  const [a, b] = state;
+  let u = Matrix.square(
+    a,
+    Complex.from(b).conjugate().neg(),
+    b,
+    Complex.from(a).conjugate(),
+  );
+  u = u.times(1 / Math.sqrt(determinant(u).abs()));
+  assertThat(u.isUnitary(0.00001)).withInfo({ state, u }).isEqualTo(true);
 
-    const circuit = new CircuitDefinition(2, [
-        new GateColumn([Gate.fromKnownMatrix('****', u, '', ''), undefined]),
-        new GateColumn([control, Gates.HalfTurns.X]),
-    ]);
-    const stats = CircuitStats.fromCircuitAtTime(circuit, 0);
-    const overlap = stats.controlledWireProbabilityJustAfter(1, Infinity);
-    assertThat(overlap).isApproximatelyEqualTo(expectedOverlap)
+  const circuit = new CircuitDefinition(2, [
+    new GateColumn([Gate.fromKnownMatrix("****", u, "", ""), undefined]),
+    new GateColumn([control, Gates.HalfTurns.X]),
+  ]);
+  const stats = CircuitStats.fromCircuitAtTime(circuit, 0);
+  const overlap = stats.controlledWireProbabilityJustAfter(1, Infinity);
+  assertThat(overlap).isApproximatelyEqualTo(expectedOverlap);
 }
 
-suite.testUsingWebGL('control', () => {
-    const i = Complex.I;
-    const c = Gates.Controls.Control;
-    assertControlOverlapState(c, 0, [1, 0]);
-    assertControlOverlapState(c, 1, [0, 1]);
-    assertControlOverlapState(c, 0.5, [1, 1]);
-    assertControlOverlapState(c, 0.5, [-1, 1]);
-    assertControlOverlapState(c, 0.5, [1, i]);
-    assertControlOverlapState(c, 0.5, [-1, i]);
+suite.testUsingWebGL("control", () => {
+  const i = Complex.I;
+  const c = Gates.Controls.Control;
+  assertControlOverlapState(c, 0, [1, 0]);
+  assertControlOverlapState(c, 1, [0, 1]);
+  assertControlOverlapState(c, 0.5, [1, 1]);
+  assertControlOverlapState(c, 0.5, [-1, 1]);
+  assertControlOverlapState(c, 0.5, [1, i]);
+  assertControlOverlapState(c, 0.5, [-1, i]);
 });
 
-suite.testUsingWebGL('anti-control', () => {
-    const i = Complex.I;
-    const c = Gates.Controls.AntiControl;
-    assertControlOverlapState(c, 1, [1, 0]);
-    assertControlOverlapState(c, 0, [0, 1]);
-    assertControlOverlapState(c, 0.5, [1, 1]);
-    assertControlOverlapState(c, 0.5, [-1, 1]);
-    assertControlOverlapState(c, 0.5, [1, i]);
-    assertControlOverlapState(c, 0.5, [-1, i]);
+suite.testUsingWebGL("anti-control", () => {
+  const i = Complex.I;
+  const c = Gates.Controls.AntiControl;
+  assertControlOverlapState(c, 1, [1, 0]);
+  assertControlOverlapState(c, 0, [0, 1]);
+  assertControlOverlapState(c, 0.5, [1, 1]);
+  assertControlOverlapState(c, 0.5, [-1, 1]);
+  assertControlOverlapState(c, 0.5, [1, i]);
+  assertControlOverlapState(c, 0.5, [-1, i]);
 });
 
-suite.testUsingWebGL('X-anti-control', () => {
-    const i = Complex.I;
-    const c = Gates.Controls.XAntiControl;
-    assertControlOverlapState(c, 0.5, [1, 0]);
-    assertControlOverlapState(c, 0.5, [0, 1]);
-    assertControlOverlapState(c, 1, [1, 1]);
-    assertControlOverlapState(c, 0, [-1, 1]);
-    assertControlOverlapState(c, 0.5, [1, i]);
-    assertControlOverlapState(c, 0.5, [-1, i]);
+suite.testUsingWebGL("X-anti-control", () => {
+  const i = Complex.I;
+  const c = Gates.Controls.XAntiControl;
+  assertControlOverlapState(c, 0.5, [1, 0]);
+  assertControlOverlapState(c, 0.5, [0, 1]);
+  assertControlOverlapState(c, 1, [1, 1]);
+  assertControlOverlapState(c, 0, [-1, 1]);
+  assertControlOverlapState(c, 0.5, [1, i]);
+  assertControlOverlapState(c, 0.5, [-1, i]);
 });
 
-suite.testUsingWebGL('X-control', () => {
-    const i = Complex.I;
-    const c = Gates.Controls.XControl;
-    assertControlOverlapState(c, 0.5, [1, 0]);
-    assertControlOverlapState(c, 0.5, [0, 1]);
-    assertControlOverlapState(c, 0, [1, 1]);
-    assertControlOverlapState(c, 1, [-1, 1]);
-    assertControlOverlapState(c, 0.5, [1, i]);
-    assertControlOverlapState(c, 0.5, [-1, i]);
+suite.testUsingWebGL("X-control", () => {
+  const i = Complex.I;
+  const c = Gates.Controls.XControl;
+  assertControlOverlapState(c, 0.5, [1, 0]);
+  assertControlOverlapState(c, 0.5, [0, 1]);
+  assertControlOverlapState(c, 0, [1, 1]);
+  assertControlOverlapState(c, 1, [-1, 1]);
+  assertControlOverlapState(c, 0.5, [1, i]);
+  assertControlOverlapState(c, 0.5, [-1, i]);
 });
 
-suite.testUsingWebGL('Y-anti-control', () => {
-    const i = Complex.I;
-    const c = Gates.Controls.YAntiControl;
-    assertControlOverlapState(c, 0.5, [1, 0]);
-    assertControlOverlapState(c, 0.5, [0, 1]);
-    assertControlOverlapState(c, 0.5, [1, 1]);
-    assertControlOverlapState(c, 0.5, [-1, 1]);
-    assertControlOverlapState(c, 1, [1, i]);
-    assertControlOverlapState(c, 0, [-1, i]);
+suite.testUsingWebGL("Y-anti-control", () => {
+  const i = Complex.I;
+  const c = Gates.Controls.YAntiControl;
+  assertControlOverlapState(c, 0.5, [1, 0]);
+  assertControlOverlapState(c, 0.5, [0, 1]);
+  assertControlOverlapState(c, 0.5, [1, 1]);
+  assertControlOverlapState(c, 0.5, [-1, 1]);
+  assertControlOverlapState(c, 1, [1, i]);
+  assertControlOverlapState(c, 0, [-1, i]);
 });
 
-suite.testUsingWebGL('Y-control', () => {
-    const i = Complex.I;
-    const c = Gates.Controls.YControl;
-    assertControlOverlapState(c, 0.5, [1, 0]);
-    assertControlOverlapState(c, 0.5, [0, 1]);
-    assertControlOverlapState(c, 0.5, [1, 1]);
-    assertControlOverlapState(c, 0.5, [-1, 1]);
-    assertControlOverlapState(c, 0, [1, i]);
-    assertControlOverlapState(c, 1, [-1, i]);
+suite.testUsingWebGL("Y-control", () => {
+  const i = Complex.I;
+  const c = Gates.Controls.YControl;
+  assertControlOverlapState(c, 0.5, [1, 0]);
+  assertControlOverlapState(c, 0.5, [0, 1]);
+  assertControlOverlapState(c, 0.5, [1, 1]);
+  assertControlOverlapState(c, 0.5, [-1, 1]);
+  assertControlOverlapState(c, 0, [1, i]);
+  assertControlOverlapState(c, 1, [-1, i]);
 });
 
-suite.testUsingWebGL('Z-parity', () => {
-    assertThatCircuitUpdateActsLikeMatrix(
-        ctx => advanceStateWithCircuit(
-            ctx,
-            new CircuitDefinition(2, [new GateColumn([
-                Gates.Controls.ZParityControl,
-                Gates.HalfTurns.Z
-            ])]),
-            false),
-        Matrix.generateDiagonal(1 << 2, i => i === 3 ? -1 : 1));
-
-    assertThatCircuitUpdateActsLikeMatrix(
-        ctx => advanceStateWithCircuit(
-            ctx,
-            new CircuitDefinition(4, [new GateColumn([
-                Gates.Controls.ZParityControl,
-                undefined,
-                Gates.Controls.ZParityControl,
-                Gates.HalfTurns.Z])
-            ]),
-            false),
-        Matrix.generateDiagonal(1 << 4, i => popcnt(i & 5) % 2 === 1 && ((i & 8) !== 0) ? -1 : 1));
-});
-
-suite.testUsingWebGL('X-parity', () => {
-    assertThatCircuitUpdateActsLikeMatrix(
-        ctx => advanceStateWithCircuit(
-            ctx,
-            new CircuitDefinition(4, [
-                new GateColumn([
-                    Gates.HalfTurns.H,
-                    Gates.HalfTurns.H,
-                    Gates.HalfTurns.H,
-                    undefined,
-                ]),
-                new GateColumn([
-                    Gates.Controls.XParityControl,
-                    Gates.Controls.XParityControl,
-                    Gates.Controls.XParityControl,
-                    Gates.HalfTurns.Z
-                ]),
-                new GateColumn([
-                    Gates.HalfTurns.H,
-                    Gates.HalfTurns.H,
-                    Gates.HalfTurns.H,
-                    undefined,
-                ]),
-            ]),
-            false),
-        Matrix.generateDiagonal(1 << 4, i => popcnt(i & 7) % 2 === 1 && ((i & 8) !== 0) ? -1 : 1));
-});
-
-suite.testUsingWebGL('X-parity', () => {
-    assertThatCircuitUpdateActsLikeMatrix(
-        ctx => advanceStateWithCircuit(
-            ctx,
-            new CircuitDefinition(4, [
-                new GateColumn([
-                    Gates.QuarterTurns.SqrtXBackward,
-                    Gates.QuarterTurns.SqrtXBackward,
-                    Gates.QuarterTurns.SqrtXBackward,
-                    undefined,
-                ]),
-                new GateColumn([
-                    Gates.Controls.YParityControl,
-                    Gates.Controls.YParityControl,
-                    Gates.Controls.YParityControl,
-                    Gates.HalfTurns.Z,
-                ]),
-                new GateColumn([
-                    Gates.QuarterTurns.SqrtXForward,
-                    Gates.QuarterTurns.SqrtXForward,
-                    Gates.QuarterTurns.SqrtXForward,
-                    undefined,
-                ]),
-            ]),
-            false),
-        Matrix.generateDiagonal(1 << 4, i => popcnt(i & 7) % 2 === 1 && ((i & 8) !== 0) ? -1 : 1));
-});
-
-suite.test('xyParityControlsDisabledByMeasurement', () => {
-    const c = CircuitDefinition.fromTextDiagram(
-        new Map([
-            ['M', Gates.Special.Measurement],
-            ['H', Gates.HalfTurns.H],
-            ['x', Gates.Controls.XParityControl],
-            ['y', Gates.Controls.YParityControl],
-            ['z', Gates.Controls.ZParityControl],
-            ['-', undefined],
+suite.testUsingWebGL("Z-parity", () => {
+  assertThatCircuitUpdateActsLikeMatrix(
+    (ctx) =>
+      advanceStateWithCircuit(
+        ctx,
+        new CircuitDefinition(2, [
+          new GateColumn([Gates.Controls.ZParityControl, Gates.HalfTurns.Z]),
         ]),
-        `-x-M-x-
+        false,
+      ),
+    Matrix.generateDiagonal(1 << 2, (i) => (i === 3 ? -1 : 1)),
+  );
+
+  assertThatCircuitUpdateActsLikeMatrix(
+    (ctx) =>
+      advanceStateWithCircuit(
+        ctx,
+        new CircuitDefinition(4, [
+          new GateColumn([
+            Gates.Controls.ZParityControl,
+            undefined,
+            Gates.Controls.ZParityControl,
+            Gates.HalfTurns.Z,
+          ]),
+        ]),
+        false,
+      ),
+    Matrix.generateDiagonal(1 << 4, (i) =>
+      popcnt(i & 5) % 2 === 1 && (i & 8) !== 0 ? -1 : 1,
+    ),
+  );
+});
+
+suite.testUsingWebGL("X-parity", () => {
+  assertThatCircuitUpdateActsLikeMatrix(
+    (ctx) =>
+      advanceStateWithCircuit(
+        ctx,
+        new CircuitDefinition(4, [
+          new GateColumn([
+            Gates.HalfTurns.H,
+            Gates.HalfTurns.H,
+            Gates.HalfTurns.H,
+            undefined,
+          ]),
+          new GateColumn([
+            Gates.Controls.XParityControl,
+            Gates.Controls.XParityControl,
+            Gates.Controls.XParityControl,
+            Gates.HalfTurns.Z,
+          ]),
+          new GateColumn([
+            Gates.HalfTurns.H,
+            Gates.HalfTurns.H,
+            Gates.HalfTurns.H,
+            undefined,
+          ]),
+        ]),
+        false,
+      ),
+    Matrix.generateDiagonal(1 << 4, (i) =>
+      popcnt(i & 7) % 2 === 1 && (i & 8) !== 0 ? -1 : 1,
+    ),
+  );
+});
+
+suite.testUsingWebGL("X-parity", () => {
+  assertThatCircuitUpdateActsLikeMatrix(
+    (ctx) =>
+      advanceStateWithCircuit(
+        ctx,
+        new CircuitDefinition(4, [
+          new GateColumn([
+            Gates.QuarterTurns.SqrtXBackward,
+            Gates.QuarterTurns.SqrtXBackward,
+            Gates.QuarterTurns.SqrtXBackward,
+            undefined,
+          ]),
+          new GateColumn([
+            Gates.Controls.YParityControl,
+            Gates.Controls.YParityControl,
+            Gates.Controls.YParityControl,
+            Gates.HalfTurns.Z,
+          ]),
+          new GateColumn([
+            Gates.QuarterTurns.SqrtXForward,
+            Gates.QuarterTurns.SqrtXForward,
+            Gates.QuarterTurns.SqrtXForward,
+            undefined,
+          ]),
+        ]),
+        false,
+      ),
+    Matrix.generateDiagonal(1 << 4, (i) =>
+      popcnt(i & 7) % 2 === 1 && (i & 8) !== 0 ? -1 : 1,
+    ),
+  );
+});
+
+suite.test("xyParityControlsDisabledByMeasurement", () => {
+  const c = CircuitDefinition.fromTextDiagram(
+    new Map([
+      ["M", Gates.Special.Measurement],
+      ["H", Gates.HalfTurns.H],
+      ["x", Gates.Controls.XParityControl],
+      ["y", Gates.Controls.YParityControl],
+      ["z", Gates.Controls.ZParityControl],
+      ["-", undefined],
+    ]),
+    `-x-M-x-
          -y-M-y-
          -z-M-z-
-         -H---H-`);
-    assertThat(c.gateAtLocIsDisabledReason(1, 0)).isEqualTo(undefined);
-    assertThat(c.gateAtLocIsDisabledReason(1, 1)).isEqualTo(undefined);
-    assertThat(c.gateAtLocIsDisabledReason(1, 2)).isEqualTo(undefined);
-    assertThat(c.gateAtLocIsDisabledReason(5, 0)).isNotEqualTo(undefined);
-    assertThat(c.gateAtLocIsDisabledReason(5, 1)).isNotEqualTo(undefined);
-    assertThat(c.gateAtLocIsDisabledReason(5, 2)).isEqualTo(undefined);
+         -H---H-`,
+  );
+  assertThat(c.gateAtLocIsDisabledReason(1, 0)).isEqualTo(undefined);
+  assertThat(c.gateAtLocIsDisabledReason(1, 1)).isEqualTo(undefined);
+  assertThat(c.gateAtLocIsDisabledReason(1, 2)).isEqualTo(undefined);
+  assertThat(c.gateAtLocIsDisabledReason(5, 0)).isNotEqualTo(undefined);
+  assertThat(c.gateAtLocIsDisabledReason(5, 1)).isNotEqualTo(undefined);
+  assertThat(c.gateAtLocIsDisabledReason(5, 2)).isEqualTo(undefined);
 });

@@ -186,7 +186,6 @@ const tape = Object.freeze([
   colour(79, 95, 214), // #4F5FD6
 ]);
 
-
 // ── Dial ────────────────────────────────────────────────────────────────────
 // The encoder beside a rotation gate, seen from above after a pocket synthesizer's knobs: a pale
 // face, a ring, a dark core, and an index mark toned by the gate's axis.

@@ -22,8 +22,11 @@ function distributions(take) {
       probabilities[(index >> start) & mask] += joint[index];
     }
     groups.push({
-      name: register?.name ?? `q${start}`, start, length,
-      labels: register?.labels ?? {}, probabilities,
+      name: register?.name ?? `q${start}`,
+      start,
+      length,
+      labels: register?.labels ?? {},
+      probabilities,
     });
     start += length;
   }

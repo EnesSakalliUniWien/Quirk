@@ -14,24 +14,26 @@
  * limitations under the License.
  */
 
-import {Suite} from "../../TestUtil.js"
-import {assertThatGateActsLikePermutation} from "../../CircuitOperationTestUtil.js"
+import { Suite } from "../../TestUtil.js";
+import { assertThatGateActsLikePermutation } from "../../CircuitOperationTestUtil.js";
 
-import {ModularMultiplyAccumulateGates} from "../../../src/gates/arithmetic/ModularMultiplyAccumulateGates.js"
+import { ModularMultiplyAccumulateGates } from "../../../src/gates/arithmetic/ModularMultiplyAccumulateGates.js";
 import { properMod } from "../../../src/engine/math/modularArithmetic.js";
 
 const suite = new Suite("ModularMultiplyAccumulateGates");
 
-suite.testUsingWebGL('plus_AB_mod_R_permutation', () => {
-    assertThatGateActsLikePermutation(
-        ModularMultiplyAccumulateGates.PlusABModRFamily.ofSize(2),
-        (t, a, b, r) => t < r ? (t + a*b) % r : t,
-        [2, 2, 2]);
+suite.testUsingWebGL("plus_AB_mod_R_permutation", () => {
+  assertThatGateActsLikePermutation(
+    ModularMultiplyAccumulateGates.PlusABModRFamily.ofSize(2),
+    (t, a, b, r) => (t < r ? (t + a * b) % r : t),
+    [2, 2, 2],
+  );
 });
 
-suite.testUsingWebGL('minus_AB_mod_R_permutation', () => {
-    assertThatGateActsLikePermutation(
-        ModularMultiplyAccumulateGates.MinusABModRFamily.ofSize(2),
-        (t, a, b, r) => t < r ? properMod(t - a*b, r) : t,
-        [2, 2, 2]);
+suite.testUsingWebGL("minus_AB_mod_R_permutation", () => {
+  assertThatGateActsLikePermutation(
+    ModularMultiplyAccumulateGates.MinusABModRFamily.ofSize(2),
+    (t, a, b, r) => (t < r ? properMod(t - a * b, r) : t),
+    [2, 2, 2],
+  );
 });

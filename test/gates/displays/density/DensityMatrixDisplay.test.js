@@ -14,34 +14,35 @@
  * limitations under the License.
  */
 
-import {Suite, assertThat} from "../../../TestUtil.js"
+import { Suite, assertThat } from "../../../TestUtil.js";
 import { amplitudesToCouplings } from "../../../../src/gates/displays/density/shaders/amplitudesToCouplings.js";
-import {Shaders} from "../../../../src/engine/webgl/operations/Shaders.js"
+import { Shaders } from "../../../../src/engine/webgl/operations/Shaders.js";
 
 const suite = new Suite("DensityMatrixDisplay");
 
 suite.testUsingWebGL("amplitudesToCouplings", () => {
-    const s = Math.sqrt(0.5);
-    const inp = Shaders.vec2Data(new Float32Array([
-        s,0,
-        0,0,
-        0,0,
-        s,0
-    ])).toVec2Texture(2);
+  const s = Math.sqrt(0.5);
+  const inp = Shaders.vec2Data(
+    new Float32Array([s, 0, 0, 0, 0, 0, s, 0]),
+  ).toVec2Texture(2);
 
-    assertThat(amplitudesToCouplings(inp, 1).readVec2Outputs(3)).isApproximatelyEqualTo(new Float32Array([
-        0.5,0,   0,0,
-        0,  0,   0,0,
+  assertThat(
+    amplitudesToCouplings(inp, 1).readVec2Outputs(3),
+  ).isApproximatelyEqualTo(
+    new Float32Array([
+      0.5, 0, 0, 0, 0, 0, 0, 0,
 
-        0,  0,   0,0,
-        0,  0,   0.5,0
-    ]));
-    assertThat(amplitudesToCouplings(inp, 2).readVec2Outputs(4)).isApproximatelyEqualTo(new Float32Array([
-        0.5,0, 0,0, 0,0, 0.5,0,
-        0,0,   0,0, 0,0, 0,0,
-        0,0,   0,0, 0,0, 0,0,
-        0.5,0, 0,0, 0,0, 0.5,0
-    ]));
+      0, 0, 0, 0, 0, 0, 0.5, 0,
+    ]),
+  );
+  assertThat(
+    amplitudesToCouplings(inp, 2).readVec2Outputs(4),
+  ).isApproximatelyEqualTo(
+    new Float32Array([
+      0.5, 0, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0.5, 0, 0, 0, 0, 0, 0.5, 0,
+    ]),
+  );
 
-    inp.deallocByDepositingInPool();
+  inp.deallocByDepositingInPool();
 });

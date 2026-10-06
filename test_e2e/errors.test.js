@@ -16,65 +16,89 @@
 
 // The error banner: recoveries surface over the circuit without breaking the app.
 
-import assert from 'node:assert/strict';
-import {test, withQuirkPage, waitForQuirk, urlForCircuit, TEST_TIMEOUT_MILLIS} from './harness.js';
+import assert from "node:assert/strict";
+import {
+  test,
+  withQuirkPage,
+  waitForQuirk,
+  urlForCircuit,
+  TEST_TIMEOUT_MILLIS,
+} from "./harness.js";
 
 const RECOVERY_CONSOLE_LINE = [/Recovered from unexpected error/];
 
-test('serves the app at root without the retired entry URL', async browser => {
-    await withQuirkPage(browser, {cols: [['H']]}, async page => {
-        assert.equal(new URL(page.url()).pathname, '/');
-        const response = await fetch(new URL('/quirk.html', page.url()), {redirect: 'manual'});
-        assert.equal(response.status, 404);
+test("serves the app at root without the retired entry URL", async (browser) => {
+  await withQuirkPage(browser, { cols: [["H"]] }, async (page) => {
+    assert.equal(new URL(page.url()).pathname, "/");
+    const response = await fetch(new URL("/quirk.html", page.url()), {
+      redirect: "manual",
     });
+    assert.equal(response.status, 404);
+  });
 });
 
 async function bannerState(page) {
-    return page.evaluate(() => {
-        const banner = document.getElementById('error-banner');
-        const message = document.getElementById('error-banner-message');
-        return {
-            visible: banner !== null && !banner.hidden,
-            role: message === null ? undefined : message.getAttribute('role'),
-            text: message === null ? '' : message.textContent,
-        };
-    });
+  return page.evaluate(() => {
+    const banner = document.getElementById("error-banner");
+    const message = document.getElementById("error-banner-message");
+    return {
+      visible: banner !== null && !banner.hidden,
+      role: message === null ? undefined : message.getAttribute("role"),
+      text: message === null ? "" : message.textContent,
+    };
+  });
 }
 
-test('recovers from a mangled circuit URL with a dismissible banner', async browser => {
-    await withQuirkPage(browser, {cols: []}, async page => {
-        const mangled = new URL(urlForCircuit({cols: []}));
-        mangled.hash = 'circuit=%7Bnot-json';
-        await page.goto(mangled.href);
-        await waitForQuirk(page);
+test("recovers from a mangled circuit URL with a dismissible banner", async (browser) => {
+  await withQuirkPage(
+    browser,
+    { cols: [] },
+    async (page) => {
+      const mangled = new URL(urlForCircuit({ cols: [] }));
+      mangled.hash = "circuit=%7Bnot-json";
+      await page.goto(mangled.href);
+      await waitForQuirk(page);
 
-        await page.waitForFunction(
-            () => document.getElementById('error-banner') !== null,
-            {timeout: TEST_TIMEOUT_MILLIS});
-        const banner = await bannerState(page);
-        assert.equal(banner.visible, true);
-        assert.equal(banner.role, 'alert');
-        assert.ok(
-            banner.text.startsWith('Defaulted to an empty circuit'),
-            `Unexpected banner text: ${banner.text}`);
+      await page.waitForFunction(
+        () => document.getElementById("error-banner") !== null,
+        { timeout: TEST_TIMEOUT_MILLIS },
+      );
+      const banner = await bannerState(page);
+      assert.equal(banner.visible, true);
+      assert.equal(banner.role, "alert");
+      assert.ok(
+        banner.text.startsWith("Defaulted to an empty circuit"),
+        `Unexpected banner text: ${banner.text}`,
+      );
 
-        // The app recovered: the circuit area is alive and interactive.
-        assert.notEqual(await page.$('#drawCanvas canvas'), null);
+      // The app recovered: the circuit area is alive and interactive.
+      assert.notEqual(await page.$("#drawCanvas canvas"), null);
 
-        await page.click('.error-banner-dismiss');
-        assert.equal((await bannerState(page)).visible, false);
-    }, undefined, RECOVERY_CONSOLE_LINE);
+      await page.click(".error-banner-dismiss");
+      assert.equal((await bannerState(page)).visible, false);
+    },
+    undefined,
+    RECOVERY_CONSOLE_LINE,
+  );
 });
 
-test('recovers from an unknown gate id with a parse-error banner', async browser => {
-    await withQuirkPage(browser, {cols: [['NOT_A_GATE']]}, async page => {
-        await page.waitForFunction(
-            () => document.getElementById('error-banner') !== null,
-            {timeout: TEST_TIMEOUT_MILLIS});
-        const banner = await bannerState(page);
-        assert.equal(banner.visible, true);
-        assert.ok(
-            banner.text.startsWith("Defaulted to a do-nothing 'parse error' gate"),
-            `Unexpected banner text: ${banner.text}`);
-    }, undefined, RECOVERY_CONSOLE_LINE);
+test("recovers from an unknown gate id with a parse-error banner", async (browser) => {
+  await withQuirkPage(
+    browser,
+    { cols: [["NOT_A_GATE"]] },
+    async (page) => {
+      await page.waitForFunction(
+        () => document.getElementById("error-banner") !== null,
+        { timeout: TEST_TIMEOUT_MILLIS },
+      );
+      const banner = await bannerState(page);
+      assert.equal(banner.visible, true);
+      assert.ok(
+        banner.text.startsWith("Defaulted to a do-nothing 'parse error' gate"),
+        `Unexpected banner text: ${banner.text}`,
+      );
+    },
+    undefined,
+    RECOVERY_CONSOLE_LINE,
+  );
 });

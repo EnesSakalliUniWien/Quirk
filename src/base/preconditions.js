@@ -36,4 +36,3 @@ export function need(expression, message, args) {
     throw new Error(msg);
   }
 }
-

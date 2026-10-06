@@ -43,6 +43,19 @@ const makeScaledMultiplyAddPermutation = (span, scaleFactor) => (e) => {
   return a | (b << sa) | (c << (sa + sb));
 };
 
+// Resolve the input family when the operation runs; those families are declared below.
+const legacyMultiplyUpdate = (span, inputFamily) => (ctx) => {
+  const [a, b, c] = sectionSizes(span);
+  return inputFamily()
+    .ofSize(c)
+    .customOperation(
+      ctx
+        .withRow(ctx.row + a + b)
+        .withInputSetToRange("A", ctx.row, a)
+        .withInputSetToRange("B", ctx.row + a, b),
+    );
+};
+
 const MUL_STEP = 6;
 const BIG_MUL_MOD_SHADER_CODE = `
     // Avoids large multiplications that lose precision.
@@ -91,17 +104,12 @@ MultiplyAccumulateGates.Legacy_MultiplyAddFamily = Gate.buildFamily(
             .map((e) => e / span),
         ),
       )
-      .setActualEffectToUpdateFunc((ctx) => {
-        const [a, b, c] = sectionSizes(span);
-        return MultiplyAccumulateGates.MultiplyAddInputsFamily.ofSize(
-          c,
-        ).customOperation(
-          ctx
-            .withRow(ctx.row + a + b)
-            .withInputSetToRange("A", ctx.row, a)
-            .withInputSetToRange("B", ctx.row + a, b),
-        );
-      })
+      .setActualEffectToUpdateFunc(
+        legacyMultiplyUpdate(
+          span,
+          () => MultiplyAccumulateGates.MultiplyAddInputsFamily,
+        ),
+      )
       .setKnownEffectToPermutation(makeScaledMultiplyAddPermutation(span, +1)),
 );
 
@@ -123,17 +131,12 @@ MultiplyAccumulateGates.Legacy_MultiplySubtractFamily = Gate.buildFamily(
             .map((e) => e / span),
         ),
       )
-      .setActualEffectToUpdateFunc((ctx) => {
-        const [a, b, c] = sectionSizes(span);
-        return MultiplyAccumulateGates.MultiplySubtractInputsFamily.ofSize(
-          c,
-        ).customOperation(
-          ctx
-            .withRow(ctx.row + a + b)
-            .withInputSetToRange("A", ctx.row, a)
-            .withInputSetToRange("B", ctx.row + a, b),
-        );
-      })
+      .setActualEffectToUpdateFunc(
+        legacyMultiplyUpdate(
+          span,
+          () => MultiplyAccumulateGates.MultiplySubtractInputsFamily,
+        ),
+      )
       .setKnownEffectToPermutation(makeScaledMultiplyAddPermutation(span, -1)),
 );
 

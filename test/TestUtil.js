@@ -15,34 +15,36 @@
  */
 
 // Cheat a little bit on the testing library being independent from what it tests
-import {scenePixels} from './draw/scene/TestDisplayView.js';
-import {describe} from '../src/base/Describe.js';
-import {equate} from '../src/base/Equate.js';
-import {WglTexturePool} from '../src/engine/webgl/texture/WglTexturePool.js';
-import {DetailedError} from '../src/base/DetailedError.js';
-import {Diagnostics} from '../src/config/Diagnostics.js';
+import { scenePixels } from "./draw/scene/TestDisplayView.js";
+import { describe } from "../src/base/Describe.js";
+import { equate } from "../src/base/Equate.js";
+import { WglTexturePool } from "../src/engine/webgl/texture/WglTexturePool.js";
+import { DetailedError } from "../src/base/DetailedError.js";
+import { Diagnostics } from "../src/config/Diagnostics.js";
 Diagnostics.CHECK_WEB_GL_ERRORS_EVEN_ON_HOT_PATHS = true;
 
 /** @type {!int} */
 let assertionSubjectIndexForNextTest = 1;
 
 function isArrayIsh(value) {
-    return Array.isArray(value) ||
-        value instanceof Float32Array ||
-        value instanceof Float64Array ||
-        value instanceof Int8Array ||
-        value instanceof Int16Array ||
-        value instanceof Int32Array ||
-        value instanceof Uint8Array ||
-        value instanceof Uint16Array ||
-        value instanceof Uint32Array;
+  return (
+    Array.isArray(value) ||
+    value instanceof Float32Array ||
+    value instanceof Float64Array ||
+    value instanceof Int8Array ||
+    value instanceof Int16Array ||
+    value instanceof Int32Array ||
+    value instanceof Uint8Array ||
+    value instanceof Uint16Array ||
+    value instanceof Uint32Array
+  );
 }
 
 /**
  * @param {!string} message
  */
 export function fail(message) {
-    throw new Error(message);
+  throw new Error(message);
 }
 
 /**
@@ -50,13 +52,15 @@ export function fail(message) {
  * @throws
  */
 function sanityCheck(subject) {
-    if (subject instanceof Map) {
-        for (const k in subject) {
-            if (Object.hasOwn(subject, k)) {
-                throw new Error(`Map has property 'map[${k}]' instead of entry 'map.get(${k})'. Probably a mistake.`)
-            }
-        }
+  if (subject instanceof Map) {
+    for (const k in subject) {
+      if (Object.hasOwn(subject, k)) {
+        throw new Error(
+          `Map has property 'map[${k}]' instead of entry 'map.get(${k})'. Probably a mistake.`,
+        );
+      }
     }
+  }
 }
 
 /**
@@ -67,34 +71,43 @@ function sanityCheck(subject) {
  * @private
  */
 function isApproximatelyEqualToHelper(subject, other, epsilon) {
-    if (subject === null) {
-        return other === null;
-    } else if (subject === undefined) {
-        return other === undefined;
-    } else if (subject.isApproximatelyEqualTo !== undefined) {
-        return subject.isApproximatelyEqualTo(other, epsilon);
-    } else if (typeof subject === 'number') {
-        return subject === other ||
-            (Number.isNaN(subject) && Number.isNaN(other)) ||
-            (typeof other === 'number' && Math.abs(subject - other) < epsilon);
-    } else if (isArrayIsh(subject)) {
-        if (!isArrayIsh(other) || other.length !== subject.length) {
-            return false;
-        }
-        for (let i = 0; i < subject.length; i++) {
-            if (!isApproximatelyEqualToHelper(subject[i], other[i], epsilon)) {
-                return false;
-            }
-        }
-        return true;
-    } else if (subject instanceof Object && subject.toString() === "[object Object]") {
-        return isApproximatelyEqualToHelperDestructured(subject, other, epsilon);
-    } else if (subject === other) {
-        return true;
-    } else {
-        fail('Expected ' + describe(subject) + ' to have an isApproximatelyEqualTo method');
-        return false;
+  if (subject === null) {
+    return other === null;
+  } else if (subject === undefined) {
+    return other === undefined;
+  } else if (subject.isApproximatelyEqualTo !== undefined) {
+    return subject.isApproximatelyEqualTo(other, epsilon);
+  } else if (typeof subject === "number") {
+    return (
+      subject === other ||
+      (Number.isNaN(subject) && Number.isNaN(other)) ||
+      (typeof other === "number" && Math.abs(subject - other) < epsilon)
+    );
+  } else if (isArrayIsh(subject)) {
+    if (!isArrayIsh(other) || other.length !== subject.length) {
+      return false;
     }
+    for (let i = 0; i < subject.length; i++) {
+      if (!isApproximatelyEqualToHelper(subject[i], other[i], epsilon)) {
+        return false;
+      }
+    }
+    return true;
+  } else if (
+    subject instanceof Object &&
+    subject.toString() === "[object Object]"
+  ) {
+    return isApproximatelyEqualToHelperDestructured(subject, other, epsilon);
+  } else if (subject === other) {
+    return true;
+  } else {
+    fail(
+      "Expected " +
+        describe(subject) +
+        " to have an isApproximatelyEqualTo method",
+    );
+    return false;
+  }
 }
 
 /**
@@ -105,158 +118,167 @@ function isApproximatelyEqualToHelper(subject, other, epsilon) {
  * @private
  */
 function isApproximatelyEqualToHelperDestructured(subject, other, epsilon) {
-    const keys = [];
-    for (const subjectKey in subject) {
-        if (Object.hasOwn(subject, subjectKey)) {
-            keys.push(subjectKey);
-        }
+  const keys = [];
+  for (const subjectKey in subject) {
+    if (Object.hasOwn(subject, subjectKey)) {
+      keys.push(subjectKey);
     }
-    for (const otherKey in other) {
-        if (Object.hasOwn(other, otherKey) && !Object.hasOwn(subject, otherKey)) {
-            return false;
-        }
+  }
+  for (const otherKey in other) {
+    if (Object.hasOwn(other, otherKey) && !Object.hasOwn(subject, otherKey)) {
+      return false;
     }
+  }
 
-    return keys.every(key => Object.hasOwn(other, key) &&
-        isApproximatelyEqualToHelper(subject[key], other[key], epsilon));
+  return keys.every(
+    (key) =>
+      Object.hasOwn(other, key) &&
+      isApproximatelyEqualToHelper(subject[key], other[key], epsilon),
+  );
 }
 
 class AssertionSubject {
-    /**
-     * @param {*} subject
-     * @param {*} id
-     * @param {*} info
-     * @property {*} subject
-     */
-    constructor(subject, id=undefined, info=undefined) {
-        sanityCheck(subject);
-        assertionSubjectIndexForNextTest += 1;
-
-        /**
-         * The "actual" value, to be compared against expected values.
-         * @type {*}
-         */
-        this.subject = subject;
-        /**
-         * @type {*}
-         */
-        this.id = id;
-        /**
-         * @type {*}
-         */
-        this.info = info;
-    }
+  /**
+   * @param {*} subject
+   * @param {*} id
+   * @param {*} info
+   * @property {*} subject
+   */
+  constructor(subject, id = undefined, info = undefined) {
+    sanityCheck(subject);
+    assertionSubjectIndexForNextTest += 1;
 
     /**
-     * @param {*} newInfo
-     * @returns {!AssertionSubject}
+     * The "actual" value, to be compared against expected values.
+     * @type {*}
      */
-    withInfo(newInfo) {
-        return new AssertionSubject(this.subject, this.id, newInfo);
-    }
-
+    this.subject = subject;
     /**
-     * @param {!string} message
-     * @private
+     * @type {*}
      */
-    _fail(message) {
-        const idMessage = this.id === undefined ? message : `${message} (${this.id})`;
-        const infoMessage = this.info === undefined ? idMessage : `${idMessage} (info: ${describe(this.info)})`;
-        fail(infoMessage);
-    }
-
+    this.id = id;
     /**
-     * @private
+     * @type {*}
      */
-    _failExpected(relation, expected) {
-        const act = describe(this.subject);
-        const exp = describe(expected);
-        if (act.length + exp.length < 50) {
-            this._fail(`Got <${act}> but expected it ${relation} <${exp}>.`);
-        } else {
-            this._fail(`Got <\n\t${act}\n> but expected it ${relation} <\n\t${exp}\n>.`);
-        }
-    }
+    this.info = info;
+  }
 
-    /**
-     * @param {*} items
-     */
-    iteratesAs(...items) {
-        const actualItems = [];
-        for (const item of this.subject) {
-            if (actualItems.length > items.length * 2 + 100) {
-                actualItems.push("{...}");
-                break;
-            }
-            actualItems.push(item);
-        }
-        new AssertionSubject(actualItems, this.id).isEqualTo(items);
-    }
+  /**
+   * @param {*} newInfo
+   * @returns {!AssertionSubject}
+   */
+  withInfo(newInfo) {
+    return new AssertionSubject(this.subject, this.id, newInfo);
+  }
 
-    /**
-     * @param {*} other
-     */
-    is(other) {
-        if (!Object.is(this.subject, other)) {
-            this._failExpected('to be the same object reference as', other);
-        }
-    }
+  /**
+   * @param {!string} message
+   * @private
+   */
+  _fail(message) {
+    const idMessage =
+      this.id === undefined ? message : `${message} (${this.id})`;
+    const infoMessage =
+      this.info === undefined
+        ? idMessage
+        : `${idMessage} (info: ${describe(this.info)})`;
+    fail(infoMessage);
+  }
 
-    /**
-     * @param {*} other
-     */
-    isEqualTo(other) {
-        if (!equate(this.subject, other)) {
-            this._failExpected('to equal', other);
-        }
+  /**
+   * @private
+   */
+  _failExpected(relation, expected) {
+    const act = describe(this.subject);
+    const exp = describe(expected);
+    if (act.length + exp.length < 50) {
+      this._fail(`Got <${act}> but expected it ${relation} <${exp}>.`);
+    } else {
+      this._fail(
+        `Got <\n\t${act}\n> but expected it ${relation} <\n\t${exp}\n>.`,
+      );
     }
+  }
 
-    /**
-     * @param {*} other
-     */
-    isGreaterThan(other) {
-        if (!(this.subject > other)) {
-            this._failExpected('to be greater than', other);
-        }
+  /**
+   * @param {*} items
+   */
+  iteratesAs(...items) {
+    const actualItems = [];
+    for (const item of this.subject) {
+      if (actualItems.length > items.length * 2 + 100) {
+        actualItems.push("{...}");
+        break;
+      }
+      actualItems.push(item);
     }
+    new AssertionSubject(actualItems, this.id).isEqualTo(items);
+  }
 
-    /**
-     * @param {*} other
-     */
-    isLessThan(other) {
-        if (!(this.subject < other)) {
-            this._failExpected('to be less than', other);
-        }
+  /**
+   * @param {*} other
+   */
+  is(other) {
+    if (!Object.is(this.subject, other)) {
+      this._failExpected("to be the same object reference as", other);
     }
+  }
 
-    /**
-     * @param {*} other
-     */
-    isNotEqualTo(other) {
-        if (equate(this.subject, other)) {
-            this._failExpected('to NOT equal', other);
-        }
+  /**
+   * @param {*} other
+   */
+  isEqualTo(other) {
+    if (!equate(this.subject, other)) {
+      this._failExpected("to equal", other);
     }
+  }
 
-    /**
-     * @param {*} other
-     * @param {=number} epsilon
-     */
-    isApproximatelyEqualTo(other, epsilon = 0.000001) {
-        if (!isApproximatelyEqualToHelper(this.subject, other, epsilon)) {
-            this._failExpected('to approximately equal', other);
-        }
+  /**
+   * @param {*} other
+   */
+  isGreaterThan(other) {
+    if (!(this.subject > other)) {
+      this._failExpected("to be greater than", other);
     }
+  }
 
-    /**
-     * @param {*} other
-     * @param {=number} epsilon
-     */
-    isNotApproximatelyEqualTo(other, epsilon = 0.000001) {
-        if (isApproximatelyEqualToHelper(this.subject, other, epsilon)) {
-            this._failExpected('to NOT approximately equal', other);
-        }
+  /**
+   * @param {*} other
+   */
+  isLessThan(other) {
+    if (!(this.subject < other)) {
+      this._failExpected("to be less than", other);
     }
+  }
+
+  /**
+   * @param {*} other
+   */
+  isNotEqualTo(other) {
+    if (equate(this.subject, other)) {
+      this._failExpected("to NOT equal", other);
+    }
+  }
+
+  /**
+   * @param {*} other
+   * @param {=number} epsilon
+   */
+  isApproximatelyEqualTo(other, epsilon = 0.000001) {
+    if (!isApproximatelyEqualToHelper(this.subject, other, epsilon)) {
+      this._failExpected("to approximately equal", other);
+    }
+  }
+
+  /**
+   * @param {*} other
+   * @param {=number} epsilon
+   */
+  isNotApproximatelyEqualTo(other, epsilon = 0.000001) {
+    if (isApproximatelyEqualToHelper(this.subject, other, epsilon)) {
+      this._failExpected("to NOT approximately equal", other);
+    }
+  }
 }
 
 /**
@@ -266,18 +288,21 @@ class AssertionSubject {
  * returns {!AssertionSubject}
  */
 export function assertThat(subject, extraArgCatcher) {
-    if (extraArgCatcher !== undefined) {
-        fail('Extra assertThat arg');
-    }
-    return new AssertionSubject(subject, 'assertThat #' + assertionSubjectIndexForNextTest);
+  if (extraArgCatcher !== undefined) {
+    fail("Extra assertThat arg");
+  }
+  return new AssertionSubject(
+    subject,
+    "assertThat #" + assertionSubjectIndexForNextTest,
+  );
 }
 
 export function assertTrue(subject) {
-    assertThat(subject).isEqualTo(true);
+  assertThat(subject).isEqualTo(true);
 }
 
 export function assertFalse(subject) {
-    assertThat(subject).isEqualTo(false);
+  assertThat(subject).isEqualTo(false);
 }
 
 /**
@@ -287,173 +312,197 @@ export function assertFalse(subject) {
  * returns {!AssertionSubject}
  */
 export function assertThrows(func, extraArgCatcher) {
-    if (extraArgCatcher !== undefined) {
-        fail('Extra assertThrows arg');
-    }
-    try {
-        func();
-    } catch(ex) {
-        return new AssertionSubject(ex, 'assertThrows');
-    }
-    fail('Expected an exception to be thrown by ' + func);
-    return undefined;
+  if (extraArgCatcher !== undefined) {
+    fail("Extra assertThrows arg");
+  }
+  try {
+    func();
+  } catch (ex) {
+    return new AssertionSubject(ex, "assertThrows");
+  }
+  fail("Expected an exception to be thrown by " + func);
+  return undefined;
 }
 
 /** @type {boolean|undefined} */
 let __webGLSupportPresent = undefined;
 function isWebGLSupportPresent() {
-    if (__webGLSupportPresent === undefined) {
-        __webGLSupportPresent = false;
-        if (window.WebGL2RenderingContext !== undefined) {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('webgl2');
-            __webGLSupportPresent =
-                ctx instanceof WebGL2RenderingContext && ctx.getExtension('EXT_color_buffer_float') !== null;
-        }
+  if (__webGLSupportPresent === undefined) {
+    __webGLSupportPresent = false;
+    if (window.WebGL2RenderingContext !== undefined) {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("webgl2");
+      __webGLSupportPresent =
+        ctx instanceof WebGL2RenderingContext &&
+        ctx.getExtension("EXT_color_buffer_float") !== null;
     }
-    return __webGLSupportPresent;
+  }
+  return __webGLSupportPresent;
 }
 
-const promiseImageDataFromSrc = src => {
-    const img = document.createElement('img');
-    img.src = src;
-    return new Promise(resolve => { img.onload = resolve; }).then(() => {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0);
-        return ctx.getImageData(0, 0, canvas.width, canvas.height);
-    });
+const promiseImageDataFromSrc = (src) => {
+  const img = document.createElement("img");
+  img.src = src;
+  return new Promise((resolve) => {
+    img.onload = resolve;
+  }).then(() => {
+    const canvas = document.createElement("canvas");
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(img, 0, 0);
+    return ctx.getImageData(0, 0, canvas.width, canvas.height);
+  });
 };
 
 const meanSquaredError = (data1, data2) => {
-    if (data1.length !== data2.length) {
-        return false;
-    }
-    let err = 0;
-    for (let i = 0; i < data1.length; i++) {
-        const e = data1[i] - data2[i];
-        err += e*e;
-    }
-    return err / data1.length;
+  if (data1.length !== data2.length) {
+    return false;
+  }
+  let err = 0;
+  for (let i = 0; i < data1.length; i++) {
+    const e = data1[i] - data2[i];
+    err += e * e;
+  }
+  return err / data1.length;
 };
-
 
 /**
  * A named collection of tests.
  */
 export class Suite {
-    /**
-     * @param {!string} name
-     */
-    constructor(name) {
-        Suite.suites.push(this);
-        /** @type {!Array.<[!string, !function(!{ warn_only: !boolean|!string })]>} */
-        this.tests = [];
-        /** @type {!Array.<[!string, !function(!{ warn_only: !boolean|!string })]>} */
-        this.later_tests = [];
-         /** @type {!string} */
-        this.name = name;
-    }
+  /**
+   * @param {!string} name
+   */
+  constructor(name) {
+    Suite.suites.push(this);
+    /** @type {!Array.<[!string, !function(!{ warn_only: !boolean|!string })]>} */
+    this.tests = [];
+    /** @type {!Array.<[!string, !function(!{ warn_only: !boolean|!string })]>} */
+    this.later_tests = [];
+    /** @type {!string} */
+    this.name = name;
+  }
 
-    /**
-     * @param {!RegExp|undefined} filter
-     * @param {!boolean} later
-     */
-    testsMatching(filter, later) {
-        return (later ? this.later_tests : this.tests).filter(e => filter === undefined || filter.test(e[0]));
-    }
+  /**
+   * @param {!RegExp|undefined} filter
+   * @param {!boolean} later
+   */
+  testsMatching(filter, later) {
+    return (later ? this.later_tests : this.tests).filter(
+      (e) => filter === undefined || filter.test(e[0]),
+    );
+  }
 
-    /**
-     * @param {!string} name
-     * @param {!function(!{ warn_only: !boolean|!string })} method
-     * @param {!boolean=false} later
-     */
-    test(name, method, later=false) {
-        (later ? this.later_tests : this.tests).push([name, status => {
-            assertionSubjectIndexForNextTest = 1;
-            const result = method(status);
-            if (result === undefined && assertionSubjectIndexForNextTest === 1) {
-                console.warn(`No assertions in test '${name}' of suite '${this.name}'.`);
-            }
-            return result;
-        }]);
-    }
+  /**
+   * @param {!string} name
+   * @param {!function(!{ warn_only: !boolean|!string })} method
+   * @param {!boolean=false} later
+   */
+  test(name, method, later = false) {
+    (later ? this.later_tests : this.tests).push([
+      name,
+      (status) => {
+        assertionSubjectIndexForNextTest = 1;
+        const result = method(status);
+        if (result === undefined && assertionSubjectIndexForNextTest === 1) {
+          console.warn(
+            `No assertions in test '${name}' of suite '${this.name}'.`,
+          );
+        }
+        return result;
+      },
+    ]);
+  }
 
-    /**
-     * @param {!string} name
-     * @param {!function(!{ warn_only: !boolean|!string })} method
-     */
-    testUsingWebGL(name, method) {
-        this.test(name, status => {
-            const caseName = name;
-            if (!isWebGLSupportPresent()) {
-                const msg = `Skipping ${this.name}.${caseName} due to lack of WebGL support.`;
-                console.warn(msg);
-                status.log.push(msg);
-                assertThat(undefined); // Cancel 'no assertion' warning.
-                return;
-            }
+  /**
+   * @param {!string} name
+   * @param {!function(!{ warn_only: !boolean|!string })} method
+   */
+  testUsingWebGL(name, method) {
+    this.test(name, (status) => {
+      const caseName = name;
+      if (!isWebGLSupportPresent()) {
+        const msg = `Skipping ${this.name}.${caseName} due to lack of WebGL support.`;
+        console.warn(msg);
+        status.log.push(msg);
+        assertThat(undefined); // Cancel 'no assertion' warning.
+        return;
+      }
 
-            const preTexCount = WglTexturePool.getUnReturnedTextureCount();
-            method(status);
-            const gain = WglTexturePool.getUnReturnedTextureCount() - preTexCount;
-            if (gain > 0) {
-                throw new DetailedError("Unreturned textures.", {unreturned_increase: gain});
-            }
-            if (gain < 0) {
-                throw new DetailedError("Extra returned textures.", {extra_returns: -gain});
-            }
-
-            status.wasWebGLTest = true;
+      const preTexCount = WglTexturePool.getUnReturnedTextureCount();
+      method(status);
+      const gain = WglTexturePool.getUnReturnedTextureCount() - preTexCount;
+      if (gain > 0) {
+        throw new DetailedError("Unreturned textures.", {
+          unreturned_increase: gain,
         });
-    }
-
-    /**
-     * @param {!string} name
-     * @param {!function(!{ warn_only: !boolean|!string })} method
-     */
-    testUsingWebGLFloatTextures(name, method) {
-        this.testUsingWebGL(name, method);
-    }
-
-        /**
-     * A test that compares the drawing, performed by the test method on the given canvas, to the given expected image
-     * or data.
-     * @param {!string} name
-     * @param {!int} width
-     * @param {!int} height
-     * @param {!function(!HTMLCanvasElement, !{ warn_only: !boolean|!string })} method
-     * @param {!string} expectedSrc Either the location of an accessible image, or a 'data:image/' link.
-     * @param {!int=} tolerance
-     */
-    canvasAppearanceTest(name, width, height, method, expectedSrc, tolerance = 256) {
-        this.test(name, async status => {
-            const actualCanvas = /** @type {!HTMLCanvasElement} */ document.createElement("canvas");
-            actualCanvas.width = width;
-            actualCanvas.height = height;
-            await method(actualCanvas, status);
-            const actualData = await scenePixels(actualCanvas);
-
-            return promiseImageDataFromSrc(expectedSrc).then(expectedData => {
-                const mse = meanSquaredError(actualData.data, expectedData.data);
-                if (expectedData.width !== actualData.width ||
-                    expectedData.height !== actualData.height ||
-                    mse > tolerance) {
-
-                    const actualSrc = actualCanvas.toDataURL("image/png");
-                    fail(`Drawn image <\n\n${actualSrc}\n\n> differed with MSE=${mse} from <\n${expectedSrc}\n>.`);
-                }
-
-                // When things get hairy, it's useful to see the tolerance-vs-difference. But usually it's just noise.
-                //if (mse > 0) {
-                //    let s = `${this.name}.${name} image differed, but within tolerance (MSE=${mse}).`;
-                //    (mse < 0.1 ? console.info : console.warn)(s);
-                //}
-            });
+      }
+      if (gain < 0) {
+        throw new DetailedError("Extra returned textures.", {
+          extra_returns: -gain,
         });
-    }
+      }
+
+      status.wasWebGLTest = true;
+    });
+  }
+
+  /**
+   * @param {!string} name
+   * @param {!function(!{ warn_only: !boolean|!string })} method
+   */
+  testUsingWebGLFloatTextures(name, method) {
+    this.testUsingWebGL(name, method);
+  }
+
+  /**
+   * A test that compares the drawing, performed by the test method on the given canvas, to the given expected image
+   * or data.
+   * @param {!string} name
+   * @param {!int} width
+   * @param {!int} height
+   * @param {!function(!HTMLCanvasElement, !{ warn_only: !boolean|!string })} method
+   * @param {!string} expectedSrc Either the location of an accessible image, or a 'data:image/' link.
+   * @param {!int=} tolerance
+   */
+  canvasAppearanceTest(
+    name,
+    width,
+    height,
+    method,
+    expectedSrc,
+    tolerance = 256,
+  ) {
+    this.test(name, async (status) => {
+      const actualCanvas =
+        /** @type {!HTMLCanvasElement} */ document.createElement("canvas");
+      actualCanvas.width = width;
+      actualCanvas.height = height;
+      await method(actualCanvas, status);
+      const actualData = await scenePixels(actualCanvas);
+
+      return promiseImageDataFromSrc(expectedSrc).then((expectedData) => {
+        const mse = meanSquaredError(actualData.data, expectedData.data);
+        if (
+          expectedData.width !== actualData.width ||
+          expectedData.height !== actualData.height ||
+          mse > tolerance
+        ) {
+          const actualSrc = actualCanvas.toDataURL("image/png");
+          fail(
+            `Drawn image <\n\n${actualSrc}\n\n> differed with MSE=${mse} from <\n${expectedSrc}\n>.`,
+          );
+        }
+
+        // When things get hairy, it's useful to see the tolerance-vs-difference. But usually it's just noise.
+        //if (mse > 0) {
+        //    let s = `${this.name}.${name} image differed, but within tolerance (MSE=${mse}).`;
+        //    (mse < 0.1 ? console.info : console.warn)(s);
+        //}
+      });
+    });
+  }
 }
 
 Suite.suites = [];

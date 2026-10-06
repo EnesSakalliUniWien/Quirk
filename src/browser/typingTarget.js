@@ -2,8 +2,11 @@
  * @param {!EventTarget} node
  * @returns {!boolean} Whether the node takes typed text: a field, a math field or editable content.
  */
-export function isTextEntry(node) {
-    return ['INPUT', 'TEXTAREA', 'MATH-FIELD'].includes(node.tagName) || node.isContentEditable === true;
+function isTextEntry(node) {
+  return (
+    ["INPUT", "TEXTAREA", "MATH-FIELD"].includes(node.tagName) ||
+    node.isContentEditable === true
+  );
 }
 
 /**
@@ -12,5 +15,5 @@ export function isTextEntry(node) {
  *     are the field's own, not the circuit's.
  */
 export function isTypingTarget(event) {
-    return event.composedPath().some(isTextEntry);
+  return event.composedPath().some(isTextEntry);
 }

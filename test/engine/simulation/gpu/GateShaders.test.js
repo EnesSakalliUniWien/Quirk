@@ -14,37 +14,45 @@
  * limitations under the License.
  */
 
-import {Suite, assertThat} from "../../../TestUtil.js"
-import {GateShaders} from "../../../../src/engine/simulation/gpu/GateShaders.js"
-import {assertThatCircuitUpdateActsLikeMatrix} from "../../../CircuitOperationTestUtil.js"
+import { Suite, assertThat } from "../../../TestUtil.js";
+import { GateShaders } from "../../../../src/engine/simulation/gpu/GateShaders.js";
+import { assertThatCircuitUpdateActsLikeMatrix } from "../../../CircuitOperationTestUtil.js";
 
-import {Complex} from "../../../../src/engine/math/complex/Complex.js"
-import {Shaders} from "../../../../src/engine/webgl/operations/Shaders.js"
-import {Matrix} from "../../../../src/engine/math/matrix/Matrix.js"
+import { Complex } from "../../../../src/engine/math/complex/Complex.js";
+import { Shaders } from "../../../../src/engine/webgl/operations/Shaders.js";
+import { Matrix } from "../../../../src/engine/math/matrix/Matrix.js";
 
 const suite = new Suite("GateShaders");
 
-suite.testUsingWebGL('cycleAllBits', () => {
-    const inp = Shaders.vec2Data(new Float32Array(
-        Array.from({length: 16}, (_, e) => [e*4 + 1, e*4 + 2]).flat())).toVec2Texture(4);
-    const actual = GateShaders.cycleAllBits(inp, -1).readVec2Outputs(4);
-    assertThat(actual).isEqualTo(new Float32Array([
-        1, 2,    9,10,  17,18,  25,26,
-        33,34,  41,42,  49,50,  57,58,
-        5, 6,   13,14,  21,22,  29,30,
-        37,38,  45,46,  53,54,  61,62
-    ]));
-    inp.deallocByDepositingInPool();
+suite.testUsingWebGL("cycleAllBits", () => {
+  const inp = Shaders.vec2Data(
+    new Float32Array(
+      Array.from({ length: 16 }, (_, e) => [e * 4 + 1, e * 4 + 2]).flat(),
+    ),
+  ).toVec2Texture(4);
+  const actual = GateShaders.cycleAllBits(inp, -1).readVec2Outputs(4);
+  assertThat(actual).isEqualTo(
+    new Float32Array([
+      1, 2, 9, 10, 17, 18, 25, 26, 33, 34, 41, 42, 49, 50, 57, 58, 5, 6, 13, 14,
+      21, 22, 29, 30, 37, 38, 45, 46, 53, 54, 61, 62,
+    ]),
+  );
+  inp.deallocByDepositingInPool();
 });
 
 suite.testUsingWebGL("matrixOperation", () => {
-    const repeats = 3;
-    for (let size = 1; size < 5; size++) {
-        const d = 1<<size;
-        const matrix = Matrix.generate(d, d, () => new Complex(Math.random() - 0.5, Math.random() - 0.5));
-        assertThatCircuitUpdateActsLikeMatrix(
-            ctx => GateShaders.applyMatrixOperation(ctx, matrix),
-            matrix,
-            repeats);
-    }
+  const repeats = 3;
+  for (let size = 1; size < 5; size++) {
+    const d = 1 << size;
+    const matrix = Matrix.generate(
+      d,
+      d,
+      () => new Complex(Math.random() - 0.5, Math.random() - 0.5),
+    );
+    assertThatCircuitUpdateActsLikeMatrix(
+      (ctx) => GateShaders.applyMatrixOperation(ctx, matrix),
+      matrix,
+      repeats,
+    );
+  }
 });

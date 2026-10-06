@@ -4,7 +4,12 @@ import { gateCovering } from "../../../circuit/circuitDescription.js";
 import { rangeFromCells } from "../../../circuit/circuitRange.js";
 import { insertionCellAt } from "../../../editor/interaction/RangeSelection.js";
 import { appStore } from "../../../state/appStore.js";
-import { copySelection, cutSelection, deleteSelection, pasteCircuit } from "./selectionCommands.js";
+import {
+  copySelection,
+  cutSelection,
+  deleteSelection,
+  pasteCircuit,
+} from "./selectionCommands.js";
 
 /**
  * The selection's keys, while the circuit has the focus - or nothing has - and no text field does:
@@ -30,14 +35,21 @@ function useSelectionShortcuts(area) {
         return false;
       }
       const active = document.activeElement;
-      return active === null || active === document.body || area.current?.contains(active) === true;
+      return (
+        active === null ||
+        active === document.body ||
+        area.current?.contains(active) === true
+      );
     };
     const writeClipboard = (text) => navigator.clipboard.writeText(text);
     /** @returns {undefined|!{col: !int, row: !int}} The keyboard's cell, while the circuit itself has the focus. */
     const keyboardCell = () => {
       const canvas = area.current?.querySelector("#canvasDiv");
-      return canvas !== null && canvas !== undefined && document.activeElement === canvas ?
-        appStore.getState().circuitCursor : undefined;
+      return canvas !== null &&
+        canvas !== undefined &&
+        document.activeElement === canvas
+        ? appStore.getState().circuitCursor
+        : undefined;
     };
 
     const onKeyDown = (event) => {
@@ -54,15 +66,24 @@ function useSelectionShortcuts(area) {
         return;
       }
       const copies = command && !event.shiftKey && (key === "c" || key === "x");
-      const deletes = !command && !event.shiftKey && (key === "delete" || key === "backspace");
+      const deletes =
+        !command &&
+        !event.shiftKey &&
+        (key === "delete" || key === "backspace");
       // Text the user selected in the page is theirs to copy.
       if (copies && window.getSelection()?.isCollapsed === false) {
         return;
       }
       if (actions.range() === undefined) {
         const cell = copies || deletes ? keyboardCell() : undefined;
-        const found = cell === undefined ? undefined : gateCovering(actions.current(), cell);
-        if (found === undefined || !actions.select(rangeFromCells(found, found))) {
+        const found =
+          cell === undefined
+            ? undefined
+            : gateCovering(actions.current(), cell);
+        if (
+          found === undefined ||
+          !actions.select(rangeFromCells(found, found))
+        ) {
           return;
         }
       }
@@ -79,14 +100,24 @@ function useSelectionShortcuts(area) {
     };
 
     const onPaste = (event) => {
-      const { selectionActions: actions, panelDeps: deps } = appStore.getState();
+      const { selectionActions: actions, panelDeps: deps } =
+        appStore.getState();
       const text = event.clipboardData?.getData("text/plain");
-      if (actions === undefined || deps === undefined || !text || !inCircuit(event)) {
+      if (
+        actions === undefined ||
+        deps === undefined ||
+        !text ||
+        !inCircuit(event)
+      ) {
         return;
       }
       const shown = deps.syncArea(deps.displayed.getState().value);
       const pos = shown.hand.pos;
-      const at = keyboardCell() ?? (pos === undefined ? undefined : insertionCellAt(shown.displayedCircuit.geometry(), pos));
+      const at =
+        keyboardCell() ??
+        (pos === undefined
+          ? undefined
+          : insertionCellAt(shown.displayedCircuit.geometry(), pos));
       if (pasteCircuit(actions, text, at)) {
         event.preventDefault();
       }

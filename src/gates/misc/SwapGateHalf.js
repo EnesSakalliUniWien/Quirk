@@ -18,7 +18,7 @@ import { gateStyle } from "../../config/CanvasTheme.js";
 import { strokePath } from "../../draw/shapes/ShapeView.js";
 
 import { GateBuilder } from "../../circuit/model/Gate.js";
-import {DEFAULT_RENDERER} from '../../draw/gate/GateRenderers.js';
+import { DEFAULT_RENDERER } from "../../draw/gate/GateRenderers.js";
 import { Matrix } from "../../engine/math/matrix/Matrix.js";
 import { Rect } from "../../geometry/Rect.js";
 
@@ -78,10 +78,10 @@ const SwapGateHalf = new GateBuilder()
       (r) => (args.measuredMask & (1 << r)) === 0,
     );
     if (affectsMeasured && col.hasCoherentControl(args.measuredMask)) {
-      return "no\nremix\n(sorry)";
+      return "No mixing\nafter\nmeasure";
     }
     if (affectsMeasured && affectsUnmeasured && col.hasControl()) {
-      return "no\nremix\n(sorry)";
+      return "No mixing\nafter\nmeasure";
     }
 
     return undefined;

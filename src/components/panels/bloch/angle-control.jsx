@@ -21,10 +21,21 @@ import { Slider } from "@base-ui/react/slider";
  *
  * @param {AngleControlProps} props
  */
-function AngleControl({ id, symbol, name, value, defined, describedBy, max, onChange }) {
+function AngleControl({
+  id,
+  symbol,
+  name,
+  value,
+  defined,
+  describedBy,
+  max,
+  onChange,
+}) {
   return (
     <div className="bloch-angle">
-      <span className="bloch-angle-symbol" aria-hidden="true">{symbol}</span>
+      <span className="bloch-angle-symbol" aria-hidden="true">
+        {symbol}
+      </span>
       <Slider.Root
         className="bloch-slider"
         value={value}
@@ -32,9 +43,7 @@ function AngleControl({ id, symbol, name, value, defined, describedBy, max, onCh
         max={max}
         step={0.5}
         disabled={!defined}
-        onValueChange={(next) =>
-          onChange(Array.isArray(next) ? next[0] : next)
-        }
+        onValueChange={(next) => onChange(Array.isArray(next) ? next[0] : next)}
       >
         <Slider.Control className="bloch-slider-control">
           <Slider.Track className="bloch-slider-track">
@@ -65,8 +74,13 @@ function AngleControl({ id, symbol, name, value, defined, describedBy, max, onCh
             aria-label={`${name} in degrees`}
             aria-describedby={defined ? undefined : describedBy}
             onKeyDown={(event) => {
+              if (event.nativeEvent.isComposing) {
+                event.stopPropagation();
+                return;
+              }
               // Leaving the field is what commits and clamps it; Enter does the same and stays.
               if (event.key !== "Enter") return;
+              event.stopPropagation();
               const input = event.currentTarget;
               input.blur();
               input.focus();
@@ -74,7 +88,9 @@ function AngleControl({ id, symbol, name, value, defined, describedBy, max, onCh
           />
         </NumberField.Group>
       </NumberField.Root>
-      <span className="bloch-angle-unit" aria-hidden="true">°</span>
+      <span className="bloch-angle-unit" aria-hidden="true">
+        °
+      </span>
     </div>
   );
 }

@@ -261,7 +261,10 @@ class WglTexture {
       );
     }
 
-    const rows = this.width === 0 ? 0 : Math.min(this.height, Math.ceil(pixelCount / this.width));
+    const rows =
+      this.width === 0
+        ? 0
+        : Math.min(this.height, Math.ceil(pixelCount / this.width));
     switch (this.pixelType) {
       case GL.UNSIGNED_BYTE:
         return { rows, ArrayType: Uint8Array };
@@ -302,7 +305,11 @@ class WglTexture {
         checkGetErrorResult(gl, "framebufferTexture2D", true);
         checkFrameBufferStatusResult(gl, true);
         gl.readPixels(0, 0, this.width, rows, GL.RGBA, this.pixelType, 0);
-        checkGetErrorResult(gl, `readPixels(..., RGBA, ${this.pixelType}, 0)`, true);
+        checkGetErrorResult(
+          gl,
+          `readPixels(..., RGBA, ${this.pixelType}, 0)`,
+          true,
+        );
       } finally {
         gl.bindBuffer(GL.PIXEL_PACK_BUFFER, null);
       }

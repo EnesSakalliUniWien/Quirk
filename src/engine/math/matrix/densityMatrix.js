@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Matrix } from "../../../engine/math/matrix/Matrix.js";
+import { Matrix } from "./Matrix.js";
 
 /**
  * Removes off-diagonal terms between states that differ on measured qubits.
@@ -23,22 +23,22 @@ import { Matrix } from "../../../engine/math/matrix/Matrix.js";
  * @returns {!Matrix}
  */
 function decohereMeasuredBitsInDensityMatrix(densityMatrix, isMeasuredMask) {
-    if (isMeasuredMask === 0) {
-        return densityMatrix;
-    }
+  if (isMeasuredMask === 0) {
+    return densityMatrix;
+  }
 
-    const buf = new Float32Array(densityMatrix.rawBuffer());
-    const n = densityMatrix.width();
-    for (let row = 0; row < n; row++) {
-        for (let col = 0; col < n; col++) {
-            if (((row ^ col) & isMeasuredMask) !== 0) {
-                const k = (row*n + col)*2;
-                buf[k] = 0;
-                buf[k+1] = 0;
-            }
-        }
+  const buf = new Float32Array(densityMatrix.rawBuffer());
+  const n = densityMatrix.width();
+  for (let row = 0; row < n; row++) {
+    for (let col = 0; col < n; col++) {
+      if (((row ^ col) & isMeasuredMask) !== 0) {
+        const k = (row * n + col) * 2;
+        buf[k] = 0;
+        buf[k + 1] = 0;
+      }
     }
-    return new Matrix(n, n, buf);
+  }
+  return new Matrix(n, n, buf);
 }
 
 export { decohereMeasuredBitsInDensityMatrix };

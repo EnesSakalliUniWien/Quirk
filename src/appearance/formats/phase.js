@@ -25,7 +25,9 @@ const HUE_AT_ZERO_PHASE = 245;
 
 /** The phase wheel for one scheme's `phase` settings; the active scheme's by default. */
 function phaseRgb(phaseDegrees, { lightness, chroma } = Appearance.phase) {
-  const hue = (((((phaseDegrees + HUE_AT_ZERO_PHASE) % 360) + 360) % 360) * Math.PI) / 180;
+  const hue =
+    (((((phaseDegrees + HUE_AT_ZERO_PHASE) % 360) + 360) % 360) * Math.PI) /
+    180;
   const a = chroma * Math.cos(hue);
   const b = chroma * Math.sin(hue);
   // OKLab to linear sRGB (Ottosson), then the sRGB transfer curve.

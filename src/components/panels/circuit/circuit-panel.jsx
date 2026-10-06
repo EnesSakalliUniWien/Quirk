@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { flushSync } from "react-dom";
 import { useStore } from "zustand";
 
-import {RenderCanvas} from '../../../draw/surface/RenderCanvas.jsx';
+import { RenderCanvas } from "../../../draw/surface/RenderCanvas.jsx";
 import { startQuirk } from "../../../app/QuirkApp.js";
 import { setErrorBannerHost } from "../../../diagnostics/errorReporter.js";
 import { appStore } from "../../../state/appStore.js";
@@ -11,7 +11,7 @@ import { CircuitCursor } from "./circuit-cursor.jsx";
 import { GutterEditors } from "./gutter-editors.jsx";
 import { GateMenu } from "./gate-menu.jsx";
 import { WireDials } from "./wire-dial.jsx";
-import { ForgeRangeHighlight } from './forge-range-highlight.jsx';
+import { ForgeRangeHighlight } from "./forge-range-highlight.jsx";
 import { SelectionBar } from "./selection-bar.jsx";
 import { SelectionMenu } from "./selection-menu.jsx";
 import { useCircuitKeyboard } from "./useCircuitKeyboard.js";
@@ -58,12 +58,15 @@ function activateGate(found) {
  * finished circuits are. It lets presses and drops through to the canvas under it.
  */
 function EmptyCircuitHint() {
-  const empty = useStore(appStore, (s) => s.booted && !s.circuitAvailability.canClearCircuit);
+  const empty = useStore(
+    appStore,
+    (s) => s.booted && !s.circuitAvailability.canClearCircuit,
+  );
   return empty ? (
     <div className="circuit-empty-hint">
       <p>
-        Drag a gate from Gates onto a wire - the dashed slot on q0 is a good start - or select one
-        there and press Return.
+        Drag a gate from Gates onto a wire - the dashed slot on q0 is a good
+        start - or select one there and press Return.
       </p>
       {/* The hint lets drops through to the canvas; only this button takes a press. */}
       <ExamplesMenu worded />
@@ -108,14 +111,22 @@ function CircuitPanel() {
       openComplexDisplay,
       openTape: () => openPanel("tape"),
       openRegisterRename: (name, rect) => {
-        appStore.setState({ registerRename: { name, rect: { x: rect.x, y: rect.y, w: rect.w, h: rect.h } } });
+        appStore.setState({
+          registerRename: {
+            name,
+            rect: { x: rect.x, y: rect.y, w: rect.w, h: rect.h },
+          },
+        });
       },
       openGutterMenu: ({ wire, register, rect, x, y }) =>
         appStore.setState({
           gutterMenu: {
             wire,
             register,
-            rect: rect === undefined ? undefined : { x: rect.x, y: rect.y, w: rect.w, h: rect.h },
+            rect:
+              rect === undefined
+                ? undefined
+                : { x: rect.x, y: rect.y, w: rect.w, h: rect.h },
             x,
             y,
           },
@@ -137,11 +148,14 @@ function CircuitPanel() {
         aria-roledescription="circuit editor"
         aria-label="Circuit"
         aria-describedby="circuit-summary circuit-output circuit-keys"
-        style={{ touchAction: "manipulation", position: "relative" }}
       >
         <RenderCanvas id="drawCanvas" canvasRef={canvasRef} onReady={start} />
         {/* Carries the scroll extent, so the canvas can stay viewport-sized. */}
-        <div id="canvas-scroll-spacer" ref={scrollSpacerRef} aria-hidden="true" />
+        <div
+          id="canvas-scroll-spacer"
+          ref={scrollSpacerRef}
+          aria-hidden="true"
+        />
         {/* The rename box and the wire-label menu sit in the scroll content, over the drawing. */}
         <GutterEditors host={canvasDivRef} />
         {/* The gate menu and the rotation gates' dials sit in the scroll content too, at their gate. */}

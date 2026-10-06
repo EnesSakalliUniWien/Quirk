@@ -17,8 +17,9 @@
 import { ketShader } from "../KetShaderUtil.js";
 
 const CUSTOM_SINGLE_QUBIT_OPERATION_SHADER = ketShader(
-    'uniform vec2 a, b, c, d;',
-    'return cmul(inp(0.0), a+(c-a)*out_id) + cmul(inp(1.0), b+(d-b)*out_id);',
-    1);
+  "uniform vec2 a, b, c, d;",
+  "return cmul(inp(0.0), a+(c-a)*out_id) + cmul(inp(1.0), b+(d-b)*out_id);",
+  1,
+);
 
 export { CUSTOM_SINGLE_QUBIT_OPERATION_SHADER };

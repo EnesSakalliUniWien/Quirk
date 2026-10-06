@@ -21,14 +21,8 @@ import {
   toColumnSpaceCoordinate,
   wireIndexAt,
 } from "../interaction/CircuitHitTesting.js";
-import {
-  previewDropMovedGate,
-  tryGrabGate,
-} from "./gates/GatePlacement.js";
-import {
-  previewResizedGate,
-  tryGrabResizeTab,
-} from "./gates/GateResizing.js";
+import { previewDropMovedGate, tryGrabGate } from "./gates/GatePlacement.js";
+import { previewResizedGate, tryGrabResizeTab } from "./gates/GateResizing.js";
 import {
   previewDropMovedGateColumn,
   tryGrabWholeColumn,
@@ -47,9 +41,12 @@ function editingContext(circuit) {
     geometry: circuit.geometry(),
     wireIndexAt: (y) => wireIndexAt(circuit.geometry(), y),
     findOpHalfColumnAt: (pos) => findOpHalfColumnAt(circuit.geometry(), pos),
-    toColumnSpaceCoordinate: (x) => toColumnSpaceCoordinate(circuit.geometry(), x),
-    findGateOverlappingPos: (pos) => findGateOverlappingPos(circuit.geometry(), pos),
-    highlightStatusAt: (col, row, points) => circuit.highlightStatusAt(col, row, points),
+    toColumnSpaceCoordinate: (x) =>
+      toColumnSpaceCoordinate(circuit.geometry(), x),
+    findGateOverlappingPos: (pos) =>
+      findGateOverlappingPos(circuit.geometry(), pos),
+    highlightStatusAt: (col, row, points) =>
+      circuit.highlightStatusAt(col, row, points),
   };
 }
 
@@ -63,11 +60,11 @@ function editingContext(circuit) {
 function previewDrop(circuit, hand) {
   const context = editingContext(circuit);
   const previews = {
-    'select-wires': previewNewRegister,
+    "select-wires": previewNewRegister,
     row: previewDropMovedRow,
     column: previewDropMovedGateColumn,
     gate: previewDropMovedGate,
-    resize: previewResizedGate
+    resize: previewResizedGate,
   };
   return circuit.withEdit(previews[hand.operation.type]?.(context, hand));
 }
@@ -91,7 +88,9 @@ function afterDropping(circuit, hand) {
  * @returns {!CircuitViewState}
  */
 function withJustEnoughWires(circuit, extraWireCount) {
-  return circuit.withEdit(wireCountEdit(editingContext(circuit), extraWireCount));
+  return circuit.withEdit(
+    wireCountEdit(editingContext(circuit), extraWireCount),
+  );
 }
 
 /**
@@ -103,7 +102,10 @@ function withJustEnoughWires(circuit, extraWireCount) {
  */
 function tryClick(circuit, hand) {
   if (hand.pos === undefined || hand.heldGate !== undefined) return undefined;
-  const wire = findWireWithInitialStateAreaContaining(circuit.geometry(), hand.pos);
+  const wire = findWireWithInitialStateAreaContaining(
+    circuit.geometry(),
+    hand.pos,
+  );
   return wire === undefined
     ? undefined
     : circuit.withCircuit(
@@ -151,8 +153,14 @@ export { previewDrop, afterDropping, withJustEnoughWires, tryClick, tryGrab };
 /** Normalize the definition and clear temporary markers in one immutable update. */
 export function tidyCircuit(circuit) {
   return circuit.withEdit({
-    definition: circuit.circuitDefinition.withUncoveredColumnsRemoved().withHeightOverlapsFixed()
-      .withWidthOverlapsFixed().withUncoveredColumnsRemoved().withTrailingSpacersIncluded(),
-    compressedColumnIndex: undefined, highlightedSlot: undefined, extraWireStartIndex: undefined
+    definition: circuit.circuitDefinition
+      .withUncoveredColumnsRemoved()
+      .withHeightOverlapsFixed()
+      .withWidthOverlapsFixed()
+      .withUncoveredColumnsRemoved()
+      .withTrailingSpacersIncluded(),
+    compressedColumnIndex: undefined,
+    highlightedSlot: undefined,
+    extraWireStartIndex: undefined,
   });
 }

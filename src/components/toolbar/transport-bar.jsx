@@ -1,7 +1,7 @@
-import styles from './transport-bar.module.css';
-import {RecordControls} from "../panels/tape/record-controls.jsx";
-import {SpeedMenu} from "./speed-menu.jsx";
-import {TimeLane} from "./time-lane.jsx";
+import styles from "./transport-bar.module.css";
+import { RecordControls } from "../panels/tape/record-controls.jsx";
+import { SpeedMenu } from "./speed-menu.jsx";
+import { TimeLane } from "./time-lane.jsx";
 import { useEffect, useRef } from "react";
 import { useStore } from "zustand";
 
@@ -49,7 +49,13 @@ function useSpaceTogglesPlayback() {
       if (ev.target !== document.body && ev.target.id !== "canvasDiv") {
         return;
       }
-      const { playhead, playheadState, cycleAnimates, cycleHold, cycleControls } = appStore.getState();
+      const {
+        playhead,
+        playheadState,
+        cycleAnimates,
+        cycleHold,
+        cycleControls,
+      } = appStore.getState();
       if (playhead === undefined) {
         return;
       }
@@ -62,7 +68,8 @@ function useSpaceTogglesPlayback() {
         paused = { steps: stepsMoving, time: timeMoving };
         return;
       }
-      if (paused.time && cycleAnimates && cycleHold === "paused") cycleControls?.toggle();
+      if (paused.time && cycleAnimates && cycleHold === "paused")
+        cycleControls?.toggle();
       if (paused.steps || !paused.time) playhead.togglePlay();
       paused = { steps: false, time: false };
     };
@@ -120,7 +127,10 @@ function StepsLane() {
 
   return (
     <div className={styles.lane} role="group" aria-label="Steps">
-      <span className={`${styles.laneLabel} ${styles.stepsLabel}`} aria-hidden="true">
+      <span
+        className={`${styles.laneLabel} ${styles.stepsLabel}`}
+        aria-hidden="true"
+      >
         Steps
       </span>
       {/* Back, Play, forward and the extra command each take their own column, so the Time lane's
@@ -153,12 +163,22 @@ function StepsLane() {
         onClick={() => playhead.togglePlay()}
       >
         {state.playing ? (
-          <PauseIcon id="playhead-pause-icon" data-icon="inline-start" fill="currentColor" />
+          <PauseIcon
+            id="playhead-pause-icon"
+            data-icon="inline-start"
+            fill="currentColor"
+          />
         ) : (
-          <PlayIcon id="playhead-play-icon" data-icon="inline-start" fill="currentColor" />
+          <PlayIcon
+            id="playhead-play-icon"
+            data-icon="inline-start"
+            fill="currentColor"
+          />
         )}
         {/* Named for its lane, since the Time lane has a Play of its own. */}
-        <span id="playhead-play-label" className={styles.word}>{state.playing ? "Pause steps" : "Play steps"}</span>
+        <span id="playhead-play-label" className={styles.word}>
+          {state.playing ? "Pause steps" : "Play steps"}
+        </span>
       </Button>
       <ButtonGroup aria-label="Forward" className={styles.forward}>
         <TransportButton
@@ -205,7 +225,11 @@ function StepsLane() {
         aria-valuetext={`operation ${state.operationIndex} of ${state.operationCount}`}
       />
       {/* Polite, so a step taken by key or button is announced without stealing focus. */}
-      <span id="playhead-position" className={`${styles.readout} ${styles.position}`} aria-live="polite">
+      <span
+        id="playhead-position"
+        className={`${styles.readout} ${styles.position}`}
+        aria-live="polite"
+      >
         operation {state.operationIndex} / {state.operationCount}
       </span>
       <span className={styles.pace}>
@@ -227,7 +251,11 @@ function StepsLane() {
 function TransportBar() {
   useSpaceTogglesPlayback();
   return (
-    <div className={`transport-bar ${styles.bar}`} role="group" aria-label="Playback controls">
+    <div
+      className={`transport-bar ${styles.bar}`}
+      role="group"
+      aria-label="Playback controls"
+    >
       <StepsLane />
       <TimeLane />
     </div>

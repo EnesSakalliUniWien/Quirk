@@ -18,7 +18,12 @@ import { useId } from "react";
 function AnalyzerGroup({ title, purpose, children, className }) {
   const titleId = useId();
   return (
-    <section className={["panel-section bloch-group", className].filter(Boolean).join(" ")} aria-labelledby={titleId}>
+    <section
+      className={["panel-section bloch-group", className]
+        .filter(Boolean)
+        .join(" ")}
+      aria-labelledby={titleId}
+    >
       <header className="panel-section-heading bloch-group-heading">
         <h3 id={titleId} className="panel-section-title">
           {title}

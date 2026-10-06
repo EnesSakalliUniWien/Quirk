@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js"
-import {GateColumn} from "../../../src/circuit/model/GateColumn.js"
-import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
-import {CircuitStats} from "../../../src/engine/simulation/CircuitStats.js"
-import {paddedState} from "../../../src/engine/simulation/stepAlgebra.js"
+import { CircuitDefinition } from "../../../src/circuit/model/CircuitDefinition.js";
+import { GateColumn } from "../../../src/circuit/model/GateColumn.js";
+import { Matrix } from "../../../src/engine/math/matrix/Matrix.js";
+import { CircuitStats } from "../../../src/engine/simulation/CircuitStats.js";
+import { paddedState } from "../../../src/engine/simulation/stepAlgebra.js";
 
 /**
  * The matrix of one column read off the engine itself: the column alone, run on every basis state,
@@ -34,26 +34,38 @@ import {paddedState} from "../../../src/engine/simulation/stepAlgebra.js"
  * @returns {!Matrix}
  */
 function engineColumnOperator(circuit, colIndex, wireCount, time) {
-    const gates = circuit.columns[colIndex].gates;
-    const column = new GateColumn(Array.from({length: wireCount}, (_, row) => gates[row]));
-    const size = 1 << wireCount;
-    const buffer = new Float64Array(size * size * 2);
-    for (let basis = 0; basis < size; basis++) {
-        const initialValues = new Map();
-        for (let bit = 0; bit < wireCount; bit++) {
-            if ((basis & (1 << bit)) !== 0) {
-                initialValues.set(bit, "1");
-            }
-        }
-        const alone = new CircuitDefinition(
-            wireCount, [column], 0, new Map(), circuit.customGateSet, false, initialValues);
-        const output = paddedState(CircuitStats.fromCircuitAtTime(alone, time).finalState, wireCount).rawBuffer();
-        for (let row = 0; row < size; row++) {
-            buffer[(row * size + basis) * 2] = output[row * 2];
-            buffer[(row * size + basis) * 2 + 1] = output[row * 2 + 1];
-        }
+  const gates = circuit.columns[colIndex].gates;
+  const column = new GateColumn(
+    Array.from({ length: wireCount }, (_, row) => gates[row]),
+  );
+  const size = 1 << wireCount;
+  const buffer = new Float64Array(size * size * 2);
+  for (let basis = 0; basis < size; basis++) {
+    const initialValues = new Map();
+    for (let bit = 0; bit < wireCount; bit++) {
+      if ((basis & (1 << bit)) !== 0) {
+        initialValues.set(bit, "1");
+      }
     }
-    return new Matrix(size, size, buffer);
+    const alone = new CircuitDefinition(
+      wireCount,
+      [column],
+      0,
+      new Map(),
+      circuit.customGateSet,
+      false,
+      initialValues,
+    );
+    const output = paddedState(
+      CircuitStats.fromCircuitAtTime(alone, time).finalState,
+      wireCount,
+    ).rawBuffer();
+    for (let row = 0; row < size; row++) {
+      buffer[(row * size + basis) * 2] = output[row * 2];
+      buffer[(row * size + basis) * 2 + 1] = output[row * 2 + 1];
+    }
+  }
+  return new Matrix(size, size, buffer);
 }
 
-export {engineColumnOperator}
+export { engineColumnOperator };

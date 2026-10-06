@@ -14,32 +14,37 @@
  * limitations under the License.
  */
 
-import {Suite, assertThat, assertTrue} from "../../../TestUtil.js"
-import {KetTextureUtil} from "../../../../src/engine/simulation/gpu/KetTextureUtil.js"
-import {Shaders} from "../../../../src/engine/webgl/operations/Shaders.js"
-import {WglTexture} from "../../../../src/engine/webgl/texture/WglTexture.js"
-import {WglTexturePool} from "../../../../src/engine/webgl/texture/WglTexturePool.js"
+import { Suite, assertThat, assertTrue } from "../../../TestUtil.js";
+import { KetTextureUtil } from "../../../../src/engine/simulation/gpu/KetTextureUtil.js";
+import { Shaders } from "../../../../src/engine/webgl/operations/Shaders.js";
+import { WglTexture } from "../../../../src/engine/webgl/texture/WglTexture.js";
+import { WglTexturePool } from "../../../../src/engine/webgl/texture/WglTexturePool.js";
 
 const suite = new Suite("KetTextureUtil");
 
 /** Textures of several sizes, one of them empty, each a colour of its own. */
 const textures = () => [
-    Shaders.color(1, 2, 3, 4).toVec4Texture(0),
-    new WglTexture(0, 0),
-    Shaders.color(5, 6, 7, 8).toVec4Texture(3),
-    Shaders.color(9, 10, 11, 12).toVec4Texture(1),
-    Shaders.color(13, 14, 15, 16).toVec4Texture(5),
+  Shaders.color(1, 2, 3, 4).toVec4Texture(0),
+  new WglTexture(0, 0),
+  Shaders.color(5, 6, 7, 8).toVec4Texture(3),
+  Shaders.color(9, 10, 11, 12).toVec4Texture(1),
+  Shaders.color(13, 14, 15, 16).toVec4Texture(5),
 ];
 
-suite.testUsingWebGL("mergedReadFloats cuts the merged pixels back into each texture's own", () => {
+suite.testUsingWebGL(
+  "mergedReadFloats cuts the merged pixels back into each texture's own",
+  () => {
     const read = KetTextureUtil.mergedReadFloats(textures());
-    assertThat(read.map(e => e.length)).isEqualTo([4, 0, 32, 8, 128]);
+    assertThat(read.map((e) => e.length)).isEqualTo([4, 0, 32, 8, 128]);
     assertThat([...read[0]]).isEqualTo([1, 2, 3, 4]);
     assertThat([...read[3]]).isEqualTo([9, 10, 11, 12, 9, 10, 11, 12]);
-    assertThat(read[4].every((e, i) => e === 13 + i % 4)).isEqualTo(true);
-});
+    assertThat(read[4].every((e, i) => e === 13 + (i % 4))).isEqualTo(true);
+  },
+);
 
-suite.test("a merged read that does not wait gives the arrays a waiting one does", async () => {
+suite.test(
+  "a merged read that does not wait gives the arrays a waiting one does",
+  async () => {
     const before = WglTexturePool.getUnReturnedTextureCount();
     const expected = KetTextureUtil.mergedReadFloats(textures());
     const pending = KetTextureUtil.startMergedReadFloats(textures());
@@ -49,24 +54,28 @@ suite.test("a merged read that does not wait gives the arrays a waiting one does
 
     let read = undefined;
     for (let i = 0; i < 1000 && read === undefined; i++) {
-        await new Promise(resolve => setTimeout(resolve, 0));
-        read = pending.poll();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      read = pending.poll();
     }
     assertTrue(read !== undefined);
     assertThat(read).isEqualTo(expected);
     assertThat(WglTexturePool.getUnReturnedTextureCount()).isEqualTo(before);
-});
+  },
+);
 
-suite.test("a merged read that is cancelled gives nothing, and holds nothing", async () => {
+suite.test(
+  "a merged read that is cancelled gives nothing, and holds nothing",
+  async () => {
     const before = WglTexturePool.getUnReturnedTextureCount();
     const pending = KetTextureUtil.startMergedReadFloats(textures());
     pending.cancel();
     let threw = false;
     try {
-        pending.poll();
+      pending.poll();
     } catch {
-        threw = true;
+      threw = true;
     }
     assertTrue(threw);
     assertThat(WglTexturePool.getUnReturnedTextureCount()).isEqualTo(before);
-});
+  },
+);

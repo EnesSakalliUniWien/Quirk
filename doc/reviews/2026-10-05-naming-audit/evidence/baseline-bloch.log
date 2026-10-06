@@ -1,0 +1,6 @@
+FAIL Bloch sphere leads the panel with reachable controls and unbroken complex amplitudes AssertionError [ERR_ASSERTION]: {"right":375,"bottom":829,"sphereVisible":false,"presetsVisible":false,"overflow":0,"beta":"+0.408+0.289i","betaLines":1,"views":[{"width":300,"height":300},{"width":300,"height":300},{"width":300,"height":300}]}
+    at file:///private/tmp/quirk-bench-naming-fix-20261005/before/test_e2e/overlays.test.js:305:24
+    at async withQuirkPage (file:///private/tmp/quirk-bench-naming-fix-20261005/before/test_e2e/harness.js:145:9)
+    at async file:///private/tmp/quirk-bench-naming-fix-20261005/before/test_e2e/overlays.test.js:278:9
+    at async file:///private/tmp/quirk-bench-naming-fix-20261005/baseline-focused.mjs:13:45
+Completed 0/1

@@ -3,13 +3,13 @@
 Import the owning module directly. These modules draw existing scientific results; simulation
 and numeric state calculations remain in `src/engine/`.
 
-| Directory | Responsibility | Modules |
-| --- | --- | --- |
-| `bloch/` | Bloch spheres, projections and circuit-step thumbnails | `BlochScene.js`, `BlochView.js`, `BlochProjections.js`, `BlochStrip.js`, `BlochGeometry.js` |
-| `complex/` | Shared complex-cell rendering and geometry | `MatrixView.js`, `MatrixCells.js`, `ComplexCellGeometry.js` |
-| `amplitudes/` | Amplitude display data and captions | `AmplitudeView.js` |
-| `density/` | Density matrices and basis labels | `DensityMatrixView.js` |
-| `probability/` | Probability readouts, their scale and grouping, and already-sampled measurement outcomes | `ProbabilityView.js`, `ProbabilityScale.js`, `ProbabilityBlocks.js`, `SampleView.js` |
+| Directory      | Responsibility                                                                           | Modules                                                                                     |
+| -------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `bloch/`       | Bloch spheres, projections and circuit-step thumbnails                                   | `BlochScene.js`, `BlochView.js`, `BlochProjections.js`, `BlochStrip.js`, `BlochGeometry.js` |
+| `complex/`     | Shared complex-cell rendering and geometry                                               | `MatrixView.js`, `MatrixCells.js`, `ComplexCellGeometry.js`                                 |
+| `amplitudes/`  | Amplitude display data and captions                                                      | `AmplitudeView.js`                                                                          |
+| `density/`     | Density matrices and basis labels                                                        | `DensityMatrixView.js`                                                                      |
+| `probability/` | Probability readouts, their scale and grouping, and already-sampled measurement outcomes | `ProbabilityView.js`, `ProbabilityScale.js`, `ProbabilityBlocks.js`, `SampleView.js`        |
 
 ## Dependencies
 

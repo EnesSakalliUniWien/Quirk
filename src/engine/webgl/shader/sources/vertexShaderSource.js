@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 const VERTEX_SHADER_SOURCE = `#version 300 es
 precision highp float;
 precision highp int;

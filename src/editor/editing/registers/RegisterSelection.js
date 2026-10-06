@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 /**
  * The circuit with a register over the wires picked so far, when they are all free: shown while
  * the drag goes on, and made when it ends. A register only names its wires, so making one changes
@@ -26,18 +24,31 @@
  * @returns {undefined|!Object} Proposed definition and drag-state changes; undefined means no edit.
  */
 function previewNewRegister(context, hand) {
-    if (hand.pos === undefined) {
-        return undefined;
-    }
-    const def = context.definition;
-    const to = Math.max(0, Math.min(def.numWires - 1, context.wireIndexAt(hand.pos.y)));
-    const first = Math.min(hand.selectingWires, to);
-    const wires = Array.from({length: Math.abs(to - hand.selectingWires) + 1}, (_, i) => first + i);
-    if (wires.some(wire => def.registers.covers(wire))) {
-        return undefined;
-    }
-    const register = {name: def.registers.nextFreeName(), start: first, length: wires.length, input: undefined};
-    return {definition: def.withRegisters(def.registers.withRegister(register))};
+  if (hand.pos === undefined) {
+    return undefined;
+  }
+  const def = context.definition;
+  const to = Math.max(
+    0,
+    Math.min(def.numWires - 1, context.wireIndexAt(hand.pos.y)),
+  );
+  const first = Math.min(hand.selectingWires, to);
+  const wires = Array.from(
+    { length: Math.abs(to - hand.selectingWires) + 1 },
+    (_, i) => first + i,
+  );
+  if (wires.some((wire) => def.registers.covers(wire))) {
+    return undefined;
+  }
+  const register = {
+    name: def.registers.nextFreeName(),
+    start: first,
+    length: wires.length,
+    input: undefined,
+  };
+  return {
+    definition: def.withRegisters(def.registers.withRegister(register)),
+  };
 }
 
 /**
@@ -48,16 +59,20 @@ function previewNewRegister(context, hand) {
  * @returns {undefined|!Object} Proposed definition, drag-state and hand changes.
  */
 function tryStartWireSelection(context, hand) {
-    if (hand.pos === undefined) {
-        return undefined;
-    }
-    const wire = context.wireIndexAt(hand.pos.y);
-    const def = context.definition;
-    if (wire < 0 || wire >= def.numWires || def.registers.covers(wire) ||
-            !context.geometry.wireIndexRect(wire).containsPoint(hand.pos)) {
-        return undefined;
-    }
-    return {hand: hand.withSelectingWires(wire)};
+  if (hand.pos === undefined) {
+    return undefined;
+  }
+  const wire = context.wireIndexAt(hand.pos.y);
+  const def = context.definition;
+  if (
+    wire < 0 ||
+    wire >= def.numWires ||
+    def.registers.covers(wire) ||
+    !context.geometry.wireIndexRect(wire).containsPoint(hand.pos)
+  ) {
+    return undefined;
+  }
+  return { hand: hand.withSelectingWires(wire) };
 }
 
-export {previewNewRegister, tryStartWireSelection};
+export { previewNewRegister, tryStartWireSelection };

@@ -1,16 +1,22 @@
-import {observeStore} from '../../base/valueStore.js';
-import {useStore} from 'zustand';
-import {appStore} from '../../state/appStore.js';
-import { memo, useEffect, useMemo, useRef, useState } from "react";
+import { useColourScheme } from "../useColourScheme.js";
+import { observeStore } from "../../base/valueStore.js";
+import { useStore } from "zustand";
+import { appStore } from "../../state/appStore.js";
+import { trackPointerUntilRelease } from "../../browser/PointerDrag.js";
+import { clampCell } from "../../circuit/circuitRange.js";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { AtomIcon, InfoIcon, SearchIcon } from "lucide-react";
+import { InfoIcon, SearchIcon } from "lucide-react";
 import { ScrollArea } from "@base-ui/react/scroll-area";
 import { PreviewCard } from "@base-ui/react/preview-card";
 import { Popover } from "@base-ui/react/popover";
 import { Button } from "../ui/button.jsx";
 
-import { GateHoverCard, gateHoverHandle, gateDetailsHandle } from "../gate/gate-hover.jsx";
-
+import {
+  GateHoverCard,
+  gateHoverHandle,
+  gateDetailsHandle,
+} from "../gate/gate-hover.jsx";
 
 import { useObservedValue } from "../useObservedValue.js";
 import { gateStyle } from "../../config/CanvasTheme.js";
@@ -18,12 +24,8 @@ import { Gates } from "../../gates/AllGates.js";
 import {
   MysteryGateSymbol,
   MysteryGateMaker,
-} from "../../gates/misc/Joke_MysteryGate.js";
-import {
-  chipPartsOf,
-  listNameOf,
-  searchTextOf,
-} from "./toolbox.js";
+} from "../../gates/misc/RandomUnitaryGate.js";
+import { chipPartsOf, listNameOf, searchTextOf } from "./toolbox.js";
 
 /** A tile's height and the gap between them, from src/styles/gates/toolbox/tiles.css and groups.css.
  *  Used only to reserve space for a group whose rendering is skipped while it is off screen. */
@@ -54,6 +56,7 @@ function buildTileModels(customGateSet) {
 }
 
 function GateChip({ gate }) {
+  useColourScheme();
   const style = gateStyle(gate);
   const { base, sup } = chipPartsOf(gate);
   const length = base.length + sup.length;
@@ -82,6 +85,22 @@ function GateTile({
   registerTile,
 }) {
   const gate = model.gate;
+  const accessibleName = gate.name || gate.symbol || gate.serializedId;
+  const stopPress = useRef(undefined);
+  const suppressClick = useRef(false);
+  useEffect(() => {
+    const cancel = () => {
+      if (stopPress.current === undefined) return;
+      stopPress.current();
+      stopPress.current = undefined;
+      suppressClick.current = true;
+    };
+    window.addEventListener("blur", cancel);
+    return () => {
+      cancel();
+      window.removeEventListener("blur", cancel);
+    };
+  }, []);
   return (
     <div className="gate-tile-row" hidden={hidden}>
       <PreviewCard.Trigger
@@ -92,21 +111,48 @@ function GateTile({
         data-slot="sidebar-menu-button"
         data-gate-id={gate.serializedId}
         data-tile-key={model.key}
-        aria-label={gate.name || gate.symbol || gate.serializedId}
+        aria-label={accessibleName}
+        aria-describedby="gate-toolbox-instructions"
         hidden={hidden}
         tabIndex={isStop ? 0 : -1}
         ref={(element) => registerTile(model.key, element)}
         onFocus={() => onFocusTile(model.key)}
         onPointerDown={(ev) => {
-          if (ev.isPrimary && (ev.pointerType !== "mouse" || ev.button === 0)) {
-            onGrab(model, ev.nativeEvent);
-            ev.preventDefault();
-          }
+          if (!ev.isPrimary || (ev.pointerType === "mouse" && ev.button !== 0))
+            return;
+          stopPress.current?.();
+          stopPress.current = undefined;
+          suppressClick.current = false;
+          // Touch keeps native scrolling and tap activation. Only a deliberate mouse movement
+          // takes a gate, before revealing a circuit that might share this palette's tab group.
+          if (ev.pointerType !== "mouse") return;
+          const start = ev.nativeEvent;
+          stopPress.current = trackPointerUntilRelease(start, {
+            onMove: (pointer) => {
+              if (
+                Math.hypot(
+                  pointer.clientX - start.clientX,
+                  pointer.clientY - start.clientY,
+                ) < 6
+              )
+                return;
+              stopPress.current();
+              stopPress.current = undefined;
+              suppressClick.current = true;
+              onGrab(model, pointer);
+              pointer.preventDefault();
+            },
+            onRelease: () => {
+              stopPress.current = undefined;
+            },
+            onCancel: () => {
+              stopPress.current = undefined;
+              suppressClick.current = true;
+            },
+          });
         }}
         onClick={(ev) => {
-          // Enter and Space arrive as a click with no pointer behind it (detail 0). A pointer
-          // press has already gone through the drag path on pointerdown.
-          if (ev.detail === 0) {
+          if (ev.detail === 0 || !suppressClick.current) {
             onPlace(model);
           }
         }}
@@ -119,7 +165,7 @@ function GateTile({
         payload={gate}
         render={<Button size="icon" />}
         className="gate-details-trigger"
-        aria-label={`Details for ${gate.name || gate.symbol || gate.serializedId}`}
+        aria-label={`Details for ${accessibleName}`}
         tabIndex={isStop ? 0 : -1}
         onFocus={() => onFocusTile(model.key)}
       >
@@ -128,21 +174,6 @@ function GateTile({
     </div>
   );
 }
-
-// Renders once: memo with zero props keeps React away from this subtree while the toolbox
-// re-renders around it.
-const SidebarHeader = memo(function SidebarHeader() {
-  return (
-    <div className="sidebar-brand">
-      <span className="app-brand-mark" aria-hidden="true">
-        <AtomIcon />
-      </span>
-      <span className="app-brand-copy">
-        <strong>Shadow-Quant</strong>
-      </span>
-    </div>
-  );
-});
 
 /**
  * The gate palette, structured the way a shadcn sidebar is: a header holding the search, a
@@ -154,10 +185,11 @@ const SidebarHeader = memo(function SidebarHeader() {
  * It is the content of the gates dock panel (src/components/panels/gates/gates-panel.jsx), which fills.
  */
 function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace }) {
+  const panelDeps = useStore(appStore, (state) => state.panelDeps);
   const customGateSet = useObservedValue(obsCustomGateSet);
   const [query, setQuery] = useState("");
   const [stopKey, setStopKey] = useState(undefined);
-  // Tile models live in state so taking the mystery gate can swap in a fresh random one.
+  // Tile models live in state so taking the random unitary gate can swap in a fresh random one.
   const [models, setModels] = useState(() => buildTileModels(customGateSet));
   const builtFor = useRef(customGateSet);
   if (builtFor.current !== customGateSet) {
@@ -178,8 +210,10 @@ function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace }) {
   const latestTime = () => latestTimeRef.current;
 
   const trimmedQuery = query.trim().toLowerCase();
-  const matches = (model) =>
-    trimmedQuery === "" || model.search.includes(trimmedQuery);
+  const matches = useCallback(
+    (model) => trimmedQuery === "" || model.search.includes(trimmedQuery),
+    [trimmedQuery],
+  );
   const hints = useMemo(
     () => [...new Set(models.map((m) => m.hint))],
     [models],
@@ -189,20 +223,25 @@ function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace }) {
   // The active row has a placement stop and a details stop; Up and Down move between rows.
   // This avoids hundreds of tab stops between search and the rest of the page.
   const tileElements = useRef(new Map());
-  const customGateFocus = useStore(appStore, state => state.customGateFocus);
+  const customGateFocus = useStore(appStore, (state) => state.customGateFocus);
   useEffect(() => {
     if (!customGateFocus) return;
-    const model = models.find(model => model.gate.serializedId === customGateFocus);
+    const model = models.find(
+      (model) => model.gate.serializedId === customGateFocus,
+    );
     if (!model) return;
     // A search that already shows the new gate stays; only one that hides it is cleared.
-    if (!matches(model)) {setQuery(''); return;}
+    if (!matches(model)) {
+      setQuery("");
+      return;
+    }
     const element = tileElements.current.get(model.key);
     if (!element) return;
     setStopKey(model.key);
-    element.scrollIntoView({block:'nearest'});
+    element.scrollIntoView({ block: "nearest" });
     element.focus();
-    appStore.setState({customGateFocus:undefined});
-  }, [customGateFocus,models,query]);
+    appStore.setState({ customGateFocus: undefined });
+  }, [customGateFocus, models, matches]);
   const registerTile = (key, element) => {
     if (element === null) {
       tileElements.current.delete(key);
@@ -215,7 +254,9 @@ function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace }) {
     ? stopKey
     : visibleKeys[0];
   const onGroupsKeyDown = (ev) => {
-    const focusedTile = document.activeElement.closest('.gate-tile-row')?.querySelector('.gate-tile');
+    const focusedTile = document.activeElement
+      .closest(".gate-tile-row")
+      ?.querySelector(".gate-tile");
     const from = visibleKeys.findIndex(
       (key) => tileElements.current.get(key) === focusedTile,
     );
@@ -244,7 +285,7 @@ function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace }) {
     tileElements.current.get(visibleKeys[to]).focus();
   };
 
-  // Taking the mystery gate leaves a different random gate behind it.
+  // Taking the random unitary gate leaves a different random gate behind it.
   const afterTaking = (model) => {
     if (model.gate.symbol === MysteryGateSymbol) {
       const replacement = MysteryGateMaker();
@@ -270,13 +311,11 @@ function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace }) {
     afterTaking(model);
   };
 
-  // Tiles carry touch-action: none in the stylesheet, so a finger on a tile is a grab rather
-  // than a scroll and the pointerdown handler above sees it.
   const groupsRef = useRef(null);
 
   return (
     <aside className="gate-toolbox" data-slot="sidebar" aria-label="Gates">
-      <SidebarHeader />
+      <h2 className="visually-hidden">Gates</h2>
       <div className="gate-toolbox-header" data-slot="sidebar-header">
         <div className="gate-toolbox-search">
           <SearchIcon className="gate-toolbox-search-icon" aria-hidden="true" />
@@ -292,6 +331,10 @@ function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace }) {
             value={query}
             onChange={(ev) => setQuery(ev.target.value)}
             onKeyDown={(ev) => {
+              if (ev.nativeEvent.isComposing) {
+                ev.stopPropagation();
+                return;
+              }
               if (ev.key === "Escape" && query !== "") {
                 setQuery("");
                 ev.stopPropagation();
@@ -299,12 +342,24 @@ function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace }) {
             }}
           />
         </div>
+        {panelDeps === undefined ? (
+          <p
+            id="gate-toolbox-instructions"
+            className="gate-toolbox-instructions"
+          >
+            Arrow keys browse. Click, tap or Enter adds at the selected circuit
+            cell, or the end of the top wire.
+          </p>
+        ) : (
+          <PlacementInstruction deps={panelDeps} />
+        )}
       </div>
       <ScrollArea.Root
         className="gate-toolbox-content"
         data-slot="sidebar-content"
       >
         <ScrollArea.Viewport className="gate-toolbox-viewport">
+          {/* eslint-disable-next-line jsx-a11y-x/no-static-element-interactions -- Delegate roving arrow navigation from focusable gate buttons; this layout wrapper has no independent action. */}
           <div
             id="gate-toolbox-groups"
             className="gate-toolbox-groups"
@@ -356,9 +411,10 @@ function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace }) {
           <p
             id="gate-toolbox-empty"
             className="gate-toolbox-empty"
+            role="status"
             hidden={anyShown}
           >
-            No gate matches that search.
+            No gate matches that search. Press Escape in search to clear it.
           </p>
         </ScrollArea.Viewport>
         <ScrollArea.Scrollbar
@@ -371,6 +427,24 @@ function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace }) {
       {/* One card for every tile: the triggers above drive it through the shared handle. */}
       <GateHoverCard latestTime={latestTime} />
     </aside>
+  );
+}
+
+function PlacementInstruction({ deps }) {
+  const cursor = useStore(appStore, (state) => state.circuitCursor);
+  const circuit = useStore(
+    deps.displayed,
+    (state) => state.value.displayedCircuit.circuitDefinition,
+  );
+  const cell = cursor === undefined ? undefined : clampCell(circuit, cursor);
+  const destination =
+    cell === undefined
+      ? "the end of the top wire"
+      : `column ${cell.col + 1}, q${cell.row}`;
+  return (
+    <p id="gate-toolbox-instructions" className="gate-toolbox-instructions">
+      Arrow keys browse. Click, tap or Enter adds at {destination}.
+    </p>
   );
 }
 

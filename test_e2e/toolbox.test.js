@@ -16,311 +16,693 @@
 
 // The gate toolbox: search, tooltips, and the responsive reflow.
 
-import assert from 'node:assert/strict';
-import {test, withQuirkPage, waitForCircuit, TEST_TIMEOUT_MILLIS, canvasLayout, assertCircuitLayout, waitForCanvasViewport, circuitMetrics, circuitTopForWires} from './harness.js';
+import assert from "node:assert/strict";
+import {
+  test,
+  withQuirkPage,
+  waitForCircuit,
+  TEST_TIMEOUT_MILLIS,
+  canvasLayout,
+  assertCircuitLayout,
+  waitForCanvasViewport,
+  circuitMetrics,
+  circuitTopForWires,
+} from "./harness.js";
 
-test('searches the toolbox, previews on hover, and opens accessible gate details', async browser => {
-    await withQuirkPage(browser, {cols: [['H']]}, async page => {
-        const shown = () => page.evaluate(() => ({
-            tiles: [...document.querySelectorAll('.gate-tile')].
-                filter(tile => !tile.hidden).
-                map(tile => tile.getAttribute('aria-label')),
-            groups: [...document.querySelectorAll('.gate-group')].
-                filter(section => !section.hidden).
-                map(section => section.querySelector('.gate-group-label').textContent),
-            emptyShown: !document.getElementById('gate-toolbox-empty').hidden
-        }));
+test("searches the toolbox, previews on hover, and opens accessible gate details", async (browser) => {
+  await withQuirkPage(browser, { cols: [["H"]] }, async (page) => {
+    const shown = () =>
+      page.evaluate(() => ({
+        tiles: [...document.querySelectorAll(".gate-tile")]
+          .filter((tile) => !tile.hidden)
+          .map((tile) => tile.getAttribute("aria-label")),
+        groups: [...document.querySelectorAll(".gate-group")]
+          .filter((section) => !section.hidden)
+          .map(
+            (section) => section.querySelector(".gate-group-label").textContent,
+          ),
+        emptyShown: !document.getElementById("gate-toolbox-empty").hidden,
+      }));
 
-        // Every gate is reachable, and each tile carries a readable name rather than only a glyph.
-        const all = await shown();
-        assert.ok(all.tiles.length > 90, `The toolbox must hold every gate, saw ${all.tiles.length}.`);
-        assert.ok(all.tiles.includes('Hadamard Gate'));
-        assert.equal(all.emptyShown, false);
+    // Every gate is reachable, and each tile carries a readable name rather than only a glyph.
+    const all = await shown();
+    assert.ok(
+      all.tiles.length > 90,
+      `The toolbox must hold every gate, saw ${all.tiles.length}.`,
+    );
+    assert.ok(all.tiles.includes("Hadamard Gate"));
+    assert.equal(all.emptyShown, false);
 
-        // The group headings name a group, they never hide one: no fold control, and no tile
-        // list left hidden by a fold remembered from an earlier session.
-        const headings = await page.evaluate(() => ({
-            controls: document.querySelectorAll('.gate-group-label button').length,
-            hiddenLists: [...document.querySelectorAll('.gate-group-tiles')].
-                filter(list => list.hidden || getComputedStyle(list).display === 'none').length
-        }));
-        assert.deepEqual(headings, {controls: 0, hiddenLists: 0});
+    // The group headings name a group, they never hide one: no fold control, and no tile
+    // list left hidden by a fold remembered from an earlier session.
+    const headings = await page.evaluate(() => ({
+      controls: document.querySelectorAll(".gate-group-label button").length,
+      hiddenLists: [...document.querySelectorAll(".gate-group-tiles")].filter(
+        (list) => list.hidden || getComputedStyle(list).display === "none",
+      ).length,
+    }));
+    assert.deepEqual(headings, { controls: 0, hiddenLists: 0 });
 
-        await page.click('#gate-search');
-        await page.keyboard.type('qft');
-        await page.waitForFunction(
-            () => [...document.querySelectorAll('.gate-tile')].filter(tile => !tile.hidden).length === 2,
-            {timeout: TEST_TIMEOUT_MILLIS});
-        const filtered = await shown();
-        assert.deepEqual(filtered.tiles, ['Fourier Transform Gate', 'Inverse Fourier Transform Gate']);
-        assert.deepEqual(filtered.groups, ['Frequency']);
+    await page.click("#gate-search");
+    await page.keyboard.type("qft");
+    await page.waitForFunction(
+      () =>
+        [...document.querySelectorAll(".gate-tile")].filter(
+          (tile) => !tile.hidden,
+        ).length === 2,
+      { timeout: TEST_TIMEOUT_MILLIS },
+    );
+    const filtered = await shown();
+    assert.deepEqual(filtered.tiles, [
+      "Fourier Transform Gate",
+      "Inverse Fourier Transform Gate",
+    ]);
+    assert.deepEqual(filtered.groups, ["Frequency"]);
 
-        // The hidden attribute must actually unrender the tile: an author display rule outranks
-        // the browser's [hidden] styling, which once left non-matching tiles painted inside a
-        // partially-matching group.
-        const paintedButHidden = await page.evaluate(() =>
-            [...document.querySelectorAll('.gate-tile')].filter(tile =>
-                tile.hidden && getComputedStyle(tile).display !== 'none').length);
-        assert.equal(paintedButHidden, 0, 'Attribute-hidden tiles must not stay painted.');
+    // The hidden attribute must actually unrender the tile: an author display rule outranks
+    // the browser's [hidden] styling, which once left non-matching tiles painted inside a
+    // partially-matching group.
+    const paintedButHidden = await page.evaluate(
+      () =>
+        [...document.querySelectorAll(".gate-tile")].filter(
+          (tile) => tile.hidden && getComputedStyle(tile).display !== "none",
+        ).length,
+    );
+    assert.equal(
+      paintedButHidden,
+      0,
+      "Attribute-hidden tiles must not stay painted.",
+    );
 
-        // A search that matches nothing says so rather than showing an empty sidebar.
-        await page.keyboard.type('zzzz');
-        await page.waitForFunction(
-            () => !document.getElementById('gate-toolbox-empty').hidden,
-            {timeout: TEST_TIMEOUT_MILLIS});
+    // A search that matches nothing says so rather than showing an empty sidebar.
+    await page.keyboard.type("zzzz");
+    await page.waitForFunction(
+      () => !document.getElementById("gate-toolbox-empty").hidden,
+      { timeout: TEST_TIMEOUT_MILLIS },
+    );
 
-        await page.keyboard.press('Escape');
-        await page.waitForFunction(
-            () => [...document.querySelectorAll('.gate-tile')].filter(tile => !tile.hidden).length > 90,
-            {timeout: TEST_TIMEOUT_MILLIS});
+    await page.keyboard.press("Escape");
+    await page.waitForFunction(
+      () =>
+        [...document.querySelectorAll(".gate-tile")].filter(
+          (tile) => !tile.hidden,
+        ).length > 90,
+      { timeout: TEST_TIMEOUT_MILLIS },
+    );
 
-        // Hovering a tile brings up the gate's own documentation: its matrix written out, what it
-        // does to each basis state, and the turn it performs.
-        const tile = await page.evaluate(() => {
-            const target = [...document.querySelectorAll('.gate-tile')].
-                find(e => e.getAttribute('aria-label') === 'Hadamard Gate');
-            // The gate list scrolls inside the sidebar, so the tile has to be brought into view
-            // before its on-screen position means anything.
-            target.scrollIntoView({block: 'center'});
-            const bounds = target.getBoundingClientRect();
-            return {x: bounds.x + bounds.width/2, y: bounds.y + bounds.height/2};
-        });
-        await page.mouse.move(tile.x, tile.y);
-        await page.waitForSelector('.gate-hover', {visible: true, timeout: TEST_TIMEOUT_MILLIS});
-        assert.equal(await page.$('.gate-hover math'), null, 'Hover stays a short summary.');
-        await page.click('[aria-label="Details for Hadamard Gate"]');
-        await page.waitForSelector('.gate-details-popup', {visible: true});
-        await page.waitForSelector('.gate-hover', {hidden: true});
-        const card = await page.$eval('.gate-details-popup', element => ({
-            title: element.querySelector('.gate-details-title').textContent,
-            cells: element.querySelectorAll('math mtd').length,
-            // Real typesetting, not glyphs: a stacked fraction over a radical.
-            fractions: element.querySelectorAll('math mfrac').length,
-            roots: element.querySelectorAll('math msqrt').length,
-            mathHeight: Math.round(element.querySelector('math').getBoundingClientRect().height),
-            actions: [...element.querySelectorAll('.gate-details-actions li')].map(e => e.textContent),
-            axis: element.querySelector('.gate-details-facts dd')?.textContent,
-            hasFigure: element.querySelector('.rotation-figure') !== null
-        }));
-        assert.equal(card.title, 'Hadamard Gate');
-        assert.equal(card.cells, 4, 'The matrix must be written out, one element per entry.');
-        assert.equal(card.fractions, 4);
-        assert.equal(card.roots, 4);
-        // A stacked fraction is taller than a line of text; a glyph fallback would not be.
-        assert.ok(card.mathHeight > 40, `The matrix must be typeset, saw ${card.mathHeight}px.`);
-        assert.deepEqual(card.actions, [
-            'transforms |0⟩ into √½|0⟩ + √½|1⟩',
-            'transforms |1⟩ into √½|0⟩ - √½|1⟩'
-        ]);
-        assert.ok(card.hasFigure, 'A one-qubit gate must show the turn it performs.');
-        assert.ok(card.axis.startsWith('180°'), `The turn must be named, saw ${card.axis}.`);
+    // Hovering a tile brings up the gate's own documentation: its matrix written out, what it
+    // does to each basis state, and the turn it performs.
+    const tile = await page.evaluate(() => {
+      const target = [...document.querySelectorAll(".gate-tile")].find(
+        (e) => e.getAttribute("aria-label") === "Hadamard Gate",
+      );
+      // The gate list scrolls inside the sidebar, so the tile has to be brought into view
+      // before its on-screen position means anything.
+      target.scrollIntoView({ block: "center" });
+      const bounds = target.getBoundingClientRect();
+      return {
+        x: bounds.x + bounds.width / 2,
+        y: bounds.y + bounds.height / 2,
+      };
     });
+    await page.mouse.move(tile.x, tile.y);
+    await page.waitForSelector(".gate-hover", {
+      visible: true,
+      timeout: TEST_TIMEOUT_MILLIS,
+    });
+    assert.equal(
+      await page.$(".gate-hover math"),
+      null,
+      "Hover stays a short summary.",
+    );
+    await page.click('[aria-label="Details for Hadamard Gate"]');
+    await page.waitForSelector(".gate-details-popup", { visible: true });
+    await page.waitForSelector(".gate-hover", { hidden: true });
+    const card = await page.$eval(".gate-details-popup", (element) => ({
+      title: element.querySelector(".gate-details-title").textContent,
+      cells: element.querySelectorAll("math mtd").length,
+      // Real typesetting, not glyphs: a stacked fraction over a radical.
+      fractions: element.querySelectorAll("math mfrac").length,
+      roots: element.querySelectorAll("math msqrt").length,
+      mathHeight: Math.round(
+        element.querySelector("math").getBoundingClientRect().height,
+      ),
+      actions: [...element.querySelectorAll(".gate-details-actions li")].map(
+        (e) => e.textContent,
+      ),
+      axis: element.querySelector(".gate-details-facts dd")?.textContent,
+      hasFigure: element.querySelector(".rotation-figure") !== null,
+    }));
+    assert.equal(card.title, "Hadamard Gate");
+    assert.equal(
+      card.cells,
+      4,
+      "The matrix must be written out, one element per entry.",
+    );
+    assert.equal(card.fractions, 4);
+    assert.equal(card.roots, 4);
+    // A stacked fraction is taller than a line of text; a glyph fallback would not be.
+    assert.ok(
+      card.mathHeight > 40,
+      `The matrix must be typeset, saw ${card.mathHeight}px.`,
+    );
+    assert.deepEqual(card.actions, [
+      "transforms |0⟩ into √½|0⟩ + √½|1⟩",
+      "transforms |1⟩ into √½|0⟩ - √½|1⟩",
+    ]);
+    assert.ok(
+      card.hasFigure,
+      "A one-qubit gate must show the turn it performs.",
+    );
+    assert.ok(
+      card.axis.startsWith("180°"),
+      `The turn must be named, saw ${card.axis}.`,
+    );
+  });
 });
 
-test('opens interactive details for a gate too tall to write out', async browser => {
-    // A custom gate built from a six-qubit circuit: its 64 x 64 matrix is never built whole.
-    const TALL = {cols: [['~tall']], gates: [{id: '~tall', name: 'Tall', circuit: {cols: [['inc6'], ['H']]}}]};
-    await withQuirkPage(browser, TALL, async page => {
-        const tile = await page.evaluate(() => {
-            const target = [...document.querySelectorAll('.gate-tile')].
-                find(e => e.getAttribute('aria-label') === 'Tall Gate [tall]');
-            target.scrollIntoView({block: 'center'});
-            const bounds = target.getBoundingClientRect();
-            return {x: bounds.x + bounds.width/2, y: bounds.y + bounds.height/2};
-        });
-        await page.mouse.move(tile.x, tile.y);
-        await page.click('[aria-label="Details for Tall Gate [tall]"]');
-        await page.waitForSelector('.gate-details-popup', {visible: true, timeout: TEST_TIMEOUT_MILLIS});
-        const card = await page.waitForFunction(() => {
-            const view = document.querySelector('.gate-details-popup .operator-view-canvas');
-            return view?.dataset.painted !== 'true' ? false : {
-                title: document.querySelector('.gate-details-popup .gate-details-title').textContent,
-                label: view.getAttribute('aria-label'),
-                note: document.querySelector('.gate-details-popup .gate-details-note')?.textContent ?? null,
-            };
-        }, {timeout: TEST_TIMEOUT_MILLIS}).then(handle => handle.jsonValue());
-        assert.equal(card.title, 'Tall Gate [tall]');
-        assert.match(card.label, /64 by 64$/);
-        assert.equal(card.note, null, 'A tall gate must be drawn, not dismissed with a note.');
-        await page.keyboard.press('Tab');
-        assert.equal(await page.evaluate(() => document.activeElement.classList.contains('operator-view-canvas')), true);
-        await page.keyboard.press('Tab');
-        assert.equal(await page.evaluate(() => document.activeElement.getAttribute('aria-label')), 'Zoom in');
-        await page.keyboard.press('Enter');
-        assert.equal(await page.$eval('.gate-details-popup [aria-label="Zoom out"]', e => e.disabled), false);
+test("opens interactive details for a gate too tall to write out", async (browser) => {
+  // A custom gate built from a six-qubit circuit: its 64 x 64 matrix is never built whole.
+  const TALL = {
+    cols: [["~tall"]],
+    gates: [
+      { id: "~tall", name: "Tall", circuit: { cols: [["inc6"], ["H"]] } },
+    ],
+  };
+  await withQuirkPage(browser, TALL, async (page) => {
+    const tile = await page.evaluate(() => {
+      const target = [...document.querySelectorAll(".gate-tile")].find(
+        (e) => e.getAttribute("aria-label") === "Tall Gate [tall]",
+      );
+      target.scrollIntoView({ block: "center" });
+      const bounds = target.getBoundingClientRect();
+      return {
+        x: bounds.x + bounds.width / 2,
+        y: bounds.y + bounds.height / 2,
+      };
     });
+    await page.mouse.move(tile.x, tile.y);
+    await page.click('[aria-label="Details for Tall Gate [tall]"]');
+    await page.waitForSelector(".gate-details-popup", {
+      visible: true,
+      timeout: TEST_TIMEOUT_MILLIS,
+    });
+    const card = await page
+      .waitForFunction(
+        () => {
+          const view = document.querySelector(
+            ".gate-details-popup .operator-view-canvas",
+          );
+          return view?.dataset.painted !== "true"
+            ? false
+            : {
+                title: document.querySelector(
+                  ".gate-details-popup .gate-details-title",
+                ).textContent,
+                label: view.getAttribute("aria-label"),
+                note:
+                  document.querySelector(
+                    ".gate-details-popup .gate-details-note",
+                  )?.textContent ?? null,
+              };
+        },
+        { timeout: TEST_TIMEOUT_MILLIS },
+      )
+      .then((handle) => handle.jsonValue());
+    assert.equal(card.title, "Tall Gate [tall]");
+    assert.match(card.label, /64 by 64$/);
+    assert.equal(
+      card.note,
+      null,
+      "A tall gate must be drawn, not dismissed with a note.",
+    );
+    await page.keyboard.press("Tab");
+    assert.equal(
+      await page.evaluate(() =>
+        document.activeElement.classList.contains("operator-view-canvas"),
+      ),
+      true,
+    );
+    await page.keyboard.press("Tab");
+    assert.equal(
+      await page.evaluate(() =>
+        document.activeElement.getAttribute("aria-label"),
+      ),
+      "Zoom in",
+    );
+    await page.keyboard.press("Enter");
+    assert.equal(
+      await page.$eval(
+        '.gate-details-popup [aria-label="Zoom out"]',
+        (e) => e.disabled,
+      ),
+      false,
+    );
+  });
 });
 
-test('places gates with the keyboard alone', async browser => {
-    await withQuirkPage(browser, {cols: [['X']]}, async page => {
-        // The tiles share one tab stop; focusing a tile and pressing Enter appends its gate to
-        // the end of the circuit, on the top wire.
-        await page.evaluate(() => {
-            [...document.querySelectorAll('.gate-tile')].
-                find(e => e.getAttribute('aria-label') === 'Hadamard Gate').focus();
-        });
-        await page.keyboard.press('Enter');
-        await waitForCircuit(page, {cols: [['X'], ['H']]});
-
-        // Focus survives the placement, so the arrow keys keep working: down one tile - the palette
-        // opens on the half turns, H then X - and place that one too.
-        await page.keyboard.press('ArrowDown');
-        await page.keyboard.press('Enter');
-        await waitForCircuit(page, {cols: [['X'], ['H'], ['X']]});
+test("places gates with the keyboard alone", async (browser) => {
+  await withQuirkPage(browser, { cols: [["X"]] }, async (page) => {
+    // The tiles share one tab stop; focusing a tile and pressing Enter appends its gate to
+    // the end of the circuit, on the top wire.
+    await page.evaluate(() => {
+      [...document.querySelectorAll(".gate-tile")]
+        .find((e) => e.getAttribute("aria-label") === "Hadamard Gate")
+        .focus();
     });
+    await page.keyboard.press("Enter");
+    await waitForCircuit(page, { cols: [["X"], ["H"]] });
+
+    // Focus survives the placement, so the arrow keys keep working: down one tile - the palette
+    // opens on the half turns, H then X - and place that one too.
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("Enter");
+    await waitForCircuit(page, { cols: [["X"], ["H"], ["X"]] });
+  });
 });
 
-test('keeps the gate palette in the dock beside the circuit, where it cannot be closed', async browser => {
-    const circuit = {cols: [['H'], ['Bloch']]};
-    await withQuirkPage(browser, circuit, async page => {
-        const wideLayout = await canvasLayout(page);
-        assertCircuitLayout(wideLayout);
+test("keeps the gate palette in the dock beside the circuit, where it cannot be closed", async (browser) => {
+  const circuit = { cols: [["H"], ["Bloch"]] };
+  await withQuirkPage(browser, circuit, async (page) => {
+    const wideLayout = await canvasLayout(page);
+    assertCircuitLayout(wideLayout);
 
-        // The canvas is a fixed viewport: it fills its scroll cell exactly, and the circuit
-        // centers inside it.
-        await waitForCanvasViewport(page);
-        // The redraw loop resizes the canvas from a ResizeObserver a frame or two after layout
-        // settles, so wait for the match rather than sampling it once.
-        const viewportMatch = await page.waitForFunction(() => {
-            const cell = document.getElementById('canvasDiv');
-            const canvas = document.querySelector('#drawCanvas canvas');
-            return canvas.width === cell.clientWidth && canvas.height === cell.clientHeight;
-        }, {timeout: TEST_TIMEOUT_MILLIS}).then(() => true, () => false);
-        assert.ok(viewportMatch, 'The canvas must fill its scroll cell exactly.');
+    // The canvas is a fixed viewport: it fills its scroll cell exactly, and the circuit
+    // centers inside it.
+    await waitForCanvasViewport(page);
+    // The redraw loop resizes the canvas from a ResizeObserver a frame or two after layout
+    // settles, so wait for the match rather than sampling it once.
+    const viewportMatch = await page
+      .waitForFunction(
+        () => {
+          const cell = document.getElementById("canvasDiv");
+          const canvas = document.querySelector("#drawCanvas canvas");
+          return (
+            canvas.width === cell.clientWidth &&
+            canvas.height === cell.clientHeight
+          );
+        },
+        { timeout: TEST_TIMEOUT_MILLIS },
+      )
+      .then(
+        () => true,
+        () => false,
+      );
+    assert.ok(viewportMatch, "The canvas must fill its scroll cell exactly.");
 
-        // The palette is a dock panel of its own, in its own group to the circuit's left. Like the
-        // circuit it is permanent, so neither tab offers to close. Permanent panels render in
-        // dockview's overlay rather than inside their group, so groups are found through the tabs.
-        const dock = await page.evaluate(() => {
-            const tab = title => [...document.querySelectorAll('.dv-tab')].find(t => t.textContent.trim() === title);
-            const bounds = name => document.querySelector(`[data-panel-id="${name}"]`).getBoundingClientRect();
-            const tabs = [...document.querySelectorAll('.dv-tab')].map(t => ({
-                title: t.textContent.trim(),
-                closable: t.querySelector('.dv-default-tab-action') !== null,
-            }));
-            return {
-                separate: tab('Gates').closest('.dv-groupview') !== tab('Circuit').closest('.dv-groupview'),
-                paletteLeft: bounds('gates').right <= bounds('circuit').left + 1,
-                paletteWidth: Math.round(bounds('gates').width),
-                tabs,
-            };
-        });
-        assert.ok(dock.separate && dock.paletteLeft, 'The palette must start beside the circuit, on its left.');
-        assert.ok(dock.paletteWidth >= 200 && dock.paletteWidth <= 280,
-            `The palette must start at its own width, not half the dock; saw ${dock.paletteWidth}px.`);
-        assert.deepEqual(dock.tabs.filter(tab => tab.closable), [], 'Permanent panels must not offer to close.');
-        assert.deepEqual(dock.tabs.map(tab => tab.title).sort(), ['Circuit', 'Gates']);
+    // The palette is a dock panel of its own, in its own group to the circuit's left. Like the
+    // circuit it is permanent, so neither tab offers to close. Permanent panels render in
+    // dockview's overlay rather than inside their group, so groups are found through the tabs.
+    const dock = await page.evaluate(() => {
+      const tab = (title) =>
+        [...document.querySelectorAll(".dv-tab")].find(
+          (t) => t.textContent.trim() === title,
+        );
+      const bounds = (name) =>
+        document
+          .querySelector(`[data-panel-id="${name}"]`)
+          .getBoundingClientRect();
+      const tabs = [...document.querySelectorAll(".dv-tab")].map((t) => ({
+        title: t.textContent.trim(),
+        closable: t.querySelector(".dv-default-tab-action") !== null,
+      }));
+      return {
+        separate:
+          tab("Gates").closest(".dv-groupview") !==
+          tab("Circuit").closest(".dv-groupview"),
+        paletteLeft: bounds("gates").right <= bounds("circuit").left + 1,
+        paletteWidth: Math.round(bounds("gates").width),
+        tabs,
+      };
     });
+    assert.ok(
+      dock.separate && dock.paletteLeft,
+      "The palette must start beside the circuit, on its left.",
+    );
+    assert.ok(
+      dock.paletteWidth >= 200 && dock.paletteWidth <= 280,
+      `The palette must start at its own width, not half the dock; saw ${dock.paletteWidth}px.`,
+    );
+    assert.deepEqual(
+      dock.tabs.filter((tab) => tab.closable),
+      [],
+      "Permanent panels must not offer to close.",
+    );
+    assert.deepEqual(dock.tabs.map((tab) => tab.title).sort(), [
+      "Circuit",
+      "Gates",
+    ]);
+  });
 });
 
-test('on a narrow screen the gate palette is a tab that gives way to the circuit when a gate is taken', async browser => {
-    await withQuirkPage(browser, {cols: []}, async page => {
-        // Below 920px a column of gates would squeeze the circuit, so the palette starts as a tab
-        // behind it and the circuit keeps the whole width.
-        const start = await page.evaluate(() => {
-            const tab = title => [...document.querySelectorAll('.dv-tab')].find(t => t.textContent.trim() === title);
-            return {
-                sameGroup: tab('Gates').closest('.dv-groupview') === tab('Circuit').closest('.dv-groupview'),
-                circuitWidth: document.getElementById('canvasDiv').getBoundingClientRect().width,
-            };
-        });
-        assert.ok(start.sameGroup, 'On a narrow screen the palette must share the circuit\'s group.');
-        assert.ok(start.circuitWidth > 690, `The circuit must keep the width, saw ${start.circuitWidth}px.`);
-
-        await waitForCanvasViewport(page);
-        const canvasBounds = await page.$eval('#drawCanvas canvas', element => {
-            const bounds = element.getBoundingClientRect();
-            return {x: bounds.x, y: bounds.y};
-        });
-        const circuitTop = await circuitTopForWires(page, 2);
-
-        const target = {
-            x: canvasBounds.x + circuitMetrics.firstColumnLeft + circuitMetrics.gateSize / 2,
-            y: canvasBounds.y + circuitTop + circuitMetrics.wireSpacing / 2,
+test("on a narrow screen the gate palette is a tab that gives way to the circuit when a gate is taken", async (browser) => {
+  await withQuirkPage(
+    browser,
+    { cols: [] },
+    async (page) => {
+      // Below 920px a column of gates would squeeze the circuit, so the palette starts as a tab
+      // behind it and the circuit keeps the whole width.
+      const start = await page.evaluate(() => {
+        const tab = (title) =>
+          [...document.querySelectorAll(".dv-tab")].find(
+            (t) => t.textContent.trim() === title,
+          );
+        return {
+          sameGroup:
+            tab("Gates").closest(".dv-groupview") ===
+            tab("Circuit").closest(".dv-groupview"),
+          circuitWidth: document
+            .getElementById("canvasDiv")
+            .getBoundingClientRect().width,
         };
+      });
+      assert.ok(
+        start.sameGroup,
+        "On a narrow screen the palette must share the circuit's group.",
+      );
+      assert.ok(
+        start.circuitWidth > 690,
+        `The circuit must keep the width, saw ${start.circuitWidth}px.`,
+      );
 
-        // Showing the palette's tab covers the circuit with it...
-        const gatesTab = await page.evaluate(() => {
-            const tab = [...document.querySelectorAll('.dv-tab')].find(t => t.textContent.trim() === 'Gates');
-            const bounds = tab.getBoundingClientRect();
-            return {x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2};
-        });
-        await page.mouse.click(gatesTab.x, gatesTab.y);
-        // Both panels render "always", so a covered one keeps its layout: what counts is which is on
-        // top, so the tile has to be the element under its own centre.
-        const tile = await page.waitForFunction(() => {
-            const target = [...document.querySelectorAll('.gate-tile')].
-                find(e => e.getAttribute('aria-label') === 'Hadamard Gate');
-            target.scrollIntoView({block: 'center'});
+      await waitForCanvasViewport(page);
+      const canvasBounds = await page.$eval("#drawCanvas canvas", (element) => {
+        const bounds = element.getBoundingClientRect();
+        return { x: bounds.x, y: bounds.y };
+      });
+      const circuitTop = await circuitTopForWires(page, 2);
+
+      const target = {
+        x:
+          canvasBounds.x +
+          circuitMetrics.firstColumnLeft +
+          circuitMetrics.gateSize / 2,
+        y: canvasBounds.y + circuitTop + circuitMetrics.wireSpacing / 2,
+      };
+
+      // Showing the palette's tab covers the circuit with it...
+      const gatesTab = await page.evaluate(() => {
+        const tab = [...document.querySelectorAll(".dv-tab")].find(
+          (t) => t.textContent.trim() === "Gates",
+        );
+        const bounds = tab.getBoundingClientRect();
+        return {
+          x: bounds.x + bounds.width / 2,
+          y: bounds.y + bounds.height / 2,
+        };
+      });
+      await page.mouse.click(gatesTab.x, gatesTab.y);
+      // Both panels render "always", so a covered one keeps its layout: what counts is which is on
+      // top, so the tile has to be the element under its own centre.
+      const tile = await page
+        .waitForFunction(
+          () => {
+            const target = [...document.querySelectorAll(".gate-tile")].find(
+              (e) => e.getAttribute("aria-label") === "Hadamard Gate",
+            );
+            target.scrollIntoView({ block: "center" });
             const bounds = target.getBoundingClientRect();
-            const centre = {x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2};
-            return document.elementFromPoint(centre.x, centre.y)?.closest('.gate-tile') === target ? centre : false;
-        }, {timeout: TEST_TIMEOUT_MILLIS}).then(handle => handle.jsonValue());
+            const centre = {
+              x: bounds.x + bounds.width / 2,
+              y: bounds.y + bounds.height / 2,
+            };
+            return document
+              .elementFromPoint(centre.x, centre.y)
+              ?.closest(".gate-tile") === target
+              ? centre
+              : false;
+          },
+          { timeout: TEST_TIMEOUT_MILLIS },
+        )
+        .then((handle) => handle.jsonValue());
 
-        // ...and taking a gate brings the circuit back on top, so the drag can land on it.
-        await page.mouse.move(tile.x, tile.y);
-        await page.mouse.down();
-        await page.waitForFunction(
-            ({x, y}) => document.elementFromPoint(x, y)?.closest('#circuit-area') !== null,
-            {timeout: TEST_TIMEOUT_MILLIS}, target);
-        await page.mouse.move(target.x, target.y, {steps: 8});
-        await page.mouse.up();
-        await waitForCircuit(page, {cols: [['H']]});
-    }, {width: 700, height: 480, deviceScaleFactor: 1});
+      // ...and taking a gate brings the circuit back on top, so the drag can land on it.
+      await page.mouse.move(tile.x, tile.y);
+      await page.mouse.down();
+      await page.mouse.move(tile.x + 12, tile.y);
+      await page.waitForFunction(
+        ({ x, y }) =>
+          document.elementFromPoint(x, y)?.closest("#circuit-area") !== null,
+        { timeout: TEST_TIMEOUT_MILLIS },
+        target,
+      );
+      await page.mouse.move(target.x, target.y, { steps: 8 });
+      await page.mouse.up();
+      await waitForCircuit(page, { cols: [["H"]] });
+    },
+    { width: 700, height: 480, deviceScaleFactor: 1 },
+  );
 });
 
-
-test('opens gate details by keyboard and restores focus without placing a gate', async browser => {
-    await withQuirkPage(browser, {cols: [['X']]}, async page => {
-        await page.focus('[data-gate-id="H"]');
-        await page.keyboard.press('Tab');
-        assert.equal(await page.evaluate(() => document.activeElement.getAttribute('aria-label')), 'Details for Hadamard Gate');
-        await page.keyboard.press('Enter');
-        await page.waitForSelector('.gate-details-popup', {visible: true});
-        assert.equal(await page.$eval('.gate-details-popup', e => e.getAttribute('role')), 'dialog');
-        assert.equal(await page.$eval('.gate-details-popup', e => document.getElementById(e.getAttribute('aria-labelledby')).textContent), 'Hadamard Gate');
-        assert.equal(await page.evaluate(() => document.activeElement.getAttribute('aria-label')), 'Close gate details');
-        await page.keyboard.press('Escape');
-        await page.waitForSelector('.gate-details-popup', {hidden: true});
-        assert.equal(await page.evaluate(() => document.activeElement.getAttribute('aria-label')), 'Details for Hadamard Gate');
-        await waitForCircuit(page, {cols: [['X']]});
-        await page.keyboard.press('ArrowDown');
-        assert.equal(await page.evaluate(() => document.activeElement.classList.contains('gate-tile')), true);
-    });
+test("opens gate details by keyboard and restores focus without placing a gate", async (browser) => {
+  await withQuirkPage(browser, { cols: [["X"]] }, async (page) => {
+    await page.focus('[data-gate-id="H"]');
+    await page.keyboard.press("Tab");
+    assert.equal(
+      await page.evaluate(() =>
+        document.activeElement.getAttribute("aria-label"),
+      ),
+      "Details for Hadamard Gate",
+    );
+    await page.keyboard.press("Enter");
+    await page.waitForSelector(".gate-details-popup", { visible: true });
+    assert.equal(
+      await page.$eval(".gate-details-popup", (e) => e.getAttribute("role")),
+      "dialog",
+    );
+    assert.equal(
+      await page.$eval(
+        ".gate-details-popup",
+        (e) =>
+          document.getElementById(e.getAttribute("aria-labelledby"))
+            .textContent,
+      ),
+      "Hadamard Gate",
+    );
+    assert.equal(
+      await page.evaluate(() =>
+        document.activeElement.getAttribute("aria-label"),
+      ),
+      "Close gate details",
+    );
+    await page.keyboard.press("Escape");
+    await page.waitForSelector(".gate-details-popup", { hidden: true });
+    assert.equal(
+      await page.evaluate(() =>
+        document.activeElement.getAttribute("aria-label"),
+      ),
+      "Details for Hadamard Gate",
+    );
+    await waitForCircuit(page, { cols: [["X"]] });
+    await page.keyboard.press("ArrowDown");
+    assert.equal(
+      await page.evaluate(() =>
+        document.activeElement.classList.contains("gate-tile"),
+      ),
+      true,
+    );
+  });
 });
 
-test('opens and closes details by touch at phone width without horizontal popup overflow', async browser => {
-    const circuit = {cols: [['~three']], gates: [{id: '~three', name: 'Three', circuit: {cols: [['inc3']]}}]};
-    await withQuirkPage(browser, circuit, async page => {
-        const tab = await page.waitForFunction(() => {
-            const e = [...document.querySelectorAll('.dv-tab')].find(t => t.textContent.trim() === 'Gates');
-            const r = e.getBoundingClientRect();
-            return {x: r.x + r.width / 2, y: r.y + r.height / 2};
-        }).then(h => h.jsonValue());
-        await page.touchscreen.tap(tab.x, tab.y);
-        await page.tap('#gate-search');
-        await page.keyboard.type('Three');
-        // Wait until the dock has made the palette the hit-test target before tapping it.
-        const point = await page.waitForFunction(() => {
-            const e = document.querySelector('[aria-label="Details for Three Gate [three]"]');
-            const r = e.getBoundingClientRect();
-            const x = r.x + r.width / 2, y = r.y + r.height / 2;
-            return document.elementFromPoint(x, y)?.closest('.gate-details-trigger') === e ? {x, y} : false;
-        }).then(h => h.jsonValue());
-        await page.touchscreen.tap(point.x, point.y);
-        await page.waitForSelector('.gate-details-popup', {visible: true});
+test("opens and closes details by touch at phone width without horizontal popup overflow", async (browser) => {
+  const circuit = {
+    cols: [["~three"]],
+    gates: [{ id: "~three", name: "Three", circuit: { cols: [["inc3"]] } }],
+  };
+  await withQuirkPage(
+    browser,
+    circuit,
+    async (page) => {
+      const tab = await page
+        .waitForFunction(() => {
+          const e = [...document.querySelectorAll(".dv-tab")].find(
+            (t) => t.textContent.trim() === "Gates",
+          );
+          const r = e.getBoundingClientRect();
+          return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+        })
+        .then((h) => h.jsonValue());
+      await page.touchscreen.tap(tab.x, tab.y);
+      await page.tap("#gate-search");
+      await page.keyboard.type("Three");
+      // Wait until the dock has made the palette the hit-test target before tapping it.
+      const point = await page
+        .waitForFunction(() => {
+          const e = document.querySelector(
+            '[aria-label="Details for Three Gate [three]"]',
+          );
+          const r = e.getBoundingClientRect();
+          const x = r.x + r.width / 2,
+            y = r.y + r.height / 2;
+          return document
+            .elementFromPoint(x, y)
+            ?.closest(".gate-details-trigger") === e
+            ? { x, y }
+            : false;
+        })
+        .then((h) => h.jsonValue());
+      await page.touchscreen.tap(point.x, point.y);
+      await page.waitForSelector(".gate-details-popup", { visible: true });
+      await page.waitForFunction(() => {
+        const e = document.querySelector(".gate-details-popup");
+        const r = e.getBoundingClientRect();
+        const v = visualViewport;
+        return (
+          r.left >= v.offsetLeft &&
+          r.right <= v.offsetLeft + v.width &&
+          r.top >= v.offsetTop &&
+          r.bottom <= v.offsetTop + v.height &&
+          e.scrollWidth <= e.clientWidth
+        );
+      });
+      assert.equal(
+        await page.$$eval(".gate-details-popup mtd", (cells) => cells.length),
+        64,
+      );
+      const close = await page.$eval(
+        '[aria-label="Close gate details"]',
+        (e) => {
+          const r = e.getBoundingClientRect();
+          return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+        },
+      );
+      await page.touchscreen.tap(close.x, close.y);
+      await page.waitForSelector(".gate-details-popup", { hidden: true });
+      await waitForCircuit(page, circuit);
+    },
+    {
+      width: 360,
+      height: 640,
+      deviceScaleFactor: 1,
+      isMobile: true,
+      hasTouch: true,
+    },
+  );
+});
+
+test("narrow palette clicks choose a deterministic cell and cancelled presses do not add", async (browser) => {
+  const circuit = { cols: [["X"]] };
+  await withQuirkPage(
+    browser,
+    circuit,
+    async (page) => {
+      const showGates = async () => {
+        await page.click('.dv-tab[aria-label="Gates"]');
         await page.waitForFunction(() => {
-            const e = document.querySelector('.gate-details-popup');
-            const r = e.getBoundingClientRect();
-            const v = visualViewport;
-            return r.left >= v.offsetLeft && r.right <= v.offsetLeft + v.width && r.top >= v.offsetTop && r.bottom <= v.offsetTop + v.height && e.scrollWidth <= e.clientWidth;
+          const tile = document.querySelector('[data-gate-id="H"]');
+          const r = tile.getBoundingClientRect();
+          return (
+            document
+              .elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)
+              ?.closest(".gate-tile") === tile
+          );
         });
-        assert.equal(await page.$$eval('.gate-details-popup mtd', cells => cells.length), 64);
-        const close = await page.$eval('[aria-label="Close gate details"]', e => {
-            const r = e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};
-        });
-        await page.touchscreen.tap(close.x, close.y);
-        await page.waitForSelector('.gate-details-popup', {hidden: true});
-        await waitForCircuit(page, circuit);
-    }, {width: 360, height: 640, deviceScaleFactor: 1, isMobile: true, hasTouch: true});
+      };
+      await showGates();
+      const tile = await page.$('[data-gate-id="H"]');
+      const r = await tile.boundingBox();
+      const point = { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+      await page.mouse.move(point.x, point.y);
+      await page.mouse.down();
+      await waitForCircuit(page, circuit);
+      assert.equal(
+        await page.$eval('.dv-tab[aria-label="Gates"]', (e) =>
+          e.getAttribute("aria-selected"),
+        ),
+        "true",
+      );
+      await page.mouse.up();
+      await waitForCircuit(page, { cols: [["X"], ["H"]] });
+      assert.equal(
+        await page.$eval('.dv-tab[aria-label="Circuit"]', (e) =>
+          e.getAttribute("aria-selected"),
+        ),
+        "true",
+      );
+
+      await showGates();
+      await page.mouse.move(point.x, point.y);
+      await page.mouse.down();
+      await page.evaluate(() => window.dispatchEvent(new Event("blur")));
+      await page.mouse.up();
+      await waitForCircuit(page, { cols: [["X"], ["H"]] });
+      assert.equal(
+        await page.$eval('.dv-tab[aria-label="Gates"]', (e) =>
+          e.getAttribute("aria-selected"),
+        ),
+        "true",
+      );
+
+      await page.focus('[data-gate-id="H"]');
+      await page.keyboard.press("Space");
+      await waitForCircuit(page, { cols: [["X"], ["H"], ["H"]] });
+      assert.equal(
+        await page.$eval('.dv-tab[aria-label="Circuit"]', (e) =>
+          e.getAttribute("aria-selected"),
+        ),
+        "true",
+      );
+    },
+    { width: 390, height: 844, deviceScaleFactor: 1 },
+  );
+});
+
+test("touch swipes scroll gate rows without changing the circuit and a tap places once", async (browser) => {
+  const circuit = { cols: [["X"]] };
+  await withQuirkPage(
+    browser,
+    circuit,
+    async (page) => {
+      await page.tap('.dv-tab[aria-label="Gates"]');
+      const point = await page
+        .waitForFunction(() => {
+          const tile = document.querySelector('[data-gate-id="H"]');
+          const r = tile.getBoundingClientRect();
+          return document
+            .elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)
+            ?.closest(".gate-tile") === tile
+            ? { x: r.x + r.width / 2, y: r.y + r.height / 2 }
+            : false;
+        })
+        .then((h) => h.jsonValue());
+      // A continuous native touch gesture starts on the row, not the header or scrollbar.
+      const touch = await page.touchscreen.touchStart(point.x, point.y);
+      for (let distance = 20; distance <= 100; distance += 20) {
+        await touch.move(point.x, point.y - distance);
+      }
+      await touch.end();
+      await page.waitForFunction(
+        () => document.querySelector(".gate-toolbox-viewport").scrollTop > 20,
+      );
+      await waitForCircuit(page, circuit);
+      assert.equal(
+        await page.$eval('.dv-tab[aria-label="Gates"]', (e) =>
+          e.getAttribute("aria-selected"),
+        ),
+        "true",
+      );
+
+      // Search returns a stable tap target after scrolling; a tap uses the known append destination.
+      await page.tap("#gate-search");
+      await page.keyboard.type("hadamard");
+      await page.$eval('[data-gate-id="H"]', (e) =>
+        e.scrollIntoView({ block: "center" }),
+      );
+      await page.tap('[data-gate-id="H"]');
+      await waitForCircuit(page, { cols: [["X"], ["H"]] });
+      assert.equal(
+        await page.$eval('.dv-tab[aria-label="Circuit"]', (e) =>
+          e.getAttribute("aria-selected"),
+        ),
+        "true",
+      );
+    },
+    {
+      width: 390,
+      height: 844,
+      deviceScaleFactor: 1,
+      isMobile: true,
+      hasTouch: true,
+    },
+  );
 });

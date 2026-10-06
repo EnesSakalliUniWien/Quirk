@@ -15,7 +15,5 @@
     "test_e2e/**/*.js",
     "scripts/**/*.js"
   ],
-  "ignoreDependencies": [
-    "@fontsource-variable/geist"
-  ]
+  "ignoreDependencies": ["@fontsource-variable/geist"]
 }

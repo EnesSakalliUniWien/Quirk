@@ -14,97 +14,118 @@
  * limitations under the License.
  */
 
-import {Suite, assertThat} from "../../TestUtil.js"
-import {Gates} from "../../../src/gates/AllGates.js"
-import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js";
-import {CircuitStats} from "../../../src/engine/simulation/CircuitStats.js";
-import {Matrix} from "../../../src/engine/math/matrix/Matrix.js";
+import { Suite, assertThat } from "../../TestUtil.js";
+import { Gates } from "../../../src/gates/AllGates.js";
+import { CircuitDefinition } from "../../../src/circuit/model/CircuitDefinition.js";
+import { CircuitStats } from "../../../src/engine/simulation/CircuitStats.js";
+import { Matrix } from "../../../src/engine/math/matrix/Matrix.js";
 
 const suite = new Suite("Detector");
 
-const circuit = (diagram, ...extras) => CircuitDefinition.fromTextDiagram(new Map([
-    ...extras,
-    ['-', undefined],
-    ['●', Gates.Controls.Control],
-    ['D', Gates.Detectors.ZDetector],
-    ['X', Gates.HalfTurns.X],
-    ['Z', Gates.HalfTurns.Z],
-    ['H', Gates.HalfTurns.H],
-]), diagram);
+const circuit = (diagram, ...extras) =>
+  CircuitDefinition.fromTextDiagram(
+    new Map([
+      ...extras,
+      ["-", undefined],
+      ["●", Gates.Controls.Control],
+      ["D", Gates.Detectors.ZDetector],
+      ["X", Gates.HalfTurns.X],
+      ["Z", Gates.HalfTurns.Z],
+      ["H", Gates.HalfTurns.H],
+    ]),
+    diagram,
+  );
 
 suite.testUsingWebGL("guaranteed-clicks", () => {
-    const c = CircuitStats.fromCircuitAtTime(circuit(`
+  const c = CircuitStats.fromCircuitAtTime(
+    circuit(`
         -X-D-
         ---D-
-    `), 0);
-    assertThat(c.customStatsForSlot(3, 0)).isEqualTo(true);
-    assertThat(c.customStatsForSlot(3, 1)).isEqualTo(false);
+    `),
+    0,
+  );
+  assertThat(c.customStatsForSlot(3, 0)).isEqualTo(true);
+  assertThat(c.customStatsForSlot(3, 1)).isEqualTo(false);
 });
 
 suite.testUsingWebGL("collapse-clicks", () => {
-    const c = CircuitStats.fromCircuitAtTime(circuit(`
+  const c = CircuitStats.fromCircuitAtTime(
+    circuit(`
         -H-D-
         -H-D-
-    `), 0);
-    const a = c.customStatsForSlot(3, 0);
-    const b = c.customStatsForSlot(3, 1);
-    assertThat(c.qubitDensityMatrix(Infinity, 0).cell(0, 0)).isEqualTo(a ? 0 : 1);
-    assertThat(c.qubitDensityMatrix(Infinity, 1).cell(0, 0)).isEqualTo(b ? 0 : 1);
+    `),
+    0,
+  );
+  const a = c.customStatsForSlot(3, 0);
+  const b = c.customStatsForSlot(3, 1);
+  assertThat(c.qubitDensityMatrix(Infinity, 0).cell(0, 0)).isEqualTo(a ? 0 : 1);
+  assertThat(c.qubitDensityMatrix(Infinity, 1).cell(0, 0)).isEqualTo(b ? 0 : 1);
 });
 
 suite.testUsingWebGL("guaranteed-agreement", () => {
-    const c = CircuitStats.fromCircuitAtTime(circuit(`
+  const c = CircuitStats.fromCircuitAtTime(
+    circuit(`
         -H-●-D-
         ---X-D-
-    `), 0);
-    const a = c.customStatsForSlot(5, 0);
-    const b = c.customStatsForSlot(5, 1);
-    assertThat(a).isEqualTo(b);
-    // And it collapsed the state.
-    assertThat(c.qubitDensityMatrix(Infinity, 0).cell(0, 0)).isEqualTo(a ? 0 : 1);
-    assertThat(c.qubitDensityMatrix(Infinity, 1).cell(0, 0)).isEqualTo(b ? 0 : 1);
+    `),
+    0,
+  );
+  const a = c.customStatsForSlot(5, 0);
+  const b = c.customStatsForSlot(5, 1);
+  assertThat(a).isEqualTo(b);
+  // And it collapsed the state.
+  assertThat(c.qubitDensityMatrix(Infinity, 0).cell(0, 0)).isEqualTo(a ? 0 : 1);
+  assertThat(c.qubitDensityMatrix(Infinity, 1).cell(0, 0)).isEqualTo(b ? 0 : 1);
 });
 
 suite.testUsingWebGL("guaranteed-control-clicks", () => {
-    const c = CircuitStats.fromCircuitAtTime(circuit(`
+  const c = CircuitStats.fromCircuitAtTime(
+    circuit(`
         ---●---
         -X-D-D-
         -X---●-
-    `), 0);
-    assertThat(c.customStatsForSlot(3, 1)).isEqualTo(false);
-    assertThat(c.customStatsForSlot(5, 1)).isEqualTo(true);
+    `),
+    0,
+  );
+  assertThat(c.customStatsForSlot(3, 1)).isEqualTo(false);
+  assertThat(c.customStatsForSlot(5, 1)).isEqualTo(true);
 });
 
 suite.testUsingWebGL("collapsed-control-clicks", () => {
-    for (let i = 0; i < 10; i++) {
-        const c = CircuitStats.fromCircuitAtTime(circuit(`
+  for (let i = 0; i < 10; i++) {
+    const c = CircuitStats.fromCircuitAtTime(
+      circuit(`
         -H-●-
         -H-D-
-    `), 0);
-        const a = c.customStatsForSlot(3, 1);
-        if (a) {
-            assertThat(c.finalState).isApproximatelyEqualTo(Matrix.col(0, 0, 0, 1));
-        } else {
-            const s = Math.sqrt(1 / 3);
-            assertThat(c.finalState).isApproximatelyEqualTo(Matrix.col(s, s, s, 0));
-        }
+    `),
+      0,
+    );
+    const a = c.customStatsForSlot(3, 1);
+    if (a) {
+      assertThat(c.finalState).isApproximatelyEqualTo(Matrix.col(0, 0, 0, 1));
+    } else {
+      const s = Math.sqrt(1 / 3);
+      assertThat(c.finalState).isApproximatelyEqualTo(Matrix.col(s, s, s, 0));
     }
+  }
 });
 
 suite.testUsingWebGL("renormalizes", () => {
-    // Doesn't decrease survival probability.
-    const c = circuit(
-        '-]-D-]-D-]-D-]-',
-        [']', Gates.Detectors.XDetector],
-        ['0', Gates.PostSelectionGates.PostSelectOff]);
-    const stats = CircuitStats.fromCircuitAtTime(c, 0);
-    assertThat(stats.survivalRate(Infinity)).isApproximatelyEqualTo(1, 0.001);
+  // Doesn't decrease survival probability.
+  const c = circuit(
+    "-]-D-]-D-]-D-]-",
+    ["]", Gates.Detectors.XDetector],
+    ["0", Gates.PostSelectionGates.PostSelectOff],
+  );
+  const stats = CircuitStats.fromCircuitAtTime(c, 0);
+  assertThat(stats.survivalRate(Infinity)).isApproximatelyEqualTo(1, 0.001);
 
-    // Renormalization doesn't increase survival probability.
-    const c2 = circuit(
-        '-]-0-D-]-D-]-D-]-',
-        [']', Gates.Detectors.XDetector],
-        ['0', Gates.PostSelectionGates.PostSelectOff]);
-    const stats2 = CircuitStats.fromCircuitAtTime(c2, 0);
-    assertThat(stats2.survivalRate(Infinity)).isApproximatelyEqualTo(0.5, 0.001);
+  // Renormalization doesn't increase survival probability.
+  const c2 = circuit(
+    "-]-0-D-]-D-]-D-]-",
+    ["]", Gates.Detectors.XDetector],
+    ["0", Gates.PostSelectionGates.PostSelectOff],
+  );
+  const stats2 = CircuitStats.fromCircuitAtTime(c2, 0);
+  assertThat(stats2.survivalRate(Infinity)).isApproximatelyEqualTo(0.5, 0.001);
 });

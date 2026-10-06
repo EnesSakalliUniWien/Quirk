@@ -108,7 +108,9 @@ class WglConfiguredShader {
    * @returns {!Uint8Array} Each entry represents one of the booleans: 1 for true, 0 for false.
    */
   readBoolOutputs(sizePower) {
-    const pixels = this._renderReadDealloc(WglTexturePool.takeBoolTex(sizePower));
+    const pixels = this._renderReadDealloc(
+      WglTexturePool.takeBoolTex(sizePower),
+    );
     const result = new Uint8Array(pixels.length >> 2);
     for (let i = 0; i < result.length; i++) {
       result[i] = pixels[i << 2] & 1;

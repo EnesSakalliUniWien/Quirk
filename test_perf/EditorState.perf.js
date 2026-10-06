@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {renderInspector} from '../src/editor/rendering/InspectorRendering.js';
+import { renderInspector } from "../src/editor/rendering/InspectorRendering.js";
 import { perfGoal, millis } from "./TestPerfUtil.js";
 import { CircuitDefinition } from "../src/circuit/model/CircuitDefinition.js";
 import { CircuitStats } from "../src/engine/simulation/CircuitStats.js";
@@ -23,7 +23,7 @@ import { Gates } from "../src/gates/AllGates.js";
 import { PointerInteractionState } from "../src/editor/interaction/PointerInteractionState.js";
 import { DisplayView } from "../src/draw/scene/DisplayView.js";
 import { RestartableRng } from "../src/base/RestartableRng.js";
-import {displayedCircuitFromTextDiagram} from "../test/editor/DisplayedCircuitTestUtil.js";
+import { displayedCircuitFromTextDiagram } from "../test/editor/DisplayedCircuitTestUtil.js";
 import { EditorState } from "../src/editor/state/EditorState.js";
 import { Serializer } from "../src/serialization/Serializer.js";
 

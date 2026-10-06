@@ -1,3 +1,4 @@
+import { useColourScheme } from "../useColourScheme.js";
 import { ScanIcon, ZoomInIcon, ZoomOutIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -11,7 +12,7 @@ import {
   tileKey,
 } from "../../draw/renderers/operatorTiles.js";
 import { Complex } from "../../engine/math/complex/Complex.js";
-import {columnImage} from "../../engine/simulation/columnStructure/evaluation.js";
+import { columnImage } from "../../engine/simulation/columnStructure/evaluation.js";
 import { rasterMatrix } from "../../draw/renderers/rasters.js";
 import { Button } from "../ui/button.jsx";
 import { ButtonGroup } from "../ui/button-group.jsx";
@@ -51,8 +52,16 @@ function visibleTiles(view, wireCount, pixels) {
   const left = view.cx - extent / 2;
   const top = view.cy - extent / 2;
   const tiles = [];
-  for (let y = Math.max(0, Math.floor(top * count)); y < Math.min(count, Math.ceil((top + extent) * count)); y++) {
-    for (let x = Math.max(0, Math.floor(left * count)); x < Math.min(count, Math.ceil((left + extent) * count)); x++) {
+  for (
+    let y = Math.max(0, Math.floor(top * count));
+    y < Math.min(count, Math.ceil((top + extent) * count));
+    y++
+  ) {
+    for (
+      let x = Math.max(0, Math.floor(left * count));
+      x < Math.min(count, Math.ceil((left + extent) * count));
+      x++
+    ) {
       tiles.push({ x, y });
     }
   }
@@ -70,9 +79,13 @@ function drawView(canvas, source, view) {
   const context = canvas.getContext("2d");
   context.clearRect(0, 0, pixels, pixels);
   context.imageSmoothingEnabled = false;
-  const { level, tiles, left, top, extent } = visibleTiles(view, source.wireCount, pixels);
+  const { level, tiles, left, top, extent } = visibleTiles(
+    view,
+    source.wireCount,
+    pixels,
+  );
   const count = 1 << level;
-  const side = (pixels / count) / extent;
+  const side = pixels / count / extent;
   const keys = new Set();
   const missing = [];
   for (const { x, y } of tiles) {
@@ -91,7 +104,17 @@ function drawView(canvas, source, view) {
       if (coarser !== undefined) {
         const part = TILE_SIZE / (1 << up);
         const within = (1 << up) - 1;
-        context.drawImage(coarser, (x & within) * part, (y & within) * part, part, part, dx, dy, side, side);
+        context.drawImage(
+          coarser,
+          (x & within) * part,
+          (y & within) * part,
+          part,
+          part,
+          dx,
+          dy,
+          side,
+          side,
+        );
         break;
       }
     }
@@ -115,29 +138,47 @@ function drawView(canvas, source, view) {
  *     formatKet writes a basis state for the readout; bits by default.
  */
 function OperatorView({ source, structure, matrix, size, label, formatKet }) {
-  const { json, col, wireCount, time } = source ?? {wireCount: Math.log2(matrix.height())};
-  const tileSource = useMemo(() => ({ json, col, wireCount, time }), [json, col, wireCount, time]);
+  const scheme = useColourScheme();
+  const { json, col, wireCount, time } = source ?? {
+    wireCount: Math.log2(matrix.height()),
+  };
+  const tileSource = useMemo(
+    () => ({ json, col, wireCount, time }),
+    [json, col, wireCount, time],
+  );
   const canvasRef = useRef(null);
   const requested = useRef(new Set());
   const dragFrom = useRef(undefined);
   const [view, setView] = useState(FIT);
   const [arrivals, setArrivals] = useState(0);
   const [hovered, setHovered] = useState(undefined);
-  const [selected, setSelected] = useState({row: 0, col: 0});
+  const [selected, setSelected] = useState({ row: 0, col: 0 });
   const [failure, setFailure] = useState(undefined);
   const side = 1 << wireCount;
   const maxScale = Math.max(1, (side * MAX_ENTRY_PIXELS) / size);
-  useEffect(() => setView(v => clampView(v, maxScale)), [maxScale]);
+  useEffect(() => setView((v) => clampView(v, maxScale)), [maxScale]);
   // Dense matrices are already bounded by their caller. One pixel per entry gives zoom the
   // original values without allocating a larger matrix or involving the structure worker.
   const denseImage = useMemo(() => {
+    // rasterMatrix reads the global canvas theme; a scheme change invalidates the pixels.
+    void scheme;
     if (matrix === undefined) return undefined;
     const image = document.createElement("canvas");
     image.width = matrix.width();
     image.height = matrix.height();
-    image.getContext("2d").putImageData(new ImageData(rasterMatrix(matrix, image.width, image.height), image.width, image.height), 0, 0);
+    image
+      .getContext("2d")
+      .putImageData(
+        new ImageData(
+          rasterMatrix(matrix, image.width, image.height),
+          image.width,
+          image.height,
+        ),
+        0,
+        0,
+      );
     return image;
-  }, [matrix]);
+  }, [matrix, scheme]);
 
   const zoomAt = useCallback(
     (factor, fx = 0.5, fy = 0.5) =>
@@ -146,7 +187,10 @@ function OperatorView({ source, structure, matrix, size, label, formatKet }) {
         const px = v.cx + (fx - 0.5) / v.scale;
         const py = v.cy + (fy - 0.5) / v.scale;
         const scale = Math.min(maxScale, Math.max(1, v.scale * factor));
-        return clampView({ scale, cx: px - (fx - 0.5) / scale, cy: py - (fy - 0.5) / scale }, maxScale);
+        return clampView(
+          { scale, cx: px - (fx - 0.5) / scale, cy: py - (fy - 0.5) / scale },
+          maxScale,
+        );
       }),
     [maxScale],
   );
@@ -164,8 +208,17 @@ function OperatorView({ source, structure, matrix, size, label, formatKet }) {
       context.clearRect(0, 0, pixels, pixels);
       context.imageSmoothingEnabled = false;
       const extent = side / view.scale;
-      context.drawImage(denseImage, view.cx * side - extent / 2, view.cy * side - extent / 2,
-        extent, extent, 0, 0, pixels, pixels);
+      context.drawImage(
+        denseImage,
+        view.cx * side - extent / 2,
+        view.cy * side - extent / 2,
+        extent,
+        extent,
+        0,
+        0,
+        pixels,
+        pixels,
+      );
       canvas.dataset.painted = "true";
       return;
     }
@@ -183,7 +236,10 @@ function OperatorView({ source, structure, matrix, size, label, formatKet }) {
             settle();
             // A cancelled tile is no failure; one the worker could not draw is, and says why.
             if (error?.name !== "AbortError") {
-              setFailure({ source: tileSource, message: error?.message ?? String(error) });
+              setFailure({
+                source: tileSource,
+                message: error?.message ?? String(error),
+              });
             }
           },
         );
@@ -202,7 +258,7 @@ function OperatorView({ source, structure, matrix, size, label, formatKet }) {
     } else {
       delete canvas.dataset.painted;
     }
-  }, [tileSource, view, size, arrivals, denseImage, side]);
+  }, [tileSource, view, size, arrivals, denseImage, side, scheme]);
 
   useEffect(() => {
     const pending = requested.current;
@@ -224,7 +280,11 @@ function OperatorView({ source, structure, matrix, size, label, formatKet }) {
       event.preventDefault();
       event.stopPropagation();
       const r = canvas.getBoundingClientRect();
-      zoomAt(Math.exp(-event.deltaY * 0.01), (event.clientX - r.left) / r.width, (event.clientY - r.top) / r.height);
+      zoomAt(
+        Math.exp(-event.deltaY * 0.01),
+        (event.clientX - r.left) / r.width,
+        (event.clientY - r.top) / r.height,
+      );
     };
     canvas.addEventListener("wheel", onWheel, { passive: false });
     return () => canvas.removeEventListener("wheel", onWheel);
@@ -233,8 +293,10 @@ function OperatorView({ source, structure, matrix, size, label, formatKet }) {
   const entryAt = (event) => {
     const r = event.currentTarget.getBoundingClientRect();
     const extent = 1 / view.scale;
-    const x = view.cx - extent / 2 + ((event.clientX - r.left) / r.width) * extent;
-    const y = view.cy - extent / 2 + ((event.clientY - r.top) / r.height) * extent;
+    const x =
+      view.cx - extent / 2 + ((event.clientX - r.left) / r.width) * extent;
+    const y =
+      view.cy - extent / 2 + ((event.clientY - r.top) / r.height) * extent;
     const clamp = (v) => Math.min(side - 1, Math.max(0, Math.floor(v * side)));
     return { row: clamp(y), col: clamp(x) };
   };
@@ -246,13 +308,22 @@ function OperatorView({ source, structure, matrix, size, label, formatKet }) {
       const dx = (event.clientX - from.x) / r.width;
       const dy = (event.clientY - from.y) / r.height;
       dragFrom.current = { x: event.clientX, y: event.clientY };
-      setView((v) => clampView({ ...v, cx: v.cx - dx / v.scale, cy: v.cy - dy / v.scale }, maxScale));
+      setView((v) =>
+        clampView(
+          { ...v, cx: v.cx - dx / v.scale, cy: v.cy - dy / v.scale },
+          maxScale,
+        ),
+      );
     }
     // Kept while the pointer stays on one entry, so its value is worked out once, not per move:
     // for a column that spreads over the whole register that is 65,536 amplitudes a time.
     const next = entryAt(event);
     setHovered((current) =>
-      current !== undefined && current.row === next.row && current.col === next.col ? current : next,
+      current !== undefined &&
+      current.row === next.row &&
+      current.col === next.col
+        ? current
+        : next,
     );
   };
 
@@ -272,7 +343,9 @@ function OperatorView({ source, structure, matrix, size, label, formatKet }) {
       setView(FIT);
     } else if (moves[event.key] !== undefined) {
       const [dx, dy] = moves[event.key];
-      setView((v) => clampView({ ...v, cx: v.cx + dx, cy: v.cy + dy }, maxScale));
+      setView((v) =>
+        clampView({ ...v, cx: v.cx + dx, cy: v.cy + dy }, maxScale),
+      );
     } else {
       return;
     }
@@ -282,22 +355,32 @@ function OperatorView({ source, structure, matrix, size, label, formatKet }) {
 
   // The exact entry under the pointer, from the structure rather than the pixels.
   const readout = useMemo(() => {
-    const entry = hovered ?? {row: Math.min(side - 1, selected.row), col: Math.min(side - 1, selected.col)};
-    const value = matrix === undefined ? undefined : matrix.cell(entry.col, entry.row);
-    const [re, im] = value === undefined ? columnImage(structure, entry.col).get(entry.row) ?? [0, 0] : [value.real, value.imag];
+    const entry = hovered ?? {
+      row: Math.min(side - 1, selected.row),
+      col: Math.min(side - 1, selected.col),
+    };
+    const value =
+      matrix === undefined ? undefined : matrix.cell(entry.col, entry.row);
+    const [re, im] =
+      value === undefined
+        ? (columnImage(structure, entry.col).get(entry.row) ?? [0, 0])
+        : [value.real, value.imag];
     const ket = formatKet ?? ((index) => bin(index, wireCount));
     return {
       entry: `⟨${ket(entry.row)}|U|${ket(entry.col)}⟩`,
       value: new Complex(re, im).toString(Format.SIMPLIFIED),
     };
   }, [hovered, selected, structure, matrix, wireCount, formatKet, side]);
-  const failed = failure !== undefined && failure.source === tileSource ? failure.message : undefined;
+  const failed =
+    failure !== undefined && failure.source === tileSource
+      ? failure.message
+      : undefined;
 
   return (
     <div className="operator-view">
       <canvas
         ref={canvasRef}
-        className="operator-view-canvas"
+        className="operator-view-canvas drag-canvas"
         role="img"
         aria-label={`${label}, ${side} by ${side}`}
         tabIndex={0}
@@ -318,40 +401,78 @@ function OperatorView({ source, structure, matrix, size, label, formatKet }) {
         onPointerLeave={() => setHovered(undefined)}
         onDoubleClick={(event) => {
           const r = event.currentTarget.getBoundingClientRect();
-          zoomAt(ZOOM_STEP, (event.clientX - r.left) / r.width, (event.clientY - r.top) / r.height);
+          zoomAt(
+            ZOOM_STEP,
+            (event.clientX - r.left) / r.width,
+            (event.clientY - r.top) / r.height,
+          );
         }}
         onKeyDown={onKeyDown}
       />
       <div className="operator-view-bar">
         <ButtonGroup aria-label="Zoom">
-          <Button size="icon" aria-label="Zoom out" disabled={view.scale <= 1} onClick={() => zoomAt(1 / ZOOM_STEP)}>
+          <Button
+            size="icon"
+            aria-label="Zoom out"
+            disabled={view.scale <= 1}
+            onClick={() => zoomAt(1 / ZOOM_STEP)}
+          >
             <ZoomOutIcon aria-hidden="true" />
           </Button>
-          <Button size="icon" aria-label="Zoom in" disabled={view.scale >= maxScale} onClick={() => zoomAt(ZOOM_STEP)}>
+          <Button
+            size="icon"
+            aria-label="Zoom in"
+            disabled={view.scale >= maxScale}
+            onClick={() => zoomAt(ZOOM_STEP)}
+          >
             <ZoomInIcon aria-hidden="true" />
           </Button>
-          <Button size="icon" aria-label="Show all" disabled={view.scale <= 1} onClick={() => setView(FIT)}>
+          <Button
+            size="icon"
+            aria-label="Show all"
+            disabled={view.scale <= 1}
+            onClick={() => setView(FIT)}
+          >
             <ScanIcon aria-hidden="true" />
           </Button>
         </ButtonGroup>
         <span className="operator-view-zoom">{`×${Math.round(view.scale * 10) / 10}`}</span>
       </div>
       <div className="operator-entry-controls">
-        {["row", "col"].map(axis => <label key={axis}>
-          {axis === "row" ? "Output row" : "Input column"}
-          <input type="number" min={0} max={side - 1} step={1}
-            aria-label={axis === "row" ? "Output row" : "Input column"}
-            value={Math.min(side - 1, selected[axis])}
-            onFocus={() => setHovered(undefined)}
-            onChange={event => {
-              const value = event.target.valueAsNumber;
-              if (!Number.isInteger(value)) return;
-              const next = {...selected, [axis]: Math.min(side - 1, Math.max(0, value))};
-              setHovered(undefined);
-              setSelected(next);
-              setView(v => clampView({...v, cx: (next.col + 0.5) / side, cy: (next.row + 0.5) / side}, maxScale));
-            }} />
-        </label>)}
+        {["row", "col"].map((axis) => (
+          <label key={axis}>
+            {axis === "row" ? "Output row" : "Input column"}
+            <input
+              type="number"
+              min={0}
+              max={side - 1}
+              step={1}
+              aria-label={axis === "row" ? "Output row" : "Input column"}
+              value={Math.min(side - 1, selected[axis])}
+              onFocus={() => setHovered(undefined)}
+              onChange={(event) => {
+                const value = event.target.valueAsNumber;
+                if (!Number.isInteger(value)) return;
+                const next = {
+                  ...selected,
+                  [axis]: Math.min(side - 1, Math.max(0, value)),
+                };
+                setHovered(undefined);
+                setSelected(next);
+                setView((v) =>
+                  clampView(
+                    {
+                      ...v,
+                      cx: (next.col + 0.5) / side,
+                      cy: (next.row + 0.5) / side,
+                    },
+                    maxScale,
+                  ),
+                );
+              }}
+            />
+          </label>
+        ))}
       </div>
       <p className="operator-view-readout" aria-live="polite">
         {failed !== undefined ? (

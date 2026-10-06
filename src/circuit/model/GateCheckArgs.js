@@ -18,37 +18,39 @@
  * Values used by gate disable reason finder functions.
  */
 class GateCheckArgs {
-    /**
-     * @param {!Gate} gate
-     * @param {!GateColumn} innerColumn
-     * @param {!int} outerRow
-     * @param {!int} measuredMask
-     * @param {!Map.<!string, *>} context
-     * @param {!boolean} isNested
-     * @param {!int=} touchedMask The wires an earlier column acted on, or a ket started away from |0⟩.
-     */
-    constructor(gate,
-                innerColumn,
-                outerRow,
-                measuredMask,
-                context,
-                isNested,
-                touchedMask = 0) {
-        /** @type {!Gate} */
-        this.gate = gate;
-        /** @type {!GateColumn} */
-        this.innerColumn = innerColumn;
-        /** @type {!int} */
-        this.outerRow = outerRow;
-        /** @type {!int} */
-        this.measuredMask = measuredMask;
-        /** @type {!Map.<!string, *>} */
-        this.context = context;
-        /** @type {!boolean} */
-        this.isNested = isNested;
-        /** @type {!int} */
-        this.touchedMask = touchedMask;
-    }
+  /**
+   * @param {!Gate} gate
+   * @param {!GateColumn} innerColumn
+   * @param {!int} outerRow
+   * @param {!int} measuredMask
+   * @param {!Map.<!string, *>} context
+   * @param {!boolean} isNested
+   * @param {!int=} touchedMask The wires an earlier column acted on, or a ket started away from |0⟩.
+   */
+  constructor(
+    gate,
+    innerColumn,
+    outerRow,
+    measuredMask,
+    context,
+    isNested,
+    touchedMask = 0,
+  ) {
+    /** @type {!Gate} */
+    this.gate = gate;
+    /** @type {!GateColumn} */
+    this.innerColumn = innerColumn;
+    /** @type {!int} */
+    this.outerRow = outerRow;
+    /** @type {!int} */
+    this.measuredMask = measuredMask;
+    /** @type {!Map.<!string, *>} */
+    this.context = context;
+    /** @type {!boolean} */
+    this.isNested = isNested;
+    /** @type {!int} */
+    this.touchedMask = touchedMask;
+  }
 }
 
-export {GateCheckArgs}
+export { GateCheckArgs };

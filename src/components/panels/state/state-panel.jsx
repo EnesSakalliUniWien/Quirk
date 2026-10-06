@@ -1,3 +1,5 @@
+import { signedFixed } from "../../../base/Format.js";
+import { useColourScheme } from "../../useColourScheme.js";
 import { useMemo } from "react";
 
 import { ketBitsHeader } from "../../../circuit/registerLabels.js";
@@ -7,16 +9,12 @@ import { usePlayheadStats } from "../shared/usePlayheadStats.js";
 import { useVisibleRows } from "./useVisibleRows.js";
 
 /** What the table holds before the circuit has started. */
-const NO_STATE = { amplitudeCount: 0, nonzeroCount: 0, rows: [], registers: undefined };
-
-/**
- * @param {!number} v
- * @param {!int} digits
- * @returns {!string}
- */
-function forceSign(v, digits) {
-  return (v >= 0 ? "+" : "") + v.toFixed(digits);
-}
+const NO_STATE = {
+  amplitudeCount: 0,
+  nonzeroCount: 0,
+  rows: [],
+  registers: undefined,
+};
 
 /**
  * The characters of the longest thing a register's column holds: its name, or the value written
@@ -69,6 +67,7 @@ function SpacerRow({ height, columnCount }) {
  * the rest with two spacer rows that keep the table's height.
  */
 function StatePanel() {
+  useColourScheme();
   const sample = usePlayheadStats();
   const wireCount = sample?.wireCount ?? 0;
   const stats = sample?.stats;
@@ -82,14 +81,26 @@ function StatePanel() {
   const named = registers !== undefined && !registers.isEmpty();
   // Two or more registers also read together, as a sequence: AGA for three bases.
   const sequenced = named && registers.list.length >= 2;
-  const columnCount = (named ? registers.list.length : 0) + (sequenced ? 1 : 0) + 4;
+  const columnCount =
+    (named ? registers.list.length : 0) + (sequenced ? 1 : 0) + 4;
   const ketHeader = named ? ketBitsHeader(registers, wireCount) : "state";
   // The ket column fits its longest cell or its header: |, the bits, a dot between registers, and ⟩.
-  const ketChars = Math.max(ketHeader.length, wireCount + (named ? registers.list.length : 0) + 2);
+  const ketChars = Math.max(
+    ketHeader.length,
+    wireCount + (named ? registers.list.length : 0) + 2,
+  );
   const registerChars = named ? registers.list.map(registerColumnChars) : [];
   // The sequence reads the registers' values in a row, with a dot between them, and its letters are
   // spaced a little apart (state.css).
-  const sequenceChars = Math.max(8, Math.ceil(1.15 * (registerChars.reduce((sum, chars) => sum + chars, 0) + registerChars.length - 1)));
+  const sequenceChars = Math.max(
+    8,
+    Math.ceil(
+      1.15 *
+        (registerChars.reduce((sum, chars) => sum + chars, 0) +
+          registerChars.length -
+          1),
+    ),
+  );
 
   return (
     <>
@@ -114,25 +125,54 @@ function StatePanel() {
           </span>
         </header>
 
-        {sample?.stats.circuitDefinition.colIsMeasuredMask(Infinity) !== 0 && sample !== undefined && (
-          <p className="debug-panel-note">Deferred measurement: these simulation amplitudes do not describe a physical pure state. Read the Qubits panel for measurement-aware Bloch vectors and purity.</p>
+        {sample?.stats.circuitDefinition.colIsMeasuredMask(Infinity) !== 0 &&
+          sample !== undefined && (
+            <p className="debug-panel-note">
+              Deferred measurement: these simulation amplitudes do not describe
+              a physical pure state. Read the Qubits panel for measurement-aware
+              Bloch vectors and purity.
+            </p>
+          )}
+        {sample && (
+          <div className="state-measurements">
+            {Object.entries(sample.stats.sampleOutcomes).map(([key, value]) => (
+              <p key={key}>
+                Sample {key}: {value.i} (probability {value.p.toPrecision(6)};
+                no collapse)
+              </p>
+            ))}
+            {[...sample.stats.customStatsEntries()]
+              .filter(([, value]) => typeof value === "boolean")
+              .map(([key, value]) => (
+                <p key={key}>
+                  Detector {key}: {value ? "click" : "no click"}
+                </p>
+              ))}
+          </div>
         )}
-        {sample && <div className="state-measurements">
-          {Object.entries(sample.stats.sampleOutcomes).map(([key, value]) => <p key={key}>Sample {key}: {value.i} (probability {value.p.toPrecision(6)}; no collapse)</p>)}
-          {[...sample.stats.customStatsEntries()].filter(([, value]) => typeof value === "boolean").map(([key, value]) => <p key={key}>Detector {key}: {value ? "click" : "no click"}</p>)}
-        </div>}
         <div ref={scrollRef} className="state-table-scroll">
           <table
             id="state-table"
-            className={named ? "state-table state-table-registers" : "state-table"}
+            className={
+              named ? "state-table state-table-registers" : "state-table"
+            }
             aria-rowcount={rows.length + 1}
           >
             <colgroup>
               {named &&
                 registers.list.map((register, index) => (
-                  <col key={register.name} className="state-register" style={charColumn(registerChars[index])} />
+                  <col
+                    key={register.name}
+                    className="state-register"
+                    style={charColumn(registerChars[index])}
+                  />
                 ))}
-              {sequenced && <col className="state-sequence" style={charColumn(sequenceChars)} />}
+              {sequenced && (
+                <col
+                  className="state-sequence"
+                  style={charColumn(sequenceChars)}
+                />
+              )}
               <col className="state-ket" style={charColumn(ketChars)} />
               <col className="state-probability" />
               <col className="state-amplitude" />
@@ -147,11 +187,21 @@ function StatePanel() {
                     </th>
                   ))}
                 {sequenced && (
-                  <th scope="col" title="The registers' values read together, in wire order">
+                  <th
+                    scope="col"
+                    title="The registers' values read together, in wire order"
+                  >
                     sequence
                   </th>
                 )}
-                <th scope="col" title={named ? "The bits, highest wire first, grouped by register" : undefined}>
+                <th
+                  scope="col"
+                  title={
+                    named
+                      ? "The bits, highest wire first, grouped by register"
+                      : undefined
+                  }
+                >
                   {ketHeader}
                 </th>
                 <th scope="col">probability</th>
@@ -160,39 +210,67 @@ function StatePanel() {
               </tr>
             </thead>
             <tbody id="state-table-body">
-              {before > 0 && <SpacerRow height={before} columnCount={columnCount} />}
-              {rows.slice(start, end).map(({ ket, bits, values, sequence, probability, real, imag, phaseDegrees }, offset) => (
-                <tr key={ket} aria-rowindex={start + offset + 2}>
-                  {named &&
-                    values.map((value, index) => (
-                      <td key={index} className="state-register">
-                        {value}
+              {before > 0 && (
+                <SpacerRow height={before} columnCount={columnCount} />
+              )}
+              {rows
+                .slice(start, end)
+                .map(
+                  (
+                    {
+                      ket,
+                      bits,
+                      values,
+                      sequence,
+                      probability,
+                      real,
+                      imag,
+                      phaseDegrees,
+                    },
+                    offset,
+                  ) => (
+                    <tr key={ket} aria-rowindex={start + offset + 2}>
+                      {named &&
+                        values.map((value, index) => (
+                          <td key={index} className="state-register">
+                            {value}
+                          </td>
+                        ))}
+                      {sequenced && (
+                        <td className="state-sequence">{sequence}</td>
+                      )}
+                      <td className="state-ket">{`|${named ? bits : ket}⟩`}</td>
+                      <td className="state-probability">
+                        <span className="state-bar">
+                          <span
+                            className="state-bar-fill"
+                            style={{
+                              width: `${Math.min(100, probability * 100)}%`,
+                            }}
+                          />
+                        </span>
+                        <span className="state-number">
+                          {probability.toFixed(4)}
+                        </span>
                       </td>
-                    ))}
-                  {sequenced && <td className="state-sequence">{sequence}</td>}
-                  <td className="state-ket">{`|${named ? bits : ket}⟩`}</td>
-                  <td className="state-probability">
-                    <span className="state-bar">
-                      <span
-                        className="state-bar-fill"
-                        style={{ width: `${Math.min(100, probability * 100)}%` }}
-                      />
-                    </span>
-                    <span className="state-number">{probability.toFixed(4)}</span>
-                  </td>
-                  <td className="state-amplitude">
-                    {`${forceSign(real, 3)} ${forceSign(imag, 3)}i`}
-                  </td>
-                  <td className="state-phase">
-                    <span
-                      className="state-swatch"
-                      style={{ background: phaseColor(phaseDegrees) }}
-                    />
-                    <span className="state-number">{forceSign(phaseDegrees, 2)}</span>
-                  </td>
-                </tr>
-              ))}
-              {after > 0 && <SpacerRow height={after} columnCount={columnCount} />}
+                      <td className="state-amplitude">
+                        {`${signedFixed(real, 3)} ${signedFixed(imag, 3)}i`}
+                      </td>
+                      <td className="state-phase">
+                        <span
+                          className="state-swatch"
+                          style={{ background: phaseColor(phaseDegrees) }}
+                        />
+                        <span className="state-number">
+                          {signedFixed(phaseDegrees, 2)}
+                        </span>
+                      </td>
+                    </tr>
+                  ),
+                )}
+              {after > 0 && (
+                <SpacerRow height={after} columnCount={columnCount} />
+              )}
             </tbody>
           </table>
         </div>

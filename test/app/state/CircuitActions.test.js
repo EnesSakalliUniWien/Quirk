@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import {Suite, assertThat} from "../../TestUtil.js"
-import {Revision} from "../../../src/base/Revision.js"
-import {CircuitActions} from "../../../src/app/state/CircuitActions.js"
+import { Suite, assertThat } from "../../TestUtil.js";
+import { Revision } from "../../../src/base/Revision.js";
+import { CircuitActions } from "../../../src/app/state/CircuitActions.js";
 
 const suite = new Suite("CircuitActions");
 
@@ -25,44 +25,53 @@ const CIRCUIT_STATE = '{"cols":[["H"]]}';
 const CUSTOM_GATE_STATE = '{"cols":[["H"]],"gates":[{"id":"~test"}]}';
 
 suite.test("availability follows revision history", () => {
-    const revision = Revision.startingAt(EMPTY_STATE);
-    const actions = new CircuitActions(revision);
+  const revision = Revision.startingAt(EMPTY_STATE);
+  const actions = new CircuitActions(revision);
 
-    assertThat(actions.availability().snapshot()).isEqualTo([{
-        canUndo: false,
-        canRedo: false,
-        canClearCircuit: false,
-        canClearAll: false
-    }]);
+  assertThat(actions.availability().snapshot()).isEqualTo([
+    {
+      canUndo: false,
+      canRedo: false,
+      canClearCircuit: false,
+      canClearAll: false,
+    },
+  ]);
 
-    revision.commit(CIRCUIT_STATE);
-    assertThat(actions.availability().snapshot()).isEqualTo([{
-        canUndo: true,
-        canRedo: false,
-        canClearCircuit: true,
-        canClearAll: true
-    }]);
+  revision.commit(CIRCUIT_STATE);
+  assertThat(actions.availability().snapshot()).isEqualTo([
+    {
+      canUndo: true,
+      canRedo: false,
+      canClearCircuit: true,
+      canClearAll: true,
+    },
+  ]);
 });
 
 suite.test("undo and redo move through the revision", () => {
-    const revision = Revision.startingAt(EMPTY_STATE);
-    revision.commit(CIRCUIT_STATE);
-    const actions = new CircuitActions(revision);
+  const revision = Revision.startingAt(EMPTY_STATE);
+  revision.commit(CIRCUIT_STATE);
+  const actions = new CircuitActions(revision);
 
-    assertThat(actions.undo()).isEqualTo(EMPTY_STATE);
-    assertThat(revision.peekActiveCommit()).isEqualTo(EMPTY_STATE);
-    assertThat(actions.redo()).isEqualTo(CIRCUIT_STATE);
-    assertThat(revision.peekActiveCommit()).isEqualTo(CIRCUIT_STATE);
+  assertThat(actions.undo()).isEqualTo(EMPTY_STATE);
+  assertThat(revision.peekActiveCommit()).isEqualTo(EMPTY_STATE);
+  assertThat(actions.redo()).isEqualTo(CIRCUIT_STATE);
+  assertThat(revision.peekActiveCommit()).isEqualTo(CIRCUIT_STATE);
 });
 
-suite.test("clearCircuit preserves custom gates and clearAll removes them", () => {
+suite.test(
+  "clearCircuit preserves custom gates and clearAll removes them",
+  () => {
     const revision = Revision.startingAt(CUSTOM_GATE_STATE);
     const actions = new CircuitActions(revision);
 
     actions.clearCircuit();
-    assertThat(revision.peekActiveCommit()).isEqualTo('{"cols":[],"gates":[{"id":"~test"}]}');
+    assertThat(revision.peekActiveCommit()).isEqualTo(
+      '{"cols":[],"gates":[{"id":"~test"}]}',
+    );
 
     actions.undo();
     actions.clearAll();
     assertThat(revision.peekActiveCommit()).isEqualTo(EMPTY_STATE);
-});
+  },
+);

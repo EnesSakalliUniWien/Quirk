@@ -3,7 +3,9 @@
  * standard shortcuts are the Mac's own: redo is Shift-Command-Z, and Command-Y means something else.
  * @type {!boolean}
  */
-export const isApplePlatform = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform);
+export const isApplePlatform =
+  typeof navigator !== "undefined" &&
+  /Mac|iPhone|iPad/.test(navigator.platform);
 
 /**
  * @param {!string} key
@@ -12,6 +14,8 @@ export const isApplePlatform = typeof navigator !== "undefined" && /Mac|iPhone|i
  *     tooltip or a toast names it: ⇧⌘Z on Apple platforms, where Shift comes before Command, and
  *     Ctrl+Shift+Z elsewhere.
  */
-export function shortcut(key, {shift = false} = {}) {
-    return isApplePlatform ? `${shift ? "⇧" : ""}⌘${key}` : `Ctrl+${shift ? "Shift+" : ""}${key}`;
+export function shortcut(key, { shift = false } = {}) {
+  return isApplePlatform
+    ? `${shift ? "⇧" : ""}⌘${key}`
+    : `Ctrl+${shift ? "Shift+" : ""}${key}`;
 }

@@ -76,7 +76,7 @@ The earlier live audit and screenshots are in [custom-gates-audit/review.md](/Us
 const inputKey = (...values) => JSON.stringify(values);
 
 // Add using Suite/assertThat from test/TestUtil.js.
-assertThat(inputKey('a b', 'c') === inputKey('a', 'b c')).isEqualTo(false);
+assertThat(inputKey("a b", "c") === inputKey("a", "b c")).isEqualTo(false);
 ```
 
 - [x] Give only these two panel wrappers `overflow: hidden`; use an internal grid with `grid-template-rows: auto minmax(0, 1fr) auto`, a scrolling content region, and a footer outside it. Keep other panels' scroll ownership unchanged.
@@ -96,24 +96,30 @@ assertThat(inputKey('a b', 'c') === inputKey('a', 'b c')).isEqualTo(false);
 
 ```js
 // New pure function; unit is 'radians' or 'degrees'.
-parseAngleExpression(text, unit) // -> {value, radians, degrees}; throws Error
+parseAngleExpression(text, unit); // -> {value, radians, degrees}; throws Error
 
 // Shared React control; does not commit to the circuit.
-AngleField({id, label, value, unit, onChange, onUnitChange, error})
+AngleField({ id, label, value, unit, onChange, onUnitChange, error });
 
 // Optional metadata for Rx/Ry/Rz only; retain applyText(oldGate, text).
-paramDialog.angleUnit = 'radians';
+paramDialog.angleUnit = "radians";
 ```
 
 - [x] Implement `parseAngleExpression` using `ComplexFormula.parse`, with the selected existing angle-unit constant, no variables, and explicit checks for blank input, finite real and imaginary components, and a real result. Preserve formula-gate numerical tolerance for tiny imaginary roundoff (0.0001); reject a non-finite result regardless of tolerance. Use ordinary field errors such as “Enter an angle”, “Angle must be real”, and “Angle must be finite”.
 - [x] Add unit cases and invalid inputs before integrating the control:
 
 ```js
-assertThat(parseAngleExpression('pi/3', 'radians').degrees).isApproximatelyEqualTo(60);
-assertThat(parseAngleExpression('60', 'degrees').radians).isApproximatelyEqualTo(Math.PI / 3);
-assertThat(parseAngleExpression('sin(90)', 'degrees').value).isApproximatelyEqualTo(1);
-for (const text of ['', 'i', '1/0', 'not_an_angle', 't']) {
-    assertThrows(() => parseAngleExpression(text, 'radians'));
+assertThat(
+  parseAngleExpression("pi/3", "radians").degrees,
+).isApproximatelyEqualTo(60);
+assertThat(
+  parseAngleExpression("60", "degrees").radians,
+).isApproximatelyEqualTo(Math.PI / 3);
+assertThat(
+  parseAngleExpression("sin(90)", "degrees").value,
+).isApproximatelyEqualTo(1);
+for (const text of ["", "i", "1/0", "not_an_angle", "t"]) {
+  assertThrows(() => parseAngleExpression(text, "radians"));
 }
 ```
 
@@ -140,11 +146,20 @@ for (const text of ['', 'i', '1/0', 'not_an_angle', 't']) {
 - [x] Test the construction with known operators and degenerate input:
 
 ```js
-assertThat(parseRotationDraft({axis:'X+Z', angle:'180', phase:'90', unit:'degrees'}))
-    .isApproximatelyEqualTo(QubitMatrix.HADAMARD);
-assertThat(parseRotationDraft({axis:'Y', angle:'pi/3', phase:'0', unit:'radians'}))
-    .isApproximatelyEqualTo(parseUserRotation('60', '0', 'Y'));
-assertThrows(() => parseRotationDraft({axis:'X-X', angle:'45', phase:'0', unit:'degrees'}));
+assertThat(
+  parseRotationDraft({
+    axis: "X+Z",
+    angle: "180",
+    phase: "90",
+    unit: "degrees",
+  }),
+).isApproximatelyEqualTo(QubitMatrix.HADAMARD);
+assertThat(
+  parseRotationDraft({ axis: "Y", angle: "pi/3", phase: "0", unit: "radians" }),
+).isApproximatelyEqualTo(parseUserRotation("60", "0", "Y"));
+assertThrows(() =>
+  parseRotationDraft({ axis: "X-X", angle: "45", phase: "0", unit: "degrees" }),
+);
 ```
 
 - [x] Reuse OperatorMatrix and RotationFigure. Display global phase separately because the Bloch rotation cannot represent it. Label the rotation as an operation; do not imply it is the current circuit's state vector.
@@ -168,8 +183,8 @@ assertThrows(() => parseRotationDraft({axis:'X-X', angle:'45', phase:'0', unit:'
 - [x] Test the original operation, correction, and data preservation:
 
 ```js
-const original = parseUserMatrix('1,i,i,1', false);
-const corrected = parseUserMatrix('1,i,i,1', true);
+const original = parseUserMatrix("1,i,i,1", false);
+const corrected = parseUserMatrix("1,i,i,1", true);
 assertThat(inspectMatrix(original).unitary).isEqualTo(false);
 assertThat(inspectMatrix(corrected).unitary).isEqualTo(true);
 assertThat(original.cell(0, 0)).isEqualTo(Complex.ONE);
@@ -194,13 +209,20 @@ assertThat(inspectMatrix(Matrix.identity(16)).qubits).isEqualTo(4);
 - [x] Test a partial two-wire gate and the complete selection:
 
 ```js
-const circuit = new CircuitDefinition(2, [new GateColumn([
-    new GateBuilder().setHeight(2).setKnownEffectToMatrix(Matrix.identity(4)).gate,
+const circuit = new CircuitDefinition(2, [
+  new GateColumn([
+    new GateBuilder().setHeight(2).setKnownEffectToMatrix(Matrix.identity(4))
+      .gate,
     undefined,
-])]);
-assertThrows(() => validateCircuitRange(circuit, '1:1', '1:1'));
-assertThat(validateCircuitRange(circuit, '1:1', '1:2'))
-    .isEqualTo({colStart:0, colEnd:1, wireStart:0, wireEnd:2});
+  ]),
+]);
+assertThrows(() => validateCircuitRange(circuit, "1:1", "1:1"));
+assertThat(validateCircuitRange(circuit, "1:1", "1:2")).isEqualTo({
+  colStart: 0,
+  colEnd: 1,
+  wireStart: 0,
+  wireEnd: 2,
+});
 ```
 
 - [x] Draw a non-interactive range highlight in the existing circuit scroll content, following the GutterEditors overlay pattern. Derive bounds from the current displayed circuit's `geometry().gateRect(...)`, current zoom, and selection bounds; use `pointer-events: none`. Do not introduce a second coordinate model or write the highlight into simulation state.
@@ -227,10 +249,10 @@ assertThat(validateCircuitRange(circuit, '1:1', '1:2'))
 - [x] Check presentation independently of model dimensions:
 
 ```js
-const gate = RotationGates.Ry.withParam('pi/3');
-const before = {width: gate.width, param: gate.param};
-assertThat(angleLabelParts(gate)).isEqualTo({symbol:'Ry', parameter:'π/3'});
-assertThat({width: gate.width, param: gate.param}).isEqualTo(before);
+const gate = RotationGates.Ry.withParam("pi/3");
+const before = { width: gate.width, param: gate.param };
+assertThat(angleLabelParts(gate)).isEqualTo({ symbol: "Ry", parameter: "π/3" });
+assertThat({ width: gate.width, param: gate.param }).isEqualTo(before);
 ```
 
 - [x] Verify symbol/angle readability, full-expression access, pointer edit versus drag, keyboard target selection, toolbox insertion, and preview/circuit consistency at 0.75×, 1×, and 1.5× zoom. Run `npm test` and `npm run test:e2e`.
@@ -248,10 +270,16 @@ assertThat({width: gate.width, param: gate.param}).isEqualTo(before);
 - [x] Test actual conversions and rejection:
 
 ```js
-const converted = toQuirkExpression(String.raw`\frac{\pi}{3}`, {allowComplex:false});
+const converted = toQuirkExpression(String.raw`\frac{\pi}{3}`, {
+  allowComplex: false,
+});
 assertThat(converted.ok).isEqualTo(true);
-assertThat(parseAngleExpression(converted.text, 'radians').degrees).isApproximatelyEqualTo(60);
-assertThat(toQuirkExpression(String.raw`\int_0^1 x\,dx`, {allowComplex:false}).ok).isEqualTo(false);
+assertThat(
+  parseAngleExpression(converted.text, "radians").degrees,
+).isApproximatelyEqualTo(60);
+assertThat(
+  toQuirkExpression(String.raw`\int_0^1 x\,dx`, { allowComplex: false }).ok,
+).isEqualTo(false);
 ```
 
 - [x] Add the exact dependency `mathlive@0.110.0` when implementing this task. Registry metadata checked during planning lists `@cortex-js/compute-engine@0.58.0` as its dependency: account for that transitive package; do not use it as Quirk's evaluator or add another direct math-engine dependency.

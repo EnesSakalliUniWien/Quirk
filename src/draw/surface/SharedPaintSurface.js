@@ -1,4 +1,4 @@
-import {RenderSurface} from './RenderSurface.js';
+import { RenderSurface } from "./RenderSurface.js";
 
 /** The surface of every canvas painted into, so that its scene can be freed once the canvas is gone. */
 const painted = new Map();
@@ -12,11 +12,17 @@ let sweep;
  * a frame still on its way is left to finish it.
  */
 function releaseGone(except) {
-    for (const [canvas, surface] of painted) {
-        if (canvas === except || canvas.isConnected || surface.pending || surface.rendering > 0) continue;
-        painted.delete(canvas);
-        void RenderSurface.release(canvas);
-    }
+  for (const [canvas, surface] of painted) {
+    if (
+      canvas === except ||
+      canvas.isConnected ||
+      surface.pending ||
+      surface.rendering > 0
+    )
+      continue;
+    painted.delete(canvas);
+    void RenderSurface.release(canvas);
+  }
 }
 
 /**
@@ -37,25 +43,24 @@ function releaseGone(except) {
  * @returns {!Promise.<boolean>} Whether the canvas now shows the painting.
  */
 async function paintInto(canvas, width, height, draw, isCurrent = () => true) {
-    if (!isCurrent()) return false;
-    releaseGone(canvas);
-    // Nothing paints once the last panel has closed, and its scenes would stay for the renderer's life.
-    clearTimeout(sweep);
-    sweep = setTimeout(() => releaseGone(), SWEEP_DELAY_MILLIS);
-    const surface = RenderSurface.forCanvas(canvas);
-    painted.set(canvas, surface);
-    const ratio = window.devicePixelRatio || 1;
-    try {
-        draw(surface.resize(width * ratio, height * ratio).beginFrame(undefined, ratio));
-        await surface.render(surface.view, isCurrent);
-    } catch (error) {
-        // The next painting starts a scene afresh, on a renderer that has not failed.
-        painted.delete(canvas);
-        surface.reportFailure(error);
-        await RenderSurface.release(canvas);
-        throw error;
-    }
-    return isCurrent();
+  if (!isCurrent()) return false;
+  releaseGone(canvas);
+  // Nothing paints once the last panel has closed, and its scenes would stay for the renderer's life.
+  clearTimeout(sweep);
+  sweep = setTimeout(() => releaseGone(), SWEEP_DELAY_MILLIS);
+  const surface = RenderSurface.forCanvas(canvas);
+  painted.set(canvas, surface);
+  try {
+    draw(surface.beginCssFrame(width, height));
+    await surface.render(surface.view, isCurrent);
+  } catch (error) {
+    // The next painting starts a scene afresh, on a renderer that has not failed.
+    painted.delete(canvas);
+    surface.reportFailure(error);
+    await RenderSurface.release(canvas);
+    throw error;
+  }
+  return isCurrent();
 }
 
-export {paintInto};
+export { paintInto };

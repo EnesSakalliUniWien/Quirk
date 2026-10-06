@@ -14,41 +14,51 @@
  * limitations under the License.
  */
 
-import {Suite, assertThat} from "../../../TestUtil.js"
+import { Suite, assertThat } from "../../../TestUtil.js";
 
-import {BOOL_TYPE_CODER} from "../../../../src/engine/webgl/coder/ShaderCoderTypes.js"
-import {combinedShaderPartsWithCode, shaderWithOutputPartAndArgs} from "../../../../src/engine/webgl/coder/ShaderCoders.js"
-import {Shaders} from "../../../../src/engine/webgl/operations/Shaders.js"
+import { BOOL_TYPE_CODER } from "../../../../src/engine/webgl/coder/ShaderCoderTypes.js";
+import {
+  combinedShaderPartsWithCode,
+  shaderWithOutputPartAndArgs,
+} from "../../../../src/engine/webgl/coder/ShaderCoders.js";
+import { Shaders } from "../../../../src/engine/webgl/operations/Shaders.js";
 
 const suite = new Suite("ShaderCoderTypes");
 
 suite.testUsingWebGLFloatTextures("boolInputs", () => {
-    const inp = BOOL_TYPE_CODER.inputPartGetter('a');
-    const shader = combinedShaderPartsWithCode([inp], `
+  const inp = BOOL_TYPE_CODER.inputPartGetter("a");
+  const shader = combinedShaderPartsWithCode(
+    [inp],
+    `
         void main() {
             vec2 xy = gl_FragCoord.xy - vec2(0.5, 0.5);
             float k = xy.y * 4.0 + xy.x;
             fragColor = vec4(read_a(k), k, 0.0, 0.0);
-        }`);
+        }`,
+  );
 
-    const tex = Shaders.data(new Uint8Array([255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 0, 0, 0])).toRawByteTexture(2);
-    assertThat(shader.withArgs(...inp.argsFor(tex)).readRawFloatOutputs(2)).isEqualTo(new Float32Array([
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 2, 0, 0,
-        1, 3, 0, 0
-    ]));
-    tex.deallocByDepositingInPool();
+  const tex = Shaders.data(
+    new Uint8Array([255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 0, 0, 0]),
+  ).toRawByteTexture(2);
+  assertThat(
+    shader.withArgs(...inp.argsFor(tex)).readRawFloatOutputs(2),
+  ).isEqualTo(
+    new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 1, 3, 0, 0]),
+  );
+  tex.deallocByDepositingInPool();
 });
 
 suite.testUsingWebGL("boolOutputs", () => {
-    const output = BOOL_TYPE_CODER.outputPart;
-    const shader = combinedShaderPartsWithCode([output], `
+  const output = BOOL_TYPE_CODER.outputPart;
+  const shader = combinedShaderPartsWithCode(
+    [output],
+    `
         bool outputFor(float k) {
             return floor(mod(k + 0.5, 3.0)) == 1.0;
-        }`);
+        }`,
+  );
 
-    assertThat(shaderWithOutputPartAndArgs(shader, output, []).readBoolOutputs(3)).isEqualTo(new Uint8Array([
-        0, 1, 0, 0, 1, 0, 0, 1
-    ]));
+  assertThat(
+    shaderWithOutputPartAndArgs(shader, output, []).readBoolOutputs(3),
+  ).isEqualTo(new Uint8Array([0, 1, 0, 0, 1, 0, 0, 1]));
 });

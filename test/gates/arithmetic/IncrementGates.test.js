@@ -14,36 +14,45 @@
  * limitations under the License.
  */
 
-import {Suite} from "../../TestUtil.js"
-import {offsetShader, IncrementGates} from "../../../src/gates/arithmetic/IncrementGates.js"
+import { Suite } from "../../TestUtil.js";
 import {
-    assertThatCircuitShaderActsLikePermutation,
-    assertThatGateActsLikePermutation,
-} from "../../CircuitOperationTestUtil.js"
+  offsetShader,
+  IncrementGates,
+} from "../../../src/gates/arithmetic/IncrementGates.js";
+import {
+  assertThatCircuitShaderActsLikePermutation,
+  assertThatGateActsLikePermutation,
+} from "../../CircuitOperationTestUtil.js";
 
-import {ketArgs} from "../../../src/engine/simulation/gpu/KetShaderUtil.js"
-import {WglArg} from "../../../src/engine/webgl/shader/WglArg.js"
+import { ketArgs } from "../../../src/engine/simulation/gpu/KetShaderUtil.js";
+import { WglArg } from "../../../src/engine/webgl/shader/WglArg.js";
 
 const suite = new Suite("ArithmeticGates");
 
-suite.testUsingWebGL('offsetShader', () => {
-    assertThatCircuitShaderActsLikePermutation(
-        3,
-        ctx => offsetShader.withArgs(...ketArgs(ctx, 3), WglArg.float("amount", 5)),
-        e => (e+5) & 7);
+suite.testUsingWebGL("offsetShader", () => {
+  assertThatCircuitShaderActsLikePermutation(
+    3,
+    (ctx) =>
+      offsetShader.withArgs(...ketArgs(ctx, 3), WglArg.float("amount", 5)),
+    (e) => (e + 5) & 7,
+  );
 
-    assertThatCircuitShaderActsLikePermutation(
-        6,
-        ctx => offsetShader.withArgs(...ketArgs(ctx, 6), WglArg.float("amount", -31)),
-        e => (e-31) & 63);
+  assertThatCircuitShaderActsLikePermutation(
+    6,
+    (ctx) =>
+      offsetShader.withArgs(...ketArgs(ctx, 6), WglArg.float("amount", -31)),
+    (e) => (e - 31) & 63,
+  );
 });
 
-suite.testUsingWebGL('IncrementGate', () => {
-    assertThatGateActsLikePermutation(
-        IncrementGates.IncrementFamily.ofSize(3),
-        e => (e + 1) & 7);
+suite.testUsingWebGL("IncrementGate", () => {
+  assertThatGateActsLikePermutation(
+    IncrementGates.IncrementFamily.ofSize(3),
+    (e) => (e + 1) & 7,
+  );
 
-    assertThatGateActsLikePermutation(
-        IncrementGates.DecrementFamily.ofSize(4),
-        e => (e - 1) & 15);
+  assertThatGateActsLikePermutation(
+    IncrementGates.DecrementFamily.ofSize(4),
+    (e) => (e - 1) & 15,
+  );
 });

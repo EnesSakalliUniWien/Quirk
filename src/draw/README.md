@@ -5,16 +5,16 @@ stroke, alpha and text properties in JavaScript. CSS styles the surrounding HTML
 
 ## Directory layout
 
-| Directory | Responsibility | Files |
-|---|---|---|
-| `surface/` | Canvas and Application lifecycle, frame submission, the renderer shared by surfaces that copy their pixels out | `RenderCanvas.jsx`, `RenderSurface.js`, `SharedRenderer.js`, `SharedPaintSurface.js`, `applicationOptions.js` |
-| `scene/` | React scene descriptions, reconciliation and committed rendering | `DisplayView.js`, `ReactScene.js` |
-| `shapes/` | Shape primitives and path construction | `ShapeView.js`, `PathGeometry.js` |
-| `text/` | Text measurement, fitting and label descriptions | `TextLayout.js`, `LabelView.js`, `BasisLabels.js` |
-| `tooltips/` | Tooltip content, positioning and overlay descriptions | `TooltipView.js`, `MatrixTooltip.js` |
-| `displays/` | Scientific displays grouped by Bloch, amplitude, density, complex-cell and probability responsibilities | See [display responsibilities](displays/README.md) |
-| `gate/` | Gate grouping, frames, symbols and custom-gate rendering | Existing gate modules plus `GateView.js` |
-| `renderers/` | Shared data renderers, operator tiles and raster generation | Existing renderer modules |
+| Directory    | Responsibility                                                                                                 | Files                                                                                                         |
+| ------------ | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `surface/`   | Canvas and Application lifecycle, frame submission, the renderer shared by surfaces that copy their pixels out | `RenderCanvas.jsx`, `RenderSurface.js`, `SharedRenderer.js`, `SharedPaintSurface.js`, `applicationOptions.js` |
+| `scene/`     | React scene descriptions, reconciliation and committed rendering                                               | `DisplayView.js`, `ReactScene.js`                                                                             |
+| `shapes/`    | Shape primitives and path construction                                                                         | `ShapeView.js`, `PathGeometry.js`                                                                             |
+| `text/`      | Text measurement, fitting and label descriptions                                                               | `TextLayout.js`, `LabelView.js`, `BasisLabels.js`                                                             |
+| `tooltips/`  | Tooltip content, positioning and overlay descriptions                                                          | `TooltipView.js`, `MatrixTooltip.js`                                                                          |
+| `displays/`  | Scientific displays grouped by Bloch, amplitude, density, complex-cell and probability responsibilities        | See [display responsibilities](displays/README.md)                                                            |
+| `gate/`      | Gate grouping, frames, symbols and custom-gate rendering                                                       | Existing gate modules plus `GateView.js`                                                                      |
+| `renderers/` | Shared data renderers, operator tiles and raster generation                                                    | Existing renderer modules                                                                                     |
 
 `displays/complex/MatrixView.js` owns complex matrix rendering, and its sibling `ComplexCellGeometry.js`
 owns shared amplitude marks. `displays/probability/ProbabilityView.js` owns probability displays,
@@ -114,8 +114,10 @@ retains its separate WebGL implementation and textures.
 
 ## Updates and disposal
 
-Call `RenderSurface.resize(width, height)` to request backing-pixel dimensions, then
-`RenderSurface.beginFrame`, update its view, and let the scheduled render present the frame.
+Call `RenderSurface.beginCssFrame(width, height)` for a frame sized and drawn in CSS pixels.
+It reads the current device pixel ratio each frame. For custom transforms such as circuit zoom,
+call `RenderSurface.resize(width, height)` with backing-pixel dimensions, then `beginFrame` with
+the drawing scale. Update the returned view and let the scheduled render present the frame.
 The visible canvas is resized only when that frame commits; callers must not assign its width or
 height before rendering, because that would clear the previous frame while React is preparing the next.
 Native parent containers own transforms and opacity. Opacity changes that affect only later

@@ -1,4 +1,4 @@
-import {Layout} from '../../../config/Layout.js';
+import { Layout } from "../../../config/Layout.js";
 
 /**
  * @typedef {{left: !number, right: !number}} CircuitSpan A stretch of the circuit's x axis, in circuit
@@ -23,35 +23,40 @@ import {Layout} from '../../../config/Layout.js';
  *     column the scene was described without.
  */
 function columnsInRange(definition, geometry, range) {
-    const count = definition.columns.length;
-    if (range === undefined || count === 0) {
-        return {columns: definition.columns.map((_, col) => col), left: -Infinity, right: Infinity};
-    }
-    const half = Layout.COLUMN_SPACING / 2;
-    const cellLeft = col => geometry.opRect(col).center().x - half;
-    const cellRight = col => geometry.opRect(col).center().x + half;
-
-    // The first column whose cell ends inside the stretch, and the last whose cell starts inside it.
-    const first = firstWhere(count, col => cellRight(col) >= range.left);
-    const last = firstWhere(count, col => cellLeft(col) > range.right) - 1;
-
-    const columns = [];
-    // The farthest column reached by any column left out on the left: the view may scroll left as
-    // far as where that column's cell ends before one of them would show.
-    let farthestLeftOut = -1;
-    for (let col = 0; col <= last; col++) {
-        const reaches = col + Math.max(1, definition.columns[col].maximumGateWidth()) - 1;
-        if (reaches >= first) {
-            columns.push(col);
-        } else {
-            farthestLeftOut = Math.max(farthestLeftOut, reaches);
-        }
-    }
+  const count = definition.columns.length;
+  if (range === undefined || count === 0) {
     return {
-        columns,
-        left: farthestLeftOut < 0 ? -Infinity : cellRight(farthestLeftOut),
-        right: last + 1 < count ? cellLeft(last + 1) : Infinity,
+      columns: definition.columns.map((_, col) => col),
+      left: -Infinity,
+      right: Infinity,
     };
+  }
+  const half = Layout.COLUMN_SPACING / 2;
+  const cellLeft = (col) => geometry.opRect(col).center().x - half;
+  const cellRight = (col) => geometry.opRect(col).center().x + half;
+
+  // The first column whose cell ends inside the stretch, and the last whose cell starts inside it.
+  const first = firstWhere(count, (col) => cellRight(col) >= range.left);
+  const last = firstWhere(count, (col) => cellLeft(col) > range.right) - 1;
+
+  const columns = [];
+  // The farthest column reached by any column left out on the left: the view may scroll left as
+  // far as where that column's cell ends before one of them would show.
+  let farthestLeftOut = -1;
+  for (let col = 0; col <= last; col++) {
+    const reaches =
+      col + Math.max(1, definition.columns[col].maximumGateWidth()) - 1;
+    if (reaches >= first) {
+      columns.push(col);
+    } else {
+      farthestLeftOut = Math.max(farthestLeftOut, reaches);
+    }
+  }
+  return {
+    columns,
+    left: farthestLeftOut < 0 ? -Infinity : cellRight(farthestLeftOut),
+    right: last + 1 < count ? cellLeft(last + 1) : Infinity,
+  };
 }
 
 /**
@@ -60,17 +65,17 @@ function columnsInRange(definition, geometry, range) {
  * @returns {!int} That index, or count when the test never holds.
  */
 function firstWhere(count, holds) {
-    let low = 0;
-    let high = count;
-    while (low < high) {
-        const middle = (low + high) >> 1;
-        if (holds(middle)) {
-            high = middle;
-        } else {
-            low = middle + 1;
-        }
+  let low = 0;
+  let high = count;
+  while (low < high) {
+    const middle = (low + high) >> 1;
+    if (holds(middle)) {
+      high = middle;
+    } else {
+      low = middle + 1;
     }
-    return low;
+  }
+  return low;
 }
 
-export {columnsInRange};
+export { columnsInRange };

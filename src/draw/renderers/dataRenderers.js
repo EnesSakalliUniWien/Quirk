@@ -14,26 +14,34 @@
  * limitations under the License.
  */
 
-import {TooltipLayer} from '../tooltips/TooltipView.js';
-import {paintMatrixTooltip} from '../tooltips/MatrixTooltip.js';
-import {paintMatrix} from '../displays/complex/MatrixView.js';
-import {drawGraphics} from '../scene/DisplayView.js';
-import {Color} from 'pixi.js';
-import {PathGeometry} from '../shapes/PathGeometry.js';
-import {drawPath, rectangle} from '../shapes/ShapeView.js';
-import {drawText, fitText, fitParagraph, measureText} from '../text/TextLayout.js';
-import {paintDensityMatrix} from '../displays/density/DensityMatrixView.js';
-import {ZERO_PROBABILITY, formatProbability}
-    from '../displays/probability/ProbabilityScale.js';
-import {CanvasTheme} from '../../config/CanvasTheme.js';
-import {Typography} from '../../config/Typography.js';
-import {Format} from '../../base/Format.js';
+import { onColourSchemeChange } from "../../appearance/colourScheme.js";
+import { TooltipLayer } from "../tooltips/TooltipView.js";
+import { paintMatrixTooltip } from "../tooltips/MatrixTooltip.js";
+import { paintMatrix } from "../displays/complex/MatrixView.js";
+import { drawGraphics } from "../scene/DisplayView.js";
+import { Color } from "pixi.js";
+import { PathGeometry } from "../shapes/PathGeometry.js";
+import { drawPath, rectangle } from "../shapes/ShapeView.js";
+import {
+  drawText,
+  fitText,
+  fitParagraph,
+  measureText,
+} from "../text/TextLayout.js";
+import { paintDensityMatrix } from "../displays/density/DensityMatrixView.js";
+import {
+  ZERO_PROBABILITY,
+  formatProbability,
+} from "../displays/probability/ProbabilityScale.js";
+import { CanvasTheme } from "../../config/CanvasTheme.js";
+import { Typography } from "../../config/Typography.js";
+import { Format, signedFixed } from "../../base/Format.js";
 import { bin } from "../../base/Format.js";
-import {Registers} from '../../circuit/model/Registers.js';
-import {ketLabel} from '../../circuit/registerLabels.js';
-import {Matrix} from '../../engine/math/matrix/Matrix.js';
-import {Point} from '../../geometry/Point.js';
-import {Rect} from '../../geometry/Rect.js';
+import { Registers } from "../../circuit/model/Registers.js";
+import { ketLabel } from "../../circuit/registerLabels.js";
+import { Matrix } from "../../engine/math/matrix/Matrix.js";
+import { Point } from "../../geometry/Point.js";
+import { Rect } from "../../geometry/Rect.js";
 
 /**
  * How each kind of data is drawn, whoever produced it.
@@ -59,15 +67,20 @@ import {Rect} from '../../geometry/Rect.js';
  * @param {!{style: (undefined|"operator"|"density"), focusPoints: (undefined|!Array.<!Point>)}=} options
  *     "density" draws the coherences of a density matrix; "operator", the default, draws an operator.
  */
-function renderMatrix(view, matrix, rect, {style = "operator", focusPoints = []} = {}) {
-    if (style === "density") {
-        paintDensityMatrix(view, matrix, rect, focusPoints);
-        return;
-    }
-    paintMatrix(view, matrix, rect, {
-        backColor: CanvasTheme.operation.background,
-        showLogCircles: false
-    });
+function renderMatrix(
+  view,
+  matrix,
+  rect,
+  { style = "operator", focusPoints = [] } = {},
+) {
+  if (style === "density") {
+    paintDensityMatrix(view, matrix, rect, focusPoints);
+    return;
+  }
+  paintMatrix(view, matrix, rect, {
+    backColor: CanvasTheme.operation.background,
+    showLogCircles: false,
+  });
 }
 
 // ---- state --------------------------------------------------------------------------------------
@@ -81,16 +94,19 @@ function renderMatrix(view, matrix, rect, {style = "operator", focusPoints = []}
  * @returns {!Matrix}
  */
 function stateGrid(vector) {
-    const size = vector.height();
-    const qubits = Math.round(Math.log2(size));
-    const width = qubits === 1 ? 2 : 1 << Math.floor(qubits / 2);
-    return new Matrix(width, size / width, new Float64Array(vector.rawBuffer()));
+  const size = vector.height();
+  const qubits = Math.round(Math.log2(size));
+  const width = qubits === 1 ? 2 : 1 << Math.floor(qubits / 2);
+  return new Matrix(width, size / width, new Float64Array(vector.rawBuffer()));
 }
 
 /** The least a cell may measure to carry its basis state, and the least its label may shrink to. */
 const MIN_LABELLED_CELL_SIZE = 24;
 const MIN_CELL_LABEL_FONT_SIZE = 7;
-const CELL_LABEL_FONT = {fontSize: 11, fontFamily: Typography.MONO_FONT_FAMILY};
+const CELL_LABEL_FONT = {
+  fontSize: 11,
+  fontFamily: Typography.MONO_FONT_FAMILY,
+};
 const CELL_LABEL_INSET = 2;
 
 /**
@@ -105,55 +121,74 @@ const CELL_LABEL_INSET = 2;
  * @param {!function(!int): !string} label The basis state at an index of the grid, row-major.
  */
 function stateCellLabels(view, matrix, rect, label) {
-    const diam = Math.min(rect.w / matrix.width(), rect.h / matrix.height());
-    if (diam < MIN_LABELLED_CELL_SIZE) {
-        return;
-    }
-    const room = diam - 2*CELL_LABEL_INSET;
-    view.group('cell-labels', view => {
-        for (let r = 0; r < matrix.height(); r++) {
-            for (let c = 0; c < matrix.width(); c++) {
-                const text = label(r*matrix.width() + c);
-                const scale = Math.min(1, room / measureText(text, CELL_LABEL_FONT).width);
-                if (scale * CELL_LABEL_FONT.fontSize < MIN_CELL_LABEL_FONT_SIZE) {
-                    continue;
-                }
-                const x = rect.x + diam*c + CELL_LABEL_INSET;
-                const y = rect.y + diam*r + CELL_LABEL_INSET;
-                fitText(view, text, {
-                    x,
-                    y,
-                    align: 'left',
-                    baseline: 'top',
-                    fill: CanvasTheme.text.primary,
-                    font: CELL_LABEL_FONT,
-                    width: room,
-                    // See-through, so a phase hand pointing into the corner still shows under it.
-                    beforeDraw: (w, h) => rectangle(view, new Rect(x - 1, y, w + 2, h), {fill: CELL_LABEL_PLATE})
-                });
-            }
+  const diam = Math.min(rect.w / matrix.width(), rect.h / matrix.height());
+  if (diam < MIN_LABELLED_CELL_SIZE) {
+    return;
+  }
+  const room = diam - 2 * CELL_LABEL_INSET;
+  view.group("cell-labels", (view) => {
+    for (let r = 0; r < matrix.height(); r++) {
+      for (let c = 0; c < matrix.width(); c++) {
+        const text = label(r * matrix.width() + c);
+        const scale = Math.min(
+          1,
+          room / measureText(text, CELL_LABEL_FONT).width,
+        );
+        if (scale * CELL_LABEL_FONT.fontSize < MIN_CELL_LABEL_FONT_SIZE) {
+          continue;
         }
-    });
+        const x = rect.x + diam * c + CELL_LABEL_INSET;
+        const y = rect.y + diam * r + CELL_LABEL_INSET;
+        fitText(view, text, {
+          x,
+          y,
+          align: "left",
+          baseline: "top",
+          fill: CanvasTheme.text.primary,
+          font: CELL_LABEL_FONT,
+          width: room,
+          // See-through, so a phase hand pointing into the corner still shows under it.
+          beforeDraw: (w, h) =>
+            rectangle(view, new Rect(x - 1, y, w + 2, h), {
+              fill: CELL_LABEL_PLATE,
+            }),
+        });
+      }
+    }
+  });
 }
 
 /** The plate under a cell's name: the gate's surface, thin enough for a hand to show through. */
-const CELL_LABEL_PLATE = new Color(CanvasTheme.surface.gate).setAlpha(0.72).toRgbaString();
+let CELL_LABEL_PLATE = new Color(CanvasTheme.surface.gate)
+  .setAlpha(0.72)
+  .toRgbaString();
+onColourSchemeChange(() => {
+  CELL_LABEL_PLATE = new Color(CanvasTheme.surface.gate)
+    .setAlpha(0.72)
+    .toRgbaString();
+});
 
 /** Edge labels need a view at least this large on its shorter side; smaller views keep tooltips only. */
 const MIN_EDGE_LABELLED_SIDE = 100;
-const EDGE_LABEL_FONT = {fontSize: Typography.LABEL_FONT_SIZE, fontFamily: Typography.MONO_FONT_FAMILY};
+const EDGE_LABEL_FONT = {
+  fontSize: Typography.LABEL_FONT_SIZE,
+  fontFamily: Typography.MONO_FONT_FAMILY,
+};
 
 /** A state grid's rows carry the high bits of the basis state and its columns the low bits. */
 function stateAxisBits(matrix) {
-    return {rowBits: Math.round(Math.log2(matrix.height())), colBits: Math.round(Math.log2(matrix.width()))};
+  return {
+    rowBits: Math.round(Math.log2(matrix.height())),
+    colBits: Math.round(Math.log2(matrix.width())),
+  };
 }
 
 /** Square cells centred in `area`. */
 function fitCells(matrix, area) {
-    const diam = Math.min(area.w / matrix.width(), area.h / matrix.height());
-    const w = diam * matrix.width();
-    const h = diam * matrix.height();
-    return new Rect(area.x + (area.w - w) / 2, area.y + (area.h - h) / 2, w, h);
+  const diam = Math.min(area.w / matrix.width(), area.h / matrix.height());
+  const w = diam * matrix.width();
+  const h = diam * matrix.height();
+  return new Rect(area.x + (area.w - w) / 2, area.y + (area.h - h) / 2, w, h);
 }
 
 /**
@@ -166,34 +201,61 @@ function fitCells(matrix, area) {
  * @returns {!{grid: !Rect, block: !Rect, edgeLabels: !boolean}} The cells, and all that is drawn.
  */
 function stateGridRect(matrix, area) {
-    const cells = fitCells(matrix, area);
-    if (cells.w / matrix.width() >= MIN_LABELLED_CELL_SIZE || Math.min(area.w, area.h) < MIN_EDGE_LABELLED_SIDE) {
-        return {grid: cells, block: cells, edgeLabels: false};
-    }
-    const left = Math.ceil(measureText(bin(0, stateAxisBits(matrix).rowBits) + '⋯', EDGE_LABEL_FONT).width) + 6;
-    const top = EDGE_LABEL_FONT.fontSize + 8;
-    const grid = fitCells(matrix, new Rect(area.x + left, area.y + top, area.w - left, area.h - top));
-    return {grid, block: new Rect(grid.x - left, grid.y - top, grid.w + left, grid.h + top), edgeLabels: true};
+  const cells = fitCells(matrix, area);
+  if (
+    cells.w / matrix.width() >= MIN_LABELLED_CELL_SIZE ||
+    Math.min(area.w, area.h) < MIN_EDGE_LABELLED_SIDE
+  ) {
+    return { grid: cells, block: cells, edgeLabels: false };
+  }
+  const left =
+    Math.ceil(
+      measureText(bin(0, stateAxisBits(matrix).rowBits) + "⋯", EDGE_LABEL_FONT)
+        .width,
+    ) + 6;
+  const top = EDGE_LABEL_FONT.fontSize + 8;
+  const grid = fitCells(
+    matrix,
+    new Rect(area.x + left, area.y + top, area.w - left, area.h - top),
+  );
+  return {
+    grid,
+    block: new Rect(grid.x - left, grid.y - top, grid.w + left, grid.h + top),
+    edgeLabels: true,
+  };
 }
 
 /** Each row's high bits left of the grid and each column's low bits above it, sparse where they would collide. */
 function stateEdgeLabels(view, matrix, grid) {
-    const {rowBits, colBits} = stateAxisBits(matrix);
-    const cell = grid.w / matrix.width();
-    const font = EDGE_LABEL_FONT;
-    const columnLabel = c => '⋯' + bin(c, colBits);
-    const columnStride = Math.max(1, Math.ceil((measureText(columnLabel(0), font).width + 4) / cell));
-    const rowStride = Math.max(1, Math.ceil((font.fontSize + 3) / cell));
-    view.group('edge-labels', view => {
-        for (let c = 0; c < matrix.width(); c += columnStride) {
-            drawText(view, columnLabel(c), {x: grid.x + (c + 0.5) * cell, y: grid.y - 3, align: 'center',
-                baseline: 'bottom', font});
-        }
-        for (let r = 0; r < matrix.height(); r += rowStride) {
-            drawText(view, bin(r, rowBits) + '⋯', {x: grid.x - 3, y: grid.y + (r + 0.5) * cell, align: 'right',
-                baseline: 'middle', font});
-        }
-    });
+  const { rowBits, colBits } = stateAxisBits(matrix);
+  const cell = grid.w / matrix.width();
+  const font = EDGE_LABEL_FONT;
+  const columnLabel = (c) => "⋯" + bin(c, colBits);
+  const columnStride = Math.max(
+    1,
+    Math.ceil((measureText(columnLabel(0), font).width + 4) / cell),
+  );
+  const rowStride = Math.max(1, Math.ceil((font.fontSize + 3) / cell));
+  view.group("edge-labels", (view) => {
+    for (let c = 0; c < matrix.width(); c += columnStride) {
+      drawText(view, columnLabel(c), {
+        x: grid.x + (c + 0.5) * cell,
+        y: grid.y - 3,
+        align: "center",
+        baseline: "bottom",
+        font,
+      });
+    }
+    for (let r = 0; r < matrix.height(); r += rowStride) {
+      drawText(view, bin(r, rowBits) + "⋯", {
+        x: grid.x - 3,
+        y: grid.y + (r + 0.5) * cell,
+        align: "right",
+        baseline: "middle",
+        font,
+      });
+    }
+  });
 }
 
 /**
@@ -210,51 +272,77 @@ function stateEdgeLabels(view, matrix, grid) {
  *     from its first wire; the basis states read in their words.
  * @returns {!{grid: !Rect, block: !Rect, edgeLabels: !boolean}} See stateGridRect.
  */
-function renderState(view, matrix, rect, {wireCount, focusPoints = [], coherent = true, indicatorAlpha = 1,
-                                          phaseLockIndex = undefined, registers = Registers.EMPTY}) {
-    const layout = stateGridRect(matrix, rect);
-    const {grid} = layout;
-    if (layout.edgeLabels) {
-        rectangle(view, layout.block, {fill: CanvasTheme.amplitude.background});
-    }
-    // The discs wear their phases' hues and the hands fade as the phases stop being defined; with
-    // none defined the discs have no hue to wear.
-    paintMatrix(view, matrix, grid, {
-        wireCount,
-        showChance: true,
-        phaseAlpha: Math.min(1, indicatorAlpha),
-    });
+function renderState(
+  view,
+  matrix,
+  rect,
+  {
+    wireCount,
+    focusPoints = [],
+    coherent = true,
+    indicatorAlpha = 1,
+    phaseLockIndex = undefined,
+    registers = Registers.EMPTY,
+  },
+) {
+  const layout = stateGridRect(matrix, rect);
+  const { grid } = layout;
+  if (layout.edgeLabels) {
+    rectangle(view, layout.block, { fill: CanvasTheme.amplitude.background });
+  }
+  // The discs wear their phases' hues and the hands fade as the phases stop being defined; with
+  // none defined the discs have no hue to wear.
+  paintMatrix(view, matrix, grid, {
+    wireCount,
+    showChance: true,
+    phaseAlpha: Math.min(1, indicatorAlpha),
+  });
 
-    const index = (c, r) => r*matrix.width() + c;
-    const basis = i => ketLabel(registers, wireCount, i);
-    if (layout.edgeLabels) {
-        stateEdgeLabels(view, matrix, grid);
-    } else {
-        stateCellLabels(view, matrix, grid, basis);
-    }
+  const index = (c, r) => r * matrix.width() + c;
+  const basis = (i) => ketLabel(registers, wireCount, i);
+  if (layout.edgeLabels) {
+    stateEdgeLabels(view, matrix, grid);
+  } else {
+    stateCellLabels(view, matrix, grid, basis);
+  }
 
-    const forceSign = v => (v >= 0 ? '+' : '') + v.toFixed(2);
-    if (!coherent) {
-        paintMatrixTooltip(view, matrix, grid, focusPoints,
-            (c, r) => `Chance of |${basis(index(c, r))}⟩ (decimal ${index(c, r)}) [amplitude not defined]`,
-            (c, r, v) => `raw: ${(v.norm2()*100).toFixed(4)}%, log: ${(Math.log10(v.norm2())*10).toFixed(1)} dB`,
-            () => '[entangled with other qubits]');
-        return layout;
-    }
-    paintMatrixTooltip(view, matrix, grid, focusPoints,
-        (c, r) => `Amplitude of |${basis(index(c, r))}⟩ (decimal ${index(c, r)})`,
-        (c, r, v) => 'val:' + v.toString(Format.SIMPLIFIED),
-        (c, r, v) => `mag²:${(v.norm2()*100).toFixed(4)}%, phase:${forceSign(v.phase() * 180 / Math.PI)}°`);
-    if (phaseLockIndex !== undefined && indicatorAlpha > 0) {
-        // The cell whose phase was taken as zero, which every other hand is measured from: it wears
-        // the reference ink, and the gate's caption names it.
-        const diam = grid.w / matrix.width();
-        const c = phaseLockIndex % matrix.width();
-        const r = Math.floor(phaseLockIndex / matrix.width());
-        rectangle(view, new Rect(grid.x + diam*c, grid.y + diam*r, diam, diam),
-            {stroke: {color: CanvasTheme.amplitude.reference, width: 1}});
-    }
+  if (!coherent) {
+    paintMatrixTooltip(
+      view,
+      matrix,
+      grid,
+      focusPoints,
+      (c, r) =>
+        `Probability of |${basis(index(c, r))}⟩ (decimal ${index(c, r)}) [amplitude not defined]`,
+      (c, r, v) =>
+        `raw: ${(v.norm2() * 100).toFixed(4)}%, log: ${(Math.log10(v.norm2()) * 10).toFixed(1)} dB`,
+      () => "[entangled with other qubits]",
+    );
     return layout;
+  }
+  paintMatrixTooltip(
+    view,
+    matrix,
+    grid,
+    focusPoints,
+    (c, r) => `Amplitude of |${basis(index(c, r))}⟩ (decimal ${index(c, r)})`,
+    (c, r, v) => "val:" + v.toString(Format.SIMPLIFIED),
+    (c, r, v) =>
+      `mag²:${(v.norm2() * 100).toFixed(4)}%, phase:${signedFixed((v.phase() * 180) / Math.PI, 2)}°`,
+  );
+  if (phaseLockIndex !== undefined && indicatorAlpha > 0) {
+    // The cell whose phase was taken as zero, which every other hand is measured from: it wears
+    // the reference ink, and the gate's caption names it.
+    const diam = grid.w / matrix.width();
+    const c = phaseLockIndex % matrix.width();
+    const r = Math.floor(phaseLockIndex / matrix.width());
+    rectangle(
+      view,
+      new Rect(grid.x + diam * c, grid.y + diam * r, diam, diam),
+      { stroke: { color: CanvasTheme.amplitude.reference, width: 1 } },
+    );
+  }
+  return layout;
 }
 
 // ---- probabilities ------------------------------------------------------------------------------
@@ -269,9 +357,18 @@ const MIN_GROUP_HEIGHT = 24;
 const GROUP_GAP = 3;
 /** The strip left of the chart that a group's prefix label may take. */
 const PREFIX_LABEL_WIDTH = 36;
-const PREFIX_FONT = {fontSize: Typography.LABEL_FONT_SIZE, fontFamily: Typography.MONO_FONT_FAMILY};
-const KET_FONT = {fontSize: Typography.LABEL_FONT_SIZE, fontFamily: Typography.MONO_FONT_FAMILY};
-const PERCENT_FONT = {fontSize: Typography.LABEL_FONT_SIZE, fontFamily: Typography.MONO_FONT_FAMILY};
+const PREFIX_FONT = {
+  fontSize: Typography.LABEL_FONT_SIZE,
+  fontFamily: Typography.MONO_FONT_FAMILY,
+};
+const KET_FONT = {
+  fontSize: Typography.LABEL_FONT_SIZE,
+  fontFamily: Typography.MONO_FONT_FAMILY,
+};
+const PERCENT_FONT = {
+  fontSize: Typography.LABEL_FONT_SIZE,
+  fontFamily: Typography.MONO_FONT_FAMILY,
+};
 /** The smallest a row's ket or percentage is drawn at; a row with less room carries none. */
 const MIN_ROW_TEXT_FONT_SIZE = 10;
 /** The thin bar's height, and the room it keeps from the row's edges: little, so the text keeps the rest. */
@@ -282,7 +379,8 @@ const THIN_BAR_INSET = 2;
 const ROW_TEXT_LINE_HEIGHT = 1.3;
 /** A row's text is never drawn below MIN_ROW_TEXT_FONT_SIZE, across or up. */
 const ROW_TEXT_FLOOR = MIN_ROW_TEXT_FONT_SIZE / Typography.LABEL_FONT_SIZE;
-const fitsReadably = (text, width) => measureText(text, KET_FONT).width * ROW_TEXT_FLOOR <= width;
+const fitsReadably = (text, width) =>
+  measureText(text, KET_FONT).width * ROW_TEXT_FLOOR <= width;
 
 /**
  * The font a row's line is drawn in: the label size, or as much less as a line `height` tall holds,
@@ -291,7 +389,10 @@ const fitsReadably = (text, width) => measureText(text, KET_FONT).width * ROW_TE
  * @param {!number} height
  * @returns {!Object}
  */
-const rowFont = (font, height) => ({...font, fontSize: Math.min(font.fontSize, height / ROW_TEXT_LINE_HEIGHT)});
+const rowFont = (font, height) => ({
+  ...font,
+  fontSize: Math.min(font.fontSize, height / ROW_TEXT_LINE_HEIGHT),
+});
 
 /**
  * @param {!number} width The room a row's percentage has.
@@ -299,7 +400,7 @@ const rowFont = (font, height) => ({...font, fontSize: Math.min(font.fontSize, h
  *     none where only ">99%" does.
  */
 function percentDigits(width) {
-    return fitsReadably('>99.9%', width) ? 1 : 0;
+  return fitsReadably(">99.9%", width) ? 1 : 0;
 }
 
 /**
@@ -308,15 +409,21 @@ function percentDigits(width) {
  *     row, or the percentage alone.
  */
 function ketLayout(rect, wireCount) {
-    const band = rect.h / (1 << wireCount) - THIN_BAR_HEIGHT - 2 * THIN_BAR_INSET;
-    const lineHeight = MIN_ROW_TEXT_FONT_SIZE * ROW_TEXT_LINE_HEIGHT;
-    if (band < lineHeight || !fitsReadably('>99%', rect.w - 2 * THIN_BAR_INSET)) {
-        return undefined;
-    }
-    if (rect.w >= measureText(`|${bin(0, wireCount)}⟩ 100.0%`, KET_FONT).width + 8) {
-        return "side";
-    }
-    return band / 2 >= lineHeight && fitsReadably(`|${bin(0, wireCount)}⟩`, rect.w - 4) ? "stacked" : "percent";
+  const band = rect.h / (1 << wireCount) - THIN_BAR_HEIGHT - 2 * THIN_BAR_INSET;
+  const lineHeight = MIN_ROW_TEXT_FONT_SIZE * ROW_TEXT_LINE_HEIGHT;
+  if (band < lineHeight || !fitsReadably(">99%", rect.w - 2 * THIN_BAR_INSET)) {
+    return undefined;
+  }
+  if (
+    rect.w >=
+    measureText(`|${bin(0, wireCount)}⟩ 100.0%`, KET_FONT).width + 8
+  ) {
+    return "side";
+  }
+  return band / 2 >= lineHeight &&
+    fitsReadably(`|${bin(0, wireCount)}⟩`, rect.w - 4)
+    ? "stacked"
+    : "percent";
 }
 
 /**
@@ -324,91 +431,130 @@ function ketLayout(rect, wireCount) {
  *     tall enough to label. All the rows when no smaller group is.
  */
 function groupRowCount(rect, wireCount) {
-    const n = 1 << wireCount;
-    let rows = 2;
-    while (rows < n && rows * rect.h / n < MIN_GROUP_HEIGHT) {
-        rows *= 2;
-    }
-    return Math.min(rows, n);
+  const n = 1 << wireCount;
+  let rows = 2;
+  while (rows < n && (rows * rect.h) / n < MIN_GROUP_HEIGHT) {
+    rows *= 2;
+  }
+  return Math.min(rows, n);
 }
 
 function probabilityGrid(view, rect, wireCount, groupRows) {
-    const {x, y, w, h} = rect;
-    const n = 1 << wireCount;
-    const d = h / n;
-    rectangle(view, rect, {fill: CanvasTheme.surface.readout});
-    if (d >= MIN_DIVIDED_ROW_HEIGHT) {
-        drawPath(view, tracer => {
-            for (let i = 1; i < n; i++) {
-                if (i % groupRows !== 0) PathGeometry.line(tracer, x, y + d * i, x + w, y + d * i);
-            }
-        }, [{stroke: {color: CanvasTheme.stroke.grid, width: 1}}]);
-    }
-    if (groupRows < n) {
-        drawPath(view, tracer => {
-            for (let i = groupRows; i < n; i += groupRows) PathGeometry.line(tracer, x, y + d * i, x + w, y + d * i);
-        }, [{stroke: {color: CanvasTheme.stroke.guide, width: 2}}]);
-    }
-    rectangle(view, rect, {stroke: {color: CanvasTheme.stroke.grid, width: 1}});
+  const { x, y, w, h } = rect;
+  const n = 1 << wireCount;
+  const d = h / n;
+  rectangle(view, rect, { fill: CanvasTheme.surface.readout });
+  if (d >= MIN_DIVIDED_ROW_HEIGHT) {
+    drawPath(
+      view,
+      (tracer) => {
+        for (let i = 1; i < n; i++) {
+          if (i % groupRows !== 0)
+            PathGeometry.line(tracer, x, y + d * i, x + w, y + d * i);
+        }
+      },
+      [{ stroke: { color: CanvasTheme.stroke.grid, width: 1 } }],
+    );
+  }
+  if (groupRows < n) {
+    drawPath(
+      view,
+      (tracer) => {
+        for (let i = groupRows; i < n; i += groupRows)
+          PathGeometry.line(tracer, x, y + d * i, x + w, y + d * i);
+      },
+      [{ stroke: { color: CanvasTheme.stroke.guide, width: 2 } }],
+    );
+  }
+  rectangle(view, rect, {
+    stroke: { color: CanvasTheme.stroke.grid, width: 1 },
+  });
 }
 
-function probabilityBars(view, rect, probabilities, wireCount, groupRows, layout, colour = CanvasTheme.probability.fill) {
-    const {x, y, w, h} = rect;
-    const n = 1 << wireCount;
-    const d = h / n;
-    const buffer = probabilities.rawBuffer();
-    // A bar's length is its chance, as a one-wire Chance tile's is: half a bar is 50% wherever it
-    // stands. A possible outcome keeps at least a pixel of bar, so it never looks like an impossible one.
-    const chance = i => Math.min(1, buffer[i * 2]);
-    const length = i => buffer[i * 2] > ZERO_PROBABILITY ? Math.max(MIN_BAR_LENGTH, w * chance(i)) : 0;
-    const groupEdge = i => i > 0 && i < n && i % groupRows === 0;
-    if (layout !== undefined) {
-        // A row with text: its text above, and a thin bar along a track at its foot, so the text
-        // never sits on the bar.
-        const barX = x + THIN_BAR_INSET;
-        const barW = w - 2 * THIN_BAR_INSET;
-        const barLength = i => buffer[i * 2] > ZERO_PROBABILITY ? Math.max(THIN_BAR_HEIGHT, barW * chance(i)) : 0;
-        drawGraphics(view, graphics => {
-            for (let i = 0; i < n; i++) {
-                graphics.roundRect(barX, y + d * (i + 1) - THIN_BAR_INSET - THIN_BAR_HEIGHT, barW, THIN_BAR_HEIGHT, THIN_BAR_HEIGHT / 2);
-            }
-            graphics.fill(CanvasTheme.probability.track);
-        });
-        drawGraphics(view, graphics => {
-            for (let i = 0; i < n; i++) {
-                if (barLength(i) > 0) {
-                    graphics.roundRect(barX, y + d * (i + 1) - THIN_BAR_INSET - THIN_BAR_HEIGHT, barLength(i), THIN_BAR_HEIGHT, THIN_BAR_HEIGHT / 2);
-                }
-            }
-            graphics.fill(colour);
-        });
-        return;
-    }
-    drawGraphics(view, graphics => {
-        if (d >= MIN_DIVIDED_ROW_HEIGHT) {
-            // A bar per row, short of the row's dividers, so equal neighbours still read as two rows.
-            for (let i = 0; i < n; i++) {
-                const top = i === 0 ? 0 : groupEdge(i) ? GROUP_GAP / 2 : 0.5;
-                const bottom = i === n - 1 ? 0 : groupEdge(i + 1) ? GROUP_GAP / 2 : 0.5;
-                if (length(i) > 0) graphics.rect(x, y + d * i + top, length(i), d - top - bottom);
-            }
-        } else {
-            // Rows too thin to divide draw as one outline per group, broken where the groups meet.
-            for (let start = 0; start < n; start += groupRows) {
-                const end = start + groupRows;
-                const top = y + d * start + (groupEdge(start) ? GROUP_GAP / 2 : 0);
-                const bottom = y + d * end - (groupEdge(end) ? GROUP_GAP / 2 : 0);
-                graphics.moveTo(x, top);
-                for (let i = start; i < end; i++) {
-                    graphics.lineTo(x + length(i), Math.max(top, y + d * i));
-                    graphics.lineTo(x + length(i), Math.min(bottom, y + d * (i + 1)));
-                }
-                graphics.lineTo(x, bottom);
-                graphics.closePath();
-            }
-        }
-        graphics.fill(colour);
+function probabilityBars(
+  view,
+  rect,
+  probabilities,
+  wireCount,
+  groupRows,
+  layout,
+  colour = CanvasTheme.probability.fill,
+) {
+  const { x, y, w, h } = rect;
+  const n = 1 << wireCount;
+  const d = h / n;
+  const buffer = probabilities.rawBuffer();
+  // A bar's length is its chance, as a one-wire Chance tile's is: half a bar is 50% wherever it
+  // stands. A possible outcome keeps at least a pixel of bar, so it never looks like an impossible one.
+  const chance = (i) => Math.min(1, buffer[i * 2]);
+  const length = (i) =>
+    buffer[i * 2] > ZERO_PROBABILITY
+      ? Math.max(MIN_BAR_LENGTH, w * chance(i))
+      : 0;
+  const groupEdge = (i) => i > 0 && i < n && i % groupRows === 0;
+  if (layout !== undefined) {
+    // A row with text: its text above, and a thin bar along a track at its foot, so the text
+    // never sits on the bar.
+    const barX = x + THIN_BAR_INSET;
+    const barW = w - 2 * THIN_BAR_INSET;
+    const barLength = (i) =>
+      buffer[i * 2] > ZERO_PROBABILITY
+        ? Math.max(THIN_BAR_HEIGHT, barW * chance(i))
+        : 0;
+    drawGraphics(view, (graphics) => {
+      for (let i = 0; i < n; i++) {
+        graphics.roundRect(
+          barX,
+          y + d * (i + 1) - THIN_BAR_INSET - THIN_BAR_HEIGHT,
+          barW,
+          THIN_BAR_HEIGHT,
+          THIN_BAR_HEIGHT / 2,
+        );
+      }
+      graphics.fill(CanvasTheme.probability.track);
     });
+    drawGraphics(view, (graphics) => {
+      for (let i = 0; i < n; i++) {
+        if (barLength(i) > 0) {
+          graphics.roundRect(
+            barX,
+            y + d * (i + 1) - THIN_BAR_INSET - THIN_BAR_HEIGHT,
+            barLength(i),
+            THIN_BAR_HEIGHT,
+            THIN_BAR_HEIGHT / 2,
+          );
+        }
+      }
+      graphics.fill(colour);
+    });
+    return;
+  }
+  drawGraphics(view, (graphics) => {
+    if (d >= MIN_DIVIDED_ROW_HEIGHT) {
+      // A bar per row, short of the row's dividers, so equal neighbours still read as two rows.
+      for (let i = 0; i < n; i++) {
+        const top = i === 0 ? 0 : groupEdge(i) ? GROUP_GAP / 2 : 0.5;
+        const bottom = i === n - 1 ? 0 : groupEdge(i + 1) ? GROUP_GAP / 2 : 0.5;
+        if (length(i) > 0)
+          graphics.rect(x, y + d * i + top, length(i), d - top - bottom);
+      }
+    } else {
+      // Rows too thin to divide draw as one outline per group, broken where the groups meet.
+      for (let start = 0; start < n; start += groupRows) {
+        const end = start + groupRows;
+        const top = y + d * start + (groupEdge(start) ? GROUP_GAP / 2 : 0);
+        const bottom = y + d * end - (groupEdge(end) ? GROUP_GAP / 2 : 0);
+        graphics.moveTo(x, top);
+        for (let i = start; i < end; i++) {
+          graphics.lineTo(x + length(i), Math.max(top, y + d * i));
+          graphics.lineTo(x + length(i), Math.min(bottom, y + d * (i + 1)));
+        }
+        graphics.lineTo(x, bottom);
+        graphics.closePath();
+      }
+    }
+    graphics.fill(colour);
+  });
 }
 
 /**
@@ -416,41 +562,67 @@ function probabilityBars(view, rect, probabilities, wireCount, groupRows, layout
  * keep the labels clear of the wires they cross.
  */
 function probabilityGroupLabels(view, rect, wireCount, groupRows) {
-    const n = 1 << wireCount;
-    const d = rect.h / n;
-    const prefixBits = wireCount - Math.log2(groupRows);
-    for (let start = 0; start < n; start += groupRows) {
-        const cy = rect.y + d * (start + groupRows / 2);
-        fitText(view, bin(start / groupRows, prefixBits) + '⋯', {
-            x: rect.x - 3, y: cy, align: 'right', baseline: 'middle', font: PREFIX_FONT,
-            fill: CanvasTheme.text.muted, width: PREFIX_LABEL_WIDTH, height: d * groupRows,
-            beforeDraw: (textWidth, textHeight) => rectangle(view,
-                new Rect(rect.x - 4 - textWidth, cy - textHeight / 2, textWidth + 2, textHeight),
-                {fill: CanvasTheme.surface.background}),
-        });
-    }
+  const n = 1 << wireCount;
+  const d = rect.h / n;
+  const prefixBits = wireCount - Math.log2(groupRows);
+  for (let start = 0; start < n; start += groupRows) {
+    const cy = rect.y + d * (start + groupRows / 2);
+    fitText(view, bin(start / groupRows, prefixBits) + "⋯", {
+      x: rect.x - 3,
+      y: cy,
+      align: "right",
+      baseline: "middle",
+      font: PREFIX_FONT,
+      fill: CanvasTheme.text.muted,
+      width: PREFIX_LABEL_WIDTH,
+      height: d * groupRows,
+      beforeDraw: (textWidth, textHeight) =>
+        rectangle(
+          view,
+          new Rect(
+            rect.x - 4 - textWidth,
+            cy - textHeight / 2,
+            textWidth + 2,
+            textHeight,
+          ),
+          { fill: CanvasTheme.surface.background },
+        ),
+    });
+  }
 }
 
-function probabilityTooltips(view, rect, probabilities, wireCount, focusPoints, wireNames, key) {
-    const {x, y, w, h} = rect;
-    const n = 1 << wireCount;
-    const d = h / n;
-    for (const pt of focusPoints) {
-        const k = Math.floor((pt.y - y) / d);
-        if (rect.containsPoint(pt) && k >= 0 && k < n) {
-            const p = probabilities === undefined ? NaN : probabilities.rawBuffer()[k * 2];
-            rectangle(view, new Rect(x, y + k * d, w, d), {stroke: {color: CanvasTheme.interaction.outline, width: 2}});
-            TooltipLayer.forView(view).show(view, {
-                x: x + w,
-                y: y + k * d,
-                labelText: wireNames === undefined ?
-                    `Chance of |${bin(k, wireCount)}⟩ (decimal ${k}) if measured` :
-                    `Chance of |${bin(k, wireCount)}⟩ on ${wireNames.join('')} if measured`,
-                valueText: `raw ${(p * 100).toFixed(4)}% · log ${(Math.log10(p) * 10).toFixed(1)} dB`,
-                valueText2: key,
-            });
-        }
+function probabilityTooltips(
+  view,
+  rect,
+  probabilities,
+  wireCount,
+  focusPoints,
+  wireNames,
+  key,
+) {
+  const { x, y, w, h } = rect;
+  const n = 1 << wireCount;
+  const d = h / n;
+  for (const pt of focusPoints) {
+    const k = Math.floor((pt.y - y) / d);
+    if (rect.containsPoint(pt) && k >= 0 && k < n) {
+      const p =
+        probabilities === undefined ? NaN : probabilities.rawBuffer()[k * 2];
+      rectangle(view, new Rect(x, y + k * d, w, d), {
+        stroke: { color: CanvasTheme.interaction.outline, width: 2 },
+      });
+      TooltipLayer.forView(view).show(view, {
+        x: x + w,
+        y: y + k * d,
+        labelText:
+          wireNames === undefined
+            ? `Probability of |${bin(k, wireCount)}⟩ (decimal ${k}) if measured`
+            : `Probability of |${bin(k, wireCount)}⟩ on ${wireNames.join("")} if measured`,
+        valueText: `raw ${(p * 100).toFixed(4)}% · log ${(Math.log10(p) * 10).toFixed(1)} dB`,
+        valueText2: key,
+      });
     }
+  }
 }
 
 /**
@@ -458,40 +630,59 @@ function probabilityTooltips(view, rect, probabilities, wireCount, focusPoints, 
  * the percentage, or the percentage alone, as the layout allows.
  */
 function probabilityTexts(view, rect, probabilities, layout) {
-    const {x, y, w, h} = rect;
-    const n = probabilities.height();
-    const bits = Math.round(Math.log2(n));
-    const d = h / n;
-    // The text's band: the row less its bar and the bar's room.
-    const bandHeight = d - THIN_BAR_HEIGHT - 2 * THIN_BAR_INSET;
-    const digits = percentDigits(w - 2 * THIN_BAR_INSET);
-    for (let i = 0; i < n; i++) {
-        const p = probabilities.rawBuffer()[i * 2];
-        const bandTop = y + d * i + THIN_BAR_INSET;
-        const ket = `|${bin(i, bits)}⟩`;
-        if (layout === "side") {
-            fitText(view, ket, {
-                x: x + THIN_BAR_INSET, y: bandTop + bandHeight / 2, align: 'left', baseline: 'middle',
-                font: rowFont(KET_FONT, bandHeight), fill: CanvasTheme.text.primary, width: w / 2,
-            });
-        } else if (layout === "stacked") {
-            fitText(view, ket, {
-                x: x + w / 2, y: bandTop + bandHeight / 4, align: 'center', baseline: 'middle',
-                font: rowFont(KET_FONT, bandHeight / 2), fill: CanvasTheme.text.primary, width: w - 4,
-            });
-        }
-        // An impossible outcome's 0% steps back, so the outcomes that can happen stand out.
-        fitText(view, formatProbability(p, digits), {
-            x: layout === "side" ? x + w - THIN_BAR_INSET : x + w / 2,
-            y: layout === "stacked" ? bandTop + bandHeight * 3 / 4 : bandTop + bandHeight / 2,
-            align: layout === "side" ? 'right' : 'center',
-            baseline: 'middle',
-            fill: p > ZERO_PROBABILITY ? CanvasTheme.text.primary : CanvasTheme.text.muted,
-            font: rowFont(PERCENT_FONT, layout === "stacked" ? bandHeight / 2 : bandHeight),
-            width: w - 2 * THIN_BAR_INSET,
-            changing: true,
-        });
+  const { x, y, w, h } = rect;
+  const n = probabilities.height();
+  const bits = Math.round(Math.log2(n));
+  const d = h / n;
+  // The text's band: the row less its bar and the bar's room.
+  const bandHeight = d - THIN_BAR_HEIGHT - 2 * THIN_BAR_INSET;
+  const digits = percentDigits(w - 2 * THIN_BAR_INSET);
+  for (let i = 0; i < n; i++) {
+    const p = probabilities.rawBuffer()[i * 2];
+    const bandTop = y + d * i + THIN_BAR_INSET;
+    const ket = `|${bin(i, bits)}⟩`;
+    if (layout === "side") {
+      fitText(view, ket, {
+        x: x + THIN_BAR_INSET,
+        y: bandTop + bandHeight / 2,
+        align: "left",
+        baseline: "middle",
+        font: rowFont(KET_FONT, bandHeight),
+        fill: CanvasTheme.text.primary,
+        width: w / 2,
+      });
+    } else if (layout === "stacked") {
+      fitText(view, ket, {
+        x: x + w / 2,
+        y: bandTop + bandHeight / 4,
+        align: "center",
+        baseline: "middle",
+        font: rowFont(KET_FONT, bandHeight / 2),
+        fill: CanvasTheme.text.primary,
+        width: w - 4,
+      });
     }
+    // An impossible outcome's 0% steps back, so the outcomes that can happen stand out.
+    fitText(view, formatProbability(p, digits), {
+      x: layout === "side" ? x + w - THIN_BAR_INSET : x + w / 2,
+      y:
+        layout === "stacked"
+          ? bandTop + (bandHeight * 3) / 4
+          : bandTop + bandHeight / 2,
+      align: layout === "side" ? "right" : "center",
+      baseline: "middle",
+      fill:
+        p > ZERO_PROBABILITY
+          ? CanvasTheme.text.primary
+          : CanvasTheme.text.muted,
+      font: rowFont(
+        PERCENT_FONT,
+        layout === "stacked" ? bandHeight / 2 : bandHeight,
+      ),
+      width: w - 2 * THIN_BAR_INSET,
+      changing: true,
+    });
+  }
 }
 
 /**
@@ -511,26 +702,60 @@ function probabilityTexts(view, rect, probabilities, layout) {
  *     wireNames, highest wire first, says in tooltips which wires the kets are over.
  *     key is the line every row's tooltip ends with: the bit order and the bars' scale.
  */
-function renderProbabilities(view, probabilities, rect, {wireCount, focusPoints = [], colour,
-        transparent = false, groupLabels = false, wireNames, key}) {
-    const layout = ketLayout(rect, wireCount);
-    const n = 1 << wireCount;
-    // Rows without their kets group by their leading bits, so a prefix beside each group still says
-    // which outcomes the rows are.
-    const groupRows = layout === undefined || layout === "percent" ? groupRowCount(rect, wireCount) : n;
-    if (!transparent) probabilityGrid(view, rect, wireCount, groupRows);
-    if (probabilities === undefined || probabilities.hasNaN()) {
-        fitParagraph(view, "NaN", rect, {alignment: new Point(0.5, 0.5), fill: CanvasTheme.error.text});
-    } else {
-        probabilityBars(view, rect, probabilities, wireCount, groupRows, layout, colour);
-        if (layout !== undefined) {
-            probabilityTexts(view, rect, probabilities, layout);
-        }
-        if (groupLabels && groupRows < n) {
-            probabilityGroupLabels(view, rect, wireCount, groupRows);
-        }
+function renderProbabilities(
+  view,
+  probabilities,
+  rect,
+  {
+    wireCount,
+    focusPoints = [],
+    colour,
+    transparent = false,
+    groupLabels = false,
+    wireNames,
+    key,
+  },
+) {
+  const layout = ketLayout(rect, wireCount);
+  const n = 1 << wireCount;
+  // Rows without their kets group by their leading bits, so a prefix beside each group still says
+  // which outcomes the rows are.
+  const groupRows =
+    layout === undefined || layout === "percent"
+      ? groupRowCount(rect, wireCount)
+      : n;
+  if (!transparent) probabilityGrid(view, rect, wireCount, groupRows);
+  if (probabilities === undefined || probabilities.hasNaN()) {
+    fitParagraph(view, "NaN", rect, {
+      alignment: new Point(0.5, 0.5),
+      fill: CanvasTheme.error.text,
+    });
+  } else {
+    probabilityBars(
+      view,
+      rect,
+      probabilities,
+      wireCount,
+      groupRows,
+      layout,
+      colour,
+    );
+    if (layout !== undefined) {
+      probabilityTexts(view, rect, probabilities, layout);
     }
-    probabilityTooltips(view, rect, probabilities, wireCount, focusPoints, wireNames, key);
+    if (groupLabels && groupRows < n) {
+      probabilityGroupLabels(view, rect, wireCount, groupRows);
+    }
+  }
+  probabilityTooltips(
+    view,
+    rect,
+    probabilities,
+    wireCount,
+    focusPoints,
+    wireNames,
+    key,
+  );
 }
 
 /**
@@ -539,9 +764,9 @@ function renderProbabilities(view, probabilities, rect, {wireCount, focusPoints 
  * @type {!{matrix: !function, state: !function, probabilities: !function}}
  */
 const DATA_RENDERERS = {
-    matrix: renderMatrix,
-    state: renderState,
-    probabilities: renderProbabilities,
+  matrix: renderMatrix,
+  state: renderState,
+  probabilities: renderProbabilities,
 };
 
-export {DATA_RENDERERS, stateGrid, stateGridRect};
+export { DATA_RENDERERS, stateGrid, stateGridRect };

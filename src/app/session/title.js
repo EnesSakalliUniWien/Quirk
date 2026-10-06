@@ -14,29 +14,31 @@
  * limitations under the License.
  */
 
-import {AppInfo} from "../../config/AppInfo.js"
+import { AppInfo } from "../../config/AppInfo.js";
 import { fromJsonText_CircuitDefinition } from "../../serialization/circuits/text.js";
 
 /**
  * @param {!Revision} revision
  */
 function initTitleSync(revision) {
-    const titleForState = jsonText => {
-        try {
-            const circuitDef = fromJsonText_CircuitDefinition(jsonText);
-            if (!circuitDef.isEmpty()) {
-                return `Shadow-Quant: ${circuitDef.readableHash()}`;
-            }
-        } catch {
-            // A circuit that fails to parse gets the empty-circuit title.
-        }
-        return AppInfo.EMPTY_CIRCUIT_TITLE;
-    };
+  const titleForState = (jsonText) => {
+    try {
+      const circuitDef = fromJsonText_CircuitDefinition(jsonText);
+      if (!circuitDef.isEmpty()) {
+        return `Quirk-Bench: ${circuitDef.readableHash()}`;
+      }
+    } catch {
+      // A circuit that fails to parse gets the empty-circuit title.
+    }
+    return AppInfo.EMPTY_CIRCUIT_TITLE;
+  };
 
-    revision.latestActiveCommit().subscribe(jsonText => {
-        // Add a slight delay, so that history changes use the old title.
-        setTimeout(() => { document.title = titleForState(jsonText); }, 0);
-    });
+  revision.latestActiveCommit().subscribe((jsonText) => {
+    // Add a slight delay, so that history changes use the old title.
+    setTimeout(() => {
+      document.title = titleForState(jsonText);
+    }, 0);
+  });
 }
 
-export {initTitleSync}
+export { initTitleSync };

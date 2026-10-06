@@ -14,39 +14,53 @@
  * limitations under the License.
  */
 
-import {Suite, assertThat} from "../../../TestUtil.js"
+import { Suite, assertThat } from "../../../TestUtil.js";
 import { amplitudesToProbabilities } from "../../../../src/gates/displays/probability/shaders/amplitudesToProbabilities.js";
 
-import {CircuitShaders} from "../../../../src/engine/simulation/gpu/CircuitShaders.js"
-import {Controls} from "../../../../src/circuit/model/Controls.js"
-import {Shaders} from "../../../../src/engine/webgl/operations/Shaders.js"
+import { CircuitShaders } from "../../../../src/engine/simulation/gpu/CircuitShaders.js";
+import { Controls } from "../../../../src/circuit/model/Controls.js";
+import { Shaders } from "../../../../src/engine/webgl/operations/Shaders.js";
 
 const suite = new Suite("ProbabilityDisplay");
 
 suite.testUsingWebGL("amplitudesToProbabilities", () => {
-    const inp = Shaders.vec2Data(new Float32Array([
-        2, 3,
-        4, 5,
-        6, 7,
-        8, 9,
-        1/2, 0,
-        0, 1/4,
-        0, 1/8,
-        1/16, 0
-    ])).toVec2Texture(3);
+  const inp = Shaders.vec2Data(
+    new Float32Array([
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      1 / 2,
+      0,
+      0,
+      1 / 4,
+      0,
+      1 / 8,
+      1 / 16,
+      0,
+    ]),
+  ).toVec2Texture(3);
 
-    const con = CircuitShaders.controlMask(Controls.NONE).toBoolTexture(3);
-    assertThat(amplitudesToProbabilities(inp, con).readVecFloatOutputs(3)).isApproximatelyEqualTo(new Float32Array([
-        4+9,
-        16+25,
-        36+49,
-        64+81,
-        1/4,
-        1/16,
-        1/64,
-        1/256
-    ]));
+  const con = CircuitShaders.controlMask(Controls.NONE).toBoolTexture(3);
+  assertThat(
+    amplitudesToProbabilities(inp, con).readVecFloatOutputs(3),
+  ).isApproximatelyEqualTo(
+    new Float32Array([
+      4 + 9,
+      16 + 25,
+      36 + 49,
+      64 + 81,
+      1 / 4,
+      1 / 16,
+      1 / 64,
+      1 / 256,
+    ]),
+  );
 
-    inp.deallocByDepositingInPool();
-    con.deallocByDepositingInPool();
+  inp.deallocByDepositingInPool();
+  con.deallocByDepositingInPool();
 });

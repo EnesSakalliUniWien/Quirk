@@ -14,46 +14,58 @@
  * limitations under the License.
  */
 
-import {Suite} from "../../TestUtil.js"
-import {Gates} from "../../../src/gates/AllGates.js"
-import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js"
-import {modularMultiply, modularUnmultiply} from "../../../src/gates/arithmetic/ModularMultiplicationGates.js"
-import {assertThatGateActsLikePermutation, assertThatCircuitOutputsBasisKet} from "../../CircuitOperationTestUtil.js"
+import { Suite } from "../../TestUtil.js";
+import { Gates } from "../../../src/gates/AllGates.js";
+import { CircuitDefinition } from "../../../src/circuit/model/CircuitDefinition.js";
+import {
+  modularMultiply,
+  modularUnmultiply,
+} from "../../../src/gates/arithmetic/ModularMultiplicationGates.js";
+import {
+  assertThatGateActsLikePermutation,
+  assertThatCircuitOutputsBasisKet,
+} from "../../CircuitOperationTestUtil.js";
 
 const suite = new Suite("MultiplicationGates");
 
-suite.testUsingWebGL('multiplication_gate', () => {
-    assertThatGateActsLikePermutation(
-        Gates.MultiplicationGates.TimesAFamily.ofSize(4),
-        (x, a) => modularMultiply(x, a, 1<<4),
-        [4]);
+suite.testUsingWebGL("multiplication_gate", () => {
+  assertThatGateActsLikePermutation(
+    Gates.MultiplicationGates.TimesAFamily.ofSize(4),
+    (x, a) => modularMultiply(x, a, 1 << 4),
+    [4],
+  );
 
-    assertThatGateActsLikePermutation(
-        Gates.MultiplicationGates.TimesAFamily.ofSize(2),
-        (x, a) => modularMultiply(x, a, 1<<2),
-        [4]);
+  assertThatGateActsLikePermutation(
+    Gates.MultiplicationGates.TimesAFamily.ofSize(2),
+    (x, a) => modularMultiply(x, a, 1 << 2),
+    [4],
+  );
 });
 
-suite.testUsingWebGL('inverse_multiplication_gate', () => {
-    assertThatGateActsLikePermutation(
-        Gates.MultiplicationGates.TimesAInverseFamily.ofSize(4),
-        (x, a) => modularUnmultiply(x, a, 1<<4),
-        [4]);
+suite.testUsingWebGL("inverse_multiplication_gate", () => {
+  assertThatGateActsLikePermutation(
+    Gates.MultiplicationGates.TimesAInverseFamily.ofSize(4),
+    (x, a) => modularUnmultiply(x, a, 1 << 4),
+    [4],
+  );
 
-    assertThatGateActsLikePermutation(
-        Gates.MultiplicationGates.TimesAInverseFamily.ofSize(2),
-        (x, a) => modularUnmultiply(x, a, 1<<2),
-        [4]);
+  assertThatGateActsLikePermutation(
+    Gates.MultiplicationGates.TimesAInverseFamily.ofSize(2),
+    (x, a) => modularUnmultiply(x, a, 1 << 2),
+    [4],
+  );
 });
 
-suite.testUsingWebGL('times_big_A', () => {
-    const circuit = CircuitDefinition.fromTextDiagram(new Map([
-        ['a', Gates.InputGates.SetA.withParam(16385)],
-        ['*', Gates.MultiplicationGates.TimesAFamily],
-        ['X', Gates.HalfTurns.X],
-        ['-', undefined],
-        ['/', null],
-    ]), `-a-X-*-
+suite.testUsingWebGL("times_big_A", () => {
+  const circuit = CircuitDefinition.fromTextDiagram(
+    new Map([
+      ["a", Gates.InputGates.SetA.withParam(16385)],
+      ["*", Gates.MultiplicationGates.TimesAFamily],
+      ["X", Gates.HalfTurns.X],
+      ["-", undefined],
+      ["/", null],
+    ]),
+    `-a-X-*-
          -----/-
          -----/-
          -----/-
@@ -68,6 +80,7 @@ suite.testUsingWebGL('times_big_A', () => {
          -----/-
          ---X-/-
          -----/-
-         -----/-`);
-    assertThatCircuitOutputsBasisKet(circuit, 24577);
+         -----/-`,
+  );
+  assertThatCircuitOutputsBasisKet(circuit, 24577);
 });

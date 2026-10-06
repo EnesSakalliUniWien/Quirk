@@ -1,6 +1,8 @@
 import js from "@eslint/js";
 import globals from "globals";
 import unicorn from "eslint-plugin-unicorn";
+import reactHooks from "eslint-plugin-react-hooks";
+import jsxA11y from "eslint-plugin-jsx-a11y-x";
 
 // The harness pages define these on window for the browser-run suites and the Puppeteer runners.
 const harnessGlobals = {
@@ -13,8 +15,18 @@ const harnessGlobals = {
 };
 
 export default [
-  { ignores: ["out/**", "node_modules/**"] },
+  // Historical review evidence is archived, not runnable application/tooling source.
+  { ignores: ["out/**", "node_modules/**", "doc/reviews/**"] },
   js.configs.recommended,
+  {
+    files: ["src/**/*.{js,jsx}"],
+    plugins: { "react-hooks": reactHooks, "jsx-a11y-x": jsxA11y },
+    rules: {
+      "react-hooks/rules-of-hooks": "error",
+      "react-hooks/exhaustive-deps": "error",
+      ...jsxA11y.configs.recommended.rules,
+    },
+  },
   {
     files: ["**/*.{js,jsx}"],
     languageOptions: {
@@ -53,12 +65,7 @@ export default [
   // Node tooling. The Puppeteer runners and end-to-end specs also hand functions to
   // page.evaluate, which run in the browser, so they see both sets of globals.
   {
-    files: [
-      "scripts/**",
-      "test_e2e/**",
-      "vite.config.js",
-      "eslint.config.js",
-    ],
+    files: ["scripts/**", "test_e2e/**", "vite.config.js", "eslint.config.js"],
     languageOptions: {
       globals: { ...globals.node, ...globals.browser, ...harnessGlobals },
     },

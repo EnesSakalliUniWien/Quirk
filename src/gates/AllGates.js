@@ -75,13 +75,12 @@ import {
   SqrtImaginaryGate,
   AntiSqrtImaginaryGate,
 } from "./misc/ScalarPhaseGates.js";
-import { NeGate } from "./misc/Joke_NeGate.js";
-import { ZeroGate } from "./misc/Joke_ZeroGate.js";
+import { NeGate } from "./misc/AmplitudeNegationGate.js";
+import { ZeroGate } from "./misc/ZeroGate.js";
 import { SpacerGate } from "./misc/SpacerGate.js";
 import { SwapGateHalf } from "./misc/SwapGateHalf.js";
 import { PrepareGates } from "./prepare/PrepareGates.js";
 import { INITIAL_STATE_KEYS } from "../circuit/model/InitialStates.js";
-
 
 const Gates = {};
 
@@ -311,14 +310,10 @@ Gates.TopToolboxGroups = [
   },
   {
     hint: "Rotations",
-    gates: [
-      RotationGates.Rz,
-      RotationGates.Ry,
-      RotationGates.Rx,
-    ],
+    gates: [RotationGates.Rz, RotationGates.Ry, RotationGates.Rx],
   },
   {
-    hint: "Spinning",
+    hint: "Time-dependent powers",
     gates: [
       PoweringGates.ZForward,
       PoweringGates.ZBackward,
@@ -483,7 +478,10 @@ const INITIAL_STATE_PREPARATIONS = new Map([
 
 /** @type {!Map.<undefined|!string, !Array.<!Gate>>} */
 const INITIAL_STATES_TO_GATES = new Map(
-  INITIAL_STATE_KEYS.map((key) => [key, INITIAL_STATE_PREPARATIONS.get(key) ?? []]),
+  INITIAL_STATE_KEYS.map((key) => [
+    key,
+    INITIAL_STATE_PREPARATIONS.get(key) ?? [],
+  ]),
 );
 
 export { Gates, INITIAL_STATES_TO_GATES };

@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
-import {columnImage, structureFanOut} from '../../engine/simulation/columnStructure/evaluation.js';
-import {phaseTint} from '../../config/CanvasTheme.js';
+import {
+  columnImage,
+  structureFanOut,
+} from "../../engine/simulation/columnStructure/evaluation.js";
+import { phaseTint } from "../../config/CanvasTheme.js";
 
 /**
  * Data drawn as pixels rather than marks: one pixel per entry, or one per block of entries when
@@ -37,7 +40,6 @@ const MIN_ALPHA = 0.15;
 /** How many amplitudes one tile may work out before it samples operator columns instead. */
 const TILE_BUDGET = 1 << 21;
 
-
 /**
  * The pixels [start, end) that entries [index, index + count) cover along an axis of `entries`
  * entries drawn over `pixels` pixels. Always at least one pixel, so no entry disappears.
@@ -45,9 +47,12 @@ const TILE_BUDGET = 1 << 21;
  * @returns {!Array.<!int>}
  */
 function pixelSpan(index, count, entries, pixels) {
-    const start = Math.min(pixels - 1, Math.floor(index * pixels / entries));
-    const end = Math.max(start + 1, Math.floor((index + count) * pixels / entries));
-    return [start, Math.min(end, pixels)];
+  const start = Math.min(pixels - 1, Math.floor((index * pixels) / entries));
+  const end = Math.max(
+    start + 1,
+    Math.floor(((index + count) * pixels) / entries),
+  );
+  return [start, Math.min(end, pixels)];
 }
 
 /**
@@ -59,25 +64,27 @@ function pixelSpan(index, count, entries, pixels) {
  * @param {!number=} scale What a magnitude is multiplied by before it becomes opacity.
  */
 function paintBlock(pixels, best, stride, x0, x1, y0, y1, re, im, scale = 1) {
-    const magnitude = Math.hypot(re, im);
-    if (magnitude < 1e-9) {
-        return;
+  const magnitude = Math.hypot(re, im);
+  if (magnitude < 1e-9) {
+    return;
+  }
+  // The active scheme's wheel, read each time rather than fixed when the module loaded.
+  const tint = phaseTint((Math.atan2(im, re) * 180) / Math.PI);
+  const alpha = Math.round(
+    255 * Math.min(1, Math.max(MIN_ALPHA, magnitude * scale)),
+  );
+  for (let y = y0; y < y1; y++) {
+    for (let x = x0; x < x1; x++) {
+      const i = y * stride + x;
+      if (magnitude > best[i]) {
+        best[i] = magnitude;
+        pixels[i * 4] = (tint >> 16) & 255;
+        pixels[i * 4 + 1] = (tint >> 8) & 255;
+        pixels[i * 4 + 2] = tint & 255;
+        pixels[i * 4 + 3] = alpha;
+      }
     }
-    // The active scheme's wheel, read each time rather than fixed when the module loaded.
-    const tint = phaseTint(Math.atan2(im, re) * 180 / Math.PI);
-    const alpha = Math.round(255 * Math.min(1, Math.max(MIN_ALPHA, magnitude * scale)));
-    for (let y = y0; y < y1; y++) {
-        for (let x = x0; x < x1; x++) {
-            const i = y * stride + x;
-            if (magnitude > best[i]) {
-                best[i] = magnitude;
-                pixels[i * 4] = (tint >> 16) & 255;
-                pixels[i * 4 + 1] = (tint >> 8) & 255;
-                pixels[i * 4 + 2] = tint & 255;
-                pixels[i * 4 + 3] = alpha;
-            }
-        }
-    }
+  }
 }
 
 /**
@@ -89,27 +96,38 @@ function paintBlock(pixels, best, stride, x0, x1, y0, y1, re, im, scale = 1) {
  * @returns {!Uint8ClampedArray}
  */
 function rasterMatrix(matrix, pixelWidth, pixelHeight) {
-    const width = matrix.width();
-    const height = matrix.height();
-    const buffer = matrix.rawBuffer();
-    const pixels = new Uint8ClampedArray(pixelWidth * pixelHeight * 4);
-    const best = new Float32Array(pixelWidth * pixelHeight);
-    let largest = 0;
-    for (let k = 0; k < buffer.length; k += 2) {
-        largest = Math.max(largest, Math.hypot(buffer[k], buffer[k + 1]));
+  const width = matrix.width();
+  const height = matrix.height();
+  const buffer = matrix.rawBuffer();
+  const pixels = new Uint8ClampedArray(pixelWidth * pixelHeight * 4);
+  const best = new Float32Array(pixelWidth * pixelHeight);
+  let largest = 0;
+  for (let k = 0; k < buffer.length; k += 2) {
+    largest = Math.max(largest, Math.hypot(buffer[k], buffer[k + 1]));
+  }
+  const scale = largest > 0 ? 1 / largest : 1;
+  for (let row = 0; row < height; row++) {
+    const [y0, y1] = pixelSpan(row, 1, height, pixelHeight);
+    for (let col = 0; col < width; col++) {
+      const k = (row * width + col) * 2;
+      if (buffer[k] !== 0 || buffer[k + 1] !== 0) {
+        const [x0, x1] = pixelSpan(col, 1, width, pixelWidth);
+        paintBlock(
+          pixels,
+          best,
+          pixelWidth,
+          x0,
+          x1,
+          y0,
+          y1,
+          buffer[k],
+          buffer[k + 1],
+          scale,
+        );
+      }
     }
-    const scale = largest > 0 ? 1 / largest : 1;
-    for (let row = 0; row < height; row++) {
-        const [y0, y1] = pixelSpan(row, 1, height, pixelHeight);
-        for (let col = 0; col < width; col++) {
-            const k = (row * width + col) * 2;
-            if (buffer[k] !== 0 || buffer[k + 1] !== 0) {
-                const [x0, x1] = pixelSpan(col, 1, width, pixelWidth);
-                paintBlock(pixels, best, pixelWidth, x0, x1, y0, y1, buffer[k], buffer[k + 1], scale);
-            }
-        }
-    }
-    return pixels;
+  }
+  return pixels;
 }
 
 /**
@@ -130,22 +148,30 @@ function rasterMatrix(matrix, pixelWidth, pixelHeight) {
  * @returns {!Uint8ClampedArray} TILE_SIZE x TILE_SIZE RGBA.
  */
 function rasterOperatorTile(structure, level, x, y, budget = TILE_BUDGET) {
-    const span = Math.max(1, (1 << structure.wireCount) >> level);
-    const rowStart = y * span;
-    const colStart = x * span;
-    const pixels = new Uint8ClampedArray(TILE_SIZE * TILE_SIZE * 4);
-    const best = new Float32Array(TILE_SIZE * TILE_SIZE);
-    const stride = Math.max(1, Math.ceil(span * structureFanOut(structure) / budget));
-    for (let col = colStart; col < colStart + span; col += stride) {
-        const [x0, x1] = pixelSpan(col - colStart, Math.min(stride, colStart + span - col), span, TILE_SIZE);
-        for (const [row, [re, im]] of columnImage(structure, col)) {
-            if (row >= rowStart && row < rowStart + span) {
-                const [y0, y1] = pixelSpan(row - rowStart, 1, span, TILE_SIZE);
-                paintBlock(pixels, best, TILE_SIZE, x0, x1, y0, y1, re, im);
-            }
-        }
+  const span = Math.max(1, (1 << structure.wireCount) >> level);
+  const rowStart = y * span;
+  const colStart = x * span;
+  const pixels = new Uint8ClampedArray(TILE_SIZE * TILE_SIZE * 4);
+  const best = new Float32Array(TILE_SIZE * TILE_SIZE);
+  const stride = Math.max(
+    1,
+    Math.ceil((span * structureFanOut(structure)) / budget),
+  );
+  for (let col = colStart; col < colStart + span; col += stride) {
+    const [x0, x1] = pixelSpan(
+      col - colStart,
+      Math.min(stride, colStart + span - col),
+      span,
+      TILE_SIZE,
+    );
+    for (const [row, [re, im]] of columnImage(structure, col)) {
+      if (row >= rowStart && row < rowStart + span) {
+        const [y0, y1] = pixelSpan(row - rowStart, 1, span, TILE_SIZE);
+        paintBlock(pixels, best, TILE_SIZE, x0, x1, y0, y1, re, im);
+      }
     }
-    return pixels;
+  }
+  return pixels;
 }
 
-export {TILE_SIZE, rasterMatrix, rasterOperatorTile};
+export { TILE_SIZE, rasterMatrix, rasterOperatorTile };

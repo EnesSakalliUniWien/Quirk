@@ -91,7 +91,10 @@ class WglPixelReadback {
     const context = initializedWglContext();
     if (this._lifetime !== context.lifetimeCounter) {
       this.cancel();
-      throw new DetailedError("The WebGL context was lost while pixels were being read.", {});
+      throw new DetailedError(
+        "The WebGL context was lost while pixels were being read.",
+        {},
+      );
     }
 
     const GL = WebGL2RenderingContext;

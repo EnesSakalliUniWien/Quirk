@@ -1,0 +1,11 @@
+{
+  "base_commit": "8e8ac2742bf7fd7b845e4e7cc44fdd22718fa3e8",
+  "preexisting_files_checked": 798,
+  "changed_preexisting_files": [],
+  "deleted_preexisting_files": [],
+  "new_files_outside_review_directory": [],
+  "review_directory": "doc/reviews/2026-10-05-apple-hig",
+  "source_page_count": 172,
+  "e2e_result": "116/116",
+  "review_only": true
+}

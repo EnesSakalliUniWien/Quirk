@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
+import { Matrix } from "../../../src/engine/math/matrix/Matrix.js";
 
 /**
  * Whether two results hold the same numbers, to the last bit. NaN is the same as NaN, which results
@@ -26,27 +26,45 @@ import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
  * @returns {!boolean}
  */
 function sameData(actual, expected, tolerance = 0) {
-    if (actual instanceof Matrix) {
-        return expected instanceof Matrix && actual.width() === expected.width() &&
-            actual.height() === expected.height() && sameData(actual.rawBuffer(), expected.rawBuffer(), tolerance);
+  if (actual instanceof Matrix) {
+    return (
+      expected instanceof Matrix &&
+      actual.width() === expected.width() &&
+      actual.height() === expected.height() &&
+      sameData(actual.rawBuffer(), expected.rawBuffer(), tolerance)
+    );
+  }
+  if (actual !== null && typeof actual === "object") {
+    if (expected === null || typeof expected !== "object") {
+      return false;
     }
-    if (actual !== null && typeof actual === "object") {
-        if (expected === null || typeof expected !== "object") {
-            return false;
-        }
-        if (actual instanceof Map) {
-            return expected instanceof Map && sameData([...actual], [...expected], tolerance);
-        }
-        if (Array.isArray(actual) || ArrayBuffer.isView(actual)) {
-            return actual.length === expected.length &&
-                Array.prototype.every.call(actual, (e, i) => sameData(e, expected[i], tolerance));
-        }
-        const keys = Object.keys(actual);
-        return keys.length === Object.keys(expected).length &&
-            keys.every(key => sameData(actual[key], expected[key], tolerance));
+    if (actual instanceof Map) {
+      return (
+        expected instanceof Map &&
+        sameData([...actual], [...expected], tolerance)
+      );
     }
-    return actual === expected || (Number.isNaN(actual) && Number.isNaN(expected)) ||
-        (typeof actual === "number" && typeof expected === "number" && Math.abs(actual - expected) <= tolerance);
+    if (Array.isArray(actual) || ArrayBuffer.isView(actual)) {
+      return (
+        actual.length === expected.length &&
+        Array.prototype.every.call(actual, (e, i) =>
+          sameData(e, expected[i], tolerance),
+        )
+      );
+    }
+    const keys = Object.keys(actual);
+    return (
+      keys.length === Object.keys(expected).length &&
+      keys.every((key) => sameData(actual[key], expected[key], tolerance))
+    );
+  }
+  return (
+    actual === expected ||
+    (Number.isNaN(actual) && Number.isNaN(expected)) ||
+    (typeof actual === "number" &&
+      typeof expected === "number" &&
+      Math.abs(actual - expected) <= tolerance)
+  );
 }
 
 /**
@@ -58,35 +76,49 @@ function sameData(actual, expected, tolerance = 0) {
  * @returns {undefined|!string} What differs first, or undefined if nothing does.
  */
 function statsDifference(actual, expected, tolerance = 0) {
-    const circuit = expected.circuitDefinition;
-    if (!actual.circuitDefinition.isEqualTo(circuit)) {
-        return "circuit";
+  const circuit = expected.circuitDefinition;
+  if (!actual.circuitDefinition.isEqualTo(circuit)) {
+    return "circuit";
+  }
+  if (actual.time !== expected.time || actual.seed !== expected.seed) {
+    return "time or seed";
+  }
+  if (!sameData(actual.finalState, expected.finalState, tolerance)) {
+    return "final state";
+  }
+  for (let col = -1; col <= circuit.columns.length + 1; col++) {
+    if (
+      !sameData(actual.survivalRate(col), expected.survivalRate(col), tolerance)
+    ) {
+      return `survival rate at column ${col}`;
     }
-    if (actual.time !== expected.time || actual.seed !== expected.seed) {
-        return "time or seed";
+  }
+  for (let col = 0; col <= circuit.columns.length; col++) {
+    for (let wire = 0; wire < circuit.numWires; wire++) {
+      if (
+        !sameData(
+          actual.qubitDensityMatrix(col, wire),
+          expected.qubitDensityMatrix(col, wire),
+          tolerance,
+        )
+      ) {
+        return `qubit density at column ${col}, wire ${wire}`;
+      }
     }
-    if (!sameData(actual.finalState, expected.finalState, tolerance)) {
-        return "final state";
-    }
-    for (let col = -1; col <= circuit.columns.length + 1; col++) {
-        if (!sameData(actual.survivalRate(col), expected.survivalRate(col), tolerance)) {
-            return `survival rate at column ${col}`;
-        }
-    }
-    for (let col = 0; col <= circuit.columns.length; col++) {
-        for (let wire = 0; wire < circuit.numWires; wire++) {
-            if (!sameData(actual.qubitDensityMatrix(col, wire), expected.qubitDensityMatrix(col, wire), tolerance)) {
-                return `qubit density at column ${col}, wire ${wire}`;
-            }
-        }
-    }
-    if (!sameData([...actual.customStatsEntries()], [...expected.customStatsEntries()], tolerance)) {
-        return "custom stats";
-    }
-    if (!sameData(actual.sampleOutcomes, expected.sampleOutcomes, tolerance)) {
-        return "sample outcomes";
-    }
-    return undefined;
+  }
+  if (
+    !sameData(
+      [...actual.customStatsEntries()],
+      [...expected.customStatsEntries()],
+      tolerance,
+    )
+  ) {
+    return "custom stats";
+  }
+  if (!sameData(actual.sampleOutcomes, expected.sampleOutcomes, tolerance)) {
+    return "sample outcomes";
+  }
+  return undefined;
 }
 
-export {sameData, statsDifference}
+export { sameData, statsDifference };

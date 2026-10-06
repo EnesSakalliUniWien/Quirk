@@ -14,8 +14,12 @@
  * limitations under the License.
  */
 
-import {WglArg} from "../../webgl/shader/WglArg.js"
-import {makePseudoShaderWithInputsAndOutputAndCode, Inputs, Outputs} from "../../webgl/coder/ShaderCoders.js"
+import { WglArg } from "../../webgl/shader/WglArg.js";
+import {
+  makePseudoShaderWithInputsAndOutputAndCode,
+  Inputs,
+  Outputs,
+} from "../../webgl/coder/ShaderCoders.js";
 
 /**
  * vec2(cos(angle), sin(angle)), to float precision on every GPU.
@@ -64,22 +68,19 @@ const COS_SIN_GLSL = `
  *     args returned by ketArgs when given your input texture and also a WglArg for each custom uniform you defined,
  *     returns a WglConfiguredShader that can be used to renderTo a destination texture.
  */
-const ketShader = (head, body, span=null, inputs=[]) => ({withArgs: makePseudoShaderWithInputsAndOutputAndCode(
-    [
-        ...inputs,
-        Inputs.vec2('ketgen_ket'),
-        Inputs.bool('ketgen_control')
-    ],
+const ketShader = (head, body, span = null, inputs = []) => ({
+  withArgs: makePseudoShaderWithInputsAndOutputAndCode(
+    [...inputs, Inputs.vec2("ketgen_ket"), Inputs.bool("ketgen_control")],
     Outputs.vec2(),
     `
     uniform float _ketgen_step;
-    ${span === null ? 'uniform float span;' : ''}
+    ${span === null ? "uniform float span;" : ""}
     float _ketgen_off;
     float full_out_id;
 
-    ${body.match(/\bcmul\b/) ? 'vec2 cmul(vec2 c1, vec2 c2) { return mat2(c1.x, c1.y, -c1.y, c1.x) * c2; }' : ''}
-    ${body.match(/\bcos_sin\b/) ? COS_SIN_GLSL : ''}
-    ${body.match(/\binp\b/) ? 'vec2 inp(float k) { return read_ketgen_ket(_ketgen_off + _ketgen_step*k); }' : ''}
+    ${body.match(/\bcmul\b/) ? "vec2 cmul(vec2 c1, vec2 c2) { return mat2(c1.x, c1.y, -c1.y, c1.x) * c2; }" : ""}
+    ${body.match(/\bcos_sin\b/) ? COS_SIN_GLSL : ""}
+    ${body.match(/\binp\b/) ? "vec2 inp(float k) { return read_ketgen_ket(_ketgen_off + _ketgen_step*k); }" : ""}
 
     ${head}
 
@@ -90,14 +91,16 @@ const ketShader = (head, body, span=null, inputs=[]) => ({withArgs: makePseudoSh
     vec2 outputFor(float k) {
         full_out_id = k;
 
-        float relevant_out_id = mod(floor(full_out_id / _ketgen_step), ${span === null ? 'span' : (1<<span)+'.0'});
+        float relevant_out_id = mod(floor(full_out_id / _ketgen_step), ${span === null ? "span" : (1 << span) + ".0"});
         _ketgen_off = full_out_id - relevant_out_id*_ketgen_step;
 
         float c = read_ketgen_control(full_out_id);
         vec2 vc = read_ketgen_ket(full_out_id);
         vec2 vt = _ketgen_output_for(relevant_out_id, vc);
         return (1.0-c)*vc + c*vt;
-    }`)});
+    }`,
+  ),
+});
 
 /**
  * @param {!String} head
@@ -105,10 +108,12 @@ const ketShader = (head, body, span=null, inputs=[]) => ({withArgs: makePseudoSh
  * @param {null|!int=null} span
  * @return {!{withArgs: !function(args: ...!WglArg|!WglTexture) : !WglConfiguredShader}}
  */
-const ketShaderPermute = (head, body, span=null) => ketShader(
+const ketShaderPermute = (head, body, span = null) =>
+  ketShader(
     head + `float _ketgen_input_for(float out_id) { ${body} }`,
-    'return inp(_ketgen_input_for(out_id));',
-    span);
+    "return inp(_ketgen_input_for(out_id));",
+    span,
+  );
 
 /**
  * Returns a shader that multiplies each of the amplitudes in a superposition by computed phase factors.
@@ -118,7 +123,8 @@ const ketShaderPermute = (head, body, span=null) => ketShader(
  * @param {null|!int=null} span The number of qubits this operation applies to, if known ahead of time.
  * @return {!{withArgs: !function(args: ...!WglArg|!WglTexture) : !WglConfiguredShader}}
  */
-const ketShaderPhase = (head, body, span=null) => ketShader(
+const ketShaderPhase = (head, body, span = null) =>
+  ketShader(
     `${head}
         float _ketgen_phase_for(float out_id) {
             ${body}
@@ -128,7 +134,8 @@ const ketShaderPhase = (head, body, span=null) => ketShader(
         float angle = _ketgen_phase_for(out_id);
         return cmul(amp, cos_sin(angle));
     `,
-    span);
+    span,
+  );
 
 /**
  * Determines some arguments to give to a shader produced by one of the ketShader methods.
@@ -138,19 +145,19 @@ const ketShaderPhase = (head, body, span=null) => ketShader(
  * @param {undefined|!Array.<!string>} input_letters The input gates that this shader cares about.
  * @returns {!Array.<!WglArg>}
  */
-function ketArgs(ctx, span=undefined, input_letters=[]) {
-    const result = [
-        ctx.stateTrader.currentTexture,
-        ctx.controlsTexture,
-        WglArg.float("_ketgen_step", 1 << ctx.row)
-    ];
-    if (span !== undefined) {
-        result.push(WglArg.float('span', 1 << span));
-    }
-    for (const letter of input_letters) {
-        result.push(...ketInputGateArgs(ctx, letter));
-    }
-    return result;
+function ketArgs(ctx, span = undefined, input_letters = []) {
+  const result = [
+    ctx.stateTrader.currentTexture,
+    ctx.controlsTexture,
+    WglArg.float("_ketgen_step", 1 << ctx.row),
+  ];
+  if (span !== undefined) {
+    result.push(WglArg.float("span", 1 << span));
+  }
+  for (const letter of input_letters) {
+    result.push(...ketInputGateArgs(ctx, letter));
+  }
+  return result;
 }
 
 /**
@@ -158,7 +165,7 @@ function ketArgs(ctx, span=undefined, input_letters=[]) {
  * @returns {!string}
  */
 function ketInputGateShaderCode(letter) {
-    return `
+  return `
         //////// INPUT GATE ${letter} ////////
         uniform float _gen_input_default_${letter};
         uniform float _gen_input_offset_${letter};
@@ -177,26 +184,27 @@ function ketInputGateShaderCode(letter) {
  * @returns {!Array.<!WglArg>}
  */
 function ketInputGateArgs(ctx, letter) {
-    let offset = 0;
-    let length = -1;
-    const defaultVal = ctx.customContextFromGates.get(`Input Default ${letter}`) || 0;
-    const inputCtx = ctx.customContextFromGates.get(`Input Range ${letter}`);
-    if (inputCtx !== undefined) {
-        offset = inputCtx.offset;
-        length = inputCtx.length;
-    }
+  let offset = 0;
+  let length = -1;
+  const defaultVal =
+    ctx.customContextFromGates.get(`Input Default ${letter}`) || 0;
+  const inputCtx = ctx.customContextFromGates.get(`Input Range ${letter}`);
+  if (inputCtx !== undefined) {
+    offset = inputCtx.offset;
+    length = inputCtx.length;
+  }
 
-    return [
-        WglArg.float(`_gen_input_default_${letter}`, defaultVal),
-        WglArg.float(`_gen_input_offset_${letter}`, 1<<offset),
-        WglArg.float(`_gen_input_span_${letter}`, length === -1 ? 0 : 1<<length),
-    ];
+  return [
+    WglArg.float(`_gen_input_default_${letter}`, defaultVal),
+    WglArg.float(`_gen_input_offset_${letter}`, 1 << offset),
+    WglArg.float(`_gen_input_span_${letter}`, length === -1 ? 0 : 1 << length),
+  ];
 }
 
 export {
-    ketArgs,
-    ketShader,
-    ketShaderPermute,
-    ketShaderPhase,
-    ketInputGateShaderCode
-}
+  ketArgs,
+  ketShader,
+  ketShaderPermute,
+  ketShaderPhase,
+  ketInputGateShaderCode,
+};

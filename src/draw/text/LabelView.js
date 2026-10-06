@@ -1,6 +1,6 @@
-import {extend} from '@pixi/react';
+import { extend } from "@pixi/react";
 import { Text, TextStyle } from "pixi.js";
-import {BoundedCache} from './BoundedCache.js';
+import { BoundedCache } from "./BoundedCache.js";
 
 /**
  * A TextStyle for a font description. A field left undefined keeps Pixi's default: spread as
@@ -11,7 +11,8 @@ import {BoundedCache} from './BoundedCache.js';
  */
 export function textStyle(font) {
   const defined = { padding: 2 };
-  for (const [key, value] of Object.entries(font)) if (value !== undefined) defined[key] = value;
+  for (const [key, value] of Object.entries(font))
+    if (value !== undefined) defined[key] = value;
   return new TextStyle(defined);
 }
 
@@ -22,7 +23,8 @@ const sharedStyles = new BoundedCache(SHARED_STYLE_LIMIT);
 let sharedStylesVersion;
 
 /** @returns {!string} A value as a part of a key: a colour is usually a string, but may be an object. */
-const part = value => typeof value === "object" ? JSON.stringify(value) : String(value);
+const part = (value) =>
+  typeof value === "object" ? JSON.stringify(value) : String(value);
 
 /**
  * The one TextStyle for an appearance. Pixi keys a text's texture by its text, its resolution and its
@@ -43,9 +45,12 @@ export function sharedTextStyle(font, fill, stroke, version) {
   }
   // Fields left undefined are left out of the key as textStyle leaves them out of the style.
   let key = `${part(fill)}|${part(stroke)}`;
-  for (const name in font) if (font[name] !== undefined) key += `|${name}:${part(font[name])}`;
+  for (const name in font)
+    if (font[name] !== undefined) key += `|${name}:${part(font[name])}`;
   const style = sharedStyles.get(key);
-  return style !== undefined ? style : sharedStyles.set(key, textStyle({ ...font, fill, stroke }));
+  return style !== undefined
+    ? style
+    : sharedStyles.set(key, textStyle({ ...font, fill, stroke }));
 }
 
 /**
@@ -54,7 +59,9 @@ export function sharedTextStyle(font, fill, stroke, version) {
  * value is the same, which made every frame rebuild the whole render group's instructions.
  */
 export class LabelView extends Text {
-    constructor() { super(); }
+  constructor() {
+    super();
+  }
   set label([text, font, fill, resolution, stroke, version]) {
     const style = sharedTextStyle(font, fill, stroke, version);
     if (this.style !== style) {
@@ -71,4 +78,4 @@ export class LabelView extends Text {
   }
 }
 
-extend({LabelView});
+extend({ LabelView });

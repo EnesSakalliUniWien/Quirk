@@ -14,56 +14,63 @@
  * limitations under the License.
  */
 
-import {DetailedError} from "../../base/DetailedError.js"
+import { DetailedError } from "../../base/DetailedError.js";
 
 class CustomGateSet {
-    /**
-     * @param {!Gate} gates
-     */
-    constructor(...gates) {
-        /** @type {!Array.<!Gate>} */
-        this.gates = gates;
-    }
+  /**
+   * @param {!Gate} gates
+   */
+  constructor(...gates) {
+    /** @type {!Array.<!Gate>} */
+    this.gates = gates;
+  }
 
-    /**
-     * @param {!Gate} gate
-     * @returns {!CustomGateSet}
-     */
-    withGate(gate) {
-        if (!gate.serializedId.startsWith("~")) {
-            throw new DetailedError("Custom gates' serialized id must start with '~'.", {id: gate.serializedId, gate});
-        }
-        if (this.findGateWithSerializedId(gate.serializedId)) {
-            throw new DetailedError("Duplicate serialized id.", {gate});
-        }
-        return new CustomGateSet(...this.gates, gate);
+  /**
+   * @param {!Gate} gate
+   * @returns {!CustomGateSet}
+   */
+  withGate(gate) {
+    if (!gate.serializedId.startsWith("~")) {
+      throw new DetailedError(
+        "Custom gates' serialized id must start with '~'.",
+        { id: gate.serializedId, gate },
+      );
     }
+    if (this.findGateWithSerializedId(gate.serializedId)) {
+      throw new DetailedError("Duplicate serialized id.", { gate });
+    }
+    return new CustomGateSet(...this.gates, gate);
+  }
 
-    /**
-     * Whether the two sets hold the same gates. A custom gate is its serialized id: ids are unique
-     * within a set and a gate is never edited in place, so matching id lists mean matching sets.
-     *
-     * @param {!CustomGateSet|*} other
-     * @returns {!boolean}
-     */
-    isEqualTo(other) {
-        return other instanceof CustomGateSet &&
-            this.gates.length === other.gates.length &&
-            this.gates.every((gate, i) => gate.serializedId === other.gates[i].serializedId);
-    }
+  /**
+   * Whether the two sets hold the same gates. A custom gate is its serialized id: ids are unique
+   * within a set and a gate is never edited in place, so matching id lists mean matching sets.
+   *
+   * @param {!CustomGateSet|*} other
+   * @returns {!boolean}
+   */
+  isEqualTo(other) {
+    return (
+      other instanceof CustomGateSet &&
+      this.gates.length === other.gates.length &&
+      this.gates.every(
+        (gate, i) => gate.serializedId === other.gates[i].serializedId,
+      )
+    );
+  }
 
-    /**
-     * @param {!String} id
-     * @returns {undefined|!Gate}
-     */
-    findGateWithSerializedId(id) {
-        for (const g of this.gates) {
-            if (g.serializedId === id) {
-                return g;
-            }
-        }
-        return undefined;
+  /**
+   * @param {!String} id
+   * @returns {undefined|!Gate}
+   */
+  findGateWithSerializedId(id) {
+    for (const g of this.gates) {
+      if (g.serializedId === id) {
+        return g;
+      }
     }
+    return undefined;
+  }
 }
 
-export {CustomGateSet}
+export { CustomGateSet };

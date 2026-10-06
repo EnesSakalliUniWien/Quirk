@@ -3,25 +3,25 @@
 /* The transport's speed: a multiple on the button, and in the menu each multiple beside the cycle
    and the step it makes. */
 @layer components {
-    .value {
-        font-family: var(--font-mono);
-        font-variant-numeric: tabular-nums;
-    }
+  .value {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
 
-    /* In the menu the multiples make one column, as wide as the widest, so the paces line up. */
-    .item .value {
-        min-width: 5ch;
-    }
+  /* In the menu the multiples make one column, as wide as the widest, so the paces line up. */
+  .item .value {
+    min-width: 5ch;
+  }
 
-    .item {
-        display: inline-flex;
-        align-items: baseline;
-        gap: calc(var(--spacing) * 3);
-    }
+  .item {
+    display: inline-flex;
+    align-items: baseline;
+    gap: calc(var(--spacing) * 3);
+  }
 
-    .paces {
-        color: var(--muted-foreground);
-        font-size: var(--text-caption);
-        font-variant-numeric: tabular-nums;
-    }
+  .paces {
+    color: var(--muted-foreground);
+    font-size: var(--text-caption);
+    font-variant-numeric: tabular-nums;
+  }
 }

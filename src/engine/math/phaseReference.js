@@ -15,15 +15,16 @@ const TIE = 1e-6;
  *     is zero or the buffer holds NaN.
  */
 function phaseReferenceIndex(buf) {
-    let largest = 0;
-    for (let k = 0; k < buf.length; k += 2) {
-        largest = Math.max(largest, buf[k] * buf[k] + buf[k + 1] * buf[k + 1]);
-    }
-    if (!(largest > 0)) return undefined;
-    for (let k = 0; k < buf.length; k += 2) {
-        if (buf[k] * buf[k] + buf[k + 1] * buf[k + 1] >= largest * (1 - TIE)) return k >> 1;
-    }
-    return undefined;
+  let largest = 0;
+  for (let k = 0; k < buf.length; k += 2) {
+    largest = Math.max(largest, buf[k] * buf[k] + buf[k + 1] * buf[k + 1]);
+  }
+  if (!(largest > 0)) return undefined;
+  for (let k = 0; k < buf.length; k += 2) {
+    if (buf[k] * buf[k] + buf[k + 1] * buf[k + 1] >= largest * (1 - TIE))
+      return k >> 1;
+  }
+  return undefined;
 }
 
 /**
@@ -33,15 +34,17 @@ function phaseReferenceIndex(buf) {
  *     their sizes and the phases between them are unchanged.
  */
 function withPhaseReference(buf, index) {
-    const out = new Float32Array(buf.length);
-    const angle = index === undefined ? 0 : Math.atan2(buf[index * 2 + 1], buf[index * 2]);
-    const c = Math.cos(angle), s = Math.sin(angle);
-    for (let k = 0; k < buf.length; k += 2) {
-        // Multiplying by e^{-iγ}.
-        out[k] = buf[k] * c + buf[k + 1] * s;
-        out[k + 1] = buf[k + 1] * c - buf[k] * s;
-    }
-    return out;
+  const out = new Float32Array(buf.length);
+  const angle =
+    index === undefined ? 0 : Math.atan2(buf[index * 2 + 1], buf[index * 2]);
+  const c = Math.cos(angle),
+    s = Math.sin(angle);
+  for (let k = 0; k < buf.length; k += 2) {
+    // Multiplying by e^{-iγ}.
+    out[k] = buf[k] * c + buf[k + 1] * s;
+    out[k + 1] = buf[k + 1] * c - buf[k] * s;
+  }
+  return out;
 }
 
-export {phaseReferenceIndex, withPhaseReference};
+export { phaseReferenceIndex, withPhaseReference };

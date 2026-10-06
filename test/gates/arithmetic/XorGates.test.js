@@ -14,62 +14,80 @@
  * limitations under the License.
  */
 
-import {Suite} from "../../TestUtil.js"
-import {XorGates} from "../../../src/gates/arithmetic/XorGates.js"
-import {InputGates} from "../../../src/gates/inputs/InputGates.js"
-import {assertThatCircuitUpdateActsLikeMatrix} from "../../CircuitOperationTestUtil.js"
-import {advanceStateWithCircuit} from "../../../src/engine/simulation/CircuitComputeUtil.js"
+import { Suite } from "../../TestUtil.js";
+import { XorGates } from "../../../src/gates/arithmetic/XorGates.js";
+import { InputGates } from "../../../src/gates/inputs/InputGates.js";
+import { assertThatCircuitUpdateActsLikeMatrix } from "../../CircuitOperationTestUtil.js";
+import { advanceStateWithCircuit } from "../../../src/engine/simulation/CircuitComputeUtil.js";
 
-import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js"
-import {GateColumn} from "../../../src/circuit/model/GateColumn.js"
-import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
+import { CircuitDefinition } from "../../../src/circuit/model/CircuitDefinition.js";
+import { GateColumn } from "../../../src/circuit/model/GateColumn.js";
+import { Matrix } from "../../../src/engine/math/matrix/Matrix.js";
 
 const suite = new Suite("XorGates");
 
-suite.testUsingWebGL('xor_a', () => {
-    const matrix = Matrix.generateTransition(1 << 6, i => {
-        const a = (i >> 3) & 3;
-        const dst = i & 3;
-        const left = i & ~3;
-        return (a ^ dst) + left;
-    });
+suite.testUsingWebGL("xor_a", () => {
+  const matrix = Matrix.generateTransition(1 << 6, (i) => {
+    const a = (i >> 3) & 3;
+    const dst = i & 3;
+    const left = i & ~3;
+    return (a ^ dst) + left;
+  });
 
-    assertThatCircuitUpdateActsLikeMatrix(
-        ctx => advanceStateWithCircuit(
-            ctx,
-            new CircuitDefinition(6, [new GateColumn([
-                XorGates.XorAFamily.ofSize(2),
-                undefined,
-                undefined,
-                InputGates.InputAFamily.ofSize(2),
-                undefined,
-                undefined])]),
-            false),
-        matrix);
+  assertThatCircuitUpdateActsLikeMatrix(
+    (ctx) =>
+      advanceStateWithCircuit(
+        ctx,
+        new CircuitDefinition(6, [
+          new GateColumn([
+            XorGates.XorAFamily.ofSize(2),
+            undefined,
+            undefined,
+            InputGates.InputAFamily.ofSize(2),
+            undefined,
+            undefined,
+          ]),
+        ]),
+        false,
+      ),
+    matrix,
+  );
 
-    assertThatCircuitUpdateActsLikeMatrix(
-        ctx => advanceStateWithCircuit(
-            ctx,
-            new CircuitDefinition(6, [new GateColumn([
-                XorGates.XorAFamily.ofSize(3),
-                undefined,
-                undefined,
-                InputGates.InputAFamily.ofSize(2),
-                undefined,
-                undefined])]),
-            false),
-        matrix);
+  assertThatCircuitUpdateActsLikeMatrix(
+    (ctx) =>
+      advanceStateWithCircuit(
+        ctx,
+        new CircuitDefinition(6, [
+          new GateColumn([
+            XorGates.XorAFamily.ofSize(3),
+            undefined,
+            undefined,
+            InputGates.InputAFamily.ofSize(2),
+            undefined,
+            undefined,
+          ]),
+        ]),
+        false,
+      ),
+    matrix,
+  );
 
-    assertThatCircuitUpdateActsLikeMatrix(
-        ctx => advanceStateWithCircuit(
-            ctx,
-            new CircuitDefinition(6, [new GateColumn([
-                XorGates.XorAFamily.ofSize(2),
-                undefined,
-                undefined,
-                InputGates.InputAFamily.ofSize(3),
-                undefined,
-                undefined])]),
-            false),
-        matrix);
+  assertThatCircuitUpdateActsLikeMatrix(
+    (ctx) =>
+      advanceStateWithCircuit(
+        ctx,
+        new CircuitDefinition(6, [
+          new GateColumn([
+            XorGates.XorAFamily.ofSize(2),
+            undefined,
+            undefined,
+            InputGates.InputAFamily.ofSize(3),
+            undefined,
+            undefined,
+          ]),
+        ]),
+        false,
+      ),
+    matrix,
+  );
 });

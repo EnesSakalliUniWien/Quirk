@@ -57,10 +57,7 @@ ArithmeticGates.Legacy_AdditionFamily = Gate.buildFamily(
       .setTitle("Addition Gate")
       .setBlurb("Adds a little-endian number into another.")
       .setRenderer(
-        SECTIONED_RENDERER_MAKER(
-          ["a", "b+=a"],
-          [Math.floor(span / 2) / span],
-        ),
+        SECTIONED_RENDERER_MAKER(["a", "b+=a"], [Math.floor(span / 2) / span]),
       )
       .setActualEffectToUpdateFunc((ctx) =>
         ArithmeticGates.PlusAFamily.ofSize(Math.ceil(span / 2)).customOperation(
@@ -85,10 +82,7 @@ ArithmeticGates.Legacy_SubtractionFamily = Gate.buildFamily(
       .setTitle("Subtraction Gate")
       .setBlurb("Subtracts a little-endian number from another.")
       .setRenderer(
-        SECTIONED_RENDERER_MAKER(
-          ["a", "b-=a"],
-          [Math.floor(span / 2) / span],
-        ),
+        SECTIONED_RENDERER_MAKER(["a", "b-=a"], [Math.floor(span / 2) / span]),
       )
       .setActualEffectToUpdateFunc((ctx) =>
         ArithmeticGates.MinusAFamily.ofSize(
