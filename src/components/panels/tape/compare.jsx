@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { distributions } from "../../../results/take/distributions.js";
-import { COLOURS } from "./colours.js";
+import { Theme } from "../../../config/Theme.js";
 import { Distribution } from "./distribution.jsx";
 
 function Compare({takes}) {
@@ -21,8 +21,8 @@ function Compare({takes}) {
             const largest = Math.max(0, ...[...a.probabilities, ...b.probabilities].filter(Number.isFinite));
             return <div key={key(a)} className="tape-comparison"><h4>{a.name}</h4>
                 <div className="tape-overlay">
-                    <div style={{borderColor: COLOURS[takes[0].colour]}}><Distribution colour={COLOURS[takes[0].colour]} largest={largest} probabilities={a.probabilities} label={`${takes[0].name}: ${a.name}`} /></div>
-                    <div style={{borderColor: COLOURS[takes[1].colour]}}><Distribution transparent colour={COLOURS[takes[1].colour]} largest={largest} probabilities={b.probabilities} label={`${takes[1].name}: ${b.name}`} /></div>
+                    <div style={{borderColor: Theme.tape[takes[0].colour]}}><Distribution colour={Theme.tape[takes[0].colour]} largest={largest} probabilities={a.probabilities} label={`${takes[0].name}: ${a.name}`} /></div>
+                    <div style={{borderColor: Theme.tape[takes[1].colour]}}><Distribution transparent colour={Theme.tape[takes[1].colour]} largest={largest} probabilities={b.probabilities} label={`${takes[1].name}: ${b.name}`} /></div>
                 </div>
                 <p className="tape-differences">{differences.length ? differences.join("; ") : "No probability differences above 0.000001"}</p>
             </div>;

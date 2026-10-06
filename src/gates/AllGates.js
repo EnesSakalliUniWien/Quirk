@@ -74,7 +74,7 @@ import {
   AntiImaginaryGate,
   SqrtImaginaryGate,
   AntiSqrtImaginaryGate,
-} from "./misc/Joke_ImaginaryGate.js";
+} from "./misc/ScalarPhaseGates.js";
 import { NeGate } from "./misc/Joke_NeGate.js";
 import { ZeroGate } from "./misc/Joke_ZeroGate.js";
 import { SpacerGate } from "./misc/SpacerGate.js";

@@ -17,40 +17,30 @@
 import { GateBuilder } from "../../circuit/model/Gate.js";
 import { Matrix } from "../../engine/math/matrix/Matrix.js";
 import { Complex } from "../../engine/math/complex/Complex.js";
-import {paintLocationIndependentFrame} from '../../draw/gate/GateFrame.js';
-import {paintGateSymbol} from '../../draw/gate/GateSymbol.js';
+import { LOCATION_INDEPENDENT_GATE_RENDERER } from "../../draw/gate/GateRenderers.js";
 
 const ImaginaryGate = new GateBuilder()
   .setSerializedIdAndSymbol("i")
-  .setTitle("Imaginary Gate")
-  .setBlurb("Phases everything by i.")
-  .setRenderer((args) => {
-    paintLocationIndependentFrame(args);
-    paintGateSymbol(args);
-  })
+  .setTitle("Scalar phase (π/2)")
+  .setBlurb("Multiplies all amplitudes by i.")
+  .setRenderer(LOCATION_INDEPENDENT_GATE_RENDERER)
   .setKnownEffectToMatrix(Matrix.square(Complex.I, 0, 0, Complex.I)).gate;
 
 const AntiImaginaryGate = new GateBuilder()
   .setAlternate(ImaginaryGate)
   .setSerializedIdAndSymbol("-i")
-  .setTitle("Anti-Imaginary Gate")
-  .setBlurb("Phases everything by -i.")
-  .setRenderer((args) => {
-    paintLocationIndependentFrame(args);
-    paintGateSymbol(args);
-  })
+  .setTitle("Scalar phase (−π/2)")
+  .setBlurb("Multiplies all amplitudes by −i.")
+  .setRenderer(LOCATION_INDEPENDENT_GATE_RENDERER)
   .setKnownEffectToMatrix(
     Matrix.square(Complex.I.neg(), 0, 0, Complex.I.neg()),
   ).gate;
 
 const SqrtImaginaryGate = new GateBuilder()
   .setSerializedIdAndSymbol("√i")
-  .setTitle("Half Imaginary Gate")
-  .setBlurb("Phases everything by √i.")
-  .setRenderer((args) => {
-    paintLocationIndependentFrame(args);
-    paintGateSymbol(args);
-  })
+  .setTitle("Scalar phase (π/4)")
+  .setBlurb("Multiplies all amplitudes by √i.")
+  .setRenderer(LOCATION_INDEPENDENT_GATE_RENDERER)
   .setKnownEffectToMatrix(
     Matrix.square(1, 0, 0, 1).times(
       new Complex(Math.sqrt(0.5), Math.sqrt(0.5)),
@@ -60,12 +50,9 @@ const SqrtImaginaryGate = new GateBuilder()
 const AntiSqrtImaginaryGate = new GateBuilder()
   .setAlternate(SqrtImaginaryGate)
   .setSerializedIdAndSymbol("√-i")
-  .setTitle("Half Anti-Imaginary Gate")
-  .setBlurb("Phases everything by √-i.")
-  .setRenderer((args) => {
-    paintLocationIndependentFrame(args);
-    paintGateSymbol(args);
-  })
+  .setTitle("Scalar phase (−π/4)")
+  .setBlurb("Multiplies all amplitudes by √−i.")
+  .setRenderer(LOCATION_INDEPENDENT_GATE_RENDERER)
   .setKnownEffectToMatrix(
     Matrix.square(1, 0, 0, 1).times(
       new Complex(Math.sqrt(0.5), -Math.sqrt(0.5)),

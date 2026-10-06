@@ -1,36 +1,64 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { notify } from "../../ui/toasts.jsx";
 
-/** How long a copy button reports what happened before going back to its label. */
-const COPY_RESULT_MILLIS = 1000;
+/** Generate before awaiting the clipboard, so the click keeps its intended data. */
+async function copyToClipboard(text, title, fallback) {
+  let value;
+  try {
+    value = text();
+  } catch (error) {
+    notify(
+      `Could not generate ${title}`,
+      `${error instanceof Error ? error.message : String(error)} ${fallback}`,
+    );
+    return;
+  }
+  if (!navigator.clipboard?.writeText) {
+    notify(
+      `Could not copy ${title}`,
+      `Clipboard is unavailable in this browser context. ${fallback}`,
+    );
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(value);
+    notify(`${title} copied`);
+  } catch (error) {
+    notify(
+      `Could not copy ${title}`,
+      `${error instanceof Error && error.name === "NotAllowedError" ? "The browser did not allow the clipboard write." : "The clipboard write failed."} ${fallback}`,
+    );
+  }
+}
 
-/**
- * A copy button and the line of text it reports into. The button is disabled while the result is
- * showing, so a rapid second press cannot overlap the first one's reset.
- *
- * @param {!{id: !string, resultId: !string, label: !string, text: !function(): !string}} props
- */
-function CopyButton({ id, resultId, label, text }) {
-  const [result, setResult] = useState("");
-
+function CopyButton({
+  id = /** @type {string | undefined} */ (undefined),
+  resultId = /** @type {string | undefined} */ (undefined),
+  label,
+  text,
+  title = label,
+  fallback = "Select and copy the output below, or retry.",
+}) {
+  const [pending, setPending] = useState(false);
+  const busy = useRef(false);
   const copy = async () => {
-    setResult("…");
+    if (busy.current) return;
+    busy.current = true;
+    setPending(true);
     try {
-      await navigator.clipboard.writeText(text());
-      setResult("Done!");
-    } catch (ex) {
-      setResult("It didn’t work…");
-      console.warn("Clipboard copy failed.", ex);
+      await copyToClipboard(text, title, fallback);
+    } finally {
+      busy.current = false;
+      setPending(false);
     }
-    setTimeout(() => setResult(""), COPY_RESULT_MILLIS);
   };
-
   return (
     <div className="panel-action-row">
-      <button id={id} type="button" disabled={result !== ""} onClick={copy}>
+      <button id={id} type="button" disabled={pending} onClick={copy}>
         {label}
       </button>
       <span id={resultId} className="copy-result">
-        {result}
+        {pending ? "Copying…" : ""}
       </span>
     </div>
   );
