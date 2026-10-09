@@ -18,7 +18,6 @@ import {assertThat, assertTrue} from "./TestUtil.js"
 import {advanceStateWithCircuit} from "../src/engine/simulation/CircuitComputeUtil.js"
 import {CircuitDefinition} from "../src/circuit/model/CircuitDefinition.js"
 import {CircuitEvalContext} from "../src/engine/simulation/CircuitEvalContext.js"
-import {CircuitShaders} from "../src/engine/simulation/gpu/CircuitShaders.js"
 import {CircuitStats} from "../src/engine/simulation/CircuitStats.js"
 import {Complex} from "../src/engine/math/complex/Complex.js"
 import {Controls} from "../src/circuit/model/Controls.js"
@@ -203,19 +202,16 @@ function assertThatCircuitMutationActsLikeMatrix_single(updateAction, matrix, fo
 
     const tex = Shaders.vec2Data(inVec.rawBuffer()).toVec2Texture(wireCount);
     const trader = new WglTextureTrader(tex);
-    const controlsTexture = CircuitShaders.controlMask(controls).toBoolTexture(wireCount);
     const ctx = new CircuitEvalContext(
         time,
         qubitIndex,
         wireCount,
         controls,
-        controlsTexture,
         controls,
         trader,
         new Map());
     updateAction(ctx);
 
-    controlsTexture.deallocByDepositingInPool();
     const outData = KetTextureUtil.tradeTextureForVec2Output(trader);
     const outVec = new Matrix(1, ampCount, outData);
 
@@ -251,19 +247,16 @@ function assertThatCircuitUpdateActsLikePermutation(wireCount, updateAction, per
     const inVec = Matrix.generate(1, ampCount, r => new Complex(r + Math.random(), Math.random()*1000));
     const tex = Shaders.vec2Data(inVec.rawBuffer()).toVec2Texture(wireCount);
     const trader = new WglTextureTrader(tex);
-    const controlsTexture = CircuitShaders.controlMask(Controls.NONE).toBoolTexture(wireCount);
     const ctx = new CircuitEvalContext(
         time,
         0,
         wireCount,
         Controls.NONE,
-        controlsTexture,
         Controls.NONE,
         trader,
         new Map());
     updateAction(ctx);
 
-    controlsTexture.deallocByDepositingInPool();
     const outData = KetTextureUtil.tradeTextureForVec2Output(trader);
     const outVec = new Matrix(1, ampCount, outData);
 

@@ -3,7 +3,8 @@ import { CircuitDefinition } from "../../circuit/model/CircuitDefinition.js";
 import { Serializer } from "../../serialization/Serializer.js";
 import { Matrix } from "../../engine/math/matrix/Matrix.js";
 import { paddedState } from "../../engine/simulation/stepAlgebra.js";
-import { RANDOM_FORMAT, freshSeed } from "../../engine/simulation/random.js";
+import { RANDOM_FORMAT, freshSeed, randomFor } from "../../engine/simulation/random.js";
+import { Recording } from "../../config/Recording.js";
 import { TAKE_FORMAT } from "./schema.js";
 import { encode, decode } from "./values.js";
 
@@ -20,7 +21,49 @@ function snapshotStats(stats, wires) {
   });
 }
 
-function createTake(result, name = "take", colour = 0) {
+/**
+ * Measures every displayed wire `shots` times in the computational basis, from a stored result's
+ * amplitudes, with a generator keyed by `seed`. The same amplitudes, shots and seed always give the
+ * same counts, which is how an imported take's measurement is checked. A result the engine could
+ * not produce has nothing to measure, and no counts.
+ *
+ * @param {!Array} amplitudes A stored result's encoded, interleaved amplitudes.
+ * @returns {!Array.<!Array.<!int>>} [basis index, count] pairs, in index order, for every outcome seen.
+ */
+function measuredCounts(amplitudes, shots, seed) {
+  const cumulative = new Float64Array(amplitudes.length / 2);
+  let total = 0;
+  for (let index = 0; index < cumulative.length; index++) {
+    const probability = decode(amplitudes[2 * index]) ** 2 + decode(amplitudes[2 * index + 1]) ** 2;
+    if (!Number.isFinite(probability)) return [];
+    total += probability;
+    cumulative[index] = total;
+  }
+  if (!(total > 0)) return [];
+  const random = randomFor(seed);
+  const counts = new Map();
+  for (let shot = 0; shot < shots; shot++) {
+    const target = random() * total;
+    let low = 0;
+    let high = cumulative.length - 1;
+    while (low < high) {
+      const middle = (low + high) >> 1;
+      if (cumulative[middle] > target) high = middle; else low = middle + 1;
+    }
+    counts.set(low, (counts.get(low) ?? 0) + 1);
+  }
+  return [...counts].sort((a, b) => a[0] - b[0]);
+}
+
+/**
+ * @param {!Object} result What the simulator evaluated.
+ * @param {!string} name
+ * @param {!int} colour
+ * @param {!{shots: (undefined|!int)}} options How many times the take measures its state.
+ */
+function createTake(result, name = "take", colour = 0, { shots = Recording.MEASUREMENT_SHOTS } = {}) {
+  const stored = snapshotStats(result.stats, result.wireCount);
+  const measurementSeed = freshSeed();
   return {
     format: TAKE_FORMAT,
     id: freshSeed(),
@@ -34,8 +77,9 @@ function createTake(result, name = "take", colour = 0) {
     phase: result.phase,
     seed: result.seed,
     randomFormat: RANDOM_FORMAT,
-    result: snapshotStats(result.stats, result.wireCount),
+    result: stored,
     fullResult: snapshotStats(result.fullStats, result.wireCount),
+    measurement: { shots, seed: measurementSeed, counts: measuredCounts(stored.amplitudes, shots, measurementSeed) },
   };
 }
 
@@ -68,4 +112,4 @@ function restoreTake(take) {
   };
 }
 
-export { createTake, restoreTake };
+export { createTake, measuredCounts, restoreTake };

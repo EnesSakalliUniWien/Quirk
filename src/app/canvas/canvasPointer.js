@@ -83,8 +83,8 @@ function initCanvasPointer(canvas, canvasDiv, revision, displayed, syncArea, ope
 
     /** @type {undefined|!string} */
     let clickDownGateButtonKey = undefined;
-    const buttonKey = target => target?.type === 'button' ? 'gate-button-' + target.col + ':' + target.row :
-        target?.type === 'initial' ? 'wire-init-' + target.row : undefined;
+    const buttonKey = target => target?.type === 'button' ? `gate-button-${target.col}:${target.row}` :
+        target?.type === 'initial' ? `wire-init-${target.row}` : undefined;
     /** @type {undefined|!Point} Where the gesture pressed down, in circuit coordinates. */
     let gestureDownPos = undefined;
     let touchPanPosition;

@@ -184,11 +184,11 @@ class FormulaParser {
       if (!tokens[s].match(/[0-9]/)) {
         continue;
       }
-      if ((tokens[e] + "").match(/[+-]/)) {
+      if ((`${tokens[e]}`).match(/[+-]/)) {
         e += 1;
       }
 
-      if ((tokens[e] + "").match(/[0-9]/)) {
+      if ((`${tokens[e]}`).match(/[0-9]/)) {
         e += 1;
         tokens.splice(s, e - s, tokens.slice(s, e).join(""));
         i -= 1;

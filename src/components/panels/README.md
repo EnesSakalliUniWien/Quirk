@@ -17,7 +17,7 @@ component has its own file, using the existing kebab-case naming convention.
 | `qubits/` | Per-qubit readings |
 | `registers/` | Register editing, value labels and readings |
 | `state/` | Playhead state table |
-| `tape/` | Recorded takes, comparison, import/export and recording controls |
+| `tape/` | Recorded takes, comparison, import/export, recording controls and the animation, sampling and measurement settings |
 | `shared/` | Completed-result subscription and dock wrapper used across panels |
 
 Keep panel-specific hooks and helpers with their panel. The circuit's gutter

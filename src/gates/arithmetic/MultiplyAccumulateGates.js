@@ -79,7 +79,7 @@ MultiplyAccumulateGates.Legacy_MultiplyAddFamily = Gate.buildFamily(
   16,
   (span, builder) =>
     builder
-      .setSerializedId("c+=ab" + span)
+      .setSerializedId(`c+=ab${span}`)
       .setSymbol("c+=ab")
       .setTitle("Multiply-Add Gate")
       .setBlurb("Adds the product of two numbers into a third.")
@@ -111,7 +111,7 @@ MultiplyAccumulateGates.Legacy_MultiplySubtractFamily = Gate.buildFamily(
   (span, builder) =>
     builder
       .setAlternateFromFamily(MultiplyAccumulateGates.Legacy_MultiplyAddFamily)
-      .setSerializedId("c-=ab" + span)
+      .setSerializedId(`c-=ab${span}`)
       .setSymbol("c-=ab")
       .setTitle("Multiply-Subtract Gate")
       .setBlurb("Subtracts the product of two numbers from a third.")
@@ -142,7 +142,7 @@ MultiplyAccumulateGates.MultiplyAddInputsFamily = Gate.buildFamily(
   16,
   (span, builder) =>
     builder
-      .setSerializedId("+=AB" + span)
+      .setSerializedId(`+=AB${span}`)
       .setSymbol("+AB")
       .setTitle("Multiply-Add Gate [Inputs A, B]")
       .setListName("Multiply-Add [A, B]")
@@ -167,7 +167,7 @@ MultiplyAccumulateGates.MultiplySubtractInputsFamily = Gate.buildFamily(
   (span, builder) =>
     builder
       .setAlternateFromFamily(MultiplyAccumulateGates.MultiplyAddInputsFamily)
-      .setSerializedId("-=AB" + span)
+      .setSerializedId(`-=AB${span}`)
       .setSymbol("−AB")
       .setTitle("Multiply-Subtract Gate [Inputs A, B]")
       .setListName("Multiply-Subtract [A, B]")
@@ -191,7 +191,7 @@ MultiplyAccumulateGates.SquareAddInputFamily = Gate.buildFamily(
   16,
   (span, builder) =>
     builder
-      .setSerializedId("+=AA" + span)
+      .setSerializedId(`+=AA${span}`)
       .setSymbol("+A^2")
       .setTitle("Square-Add Gate [Input A]")
       .setBlurb(
@@ -214,7 +214,7 @@ MultiplyAccumulateGates.SquareSubtractInputFamily = Gate.buildFamily(
   (span, builder) =>
     builder
       .setAlternateFromFamily(MultiplyAccumulateGates.SquareAddInputFamily)
-      .setSerializedId("-=AA" + span)
+      .setSerializedId(`-=AA${span}`)
       .setSymbol("-A^2")
       .setTitle("Square-Subtract Gate [Input A]")
       .setBlurb(

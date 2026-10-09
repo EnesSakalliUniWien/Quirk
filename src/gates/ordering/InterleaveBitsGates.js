@@ -120,7 +120,7 @@ const interleavePainter = reverse => args => {
 };
 
 InterleaveBitsGates.InterleaveBitsGateFamily = Gate.buildFamily(4, 16, (span, builder) => builder.
-    setSerializedId("weave" + span).
+    setSerializedId(`weave${span}`).
     setSymbol("Interleave").
     setTitle("Interleave").
     setBlurb("Re-orders blocks of bits into stripes of bits.").
@@ -131,7 +131,7 @@ InterleaveBitsGates.InterleaveBitsGateFamily = Gate.buildFamily(4, 16, (span, bu
 
 InterleaveBitsGates.DeinterleaveBitsGateFamily = Gate.buildFamily(4, 16, (span, builder) => builder.
     setAlternateFromFamily(InterleaveBitsGates.InterleaveBitsGateFamily).
-    setSerializedId("split" + span).
+    setSerializedId(`split${span}`).
     setSymbol("Deinterleave").
     setTitle("Deinterleave").
     setBlurb("Re-orders stripes of bits into blocks of bits.").

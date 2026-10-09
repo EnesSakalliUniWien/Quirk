@@ -55,7 +55,7 @@ PhaseGradientGates.PhaseGradientFamily = Gate.buildFamily(
   16,
   (span, builder) =>
     builder
-      .setSerializedId("PhaseGradient" + span)
+      .setSerializedId(`PhaseGradient${span}`)
       .setSymbol("Grad^½")
       .setTitle("Half Gradient Gate")
       .setBlurb("Phases the target by an amount proportional its value.")
@@ -74,7 +74,7 @@ PhaseGradientGates.PhaseDegradientFamily = Gate.buildFamily(
   (span, builder) =>
     builder
       .setAlternateFromFamily(PhaseGradientGates.PhaseGradientFamily)
-      .setSerializedId("PhaseUngradient" + span)
+      .setSerializedId(`PhaseUngradient${span}`)
       .setSymbol("Grad^-½")
       .setTitle("Inverse Half Gradient Gate")
       .setBlurb(
@@ -94,7 +94,7 @@ PhaseGradientGates.DynamicPhaseGradientFamily = Gate.buildFamily(
   16,
   (span, builder) =>
     builder
-      .setSerializedId("grad^t" + span)
+      .setSerializedId(`grad^t${span}`)
       .setSymbol("Grad^t'")
       .setTitle("Cycling Gradient Gate")
       .setBlurb("Phases the target by a cycling amount proportional its value.")
@@ -119,7 +119,7 @@ PhaseGradientGates.DynamicPhaseDegradientFamily = Gate.buildFamily(
   (span, builder) =>
     builder
       .setAlternateFromFamily(PhaseGradientGates.DynamicPhaseGradientFamily)
-      .setSerializedId("grad^-t" + span)
+      .setSerializedId(`grad^-t${span}`)
       .setSymbol("Grad^-t'")
       .setTitle("Inverse Cycling Gradient Gate")
       .setBlurb(

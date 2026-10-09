@@ -25,7 +25,6 @@ import { POINTWISE_CMUL_CONJ_SHADER } from "../../../../src/gates/displays/ampli
 import {Controls} from "../../../../src/circuit/model/Controls.js"
 import {CircuitDefinition} from "../../../../src/circuit/model/CircuitDefinition.js"
 import {CircuitStats} from "../../../../src/engine/simulation/CircuitStats.js"
-import {CircuitShaders} from "../../../../src/engine/simulation/gpu/CircuitShaders.js"
 import {Serializer} from "../../../../src/serialization/Serializer.js"
 import {Shaders} from "../../../../src/engine/webgl/operations/Shaders.js"
 import {currentShaderCoder} from "../../../../src/engine/webgl/coder/ShaderCoders.js"
@@ -118,8 +117,7 @@ suite.testUsingWebGL("POINTWISE_CMUL_CONJ_SHADER", () => {
 suite.testUsingWebGL("makeAmplitudeSpanPipeline_coherent", () => {
     const inp = Shaders.vec2Data(new Float32Array([0.6,0.8, 0,0, 0,0, 0,0])).
         toVec2Texture(2);
-    const controlTex = CircuitShaders.controlMask(Controls.NONE).toBoolTexture(2);
-    const [ketData, qualityData, incoherentKetData] = amplitudeDisplayStatTextures(inp, Controls.NONE, controlTex, 0, 2);
+    const [ketData, qualityData, incoherentKetData] = amplitudeDisplayStatTextures(inp, Controls.NONE, 0, 2);
     const ket = currentShaderCoder().vec4.pixelsToData(ketData.readPixels());
     const quality = currentShaderCoder().float.pixelsToData(qualityData.readPixels());
     const incoherentKet = currentShaderCoder().vec4.pixelsToData(incoherentKetData.readPixels());
@@ -138,7 +136,6 @@ suite.testUsingWebGL("makeAmplitudeSpanPipeline_coherent", () => {
     assertThat(quality).isApproximatelyEqualTo(new Float32Array([1]));
 
     inp.deallocByDepositingInPool();
-    controlTex.deallocByDepositingInPool();
     ketData.deallocByDepositingInPool();
     qualityData.deallocByDepositingInPool();
     incoherentKetData.deallocByDepositingInPool();

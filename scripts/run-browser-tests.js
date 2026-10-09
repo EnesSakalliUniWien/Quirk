@@ -38,7 +38,7 @@ try {
   page.on("pageerror", (error) => {
     caughtPageError = true;
     console.error(
-      "Page error bubbled into run-browser-tests.js: " + error.message,
+      `Page error bubbled into run-browser-tests.js: ${error.message}`,
     );
   });
 
@@ -65,7 +65,7 @@ try {
     process.exitCode = 1;
   }
 } catch (ex) {
-  console.error("Error bubbled up into run-browser-tests.js: " + ex);
+  console.error(`Error bubbled up into run-browser-tests.js: ${ex}`);
   process.exitCode = 1;
 } finally {
   try {

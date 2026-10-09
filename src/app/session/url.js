@@ -32,8 +32,9 @@ function urlWithCircuitHash(jsonText, breakpoints = []) {
     if (jsonText.includes('%') || jsonText.includes('&')) {
         jsonText = encodeURIComponent(jsonText);
     }
-    return "#" + AppInfo.URL_CIRCUIT_PARAM_KEY + "=" + jsonText +
-        (breakpoints.length === 0 ? "" : "&" + AppInfo.URL_BREAKPOINTS_PARAM_KEY + "=" + breakpoints.join(","));
+    const breakpointHash = breakpoints.length === 0 ? "" :
+        `&${AppInfo.URL_BREAKPOINTS_PARAM_KEY}=${breakpoints.join(",")}`;
+    return `#${AppInfo.URL_CIRCUIT_PARAM_KEY}=${jsonText}${breakpointHash}`;
 }
 
 /**
@@ -116,15 +117,22 @@ function initUrlCircuitSync(revision, recorder, playhead, onTakeLoaded) {
             if (params.has("take") && recorder !== undefined) {
                 if (new TextEncoder().encode(document.location.hash).byteLength > LINK_LIMIT) throw new Error("Take link exceeds 32 KiB");
                 if (JSON.parse(params.get("take")).format !== "shadow-quant-take/1") throw new Error("A take link must contain one take");
-                const requestedHash = document.location.hash;
-                recorder.importText(params.get("take")).then(takes => {
-                    if (version !== loadVersion || document.location.hash !== requestedHash) return;
-                    loadingTake = true;
-                    try {recorder.restore(takes[0]);} finally {loadingTake = false;}
-                    onTakeLoaded?.();
-                }).catch(error => recorder.store.error.setState({value: error.message}));
+                // The take is shown and restored, not saved: opening a link records nothing until the
+                // user keeps it.
+                loadingTake = true;
+                try {
+                    recorder.openLink(params.get("take"));
+                } catch (error) {
+                    recorder.store.error.setState({value: error.message});
+                    return;
+                } finally {
+                    loadingTake = false;
+                }
+                onTakeLoaded?.();
                 return;
             }
+            // An address without a take leaves the take a link brought, if it was not kept.
+            recorder?.closeLink();
             // Opened without a circuit: the one the last visit left, or else an empty one. A circuit
             // taken back up is written into the address, so the page's link is the circuit's again.
             const restored = !params.has(AppInfo.URL_CIRCUIT_PARAM_KEY) && version === 1 ? readLastCircuit() : undefined;

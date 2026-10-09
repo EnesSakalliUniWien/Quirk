@@ -198,16 +198,12 @@ class Revision {
    * @returns {!string} A description of the revision.
    */
   toString() {
-    return (
-      "Revision(" +
-      describe({
+    return `Revision(${describe({
         index: this.index,
         count: this.history.length,
         workingOnCommit: this.isWorkingOnCommit,
         head: this.history[this.index],
-      }) +
-      ")"
-    );
+      })})`;
   }
 
   /**

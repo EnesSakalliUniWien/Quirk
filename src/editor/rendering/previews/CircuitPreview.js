@@ -68,7 +68,7 @@ export const GATE_CIRCUIT_RENDERER = args => {
     drawCircuitTooltip(args.painter, args.gate.knownCircuitNested, args.rect, false, args.stats.time);
     paintOutline(args);
     if (args.isHighlighted) {
-        args.painter.group('hover-' + args.painter.order, painter => {
+        args.painter.group(`hover-${args.painter.order}`, painter => {
             painter.alpha *= 0.9;
             rectangle(painter, args.rect, {
                 fill: CanvasTheme.gate.hover

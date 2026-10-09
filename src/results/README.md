@@ -19,7 +19,18 @@ controls, and use `src/browser/downloadFile.js` to download already formatted co
 `shadow-quant-take/1` stores `id`, `name`, `colour` (0–7), `recorded` (UTC ISO date),
 `notes`, the complete serialized `circuit`, displayed `wires`, `step` (columns already
 executed), animation `phase` in [0,1), `seed`, `randomFormat`, `result` (playhead),
-and `fullResult` (the whole circuit at the same phase and seed).
+`fullResult` (the whole circuit at the same phase and seed), and `measurement`.
+
+`measurement` holds `shots`, its own `seed` and `counts`: the displayed wires measured `shots`
+times in the computational basis from `result`'s amplitudes, as `[basis index, count]` pairs in
+index order. The counts follow from the amplitudes, shots and seed alone, so import recomputes
+them and rejects a take whose counts differ. An unavailable result has no counts. Takes recorded
+before measurements were kept have no `measurement`, and still import. The counts are right after a
+deferred `Measure` too: a measured qubit is never put back into superposition (GateColumn's "no
+remix"), so measuring every wire at the end gives the statistics of measuring where `Measure` stands.
+The counts add to a take's size, at most one pair per basis state seen: a take near the 32 KiB
+link limit may no longer fit a link, and travels as a JSON file instead. The settings hold the
+shots to 10000, so a take measures in a few milliseconds.
 
 Each result retains its simulated wire count and circuit, flat interleaved real/imaginary
 `amplitudes` padded to the displayed wire count, per-column `survival`, per-column/per-wire
@@ -42,7 +53,8 @@ detector simulations restart the same local generator for every prefix, without 
 global randomness. Sample uses a separate generator keyed by seed and gate location.
 
 CSV is an export-only probability table. It contains take id/name, register name/start/width,
-numeric value, optional label, bits (highest bit first), and probability. `joint` rows retain
+numeric value, optional label, bits (highest bit first), probability, and the measured count
+(empty for a take without a measurement). `joint` rows retain
 the whole basis-state distribution; unnamed wires are individual `qN` groups. Spreadsheet
 formula prefixes are escaped in text cells. CSV does not restore circuits or amplitudes.
 

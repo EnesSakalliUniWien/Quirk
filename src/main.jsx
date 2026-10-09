@@ -39,7 +39,7 @@ followSystemColourScheme(colourScheme);
 installErrorReporter();
 const gpuProblem = webGl2SupportProblem();
 if (gpuProblem !== undefined) {
-  reportBlockingIssue("Can't simulate circuits. " + gpuProblem);
+  reportBlockingIssue(`Can't simulate circuits. ${gpuProblem}`);
 }
 
 // The app's one React root. Everything the app shows is rendered under it, and the circuit starts

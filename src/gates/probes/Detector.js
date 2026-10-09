@@ -23,7 +23,6 @@ import {WglTexturePool} from '../../engine/webgl/texture/WglTexturePool.js';
 import {WglTextureTrader} from '../../engine/webgl/texture/WglTextureTrader.js';
 import {Shaders} from '../../engine/webgl/operations/Shaders.js';
 import {currentShaderCoder, Inputs, makePseudoShaderWithInputsAndOutputAndCode, Outputs} from '../../engine/webgl/coder/ShaderCoders.js';
-import {CircuitShaders} from '../../engine/simulation/gpu/CircuitShaders.js';
 import {Controls} from '../../circuit/model/Controls.js';
 import {WglArg} from '../../engine/webgl/shader/WglArg.js';
 import {CanvasTheme} from '../../config/CanvasTheme.js';
@@ -38,30 +37,19 @@ import {QuarterTurnGates} from '../rotations/QuarterTurnGates.js';
 import {HalfTurnGates} from '../rotations/HalfTurnGates.js';
 
 /**
- * @param {!CircuitEvalContext} ctx
+ * Prepares a 1x1 texture containing the total squared-magnitude of states matching the given controls.
+ * @param {!WglTexture} ketTexture
  * @param {!Controls} controls
  * @returns {!WglTexture}
  */
-function controlMaskTex(ctx, controls) {
-    const powerSize = currentShaderCoder().vec2.arrayPowerSizeOfTexture(ctx.stateTrader.currentTexture);
-    return CircuitShaders.controlMask(controls).toBoolTexture(powerSize);
-}
-
-/**
- * Prepares a 1x1 texture containing the total squared-magnitude of states matching the given controls.
- * @param {!WglTexture} ketTexture
- * @param {!WglTexture} controlMaskTex
- * @param {!boolean} forStats
- * @returns {!WglTexture}
- */
-function textureWithTotalWeightMatchingGivenControls(ketTexture, controlMaskTex, forStats=false) {
+function textureWithTotalWeightMatchingGivenControls(ketTexture, controls) {
     const powerSize = currentShaderCoder().vec2.arrayPowerSizeOfTexture(ketTexture);
 
     // Convert the matching amplitudes to probabilities (and the non-matching ones to 0).
     const trader = new WglTextureTrader(ketTexture);
     trader.dontDeallocCurrentTexture();
     trader.shadeAndTrade(
-        tex => amplitudesToProbabilities(tex, controlMaskTex),
+        tex => amplitudesToProbabilities(tex, controls),
         WglTexturePool.takeVecFloatTex(powerSize));
 
     // Sum the probabilities.
@@ -80,12 +68,9 @@ function textureWithTotalWeightMatchingGivenControls(ketTexture, controlMaskTex,
  * @returns {!WglTexture}
  */
 function detectorStatTexture(ctx) {
-    const mask = controlMaskTex(ctx, ctx.controls.and(Controls.bit(ctx.row, true)));
-    try {
-        return textureWithTotalWeightMatchingGivenControls(ctx.stateTrader.currentTexture, mask, true);
-    } finally {
-        mask.deallocByDepositingInPool('textureWithTotalWeightMatchingPositiveMeasurement:mask')
-    }
+    return textureWithTotalWeightMatchingGivenControls(
+        ctx.stateTrader.currentTexture,
+        ctx.controls.and(Controls.bit(ctx.row, true)));
 }
 
 /**
@@ -95,17 +80,18 @@ const detectorShader = makePseudoShaderWithInputsAndOutputAndCode(
     [
         Inputs.float('total_weight'),
         Inputs.float('detection_weight'),
-        Inputs.bool('classification'),
         Inputs.vec2('ket'),
     ],
     Outputs.vec2(),
     `
         uniform float rnd;
+        uniform float match_used;
+        uniform float match_desired;
 
         vec2 outputFor(float k) {
             float detectChance = read_detection_weight(0.0) / read_total_weight(0.0);
             float detection_type = float(rnd < detectChance);
-            float own_type = read_classification(k);
+            float own_type = (uint(k) & uint(match_used)) == uint(match_desired) ? 1.0 : 0.0;
             if (detection_type == own_type) {
                 float matchChance = detectChance * own_type + (1.0 - own_type) * (1.0 - detectChance);
                 return read_ket(k) / sqrt(matchChance);
@@ -144,22 +130,20 @@ function switchToBasis(ctx, axis, inverse) {
  * @param {!CircuitEvalContext} ctx
  */
 function sampleMeasure(ctx) {
-    const maskAll = controlMaskTex(ctx, Controls.NONE);
-    const maskMatch = controlMaskTex(ctx, ctx.controls.and(Controls.bit(ctx.row, true)));
-    const weightAll = textureWithTotalWeightMatchingGivenControls(ctx.stateTrader.currentTexture, maskAll);
-    const weightMatch = textureWithTotalWeightMatchingGivenControls(ctx.stateTrader.currentTexture, maskMatch);
+    const match = ctx.controls.and(Controls.bit(ctx.row, true));
+    const weightAll = textureWithTotalWeightMatchingGivenControls(ctx.stateTrader.currentTexture, Controls.NONE);
+    const weightMatch = textureWithTotalWeightMatchingGivenControls(ctx.stateTrader.currentTexture, match);
 
     ctx.applyOperation(detectorShader(
         weightAll,
         weightMatch,
-        maskMatch,
         ctx.stateTrader.currentTexture,
-        WglArg.float('rnd', ctx.random())));
+        WglArg.float('rnd', ctx.random()),
+        WglArg.float('match_used', match.inclusionMask),
+        WglArg.float('match_desired', match.desiredValueMask)));
 
     weightMatch.deallocByDepositingInPool();
     weightAll.deallocByDepositingInPool();
-    maskMatch.deallocByDepositingInPool();
-    maskAll.deallocByDepositingInPool();
 }
 
 /**
@@ -216,7 +200,7 @@ function drawClick(args, axis) {
         return;
 }
     const r = Math.min(args.rect.h / 2, args.rect.w);
-    args.painter.group('click-label-' + args.painter.order, painter => {
+    args.painter.group(`click-label-${args.painter.order}`, painter => {
         painter.position.set(args.rect.center().x, args.rect.center().y);
         painter.rotation = axis === undefined ? Math.PI / 3 : Math.PI / 4;
         const stroke = {
@@ -336,7 +320,7 @@ function redrawControlWires(args) {
     // Dashed line indicates effects from non-unitary gates may affect, or appear to affect, other wires.
     const circuit = args.stats.circuitDefinition;
     if (circuit.columns[columnIndex].hasGatesWithGlobalEffects()) {
-        painter.group('global-control-' + painter.order, painter => {
+        painter.group(`global-control-${painter.order}`, painter => {
             strokePath(painter, [new Point(x, args.rect.y), new Point(x, args.rect.bottom())], CanvasTheme.text.primary, 1, [1, 4]);
         });
     }
@@ -364,14 +348,10 @@ function redrawControlWires(args) {
 function withClearedControls(func) {
     return ctx => {
         const controls = ctx.controls;
-        const texture = ctx.controlsTexture;
         try {
             ctx.controls = Controls.NONE;
-            ctx.controlsTexture = controlMaskTex(ctx, ctx.controls);
             return func(ctx);
         } finally {
-            ctx.controlsTexture.deallocByDepositingInPool('withClearedControls');
-            ctx.controlsTexture = texture;
             ctx.controls = controls;
         }
     };

@@ -4,18 +4,21 @@ import { blochVectorBetween, vectorFromAngles } from "../../../engine/math/bloch
 import { clock } from "../../../base/Clock.js";
 import { prefersReducedMotion } from "../../../browser/reducedMotion.js";
 import { Animation } from "../../../config/Animation.js";
+import { motionSettings } from "../../../state/motionSettings.js";
 
 /**
  * Moves the analyzer to a free, explored state: at once for a slider, or gliding there over
- * Animation.GLIDE_DURATION_MS for a preset. The glide turns the arrow along the sphere rather than through it
+ * the user's glide duration for a preset. The glide turns the arrow along the sphere rather than through it
  * (blochVectorBetween). With Reduce Motion on, a preset lands at once too. A new move cancels one
  * still under way, and so does unmounting.
  *
  * @param {(mode: import("./analyzerModel.js").ViewMode) => void} setMode
  * @param {{ current: (import("./analyzerModel.js").BlochVector | undefined) }} shownVector The
  *     vector on screen now, where a glide starts from.
+ * @param {import("zustand/vanilla").StoreApi=} settings The user's settings, for the glide's
+ *     duration, which a glide keeps from its start.
  */
-function useExploreTransition(setMode, shownVector) {
+function useExploreTransition(setMode, shownVector, settings = motionSettings) {
   const animation = useRef(/** @type {(() => void) | undefined} */ (undefined));
   const cancel = useCallback(() => {
     animation.current?.();
@@ -31,13 +34,14 @@ function useExploreTransition(setMode, shownVector) {
   const explore = (to, { preset, glide = false } = {}) => {
     cancel();
     const from = shownVector.current ?? to;
-    if (!glide || prefersReducedMotion()) {
+    const glideMs = settings.getState().glideMs;
+    if (!glide || glideMs <= 0 || prefersReducedMotion()) {
       setMode({ kind: "explore", vec: to, preset });
       return;
     }
     const start = clock.now();
     animation.current = clock.onFrame((now) => {
-      const t = Math.min(1, (now - start) / Animation.GLIDE_DURATION_MS);
+      const t = Math.min(1, (now - start) / glideMs);
       const vec = blochVectorBetween(from, to, Animation.GLIDE_EASING(t));
       setMode({ kind: "explore", vec: t < 1 ? vec : to, preset });
       if (t >= 1) cancel();

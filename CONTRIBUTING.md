@@ -11,6 +11,10 @@ Before opening the pull request, keep the checks green:
   knip` (unused files, exports and dependencies), `npm test` (browser unit suite), `npm run
   test:e2e` (end-to-end suite) and `npm run test:perf` (performance checks); `npm run build`
   produces the production bundle on its own. Both static checks must be clean; CI runs them first.
+- `npm run knip -- --production --include files,dependencies,unlisted,unresolved` checks the
+  production files and dependencies. The source project pattern has Knip's `!` suffix; Vite
+  discovers the entry from `index.html`. A full `--production` scan also reports exports used
+  only by tests, which are not necessarily unused code.
 - `npm run typecheck` — advisory only. TypeScript checks the JSDoc annotations with `checkJs` and
   implicit `any` allowed; the codebase predates the checker and reports around four thousand
   findings, most of them the Closure-era `int` type and `!Type` names TypeScript cannot resolve.
@@ -90,6 +94,9 @@ engine/simulation` (the serializer rebuilds circuit-backed gates through `Circui
 and `test_e2e/` are flat, feature-named suites; `test_perf/` imports `src/` directly. The unit
 and performance suites each ship their own harness page beside them, `test/test.html` and
 `test_perf/test_perf.html`, which Vite builds as extra entry points.
+Both entry modules first import `test/BrowserTestHarness.js`, which publishes the shared
+progress and result globals before either runner loads. Keep harness logic in this JavaScript
+module so ESLint checks it.
 
 `scripts/` holds the Node tooling the npm scripts call: `run-browser-tests.js` drives either
 harness page under Puppeteer, `run-e2e-tests.js` runs the end-to-end registry, and

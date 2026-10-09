@@ -39,7 +39,7 @@ suite.testUsingWebGL('MODULAR_INVERSE_SHADER_CODE', () => {
     const testShader = makePseudoShaderWithInputsAndOutputAndCode(
         [],
         Outputs.float(),
-        MODULAR_INVERSE_SHADER_CODE + `
+        `${MODULAR_INVERSE_SHADER_CODE}
         uniform float modulus;
         float outputFor(float k) {
             return modular_multiplicative_inverse(k, modulus);
@@ -64,7 +64,7 @@ suite.testUsingWebGL('MODULAR_INVERSE_SHADER_CODE_big_mul_mod', () => {
     const testShader = makePseudoShaderWithInputsAndOutputAndCode(
         [],
         Outputs.float(),
-        MODULAR_INVERSE_SHADER_CODE + `
+        `${MODULAR_INVERSE_SHADER_CODE}
         uniform float modulus;
         float outputFor(float k) {
             return big_mul_mod(k * 15.0, k * 7.0, modulus);
@@ -78,7 +78,7 @@ suite.testUsingWebGL('POW_MOD_SHADER_CODE', () => {
     const testShader = makePseudoShaderWithInputsAndOutputAndCode(
         [],
         Outputs.float(),
-        POW_MOD_SHADER_CODE + `
+        `${POW_MOD_SHADER_CODE}
         uniform float base;
         uniform float modulus;
         uniform float factor;

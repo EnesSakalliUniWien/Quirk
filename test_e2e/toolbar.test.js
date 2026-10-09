@@ -37,10 +37,11 @@ test('renders the circuit controls as a button toolbar', async browser => {
             await page.$eval('#drawCanvas canvas', element => getComputedStyle(element).filter),
             'none');
         assert.equal(toolbar.label, 'Circuit controls');
-        // The brand lives in the sidebar; the toolbar is circuit actions only.
-        const sidebarBrand = await page.$eval('.gate-toolbox .app-brand-copy strong',
-            element => element.textContent);
-        assert.equal(sidebarBrand, 'Shadow-Quant');
+        // No logo takes space from the content: the toolbar is circuit actions only, and the
+        // sidebar opens on its gate search.
+        const sidebarFirst = await page.$eval('.gate-toolbox',
+            element => element.firstElementChild.dataset.slot);
+        assert.equal(sidebarFirst, 'sidebar-header');
         // Three groups by what the buttons do - the circuit itself, making gates, reading the circuit
         // out - and Clear all last, away from Clear circuit. The row has no button groups, and at this
         // width no More menu.

@@ -1,3 +1,4 @@
+import styles from "./toasts.module.css";
 import { Toast } from "@base-ui/react/toast";
 import { XIcon } from "lucide-react";
 
@@ -24,7 +25,7 @@ function Toasts() {
   return (
     <Toast.Provider toastManager={toastManager} timeout={0} limit={1}>
       <Toast.Portal>
-        <Toast.Viewport className="app-toasts">
+        <Toast.Viewport className={styles["app-toasts"]}>
           <ToastList />
         </Toast.Viewport>
       </Toast.Portal>
@@ -35,12 +36,12 @@ function Toasts() {
 function ToastList() {
   const { toasts } = Toast.useToastManager();
   return toasts.map((toast) => (
-    <Toast.Root key={toast.id} toast={toast} className="app-toast">
-      <Toast.Content className="app-toast-content">
-        <Toast.Title className="app-toast-title" />
-        <Toast.Description className="app-toast-description" />
+    <Toast.Root key={toast.id} toast={toast} className={`app-toast ${styles["app-toast"]}`}>
+      <Toast.Content className={styles["app-toast-content"]}>
+        <Toast.Title className={styles["app-toast-title"]} />
+        <Toast.Description className={styles["app-toast-description"]} />
       </Toast.Content>
-      <Toast.Close className="app-toast-close" aria-label="Dismiss">
+      <Toast.Close className={styles["app-toast-close"]} aria-label="Dismiss">
         <XIcon aria-hidden="true" />
       </Toast.Close>
     </Toast.Root>

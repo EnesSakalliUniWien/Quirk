@@ -1,9 +1,9 @@
 import {observeStore} from '../../base/valueStore.js';
 import {useStore} from 'zustand';
 import {appStore} from '../../state/appStore.js';
-import { memo, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
-import { AtomIcon, InfoIcon, SearchIcon } from "lucide-react";
+import { InfoIcon, SearchIcon } from "lucide-react";
 import { ScrollArea } from "@base-ui/react/scroll-area";
 import { PreviewCard } from "@base-ui/react/preview-card";
 import { Popover } from "@base-ui/react/popover";
@@ -25,9 +25,10 @@ import {
   searchTextOf,
 } from "./toolbox.js";
 
-/** A tile's height and the gap between them, from src/styles/gates/toolbox/tiles.css and groups.css.
+/** A tile's height and the gap between them, from src/styles/gates/toolbox/tiles.css and groups.css:
+ *  the taller of its details button and its padded chip, which grows with the sidebar's text.
  *  Used only to reserve space for a group whose rendering is skipped while it is off screen. */
-const TILE_HEIGHT = 32;
+const TILE_HEIGHT = "max(32px, 1.625em + 4px)";
 const TILE_GAP = 2;
 
 /**
@@ -128,21 +129,6 @@ function GateTile({
     </div>
   );
 }
-
-// Renders once: memo with zero props keeps React away from this subtree while the toolbox
-// re-renders around it.
-const SidebarHeader = memo(function SidebarHeader() {
-  return (
-    <div className="sidebar-brand">
-      <span className="app-brand-mark" aria-hidden="true">
-        <AtomIcon />
-      </span>
-      <span className="app-brand-copy">
-        <strong>Shadow-Quant</strong>
-      </span>
-    </div>
-  );
-});
 
 /**
  * The gate palette, structured the way a shadcn sidebar is: a header holding the search, a
@@ -276,7 +262,6 @@ function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace }) {
 
   return (
     <aside className="gate-toolbox" data-slot="sidebar" aria-label="Gates">
-      <SidebarHeader />
       <div className="gate-toolbox-header" data-slot="sidebar-header">
         <div className="gate-toolbox-search">
           <SearchIcon className="gate-toolbox-search-icon" aria-hidden="true" />
@@ -333,7 +318,7 @@ function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace }) {
                     /* The height this group would have, so one whose rendering is skipped while
                        off screen still takes its real space and the scrollbar means something. */
                     style={{
-                      containIntrinsicSize: `auto ${groupModels.length * TILE_HEIGHT + (groupModels.length - 1) * TILE_GAP}px`,
+                      containIntrinsicSize: `auto calc(${groupModels.length} * ${TILE_HEIGHT} + ${(groupModels.length - 1) * TILE_GAP}px)`,
                     }}
                   >
                     {groupModels.map((model) => (

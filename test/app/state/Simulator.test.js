@@ -173,10 +173,89 @@ suite.test("simulateAtStep runs the truncated circuit without evicting the whole
     assertTrue(atStepAgain.finalState === atStep.finalState);
 });
 
+suite.testUsingWebGL("a simulator keeping checkpoints re-runs from where the circuit changed, and gives them back", () => {
+    const clock = manualClock();
+    const sim = new Simulator(clock.now, undefined, {keepCheckpoints: true});
+    const c = circuit(`H-X-t-H
+                     -HX--t-`);
+    try {
+        sim.simulate(c);
+        clock.advance(Animation.CYCLE_DURATION_MS / 8);
+        const resumed = sim.simulate(c);
+        const fresh = new Simulator(clock.now).simulate(c, resumed.time);
+        assertThat(resumed.toReadableJson()).isEqualTo(fresh.toReadableJson());
+        assertThat(sim.simulateAtStep(c, 3, resumed.time).toReadableJson())
+            .isEqualTo(new Simulator(clock.now).simulateAtStep(c, 3, resumed.time).toReadableJson());
+    } finally {
+        sim.releaseCheckpoints();
+    }
+});
+
+suite.test("a lagging evaluate shows the last result until a newer phase is back, whole and at the playhead", async () => {
+    const clock = manualClock();
+    const sim = new Simulator(clock.now, undefined, {keepCheckpoints: true});
+    const c = circuit(`H-X-t-H
+                     -HX--t-`);
+    const arrival = async () => {
+        for (let i = 0; i < 400 && sim.hasPendingRuns(); i++) {
+            sim.evaluate(c, 2, 3, true, {mayLag: true});
+            await new Promise(resolve => setTimeout(resolve, 5));
+        }
+    };
+    try {
+        const first = sim.evaluate(c, 2, 3);
+        clock.advance(Animation.CYCLE_DURATION_MS / 8);
+
+        // The frame shows what was there, while the GPU works on the new phase.
+        assertTrue(sim.evaluate(c, 2, 3, true, {mayLag: true}) === first);
+        assertTrue(sim.hasPendingRuns());
+
+        await arrival();
+        const arrived = sim.completed.getState().value;
+        assertThat(arrived.phase).isApproximatelyEqualTo(0.125);
+        assertThat(arrived.fullStats.time).isEqualTo(arrived.phase);
+        assertThat(arrived.stats.time).isEqualTo(arrived.phase);
+        const fresh = new Simulator(clock.now);
+        fresh.seed = sim.seed;
+        assertThat(arrived.fullStats.toReadableJson())
+            .isEqualTo(fresh.simulate(c, arrived.phase).toReadableJson());
+        assertThat(arrived.stats.toReadableJson())
+            .isEqualTo(fresh.simulateAtStep(c, 3, arrived.phase).toReadableJson());
+    } finally {
+        sim.releaseCheckpoints();
+    }
+});
+
+suite.test("a lagging evaluate waits as usual for anything but an animation step", () => {
+    const clock = manualClock();
+    const sim = new Simulator(clock.now, undefined, {keepCheckpoints: true});
+    try {
+        const still = circuit(`H-X
+                             -HX`);
+        const result = sim.evaluate(still, 2, 3, true, {mayLag: true});
+        assertThat(result.fullStats.circuitDefinition.columns.length).isEqualTo(still.columns.length);
+        assertFalse(sim.hasPendingRuns());
+    } finally {
+        sim.releaseCheckpoints();
+    }
+});
+
 suite.test("simulateAtStep clamps a negative step to the empty circuit", () => {
     const sim = new Simulator(manualClock().now);
     const c = circuit(`HX
                      --`);
 
     assertThat(sim.simulateAtStep(c, -1, 0).circuitDefinition.columns.length).isEqualTo(0);
+});
+
+suite.test("the cycle takes the duration the user sets, read afresh as it runs", () => {
+    const clock = manualClock();
+    let duration = 2000;
+    const sim = new Simulator(clock.now, () => duration);
+    clock.advance(500);
+    assertThat(sim.cycleTime()).isApproximatelyEqualTo(0.25);
+    // A slower cycle goes on from where the faster one stood, without jumping.
+    duration = 8000;
+    clock.advance(2000);
+    assertThat(sim.cycleTime()).isApproximatelyEqualTo(0.5);
 });

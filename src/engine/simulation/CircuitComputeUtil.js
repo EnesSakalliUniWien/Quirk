@@ -15,11 +15,12 @@
  */
 
 import { CircuitEvalContext } from "./CircuitEvalContext.js";
-import { CircuitShaders } from "./gpu/CircuitShaders.js";
 import { KetTextureUtil } from "./gpu/KetTextureUtil.js";
 import { Controls } from "../../circuit/model/Controls.js";
 /** @typedef {import("../../circuit/model/Gate.js").GateBuilder} GateBuilder */
 import { mergeMaps } from "../../base/maps.js";
+import { GateShaders } from "./gpu/GateShaders.js";
+import { fusedRunAt } from "./gateFusion.js";
 
 /**
  * @param {!GateBuilder} builder
@@ -63,6 +64,13 @@ function setGateBuilderEffectToCircuit(builder, circuitDefinition) {
  * @param {!CircuitEvalContext} ctx
  * @param {!CircuitDefinition} circuitDefinition
  * @param {!boolean} collectStats
+ * @param {!{firstCol: undefined|!int, afterColumn: undefined|!function(!int): void,
+ *     stopBefore: undefined|!function(!int): !boolean, fuse: undefined|!boolean}=} options Where to start,
+ *     when ctx already holds the state from just before that column (the initial state operations are then
+ *     skipped, and the returned stats begin at that column); what to call after a column finishes, which
+ *     within a fused run is only its last column; before which columns a fused run must stop, because the
+ *     state there is wanted; and whether to fuse runs of quiet columns (gateFusion.js), which tests turn
+ *     off to compare against.
  * @returns {!{
  *     colQubitDensities: !Array.<!WglTexture>,
  *     colNorms: !Array.<!WglTexture>,
@@ -70,7 +78,8 @@ function setGateBuilderEffectToCircuit(builder, circuitDefinition) {
  *     customStatsMap: !Array.<*>
  * }}
  */
-function advanceStateWithCircuit(ctx, circuitDefinition, collectStats) {
+function advanceStateWithCircuit(ctx, circuitDefinition, collectStats,
+    {firstCol = 0, afterColumn, stopBefore = () => false, fuse = true} = {}) {
   // Prep stats collection.
   const colQubitDensities = [];
   const customStats = [];
@@ -91,16 +100,47 @@ function advanceStateWithCircuit(ctx, circuitDefinition, collectStats) {
     }
   };
 
-  circuitDefinition.applyInitialStateOperations(ctx);
+  if (firstCol === 0) {
+    circuitDefinition.applyInitialStateOperations(ctx);
+  }
 
-  // Apply each column in the circuit.
-  for (let col = 0; col < circuitDefinition.columns.length; col++) {
-    _advanceStateWithCircuitDefinitionColumn(
-      ctx,
-      circuitDefinition,
-      col,
-      statsCallback(col),
-    );
+  // Apply each column in the circuit, or a fused run of quiet columns at a time.
+  for (let col = firstCol; col < circuitDefinition.columns.length; ) {
+    const run = fuse ? fusedRunAt(circuitDefinition, col, ctx.time, stopBefore) : undefined;
+    if (run === undefined) {
+      _advanceStateWithCircuitDefinitionColumn(
+        ctx,
+        circuitDefinition,
+        col,
+        statsCallback(col),
+      );
+      afterColumn?.(col);
+      col++;
+      continue;
+    }
+
+    for (const {row, matrix, controls} of run.steps) {
+      const stepControls = ctx.controls.and(controls.shift(ctx.row));
+      GateShaders.applyMatrixOperation(
+        new CircuitEvalContext(
+          ctx.time,
+          ctx.row + row,
+          ctx.wireCount,
+          stepControls,
+          stepControls,
+          ctx.stateTrader,
+          ctx.customContextFromGates,
+          ctx.random,
+        ),
+        matrix,
+      );
+    }
+    // Its columns have nothing to observe, but each still has its (empty) place in the stats.
+    for (let c = col; c < run.end; c++) {
+      statsCallback(c)(ctx);
+    }
+    afterColumn?.(run.end - 1);
+    col = run.end;
   }
 
   if (collectStats) {
@@ -142,7 +182,6 @@ function _extractStateStatsNeededByCircuitColumn(ctx, circuitDefinition, col) {
       row,
       circuitDefinition.numWires,
       ctx.controls,
-      ctx.controlsTexture,
       ctx.controls,
       ctx.stateTrader,
       mergeMaps(
@@ -196,9 +235,6 @@ function _advanceStateWithCircuitDefinitionColumn(
   const controls = ctx.controls.and(
     circuitDefinition.colControls(col).shift(ctx.row),
   );
-  const controlTex = CircuitShaders.controlMask(controls).toBoolTexture(
-    ctx.wireCount,
-  );
 
   const colContext = mergeMaps(
     ctx.customContextFromGates,
@@ -211,7 +247,6 @@ function _advanceStateWithCircuitDefinitionColumn(
     ctx.row,
     ctx.wireCount,
     ctx.controls,
-    ctx.controlsTexture,
     controls,
     trader,
     colContext,
@@ -222,7 +257,6 @@ function _advanceStateWithCircuitDefinitionColumn(
     ctx.row,
     ctx.wireCount,
     controls,
-    controlTex,
     controls,
     trader,
     colContext,
@@ -233,10 +267,6 @@ function _advanceStateWithCircuitDefinitionColumn(
   circuitDefinition.applyMainOperationsInCol(col, mainCtx);
   statsCallback(mainCtx);
   circuitDefinition.applyAfterOperationsInCol(col, aroundCtx);
-
-  controlTex.deallocByDepositingInPool(
-    "controlTex in _advanceStateWithCircuitDefinitionColumn",
-  );
 }
 
 export { setGateBuilderEffectToCircuit, advanceStateWithCircuit };

@@ -266,7 +266,7 @@ class CircuitDefinition {
                 if (gate !== undefined) {
                     for (let i = 0; i < gate.width; i++) {
                         for (let j = 0; j < gate.height; j++) {
-                            result.set((col+i)+":"+(row+j), {col, row, gate});
+                            result.set(`${col+i}:${row+j}`, {col, row, gate});
                         }
                     }
                 }
@@ -309,7 +309,7 @@ class CircuitDefinition {
             wire(Math.ceil(n - s.length)/2);
         const colWidths = this.columns.map(
             col => Math.max(...col.gates.map(e => e === undefined ? 0 : e.serializedId.length)));
-        return `CircuitDefinition (${this.numWires} wires, ${this.columns.length} cols):\n\t` +
+        return `CircuitDefinition (${this.numWires} wires, ${this.columns.length} cols):\n\t${
             Array.from({length: this.numWires},
                 (_, r) => wire(1) + this.columns.
                     map((col, c) => {
@@ -318,7 +318,7 @@ class CircuitDefinition {
                         return wireAround(colWidths[c], label);
                     }).
                     join(wire(1)) + wire(1)).
-                join('\n\t');
+                join('\n\t')}`;
     }
 
     /**
@@ -399,7 +399,7 @@ class CircuitDefinition {
         if (allGatesString.length <= 40) {
             return allGatesString;
         }
-        return allGatesString.slice(0, 40) + `…`;
+        return `${allGatesString.slice(0, 40)}…`;
     }
 
     /**
@@ -670,7 +670,7 @@ class CircuitDefinition {
         if (col < 0 || col >= this.columns.length) {
             return new Map();
         }
-        const key = "" + outerRowOffset;
+        const key = `${outerRowOffset}`;
         let result = this._cachedColumnContexts.get(key);
         if (result === undefined) {
             result = this._uncached_customContextFromGates(outerRowOffset);
@@ -757,7 +757,7 @@ class CircuitDefinition {
      * @returns {undefined|!{col: !int, row: !int, gate: !Gate}}
      */
     findGateCoveringSlot(col, row) {
-        const key = col+":"+row;
+        const key = `${col}:${row}`;
         if (!this._gateSlotCoverMap.has(key)) {
             return undefined;
         }
@@ -1073,7 +1073,7 @@ function srcDstMatchInRange(rangeLen, srcPredicate, dstPredicate, measured) {
     return {
         first: Math.min(src1, dst1),
         last: Math.max(src2, dst2),
-        measured: measured
+        measured
     };
 }
 

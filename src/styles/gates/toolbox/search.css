@@ -23,7 +23,7 @@
         background: var(--search-surface);
         border: var(--border-width) solid var(--input);
         border-radius: var(--radius-medium);
-        font-size: var(--text-small);
+        font-size: var(--text-small-em);
         outline: none;
     }
 

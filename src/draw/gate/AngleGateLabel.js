@@ -12,7 +12,7 @@ export function paintAngleGateLabel(args) {
     const fill = gateStyle(args.gate).text;
     paintGateLabel(painter, rect.paddedBy(-3), [
         [{text: symbol, font: {...GATE_SYMBOL_FONT, fontSize: 17}}],
-        [{text: parameter.length > 28 ? parameter.slice(0,25)+'…' : parameter,
+        [{text: parameter.length > 28 ? `${parameter.slice(0,25)}…` : parameter,
             font: {...GATE_SYMBOL_FONT, fontSize: 12}}]
     ], fill);
 }

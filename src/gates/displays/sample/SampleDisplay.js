@@ -22,7 +22,7 @@ import { SAMPLE_RENDERER } from "./sampleRenderer.js";
 
 const SampleDisplayFamily = Gate.buildFamily(1, 16, (span, builder) =>
   builder
-    .setSerializedId("Sample" + span)
+    .setSerializedId(`Sample${span}`)
     .setSymbol("Sample")
     .setTitle("Sampled Results Display")
     .setBlurb(
@@ -31,7 +31,7 @@ const SampleDisplayFamily = Gate.buildFamily(1, 16, (span, builder) =>
     .setStatTexturesMaker((ctx) =>
       probabilityStatTexture(
         ctx.stateTrader.currentTexture,
-        ctx.controlsTexture,
+        ctx.controls,
         ctx.row,
         span,
       ),

@@ -50,7 +50,7 @@ export function paintDensityMatrix(painter, matrix, drawArea, focusPoints = [],
     paintMatrixTooltip(painter, matrix, grid, focusPoints,
         (c, r) => c === r ? `Probability of |${bin(c, n)}⟩ (decimal ${c})` :
             `Coupling of |${bin(r, n)}⟩ to ⟨${bin(c, n)}| (decimal ${r} to ${c})`,
-        (c, r, v) => c === r ? (v.real * 100).toFixed(4) + '%' : v.toString(new Format(false, 0, 6, ', ')),
+        (c, r, v) => c === r ? `${(v.real * 100).toFixed(4)}%` : v.toString(new Format(false, 0, 6, ', ')),
         () => pixels ? 'Opacity is magnitude relative to the largest entry; the outlined diagonal holds probabilities.' :
             'Diagonal bars: probability; other entries: coupling.');
 }

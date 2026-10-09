@@ -27,13 +27,7 @@ export function need(expression, message, args) {
         ? "(not provided)"
         : `[${Array.prototype.slice.call(args).join(", ")}]`;
     const msgDesc = message === undefined ? "(not provided)" : message;
-    const msg =
-      "Precondition failed" +
-      "\n\nMessage: " +
-      msgDesc +
-      "\n\nArgs: " +
-      argDesc;
+    const msg = `Precondition failed\n\nMessage: ${msgDesc}\n\nArgs: ${argDesc}`;
     throw new Error(msg);
   }
 }
-

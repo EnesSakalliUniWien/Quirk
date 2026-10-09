@@ -139,8 +139,8 @@ class WglCompiledShader {
 
     const info = gl.getShaderInfoLog(shader) || "";
     if (info !== "") {
-      console.warn("WebGLShader: gl.getShaderInfoLog() wasn't empty: " + info);
-      console.warn("Source code was: " + sourceCode);
+      console.warn(`WebGLShader: gl.getShaderInfoLog() wasn't empty: ${info}`);
+      console.warn(`Source code was: ${sourceCode}`);
     }
 
     if (

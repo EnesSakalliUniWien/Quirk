@@ -167,7 +167,7 @@ function stateGridRect(matrix, area) {
     if (cells.w / matrix.width() >= MIN_LABELLED_CELL_SIZE || Math.min(area.w, area.h) < MIN_EDGE_LABELLED_SIDE) {
         return {grid: cells, block: cells, edgeLabels: false};
     }
-    const left = Math.ceil(measureText(bin(0, stateAxisBits(matrix).rowBits) + '⋯', EDGE_LABEL_FONT).width) + 6;
+    const left = Math.ceil(measureText(`${bin(0, stateAxisBits(matrix).rowBits)}⋯`, EDGE_LABEL_FONT).width) + 6;
     const top = EDGE_LABEL_FONT.fontSize + 8;
     const grid = fitCells(matrix, new Rect(area.x + left, area.y + top, area.w - left, area.h - top));
     return {grid, block: new Rect(grid.x - left, grid.y - top, grid.w + left, grid.h + top), edgeLabels: true};
@@ -178,7 +178,7 @@ function stateEdgeLabels(view, matrix, grid) {
     const {rowBits, colBits} = stateAxisBits(matrix);
     const cell = grid.w / matrix.width();
     const font = EDGE_LABEL_FONT;
-    const columnLabel = c => '⋯' + bin(c, colBits);
+    const columnLabel = c => `⋯${bin(c, colBits)}`;
     const columnStride = Math.max(1, Math.ceil((measureText(columnLabel(0), font).width + 4) / cell));
     const rowStride = Math.max(1, Math.ceil((font.fontSize + 3) / cell));
     view.group('edge-labels', view => {
@@ -187,7 +187,7 @@ function stateEdgeLabels(view, matrix, grid) {
                 baseline: 'bottom', font});
         }
         for (let r = 0; r < matrix.height(); r += rowStride) {
-            drawText(view, bin(r, rowBits) + '⋯', {x: grid.x - 3, y: grid.y + (r + 0.5) * cell, align: 'right',
+            drawText(view, `${bin(r, rowBits)}⋯`, {x: grid.x - 3, y: grid.y + (r + 0.5) * cell, align: 'right',
                 baseline: 'middle', font});
         }
     });
@@ -244,7 +244,7 @@ function renderState(view, matrix, rect, {wireCount, focusPoints = [], coherent 
     }
     paintMatrixTooltip(view, matrix, grid, focusPoints,
         (c, r) => `Amplitude of |${basis(index(c, r))}⟩ (decimal ${index(c, r)})`,
-        (c, r, v) => 'val:' + v.toString(Format.SIMPLIFIED),
+        (c, r, v) => `val:${v.toString(Format.SIMPLIFIED)}`,
         (c, r, v) => `mag²:${(v.norm2()*100).toFixed(4)}%, phase:${forceSign(v.phase() * 180 / Math.PI)}°`);
     if (phaseLockIndex !== undefined && indicatorAlpha > 0) {
         // The cell whose phase was taken as zero, which every other hand is measured from: it wears
@@ -399,7 +399,7 @@ function probabilityGroupLabels(view, rect, wireCount, groupRows) {
     const prefixBits = wireCount - Math.log2(groupRows);
     for (let start = 0; start < n; start += groupRows) {
         const cy = rect.y + d * (start + groupRows / 2);
-        fitText(view, bin(start / groupRows, prefixBits) + '⋯', {
+        fitText(view, `${bin(start / groupRows, prefixBits)}⋯`, {
             x: rect.x - 3, y: cy, align: 'right', baseline: 'middle', font: PREFIX_FONT,
             fill: CanvasTheme.text.muted, width: PREFIX_LABEL_WIDTH, height: d * groupRows,
             beforeDraw: (textWidth, textHeight) => rectangle(view,

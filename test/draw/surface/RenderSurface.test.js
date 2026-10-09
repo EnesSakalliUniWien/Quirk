@@ -36,7 +36,7 @@ suite.test('initialization failure rejects readiness and renders while disposal 
     try {
         const results = await bounded(Promise.allSettled([surface.ready, surface.render(), surface.render()]));
         assertThat(results.map(result => result.reason)).isEqualTo([failure, failure, failure]);
-        assertThat(host.textContent.includes('Rendering failed: ' + failure.message)).isEqualTo(true);
+        assertThat(host.textContent.includes(`Rendering failed: ${failure.message}`)).isEqualTo(true);
         assertThat(host.textContent.includes('×1')).isEqualTo(true);
         assertThat(host.textContent.includes('×2')).isEqualTo(false);
         await bounded(surface.destroy());

@@ -62,31 +62,66 @@ KetTextureUtil.tradeTextureForVec4Output = trader => {
  * @returns {!Array.<!Float32Array>}
  */
 KetTextureUtil.mergedReadFloats = textures => {
+    const {combined, split} = _mergeForReadback(textures);
+    return split(KetTextureUtil.tradeTextureForVec4Output(combined));
+};
+
+/**
+ * Like mergedReadFloats, but without waiting for the GPU: the pixels arrive at the earliest on a
+ * later frame. The textures go back to the pool right away.
+ *
+ * @param {!Array.<!WglTexture>} textures
+ * @returns {!{isReady: function(): !boolean, isLost: function(): !boolean,
+ *     take: function(): !Array.<!Float32Array>, cancel: function(): void}}
+ */
+KetTextureUtil.mergedReadFloatsAsync = textures => {
+    const {combined, split} = _mergeForReadback(textures);
+    const read = combined.currentTexture.readPixelsAsync();
+    combined.currentTexture.deallocByDepositingInPool("mergedReadFloatsAsync");
+    return {
+        isReady: () => read.isReady(),
+        isLost: () => read.isLost(),
+        take: () => split(currentShaderCoder().vec4.pixelsToData(read.take())),
+        cancel: () => read.cancel()
+    };
+};
+
+/**
+ * Overlays the textures into one, so they come back in a single read, and returns them to the pool.
+ *
+ * @param {!Array.<!WglTexture>} textures
+ * @returns {!{combined: !WglTextureTrader, split: function(!Float32Array): !Array.<!Float32Array>}}
+ * @private
+ */
+function _mergeForReadback(textures) {
     const len = tex => tex.width === 0 ? 0 : 1 << currentShaderCoder().vec4.arrayPowerSizeOfTexture(tex);
     const totalPowerSize = Math.round(Math.log2(ceilingPowerOf2(
         textures.reduce((total, tex) => total + len(tex), 0))));
 
-    const trader = new WglTextureTrader(Shaders.color(0, 0, 0, 0).toVec4Texture(totalPowerSize));
+    const combined = new WglTextureTrader(Shaders.color(0, 0, 0, 0).toVec4Texture(totalPowerSize));
     let offset = 0;
     for (const tex of textures) {
         if (tex.width > 0) {
-            trader.shadeAndTrade(acc => CircuitShaders.linearOverlay(offset, tex, acc));
+            combined.shadeAndTrade(acc => CircuitShaders.linearOverlay(offset, tex, acc));
         }
         offset += len(tex);
     }
 
-    const combinedPixels = KetTextureUtil.tradeTextureForVec4Output(trader);
-
-    const result = [];
-    let pixelOffset = 0;
+    const lengths = textures.map(tex => len(tex) << 2);
     for (const tex of textures) {
-        const pixelLen = len(tex) << 2;
-        result.push(combinedPixels.subarray(pixelOffset, pixelOffset + pixelLen));
-        pixelOffset += pixelLen;
         tex.deallocByDepositingInPool();
     }
-    return result;
-};
+    const split = combinedPixels => {
+        const result = [];
+        let pixelOffset = 0;
+        for (const pixelLen of lengths) {
+            result.push(combinedPixels.subarray(pixelOffset, pixelOffset + pixelLen));
+            pixelOffset += pixelLen;
+        }
+        return result;
+    };
+    return {combined, split};
+}
 
 /**
  * @param {!Float32Array} pixels

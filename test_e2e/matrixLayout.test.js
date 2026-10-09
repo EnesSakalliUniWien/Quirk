@@ -99,20 +99,20 @@ test("large operators support keyboard entry selection without scrolling during 
     await withQuirkPage(browser, {cols: [["inc12"]]}, async page => {
         await openAlgebra(page);
         const operator = '[data-step="1"] .operator-view';
-        await page.waitForSelector(operator + ' canvas[data-painted="true"]');
-        await page.focus(operator + ' input[aria-label="Output row"]');
+        await page.waitForSelector(`${operator} canvas[data-painted="true"]`);
+        await page.focus(`${operator} input[aria-label="Output row"]`);
         await page.keyboard.press('ArrowUp');
         await page.waitForFunction(selector => /\|U\|.*= 1/.test(document.querySelector(selector).textContent),
-            {timeout: TEST_TIMEOUT_MILLIS}, operator + ' .operator-view-readout');
+            {timeout: TEST_TIMEOUT_MILLIS}, `${operator} .operator-view-readout`);
         const unchanged = await page.evaluate(selector => {
             const track = document.querySelector('.algebra-steps');
             const x = track.scrollLeft;
             document.querySelector(selector).dispatchEvent(new WheelEvent('wheel', {
                 deltaY: -100, ctrlKey: true, bubbles: true, cancelable: true}));
             return track.scrollLeft === x;
-        }, operator + ' canvas');
+        }, `${operator} canvas`);
         assert.ok(unchanged);
-        await page.waitForFunction(selector => document.querySelector(selector).textContent !== '×1', {}, operator + ' .operator-view-zoom');
+        await page.waitForFunction(selector => document.querySelector(selector).textContent !== '×1', {}, `${operator} .operator-view-zoom`);
         assert.ok(await page.$eval('[data-step="1"]', e => e.textContent.includes('reshaped grid')));
     });
 });

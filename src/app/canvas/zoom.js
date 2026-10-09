@@ -119,7 +119,7 @@ function initZoomControls(container, fitFactorProvider) {
     makeButton('Fit', 'Fit the circuit to the visible area', () => setCircuitZoom(fitFactorProvider()));
 
     const showZoom = () => {
-        readout.textContent = Math.round(circuitZoom() * 100) + '%';
+        readout.textContent = `${Math.round(circuitZoom() * 100)}%`;
     };
     onCircuitZoomChanged(showZoom);
     showZoom();

@@ -28,7 +28,7 @@ function drawColumnControlWires(context, painter, columnIndex) {
 
     // Dashed line indicates effects from non-unitary gates may affect, or appear to affect, other wires.
     if (context.definition.columns[columnIndex].hasGatesWithGlobalEffects()) {
-        painter.group('global-control-' + painter.order, painter => {
+        painter.group(`global-control-${painter.order}`, painter => {
             strokePath(painter, [new Point(x, context.geometry.gateRect(0, 0).y), new Point(x, context.geometry.opRect(0).bottom() - 40)], CanvasTheme.text.primary, 1, [1, 4]);
         });
     }

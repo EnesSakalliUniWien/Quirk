@@ -2,13 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import { useStore } from "zustand";
 
 import { CooldownThrottle } from "../../../base/CooldownThrottle.js";
-import { Animation } from "../../../config/Animation.js";
 import { appStore } from "../../../state/appStore.js";
+import { motionSettings } from "../../../state/motionSettings.js";
 import { usePanelVisibility } from "./usePanelVisibility.js";
 
 
 /**
- * One of the simulator's outputs, sampled no faster than a panel can be read. The circuit redraws
+ * One of the simulator's outputs, sampled no faster than a panel can be read, or than the user's
+ * panel refresh interval. The circuit redraws
  * every frame; re-deriving a table, a chart or a list of matrices that often would spend the whole
  * frame budget on something nobody can read that fast.
  *
@@ -22,6 +23,7 @@ import { usePanelVisibility } from "./usePanelVisibility.js";
  */
 function useSampled(pick) {
   const deps = useStore(appStore, (s) => s.panelDeps);
+  const cooldownMs = useStore(deps?.settings ?? motionSettings, (s) => s.panelSampleMs);
   const visible = usePanelVisibility();
   const [sample, setSample] = useState(undefined);
   const visibleRef = useRef(visible);
@@ -43,15 +45,16 @@ function useSampled(pick) {
       missed = false;
       setSample(latest);
     };
-    const throttle = new CooldownThrottle(deliver, Animation.PANEL_SAMPLE_COOLDOWN_MS);
+    const throttle = new CooldownThrottle(deliver, cooldownMs);
     shownRef.current = () => {if (missed) throttle.trigger();};
     const unsubscribe = pick(deps).subscribe(state => state.value, (value) => {
       latest = value;
       throttle.trigger();
     }, {fireImmediately: true});
     return () => {active = false; shownRef.current = undefined; unsubscribe();};
-    // pick is a module-level constant at every call site, so deps is the only real dependency.
-  }, [deps]);
+    // pick is a module-level constant at every call site, so deps and the interval are the only real
+    // dependencies.
+  }, [deps, cooldownMs]);
 
   useEffect(() => {
     visibleRef.current = visible;

@@ -44,7 +44,8 @@ import {circuitZoom, onCircuitZoomChanged} from './zoom.js';
  * @param {import("zustand/vanilla").StoreApi<{value: !CircuitStats}>} mostRecentStats Written every frame.
  * @param {!function(!EditorState): !{w: !number, h: !number}} desiredCanvasSizeFor
  * @param {!function(!EditorState): !EditorState} syncArea
- * @param {!function(): !Object} captureCommitted Captures the committed circuit, separate from a drag preview.
+ * @param {!function(!{mayLag: undefined|!boolean}=): !Object} captureCommitted Captures the committed circuit,
+ *     separate from a drag preview.
  * @param {!function(): (undefined|!{circuitJson: !string, range: !CircuitRange})} currentSelection The
  *     selected part of the circuit, drawn while the circuit it was made on is the one shown.
  * @returns {!{start: !function(): void, trigger: !function(): void}} start paints the first frame
@@ -96,7 +97,8 @@ function initRedrawLoop(canvas,
             shown = shown.withHand(shown.hand.withHeldGateColumn(new GateColumn([]), new Point(0, 0)))
         }
         const circuitDefinition = shown.displayedCircuit.circuitDefinition;
-        const committed = captureCommitted();
+        // Each frame starts the next phase on the GPU and shows the last one back, instead of waiting.
+        const committed = captureCommitted({mayLag: true});
         // A preview runs at the simulator's own phase, so a spinning gate held over a still circuit spins.
         const stats = committed.circuit.withMinimumWireCount().isEqualTo(circuitDefinition.withMinimumWireCount()) ?
             committed.fullStats : simulator.simulate(circuitDefinition);
@@ -134,8 +136,8 @@ function initRedrawLoop(canvas,
         overAllocated = backingW !== fittedW || backingH !== fittedH;
         viewport.surface.resize(backingW, backingH);
         viewport.surface.presentation.setState({width: cssW, height: cssH});
-        spacer.style.width = Math.round(size.w * zoom) + 'px';
-        spacer.style.height = Math.round(size.h * zoom) + 'px';
+        spacer.style.width = `${Math.round(size.w * zoom)}px`;
+        spacer.style.height = `${Math.round(size.h * zoom)}px`;
 
         // The camera: the painter scales into circuit units, then shifts by the scroll so the
         // fixed viewport shows the scrolled-to part of the scene.
@@ -154,9 +156,10 @@ function initRedrawLoop(canvas,
             hand.selectingRangeFrom !== undefined ? 'crosshair' :
             hand.isBusy() ? 'ns-resize' : viewport.surface.app.renderer.events.rootBoundary.cursor || 'auto');
 
-        // Time-dependent gates animate whenever the cycle runs, not only while the transport plays.
+        // Time-dependent gates animate whenever the cycle runs, not only while the transport plays,
+        // and results still on their way from the GPU need a frame to show them.
         const dt = displayed.getState().value.stableDuration();
-        if (dt < Infinity && simulator.clockRunning()) {
+        if ((dt < Infinity && simulator.clockRunning()) || simulator.hasPendingRuns()) {
             clock.after(0, () => redrawThrottle.trigger());
         }
     };
@@ -184,8 +187,8 @@ function initRedrawLoop(canvas,
         // The spacer is rescaled first so the new scroll position isn't clamped to the old extent.
         const factor = circuitZoom() / lastZoom;
         lastZoom = circuitZoom();
-        spacer.style.width = (Number.parseFloat(spacer.style.width) || 0) * factor + 'px';
-        spacer.style.height = (Number.parseFloat(spacer.style.height) || 0) * factor + 'px';
+        spacer.style.width = `${(Number.parseFloat(spacer.style.width) || 0) * factor}px`;
+        spacer.style.height = `${(Number.parseFloat(spacer.style.height) || 0) * factor}px`;
         canvasDiv.scrollLeft = (canvasDiv.scrollLeft + canvasDiv.clientWidth / 2) * factor -
             canvasDiv.clientWidth / 2;
         canvasDiv.scrollTop = (canvasDiv.scrollTop + canvasDiv.clientHeight / 2) * factor -

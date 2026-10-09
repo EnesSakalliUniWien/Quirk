@@ -17,6 +17,20 @@ async function records(page) {
     }));
 }
 
+/** Waits until the saved takes stop changing: a write still in flight has landed. */
+async function settledRecords(page) {
+    let previous = -1;
+    let current = (await records(page)).length;
+    const started = Date.now();
+    while (current !== previous) {
+        if (Date.now() - started > TEST_TIMEOUT_MILLIS) throw new Error("The takes never stopped changing");
+        await new Promise(resolve => setTimeout(resolve, 600));
+        previous = current;
+        current = (await records(page)).length;
+    }
+    return current;
+}
+
 async function waitSaved(page, count) {
     await page.waitForFunction(expected => [...document.querySelectorAll('.take-card:not(.take-ghost)')].length === expected,
         {timeout: TEST_TIMEOUT_MILLIS}, count);
@@ -82,7 +96,7 @@ test("Tape whole run uses one phase and links import in a fresh browser context"
             assert.equal(new Set(takes.map(t => t.phase)).size, 1);
             assert.equal(new Set(takes.map(t => t.seed)).size, 1);
             first = takes[3];
-            link = page.url().split("#")[0] + "#take=" + encodeURIComponent(JSON.stringify(first));
+            link = `${page.url().split("#")[0]}#take=${encodeURIComponent(JSON.stringify(first))}`;
         });
     } finally {await context.close();}
     const fresh = await browser.createBrowserContext();
@@ -91,10 +105,16 @@ test("Tape whole run uses one phase and links import in a fresh browser context"
         await page.goto(link);
         await waitForQuirk(page);
         await waitForPanel(page, "tape", true);
-        await waitSaved(page, 1);
-        assert.deepEqual((await records(page))[0].take, first);
+        await page.waitForSelector(".take-linked");
         assert.match(await page.$eval("#playhead-position", e => e.textContent), /operation 2 \/ 2/);
         assert.match(await page.$eval(".take-card", e => e.textContent), /Sample 2:0:/);
+        assert.match(await page.$eval(".take-card", e => e.textContent), /Measured 1024 shots/);
+        // Opening the link recorded nothing; keeping the take saves it as it was.
+        assert.deepEqual(await records(page), []);
+        await page.evaluate(() => [...document.querySelector(".take-linked").querySelectorAll("button")].find(e => e.textContent === "Keep").click());
+        await waitSaved(page, 1);
+        assert.deepEqual((await records(page))[0].take, first);
+        assert.equal(await page.$(".take-linked"), null);
     } finally {await fresh.close();}
 });
 
@@ -131,6 +151,7 @@ test("Keeping a ghost immediately after editing preserves metadata and results o
             await withQuirkPage(context, {cols: [["H"]]}, async page => {
                 await page.click("#record-take");
                 await waitSaved(page, 1);
+                await page.click("#record-ghosts");
                 await page.click("#clear-circuit-button");
                 await page.waitForSelector(".take-ghost");
                 const original = (await records(page)).find(r => r.ghost).take;
@@ -179,4 +200,142 @@ test("Tape rejects an album with missing detector data without partial writes", 
             assert.deepEqual(await records(page), before);
         });
     } finally {await context.close(); await rm(directory, {recursive: true, force: true});}
+});
+
+test("Nothing records until asked, and a started recording samples at the set rate until stopped", async browser => {
+    const context = await browser.createBrowserContext();
+    try {
+        await withQuirkPage(context, {cols: [["H"]]}, async page => {
+            // Edits and an example record nothing.
+            await page.click("#clear-circuit-button");
+            await page.click("#examples-button");
+            await page.waitForSelector(".app-menu-item");
+            await page.click(".app-menu-item");
+            await page.click("#undo-button");
+            // Longer than three periods of the default sampling rate: a recording that had started
+            // by itself would have saved a take by now.
+            await new Promise(resolve => setTimeout(resolve, 1600));
+            assert.deepEqual(await records(page), []);
+            assert.equal(await page.$eval("#recording-indicator", e => e.hidden), true);
+
+            await page.click("#record-toggle");
+            await waitForPanel(page, "tape", true);
+            assert.equal(await page.$eval("#record-toggle", e => e.textContent), "Stop");
+            assert.match(await page.$eval("#recording-status", e => e.textContent), /Recording started, a take 2 per second/);
+            assert.equal(await page.$eval("#recording-indicator", e => e.hidden), false);
+            assert.match(await page.$eval("#recording-indicator", e => e.textContent), /Recording · 2\/s/);
+            // The buttons that cannot be used while recording give their place to the indicator.
+            assert.equal(await page.$eval("#record-run", e => e.hidden), true);
+            assert.equal(await page.$eval("#record-take", e => e.hidden), true);
+            await page.waitForFunction(() => document.querySelectorAll(".take-card").length >= 3, {timeout: TEST_TIMEOUT_MILLIS});
+            await page.click("#record-toggle");
+            assert.equal(await page.$eval("#recording-indicator", e => e.hidden), true);
+            assert.equal(await page.$eval("#record-toggle", e => e.textContent), "Record");
+            // A sample being written when Stop was pressed may still land; after that, nothing does.
+            const count = await settledRecords(page);
+            await new Promise(resolve => setTimeout(resolve, 1600));
+            assert.equal((await records(page)).length, count);
+            assert.match(await page.$eval("#recording-status", e => e.textContent), /Recording stopped/);
+            for (const {take} of await records(page)) {
+                assert.equal(take.measurement.shots, 1024);
+                assert.equal(take.measurement.counts.reduce((sum, [, n]) => sum + n, 0), 1024);
+            }
+        });
+    } finally {await context.close();}
+});
+
+test("The animation, sampling and measurement settings apply to what is recorded and are remembered", async browser => {
+    const context = await browser.createBrowserContext();
+    try {
+        await withQuirkPage(context, {cols: [["H"]]}, async page => {
+            await page.click("#tape-button");
+            await waitForPanel(page, "tape", true);
+            await page.click(".motion-settings summary");
+            const setValue = (selector, value) => page.$eval(selector, (e, v) => {
+                const setter = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(e), "value").set;
+                setter.call(e, v);
+                e.dispatchEvent(new Event("input", {bubbles: true}));
+                e.dispatchEvent(new Event("change", {bubbles: true}));
+                e.blur();
+            }, value);
+            await setValue("#setting-shots", "64");
+            await setValue("#setting-sample-rate", "5");
+            await setValue("#setting-cycle", "2");
+            await page.waitForFunction(() => document.querySelector("#setting-cycle + output").textContent === "2 s");
+            await page.click("#record-take");
+            await waitSaved(page, 1);
+            assert.equal((await records(page))[0].take.measurement.shots, 64);
+            await page.click("#record-toggle");
+            assert.match(await page.$eval("#recording-indicator", e => e.textContent), /5\/s/);
+            await page.click("#record-toggle");
+
+            await page.reload();
+            await waitForQuirk(page);
+            await page.click("#tape-button");
+            await waitForPanel(page, "tape", true);
+            assert.equal(await page.$eval("#setting-shots", e => e.value), "64");
+            assert.equal(await page.$eval("#setting-cycle", e => e.value), "2");
+            await page.evaluate(() => [...document.querySelectorAll(".motion-settings button")].find(e => e.textContent === "Reset to defaults").click());
+            await page.waitForFunction(() => document.querySelector("#setting-shots").value === "1024");
+        });
+    } finally {await context.close();}
+});
+
+test("With ghosts on, an edit keeps a ghost and loading an example keeps none", async browser => {
+    const context = await browser.createBrowserContext();
+    try {
+        await withQuirkPage(context, {cols: [["H"]]}, async page => {
+            await page.click("#tape-button");
+            await waitForPanel(page, "tape", true);
+            await page.click("#record-ghosts");
+            await page.click("#clear-circuit-button");
+            await page.waitForSelector(".take-ghost");
+            await page.click("#examples-button");
+            await page.waitForSelector(".app-menu-item");
+            await page.click(".app-menu-item");
+            await new Promise(resolve => setTimeout(resolve, 600));
+            assert.equal((await records(page)).filter(r => r.ghost).length, 1);
+        });
+    } finally {await context.close();}
+});
+
+test("A broken take link says why and saves nothing, and leaving a take link drops its unsaved take", async browser => {
+    const context = await browser.createBrowserContext();
+    try {
+        await withQuirkPage(context, {cols: [["H"]]}, async page => {
+            const base = page.url().split("#")[0];
+            await page.goto(`${base}#take=${encodeURIComponent(JSON.stringify({format: "shadow-quant-take/1", id: "x"}))}`);
+            await waitForQuirk(page);
+            await page.click("#tape-button");
+            await waitForPanel(page, "tape", true);
+            await page.waitForFunction(() => document.querySelector('[data-panel-id="tape"] [role="alert"]')?.textContent.includes("Invalid take"));
+            assert.deepEqual(await records(page), []);
+
+            await page.goto(`${base}#circuit=${encodeURIComponent(JSON.stringify({cols: [["H"], ["X"]]}))}`);
+            await waitForQuirk(page);
+            await page.click("#record-take");
+            await waitForPanel(page, "tape", true);
+            await waitSaved(page, 1);
+            const take = (await records(page))[0].take;
+            await page.evaluate(link => {location.hash = link;}, `take=${encodeURIComponent(JSON.stringify({...take, id: "linked"}))}`);
+            await page.waitForSelector(".take-linked");
+            await page.goBack();
+            await page.waitForFunction(() => document.querySelector(".take-linked") === null);
+            assert.equal((await records(page)).length, 1);
+        });
+    } finally {await context.close();}
+});
+
+test("The settings say so while Reduce Motion is on", async browser => {
+    const context = await browser.createBrowserContext();
+    try {
+        await withQuirkPage(context, {cols: [["H"]]}, async page => {
+            await page.click("#tape-button");
+            await waitForPanel(page, "tape", true);
+            await page.click(".motion-settings summary");
+            assert.doesNotMatch(await page.$eval(".motion-settings", e => e.textContent), /Reduce Motion is on/);
+            await page.emulateMediaFeatures([{name: "prefers-color-scheme", value: "dark"}, {name: "prefers-reduced-motion", value: "reduce"}]);
+            await page.waitForFunction(() => document.querySelector(".motion-settings").textContent.includes("Reduce Motion is on"));
+        });
+    } finally {await context.close();}
 });

@@ -191,7 +191,7 @@ function paintBlochProjection(view, width, height, vec, plane, {focusAxis, layer
         for (const [index, [letter, formula]] of formulas.entries()) {
             const cellWidth = width / formulas.length;
             const color = letter === across.letter ? across.color : up.color;
-            forAxis('formula-' + letter, letter, inner => fitText(inner, `${letter} = ${formula}`,
+            forAxis(`formula-${letter}`, letter, inner => fitText(inner, `${letter} = ${formula}`,
                 {x: cellWidth * (index + 0.5), y: line, fill: color, font: font(12),
                     align: 'center', baseline: 'bottom', width: cellWidth - 16}));
         }

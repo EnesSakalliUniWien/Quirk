@@ -20,7 +20,7 @@ suite.test('rotation and resizing preserve the displayed frame until the replace
         assertThat(background[3]).isEqualTo(255);
         for (const size of [120, 160, 100]) {
             const previousWidth = canvas.width;
-            canvas.style.width = size + 'px';
+            canvas.style.width = `${size}px`;
             drawBlochScene(canvas, {x: 1, y: 0, z: 0}, 0.5, 0.2);
             assertThat([...ctx.getImageData(2, 2, 1, 1).data]).isEqualTo(background);
             assertThat(canvas.width).isEqualTo(previousWidth);
@@ -47,7 +47,7 @@ suite.test('a projection triangle is created only for an axis that gives the vec
 suite.test('coordinate-plane triangles have perpendicular component legs in every octant', () => {
     for (const x of [-0.3, 0.3]) for (const y of [-0.4, 0.4]) for (const z of [-0.5, 0.5]) {
         const triangles = coordinatePlaneTriangles({x, y, z});
-        assertThat(triangles.map(t => t.axes.join('') + '⊥' + t.normal)).isEqualTo(['xy⊥z', 'xz⊥y', 'yz⊥x']);
+        assertThat(triangles.map(t => `${t.axes.join('')}⊥${t.normal}`)).isEqualTo(['xy⊥z', 'xz⊥y', 'yz⊥x']);
         for (const {foot, tip} of triangles) {
             const leg = tip.map((v, i) => v - foot[i]);
             assertThat(foot.reduce((dot, v, i) => dot + v * leg[i], 0)).isEqualTo(0);

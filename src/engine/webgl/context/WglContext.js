@@ -28,7 +28,7 @@ class WglContext {
   constructor(canvas, context) {
     const problem = webGl2SupportProblem();
     if (problem !== undefined) {
-      throw new Error("Error creating WebGL2 context: " + problem);
+      throw new Error(`Error creating WebGL2 context: ${problem}`);
     }
 
     /**

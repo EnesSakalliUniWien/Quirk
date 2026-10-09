@@ -17,7 +17,7 @@
 function millis(milliseconds) {
     return {
         duration_nanos: milliseconds * 1.0e6,
-        description: milliseconds + " ms"
+        description: `${milliseconds} ms`
     };
 }
 
@@ -35,9 +35,13 @@ function getKnownPerfTests() {
  */
 function perfGoal(name, targetDuration, method, arg=undefined, cleanup=undefined) {
     _knownPerfTests.push({name, method: () => {
-        const dt = _measureDuration(method, arg, targetDuration.duration_nanos);
-        if (cleanup !== undefined) {
-            cleanup(arg);
+        let dt;
+        try {
+            dt = _measureDuration(method, arg, targetDuration.duration_nanos);
+        } finally {
+            if (cleanup !== undefined) {
+                cleanup(arg);
+            }
         }
         const p = dt.duration_nanos / targetDuration.duration_nanos;
         const pass = dt.duration_nanos <= targetDuration.duration_nanos;

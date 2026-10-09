@@ -37,7 +37,7 @@ import { ComplexFormula } from "../engine/math/formula/ComplexFormula.js";
  * @returns {!string} A serialized id unlikely to collide with any other custom gate's.
  */
 function randomCustomGateId() {
-  return "~" + Math.floor(Math.random() * (1 << 20)).toString(32);
+  return `~${Math.floor(Math.random() * (1 << 20)).toString(32)}`;
 }
 
 /**
@@ -171,10 +171,10 @@ function parseRange(text, maxLen) {
   const min = parseInt(parts[0] || "1");
   const max = infinities.includes(parts[1]) ? Infinity : parseInt(parts[1]);
   if (Number.isNaN(min)) {
-    throw new Error("Not a number: " + parts[0]);
+    throw new Error(`Not a number: ${parts[0]}`);
   }
   if (Number.isNaN(max)) {
-    throw new Error("Not a number: " + parts[1]);
+    throw new Error(`Not a number: ${parts[1]}`);
   }
 
   const start = Math.min(maxLen, Math.max(0, min - 1));

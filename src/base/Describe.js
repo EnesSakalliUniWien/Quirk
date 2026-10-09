@@ -30,7 +30,7 @@ function try_describe_atomic(value) {
     return `"${value}"`;
   }
   if (typeof value === "number") {
-    return "" + value;
+    return `${value}`;
   }
   return undefined;
 }

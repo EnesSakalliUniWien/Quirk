@@ -16,7 +16,6 @@
 @import "./gates/toolbox/index.css";
 @import "./gates/details.css";
 @import "./panels/shared/frame.css";
-@import "./panels/examples.css";
 @import "./panels/gate-param.css";
 @import "./panels/bloch.css";
 @import "./panels/shared/sections.css";
@@ -39,7 +38,6 @@
 @import "./circuit/selection.css";
 @import "./circuit/cursor.css";
 @import "./ui/menu.css";
-@import "./ui/toast.css";
 @import "./panels/forge/construction.css";
 @import "./math/matrices.css";
 @import "./math/operator-controls.css";

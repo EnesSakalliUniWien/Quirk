@@ -25,7 +25,7 @@ const offsetShader = ketShaderPermute(
     'return mod(out_id - amount + span, span);');
 
 IncrementGates.IncrementFamily = Gate.buildFamily(1, 16, (span, builder) => builder.
-    setSerializedId("inc" + span).
+    setSerializedId(`inc${span}`).
     setSymbol("+1").
     setTitle("Increment Gate").
     setBlurb("Adds 1 to the little-endian number represented by a block of qubits.").
@@ -36,7 +36,7 @@ IncrementGates.IncrementFamily = Gate.buildFamily(1, 16, (span, builder) => buil
 
 IncrementGates.DecrementFamily = Gate.buildFamily(1, 16, (span, builder) => builder.
     setAlternateFromFamily(IncrementGates.IncrementFamily).
-    setSerializedId("dec" + span).
+    setSerializedId(`dec${span}`).
     setSymbol("−1").
     setTitle("Decrement Gate").
     setBlurb("Subtracts 1 from the little-endian number represented by a block of qubits.").

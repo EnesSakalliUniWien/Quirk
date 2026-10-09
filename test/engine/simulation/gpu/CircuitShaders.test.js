@@ -85,34 +85,6 @@ suite.testUsingWebGL("linearOverlay", () => {
     back.deallocByDepositingInPool();
 });
 
-suite.testUsingWebGL("controlMask", () => {
-    assertThat(CircuitShaders.controlMask(new Controls(0x3, 0x1)).readBoolOutputs(2)).isEqualTo(new Uint8Array([
-        0, 1, 0, 0
-    ]));
-
-    assertThat(CircuitShaders.controlMask(new Controls(0x3, 0x1)).readBoolOutputs(2)).isEqualTo(new Uint8Array([
-        0, 1, 0, 0
-    ]));
-
-    assertThat(CircuitShaders.controlMask(new Controls(0x3, 0x0)).readBoolOutputs(2)).isEqualTo(new Uint8Array([
-        1, 0, 0, 0
-    ]));
-
-    assertThat(CircuitShaders.controlMask(new Controls(0x1, 0x0)).readBoolOutputs(2)).isEqualTo(new Uint8Array([
-        1, 0, 1, 0
-    ]));
-
-    assertThat(CircuitShaders.controlMask(new Controls(0x5, 0x4)).readBoolOutputs(3)).isEqualTo(new Uint8Array([
-        0, 0, 0, 0, 1, 0, 1, 0
-    ]));
-});
-
-suite.testUsingWebGL("controlMask_largeReference", () => {
-    const mask = new Controls(0b10111010101010111, 0b10011000001010001);
-    const expected = Uint8Array.from({length: 1 << 13}, (_, i) => mask.allowsState(i) ? 1 : 0);
-    assertThat(CircuitShaders.controlMask(mask).readBoolOutputs(13)).isEqualTo(expected);
-});
-
 suite.testUsingWebGL("controlSelect_simple", () => {
     const coords = makePseudoShaderWithInputsAndOutputAndCode([], Outputs.vec2(), `
         vec2 outputFor(float k) {

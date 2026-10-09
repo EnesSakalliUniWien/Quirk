@@ -32,12 +32,16 @@ class Playhead {
      *     obsSchedule The columns are optional; without them breakpoints stay where they were.
      * @param {!function(!function(): void, !number): *} setIntervalFunc
      * @param {!function(*): void} clearIntervalFunc
+     * @param {!function(): !number} stepDurationMillisFunc How long Play rests on each operation; the
+     *     app passes the user's setting, and calls retime() when it changes.
      */
     constructor(obsSchedule,
                 setIntervalFunc = (callback, delay) => clock.every(delay, callback),
-                clearIntervalFunc = stop => stop()) {
+                clearIntervalFunc = stop => stop(),
+                stepDurationMillisFunc = () => Animation.PLAYHEAD_STEP_DURATION_MS) {
         this._setInterval = setIntervalFunc;
         this._clearInterval = clearIntervalFunc;
+        this._stepDurationMillis = stepDurationMillisFunc;
         this._columnCount = 0;
         this._operationColumns = [];
         this._step = 0;
@@ -334,12 +338,29 @@ class Playhead {
         if (this._step === 0 && this._restartOnPlay) this.generation++;
         this._restartOnPlay = false;
         this._playing = true;
+        this._startTimer();
+        this._publish();
+    }
+
+    /**
+     * Takes up a new time per operation: a run under way goes on at the new pace from here.
+     * @returns {void}
+     */
+    retime() {
+        if (!this._playing) return;
+        this._clearInterval(this._timer);
+        this._startTimer();
+    }
+
+    /**
+     * @private
+     */
+    _startTimer() {
         this._timer = this._setInterval(() => {
             this._seek(this._runTarget(this._nextStep()));
             // A halt ends the run where it stands, the way the end of the circuit does.
             if (this._haltSteps().includes(this._step)) this.pause();
-        }, Animation.PLAYHEAD_STEP_DURATION_MS);
-        this._publish();
+        }, this._stepDurationMillis());
     }
 
     /**

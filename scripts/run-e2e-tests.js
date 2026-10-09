@@ -66,7 +66,7 @@ try {
     process.exitCode = 1;
   }
 } catch (error) {
-  console.error("Error bubbled up into run-e2e-tests.js: " + error.stack);
+  console.error(`Error bubbled up into run-e2e-tests.js: ${error.stack}`);
   process.exitCode = 1;
 } finally {
   try {

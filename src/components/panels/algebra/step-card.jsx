@@ -20,16 +20,16 @@ function StepCard({ index, step, before, after, wireCount, current, onSeek, sour
       <span className="algebra-step-description">{step.description}</span>
     </button>
     <div className="algebra-equation" role="group" aria-label={hasOperator ?
-      "Step " + number + ": operator times input state, compared with simulated output state" :
-      "Step " + number + ": simulated input and output; no matrix representation"}>
+      `Step ${number}: operator times input state, compared with simulated output state` :
+      `Step ${number}: simulated input and output; no matrix representation`}>
       {hasOperator && <><OperatorMatrix showTensorFactors matrix={step.matrix} source={source} structure={step.structure}
-        formatKet={formatKet} size={PLOT_SIZE} label={"Operator " + number} />
+        formatKet={formatKet} size={PLOT_SIZE} label={`Operator ${number}`} />
         <span className="equation-sign" aria-hidden="true">×</span></>}
       <StateFactor state={before} step={index} wireCount={wireCount} formatKet={formatKet} label="Input" />
       <span className="equation-sign" aria-label={relation === "→" ? "simulated result" : undefined}>{relation}</span>
       <StateFactor state={after} step={number} wireCount={wireCount} formatKet={formatKet} highlight={changed} label="Output" />
     </div>
-    <p className={"algebra-step-note" + (step.reason !== undefined || step.residual === undefined || relation === "≠" ? " debug-panel-note" : "")}>{step.reason ?? (step.residual === undefined ?
+    <p className={`algebra-step-note${step.reason !== undefined || step.residual === undefined || relation === "≠" ? " debug-panel-note" : ""}`}>{step.reason ?? (step.residual === undefined ?
       "Simulated output; matrix equality has not been checked at this size." :
       relation === "≠" ? "The operator product differs from the simulated output; see the circuit's measurement or normalization behavior." :
       "Rows name output basis states; columns name input basis states. Highlighted output entries changed.")}</p>

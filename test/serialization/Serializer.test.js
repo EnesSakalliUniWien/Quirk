@@ -316,7 +316,7 @@ suite.test("known_gates_forward_compatible", meta => {
         if (id.startsWith("__unstable__")) {
             continue;
         }
-        meta.warn_only = "New id: " + id;
+        meta.warn_only = `New id: ${id}`;
         assertThat(shouldBeKnownIds.has(id)).withInfo(id).isEqualTo(true);
     }
     meta.warn_only = false;

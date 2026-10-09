@@ -390,8 +390,8 @@ test('opens the enlarged Bloch sphere view from a Bloch display gate', async bro
         }
         const samples = await page.evaluate(() => window.stopCanvasSampling());
         for (const [id, counts] of Object.entries(samples)) {
-            assert.ok(counts.frames > 0, id + ' must be sampled during interaction');
-            assert.equal(counts.blank, 0, id + ' must keep its previous frame until the next render');
+            assert.ok(counts.frames > 0, `${id} must be sampled during interaction`);
+            assert.equal(counts.blank, 0, `${id} must keep its previous frame until the next render`);
         }
 
         await closePanel(page, 'bloch');

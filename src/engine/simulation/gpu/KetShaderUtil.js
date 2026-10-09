@@ -67,12 +67,13 @@ const COS_SIN_GLSL = `
 const ketShader = (head, body, span=null, inputs=[]) => ({withArgs: makePseudoShaderWithInputsAndOutputAndCode(
     [
         ...inputs,
-        Inputs.vec2('ketgen_ket'),
-        Inputs.bool('ketgen_control')
+        Inputs.vec2('ketgen_ket')
     ],
     Outputs.vec2(),
     `
     uniform float _ketgen_step;
+    uniform float _ketgen_control_used;
+    uniform float _ketgen_control_desired;
     ${span === null ? 'uniform float span;' : ''}
     float _ketgen_off;
     float full_out_id;
@@ -90,10 +91,11 @@ const ketShader = (head, body, span=null, inputs=[]) => ({withArgs: makePseudoSh
     vec2 outputFor(float k) {
         full_out_id = k;
 
-        float relevant_out_id = mod(floor(full_out_id / _ketgen_step), ${span === null ? 'span' : (1<<span)+'.0'});
+        float relevant_out_id = mod(floor(full_out_id / _ketgen_step), ${span === null ? 'span' : `${1<<span}.0`});
         _ketgen_off = full_out_id - relevant_out_id*_ketgen_step;
 
-        float c = read_ketgen_control(full_out_id);
+        // Testing the control bits here, instead of reading a mask texture, saves a pass per column.
+        float c = (uint(full_out_id) & uint(_ketgen_control_used)) == uint(_ketgen_control_desired) ? 1.0 : 0.0;
         vec2 vc = read_ketgen_ket(full_out_id);
         vec2 vt = _ketgen_output_for(relevant_out_id, vc);
         return (1.0-c)*vc + c*vt;
@@ -106,7 +108,7 @@ const ketShader = (head, body, span=null, inputs=[]) => ({withArgs: makePseudoSh
  * @return {!{withArgs: !function(args: ...!WglArg|!WglTexture) : !WglConfiguredShader}}
  */
 const ketShaderPermute = (head, body, span=null) => ketShader(
-    head + `float _ketgen_input_for(float out_id) { ${body} }`,
+    `${head}float _ketgen_input_for(float out_id) { ${body} }`,
     'return inp(_ketgen_input_for(out_id));',
     span);
 
@@ -141,8 +143,9 @@ const ketShaderPhase = (head, body, span=null) => ketShader(
 function ketArgs(ctx, span=undefined, input_letters=[]) {
     const result = [
         ctx.stateTrader.currentTexture,
-        ctx.controlsTexture,
-        WglArg.float("_ketgen_step", 1 << ctx.row)
+        WglArg.float("_ketgen_step", 1 << ctx.row),
+        WglArg.float("_ketgen_control_used", ctx.controls.inclusionMask),
+        WglArg.float("_ketgen_control_desired", ctx.controls.desiredValueMask)
     ];
     if (span !== undefined) {
         result.push(WglArg.float('span', 1 << span));

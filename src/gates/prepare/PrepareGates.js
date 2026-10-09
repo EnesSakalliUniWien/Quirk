@@ -162,7 +162,7 @@ PrepareGates.ValueFamily = Gate.buildFamily(1, 16, (span, builder) => {
         g.customOperation = operation;
     };
     builder.
-    setSerializedId("Prep" + span).
+    setSerializedId(`Prep${span}`).
     setSymbol("|v⟩").
     setTitle("Prepare Value").
     setBlurb("Starts its wires in the basis state |v⟩: each wire at its bit of v, the first wire lowest.\n" +
@@ -188,7 +188,7 @@ PrepareGates.ValueFamily = Gate.buildFamily(1, 16, (span, builder) => {
 // ---- |+…+⟩ --------------------------------------------------------------------------------------
 
 PrepareGates.UniformFamily = Gate.buildFamily(1, 16, (span, builder) => declarePreparation(builder.
-    setSerializedId("Prep+" + span).
+    setSerializedId(`Prep+${span}`).
     setSymbol(span <= 3 ? `|${"+".repeat(span)}⟩` : "|+…+⟩").
     setTitle("Prepare Uniform").
     setBlurb("Starts its wires with every value equally likely: |+⟩ on each wire, no entanglement.\n" +
@@ -219,7 +219,7 @@ PrepareGates.Bell = declarePreparation(new GateBuilder().
     {kind: "named", name: "bell"}, 2).gate;
 
 PrepareGates.GhzFamily = Gate.buildFamily(2, 16, (span, builder) => declarePreparation(builder.
-    setSerializedId("PrepGHZ" + span).
+    setSerializedId(`PrepGHZ${span}`).
     setSymbol("GHZ").
     setTitle("Prepare GHZ").
     setBlurb("Starts its wires as (|0…0⟩ + |1…1⟩)/√2: all zero or all one, together.\n" +
@@ -231,7 +231,7 @@ PrepareGates.GhzFamily = Gate.buildFamily(2, 16, (span, builder) => declarePrepa
 // ---- W ------------------------------------------------------------------------------------------
 
 PrepareGates.WFamily = Gate.buildFamily(2, 16, (span, builder) => declarePreparation(builder.
-    setSerializedId("PrepW" + span).
+    setSerializedId(`PrepW${span}`).
     setSymbol("W").
     setTitle("Prepare W").
     setBlurb("Starts its wires with exactly one of them 1, each equally likely: entangled.\n" +
@@ -313,7 +313,7 @@ PrepareGates.AmplitudesFamily = Gate.buildFamily(1, MAX_AMPLITUDE_WIRES, (span, 
         g.customOperation = operation;
     };
     builder.
-    setSerializedId("PrepPsi" + span).
+    setSerializedId(`PrepPsi${span}`).
     setSymbol("|ψ⟩").
     setTitle("Prepare State").
     setBlurb("Starts its wires in a state typed in as amplitudes, one per basis state, scaled to unit length.\n" +

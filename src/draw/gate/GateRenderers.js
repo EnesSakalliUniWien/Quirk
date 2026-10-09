@@ -157,7 +157,7 @@ const MATRIX_RENDERER = args => {
     rectangle(args.painter, args.rect, {fill: args.isHighlighted ? CanvasTheme.gate.hover : CanvasTheme.surface.gate});
     DATA_RENDERERS.matrix(args.painter, m, args.rect);
     if (args.isHighlighted) {
-        args.painter.group('hover-' + args.painter.order, painter => {
+        args.painter.group(`hover-${args.painter.order}`, painter => {
             painter.alpha *= 0.9;
             rectangle(painter, args.rect, {fill: CanvasTheme.gate.hover});
         });

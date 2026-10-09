@@ -33,12 +33,13 @@
     }
 
     /* The chip: the gate's circuit symbol as designed text, not a shrunken circuit painting.
-       Fill contrast instead of a border keeps 100+ rows from reading as an outlined grid. */
+       Fill contrast instead of a border keeps 100+ rows from reading as an outlined grid. Sized in
+       em of the sidebar's text, so it grows with the symbol it holds. */
     .gate-chip {
         position: relative;
         display: inline-flex;
-        width: 48px;
-        height: 26px;
+        width: 3em;
+        height: 1.625em;
         flex: 0 0 auto;
         align-items: center;
         justify-content: center;
@@ -55,17 +56,24 @@
         white-space: nowrap;
     }
 
-    /* A raised part, smaller than the symbol but never below the smallest size text takes. */
+    /* A raised part, smaller than the symbol but never below the smallest size text takes. Its em
+       is the symbol's size: a medium or small symbol is already at the smallest size, and a large
+       one's 0.875 is divided back out to reach it. */
     .gate-chip sup {
-        font-size: max(0.75em, var(--text-caption));
+        font-size: 1em;
         line-height: 1;
     }
 
+    .gate-chip[data-fit="large"] sup {
+        font-size: max(0.75em, calc(var(--text-caption-em) / 0.875));
+    }
+
     /* Sized by how much symbol has to fit, and never below the smallest size text takes: a symbol
-       too long for that ends in an ellipsis, and the name beside the chip always carries the rest. */
-    .gate-chip[data-fit="large"] { font-size: 14px; }
-    .gate-chip[data-fit="medium"],
-    .gate-chip[data-fit="small"] { font-size: var(--text-caption); }
+       too long for that ends in an ellipsis, and the name beside the chip always carries the rest.
+       The size is the symbol's, so the chip around it keeps the sidebar's em. */
+    .gate-chip[data-fit="large"] .gate-chip-symbol { font-size: 0.875em; }
+    .gate-chip[data-fit="medium"] .gate-chip-symbol,
+    .gate-chip[data-fit="small"] .gate-chip-symbol { font-size: var(--text-caption-em); }
 
     .gate-tile-name {
         overflow: hidden;
@@ -73,7 +81,7 @@
            intended ellipsis into silent clipping. */
         min-width: 0;
         color: var(--sidebar-foreground);
-        font-size: var(--text-small);
+        font-size: var(--text-small-em);
         text-overflow: ellipsis;
         white-space: nowrap;
     }

@@ -78,7 +78,7 @@ function _paintSampleDisplay_result(args) {
                 y: y + k * d,
                 labelText: `Sampled |${bin(sample, args.gate.height)}⟩`,
                 valueText: `decimal: |${sample}⟩`,
-                valueText2: "chance: " + (p * 100).toFixed(4) + "%",
+                valueText2: `chance: ${(p * 100).toFixed(4)}%`,
                 backColor: CanvasTheme.probability.background
             });
         }

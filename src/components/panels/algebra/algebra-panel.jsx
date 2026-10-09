@@ -113,7 +113,7 @@ function AlgebraPanel() {
             <StateFactor state={states[0]} step={0} wireCount={wireCount} formatKet={formatKet} label="Initial state" />
           </div>
           <p className="algebra-step-note">Basis order: {Array.from({length: Math.min(8, 1 << wireCount)}, (_, i) =>
-            "|" + (formatKet === undefined ? bin(i, wireCount) : formatKet(i)) + "⟩").join(", ")}{wireCount > 3 ? ", …" : ""}.</p>
+            `|${formatKet === undefined ? bin(i, wireCount) : formatKet(i)}⟩`).join(", ")}{wireCount > 3 ? ", …" : ""}.</p>
         </li>
         {steps.map((step, index) => (
           <StepCard

@@ -24,7 +24,6 @@ import { currentShaderCoder } from "../../webgl/coder/ShaderCoders.js";
 
 import { SET_SINGLE_PIXEL_SHADER } from "./circuitShaders/setSinglePixelShader.js";
 import { LINEAR_OVERLAY_SHADER } from "../../webgl/operations/shaders/linearOverlayShader.js";
-import { CONTROL_MASK_SHADER } from "./circuitShaders/controlMaskShader.js";
 import { CONTROL_SELECT_SHADER } from "./circuitShaders/controlSelectShader.js";
 import { SWAP_QUBITS_SHADER } from "./circuitShaders/swapQubitsShader.js";
 import { QUBIT_DENSITIES_SHADER } from "./circuitShaders/qubitDensitiesShader.js";
@@ -64,22 +63,6 @@ class CircuitShaders {
             backgroundTexture,
             foregroundTexture,
             WglArg.float("offset", offset));
-    }
-
-    /**
-     * Returns a configured shader that renders a control mask texture corresponding to the given control mask, with 1s
-     * at pixels meeting the control and 0s at pixels not meeting the control.
-     * @param {!Controls} controlMask
-     * @returns {!WglConfiguredShader}
-     */
-    static controlMask(controlMask) {
-        if (controlMask.isEqualTo(Controls.NONE)) {
-            return Shaders.color(1, 0, 0, 0);
-        }
-
-        return CONTROL_MASK_SHADER(
-            WglArg.float('used', controlMask.inclusionMask),
-            WglArg.float('desired', controlMask.desiredValueMask));
     }
 
     /**

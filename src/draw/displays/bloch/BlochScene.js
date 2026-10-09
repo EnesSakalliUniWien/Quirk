@@ -373,7 +373,7 @@ function labelSegment(view, from, to, text, color, project, center) {
         fill: color,
         font: {fontSize: Typography.LABEL_FONT_SIZE, fontFamily: Typography.MONO_FONT_FAMILY},
         // A formula crosses whatever the leg crosses, so it reads off its own plate.
-        beforeDraw: (w, h) => view.group('plate-' + text + x.toFixed(0) + y.toFixed(0), plate => {
+        beforeDraw: (w, h) => view.group(`plate-${text}${x.toFixed(0)}${y.toFixed(0)}`, plate => {
             plate.alpha *= 0.72;
             rectangle(plate, new Rect(x - w / 2 - 2, y - h / 2, w + 4, h), {fill: CanvasTheme.bloch.background});
         }),
@@ -426,7 +426,7 @@ function paintBlochScene(view, size, vec, yaw, pitch,
     }
     if (layers.circles) {
         for (const {axis, pointAt} of UNIT_CIRCLES) {
-            forAxis('circle-' + axis, axis, inner => {
+            forAxis(`circle-${axis}`, axis, inner => {
                 // The circles are the frame the components are read against, so they sit back.
                 inner.alpha *= 0.55;
                 strokeGreatCircle(inner, pointAt, cx, cy, scale, yaw, pitch, AXIS_COLOR[axis]);
@@ -443,7 +443,7 @@ function paintBlochScene(view, size, vec, yaw, pitch,
 
         strokePath(view, [center, tip], tip.depth >= 0 ? CanvasTheme.stroke.guide : CanvasTheme.stroke.faint, 1, tip.depth >= 0 ? [] : [4, 4]);
         if (!detailed) continue;
-        if (positive) forAxis('head-' + letter, letter, inner => arrowHead(inner, center, tip, AXIS_COLOR[letter], 6));
+        if (positive) forAxis(`head-${letter}`, letter, inner => arrowHead(inner, center, tip, AXIS_COLOR[letter], 6));
 
         const label = project(...dir.map(v => v * 1.22));
         drawText(view, ket, {
@@ -454,7 +454,7 @@ function paintBlochScene(view, size, vec, yaw, pitch,
             align: 'center',
             baseline: 'middle'
         });
-        forAxis('letter-' + ket, letter, inner => drawText(inner, letter, {
+        forAxis(`letter-${ket}`, letter, inner => drawText(inner, letter, {
             x: label.x,
             y: label.y + 14,
             fill: AXIS_COLOR[letter],
@@ -535,11 +535,11 @@ function paintBlochScene(view, size, vec, yaw, pitch,
     const vector = [vec.x, vec.y, vec.z];
     const triangles = !detailed ? [] : [
         ...(layers.components ? projectionTriangles(vec) : []).map(({axis, foot}) => ({
-            key: 'projection-' + axis, foot, tip: vector, axis, fill: AXIS_COLOR[axis], alpha: 0.16,
+            key: `projection-${axis}`, foot, tip: vector, axis, fill: AXIS_COLOR[axis], alpha: 0.16,
             base: {axis, color: AXIS_COLOR[axis], dash: [4, 4]}, leg: {axis, color: AXIS_COLOR[axis]},
         })),
         ...(layers.planes ? coordinatePlaneTriangles(vec) : []).map(({axes: [a, b], normal, foot, tip}) => ({
-            key: 'plane-' + a + b, foot, tip, axis: normal, fill: AXIS_COLOR[normal], alpha: 0.1,
+            key: `plane-${a}${b}`, foot, tip, axis: normal, fill: AXIS_COLOR[normal], alpha: 0.1,
             base: {axis: a, color: AXIS_COLOR[a], dash: []}, leg: {axis: b, color: AXIS_COLOR[b]},
         })),
     ];
@@ -563,15 +563,15 @@ function paintBlochScene(view, size, vec, yaw, pitch,
         corners.set(`${foot} ${base.color}`, {at: foot, ...base});
     }
     for (const [key, {from, to, color, axis, width, dash}] of segments) {
-        forAxis('segment-' + key, axis, inner =>
+        forAxis(`segment-${key}`, axis, inner =>
             strokePath(inner, [project(...from), project(...to)], color, width, dash));
     }
     for (const triangle of triangles) {
-        forAxis('angle-' + triangle.key, triangle.leg.axis, inner =>
+        forAxis(`angle-${triangle.key}`, triangle.leg.axis, inner =>
             drawRightAngle(inner, triangle.foot, triangle.tip, project, triangle.leg.color, scale));
     }
     for (const [key, {at, color, axis}] of corners) {
-        forAxis('corner-' + key, axis, inner => circle(inner, project(...at), 2.5, {fill: color}));
+        forAxis(`corner-${key}`, axis, inner => circle(inner, project(...at), 2.5, {fill: color}));
     }
 
     // Each component's leg says which trigonometry it comes from; the z triangle's base is the
@@ -579,7 +579,7 @@ function paintBlochScene(view, size, vec, yaw, pitch,
     if (detailed && layers.trig) {
         const formulas = componentFormulas(reading);
         for (const triangle of triangles.filter(t => t.key.startsWith('projection-') && formulas[t.axis] !== undefined)) {
-            forAxis('trig-' + triangle.key, triangle.axis, inner => labelSegment(inner, triangle.foot,
+            forAxis(`trig-${triangle.key}`, triangle.axis, inner => labelSegment(inner, triangle.foot,
                 triangle.tip, formulas[triangle.axis], AXIS_COLOR[triangle.axis], project, center));
         }
         const equatorial = triangles.find(t => t.key === 'projection-z');

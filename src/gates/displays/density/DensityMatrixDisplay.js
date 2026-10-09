@@ -51,7 +51,7 @@ function singleDensityMatrixDisplayMaker(builder) {
  */
 function largeDensityMatrixDisplayMaker(span, builder) {
     return densityMatrixDisplayMaker_shared(builder).
-        setSerializedId("Density" + span).
+        setSerializedId(`Density${span}`).
         setWidth(span).
         setRenderer(DENSITY_MATRIX_RENDERER_FROM_CUSTOM_STATS).
         setProcessedStatsToJsonFunc(data => {

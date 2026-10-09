@@ -67,6 +67,7 @@ function BlochPanel() {
   const { explore, exploreAngles, cancel } = useExploreTransition(
     setMode,
     figures.shownVector,
+    deps?.settings,
   );
 
   // A fresh sphere shows the state it was opened for.

@@ -27,10 +27,9 @@ import {drawOutputSuperpositionDisplay_labels} from './CircuitBasisLabels.js';
  *
  * @param {!Object} context Rendering inputs supplied by CircuitRendering.
  * @param {!DisplayView} painter
- * @param {!CircuitStats} stats
  * @param {!PointerInteractionState} hand
  */
-function drawOutputSuperpositionDisplay(context, painter, stats, hand) {
+function drawOutputSuperpositionDisplay(context, painter, hand) {
     const amplitudeGrid = context.outputStateAsMatrix();
     const gridRect = context.geometry.rectForSuperpositionDisplay();
 
@@ -47,7 +46,7 @@ function drawOutputSuperpositionDisplay(context, painter, stats, hand) {
     paintMatrixTooltip(painter, amplitudeGrid, gridRect, hand.hoverPoints(),
         (c, r) => `Amplitude of |${ketLabel(context.definition.registers.fittingIn(numWire), numWire,
             r*amplitudeGrid.width() + c)}⟩ (decimal ${r*amplitudeGrid.width() + c})`,
-        (c, r, v) => 'val:' + v.toString(Format.SIMPLIFIED),
+        (c, r, v) => `val:${v.toString(Format.SIMPLIFIED)}`,
         (c, r, v) => `mag²:${(v.norm2()*100).toFixed(4)}%, phase:${forceSign(v.phase() * 180 / Math.PI)}°`);
 
     drawOutputSuperpositionDisplay_labels(context, painter);

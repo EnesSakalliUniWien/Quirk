@@ -177,8 +177,8 @@ class Matrix {
       .map((row) =>
         row.map((e) => e.toString(format)).join(format.itemSeparator),
       )
-      .join("}" + format.itemSeparator + "{");
-    return "{{" + data + "}}";
+      .join(`}${format.itemSeparator}{`);
+    return `{{${data}}}`;
   }
 
   /**

@@ -93,7 +93,7 @@ FourierTransformGates.FourierTransformFamily = Gate.buildFamily(
   16,
   (span, builder) =>
     builder
-      .setSerializedId("QFT" + span)
+      .setSerializedId(`QFT${span}`)
       .setSymbol("QFT")
       .setTitle("Fourier Transform Gate")
       .setBlurb("Transforms to/from phase frequency space.")
@@ -109,7 +109,7 @@ FourierTransformGates.InverseFourierTransformFamily = Gate.buildFamily(
   16,
   (span, builder) =>
     builder
-      .setSerializedId("QFT†" + span)
+      .setSerializedId(`QFT†${span}`)
       .setSymbol("QFT^†")
       .setAlternateFromFamily(FourierTransformGates.FourierTransformFamily)
       .setTitle("Inverse Fourier Transform Gate")

@@ -13,7 +13,7 @@
         padding: calc(var(--spacing) * 1) 0 calc(var(--spacing) * 2);
         color: var(--sidebar-muted);
         background: var(--sidebar);
-        font-size: var(--text-caption);
+        font-size: var(--text-caption-em);
         font-weight: 650;
         letter-spacing: 0.08em;
         text-transform: uppercase;
@@ -27,9 +27,6 @@
        not jump. Browsers without it simply render everything, as before. */
     .gate-group-tiles {
         content-visibility: auto;
-    }
-
-    .gate-group-tiles {
         display: grid;
         gap: 2px;
     }

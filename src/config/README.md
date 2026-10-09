@@ -9,12 +9,17 @@ change their definitions and reload the app instead of mutating them at runtime.
 - `Simulation.js`: wire limits and simulation time constants.
 - `Animation.js`: how everything that moves on screen moves - the gates' cycle and its increment
   per debug step, the playhead's time per operation, the Bloch glide and its easing, and how
-  often the panels sample the simulation.
+  often the panels sample the simulation. These are the defaults; the user sets each one in
+  Tape, and `src/state/motionSettings.js` keeps and remembers what they set.
+- `Recording.js`: the default sampling rate of a started recording and the shots each take
+  measures, which the user also sets through `src/state/motionSettings.js`.
 - `Rendering.js`: redraw cooldown and the amplitude drawing detail threshold.
 - `Diagnostics.js`: intentionally mutable WebGL debugging switch. `test/TestUtil.js` enables
   hot-path checks for the entire browser test environment; do not freeze this switch.
-- `exampleCircuits.js`: named serialized circuits for the examples menu. The array, entries and
-  nested circuit data are frozen. The menu commits JSON text, so editing uses deserialized data.
+- `exampleCircuits.js`: named serialized circuits for the examples menu, ordered from foundational
+  to advanced. The array, entries and nested circuit data are frozen. The menu commits JSON text,
+  so editing uses deserialized data. Each circuit's data lives in its own module under
+  `examples/`; this file only orders and freezes the combined list.
 - `Theme.js`, `CanvasTheme.js`, `Typography.js`: compatibility import paths for appearance mappings.
 
 `test/config/` covers theme conversion and example deserialization through the gate catalogue.

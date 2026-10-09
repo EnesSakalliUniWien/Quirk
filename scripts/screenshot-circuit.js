@@ -36,18 +36,18 @@ try {
   page.on("console", (message) => console.log(message.text()));
   page.on("pageerror", ({ message }) => {
     caughtPageError = true;
-    console.error("Page error bubbled into screenshot-circuit.js: " + message);
+    console.error(`Page error bubbled into screenshot-circuit.js: ${message}`);
   });
   const circuitJson =
     '{"cols":[["H"],["Bloch"],["Amps1"],[],["Density"],["•","X"],["Chance2"]]}';
-  await page.goto(`${serve.resolvedUrls.local[0]}#circuit=` + circuitJson);
+  await page.goto(`${serve.resolvedUrls.local[0]}#circuit=${circuitJson}`);
   await waitForQuirk(page);
   await page.screenshot({ path: "screenshot.png" });
   if (caughtPageError) {
     process.exitCode = 1;
   }
 } catch (ex) {
-  console.error("Error bubbled up into screenshot-circuit.js: " + ex);
+  console.error(`Error bubbled up into screenshot-circuit.js: ${ex}`);
   process.exitCode = 1;
 } finally {
   try {

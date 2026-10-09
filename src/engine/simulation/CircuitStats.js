@@ -31,6 +31,7 @@ import {ReadableJson} from "../math/matrix/ReadableJson.js"
 import {QubitMatrix} from "../math/matrix/QubitMatrix.js"
 
 import {randomFor} from "./random.js";
+import {savesStateBefore} from "./CircuitCheckpoints.js";
 
 class CircuitStats {
     /**
@@ -200,7 +201,7 @@ class CircuitStats {
      * @returns {undefined|*}
      */
     customStatsForSlot(col, row) {
-        const key = col+":"+row;
+        const key = `${col}:${row}`;
         return this._customStatsProcessed.has(key) ? this._customStatsProcessed.get(key) : undefined;
     }
 
@@ -249,12 +250,16 @@ class CircuitStats {
     /**
      * @param {!CircuitDefinition} circuitDefinition
      * @param {!number} time
+     * @param {*=} seed
+     * @param {undefined|!CircuitCheckpoints=} checkpoints The last run of a circuit, to resume from where
+     *     this one first differs from it; replaced by this run.
      * @returns {!CircuitStats}
      */
-    static fromCircuitAtTime(circuitDefinition, time, seed = undefined) {
+    static fromCircuitAtTime(circuitDefinition, time, seed = undefined, checkpoints = undefined) {
         try {
-            return CircuitStats._fromCircuitAtTime_noFallback(circuitDefinition, time, seed);
+            return CircuitStats._fromCircuitAtTime_noFallback(circuitDefinition, time, seed, checkpoints);
         } catch (ex) {
+            checkpoints?.release();
             reportRecoveredError(
                 `Defaulted to NaN results. Computing circuit values failed.`,
                 {circuitDefinition: Serializer.toJson(circuitDefinition)},
@@ -355,12 +360,56 @@ class CircuitStats {
     /**
      * @param {!CircuitDefinition} circuitDefinition
      * @param {!number} time
+     * @param {*=} seed
+     * @param {undefined|!CircuitCheckpoints=} checkpoints
      * @returns {!CircuitStats}
      */
-    static _fromCircuitAtTime_noFallback(circuitDefinition, time, seed = undefined) {
-        circuitDefinition = circuitDefinition.withMinimumWireCount();
-        const textures = collectCircuitStatsTextures(circuitDefinition, time, seed);
-        const pixelData = readCircuitStatsPixels(textures);
+    static _fromCircuitAtTime_noFallback(circuitDefinition, time, seed = undefined, checkpoints = undefined) {
+        const run = startRun(circuitDefinition, time, seed, checkpoints);
+        let ranPixels;
+        try {
+            ranPixels = readCircuitStatsPixels(run.textures);
+        } catch (ex) {
+            run.discard();
+            throw ex;
+        }
+        return CircuitStats._finishRun(run, ranPixels);
+    }
+
+    /**
+     * Starts running the circuit without waiting for the GPU to hand back its results; they arrive at
+     * the earliest on a later frame. Until the returned run finishes or is cancelled, the checkpoints
+     * belong to it.
+     *
+     * @param {!CircuitDefinition} circuitDefinition
+     * @param {!number} time
+     * @param {*=} seed
+     * @param {undefined|!CircuitCheckpoints=} checkpoints
+     * @returns {!PendingCircuitStats}
+     */
+    static startFromCircuitAtTime(circuitDefinition, time, seed = undefined, checkpoints = undefined) {
+        return new PendingCircuitStats(circuitDefinition, time, seed, checkpoints);
+    }
+
+    /**
+     * Joins a run's read-back statistics to those of the columns it resumed after, records the run
+     * in its checkpoints, and interprets the statistics.
+     *
+     * @param {!{circuitDefinition: !CircuitDefinition, time: !number, seed: *, resume: *,
+     *     checkpoints: undefined|!CircuitCheckpoints, savedStates: !Array.<*>}} run
+     * @param {*} ranPixels From splitCircuitStatsPixels.
+     * @returns {!CircuitStats}
+     * @private
+     */
+    static _finishRun({circuitDefinition, time, seed, resume, checkpoints, savedStates}, ranPixels) {
+        // Columns before the resumed one keep the statistics they read back last time.
+        const pixelData = resume === undefined ? ranPixels : {
+            colNorms: [...resume.pixels.colNorms, ...ranPixels.colNorms],
+            colQubitDensities: [...resume.pixels.colQubitDensities, ...ranPixels.colQubitDensities],
+            customStats: new Map([...resume.pixels.customStats, ...ranPixels.customStats]),
+            output: ranPixels.output
+        };
+        checkpoints?.record(circuitDefinition, time, seed, resume?.col ?? 0, savedStates, pixelData);
 
         const qubitDensities =
             CircuitStats._extractColumnQubitStatsFromPixelDatas(circuitDefinition, pixelData.colQubitDensities);
@@ -370,8 +419,7 @@ class CircuitStats {
             pixelData.output,
             survivalRates.length === 0 ? 1 : survivalRates.at(-1));
 
-        const customStatsProcessed = processCustomStats(
-            circuitDefinition, textures.customStatsMap, pixelData.customStats);
+        const customStatsProcessed = processCustomStats(circuitDefinition, pixelData.customStats);
         const sampleOutcomes = collectSampleOutcomes(circuitDefinition, customStatsProcessed, time, seed);
         return new CircuitStats(
             circuitDefinition,
@@ -383,39 +431,219 @@ class CircuitStats {
     }
 }
 
-/** Runs the circuit and packs the final state for a single combined texture readback. */
-function collectCircuitStatsTextures(circuitDefinition, time, seed) {
+/**
+ * Runs the circuit on the GPU, from where its checkpoints let it resume, up to the textures that
+ * hold its statistics.
+ *
+ * @param {!CircuitDefinition} circuitDefinition
+ * @param {!number} time
+ * @param {*} seed
+ * @param {undefined|!CircuitCheckpoints} checkpoints
+ */
+function startRun(circuitDefinition, time, seed, checkpoints) {
+    circuitDefinition = circuitDefinition.withMinimumWireCount();
+    const resume = checkpoints?.resumePoint(circuitDefinition, time, seed);
+    const savedStates = [];
+    // A run that fails or is abandoned hands back the states it saved; the one it resumed from
+    // still belongs to the checkpoints.
+    const discard = () => {
+        for (const texture of new Set(savedStates.map(state => state.texture))) {
+            if (texture !== resume?.texture) {
+                texture.deallocByDepositingInPool("savedState of an abandoned run");
+            }
+        }
+        savedStates.length = 0;
+    };
+    let textures;
+    try {
+        textures = collectCircuitStatsTextures(circuitDefinition, time, seed, resume, checkpoints, savedStates);
+    } catch (ex) {
+        discard();
+        throw ex;
+    }
+    return {circuitDefinition, time, seed, resume, checkpoints, savedStates, textures, discard};
+}
+
+/**
+ * A run whose statistics are still on their way back from the GPU (CircuitStats.startFromCircuitAtTime).
+ * Failures end in NaN statistics, as they do for CircuitStats.fromCircuitAtTime.
+ */
+class PendingCircuitStats {
+    /**
+     * @param {!CircuitDefinition} circuitDefinition
+     * @param {!number} time
+     * @param {*} seed
+     * @param {undefined|!CircuitCheckpoints} checkpoints
+     */
+    constructor(circuitDefinition, time, seed, checkpoints) {
+        this.circuitDefinition = circuitDefinition;
+        this.time = time;
+        this.seed = seed;
+        this._checkpoints = checkpoints;
+        /** @type {undefined|!CircuitStats} */
+        this._result = undefined;
+        this._run = undefined;
+        this._read = undefined;
+        try {
+            this._run = startRun(circuitDefinition, time, seed, checkpoints);
+            try {
+                this._read = KetTextureUtil.mergedReadFloatsAsync(circuitStatsReadOrder(this._run.textures));
+            } catch (ex) {
+                this._run.discard();
+                throw ex;
+            }
+        } catch (ex) {
+            this._fail(ex);
+        }
+    }
+
+    /**
+     * @param {*} ex
+     * @private
+     */
+    _fail(ex) {
+        this._checkpoints?.release();
+        reportRecoveredError(
+            `Defaulted to NaN results. Computing circuit values failed.`,
+            {circuitDefinition: Serializer.toJson(this.circuitDefinition)},
+            ex);
+        this._result = CircuitStats.withNanDataFromCircuitAtTime(this.circuitDefinition, this.time);
+        this._run = undefined;
+        this._read = undefined;
+    }
+
+    /**
+     * @returns {!boolean} Whether finish() can return without waiting on the GPU.
+     */
+    isReady() {
+        return this._result !== undefined || this._read.isReady() || this._read.isLost();
+    }
+
+    /**
+     * The statistics, once isReady. A lost GL context loses the read; the run then starts over and
+     * waits for the GPU, since the new context has nothing in flight.
+     * @returns {!CircuitStats}
+     */
+    finish() {
+        if (this._result === undefined) {
+            if (this._read.isLost()) {
+                this._run.discard();
+                this._checkpoints?.release();
+                this._result = CircuitStats.fromCircuitAtTime(this.circuitDefinition, this.time, this.seed, this._checkpoints);
+            } else {
+                try {
+                    this._result = CircuitStats._finishRun(
+                        this._run, splitCircuitStatsPixels(this._run.textures, this._read.take()));
+                } catch (ex) {
+                    this._run.discard();
+                    this._fail(ex);
+                }
+            }
+            this._run = undefined;
+            this._read = undefined;
+        }
+        return this._result;
+    }
+
+    /**
+     * Abandons the run, handing back what it holds; the checkpoints stay as they were before it.
+     */
+    cancel() {
+        if (this._result === undefined) {
+            this._read.cancel();
+            this._run.discard();
+            this._run = undefined;
+            this._read = undefined;
+            this._result = CircuitStats.withNanDataFromCircuitAtTime(this.circuitDefinition, this.time);
+        }
+    }
+}
+
+/**
+ * Runs the circuit, from the resume point when there is one, and packs the final state for a single
+ * combined texture readback.
+ *
+ * @param {!CircuitDefinition} circuitDefinition
+ * @param {!number} time
+ * @param {*} seed
+ * @param {undefined|!{col: !int, texture: !WglTexture, randomDraws: !int}} resume
+ * @param {undefined|!CircuitCheckpoints} checkpoints Decides which states to save.
+ * @param {!Array.<!{col: !int, texture: !WglTexture, randomDraws: !int}>} savedStates Receives the saved
+ *     states, which the caller owns from then on.
+ */
+function collectCircuitStatsTextures(circuitDefinition, time, seed, resume, checkpoints, savedStates) {
     const numWires = circuitDefinition.numWires;
 
     // Advance state while collecting stats into textures.
-    const stateTrader = new WglTextureTrader(CircuitShaders.classicalState(0).toVec2Texture(numWires));
-    const controlTex = CircuitShaders.controlMask(Controls.NONE).toBoolTexture(numWires);
+    const stateTrader = new WglTextureTrader(resume === undefined
+        ? CircuitShaders.classicalState(0).toVec2Texture(numWires)
+        : resume.texture);
+    if (resume !== undefined) {
+        stateTrader.dontDeallocCurrentTexture();
+    }
+    const heldTextures = new Set(resume === undefined ? [] : [resume.texture]);
+
+    // Detectors draw random numbers, so a resumed run skips the draws the columns before it made.
+    const nextRandom = seed === undefined ? Math.random : randomFor(seed);
+    let randomDraws = resume?.randomDraws ?? 0;
+    for (let i = 0; i < randomDraws; i++) {
+        nextRandom();
+    }
+    const random = () => {
+        randomDraws++;
+        return nextRandom();
+    };
+
+    const afterColumn = col => {
+        const texture = stateTrader.currentTexture;
+        if (checkpoints !== undefined && checkpoints.shouldSave(circuitDefinition, col + 1, texture)) {
+            stateTrader.dontDeallocCurrentTexture();
+            heldTextures.add(texture);
+            savedStates.push({col: col + 1, texture, randomDraws});
+        }
+    };
+
     const {colQubitDensities, colNorms, customStats, customStatsMap} = advanceStateWithCircuit(
         new CircuitEvalContext(
             time,
             0,
             numWires,
             Controls.NONE,
-            controlTex,
             Controls.NONE,
             stateTrader,
-            new Map(), seed === undefined ? Math.random : randomFor(seed)),
+            new Map(), random),
         circuitDefinition,
-        true);
-    controlTex.deallocByDepositingInPool("controlTex in _fromCircuitAtTime_noFallback");
+        true,
+        {
+            firstCol: resume?.col ?? 0,
+            afterColumn,
+            // With or without checkpoints, so both runs fuse gates alike and agree exactly.
+            stopBefore: col => savesStateBefore(circuitDefinition, col, stateTrader.currentTexture)
+        });
     if (currentShaderCoder().vec2.needRearrangingToBeInVec4Format) {
         stateTrader.shadeHalveAndTrade(Shaders.packVec2IntoVec4);
+    }
+    // The readback returns its textures to the pool, which a saved state must not be.
+    if (heldTextures.has(stateTrader.currentTexture)) {
+        stateTrader.shadeAndTrade(Shaders.passthrough);
     }
     return {output: stateTrader.currentTexture, colQubitDensities, colNorms, customStats, customStatsMap};
 }
 
-/** Reads and releases the collected textures; the location map stays on the CPU. */
-function readCircuitStatsPixels({output, colQubitDensities, colNorms, customStats}) {
-    // Preserve the original readback order, including each display's texture order.
-    const pixels = KetTextureUtil.mergedReadFloats([
-        ...colNorms, ...colQubitDensities, ...customStats.flat(), output
-    ])[Symbol.iterator]();
-    return {
+/** Reads and releases the collected textures, keying each display's pixels by "column:row". */
+function readCircuitStatsPixels(textures) {
+    return splitCircuitStatsPixels(textures, KetTextureUtil.mergedReadFloats(circuitStatsReadOrder(textures)));
+}
+
+/** The collected textures in the order they are read back, including each display's texture order. */
+function circuitStatsReadOrder({output, colQubitDensities, colNorms, customStats}) {
+    return [...colNorms, ...colQubitDensities, ...customStats.flat(), output];
+}
+
+/** Sorts read-back pixels, in circuitStatsReadOrder, into their statistics. */
+function splitCircuitStatsPixels({colQubitDensities, colNorms, customStats, customStatsMap}, pixelArrays) {
+    const pixels = pixelArrays[Symbol.iterator]();
+    const result = {
         colNorms: colNorms.map(() => pixels.next().value),
         colQubitDensities: colQubitDensities.map(() => pixels.next().value),
         customStats: customStats.map(stat => Array.isArray(stat)
@@ -423,14 +651,17 @@ function readCircuitStatsPixels({output, colQubitDensities, colNorms, customStat
             : pixels.next().value),
         output: pixels.next().value
     };
+    result.customStats = new Map(customStatsMap.map(({col, row, out}) => [`${col}:${row}`, result.customStats[out]]));
+    return result;
 }
 
-/** Converts each custom display texture using its gate's postprocessor, in evaluation order. */
-function processCustomStats(circuitDefinition, customStatsMap, customStatsPixelData) {
+/** Converts each custom display's pixels using its gate's postprocessor, in evaluation order. */
+function processCustomStats(circuitDefinition, customStatsPixelData) {
     const customStatsProcessed = new Map();
-    for (const {col, row, out} of customStatsMap) {
+    for (const [location, pixels] of customStatsPixelData) {
+        const [col, row] = location.split(":").map(Number);
         const func = circuitDefinition.gateInSlot(col, row).customStatPostProcesser || (e => e);
-        customStatsProcessed.set(col+":"+row, func(customStatsPixelData[out], circuitDefinition, col, row));
+        customStatsProcessed.set(location, func(pixels, circuitDefinition, col, row));
     }
     return customStatsProcessed;
 }

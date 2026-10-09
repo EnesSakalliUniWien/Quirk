@@ -99,7 +99,8 @@ const appStore = createStore((set) => ({
   /** What the panels read the circuit through. Published once by startQuirk.
    *  @type {undefined|!{revision: !Revision, displayed: import("zustand/vanilla").StoreApi,
    *      mostRecentStats: import("zustand/vanilla").StoreApi, completed: import("zustand/vanilla").StoreApi, recorder: !Object,
-   *      cycleTime: !function(): !number}} */
+   *      cycleTime: !function(): !number, settings: import("zustand/vanilla").StoreApi}}
+   *  settings are the user's motion, sampling and measurement settings (src/state/motionSettings.js). */
   panelDeps: undefined,
 
   /** @type {undefined|!{col: !int, row: !int, gate: !Gate}} The gate the parameter panel edits,

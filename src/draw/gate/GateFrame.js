@@ -65,7 +65,7 @@ function paintResizeTab(args) {
   const foreColor = args.isResizeHighlighted
     ? CanvasTheme.text.default
     : CanvasTheme.text.muted;
-  args.painter.group("resize-tab-" + args.painter.order, (painter) => {
+  args.painter.group(`resize-tab-${args.painter.order}`, (painter) => {
     painter.alpha *= args.isResizeHighlighted ? 1 : 0.7;
     rectangle(painter, trimRect, { fill: backColor });
     frame(painter, trimRect);

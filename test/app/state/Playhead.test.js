@@ -172,6 +172,27 @@ suite.test("playing advances a column per tick and stops at the end", () => {
     assertThat(clock.pendingCount()).isEqualTo(0);
 });
 
+suite.test("Play rests on each operation for the time set, and a new time applies to the run under way", () => {
+    const delays = [];
+    const clock = fakeClock();
+    let duration = 250;
+    const playhead = new Playhead(observeStore(createValueStore({columnCount: 3, operationColumns: [0, 1, 2]})),
+        (callback, delay) => {delays.push(delay); return clock.setInterval(callback);}, clock.clearInterval, () => duration);
+    playhead.togglePlay();
+    clock.tick();
+    duration = 1500;
+    playhead.retime();
+    assertThat(delays).isEqualTo([250, 1500]);
+    assertThat(clock.pendingCount()).isEqualTo(1);
+    clock.tick();
+    assertThat(playhead.step()).isEqualTo(2);
+    // Paused, there is nothing to retime.
+    playhead.pause();
+    playhead.retime();
+    assertThat(delays.length).isEqualTo(2);
+    assertThat(clock.pendingCount()).isEqualTo(0);
+});
+
 suite.test("playing from the end starts over", () => {
     const {playhead} = playheadOver(2);
 

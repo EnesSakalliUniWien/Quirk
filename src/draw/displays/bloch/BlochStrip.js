@@ -41,7 +41,7 @@ function drawBlochStrip(canvas, vecs, {selected, yaw, pitch}) {
     const dpr = window.devicePixelRatio || 1;
     const view = RenderSurface.forCanvas(canvas).resize(width * dpr, height * dpr).beginFrame(undefined, dpr);
     rectangle(view, new Rect(0, 0, width, height), {fill: CanvasTheme.surface.background});
-    vecs.forEach((vec, index) => view.group('step-' + index, cell => {
+    vecs.forEach((vec, index) => view.group(`step-${index}`, cell => {
         cell.position.set(index * (STRIP_CELL + STRIP_GAP), 0);
         paintBlochScene(cell, STRIP_CELL, vec, yaw, pitch);
         // The step being read wears the app's highlight, as whatever is in focus does elsewhere.

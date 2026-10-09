@@ -28,7 +28,7 @@ function paintTimeDial(args, turns, {xScale = 1, yScale = 1, zeroAngle = 0} = {}
         args.rect.center() :
         new Point(args.rect.right() + Layout.GATE_RADIUS, args.rect.center().y);
 
-    args.painter.group('cycle-' + args.painter.order, painter => {
+    args.painter.group(`cycle-${args.painter.order}`, painter => {
         painter.position.set(c.x, c.y);
         painter.scale.set(-xScale * direction, -yScale);
         painter.alpha = args.positionInCircuit === undefined ? 0.4 : 0.9;

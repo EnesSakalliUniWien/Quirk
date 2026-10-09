@@ -56,7 +56,7 @@ function drawGate_disabledReason(context, painter, col, row, gateRect) {
  * @param {!Rect} gateRect
  */
 function drawGate_deactivated(painter, gateRect) {
-    painter.group('deactivated-' + painter.order, veil => {
+    painter.group(`deactivated-${painter.order}`, veil => {
         veil.alpha *= 0.62;
         rectangle(veil, gateRect.paddedBy(1), {fill: CanvasTheme.surface.background});
     });

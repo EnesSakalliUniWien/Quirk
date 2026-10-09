@@ -44,7 +44,7 @@ const POP_COUNT_SHADER = ketShaderPermute(
 
 BitCountGates.PlusBitCountAFamily = Gate.buildFamily(1, 16, (span, builder) =>
   builder
-    .setSerializedIdAndSymbol("+cntA" + span)
+    .setSerializedIdAndSymbol(`+cntA${span}`)
     .setSymbol("+1s(A)")
     .setTitle("Bit Count Gate")
     .setBlurb(
@@ -65,7 +65,7 @@ BitCountGates.PlusBitCountAFamily = Gate.buildFamily(1, 16, (span, builder) =>
 BitCountGates.MinusBitCountAFamily = Gate.buildFamily(1, 16, (span, builder) =>
   builder
     .setAlternateFromFamily(BitCountGates.PlusBitCountAFamily)
-    .setSerializedIdAndSymbol("-cntA" + span)
+    .setSerializedIdAndSymbol(`-cntA${span}`)
     .setSymbol("-1s(A)")
     .setTitle("Bit Un-Count Gate")
     .setBlurb(

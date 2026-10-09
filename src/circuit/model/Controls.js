@@ -82,17 +82,17 @@ class Controls {
         const range = Seq.naturals().
             takeWhile(i => (1<<i) <= (this.inclusionMask | this.parityMask)).
             toArray();
-        let result = "Controls: ...__" + range.
+        let result = `Controls: ...__${range.
             map(e => this.desiredValueFor(e)).
             map(e => e === undefined ? "_" : e ? "1" : "0").
             toReversed().
-            join("");
+            join("")}`;
         if (this.parityMask !== 0) {
-            result += "\n  parity: ...__" + range.
+            result += `\n  parity: ...__${range.
                 map(e => this.parityMask & (1 << e)).
                 map(e => e ? "1" : "_").
                 toReversed().
-                join("")
+                join("")}`
         }
         return result;
     }

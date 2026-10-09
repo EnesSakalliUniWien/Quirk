@@ -96,11 +96,11 @@ Gates.Special = {
  */
 Gates.Assertions = AssertionGates;
 Gates.Displays = {
-  AmplitudeDisplayFamily: AmplitudeDisplayFamily,
-  ProbabilityDisplayFamily: ProbabilityDisplayFamily,
-  SampleDisplayFamily: SampleDisplayFamily,
-  DensityMatrixDisplayFamily: DensityMatrixDisplayFamily,
-  BlochSphereDisplay: BlochSphereDisplay,
+  AmplitudeDisplayFamily,
+  ProbabilityDisplayFamily,
+  SampleDisplayFamily,
+  DensityMatrixDisplayFamily,
+  BlochSphereDisplay,
 };
 Gates.Displays.DensityMatrixDisplay = DensityMatrixDisplayFamily.ofSize(1);
 Gates.Displays.DensityMatrixDisplay2 = DensityMatrixDisplayFamily.ofSize(2);

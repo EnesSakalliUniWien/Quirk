@@ -15,6 +15,7 @@ import {columnImage} from "../../engine/simulation/columnStructure/evaluation.js
 import { rasterMatrix } from "../../draw/renderers/rasters.js";
 import { Button } from "../ui/button.jsx";
 import { ButtonGroup } from "../ui/button-group.jsx";
+import { useTextScale } from "../useTextScale.js";
 
 /** The closest zoom shows one entry this many CSS pixels a side. */
 const MAX_ENTRY_PIXELS = 32;
@@ -111,12 +112,16 @@ function drawView(canvas, source, view) {
  *
  * @param {!{source: !{json: !string, col: !int, wireCount: !int, time: !number},
  *     structure: !ColumnStructure, size: !number, label: !string,
- *     formatKet: (undefined|!function(!int): !string)}} props
- *     formatKet writes a basis state for the readout; bits by default.
+ *     formatKet: (undefined|!function(!int): !string), followsText: (undefined|!boolean)}} props
+ *     formatKet writes a basis state for the readout; bits by default. With followsText the view
+ *     is shown larger or smaller by its host's text size, as the gate details popup's follows the
+ *     browser's; its zoom levels stay those of its size.
  */
-function OperatorView({ source, structure, matrix, size, label, formatKet }) {
+function OperatorView({ source, structure, matrix, size, label, formatKet, followsText = false }) {
   const { json, col, wireCount, time } = source ?? {wireCount: Math.log2(matrix.height())};
   const tileSource = useMemo(() => ({ json, col, wireCount, time }), [json, col, wireCount, time]);
+  const viewRef = useRef(null);
+  const shown = Math.round(size * useTextScale(viewRef, followsText));
   const canvasRef = useRef(null);
   const requested = useRef(new Set());
   const dragFrom = useRef(undefined);
@@ -154,7 +159,7 @@ function OperatorView({ source, structure, matrix, size, label, formatKet }) {
   useEffect(() => {
     const canvas = canvasRef.current;
     const ratio = window.devicePixelRatio || 1;
-    const pixels = Math.max(1, Math.round(size * ratio));
+    const pixels = Math.max(1, Math.round(shown * ratio));
     if (canvas.width !== pixels) {
       canvas.width = pixels;
       canvas.height = pixels;
@@ -202,7 +207,7 @@ function OperatorView({ source, structure, matrix, size, label, formatKet }) {
     } else {
       delete canvas.dataset.painted;
     }
-  }, [tileSource, view, size, arrivals, denseImage, side]);
+  }, [tileSource, view, shown, arrivals, denseImage, side]);
 
   useEffect(() => {
     const pending = requested.current;
@@ -294,14 +299,14 @@ function OperatorView({ source, structure, matrix, size, label, formatKet }) {
   const failed = failure !== undefined && failure.source === tileSource ? failure.message : undefined;
 
   return (
-    <div className="operator-view">
+    <div className="operator-view" ref={viewRef}>
       <canvas
         ref={canvasRef}
         className="operator-view-canvas"
         role="img"
         aria-label={`${label}, ${side} by ${side}`}
         tabIndex={0}
-        style={{ width: `${size}px`, height: `${size}px` }}
+        style={{ width: `${shown}px`, height: `${shown}px` }}
         onPointerDown={(event) => {
           if (event.button === 0) {
             event.currentTarget.setPointerCapture(event.pointerId);

@@ -15,7 +15,7 @@ function StateFactor({state, step, wireCount, formatKet, highlight, label}) {
     <figcaption>{label} ψ<sub>{step}</sub> · {1 << wireCount}×1</figcaption>
     {symbolic ? <div><MatrixMath model={model} label={label} highlight={highlight} /><TensorProduct matrix={state} /></div> :
       <div><DataView kind="state" data={grid} {...plotSize(grid)} options={{wireCount}}
-        label={label + ": state-vector amplitudes reshaped as a grid"} />
+        label={`${label}: state-vector amplitudes reshaped as a grid`} />
         <p className="matrix-grid-label">State-vector amplitudes · reshaped grid</p></div>}
   </figure>;
 }

@@ -37,12 +37,12 @@ import {initTitleSync} from "./session/title.js"
 import {Recorder} from "./state/Recorder.js";
 import {TapeStore} from "../results/tapeStore.js";
 import {Simulator} from "./state/Simulator.js"
-import {Animation} from "../config/Animation.js"
 import {circuitZoom, initZoomControls, attachCircuitScrollSource} from "./canvas/zoom.js"
 import {initMinimap} from "./canvas/minimap.js"
 import {noteCircuitEdited} from "../diagnostics/errorReporter.js"
 import {onReducedMotionChange, prefersReducedMotion} from "../browser/reducedMotion.js"
 import {appStore} from "../state/appStore.js"
+import {motionSettings} from "../state/motionSettings.js"
 import {failingAssertionColumns} from '../gates/assertions/AssertionGates.js';
 import {operationSchedule} from '../circuit/operationColumns.js';
 
@@ -65,8 +65,11 @@ import {operationSchedule} from '../circuit/operationColumns.js';
 function startQuirk({canvas, canvasDiv, scrollSpacer, circuitOverlay, onReady,
                      openGateParamEditor, openBlochSphereView, openRegisterRename, openGutterMenu, openGateMenu,
                      openSelectionMenu, openTape, openComplexDisplay}) {
-    // The one simulator: the animation cycle's phase and the stats caches are app-wide state.
-    const simulator = new Simulator();
+    // The one simulator: the animation cycle's phase and the stats caches are app-wide state. The
+    // cycle's pace, like every pace below, is the user's setting. It lives as long as the page, so
+    // it holds the states each run passes through and re-runs a circuit from where it changed.
+    const simulator = new Simulator(undefined, () => motionSettings.getState().cycleDurationMs,
+        {keepCheckpoints: true});
 
     // A placeholder size for the pre-boot inspector; the first redraw sizes the canvas to fit.
 
@@ -77,20 +80,25 @@ function startQuirk({canvas, canvasDiv, scrollSpacer, circuitOverlay, onReady,
     const playhead = new Playhead(
         observeStore(displayed).
             map(e => e.displayedCircuit.circuitDefinition).
-            whenDifferent().map(operationSchedule));
+            whenDifferent().map(operationSchedule),
+        undefined, undefined, () => motionSettings.getState().playheadStepMs);
     /** @type {!Revision} */
     const revision = Revision.startingAt(displayed.getState().value.snapshot());
 
-    const captureCommitted = () => {
+    /**
+     * @param {!{mayLag: undefined|!boolean}=} options mayLag lets an animation frame show the last
+     *     results while newer ones come back from the GPU (Simulator.evaluate).
+     */
+    const captureCommitted = ({mayLag = false} = {}) => {
         const circuit = fromJsonText_CircuitDefinition(revision.peekActiveCommit());
-        const result = simulator.evaluate(circuit, circuit.numWires, playhead.step());
+        const result = simulator.evaluate(circuit, circuit.numWires, playhead.step(), true, {mayLag});
         // A run halts before an assertion that fails, as it does before a breakpoint.
         playhead.setHaltColumns(failingAssertionColumns(result.fullStats));
         return result;
     };
     const tapeStore = new TapeStore();
     const recorder = new Recorder(revision, playhead, simulator, tapeStore, captureCommitted,
-        {onRestore: () => redrawLoop.trigger()});
+        {onRestore: () => redrawLoop.trigger(), settings: motionSettings});
     let lastCommit = revision.peekActiveCommit();
     revision.latestActiveCommit().subscribe(jsonText => {
         if (jsonText !== lastCommit && !recorder.restoring) {
@@ -168,6 +176,13 @@ function startQuirk({canvas, canvasDiv, scrollSpacer, circuitOverlay, onReady,
     // may do from the mirrored availability and playhead state.
     appStore.setState({circuitActions, playhead, registerActions, gateActions, selectionActions, recorder});
     circuitActions.availability().subscribe(circuitAvailability => appStore.setState({circuitAvailability}));
+    // The increment a debug step moves t by is taken when the debugging starts and kept until it
+    // ends, so stepping back undoes exactly what stepping forward did; a new setting applies to the
+    // next debugging.
+    let debugStepIncrement = motionSettings.getState().debugStepIncrement;
+    simulator.animationStopped.subscribe(({value: stopped}, {value: wasStopped}) => {
+        if (stopped && !wasStopped) debugStepIncrement = motionSettings.getState().debugStepIncrement;
+    });
     let generation = playhead.generation;
     let operationsStepped = playhead.operationsStepped();
     playhead.state().subscribe(playheadState => {
@@ -181,7 +196,7 @@ function startQuirk({canvas, canvasDiv, scrollSpacer, circuitOverlay, onReady,
         operationsStepped = playhead.operationsStepped();
         if (stepped !== 0 || playheadState.playing) simulator.setAnimationStopped(true);
         if (simulator.animationStopped.getState().value && !recorder.restoring) {
-            simulator.advanceCycle(stepped * Animation.DEBUG_STEP_CYCLE_INCREMENT);
+            simulator.advanceCycle(stepped * debugStepIncrement);
         }
         if (!recorder.restoring) captureCommitted();
         appStore.setState({playheadState});
@@ -211,6 +226,12 @@ function startQuirk({canvas, canvasDiv, scrollSpacer, circuitOverlay, onReady,
     };
     followReducedMotion(prefersReducedMotion());
     onReducedMotionChange(followReducedMotion);
+    // A new pace applies at once: Play goes on at the new time per operation, and the cycle, which
+    // reads its duration on every frame, is redrawn at the new speed.
+    motionSettings.subscribe((state, previous) => {
+        if (state.playheadStepMs !== previous.playheadStepMs) playhead.retime();
+        if (state.cycleDurationMs !== previous.cycleDurationMs) redrawLoop.trigger();
+    });
     initUrlCircuitSync(revision, recorder, playhead, openTape);
     const gateToolbox = /** @type {!Object} */ ({
         // Compared by content, not identity: every commit deserializes a fresh CustomGateSet, and
@@ -225,7 +246,7 @@ function startQuirk({canvas, canvasDiv, scrollSpacer, circuitOverlay, onReady,
     appStore.setState({
         gateToolbox,
         panelDeps: {revision, displayed, mostRecentStats, completed: simulator.completed, recorder, syncArea,
-                    cycleTime: () => simulator.cycleTime()},
+                    cycleTime: () => simulator.cycleTime(), settings: motionSettings},
     });
     initTitleSync(revision);
     // Fitting never zooms in: at 100% or below the whole circuit is judged by its own width,

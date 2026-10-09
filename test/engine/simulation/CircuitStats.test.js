@@ -16,6 +16,8 @@
 
 import {Suite, assertThat, assertTrue} from "../../TestUtil.js"
 import {CircuitStats} from "../../../src/engine/simulation/CircuitStats.js"
+import {CircuitCheckpoints} from "../../../src/engine/simulation/CircuitCheckpoints.js"
+import {WglTexturePool} from "../../../src/engine/webgl/texture/WglTexturePool.js"
 
 import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js"
 import {GateColumn} from "../../../src/circuit/model/GateColumn.js"
@@ -478,4 +480,126 @@ suite.testUsingWebGL("toReadableJson", () => {
             }
         ]
     })
+});
+
+/**
+ * Runs `later` after `earlier` through one set of checkpoints, and checks that the resumed run starts
+ * at `resumedCol` and matches a fresh run of `later` exactly. (Each dash in a diagram is a column, and
+ * a fused run of quiet columns saves its state only at its end, so a run resumes from before it.)
+ */
+const assertResumedRunMatchesFreshRun = (earlier, [earlierTime, laterTime], later, resumedCol, seed = "seed") => {
+    const borrowed = WglTexturePool.getUnReturnedTextureCount();
+    const checkpoints = new CircuitCheckpoints();
+    try {
+        CircuitStats.fromCircuitAtTime(earlier, earlierTime, seed, checkpoints);
+        const resume = checkpoints.resumePoint(later.withMinimumWireCount(), laterTime, seed);
+        assertThat(resume?.col).isEqualTo(resumedCol);
+        const resumed = CircuitStats.fromCircuitAtTime(later, laterTime, seed, checkpoints);
+        const fresh = CircuitStats.fromCircuitAtTime(later, laterTime, seed);
+        assertThat(resumed.toReadableJson()).isEqualTo(fresh.toReadableJson());
+    } finally {
+        checkpoints.release();
+    }
+    assertThat(WglTexturePool.getUnReturnedTextureCount()).isEqualTo(borrowed);
+};
+
+const resumeCircuit = diagram => circuit(diagram,
+    ['t', Gates.Powering.XForward],
+    ['%', Gates.Displays.ChanceDisplay],
+    ['d', Gates.Detectors.ZDetector]);
+
+suite.testUsingWebGL("resuming after an edited column matches a fresh run", () => {
+    assertResumedRunMatchesFreshRun(
+        resumeCircuit(`-H-•-@-%-X-@-
+                       -H-X-@-%-H-@-`),
+        [0, 0],
+        resumeCircuit(`-H-•-@-%-Y-@-
+                       -H-X-@-%-H-@-`),
+        8);
+});
+
+suite.testUsingWebGL("resuming at a new time starts at the first time-dependent column", () => {
+    const c = resumeCircuit(`-H-@-%-t-@-%-
+                             -H-•-@-X-@-%-`);
+    assertResumedRunMatchesFreshRun(c, [0.25, 0.5], c, 7);
+});
+
+suite.testUsingWebGL("resuming an appended or truncated circuit matches a fresh run", () => {
+    const short = resumeCircuit(`-H-•-@-X-
+                                 -H-X-%-H-`);
+    const long = resumeCircuit(`-H-•-@-X-!-@-
+                                -H-X-%-H-M-@-`);
+    // States are kept after the last column and at least eight columns apart.
+    assertResumedRunMatchesFreshRun(short, [0, 0], long, 9);
+    assertResumedRunMatchesFreshRun(long, [0, 0], short, 8);
+});
+
+suite.testUsingWebGL("resuming past a detector draws the same random numbers as a fresh run", () => {
+    assertResumedRunMatchesFreshRun(
+        resumeCircuit(`-H-d-H-d-X-@-
+                       -H-H-d-X-H-@-`),
+        [0, 0],
+        resumeCircuit(`-H-d-H-d-Y-@-
+                       -H-H-d-X-H-@-`),
+        8);
+});
+
+suite.testUsingWebGL("a different seed or wire count starts from the initial state", () => {
+    const c = resumeCircuit(`-H-•-@-
+                             -H-X-@-`);
+    const checkpoints = new CircuitCheckpoints();
+    try {
+        CircuitStats.fromCircuitAtTime(c, 0, "a", checkpoints);
+        assertThat(checkpoints.resumePoint(c.withMinimumWireCount(), 0, "a")?.col).isEqualTo(7);
+        assertThat(checkpoints.resumePoint(c.withMinimumWireCount(), 0, "b")).isEqualTo(undefined);
+        assertThat(checkpoints.resumePoint(c.withWireCount(3), 0, "a")).isEqualTo(undefined);
+    } finally {
+        checkpoints.release();
+    }
+});
+
+/** Waits, a task at a time, until the GPU has handed back a pending run's results. */
+const arrivalOf = async pending => {
+    for (let i = 0; i < 400 && !pending.isReady(); i++) {
+        await new Promise(resolve => setTimeout(resolve, 5));
+    }
+    assertTrue(pending.isReady());
+};
+
+suite.test("a run started without waiting ends with the results of one that waits", async () => {
+    const borrowed = WglTexturePool.getUnReturnedTextureCount();
+    const checkpoints = new CircuitCheckpoints();
+    try {
+        const c = resumeCircuit(`-H-•-@-%-t-@-d-
+                                 -H-X-@-%-H-@-%-`);
+        CircuitStats.fromCircuitAtTime(c, 0.25, "seed", checkpoints);
+        const pending = CircuitStats.startFromCircuitAtTime(c, 0.5, "seed", checkpoints);
+        await arrivalOf(pending);
+        assertThat(pending.finish().toReadableJson())
+            .isEqualTo(CircuitStats.fromCircuitAtTime(c, 0.5, "seed").toReadableJson());
+        // The run recorded itself, so the next one resumes from its states.
+        assertThat(checkpoints.resumePoint(c.withMinimumWireCount(), 0.5, "seed")?.col).isEqualTo(15);
+    } finally {
+        checkpoints.release();
+    }
+    assertThat(WglTexturePool.getUnReturnedTextureCount()).isEqualTo(borrowed);
+});
+
+suite.test("a cancelled run hands back what it held and leaves the checkpoints as they were", async () => {
+    const borrowed = WglTexturePool.getUnReturnedTextureCount();
+    const checkpoints = new CircuitCheckpoints();
+    try {
+        const c = resumeCircuit(`-H-@-t-@-
+                                 -H-X-H-%-`);
+        CircuitStats.fromCircuitAtTime(c, 0.25, "seed", checkpoints);
+        const pending = CircuitStats.startFromCircuitAtTime(c, 0.5, "seed", checkpoints);
+        pending.cancel();
+        await new Promise(resolve => setTimeout(resolve, 5));
+        assertThat(checkpoints.resumePoint(c.withMinimumWireCount(), 0.5, "seed")?.col).isEqualTo(5);
+        assertThat(CircuitStats.fromCircuitAtTime(c, 0.5, "seed", checkpoints).toReadableJson())
+            .isEqualTo(CircuitStats.fromCircuitAtTime(c, 0.5, "seed").toReadableJson());
+    } finally {
+        checkpoints.release();
+    }
+    assertThat(WglTexturePool.getUnReturnedTextureCount()).isEqualTo(borrowed);
 });

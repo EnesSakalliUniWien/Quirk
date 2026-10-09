@@ -138,7 +138,7 @@ suite.test("an edited column, another seed or other wires drop the states that d
 
 suite.test("a column is described by what acts where, and on what condition", () => {
     const text = describeColumn(new GateColumn([C, X]));
-    assertThat(text.includes(X.name + " on q1")).isEqualTo(true);
+    assertThat(text.includes(`${X.name} on q1`)).isEqualTo(true);
     assertThat(text.includes("if q0 is")).isEqualTo(true);
     assertThat(describeColumn(new GateColumn([undefined, undefined]))).isEqualTo("Nothing - the identity");
 });

@@ -289,9 +289,9 @@ class GateColumn {
             }
         }
         if (missing.length > 0) {
-            return "Need\nInput\n " + missing.
+            return `Need\nInput\n ${missing.
                 map(e => e.replace("Input NO_DEFAULT Range ", "").replace("Input Range ", "")).
-                join(", ");
+                join(", ")}`;
         }
 
         return undefined;

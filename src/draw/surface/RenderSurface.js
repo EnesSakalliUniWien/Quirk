@@ -97,7 +97,7 @@ export class RenderSurface {
     reportFailure(error) {
         if (this.reportedFailure === error || this.disposed) return;
         this.reportedFailure = error;
-        reportBlockingIssue('Rendering failed: ' + error.message);
+        reportBlockingIssue(`Rendering failed: ${error.message}`);
     }
     destroy() {
         if (this.disposal) return this.disposal;

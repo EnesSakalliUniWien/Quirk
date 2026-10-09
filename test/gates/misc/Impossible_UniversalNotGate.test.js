@@ -16,7 +16,6 @@
 
 import {Suite, assertThat} from "../../TestUtil.js"
 import {CircuitEvalContext} from "../../../src/engine/simulation/CircuitEvalContext.js"
-import {CircuitShaders} from "../../../src/engine/simulation/gpu/CircuitShaders.js"
 import {universalNot} from "../../../src/gates/misc/Impossible_UniversalNotGate.js"
 
 import {Controls} from "../../../src/circuit/model/Controls.js"
@@ -31,7 +30,6 @@ suite.testUsingWebGL('universalNot', () => {
         5,6, 7,8
     ])).toVec2Texture(2);
     const assertAbout = (index, control) => {
-        const controlTex = CircuitShaders.controlMask(control).toBoolTexture(2);
         const trader = new WglTextureTrader(input);
         trader.dontDeallocCurrentTexture();
         const ctx = new CircuitEvalContext(
@@ -39,15 +37,10 @@ suite.testUsingWebGL('universalNot', () => {
             index,
             2,
             control,
-            controlTex,
             control,
             trader,
             new Map());
-        try {
-            return assertThat(universalNot(ctx).readVec2Outputs(2));
-        } finally {
-            controlTex.deallocByDepositingInPool();
-        }
+        return assertThat(universalNot(ctx).readVec2Outputs(2));
     };
     assertAbout(0, Controls.NONE).isEqualTo(new Float32Array([
         3,-4, -1,2,

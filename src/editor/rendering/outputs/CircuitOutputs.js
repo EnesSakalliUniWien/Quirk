@@ -35,18 +35,18 @@ function drawOutputDisplays(context, painter, stats, hand) {
 
     for (let i = 0; i < numWire; i++) {
         const p = stats.controlledWireProbabilityJustAfter(i, Infinity);
-        painter.group('probability-' + i, view => paintProbabilityBox(view, p, context.geometry.gateRect(i, chanceCol), hand.hoverPoints()));
+        painter.group(`probability-${i}`, view => paintProbabilityBox(view, p, context.geometry.gateRect(i, chanceCol), hand.hoverPoints()));
         const m = stats.qubitDensityMatrix(Infinity, i);
         if (m !== undefined) {
             const blochRect = CircuitGeometry.blochDisplayRect(context.geometry.gateRect(i, blochCol));
             // The sphere is its own shape, so it wears no box.
-            painter.group('bloch-' + i, view => paintBlochSphereDisplay(view, m, blochRect, hand.hoverPoints()));
+            painter.group(`bloch-${i}`, view => paintBlochSphereDisplay(view, m, blochRect, hand.hoverPoints()));
         }
     }
 
     drawLocalStateCaption(context, painter, numWire, chanceCol);
 
-    painter.group('amplitudes', view => drawOutputSuperpositionDisplay(context, view, stats, hand));
+    painter.group('amplitudes', view => drawOutputSuperpositionDisplay(context, view, hand));
 }
 
 export {drawOutputDisplays};

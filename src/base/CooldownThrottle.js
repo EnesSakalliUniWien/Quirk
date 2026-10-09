@@ -106,7 +106,7 @@ class CooldownThrottle {
         // Already re-triggered. Do nothing.
         break;
       default:
-        throw new Error("Unrecognized throttle state: " + this._state);
+        throw new Error(`Unrecognized throttle state: ${this._state}`);
     }
   }
 

@@ -16,468 +16,68 @@
 
 /**
  * The example circuits a panel can offer: data, no behaviour. Each entry carries the name shown
- * for it, so the list is describable without markup.
+ * for it, so the list is describable without markup. Each circuit lives in its own module under
+ * `examples/`; this file only orders them and freezes the combined list.
  */
 
-const groverLink = {
-  cols: [
-    ["X", "X", "X", "X", "X"],
-    ["H", "H", "H", "H", "H"],
-    ["Chance5"],
-    ["~vn6c"],
-    ["⊖", "⊖", "⊖", "⊖", "X"],
-    ["Chance5"],
-    ["~vn6c"],
-    ["⊖", "⊖", "⊖", "⊖", "X"],
-    ["Chance5"],
-    ["~vn6c"],
-    ["⊖", "⊖", "⊖", "⊖", "X"],
-    ["Chance5"],
-    ["~vn6c"],
-    ["⊖", "⊖", "⊖", "⊖", "X"],
-    ["Chance5"],
-  ],
-  gates: [
-    {
-      id: "~vn6c",
-      name: "Oracle",
-      circuit: { cols: [["Z", "•", "◦", "•", "•"]] },
-    },
-  ],
-};
-const teleportLink = {
-  cols: [
-    [1, "H"],
-    [1, "•", 1, 1, "X"],
-    ["…", "…", 1, 1, "…"],
-    ["…", "…", 1, 1, "…"],
-    ["~87lj"],
-    ["Bloch"],
-    ["•", "X"],
-    ["H"],
-    ["Measure", "Measure"],
-    [1, "•", 1, 1, "X"],
-    ["•", 1, 1, 1, "Z"],
-    [1, 1, 1, 1, "Bloch"],
-    [1, 1, 1, 1, "~f7c0"],
-  ],
-  gates: [
-    { id: "~87lj", name: "message", circuit: { cols: [["e^-iYt"], ["X^t"]] } },
-    { id: "~f7c0", name: "received", matrix: "{{1,0},{0,1}}" },
-  ],
-};
-const eraserLink = {
-  cols: [
-    [1, "H"],
-    [1, "•", 1, 1, "X"],
-    [1, "~slits", "QFT7"],
-    [
-      1,
-      1,
-      "Measure",
-      "Measure",
-      "Measure",
-      "Measure",
-      "Measure",
-      "Measure",
-      "Measure",
-    ],
-    ["…", "…", "Chance7"],
-    ["…", "…"],
-    ["…", "…"],
-    ["…", "…"],
-    ["H"],
-    ["Measure"],
-    ["~choice"],
-    ["•", "X^½"],
-    [1, "Measure"],
-    [1, "~result", 1, 1, 1, "~flat"],
-    ["◦", "◦", "Chance7"],
-    ["◦", "•", "Chance7"],
-    [1, 1, 1, 1, 1, "~waves"],
-    ["•", "◦", "Chance7"],
-    ["•", "•", "Chance7"],
-  ],
-  gates: [
-    { id: "~choice", name: "choice", matrix: "{{1,0},{0,1}}" },
-    { id: "~result", name: "result", matrix: "{{1,0},{0,1}}" },
-    { id: "~flat", name: "flat", matrix: "{{1,0},{0,1}}" },
-    { id: "~waves", name: "waves", matrix: "{{1,0},{0,1}}" },
-    { id: "~slits", name: "slits", matrix: "{{1,0},{0,1}}" },
-  ],
-};
-const chshTestLink = {
-  cols: [
-    ["H"],
-    ["◦", 1, 1, 1, "X"],
-    ["X^-¼"],
-    ["…", "…", "…", "…", "…"],
-    ["~da85", "~5s2n", 1, "~5s2n", "~ahov"],
-    [1, "H", 1, "H"],
-    [1, "Measure", 1, "Measure"],
-    ["X^½", "•"],
-    [1, 1, 1, "•", "X^½"],
-    ["Measure", 1, 1, 1, "Measure"],
-    ["…", "…", "…", "…", "…"],
-    [1, "•", "X", "•"],
-    ["•", 1, "X"],
-    [1, 1, "X", 1, "•"],
-    [1, 1, "Chance"],
-    [1, 1, "~q6e"],
-  ],
-  gates: [
-    { id: "~da85", name: "Alice", matrix: "{{1,0},{0,1}}" },
-    { id: "~ahov", name: "Bob", matrix: "{{1,0},{0,1}}" },
-    { id: "~5s2n", name: "Referee", matrix: "{{1,0},{0,1}}" },
-    { id: "~q6e", name: "Win?", matrix: "{{1,0},{0,1}}" },
-  ],
-};
-const additionLink = {
-  cols: [
-    ["Counting5", 1, 1, 1, 1, 1, 1, 1, "X"],
-    ["Chance5", 1, 1, 1, 1, "Chance5"],
-    ["X", "X", "X", "X", "•", "X", "X", "X", "X", "X"],
-    [1, 1, 1, 1, "•", "X"],
-    ["Swap", 1, 1, 1, "Swap", "•"],
-    [1, 1, 1, 1, "•", 1, "X"],
-    [1, "Swap", 1, 1, "Swap", 1, "•"],
-    [1, 1, 1, 1, "•", 1, 1, "X"],
-    [1, 1, "Swap", 1, "Swap", 1, 1, "•"],
-    [1, 1, 1, 1, "•", 1, 1, 1, "X"],
-    [1, 1, 1, "Swap", "Swap", 1, 1, 1, "•"],
-    [1, 1, 1, 1, "•", 1, 1, 1, 1, "X"],
-    [1, 1, 1, "Swap", "Swap", 1, 1, 1, "•"],
-    [1, 1, 1, "•", 1, 1, 1, 1, "X"],
-    [1, 1, "Swap", 1, "Swap", 1, 1, "•"],
-    [1, 1, "•", 1, 1, 1, 1, "X"],
-    [1, "Swap", 1, 1, "Swap", 1, "•"],
-    [1, "•", 1, 1, 1, 1, "X"],
-    ["Swap", 1, 1, 1, "Swap", "•"],
-    ["•", 1, 1, 1, 1, "X"],
-    ["X", "X", "X", "X", "•", "X", "X", "X", "X", "X"],
-    ["Chance5", 1, 1, 1, 1, "Chance5"],
-  ],
-};
-const qftLink = {
-  cols: [
-    ["Counting8"],
-    ["Chance8"],
-    ["…", "…", "…", "…", "…", "…", "…", "…"],
-    ["Swap", 1, 1, 1, 1, 1, 1, "Swap"],
-    [1, "Swap", 1, 1, 1, 1, "Swap"],
-    [1, 1, "Swap", 1, 1, "Swap"],
-    [1, 1, 1, "Swap", "Swap"],
-    ["H"],
-    ["Z^½", "•"],
-    [1, "H"],
-    ["Z^¼", "Z^½", "•"],
-    [1, 1, "H"],
-    ["Z^⅛", "Z^¼", "Z^½", "•"],
-    [1, 1, 1, "H"],
-    ["Z^⅟₁₆", "Z^⅛", "Z^¼", "Z^½", "•"],
-    [1, 1, 1, 1, "H"],
-    ["Z^⅟₃₂", "Z^⅟₁₆", "Z^⅛", "Z^¼", "Z^½", "•"],
-    [1, 1, 1, 1, 1, "H"],
-    ["Z^⅟₆₄", "Z^⅟₃₂", "Z^⅟₁₆", "Z^⅛", "Z^¼", "Z^½", "•"],
-    [1, 1, 1, 1, 1, 1, "H"],
-    ["Z^⅟₁₂₈", "Z^⅟₆₄", "Z^⅟₃₂", "Z^⅟₁₆", "Z^⅛", "Z^¼", "Z^½", "•"],
-    [1, 1, 1, 1, 1, 1, 1, "H"],
-  ],
-};
-const superdenseCodingLink = {
-  cols: [
-    [1, 1, "H"],
-    [1, 1, "•", 1, 1, 1, "X"],
-    ["…", "…", "…", "…", "…", "…", "…"],
-    ["Counting2"],
-    ["Measure", "Measure"],
-    ["~msg"],
-    ["Chance", "Chance"],
-    ["~enc"],
-    [1, "•", "X"],
-    ["•", 1, "Z"],
-    [1, 1, 1, "~send"],
-    [1, 1, "Swap", 1, 1, "Swap"],
-    [1, 1, 1, 1, 1, "~dec"],
-    [1, 1, 1, 1, 1, "•", "X"],
-    [1, 1, 1, 1, 1, "H"],
-    [1, 1, 1, 1, 1, "Measure", "Measure"],
-    [1, 1, 1, 1, 1, "~msg"],
-    [1, 1, 1, 1, 1, "Chance", "Chance"],
-  ],
-  gates: [
-    {
-      id: "~msg",
-      name: "message",
-      matrix: "{{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}",
-    },
-    {
-      id: "~enc",
-      name: "encode",
-      matrix: "{{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}",
-    },
-    {
-      id: "~send",
-      name: "send",
-      matrix: "{{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}",
-    },
-    {
-      id: "~dec",
-      name: "decode",
-      matrix: "{{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}",
-    },
-  ],
-};
-const symmetryBreakingLink = {
-  cols: [
-    ["~tpqg", 1, "~r2ku"],
-    ["…", "…", "…", "…"],
-    ["H"],
-    [1, 1, "H"],
-    ["•", "X"],
-    [1, 1, "•", "X"],
-    [1, "Swap", 1, "Swap"],
-    ["•", "X"],
-    [1, 1, "•", "X"],
-    ["X^½", "◦"],
-    [1, 1, "X^½", "◦"],
-    [1, "X^½"],
-    [1, 1, 1, "X^½"],
-    ["Measure", "Measure", "Measure", "Measure"],
-    [1, "~57au"],
-    ["•", 1, "Chance"],
-    [1, "•", 1, "Chance"],
-    ["◦", 1, "Chance"],
-    [1, "◦", 1, "Chance"],
-  ],
-  gates: [
-    {
-      id: "~tpqg",
-      name: "Alice^1",
-      matrix: "{{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}",
-    },
-    {
-      id: "~r2ku",
-      name: "Alice^2",
-      matrix: "{{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}",
-    },
-    {
-      id: "~57au",
-      name: "disagree",
-      matrix: "{{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}",
-    },
-  ],
-};
-const shorLink = {
-  cols: [
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, "~input", 1, 1, 1, "~guess"],
-    [
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      { id: "setR", arg: 55 },
-      1,
-      1,
-      1,
-      { id: "setB", arg: 26 },
-    ],
-    [],
-    ["H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "X"],
-    ["inputA10", 1, 1, 1, 1, 1, 1, 1, 1, 1, "*BToAmodR6"],
-    ["QFT†10"],
-    [1, 1, 1, 1, "~out"],
-    ["Chance10"],
-  ],
-  gates: [
-    {
-      id: "~guess",
-      name: "guess:",
-      matrix: "{{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}",
-    },
-    {
-      id: "~input",
-      name: "input:",
-      matrix: "{{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}",
-    },
-    {
-      id: "~out",
-      name: "out:",
-      matrix: "{{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}",
-    },
-  ],
-};
-const distillLink = {
-  cols: [
-    ["H", "H", "H", "H", "H"],
-    [1, "Z", "Z", "Z", 1, "⊖"],
-    [1, "Z", "Z", 1, "Z", 1, "⊖"],
-    [1, "Z", 1, "Z", "Z", 1, 1, "⊖"],
-    [1, 1, "Z", "Z", "Z", 1, 1, 1, "⊖"],
-    ["Z", "Z", "Z", "Z", "Z", 1, 1, 1, 1, "⊖"],
-    ["Z", 1, 1, "Z", "Z", 1, 1, 1, 1, 1, "⊖"],
-    ["Z", 1, "Z", 1, "Z", 1, 1, 1, 1, 1, 1, "⊖"],
-    ["Z", "Z", 1, 1, "Z", 1, 1, 1, 1, 1, 1, 1, "⊖"],
-    ["Z", 1, "Z", "Z", 1, 1, 1, 1, 1, 1, 1, 1, 1, "⊖"],
-    ["Z", "Z", 1, "Z", 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, "⊖"],
-    ["Z", "Z", "Z", 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, "⊖"],
-    [
-      1,
-      "Z^¼",
-      "Z^¼",
-      "Z^¼",
-      "Z^¼",
-      "Z^¼",
-      "Z^¼",
-      "Z^¼",
-      "Z^¼",
-      "Z^¼",
-      "Z^¼",
-      "Z^¼",
-      "Z^¼",
-      "Z^¼",
-      "Z^¼",
-      "Z^¼",
-    ],
-    [
-      1,
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-      "H",
-    ],
-    [
-      1,
-      "Measure",
-      "Measure",
-      "Measure",
-      "Measure",
-      "Measure",
-      "Measure",
-      "Measure",
-      "Measure",
-      "Measure",
-      "Measure",
-      "Measure",
-      "Measure",
-      "Measure",
-      "Measure",
-      "Measure",
-    ],
-    [1, "X", "X", "X", 1, "•"],
-    [1, "X", "X", 1, "X", 1, "•"],
-    [1, "X", 1, "X", "X", 1, 1, "•"],
-    [1, 1, "X", "X", "X", 1, 1, 1, "•"],
-    ["Z", "X", "X", "X", "X", 1, 1, 1, 1, "•"],
-    ["Z", 1, 1, "X", "X", 1, 1, 1, 1, 1, "•"],
-    ["Z", 1, "X", 1, "X", 1, 1, 1, 1, 1, 1, "•"],
-    ["Z", "X", 1, 1, "X", 1, 1, 1, 1, 1, 1, 1, "•"],
-    ["Z", 1, "X", "X", 1, 1, 1, 1, 1, 1, 1, 1, 1, "•"],
-    ["Z", "X", 1, "X", 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, "•"],
-    ["Z", "X", "X", 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, "•"],
-    ["X", "Chance4"],
-    ["Amps1", "|0⟩⟨0|", "|0⟩⟨0|", "|0⟩⟨0|", "|0⟩⟨0|"],
-  ],
-};
+import { twoStateUnitaryLink } from "./examples/twoStateUnitary.js";
+import { bellStateLink } from "./examples/bellState.js";
+import { ghzStateLink } from "./examples/ghzState.js";
+import { dagCopyLink } from "./examples/dagCopy.js";
+import { swapFromCnotsLink } from "./examples/swapFromCnots.js";
+import { phaseKickbackLink } from "./examples/phaseKickback.js";
+import { toffoliLink } from "./examples/toffoli.js";
+import { chshTestLink } from "./examples/chshTest.js";
+import { teleportLink } from "./examples/teleport.js";
+import { superdenseCodingLink } from "./examples/superdenseCoding.js";
+import { eraserLink } from "./examples/eraser.js";
+import { symmetryBreakingLink } from "./examples/symmetryBreaking.js";
+import { bernsteinVaziraniLink } from "./examples/bernsteinVazirani.js";
+import { qftLink } from "./examples/qft.js";
+import { groverLink } from "./examples/grover.js";
+import { shorLink } from "./examples/shor.js";
+import { halfAdderLink } from "./examples/halfAdder.js";
+import { fullAdderLink } from "./examples/fullAdder.js";
+import { incrementLink } from "./examples/increment.js";
+import { additionLink } from "./examples/addition.js";
+import { distillLink } from "./examples/distill.js";
 
-// U(t) = V · Rz(pi t) · V† with V = Rz(pi/4) · Ry(pi/3), as five rotations in time order:
-// Rz(-pi/4), Ry(-pi/3), Rz(pi t), Ry(pi/3), Rz(pi/4). Rz(pi t) holds the eigenvalues
-// e^(∓i pi t/2), and V turns the z axis to the eigenvector axis at polar angle pi/3 and azimuth
-// pi/4. From state 0 or 1, the Bloch vector turns about that axis by pi t, the difference between
-// the eigenvalue phases. Each constant rotation is two columns wide, so an empty column follows it.
-const twoStateUnitaryLink = {
-  init: [0, 1],
-  cols: [
-    [
-      { id: "Rz", arg: "-pi/4" },
-      { id: "Rz", arg: "-pi/4" },
-    ],
-    [],
-    [
-      { id: "Ry", arg: "-pi/3" },
-      { id: "Ry", arg: "-pi/3" },
-    ],
-    [],
-    [
-      { id: "Rzft", arg: "pi t" },
-      { id: "Rzft", arg: "pi t" },
-    ],
-    ["Bloch", "Bloch"],
-    [
-      { id: "Ry", arg: "pi/3" },
-      { id: "Ry", arg: "pi/3" },
-    ],
-    [],
-    [
-      { id: "Rz", arg: "pi/4" },
-      { id: "Rz", arg: "pi/4" },
-    ],
-    [],
-    ["Bloch", "Bloch"],
-  ],
-};
-
-// A dag with roots A and B and children C, D and E, one wire each. The roots get amplitudes from
-// Ry(pi/3) and Ry(pi/4), and the children start empty. Each edge copies its parent into its child
-// with a CNOT: A → C, A → D, B → D, B → E. D has two parents, so it holds A ⊕ B. The copies
-// entangle the children with the roots, so the four root amplitudes move to the basis states
-// where C = A, D = A ⊕ B and E = B. An Amps5 display is three columns wide.
-const dagCopyLink = {
-  cols: [
-    [
-      { id: "Ry", arg: "pi/3" },
-      { id: "Ry", arg: "pi/4" },
-    ],
-    [],
-    ["Amps5"],
-    [],
-    [],
-    ["•", 1, "X"],
-    ["•", 1, 1, "X"],
-    [1, "•", 1, "X"],
-    [1, "•", 1, 1, "X"],
-    ["Amps5"],
-  ],
-  registers: [
-    { name: "A", wires: [0, 1] },
-    { name: "B", wires: [1, 1] },
-    { name: "C", wires: [2, 1] },
-    { name: "D", wires: [3, 1] },
-    { name: "E", wires: [4, 1] },
-  ],
-};
-
+// Simplest and most foundational first, most advanced last:
+//  - a single qubit's rotation, then the Bell and GHZ states and the entangling copy they grow
+//    into, to start with one and a few qubits;
+//  - the two-qubit constructions every circuit leans on: a SWAP made of three CNOTs, phase
+//    kickback, and the Toffoli gate as a reversible AND;
+//  - the Bell-pair protocols (CHSH, teleportation, superdense coding), which all share the same
+//    entangled-pair mechanics;
+//  - the eraser and symmetry-breaking experiments, which turn on more delicate measurement timing;
+//  - the textbook algorithms: Bernstein-Vazirani, the smallest oracle algorithm, then QFT before
+//    the searches and factoring that are built from it;
+//  - reversible arithmetic, from the half and full adders and a controlled-NOT increment to
+//    multi-bit reversible addition, then magic state distillation: circuit-engineering and
+//    fault-tolerance topics that build on the Toffoli gate and everything above.
 /** @type {!Array.<!{name: !string, circuit: !object}>} */
 const EXAMPLE_CIRCUITS = [
-  { name: "Grover Search", circuit: groverLink },
-  { name: "Shor Period Finding", circuit: shorLink },
+  { name: "Two State Model Unitary from Eigenvalues", circuit: twoStateUnitaryLink },
+  { name: "Bell State", circuit: bellStateLink },
+  { name: "GHZ State", circuit: ghzStateLink },
+  { name: "Amplitudes Copied into DAG Children", circuit: dagCopyLink },
+  { name: "SWAP from Three CNOTs", circuit: swapFromCnotsLink },
+  { name: "Phase Kickback", circuit: phaseKickbackLink },
+  { name: "Toffoli as Reversible AND", circuit: toffoliLink },
   { name: "Bell Inequality Test (CHSH)", circuit: chshTestLink },
   { name: "Quantum Teleportation", circuit: teleportLink },
   { name: "Superdense Coding", circuit: superdenseCodingLink },
   { name: "Delayed Choice Eraser", circuit: eraserLink },
   { name: "Symmetry Breaking", circuit: symmetryBreakingLink },
+  { name: "Bernstein-Vazirani", circuit: bernsteinVaziraniLink },
   { name: "Quantum Fourier Transform", circuit: qftLink },
+  { name: "Grover Search", circuit: groverLink },
+  { name: "Shor Period Finding", circuit: shorLink },
+  { name: "Half Adder", circuit: halfAdderLink },
+  { name: "Full Adder", circuit: fullAdderLink },
+  { name: "Increment from Controlled NOTs", circuit: incrementLink },
   { name: "Reversible Addition", circuit: additionLink },
   { name: "Magic State Distillation", circuit: distillLink },
-  { name: "Two State Model Unitary from Eigenvalues", circuit: twoStateUnitaryLink },
-  { name: "Amplitudes Copied into DAG Children", circuit: dagCopyLink },
 ];
 
 // These literals are an acyclic JSON tree. Freeze every nested array and object so loading or

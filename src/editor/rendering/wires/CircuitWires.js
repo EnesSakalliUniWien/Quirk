@@ -47,7 +47,7 @@ function drawWires(context, painter, showLabels, hand) {
     // Wires: a muted line, heavier and in the classical colour once measured, with a tick where the
     // wire turns classical.
     for (let row = 0; row < drawnWireCount; row++) {
-        painter.group('wire-' + row, painter => {
+        painter.group(`wire-${row}`, painter => {
             painter.alpha = row >= context.geometry.extraWireStartIndex ? 0.5 : 1;
             const segments = [[], []];
             const ticks = [];
@@ -89,7 +89,7 @@ function drawWires(context, painter, showLabels, hand) {
             context.definition.numWires < Simulation.MAX_WIRE_COUNT) {
         const hintY = Math.round(context.geometry.wireRect(drawnWireCount).center().y - 0.5) + 0.5;
         const hintRect = context.geometry.wireInitialStateRect(drawnWireCount);
-        painter.group('wire-hint-' + painter.order, painter => {
+        painter.group(`wire-hint-${painter.order}`, painter => {
             strokePath(painter, [new Point(hintRect.right(), hintY), new Point(context.geometry.opRect(1).right(), hintY)], CanvasTheme.stroke.faint, 1, [4, 4]);
         });
         fitText(painter, '+', {

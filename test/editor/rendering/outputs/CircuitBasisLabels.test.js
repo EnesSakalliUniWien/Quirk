@@ -21,8 +21,8 @@ suite.test('basis labels preserve bit ordering and fit their row and column stri
         const cols = labels.filter(label => label.text.startsWith('⋯')).sort((a,b) => a.getBounds().x - b.getBounds().x);
         const rowBits = Math.ceil(geometry.importantWireCount() / 2);
         const colBits = Math.floor(geometry.importantWireCount() / 2);
-        assertThat(rows.map(label => label.text)).isEqualTo(Array.from({length: 2 ** rowBits}, (_,i) => i.toString(2).padStart(rowBits, '0') + '⋯'));
-        assertThat(cols.map(label => label.text)).isEqualTo(Array.from({length: 2 ** colBits}, (_,i) => '⋯' + i.toString(2).padStart(colBits, '0')));
+        assertThat(rows.map(label => label.text)).isEqualTo(Array.from({length: 2 ** rowBits}, (_,i) => `${i.toString(2).padStart(rowBits, '0')}⋯`));
+        assertThat(cols.map(label => label.text)).isEqualTo(Array.from({length: 2 ** colBits}, (_,i) => `⋯${i.toString(2).padStart(colBits, '0')}`));
         for (const label of rows) {
             const b = label.getBounds();
             assertThat(b.x >= grid.x - SUPERPOSITION_GRID_LABEL_SPAN - 0.01 && b.maxX <= grid.x + 0.01 &&

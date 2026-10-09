@@ -8,7 +8,8 @@ import { appStore } from "../../state/appStore.js";
 
 /**
  * The example circuits, as a menu on the toolbar. Choosing one commits it the way any edit is
- * committed, so undo puts the circuit that was there back.
+ * committed, so undo puts the circuit that was there back. Loading one is no edit of the user's
+ * own, so it records no ghost.
  */
 function ExamplesMenu() {
   const deps = useStore(appStore, (s) => s.panelDeps);
@@ -28,7 +29,7 @@ function ExamplesMenu() {
               <Menu.Item
                 key={name}
                 className="app-menu-item"
-                onClick={() => deps?.revision.commit(JSON.stringify(circuit))}
+                onClick={() => deps?.recorder.withoutGhosts(() => deps.revision.commit(JSON.stringify(circuit)))}
               >
                 {name}
               </Menu.Item>

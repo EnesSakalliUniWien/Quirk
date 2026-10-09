@@ -49,6 +49,12 @@ const takeSchema = z.strictObject({
   randomFormat: z.literal(RANDOM_FORMAT),
   result: statsSchema,
   fullResult: statsSchema,
+  // Takes recorded before measurements were kept have none.
+  measurement: z.strictObject({
+    shots: z.int().min(1).max(100000),
+    seed: z.string().min(1).max(256),
+    counts: z.array(z.tuple([z.int().min(0), z.int().min(1)])),
+  }).optional(),
 });
 
 export { TAKE_FORMAT, unavailable, matrix, takeSchema };

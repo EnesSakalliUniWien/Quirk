@@ -44,7 +44,6 @@ const reconstructMatrixFromGateCustomOperation = (gate, time) => {
     const bit = 0;
     const numQubits = gate.height;
     const n = 1 << numQubits;
-    const control = CircuitShaders.controlMask(Controls.NONE).toBoolTexture(numQubits);
     const cols = [];
     for (let i = 0; i < n; i++) {
         const trader = new WglTextureTrader(CircuitShaders.classicalState(i).toVec2Texture(numQubits));
@@ -53,7 +52,6 @@ const reconstructMatrixFromGateCustomOperation = (gate, time) => {
             bit,
             numQubits,
             Controls.NONE,
-            control,
             Controls.NONE,
             trader,
             new Map());
@@ -63,7 +61,6 @@ const reconstructMatrixFromGateCustomOperation = (gate, time) => {
         trader.currentTexture.deallocByDepositingInPool();
         cols.push(col);
     }
-    control.deallocByDepositingInPool();
 
     const raw = new Float32Array(cols.flatMap(e => [...e.rawBuffer()]));
     const flipped = new Matrix(n, n, raw);

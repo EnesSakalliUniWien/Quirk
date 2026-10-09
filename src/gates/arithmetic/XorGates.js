@@ -41,7 +41,7 @@ const XOR_SHADER = ketShaderPermute(
 
 XorGates.XorAFamily = Gate.buildFamily(1, 16, (span, builder) =>
   builder
-    .setSerializedId("^=A" + span)
+    .setSerializedId(`^=A${span}`)
     .setSymbol("⊕A")
     .setTitle("Xor Gate [input A]")
     .setBlurb("Xors input A into the qubits covered by this gate.")
