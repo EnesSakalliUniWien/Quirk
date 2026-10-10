@@ -49,6 +49,8 @@ class TapeStore {
     /** Ghosts deferred but not yet built, oldest first. */
     this._pending = [];
     this._drainScheduled = false;
+    /** The latest order given out or held, so the next commit sorts after it even within a millisecond. */
+    this._lastOrder = -Infinity;
     /** Every record by id, ordered as the store holds them: what admission and eviction decide from. */
     this._index = new Map();
     /** True until the index has been read, and again after another tab writes. */
@@ -105,7 +107,7 @@ class TapeStore {
    * the ghost was committed is what orders it.
    */
   deferGhost(build) {
-    this._pending.push({ build, order: Date.now() });
+    this._pending.push({ build, order: this._stamp(1) });
     // Once the newer ghosts are written the tape evicts any beyond its limit, oldest first, so
     // the oldest of too many waiting would never be seen: skip building it.
     if (this._pending.length > MAX_GHOSTS) this._pending.shift();
@@ -118,7 +120,7 @@ class TapeStore {
   }
 
   async write(takes, { ghost = false, remove = [], signal } = {}) {
-    const records = recordsFor(takes, ghost, Date.now());
+    const records = recordsFor(takes, ghost, this._stamp(takes.length));
     return this._afterGhosts(() => this._commit(records, remove, signal));
   }
 
@@ -154,14 +156,7 @@ class TapeStore {
               "A snapshot with this ID already exists. Download the deleted snapshot before resolving the conflict.",
             );
           return record.ghost
-            ? recordsFor(
-                [record.take],
-                true,
-                [...this._index.values()].reduce(
-                  (latest, r) => Math.max(latest, r.order + 1),
-                  Date.now(),
-                ),
-              )
+            ? recordsFor([record.take], true, this._stamp(1))
             : [record];
         },
         record.id,
@@ -172,6 +167,13 @@ class TapeStore {
 
   dismissRecovery() {
     return this._afterGhosts(() => this.recovery.setState({ value: null }));
+  }
+
+  /** The order of the first of `count` records committed now; the others follow it a step apart. */
+  _stamp(count) {
+    const order = Math.max(Date.now(), this._lastOrder + 1 / 1000);
+    this._lastOrder = order + (count - 1) / 1000;
+    return order;
   }
 
   /** Runs `job` after the ghosts deferred before this call are written, and after earlier jobs. */
@@ -218,6 +220,10 @@ class TapeStore {
 
   _adopt(records) {
     records.sort((a, b) => a.order - b.order);
+    this._lastOrder = Math.max(
+      this._lastOrder,
+      records.at(-1)?.order ?? -Infinity,
+    );
     this._index = new Map(records.map((r) => [r.id, r]));
     this.items.setState({ value: records });
   }

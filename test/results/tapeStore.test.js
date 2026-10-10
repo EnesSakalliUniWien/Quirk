@@ -136,6 +136,32 @@ suite.test(
   },
 );
 
+suite.test(
+  "writes in the same millisecond keep their commit order after a reload",
+  async () => {
+    const { name, store } = openStore();
+    const realNow = Date.now;
+    let reopened;
+    try {
+      await store.ready;
+      Date.now = () => 1000;
+      const writes = [
+        store.write([fakeTake("c"), fakeTake("a")]),
+        store.write([fakeTake("b")]),
+      ];
+      Date.now = realNow;
+      await Promise.all(writes);
+      assertThat(ids(store)).isEqualTo(["c", "a", "b"]);
+      reopened = openStore({ name }).store;
+      await reopened.ready;
+      assertThat(ids(reopened)).isEqualTo(["c", "a", "b"]);
+    } finally {
+      Date.now = realNow;
+      await discard(...[store, reopened].filter(Boolean));
+    }
+  },
+);
+
 suite.test("writing flushes the ghosts that are waiting first", async () => {
   const { store, idle } = openStore();
   try {
