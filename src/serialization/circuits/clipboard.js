@@ -1,5 +1,8 @@
 import { z } from "zod";
-import { toJson_CircuitDefinition, fromJson_CircuitDefinition } from "./circuit.js";
+import {
+  toJson_CircuitDefinition,
+  fromJson_CircuitDefinition,
+} from "./circuit.js";
 
 /**
  * Circuit JSON on the clipboard: the form a URL and the export panel already write, so a copied

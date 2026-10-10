@@ -14,18 +14,22 @@
  * limitations under the License.
  */
 
-import {Layout} from "../../config/Layout.js"
+import { Layout } from "../../config/Layout.js";
 
 /**
  * Geometry shared by the circuit itself and the code that maps positions back onto it.
  */
 
 /** @type {!number} */
-const CIRCUIT_OP_HORIZONTAL_SPACING = Layout.COLUMN_SPACING - 2 * Layout.GATE_RADIUS;
+const CIRCUIT_OP_HORIZONTAL_SPACING =
+  Layout.COLUMN_SPACING - 2 * Layout.GATE_RADIUS;
 
 /** @type {!number} The gutter left of the first column, where the initial-state kets sit. */
-const CIRCUIT_OP_LEFT_SPACING = 2 * Layout.REGISTER_MARGIN + Layout.REGISTER_INDEX_WIDTH +
-    Layout.REGISTER_KET_WIDTH + Layout.REGISTER_WIRE_GAP;
+const CIRCUIT_OP_LEFT_SPACING =
+  2 * Layout.REGISTER_MARGIN +
+  Layout.REGISTER_INDEX_WIDTH +
+  Layout.REGISTER_KET_WIDTH +
+  Layout.REGISTER_WIRE_GAP;
 
 /**
  * @type {!number} The strips left of and below the superposition grid where its binary labels draw;
@@ -34,7 +38,11 @@ const CIRCUIT_OP_LEFT_SPACING = 2 * Layout.REGISTER_MARGIN + Layout.REGISTER_IND
  */
 const SUPERPOSITION_GRID_LABEL_SPAN = 50;
 
-/** @type {!number} The least width the grid's key wraps into, under a grid narrower than that. */
+/**
+ * @type {!number} The least width the grid's key takes, under a grid narrower than that. Narrow
+ * enough that a small circuit's key does not make it scroll on a laptop; the key's lines share the
+ * largest size at which the longest fits.
+ */
 const DISPLAY_CAPTION_WIDTH = 160;
 
 /** @type {!number} The gap between the superposition grid's column labels and its key. */
@@ -45,22 +53,24 @@ const CIRCUIT_RIGHT_MARGIN = Layout.GATE_RADIUS;
 
 /**
  * @type {!number} The strip under the superposition grid's column labels where its key, then the
- * measurement and discard-rate warnings, print.
+ * measurement and discard-rate caveats, print: the title and up to four key lines at 16 each, the
+ * phase wheel, and two caveats (CircuitCaptions.js drawHintLabels).
  */
-const DISPLAY_WARNING_STRIP_HEIGHT = 72;
+const DISPLAY_WARNING_STRIP_HEIGHT = 212;
 
 /**
  * @type {!number} The space kept below the superposition grid: first the column labels, then the
  * warning strip.
  */
-const CIRCUIT_BOTTOM_MARGIN = SUPERPOSITION_GRID_LABEL_SPAN + DISPLAY_WARNING_STRIP_HEIGHT;
+const CIRCUIT_BOTTOM_MARGIN =
+  SUPERPOSITION_GRID_LABEL_SPAN + DISPLAY_WARNING_STRIP_HEIGHT;
 
 export {
-    CIRCUIT_OP_HORIZONTAL_SPACING,
-    CIRCUIT_OP_LEFT_SPACING,
-    SUPERPOSITION_GRID_LABEL_SPAN,
-    DISPLAY_CAPTION_WIDTH,
-    DISPLAY_CAPTION_GAP,
-    CIRCUIT_RIGHT_MARGIN,
-    CIRCUIT_BOTTOM_MARGIN,
-}
+  CIRCUIT_OP_HORIZONTAL_SPACING,
+  CIRCUIT_OP_LEFT_SPACING,
+  SUPERPOSITION_GRID_LABEL_SPAN,
+  DISPLAY_CAPTION_WIDTH,
+  DISPLAY_CAPTION_GAP,
+  CIRCUIT_RIGHT_MARGIN,
+  CIRCUIT_BOTTOM_MARGIN,
+};

@@ -14,76 +14,90 @@
  * limitations under the License.
  */
 
-import {assertThat, Suite} from "../../TestUtil.js"
-import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js"
-import {CircuitStats} from "../../../src/engine/simulation/CircuitStats.js"
-import {Gates} from "../../../src/gates/AllGates.js"
+import { assertThat, Suite } from "../../TestUtil.js";
+import { CircuitDefinition } from "../../../src/circuit/model/CircuitDefinition.js";
+import { CircuitStats } from "../../../src/engine/simulation/CircuitStats.js";
+import { Gates } from "../../../src/gates/AllGates.js";
 import { mergeMaps } from "../../../src/base/maps.js";
 
 const suite = new Suite("InputGates");
 
 const TEST_GATES = new Map([
-    ['$', Gates.ModularIncrementGates.DecrementModRFamily],
-    ['*', Gates.MultiplyAccumulateGates.MultiplyAddInputsFamily],
-    ['X', Gates.HalfTurns.X],
-    ['⊕', Gates.XorGates.XorAFamily],
-    ['A', Gates.InputGates.InputAFamily],
-    ['B', Gates.InputGates.InputBFamily],
-    ['R', Gates.InputGates.InputRFamily],
-    ['∀', Gates.InputGates.InputRevAFamily],
-    ['ᗺ', Gates.InputGates.InputRevBFamily],
-    ['-', undefined],
-    ['/', null],
+  ["$", Gates.ModularIncrementGates.DecrementModRFamily],
+  ["*", Gates.MultiplyAccumulateGates.MultiplyAddInputsFamily],
+  ["X", Gates.HalfTurns.X],
+  ["⊕", Gates.XorGates.XorAFamily],
+  ["A", Gates.InputGates.InputAFamily],
+  ["B", Gates.InputGates.InputBFamily],
+  ["R", Gates.InputGates.InputRFamily],
+  ["∀", Gates.InputGates.InputRevAFamily],
+  ["ᗺ", Gates.InputGates.InputRevBFamily],
+  ["-", undefined],
+  ["/", null],
 ]);
-const circuit = (diagram, ...extraGates) => CircuitDefinition.fromTextDiagram(
+const circuit = (diagram, ...extraGates) =>
+  CircuitDefinition.fromTextDiagram(
     mergeMaps(TEST_GATES, new Map(extraGates)),
-    diagram);
+    diagram,
+  );
 
-suite.testUsingWebGL('endianness', () => {
-    const output = diagram => {
-        const stats = CircuitStats.fromCircuitAtTime(circuit(diagram), 0);
-        const solo = Array.from({length: stats.finalState.height()}, (_, i) => i).
-            filter(i => stats.finalState.cell(0, i).isEqualTo(1));
-        if (solo.length === 0) {
-            throw new Error("Empty sequence has no first item.");
-        }
-        return solo[0];
-    };
+suite.testUsingWebGL("endianness", () => {
+  const output = (diagram) => {
+    const stats = CircuitStats.fromCircuitAtTime(circuit(diagram), 0);
+    const solo = Array.from(
+      { length: stats.finalState.height() },
+      (_, i) => i,
+    ).filter((i) => stats.finalState.cell(0, i).isEqualTo(1));
+    if (solo.length === 0) {
+      throw new Error("Empty sequence has no first item.");
+    }
+    return solo[0];
+  };
 
-    assertThat(output(`-X-A-
+  assertThat(
+    output(`-X-A-
                        ---/-
                        ---/-
                        -----
                        ---⊕-
                        ---/-
-                       ---/-`)).isEqualTo(0b0010001);
+                       ---/-`),
+  ).isEqualTo(0b0010001);
 
-    assertThat(output(`-X-∀-
+  assertThat(
+    output(`-X-∀-
                        ---/-
                        ---/-
                        -----
                        ---⊕-
                        ---/-
-                       ---/-`)).isEqualTo(0b1000001);
+                       ---/-`),
+  ).isEqualTo(0b1000001);
 
-    assertThat(output(`---$-
+  assertThat(
+    output(`---$-
                        ---/-
                        ---/-
                        ---/-
                        -X-R-
                        -X-/-
                        ---/-
-                       -X-/-`)).isEqualTo(0b10111010);
+                       -X-/-`),
+  ).isEqualTo(0b10111010);
 
-    assertThat(output(`---*-
+  assertThat(
+    output(`---*-
                        ---/-
                        -X-A-
                        -X-B-
-                       ---/-`)).isEqualTo(0b01101);
+                       ---/-`),
+  ).isEqualTo(0b01101);
 
-    assertThat(output(`---*-
+  assertThat(
+    output(`---*-
                        ---/-
                        -X-A-
                        -X-ᗺ-
-                       ---/-`)).isEqualTo(0b01110);
+                       ---/-`),
+  ).isEqualTo(0b01110);
 });

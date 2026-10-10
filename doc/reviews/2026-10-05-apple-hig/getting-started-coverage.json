@@ -1,0 +1,216 @@
+[
+  {
+    "slug": "design-principles",
+    "title": "Design principles",
+    "status": "partial",
+    "reason": "All eight principles and expanded sections mapped: scientific purpose, nonmodal agency, data responsibility, familiar controls, responsive flexibility, hierarchy, bounded craft and useful delight. Confirmed accessibility/recovery/feedback gaps crosslinked.",
+    "evidence": "patterns-report.md; foundations-report.md",
+    "findings": [
+      "PAT-01",
+      "PAT-02",
+      "FND-01",
+      "FND-02",
+      "FND-03"
+    ],
+    "subsections": [
+      "# Design principles",
+      "### Purpose",
+      "### Agency",
+      "### Responsibility",
+      "### Familiarity",
+      "### Flexibility",
+      "### Simplicity",
+      "### Craft",
+      "### Delight",
+      "## Purpose",
+      "## Agency",
+      "## Responsibility",
+      "## Familiarity",
+      "## Flexibility",
+      "## Simplicity",
+      "## Craft",
+      "## Delight",
+      "## Resources",
+      "#### Videos",
+      "## Change log"
+    ],
+    "details": "getting-started-report.md"
+  },
+  {
+    "slug": "designing-for-games",
+    "title": "Designing for games",
+    "status": "not-applicable",
+    "reason": "No game product. All five guidance subsections reviewed; defaults, responsive legibility, input alternatives and inclusive access transfer to general app categories. Controllers/avatar stories/Game Center/GameSave/haptics/spatial sound/game sensors N/A.",
+    "evidence": "src/components/app.jsx; getting-started-report.md",
+    "findings": [],
+    "subsections": [
+      "# Designing for games",
+      "## Jump into gameplay",
+      "## Look stunning on every display",
+      "## Enable intuitive interactions",
+      "## Welcome everyone",
+      "## Adopt Apple technologies",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "details": "getting-started-report.md"
+  },
+  {
+    "slug": "designing-for-ios",
+    "title": "Designing for iOS",
+    "status": "partial",
+    "reason": "Display/ergonomics/input/app switching and every best practice considered. Responsive/touch browser guidance applies; native widgets, Siri, payments, biometric/sensor feature opportunities N/A. Font and contrast gaps crosslinked; physical reach unverified.",
+    "evidence": "src/components/adaptive-dock.js:14-28; src/components/toolbar/app-toolbar.jsx:157-181",
+    "findings": [
+      "FND-02",
+      "FND-03"
+    ],
+    "subsections": [
+      "# Designing for iOS",
+      "## Best practices",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos"
+    ],
+    "details": "getting-started-report.md"
+  },
+  {
+    "slug": "designing-for-ipados",
+    "title": "Designing for iPadOS",
+    "status": "partial",
+    "reason": "Display/ergonomics/multiple inputs/multitasking and all best practices considered. Adaptive nonmodal panels support large/compact screens. Native Apple Pencil/widgets and iPad binary on Mac N/A; preferred-font/accessibility gaps crosslinked.",
+    "evidence": "src/components/dock.jsx:234-238; src/components/adaptive-dock.js:69-125",
+    "findings": [
+      "FND-01",
+      "FND-02",
+      "FND-03"
+    ],
+    "subsections": [
+      "# Designing for iPadOS",
+      "## Best practices",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos"
+    ],
+    "details": "getting-started-report.md"
+  },
+  {
+    "slug": "designing-for-iphone-duo",
+    "title": "Designing for iPhone Duo",
+    "status": "partial",
+    "reason": "All Anatomy, Device poses, Best practices, Dynamic layouts, Reserved regions, Split views, Arrangement views, Vertical controls guidance reviewed. Current resizing preserves panel roots/drafts and overflow retains actions. Native arrangement/reserved-region/system vertical-bar APIs N/A to web implementation; folded hardware/safe regions unverified.",
+    "evidence": "src/components/adaptive-dock.js:14-28,69-125; src/components/dock.jsx:234-238; src/components/toolbar/app-toolbar.jsx:48-59,157-181",
+    "findings": [],
+    "subsections": [
+      "# Designing for iPhone Duo",
+      "## Anatomy",
+      "### Device poses",
+      "## Best practices",
+      "## Dynamic layouts",
+      "### Reserved regions",
+      "### Split views",
+      "### Arrangement views",
+      "## Vertical controls",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "details": "getting-started-report.md"
+  },
+  {
+    "slug": "designing-for-macos",
+    "title": "Designing for macOS",
+    "status": "partial",
+    "reason": "Display/ergonomics/inputs/context and all best practices considered. Resizable panels and keyboard editing apply; system menus/window chrome are browser-owned. Native AppKit/Dock requirements N/A. Known data/recovery/preferences gaps crosslinked.",
+    "evidence": "src/components/toolbar/app-toolbar.jsx:292-315; src/components/dock.jsx:27-29",
+    "findings": [
+      "PAT-01",
+      "PAT-02",
+      "FND-01",
+      "FND-02",
+      "FND-03"
+    ],
+    "subsections": [
+      "# Designing for macOS",
+      "## Best practices",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos"
+    ],
+    "details": "getting-started-report.md"
+  },
+  {
+    "slug": "designing-for-tvos",
+    "title": "Designing for tvOS",
+    "status": "not-applicable",
+    "reason": "No native tvOS target. Display distance, remote/focus input, cinematic audio/art, multiuser and TV integrations all considered; general legibility/focus delegated to Foundations/Inputs.",
+    "evidence": "src/components/app.jsx",
+    "findings": [],
+    "subsections": [
+      "# Designing for tvOS",
+      "## Best practices",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "details": "getting-started-report.md"
+  },
+  {
+    "slug": "designing-for-visionos",
+    "title": "Designing for visionOS",
+    "status": "not-applicable",
+    "reason": "No native spatial target. Space/immersion/passthrough/Spatial Audio/eye-hand/comfort/accessibility/safety and every best practice considered. Bloch scientific geometry is a 2D window feature; no SharePlay/spatial/immersive feature required.",
+    "evidence": "src/components/app.jsx; src/components/panels/bloch/bloch-panel.jsx",
+    "findings": [],
+    "subsections": [
+      "# Designing for visionOS",
+      "## Best practices",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "details": "getting-started-report.md"
+  },
+  {
+    "slug": "designing-for-watchos",
+    "title": "Designing for watchOS",
+    "status": "not-applicable",
+    "reason": "No Watch target. Wrist display/ergonomics/Crown/Always On, quick actions, complications, notifications, sensors and independent Watch functionality all reviewed and N/A.",
+    "evidence": "src/components/app.jsx",
+    "findings": [],
+    "subsections": [
+      "# Designing for watchOS",
+      "## Best practices",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "details": "getting-started-report.md"
+  },
+  {
+    "slug": "getting-started",
+    "title": "Getting started",
+    "status": "partial",
+    "reason": "Category reviewed; nine leaf pages covered. Browser platform applicability recorded per leaf.",
+    "evidence": "manifest.json",
+    "findings": [],
+    "subsections": [
+      "# Getting started"
+    ],
+    "details": "getting-started-report.md"
+  }
+]

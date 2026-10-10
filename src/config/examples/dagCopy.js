@@ -18,13 +18,15 @@
 // Ry(pi/3) and Ry(pi/4), and the children start empty. Each edge copies its parent into its child
 // with a CNOT: A → C, A → D, B → D, B → E. D has two parents, so it holds A ⊕ B. The copies
 // entangle the children with the roots, so the four root amplitudes move to the basis states
-// where C = A, D = A ⊕ B and E = B. An Amps5 display is three columns wide.
+// where C = A, D = A ⊕ B and E = B. A rotation is three columns wide with its dial, and an Amps5
+// display is three columns wide.
 const dagCopyLink = {
   cols: [
     [
       { id: "Ry", arg: "pi/3" },
       { id: "Ry", arg: "pi/4" },
     ],
+    [],
     [],
     ["Amps5"],
     [],

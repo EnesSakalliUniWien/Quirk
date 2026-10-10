@@ -1,0 +1,4 @@
+PASS the selection menu and bar copy, delete and make a gate of the selection
+PASS Tape records, compares, reloads, restores and downloads complete takes
+PASS Tape Undo survives panel closure and restores the last blurred metadata on reload
+Completed 3/3

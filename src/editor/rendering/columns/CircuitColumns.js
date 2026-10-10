@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-import {renderGateView} from '../../../draw/gate/GateView.js';
-import {GateRenderParams} from '../../../draw/gate/GateRenderParams.js';
-import {DEFAULT_RENDERER} from '../../../draw/gate/GateRenderers.js';
-import {drawColumnControlWires} from './CircuitControls.js';
-import {drawGate_disabledReason, drawColumnSurvivalRate} from './CircuitWarnings.js';
-import {drawColumnDragHighlight} from '../interaction/CircuitHighlights.js';
+import { renderGateView } from "../../../draw/gate/GateView.js";
+import { GateRenderParams } from "../../../draw/gate/GateRenderParams.js";
+import { DEFAULT_RENDERER } from "../../../draw/gate/GateRenderers.js";
+import { drawColumnControlWires } from "./CircuitControls.js";
+import {
+  drawGate_disabledReason,
+  drawColumnSurvivalRate,
+} from "./CircuitWarnings.js";
+import { drawColumnDragHighlight } from "../interaction/CircuitHighlights.js";
 
 /**
  * @param {!Object} context Rendering inputs supplied by CircuitRendering.
@@ -30,31 +33,46 @@ import {drawColumnDragHighlight} from '../interaction/CircuitHighlights.js';
  * @param {!CircuitStats} stats
  */
 function drawColumn(context, painter, gateColumn, col, hand, stats) {
-    drawColumnControlWires(context, painter, col);
-    drawColumnDragHighlight(context, painter, col);
+  drawColumnControlWires(context, painter, col);
+  drawColumnDragHighlight(context, painter, col);
 
-    for (let row = 0; row < context.definition.numWires; row++) {
-        if (gateColumn.gates[row] === undefined) {
-            continue;
-        }
-        const gate = gateColumn.gates[row];
-        const gateRect = context.geometry.gateDrawRect(row, col, gate);
-
-        const {isHighlighted, isResizeShowing, isResizeHighlighted} =
-            context.highlightStatusAt(col, row, hand.hoverPoints());
-
-        const renderer = gate.customRenderer || DEFAULT_RENDERER;
-        renderGateView(painter, `gate-${col}-${row}`, GateRenderParams.inCircuit(painter, hand, gateRect, gate, stats, {row, col}, {
-            isHighlighted: isHighlighted && !isResizeHighlighted,
-            isResizeShowing,
-            isResizeHighlighted,
-            focusPoints: context.highlightedSlot === undefined ? hand.hoverPoints() : [],
-            customStats: stats.customStatsForSlot(col, row)}), renderer);
-
-        drawGate_disabledReason(context, painter, col, row, gateRect);
+  for (let row = 0; row < context.definition.numWires; row++) {
+    if (gateColumn.gates[row] === undefined) {
+      continue;
     }
+    const gate = gateColumn.gates[row];
+    const gateRect = context.geometry.gateDrawRect(row, col, gate);
 
-    drawColumnSurvivalRate(context, painter, gateColumn, col, stats);
+    const { isHighlighted, isResizeShowing, isResizeHighlighted } =
+      context.highlightStatusAt(col, row, hand.hoverPoints());
+
+    const renderer = gate.customRenderer || DEFAULT_RENDERER;
+    renderGateView(
+      painter,
+      `gate-${col}-${row}`,
+      GateRenderParams.inCircuit(
+        painter,
+        hand,
+        gateRect,
+        gate,
+        stats,
+        { row, col },
+        {
+          isHighlighted: isHighlighted && !isResizeHighlighted,
+          isResizeShowing,
+          isResizeHighlighted,
+          focusPoints:
+            context.highlightedSlot === undefined ? hand.hoverPoints() : [],
+          customStats: stats.customStatsForSlot(col, row),
+        },
+      ),
+      renderer,
+    );
+
+    drawGate_disabledReason(context, painter, col, row, gateRect);
+  }
+
+  drawColumnSurvivalRate(context, painter, gateColumn, col, stats);
 }
 
-export {drawColumn};
+export { drawColumn };

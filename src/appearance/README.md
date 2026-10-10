@@ -1,16 +1,16 @@
 # Shared appearance
 
-`Appearance.js` exports immutable, serializable data. It imports only the files in this directory;
+`Appearance.js` exports immutable, serializable snapshots. Its live binding is replaced when the colour scheme changes; previously captured snapshots remain unchanged. It imports only the files in this directory;
 it does not import Pixi, React, browser APIs, stylesheets, or circuit geometry.
 
-| Definition | Representation |
-| --- | --- |
-| `colours.js` | sRGB `{r, g, b, alpha}` records; channels 0–255 and alpha 0–1 |
-| `typography.js` | font-family names, logical sizes and weights |
-| `spacing.js` | shared distances in logical pixels |
-| `borders.js` | border widths and corner radii in logical pixels |
-| `Appearance.phase` | phase-wheel lightness and chroma |
-| `Appearance.opacity` | opacity of shared appearance states |
+| Definition           | Representation                                                |
+| -------------------- | ------------------------------------------------------------- |
+| `colours.js`         | sRGB `{r, g, b, alpha}` records; channels 0–255 and alpha 0–1 |
+| `typography.js`      | font-family names, logical sizes and weights                  |
+| `spacing.js`         | shared distances in logical pixels                            |
+| `borders.js`         | border widths and corner radii in logical pixels              |
+| `Appearance.phase`   | phase-wheel lightness and chroma                              |
+| `Appearance.opacity` | opacity of shared appearance states                           |
 
 Change these definitions to change shared appearance. Colour roles for probability, amplitude,
 phase, operators, axes, errors and interaction remain distinct. Tape colour indices retain their order.
@@ -23,7 +23,7 @@ phase, operators, axes, errors and interaction remain distinct. Tape colour indi
   Pixi dependency. `config/CanvasTheme.js` preserves the drawing import path without importing DOM mappings.
 - `browser/theme/dom.js` produces CSS variables and CSS-only compositions such as gradients.
 - `browser/theme/dock.js` maps the browser variables to Dockview's property names.
-- `browser/applyTheme.js` applies those properties before React mounts. `config/Theme.js` is the
+- `browser/applyTheme.js` applies those properties before React mounts and after system appearance changes, without reloading. Palette-dependent React views subscribe through `useColourScheme`; imperative canvases request a redraw. Operator raster tiles include the scheme in their cache key and worker request. `config/Theme.js` is the
   browser-facing compatibility aggregate, not the source of appearance definitions.
 - HTML components may use CSS Modules, as `components/toolbar/transport-bar.module.css` does.
   CSS Modules must not be imported by appearance, simulation or drawing modules.
@@ -31,6 +31,10 @@ phase, operators, axes, errors and interaction remain distinct. Tape colour indi
   the base and component layers.
 
 ## Renderer responsibilities
+
+Canvas elements use `styles/ui/render-canvas.css` for the retained canvas wrapper and shared
+`.drag-canvas` interaction styles. Widget styles own their layout and shape; runtime dimensions
+stay with their component. CSS styles the canvas element, while `CanvasTheme` styles its pixels.
 
 Circuit layout stays in `config/Layout.js` and `editor/geometry/`. It derives shared distances from
 `Appearance.spacing`; wire locations, matrix cell dimensions and other geometry are implementation.

@@ -1,3 +1,5 @@
+# Quirk-Bench Manual
+
 **Basic Actions**
 
 - **add gate**: `drag` gate from toolbox to circuit
@@ -15,23 +17,41 @@
 - **add qubit**: `drag` gate onto extra wire that appears while dragging
 - **remove qubit**: re-arrange gates so that the bottom wire is unused
 - **show intermediate state**: `drag` a display gate onto the circuit
-- **view tips**: `hover` with mouse **OR** awkwardly tap-hold with finger
-- **play/pause stepping through the circuit**: `space` **OR** click the play button in the
-  transport under the toolbar; spinning and formula gates animate without it, unless the system's
-  Reduce Motion is on
+- **view tips**: `hover` with mouse **OR** touch and hold
+- **step through the circuit**: the transport under the toolbar has two lanes. **Steps** walks
+  the playhead through the columns: Play steps plays and pauses, Reset goes back to the start,
+  Prev and Next step, the slider scrubs, and Breakpoint marks the column the playhead stands
+  before. The playhead rests at the end, where the outputs at the right show the whole circuit's
+  result, and stays there as the circuit is edited. Short of the end, the columns not yet run
+  stand back under a veil and the outputs show the state reached there - at the start, the state
+  the circuit starts in. Stepping never moves t
+- **record a snapshot**: Record, at the end of the Steps lane, keeps this step - the state at the
+  playhead - or every step from the start to the end, in Recordings
+- **pause what moves**: `space` pauses whatever is moving - the steps, t, or both - and the next
+  `space` brings it back; with nothing moving, it plays the steps
+- **watch or stop time**: time-dependent powers, counting and formula gates follow t, which runs through its
+  cycle every 8 s. **Time**, the lane below, plays and pauses t, scrubs it and nudges it 1/32 at a
+  time, and says what holds it when something does - a recording or a restored snapshot. With the
+  system's Reduce Motion on, t starts paused. Without a gate that uses t, the lane says so
+- **change the speed**: each lane ends in its own speed, from 0.25× to 4×: Steps' paces Play and
+  Time's paces t's cycle; each choice says the pace it makes, and the browser keeps both
 - **zoom the circuit**: use the `−` / `+` / `Fit` buttons over the circuit's corner
 - **scroll a big circuit**: drag the viewport box on the minimap that appears when the circuit
   overflows
 - **inspect a qubit's Bloch sphere**: click any Bloch sphere in the circuit or at a wire's end to
-  open the Bloch sphere analyzer. Its parts are grouped by what they do: Figures, Display, State
-  source, and beside them the readout's Bloch vector and Quantum state. The figures show the qubit
-  three ways: the sphere in perspective (drag to rotate), the meridian through the state, where θ
-  is measured, and the equator, where ϕ is. All three draw one unit circle, at one size and one
-  height, so a length reads the same in each. The two sections are drawn face on, with ticks, the
-  vector's shadow as an arrow, its two components dashed and its length at the tip. The Bloch
-  vector group lists the state vector (|r|, θ, ϕ), the Cartesian components with the formula each
-  comes from, and the quaternion q that turns |0⟩ onto the state; the Quantum state group lists the
-  amplitudes α and β, the purity Tr ρ² and the ket
+  open the Bloch sphere analyzer, named for the wire as the canvas names it (q0, or by its
+  register). A wire's end follows the playhead, as the canvas's outputs do: at the end it is the
+  whole circuit's result, and stepping or Reset moves it; a Bloch gate keeps its own column. The
+  State source - the steps, the presets and the θ and ϕ controls - comes first, with the readout's
+  Bloch vector and Quantum state beside it, and the figures under it. The figures show the qubit
+  three ways: the sphere seen from above the equator (drag it, or focus it and use the arrow keys;
+  Reset view or Home turns it back), the meridian through the state, where θ is measured, and the
+  equator, where ϕ is. All three draw one unit circle, at one size and one height, so a length
+  reads the same in each. The two sections are drawn face on, with ticks, the vector's shadow as
+  an arrow, its two components dashed and its length at the tip, named: |r| on the meridian,
+  |r| sin θ on the equator. What the figures draw - the axis key and the Show switches - sits
+  under them. Turning θ or ϕ keeps the qubit's length, so a mixed qubit stays as mixed. Escape
+  closes the analyzer
 - **read what is and is not defined**: a maximally mixed qubit has no direction, so θ, ϕ, q and
   every formula read —; on the z axis only ϕ is undefined. A note says which, and — is always
   muted so it never passes for a zero
@@ -77,18 +97,18 @@
   keyboard's cell or the pointer and from the wire under it, or else after the selection or the
   circuit; nothing is
   overwritten, and the pasted gates are selected. Exported circuit JSON pastes the same way
-- **make a gate of a selection**: the bar's wand opens Make gate's Circuit tab with its columns and
+- **create a gate from a selection**: the bar's wand opens Create gate's Circuit tab with its columns and
   wires filled in
 - **set a gate's parameter**: click the 'change' button on a parametrized gate (the Rx/Ry/Rz
   rotation gates take their angle in radians)
 - **fold a toolbox group**: click the group's heading; the folding is remembered
 - **switch gates off and on**: Deactivate in a gate's menu or on the selection's bar
-- **create custom gate**: click 'Make gate' button
+- **create custom gate**: click 'Create gate' button
 - **remove custom gate**: [crummy support] have to use undo or clear all or manually edit URL
 
 **Constructing custom gates**
 
-Open **Make gate**, choose Rotation, Matrix, or Circuit, and inspect the operation and gate
+Open **Create gate**, choose Rotation, Matrix, or Circuit, and inspect the operation and gate
 preview. Drafts survive switching methods. **Create gate** adds the gate to Custom Gates and
 focuses it; press Enter to place it in the keyboard's cell, or on the top wire, or drag it into
 the circuit.

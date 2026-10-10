@@ -2,84 +2,89 @@
 /* The toasts' corner (src/components/ui/toasts.jsx): one short note at a time, bottom centre, over
    the dock. Unlayered, like the popup menu, so the dock's own rules do not outrank it. */
 .app-toasts {
-    position: fixed;
-    bottom: 16px;
-    left: 50%;
-    z-index: var(--layer-menu);
-    width: max-content;
-    max-width: min(420px, calc(100vw - 32px));
-    transform: translateX(-50%);
-    outline: none;
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  z-index: var(--layer-menu);
+  width: max-content;
+  max-width: min(420px, calc(100vw - 32px));
+  transform: translateX(-50%);
+  outline: none;
 }
 
 .app-toast {
-    box-sizing: border-box;
-    display: flex;
-    align-items: flex-start;
-    gap: calc(var(--spacing) * 2);
-    padding: calc(var(--spacing) * 2) calc(var(--spacing) * 2) calc(var(--spacing) * 2) calc(var(--spacing) * 3);
-    color: var(--card-foreground);
-    background: var(--card);
-    border: var(--border-width) solid var(--border);
-    border-radius: 10px;
-    box-shadow: 0 12px 32px var(--shadow-popup);
-    font-size: var(--text-small);
-    transition: opacity 150ms, transform 150ms;
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-start;
+  gap: calc(var(--spacing) * 2);
+  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 2)
+    calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+  color: var(--card-foreground);
+  background: var(--card);
+  border: var(--border-width) solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px var(--shadow-popup);
+  font-size: var(--text-small);
+  transition:
+    opacity 150ms,
+    transform 150ms;
 }
 
 .app-toast[data-starting-style],
 .app-toast[data-ending-style] {
-    opacity: 0;
-    transform: translateY(8px);
+  opacity: 0;
+  transform: translateY(8px);
 }
 
 .app-toast-content {
-    flex: 1 1 auto;
-    min-width: 0;
-    padding-top: 2px;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-top: 2px;
 }
 
 .app-toast-title {
-    margin: 0;
-    font-size: inherit;
-    font-weight: 600;
+  margin: 0;
+  font-size: inherit;
+  font-weight: 600;
 }
 
 .app-toast-description {
-    margin: 2px 0 0;
-    color: var(--muted-foreground);
+  margin: 2px 0 0;
+  color: var(--muted-foreground);
 }
 
 .app-toast-description:empty {
-    display: none;
+  display: none;
 }
 
 /* The note's own way out: it never leaves on a timer. */
 .app-toast-close {
-    display: inline-flex;
-    flex: none;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    padding: 0;
-    color: var(--muted-foreground);
-    background: transparent;
-    border: 0;
-    border-radius: var(--radius-small);
-    cursor: pointer;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  color: var(--muted-foreground);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-small);
+  cursor: pointer;
 }
 
 .app-toast-close:hover {
-    color: var(--foreground);
-    background: var(--accent);
+  color: var(--foreground);
+  background: var(--accent);
 }
 
 .app-toast-close svg {
-    width: 14px;
-    height: 14px;
+  width: 14px;
+  height: 14px;
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .app-toast { transition: none; }
+  .app-toast {
+    transition: none;
+  }
 }

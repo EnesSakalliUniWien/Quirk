@@ -1,4 +1,4 @@
-import {Appearance} from '../../appearance/Appearance.js';
+import { Appearance } from "../../appearance/Appearance.js";
 /**
  * Copyright 2017 Google Inc.
  *
@@ -16,7 +16,13 @@ import {Appearance} from '../../appearance/Appearance.js';
  */
 
 import { PathGeometry } from "../shapes/PathGeometry.js";
-import { drawPath, frame, highlightRing, lineWidth, rectangle } from "../shapes/ShapeView.js";
+import {
+  drawPath,
+  frame,
+  highlightRing,
+  lineWidth,
+  rectangle,
+} from "../shapes/ShapeView.js";
 import { fitText } from "../text/TextLayout.js";
 
 import { Layout } from "../../config/Layout.js";
@@ -31,12 +37,32 @@ import { gateButtonRect, rectForResizeTab } from "./GateRects.js";
  * @param {!GateRenderParams} args
  */
 function paintOutline(args) {
-  rectangle(args.painter, args.rect, {
-    stroke: { color: CanvasTheme.text.primary, width: lineWidth(args.painter, Appearance.borders.width.regular) },
-  }, Appearance.borders.radius.tile);
+  rectangle(
+    args.painter,
+    args.rect,
+    {
+      stroke: {
+        color: CanvasTheme.text.primary,
+        width: lineWidth(args.painter, Appearance.borders.width.regular),
+      },
+    },
+    Appearance.borders.radius.tile,
+  );
   if (args.isHighlighted) {
     highlightRing(args.painter, args.rect);
   }
+}
+
+/**
+ * The hover wash over matrix and nested-circuit gate content, below the final outline.
+ * @param {!GateRenderParams} args
+ */
+function paintHoverOverlay(args) {
+  if (!args.isHighlighted) return;
+  args.painter.group(`hover-${args.painter.order}`, (painter) => {
+    painter.alpha *= 0.9;
+    rectangle(painter, args.rect, { fill: CanvasTheme.gate.hover });
+  });
 }
 
 /**
@@ -44,7 +70,12 @@ function paintOutline(args) {
  * @param {!string=} fillColor
  */
 function paintBackground(args, fillColor = gateStyle(args.gate).fill) {
-  rectangle(args.painter, args.rect, { fill: fillColor }, Appearance.borders.radius.tile);
+  rectangle(
+    args.painter,
+    args.rect,
+    { fill: fillColor },
+    Appearance.borders.radius.tile,
+  );
 }
 
 /**
@@ -72,16 +103,17 @@ function paintResizeTab(args) {
   });
   // A one-wire gate's strip is too short for the label; its arrows remain.
   const showLabel = trimRect.w >= 64 && trimRect.h >= 16;
-  if (showLabel) fitText(args.painter, "resize", {
-    x: cx,
-    y: cy,
-    align: "center",
-    baseline: "middle",
-    fill: foreColor,
-    font: { fontSize: 12, fontFamily: Typography.MONO_FONT_FAMILY },
-    width: trimRect.w - 32,
-    height: trimRect.h - 4,
-  });
+  if (showLabel)
+    fitText(args.painter, "resize", {
+      x: cx,
+      y: cy,
+      align: "center",
+      baseline: "middle",
+      fill: foreColor,
+      font: { fontSize: 12, fontFamily: Typography.MONO_FONT_FAMILY },
+      width: trimRect.w - 32,
+      height: trimRect.h - 4,
+    });
   drawPath(
     args.painter,
     (tracer) => {
@@ -91,14 +123,15 @@ function paintResizeTab(args) {
       ];
       const arrowOffsets = [+1, -1];
       const centers = showLabel ? [trimRect.x + 8, trimRect.right() - 8] : [cx];
-      for (const x of centers) for (const sx of [-1, +1]) {
-        for (let k = 0; k < 2; k++) {
-          const by = cy + (d * arrowOffsets[k] * 5) / 8;
-          const y1 = by + (d * arrowDirs[k]) / 8;
-          const y2 = by - (d * arrowDirs[k]) / 8;
-          PathGeometry.line(tracer, x, y1, x + d * sx * 0.5, y2);
+      for (const x of centers)
+        for (const sx of [-1, +1]) {
+          for (let k = 0; k < 2; k++) {
+            const by = cy + (d * arrowOffsets[k] * 5) / 8;
+            const y1 = by + (d * arrowDirs[k]) / 8;
+            const y2 = by - (d * arrowDirs[k]) / 8;
+            PathGeometry.line(tracer, x, y1, x + d * sx * 0.5, y2);
+          }
         }
-      }
     },
     [{ stroke: { color: foreColor, width: 1 } }],
   );
@@ -148,13 +181,20 @@ function paintLocationIndependentFrame(
   args,
   normalFillColor = CanvasTheme.surface.gate,
 ) {
-  const backColor = args.isHighlighted ? CanvasTheme.gate.hover : normalFillColor;
+  const backColor = args.isHighlighted
+    ? CanvasTheme.gate.hover
+    : normalFillColor;
   drawPath(
     args.painter,
     (tracer) => traceLocationIndependentOutline(args, tracer),
     [
       { fill: backColor },
-      { stroke: { color: CanvasTheme.text.primary, width: lineWidth(args.painter, Appearance.borders.width.regular) } },
+      {
+        stroke: {
+          color: CanvasTheme.text.primary,
+          width: lineWidth(args.painter, Appearance.borders.width.regular),
+        },
+      },
     ],
   );
 }
@@ -162,18 +202,31 @@ function paintLocationIndependentFrame(
 /**
  * @param {!GateRenderParams} args
  */
-function paintGateButton(args) {
+function paintGateButton(args, { restingLabel = true } = {}) {
   if (args.hand.isHoldingSomething()) {
     return;
   }
 
   const buttonRect = gateButtonRect(args.rect);
   if (!args.isHighlighted) {
-    fitText(args.painter, 'edit', {x:args.rect.right()-3,y:args.rect.bottom()-2,align:'right',baseline:'bottom',
-      fill:gateStyle(args.gate).text,font:{fontSize:10,fontFamily:Typography.DEFAULT_FONT_FAMILY},width:19,height:14});
+    if (!restingLabel) {
+      return;
+    }
+    fitText(args.painter, "edit", {
+      x: args.rect.right() - 3,
+      y: args.rect.bottom() - 2,
+      align: "right",
+      baseline: "bottom",
+      fill: gateStyle(args.gate).text,
+      font: { fontSize: 10, fontFamily: Typography.DEFAULT_FONT_FAMILY },
+      width: 19,
+      height: 14,
+    });
     return;
   }
-  const buttonFocus = args.focusPoints.some((pt) => buttonRect.containsPoint(pt));
+  const buttonFocus = args.focusPoints.some((pt) =>
+    buttonRect.containsPoint(pt),
+  );
   rectangle(args.painter, buttonRect, {
     fill: buttonFocus
       ? CanvasTheme.interaction.buttonFocus
@@ -192,12 +245,16 @@ function paintGateButton(args) {
     height: buttonRect.h,
   });
   rectangle(args.painter, buttonRect, {
-    stroke: { color: CanvasTheme.text.primary, width: lineWidth(args.painter, Appearance.borders.width.regular) },
+    stroke: {
+      color: CanvasTheme.text.primary,
+      width: lineWidth(args.painter, Appearance.borders.width.regular),
+    },
   });
 }
 
 export {
   paintOutline,
+  paintHoverOverlay,
   paintBackground,
   paintResizeTab,
   paintLocationIndependentFrame,

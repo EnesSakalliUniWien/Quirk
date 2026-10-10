@@ -1,0 +1,925 @@
+[
+  {
+    "slug": "airplay",
+    "title": "AirPlay",
+    "status": "not-applicable",
+    "reason": "No audio/video stream playback or receiver selection. Circuit time playback is simulation, not audiovisual media; browser or OS screen mirroring is outside this product feature.",
+    "evidence": [
+      "package.json:2-7 (browser quantum simulator and package boundary)",
+      "index.html (browser module entry)",
+      "src/app/session/url.js:59,72 (local persistence and URL sharing)",
+      "src/components/panels/forge/construction.js:1-47 (deterministic construction)",
+      "Current bounded source search found no native Swift/Xcode/plist/entitlement targets or named technology integration/API references; absence is scoped to reviewed source, not remote deployment."
+    ],
+    "findings": [],
+    "sectionsReviewed": [
+      "# AirPlay",
+      "## Best practices",
+      "## Using AirPlay icons",
+      "### Black AirPlay icon",
+      "### White AirPlay icon",
+      "### Custom color AirPlay icon",
+      "## Referring to AirPlay",
+      "## Platform considerations",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/airplay"
+  },
+  {
+    "slug": "always-on",
+    "title": "Always On",
+    "status": "not-applicable",
+    "reason": "No watchOS app, lock-screen widget, or Live Activity. An open browser simulator does not implement an Always On device surface.",
+    "evidence": [
+      "package.json:2-7 (browser quantum simulator and package boundary)",
+      "index.html (browser module entry)",
+      "src/app/session/url.js:59,72 (local persistence and URL sharing)",
+      "src/components/panels/forge/construction.js:1-47 (deterministic construction)",
+      "Current bounded source search found no native Swift/Xcode/plist/entitlement targets or named technology integration/API references; absence is scoped to reviewed source, not remote deployment."
+    ],
+    "findings": [],
+    "sectionsReviewed": [
+      "# Always On",
+      "## Best practices",
+      "## Platform considerations",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/always-on"
+  },
+  {
+    "slug": "app-clips",
+    "title": "App Clips",
+    "status": "not-applicable",
+    "reason": "No native iOS app or App Clip target, code, card, or invocation service. Direct website/circuit links already serve the browser entry path.",
+    "evidence": [
+      "package.json:2-7 (browser quantum simulator and package boundary)",
+      "index.html (browser module entry)",
+      "src/app/session/url.js:59,72 (local persistence and URL sharing)",
+      "src/components/panels/forge/construction.js:1-47 (deterministic construction)",
+      "Current bounded source search found no native Swift/Xcode/plist/entitlement targets or named technology integration/API references; absence is scoped to reviewed source, not remote deployment."
+    ],
+    "findings": [],
+    "sectionsReviewed": [
+      "# App Clips",
+      "## Designing your App Clip",
+      "### Preserving privacy",
+      "### Showcasing your app",
+      "### Limiting notifications",
+      "### Creating App Clips for businesses",
+      "## Creating content for an App Clip card",
+      "## App Clip Codes",
+      "### Interacting with App Clip Codes",
+      "### Displaying App Clip Codes",
+      "### Using clear messaging",
+      "### Customizing your App Clip Code",
+      "## Printing guidelines",
+      "### Verifying your printer\u2019s calibration",
+      "## Legal requirements",
+      "## Platform considerations",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/app-clips"
+  },
+  {
+    "slug": "apple-in-app-purchase",
+    "title": "Apple In-App Purchase",
+    "status": "not-applicable",
+    "reason": "No digital purchase, paid tier, subscription, Family Sharing entitlement, or redemption flow in the reviewed app.",
+    "evidence": [
+      "package.json:2-7 (browser quantum simulator and package boundary)",
+      "index.html (browser module entry)",
+      "src/app/session/url.js:59,72 (local persistence and URL sharing)",
+      "src/components/panels/forge/construction.js:1-47 (deterministic construction)",
+      "Current bounded source search found no native Swift/Xcode/plist/entitlement targets or named technology integration/API references; absence is scoped to reviewed source, not remote deployment."
+    ],
+    "findings": [],
+    "sectionsReviewed": [
+      "# Apple In-App Purchase",
+      "## Best practices",
+      "### Supporting Family Sharing",
+      "### Providing help",
+      "## Auto-renewable subscriptions",
+      "### Making signup effortless",
+      "### Supporting offer codes",
+      "### Helping people manage their subscriptions",
+      "## Platform considerations",
+      "### watchOS",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/apple-in-app-purchase"
+  },
+  {
+    "slug": "apple-pay",
+    "title": "Apple Pay",
+    "status": "not-applicable",
+    "reason": "No goods, services, donation, checkout, or payment sheet. Apple Pay supports websites, but there is no purchasing task here to integrate it with.",
+    "evidence": [
+      "package.json:2-7 (browser quantum simulator and package boundary)",
+      "index.html (browser module entry)",
+      "src/app/session/url.js:59,72 (local persistence and URL sharing)",
+      "src/components/panels/forge/construction.js:1-47 (deterministic construction)",
+      "Current bounded source search found no native Swift/Xcode/plist/entitlement targets or named technology integration/API references; absence is scoped to reviewed source, not remote deployment."
+    ],
+    "findings": [],
+    "sectionsReviewed": [
+      "# Apple Pay",
+      "## Offering Apple Pay",
+      "## Streamlining checkout",
+      "### Customizing the payment sheet",
+      "## Displaying a website icon",
+      "## Handling problems",
+      "### Data validation errors",
+      "### Payment processing problems",
+      "## Supporting subscriptions",
+      "## Supporting donations",
+      "## Using Apple Pay buttons",
+      "### Button types",
+      "#### Apple Pay button",
+      "#### Set Up Apple Pay button",
+      "### Button styles",
+      "#### Black",
+      "#### White with outline",
+      "#### White",
+      "### Button size and position",
+      "### Apple Pay mark",
+      "## Referring to Apple Pay",
+      "## Platform considerations",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/apple-pay"
+  },
+  {
+    "slug": "augmented-reality",
+    "title": "Augmented reality",
+    "status": "not-applicable",
+    "reason": "Bloch spheres are mathematical 3D graphics, without camera capture, world tracking, placement, coaching, or shared AR sessions.",
+    "evidence": [
+      "package.json:2-7 (browser quantum simulator and package boundary)",
+      "index.html (browser module entry)",
+      "src/app/session/url.js:59,72 (local persistence and URL sharing)",
+      "src/components/panels/forge/construction.js:1-47 (deterministic construction)",
+      "Current bounded source search found no native Swift/Xcode/plist/entitlement targets or named technology integration/API references; absence is scoped to reviewed source, not remote deployment."
+    ],
+    "findings": [],
+    "sectionsReviewed": [
+      "# Augmented reality",
+      "## Best practices",
+      "## Providing coaching",
+      "## Helping people place objects",
+      "## Designing object interactions",
+      "## Offering a multiuser experience",
+      "## Reacting to real-world objects",
+      "## Communicating with people",
+      "## Handling interruptions",
+      "## Suggesting problem resolutions",
+      "## Icons and badges",
+      "## Platform considerations",
+      "### visionOS",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/augmented-reality"
+  },
+  {
+    "slug": "carekit",
+    "title": "CareKit",
+    "status": "not-applicable",
+    "reason": "No patient care plan, health-data collection, clinical tasks, care-team contacts, or CareKit views. Simulation recordings are circuit state snapshots.",
+    "evidence": [
+      "package.json:2-7 (browser quantum simulator and package boundary)",
+      "index.html (browser module entry)",
+      "src/app/session/url.js:59,72 (local persistence and URL sharing)",
+      "src/components/panels/forge/construction.js:1-47 (deterministic construction)",
+      "Current bounded source search found no native Swift/Xcode/plist/entitlement targets or named technology integration/API references; absence is scoped to reviewed source, not remote deployment."
+    ],
+    "findings": [],
+    "sectionsReviewed": [
+      "# CareKit",
+      "## Data and privacy",
+      "### HealthKit integration",
+      "### Motion data",
+      "### Photos",
+      "### ResearchKit integration",
+      "## CareKit views",
+      "### Tasks",
+      "### Charts",
+      "### Contact views",
+      "## Notifications",
+      "## Symbols and branding",
+      "## Platform considerations",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/carekit"
+  },
+  {
+    "slug": "carplay",
+    "title": "CarPlay",
+    "status": "not-applicable",
+    "reason": "No native vehicle target, CarPlay audio app, or driving interaction. Circuit construction is not an in-car task.",
+    "evidence": [
+      "package.json:2-7 (browser quantum simulator and package boundary)",
+      "index.html (browser module entry)",
+      "src/app/session/url.js:59,72 (local persistence and URL sharing)",
+      "src/components/panels/forge/construction.js:1-47 (deterministic construction)",
+      "Current bounded source search found no native Swift/Xcode/plist/entitlement targets or named technology integration/API references; absence is scoped to reviewed source, not remote deployment."
+    ],
+    "findings": [],
+    "sectionsReviewed": [
+      "# CarPlay",
+      "## iPhone interactions",
+      "### Audio",
+      "## Layout",
+      "## Color",
+      "## Icons and images",
+      "## Error handling",
+      "## Platform considerations",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/carplay"
+  },
+  {
+    "slug": "game-center",
+    "title": "Game Center",
+    "status": "not-applicable",
+    "reason": "No game account, scores, achievements, challenges, matchmaking, or multiplayer session. Circuit examples and Steps are scientific controls.",
+    "evidence": [
+      "package.json:2-7 (browser quantum simulator and package boundary)",
+      "index.html (browser module entry)",
+      "src/app/session/url.js:59,72 (local persistence and URL sharing)",
+      "src/components/panels/forge/construction.js:1-47 (deterministic construction)",
+      "Current bounded source search found no native Swift/Xcode/plist/entitlement targets or named technology integration/API references; absence is scoped to reviewed source, not remote deployment."
+    ],
+    "findings": [],
+    "sectionsReviewed": [
+      "# Game Center",
+      "## Accessing Game Center",
+      "### Integrating the access point",
+      "### Using custom UI",
+      "## Achievements",
+      "### Integrating achievements into your game",
+      "### Creating achievement images",
+      "## Leaderboards",
+      "## Challenges",
+      "## Multiplayer activities",
+      "## Platform considerations",
+      "### tvOS",
+      "### watchOS",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/game-center"
+  },
+  {
+    "slug": "generative-ai",
+    "title": "Generative AI",
+    "status": "not-applicable",
+    "reason": "Forge constructs gates through deterministic angle and matrix parsing, not a generative model. No prompt/model inference, generated language/image output, or AI data-training surface.",
+    "evidence": [
+      "package.json:2-7 (browser quantum simulator and package boundary)",
+      "index.html (browser module entry)",
+      "src/app/session/url.js:59,72 (local persistence and URL sharing)",
+      "src/components/panels/forge/construction.js:1-47 (deterministic construction)",
+      "Current bounded source search found no native Swift/Xcode/plist/entitlement targets or named technology integration/API references; absence is scoped to reviewed source, not remote deployment."
+    ],
+    "findings": [],
+    "sectionsReviewed": [
+      "# Generative AI",
+      "## Best practices",
+      "## Transparency",
+      "## Privacy",
+      "## Models and datasets",
+      "## Inputs",
+      "## Outputs",
+      "## Continuous improvement",
+      "## Platform considerations",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/generative-ai"
+  },
+  {
+    "slug": "healthkit",
+    "title": "HealthKit",
+    "status": "not-applicable",
+    "reason": "No personal health or fitness data, HealthKit permission, Health branding, or Activity ring feature. Rotation diagrams depict quantum quantities.",
+    "evidence": [
+      "package.json:2-7 (browser quantum simulator and package boundary)",
+      "index.html (browser module entry)",
+      "src/app/session/url.js:59,72 (local persistence and URL sharing)",
+      "src/components/panels/forge/construction.js:1-47 (deterministic construction)",
+      "Current bounded source search found no native Swift/Xcode/plist/entitlement targets or named technology integration/API references; absence is scoped to reviewed source, not remote deployment."
+    ],
+    "findings": [],
+    "sectionsReviewed": [
+      "# HealthKit",
+      "## Privacy protection",
+      "## Activity rings",
+      "## Apple Health icon",
+      "## Editorial guidelines",
+      "## Platform considerations",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/healthkit"
+  },
+  {
+    "slug": "homekit",
+    "title": "HomeKit",
+    "status": "not-applicable",
+    "reason": "No home, room, accessory, scene, camera, physical-device control, or Home data access. Circuit gates do not automate connected hardware.",
+    "evidence": [
+      "package.json:2-7 (browser quantum simulator and package boundary)",
+      "index.html (browser module entry)",
+      "src/app/session/url.js:59,72 (local persistence and URL sharing)",
+      "src/components/panels/forge/construction.js:1-47 (deterministic construction)",
+      "Current bounded source search found no native Swift/Xcode/plist/entitlement targets or named technology integration/API references; absence is scoped to reviewed source, not remote deployment."
+    ],
+    "findings": [],
+    "sectionsReviewed": [
+      "# HomeKit",
+      "## Terminology and layout",
+      "### Homes",
+      "### Rooms",
+      "### Accessories, services, and characteristics",
+      "### Actions and scenes",
+      "### Automations",
+      "### Zones",
+      "## Setup",
+      "### Help people choose useful names",
+      "#2 garage door",
+      "## Siri interactions",
+      "## Custom functionality",
+      "### Cameras",
+      "## Using HomeKit icons",
+      "### Styles",
+      "#### Black HomeKit icon",
+      "#### White HomeKit icon",
+      "#### Custom color HomeKit icon",
+      "## Referring to HomeKit",
+      "### Referencing HomeKit and the Home app",
+      "## Platform considerations",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/homekit"
+  },
+  {
+    "slug": "icloud",
+    "title": "iCloud",
+    "status": "not-applicable",
+    "reason": "Persistence is local browser storage and circuit URL hashes; there is no iCloud account or cross-device synchronization promise.",
+    "evidence": [
+      "package.json:2-7 (browser quantum simulator and package boundary)",
+      "index.html (browser module entry)",
+      "src/app/session/url.js:59,72 (local persistence and URL sharing)",
+      "src/components/panels/forge/construction.js:1-47 (deterministic construction)",
+      "Current bounded source search found no native Swift/Xcode/plist/entitlement targets or named technology integration/API references; absence is scoped to reviewed source, not remote deployment."
+    ],
+    "findings": [],
+    "sectionsReviewed": [
+      "# iCloud",
+      "## Best practices",
+      "## Platform considerations",
+      "## Resources",
+      "#### Developer documentation",
+      "## Change log"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/icloud"
+  },
+  {
+    "slug": "id-verifier",
+    "title": "ID Verifier",
+    "status": "not-applicable",
+    "reason": "No merchant identity/age verification or identity-document access; circuit simulation needs no identity verification task.",
+    "evidence": [
+      "package.json:2-7 (browser quantum simulator and package boundary)",
+      "index.html (browser module entry)",
+      "src/app/session/url.js:59,72 (local persistence and URL sharing)",
+      "src/components/panels/forge/construction.js:1-47 (deterministic construction)",
+      "Current bounded source search found no native Swift/Xcode/plist/entitlement targets or named technology integration/API references; absence is scoped to reviewed source, not remote deployment."
+    ],
+    "findings": [],
+    "sectionsReviewed": [
+      "# ID Verifier",
+      "## Best practices",
+      "## Platform considerations",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/id-verifier"
+  },
+  {
+    "slug": "imessage-apps-and-stickers",
+    "title": "iMessage apps and stickers",
+    "status": "not-applicable",
+    "reason": "No Messages extension or sticker pack. Sharing a circuit URL is ordinary website sharing rather than a custom iMessage app.",
+    "evidence": [
+      "package.json:2-7 (browser quantum simulator and package boundary)",
+      "index.html (browser module entry)",
+      "src/app/session/url.js:59,72 (local persistence and URL sharing)",
+      "src/components/panels/forge/construction.js:1-47 (deterministic construction)",
+      "Current bounded source search found no native Swift/Xcode/plist/entitlement targets or named technology integration/API references; absence is scoped to reviewed source, not remote deployment."
+    ],
+    "findings": [],
+    "sectionsReviewed": [
+      "# iMessage apps and stickers",
+      "## Best practices",
+      "## Specifications",
+      "### Icon sizes",
+      "### Sticker sizes",
+      "## Platform considerations",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/imessage-apps-and-stickers"
+  },
+  {
+    "slug": "live-photos",
+    "title": "Live Photos",
+    "status": "not-applicable",
+    "reason": "No photographic media, Live Photo display/control, depth photos, or LivePhotosKitJS feature. Animated quantum simulation is distinct from photo motion.",
+    "evidence": [
+      "package.json:2-7 (browser quantum simulator and package boundary)",
+      "index.html (browser module entry)",
+      "src/app/session/url.js:59,72 (local persistence and URL sharing)",
+      "src/components/panels/forge/construction.js:1-47 (deterministic construction)",
+      "Current bounded source search found no native Swift/Xcode/plist/entitlement targets or named technology integration/API references; absence is scoped to reviewed source, not remote deployment."
+    ],
+    "findings": [],
+    "sectionsReviewed": [
+      "# Live Photos",
+      "## Best practices",
+      "## Platform considerations",
+      "### visionOS",
+      "## Resources",
+      "#### Developer documentation",
+      "#### Videos"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/live-photos"
+  },
+  {
+    "slug": "mac-catalyst",
+    "title": "Mac Catalyst",
+    "status": "not-applicable",
+    "reason": "No UIKit/iPad target or Catalyst project. Running this responsive browser UI on macOS does not create a Catalyst idiom; web keyboard/layout guidance is covered elsewhere.",
+    "evidence": [
+      "package.json:2-7 (browser quantum simulator and package boundary)",
+      "index.html (browser module entry)",
+      "src/app/session/url.js:59,72 (local persistence and URL sharing)",
+      "src/components/panels/forge/construction.js:1-47 (deterministic construction)",
+      "Current bounded source search found no native Swift/Xcode/plist/entitlement targets or named technology integration/API references; absence is scoped to reviewed source, not remote deployment."
+    ],
+    "findings": [],
+    "sectionsReviewed": [
+      "# Mac Catalyst",
+      "## Before you start",
+      "## Choose an idiom",
+      "## Integrate the Mac experience",
+      "### Navigation",
+      "### Inputs",
+      "### App icons",
+      "### Layout",
+      "### Menus",
+      "## Platform considerations",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/mac-catalyst"
+  },
+  {
+    "slug": "machine-learning",
+    "title": "Machine learning",
+    "status": "not-applicable",
+    "reason": "Circuit evolution, numerical probability, and gate construction use mathematics and sampling, not learned model prediction, calibration, personalized ranking, or feedback training.",
+    "evidence": [
+      "package.json:2-7 (browser quantum simulator and package boundary)",
+      "index.html (browser module entry)",
+      "src/app/session/url.js:59,72 (local persistence and URL sharing)",
+      "src/components/panels/forge/construction.js:1-47 (deterministic construction)",
+      "Current bounded source search found no native Swift/Xcode/plist/entitlement targets or named technology integration/API references; absence is scoped to reviewed source, not remote deployment."
+    ],
+    "findings": [],
+    "sectionsReviewed": [
+      "# Machine learning",
+      "## Planning your design",
+      "## The role of machine learning in your app",
+      "### Critical or complementary",
+      "### Private or public",
+      "### Proactive or reactive",
+      "### Visible or invisible",
+      "### Dynamic or static",
+      "## Explicit feedback",
+      "## Implicit feedback",
+      "## Calibration",
+      "## Mistakes",
+      "## Corrections",
+      "## Multiple options",
+      "## Confidence",
+      "## Attribution",
+      "## Limitations",
+      "## Platform considerations",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/machine-learning"
+  },
+  {
+    "slug": "maps",
+    "title": "Maps",
+    "status": "not-applicable",
+    "reason": "No geographic location, routes, places, indoor maps, or place cards. Circuit viewport/minimap navigation is not geographical mapping.",
+    "evidence": [
+      "package.json:2-7 (browser quantum simulator and package boundary)",
+      "index.html (browser module entry)",
+      "src/app/session/url.js:59,72 (local persistence and URL sharing)",
+      "src/components/panels/forge/construction.js:1-47 (deterministic construction)",
+      "Current bounded source search found no native Swift/Xcode/plist/entitlement targets or named technology integration/API references; absence is scoped to reviewed source, not remote deployment."
+    ],
+    "findings": [],
+    "sectionsReviewed": [
+      "# Maps",
+      "## Best practices",
+      "## Custom information",
+      "## Place cards",
+      "### Displaying place cards in a map",
+      "### Adding place cards outside of a map",
+      "## Indoor maps",
+      "## Platform considerations",
+      "### watchOS",
+      "## Resources",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/maps"
+  },
+  {
+    "slug": "nfc",
+    "title": "NFC",
+    "status": "not-applicable",
+    "reason": "No physical tag reading, NDEFReader, Core NFC session, or background tag launch. Gate selection uses pointer/keyboard input.",
+    "evidence": [
+      "package.json:2-7 (browser quantum simulator and package boundary)",
+      "index.html (browser module entry)",
+      "src/app/session/url.js:59,72 (local persistence and URL sharing)",
+      "src/components/panels/forge/construction.js:1-47 (deterministic construction)",
+      "Current bounded source search found no native Swift/Xcode/plist/entitlement targets or named technology integration/API references; absence is scoped to reviewed source, not remote deployment."
+    ],
+    "findings": [],
+    "sectionsReviewed": [
+      "# NFC",
+      "## In-app tag reading",
+      "## Background tag reading",
+      "## Platform considerations",
+      "## Resources",
+      "#### Developer documentation"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/nfc"
+  },
+  {
+    "slug": "photo-editing",
+    "title": "Photo editing",
+    "status": "not-applicable",
+    "reason": "No Photos extension or photographic editing task. Circuit edits and exported scientific artifacts are not edits to Photos library images.",
+    "evidence": [
+      "package.json:2-7 (browser quantum simulator and package boundary)",
+      "index.html (browser module entry)",
+      "src/app/session/url.js:59,72 (local persistence and URL sharing)",
+      "src/components/panels/forge/construction.js:1-47 (deterministic construction)",
+      "Current bounded source search found no native Swift/Xcode/plist/entitlement targets or named technology integration/API references; absence is scoped to reviewed source, not remote deployment."
+    ],
+    "findings": [],
+    "sectionsReviewed": [
+      "# Photo editing",
+      "## Best practices",
+      "## Platform considerations",
+      "## Resources",
+      "#### Developer documentation",
+      "#### Videos"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/photo-editing"
+  },
+  {
+    "slug": "researchkit",
+    "title": "ResearchKit",
+    "status": "not-applicable",
+    "reason": "This scientific simulator has no human-participant medical study, eligibility check, consent workflow, clinical survey, or participant information/progress portal.",
+    "evidence": [
+      "package.json:2-7 (browser quantum simulator and package boundary)",
+      "index.html (browser module entry)",
+      "src/app/session/url.js:59,72 (local persistence and URL sharing)",
+      "src/components/panels/forge/construction.js:1-47 (deterministic construction)",
+      "Current bounded source search found no native Swift/Xcode/plist/entitlement targets or named technology integration/API references; absence is scoped to reviewed source, not remote deployment."
+    ],
+    "findings": [],
+    "sectionsReviewed": [
+      "# ResearchKit",
+      "## Creating the onboarding experience",
+      "### 1. Introduction",
+      "### 2. Determine eligibility",
+      "### 3. Get informed consent",
+      "### 4. Request permission to access data",
+      "## Conducting research",
+      "## Managing personal information and providing encouragement",
+      "## Platform considerations",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/researchkit"
+  },
+  {
+    "slug": "shareplay",
+    "title": "SharePlay",
+    "status": "not-applicable",
+    "reason": "Shared circuit links encode snapshots; there is no live GroupActivities session, FaceTime activity, persona layout, or spatial collaborative template.",
+    "evidence": [
+      "package.json:2-7 (browser quantum simulator and package boundary)",
+      "index.html (browser module entry)",
+      "src/app/session/url.js:59,72 (local persistence and URL sharing)",
+      "src/components/panels/forge/construction.js:1-47 (deterministic construction)",
+      "Current bounded source search found no native Swift/Xcode/plist/entitlement targets or named technology integration/API references; absence is scoped to reviewed source, not remote deployment."
+    ],
+    "findings": [],
+    "sectionsReviewed": [
+      "# SharePlay",
+      "## Best practices",
+      "## Platform considerations",
+      "### iOS, iPadOS, macOS",
+      "### visionOS",
+      "#### Designing shared activities",
+      "#### Personas",
+      "#### Spatial templates",
+      "#### Custom templates",
+      "## Resources",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/shareplay"
+  },
+  {
+    "slug": "shazamkit",
+    "title": "ShazamKit",
+    "status": "not-applicable",
+    "reason": "No microphone/audio capture, music recognition, or synchronized custom audio recognition feature.",
+    "evidence": [
+      "package.json:2-7 (browser quantum simulator and package boundary)",
+      "index.html (browser module entry)",
+      "src/app/session/url.js:59,72 (local persistence and URL sharing)",
+      "src/components/panels/forge/construction.js:1-47 (deterministic construction)",
+      "Current bounded source search found no native Swift/Xcode/plist/entitlement targets or named technology integration/API references; absence is scoped to reviewed source, not remote deployment."
+    ],
+    "findings": [],
+    "sectionsReviewed": [
+      "# ShazamKit",
+      "## Best practices",
+      "## Platform considerations",
+      "## Resources",
+      "#### Developer documentation",
+      "#### Videos"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/shazamkit"
+  },
+  {
+    "slug": "sign-in-with-apple",
+    "title": "Sign in with Apple",
+    "status": "not-applicable",
+    "reason": "No account creation, login, profile collection, or authenticated content. Web Sign in with Apple is possible, but no authentication task is present.",
+    "evidence": [
+      "package.json:2-7 (browser quantum simulator and package boundary)",
+      "index.html (browser module entry)",
+      "src/app/session/url.js:59,72 (local persistence and URL sharing)",
+      "src/components/panels/forge/construction.js:1-47 (deterministic construction)",
+      "Current bounded source search found no native Swift/Xcode/plist/entitlement targets or named technology integration/API references; absence is scoped to reviewed source, not remote deployment."
+    ],
+    "findings": [],
+    "sectionsReviewed": [
+      "# Sign in with Apple",
+      "## Offering Sign in with Apple",
+      "## Collecting data",
+      "## Displaying buttons",
+      "### Using the system-provided buttons",
+      "#### White",
+      "#### White with outline",
+      "#### Black",
+      "#### Button size and corner radius",
+      "### Creating a custom Sign in with Apple button",
+      "#### Custom buttons with a logo and text",
+      "#### Custom logo-only buttons",
+      "## Platform considerations",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/sign-in-with-apple"
+  },
+  {
+    "slug": "siri",
+    "title": "Siri",
+    "status": "not-applicable",
+    "reason": "No App Intents, Shortcuts/Siri invocation, voice commands, or assistant response UI. Native DOM control labels serve accessibility separately.",
+    "evidence": [
+      "package.json:2-7 (browser quantum simulator and package boundary)",
+      "index.html (browser module entry)",
+      "src/app/session/url.js:59,72 (local persistence and URL sharing)",
+      "src/components/panels/forge/construction.js:1-47 (deterministic construction)",
+      "Current bounded source search found no native Swift/Xcode/plist/entitlement targets or named technology integration/API references; absence is scoped to reviewed source, not remote deployment."
+    ],
+    "findings": [],
+    "sectionsReviewed": [
+      "# Siri",
+      "## Getting your app to work with Siri",
+      "### Sharing contextual information",
+      "## Best practices",
+      "## Customizing your app\u2019s experience with Siri",
+      "## Editorial guidelines",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/siri"
+  },
+  {
+    "slug": "tap-to-pay-on-iphone",
+    "title": "Tap to Pay on iPhone",
+    "status": "not-applicable",
+    "reason": "No merchant onboarding, PSP connection, checkout terminal, contactless card acceptance, or payment results.",
+    "evidence": [
+      "package.json:2-7 (browser quantum simulator and package boundary)",
+      "index.html (browser module entry)",
+      "src/app/session/url.js:59,72 (local persistence and URL sharing)",
+      "src/components/panels/forge/construction.js:1-47 (deterministic construction)",
+      "Current bounded source search found no native Swift/Xcode/plist/entitlement targets or named technology integration/API references; absence is scoped to reviewed source, not remote deployment."
+    ],
+    "findings": [],
+    "sectionsReviewed": [
+      "# Tap to Pay on iPhone",
+      "## Enabling Tap to Pay on iPhone",
+      "## Educating merchants",
+      "## Checking out",
+      "## Displaying results",
+      "## Additional interactions",
+      "## Platform considerations",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "## Change log"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/tap-to-pay-on-iphone"
+  },
+  {
+    "slug": "technologies",
+    "title": "Technologies",
+    "status": "partial",
+    "reason": "Category applicability reviewed across every descendant and its subsection/platform guidance. VoiceOver applies and remains partial; the other technology features are outside the current browser simulator surface.",
+    "evidence": [
+      "package.json:2-7 (browser quantum simulator and package boundary)",
+      "index.html (browser module entry)",
+      "src/app/session/url.js:59,72 (local persistence and URL sharing)",
+      "src/components/panels/forge/construction.js:1-47 (deterministic construction)",
+      "Current bounded source search found no native Swift/Xcode/plist/entitlement targets or named technology integration/API references; absence is scoped to reviewed source, not remote deployment."
+    ],
+    "findings": [
+      "FND-01"
+    ],
+    "sectionsReviewed": [
+      "# Technologies"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/technologies"
+  },
+  {
+    "slug": "voiceover",
+    "title": "VoiceOver",
+    "status": "partial",
+    "reason": "Partial: native controls, descriptions, circuit keyboard cursor, and numerical visualization alternatives exist. State rows are virtualized out of the DOM with no nearby explicit paging controls. Real VoiceOver reading/navigation has not been verified.",
+    "evidence": [
+      "src/components/panels/state/state-panel.jsx:117,122,158-159",
+      "src/components/panels/state/useVisibleRows.js:60-91",
+      "Root live DOM check: 256 states, 24 mounted rows; scrolling changes mounted range, without nearby explicit paging controls; real VoiceOver session unverified."
+    ],
+    "findings": [
+      "FND-01"
+    ],
+    "sectionsReviewed": [
+      "# VoiceOver",
+      "## Descriptions",
+      "## Navigation",
+      "## Platform considerations",
+      "### visionOS",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/voiceover"
+  },
+  {
+    "slug": "wallet",
+    "title": "Wallet",
+    "status": "not-applicable",
+    "reason": "No passes, tickets, order tracking, fulfillment, or Wallet identity verification. Circuit takes and exports are scientific artifacts, not Wallet pass objects.",
+    "evidence": [
+      "package.json:2-7 (browser quantum simulator and package boundary)",
+      "index.html (browser module entry)",
+      "src/app/session/url.js:59,72 (local persistence and URL sharing)",
+      "src/components/panels/forge/construction.js:1-47 (deterministic construction)",
+      "Current bounded source search found no native Swift/Xcode/plist/entitlement targets or named technology integration/API references; absence is scoped to reviewed source, not remote deployment."
+    ],
+    "findings": [],
+    "sectionsReviewed": [
+      "# Wallet",
+      "## Passes",
+      "## Pass anatomy",
+      "### Pass field types",
+      "## Designing passes",
+      "## Pass styles",
+      "### Boarding passes",
+      "### Coupons",
+      "### Event tickets",
+      "### Store cards",
+      "### Poster generic passes",
+      "### Generic passes",
+      "## Pass images",
+      "### Logo",
+      "### Primary logo",
+      "### Secondary logo",
+      "### Icon",
+      "### Strip image",
+      "### Thumbnail",
+      "### Background",
+      "### Footer",
+      "## Order tracking",
+      "### Displaying order and fulfillment details",
+      "## Identity verification",
+      "## Platform considerations",
+      "### watchOS",
+      "## Resources",
+      "#### Related",
+      "#### Developer documentation",
+      "#### Videos",
+      "## Change log"
+    ],
+    "url": "https://developer.apple.com/design/human-interface-guidelines/wallet"
+  }
+]

@@ -1,0 +1,98 @@
+ M scripts/run-e2e-tests.js
+ M src/app/canvas/minimap.js
+ M src/app/canvas/redrawLoop.js
+ M src/appearance/Appearance.js
+ M src/appearance/README.md
+ M src/appearance/colourScheme.js
+ M src/base/Format.js
+ M src/browser/selectColourScheme.js
+ M src/browser/systemColourScheme.js
+ M src/browser/typingTarget.js
+ M src/components/dock.jsx
+ M src/components/gate/circuit-figure.jsx
+ M src/components/math/data-view.jsx
+ M src/components/math/operator-view.jsx
+ M src/components/panels/bloch/bloch-figure.jsx
+ M src/components/panels/bloch/bloch-figures.jsx
+ M src/components/panels/bloch/bloch-panel.jsx
+ M src/components/panels/bloch/readout-sidebar.jsx
+ M src/components/panels/bloch/useBlochFigures.js
+ M src/components/panels/circuit/circuit-panel.jsx
+ M src/components/panels/circuit/gate-menu.jsx
+ M src/components/panels/circuit/gutter-menu.jsx
+ M src/components/panels/circuit/selection-menu.jsx
+ M src/components/panels/complex-display/complex-display-panel.jsx
+ M src/components/panels/gate-param/gate-param-panel.jsx
+ M src/components/panels/panels.jsx
+ M src/components/panels/shared/usePlayheadStats.js
+ M src/components/panels/state/state-panel.jsx
+ M src/components/panels/tape/colours.js
+ M src/components/panels/tape/compare.jsx
+ M src/components/panels/tape/take-card.jsx
+ M src/components/toolbar/app-toolbar.jsx
+ M src/components/toolbar/examples-menu.jsx
+ M src/components/toolbar/time-lane.jsx
+ M src/components/toolbar/transport-bar.module.css
+ M src/components/toolbox/gate-toolbox.jsx
+ M src/config/README.md
+ M src/config/Theme.js
+ M src/config/exampleCircuits.js
+ M src/draw/README.md
+ M src/draw/displays/bloch/BlochGeometry.js
+ M src/draw/displays/bloch/BlochProjections.js
+ M src/draw/displays/bloch/BlochScene.js
+ M src/draw/displays/bloch/BlochStrip.js
+ M src/draw/displays/bloch/BlochView.js
+ M src/draw/gate/GateFrame.js
+ M src/draw/gate/GateRenderers.js
+ M src/draw/renderers/dataRenderers.js
+ M src/draw/renderers/operatorTiles.js
+ M src/draw/renderers/operatorTiles.worker.js
+ M src/draw/surface/RenderSurface.js
+ M src/draw/surface/SharedPaintSurface.js
+ M src/draw/theme/CanvasTheme.js
+ M src/editor/rendering/outputs/CircuitAmplitudes.js
+ M src/editor/rendering/previews/CircuitPreview.js
+ M src/engine/math/README.md
+ M src/engine/simulation/CircuitStats.js
+ M src/gates/arithmetic/MultiplyAccumulateGates.js
+ M src/gates/displays/README.md
+ D src/gates/displays/density/decohereMeasuredBitsInDensityMatrix.js
+ M src/gates/displays/density/densityPixelsToMatrix.js
+ M src/gates/rotations/ParametrizedRotationGates.js
+ M src/styles/circuit/viewport.css
+ M src/styles/gates/toolbox/tiles.css
+ M src/styles/math/operator-view.css
+ M src/styles/panels/bloch.css
+ M src/styles/panels/gate-param.css
+ M src/styles/panels/shared/responsive.css
+ M src/styles/panels/shared/sections.css
+ M src/styles/shell/dock.css
+ M src/styles/shell/toolbar.css
+ M src/styles/ui/buttons.css
+ M src/styles/ui/menu.css
+ M src/styles/ui/render-canvas.css
+ M test/base/Format.test.js
+ M test/config/exampleCircuits.test.js
+ M test/draw/gate/GateRenderers.test.js
+ M test/draw/surface/RenderSurface.test.js
+ M test/gates/arithmetic/MultiplyAccumulateGates.test.js
+ M test_e2e/circuit.test.js
+ M test_e2e/harness.js
+ M test_e2e/overlays.test.js
+ M test_e2e/theme.test.js
+ M test_e2e/toolbar.test.js
+ M test_e2e/transport.test.js
+?? .impeccable/
+?? .serena/
+?? src/components/adaptive-dock.js
+?? src/components/panels/circuit/menuAnchorStyle.js
+?? src/components/toolbar/examples-menu.module.css
+?? src/components/useColourScheme.js
+?? src/engine/math/matrix/densityMatrix.js
+?? src/styles/css.d.ts
+?? test/components/dock/
+?? test/components/panels/bloch/bloch-figures.test.js
+?? test/components/panels/circuit/menuAnchorStyle.test.js
+?? test/engine/math/matrix/densityMatrix.test.js
+?? test_e2e/dock.test.js

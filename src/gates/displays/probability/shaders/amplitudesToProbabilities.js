@@ -14,33 +14,27 @@
  * limitations under the License.
  */
 
-import { Inputs, Outputs, makePseudoShaderWithInputsAndOutputAndCode } from "../../../../engine/webgl/coder/ShaderCoders.js";
-import { WglArg } from "../../../../engine/webgl/shader/WglArg.js";
+import {
+  Inputs,
+  Outputs,
+  makePseudoShaderWithInputsAndOutputAndCode,
+} from "../../../../engine/webgl/coder/ShaderCoders.js";
 
 /**
- * The probability of each state, or 0 for states not meeting the controls.
  * @param {!WglTexture} inputTexture
- * @param {!Controls} controls
+ * @param {!WglTexture} controlTex
  * @returns {!WglConfiguredShader}
  */
-const amplitudesToProbabilities = (inputTexture, controls) =>
-  AMPLITUDES_TO_PROBABILITIES_SHADER(
-    inputTexture,
-    WglArg.float("used", controls.inclusionMask),
-    WglArg.float("desired", controls.desiredValueMask),
-  );
+const amplitudesToProbabilities = (inputTexture, controlTex) =>
+  AMPLITUDES_TO_PROBABILITIES_SHADER(inputTexture, controlTex);
 
 const AMPLITUDES_TO_PROBABILITIES_SHADER =
   makePseudoShaderWithInputsAndOutputAndCode(
-    [Inputs.vec2("input")],
+    [Inputs.vec2("input"), Inputs.bool("control")],
     Outputs.float(),
-    `
-    uniform float used;
-    uniform float desired;
-
-    float outputFor(float k) {
+    `float outputFor(float k) {
         vec2 amp = read_input(k);
-        return (uint(k) & uint(used)) == uint(desired) ? dot(amp, amp) : 0.0;
+        return dot(amp, amp) * read_control(k);
     }`,
   );
 

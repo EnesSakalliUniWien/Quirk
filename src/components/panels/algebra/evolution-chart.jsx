@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useId, useMemo, useRef } from "react";
 import { bin } from "../../../base/Format.js";
 import { prefersReducedMotion } from "../../../browser/reducedMotion.js";
 import { Matrix } from "../../../engine/math/matrix/Matrix.js";
@@ -41,12 +41,14 @@ function centreHorizontally(scroller, left, width) {
  *     formatKet: (undefined|!function(!int): !string)}} props
  */
 function EvolutionChart({ states, wireCount, current, formatKet }) {
+  const descriptionId = useId();
   const scrollerRef = useRef(null);
   useWheelScrollsSideways(scrollerRef);
   const size = 1 << wireCount;
   const cell = Math.max(6, Math.min(16, Math.floor(256 / size)));
   const height = Math.min(size * cell, EVOLUTION_MAX_HEIGHT);
-  const column = size * cell > EVOLUTION_MAX_HEIGHT ? EVOLUTION_PIXEL_COLUMN : cell;
+  const column =
+    size * cell > EVOLUTION_MAX_HEIGHT ? EVOLUTION_PIXEL_COLUMN : cell;
   const labelled = size <= 16;
 
   // Column k is the state after step k.
@@ -67,15 +69,34 @@ function EvolutionChart({ states, wireCount, current, formatKet }) {
   useEffect(() => {
     const scroller = scrollerRef.current;
     if (scroller !== null) {
-      centreHorizontally(scroller, (labelled ? EVOLUTION_LABEL_WIDTH : 0) + current * column, column);
+      centreHorizontally(
+        scroller,
+        (labelled ? EVOLUTION_LABEL_WIDTH : 0) + current * column,
+        column,
+      );
     }
   }, [current, labelled, column]);
 
   return (
     <div className="algebra-evolution" ref={scrollerRef}>
+      <p id={descriptionId} className="visually-hidden">
+        Columns represent successive circuit steps, starting with the initial
+        state; rows represent basis states. Disc radius shows amplitude
+        magnitude; hand direction and hue show phase. In dense pixel mode,
+        opacity shows magnitude relative to the largest amplitude, with a
+        visibility floor for nonzero values, and hue shows phase. Where basis
+        states share a pixel, it shows the largest amplitude in that group.
+        Choose a step below, then open State for individual amplitude,
+        probability, and phase values.
+      </p>
       <div
-        className={labelled ? "evolution-grid evolution-labelled" : "evolution-grid"}
-        style={{ "--evolution-cell": `${column}px`, "--evolution-row": `${cell}px` }}
+        className={
+          labelled ? "evolution-grid evolution-labelled" : "evolution-grid"
+        }
+        style={{
+          "--evolution-cell": `${column}px`,
+          "--evolution-row": `${cell}px`,
+        }}
       >
         <ol className="evolution-steps" aria-hidden="true">
           {states.map((_, k) => (
@@ -85,7 +106,9 @@ function EvolutionChart({ states, wireCount, current, formatKet }) {
         {labelled && (
           <ol className="evolution-kets" aria-hidden="true">
             {Array.from({ length: size }, (_, i) => (
-              <li key={i}>{`|${formatKet === undefined ? bin(i, wireCount) : formatKet(i)}⟩`}</li>
+              <li
+                key={i}
+              >{`|${formatKet === undefined ? bin(i, wireCount) : formatKet(i)}⟩`}</li>
             ))}
           </ol>
         )}
@@ -96,7 +119,8 @@ function EvolutionChart({ states, wireCount, current, formatKet }) {
             width={states.length * column}
             height={height}
             options={{ wireCount }}
-            label={`How each of the ${size} amplitudes changes over ${states.length - 1} steps`}
+            label={`Evolution of ${size} amplitudes over ${states.length - 1} circuit steps`}
+            describedBy={descriptionId}
           />
           <span
             className="evolution-current"

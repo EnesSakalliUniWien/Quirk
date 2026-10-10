@@ -20,10 +20,18 @@ import { Matrix } from "../engine/math/matrix/Matrix.js";
 import { Gate } from "../circuit/model/Gate.js";
 import { GateColumn } from "../circuit/model/GateColumn.js";
 import { describe } from "../base/Describe.js";
-import { toJson_Complex, fromJson_Complex, toJson_Matrix, fromJson_Matrix } from "./numeric/values.js";
+import {
+  toJson_Complex,
+  fromJson_Complex,
+  toJson_Matrix,
+  fromJson_Matrix,
+} from "./numeric/values.js";
 import { toJson_Gate, fromJson_Gate } from "./gates/gate.js";
 import { toJson_GateColumn, fromJson_GateColumn } from "./gates/collections.js";
-import { toJson_CircuitDefinition, fromJson_CircuitDefinition } from "./circuits/circuit.js";
+import {
+  toJson_CircuitDefinition,
+  fromJson_CircuitDefinition,
+} from "./circuits/circuit.js";
 
 /**
  * Serializes supported values to/from json elements.

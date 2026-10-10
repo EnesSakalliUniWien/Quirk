@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-import {rectangle, strokePath} from '../../draw/shapes/ShapeView.js';
+import { rectangle, strokePath } from "../../draw/shapes/ShapeView.js";
 
-import {RenderSurface} from '../../draw/surface/RenderSurface.js';
-import {Point} from '../../geometry/Point.js';
-import {Rect} from '../../geometry/Rect.js';
-import {CanvasTheme} from '../../config/CanvasTheme.js';
-import {circuitZoom, onCircuitZoomChanged} from './zoom.js';
+import { RenderSurface } from "../../draw/surface/RenderSurface.js";
+import { Point } from "../../geometry/Point.js";
+import { Rect } from "../../geometry/Rect.js";
+import { CanvasTheme } from "../../config/CanvasTheme.js";
+import { onColourSchemeChange } from "../../appearance/colourScheme.js";
+import { circuitZoom, onCircuitZoomChanged } from "./zoom.js";
 
 /**
  * A schematic overview of the whole circuit with a box marking the visible part, shown only while
@@ -39,94 +40,108 @@ import {circuitZoom, onCircuitZoomChanged} from './zoom.js';
  * @returns {void}
  */
 function initMinimap(container, canvasDiv, displayed) {
-    const canvas = document.createElement('canvas');
-    canvas.className = 'circuit-minimap';
-    canvas.setAttribute('aria-label', 'Circuit overview');
-    container.appendChild(canvas);
+  const canvas = document.createElement("canvas");
+  canvas.className = "circuit-minimap";
+  canvas.setAttribute("aria-label", "Circuit overview");
+  container.appendChild(canvas);
 
-    const repaint = () => {
-        const inspector = displayed.getState().value;
-        const geometry = inspector.displayedCircuit.geometry();
-        const contentWidth = inspector.desiredWidth();
-        const visibleWidth = canvasDiv.clientWidth / circuitZoom();
-        if (contentWidth <= visibleWidth) {
-            canvas.hidden = true;
-            return;
+  const repaint = () => {
+    const inspector = displayed.getState().value;
+    const geometry = inspector.displayedCircuit.geometry();
+    const contentWidth = inspector.desiredWidth();
+    const visibleWidth = canvasDiv.clientWidth / circuitZoom();
+    if (contentWidth <= visibleWidth) {
+      canvas.hidden = true;
+      return;
+    }
+    canvas.hidden = false;
+
+    const w = Math.max(1, canvas.clientWidth);
+    const h = Math.max(1, canvas.clientHeight);
+    const sx = w / contentWidth;
+    // The overview shows the circuit band, excluding its viewport-centering offset.
+    const sy = h / geometry.desiredHeight();
+    // At least a pixel each way, so a narrow gate in a long circuit still shows.
+    const squeezed = (r) =>
+      new Rect(
+        r.x * sx,
+        (r.y - geometry.top) * sy,
+        Math.max(1, r.w * sx),
+        Math.max(1, r.h * sy),
+      );
+    const view = RenderSurface.forCanvas(canvas).beginCssFrame(w, h);
+    rectangle(view, new Rect(0, 0, w, h), { fill: CanvasTheme.surface.gate });
+
+    // Wires.
+    const circuitDefinition = geometry.circuitDefinition;
+    const wireCount = geometry.importantWireCount();
+    const wireEndX = geometry.outputWireEndX();
+
+    for (let row = 0; row < wireCount; row++) {
+      const y = (geometry.wireRect(row).center().y - geometry.top) * sy;
+      strokePath(
+        view,
+        [new Point(0, y), new Point(wireEndX * sx, y)],
+        CanvasTheme.stroke.faint,
+        1,
+      );
+    }
+
+    // Gates as blocks.
+    for (let col = 0; col < circuitDefinition.columns.length; col++) {
+      const gates = circuitDefinition.columns[col].gates;
+      for (let row = 0; row < gates.length; row++) {
+        const gate = gates[row];
+        if (gate === undefined || gate === null) {
+          continue;
         }
-        canvas.hidden = false;
+        const r = geometry.gateRect(row, col, gate.width, gate.height);
+        rectangle(view, squeezed(r), { fill: CanvasTheme.stroke.guide });
+      }
+    }
 
-        const w = Math.max(1, canvas.clientWidth);
-        const h = Math.max(1, canvas.clientHeight);
-        const sx = w / contentWidth;
-        // The overview shows the circuit band, excluding its viewport-centering offset.
-        const sy = h / geometry.desiredHeight();
-        // At least a pixel each way, so a narrow gate in a long circuit still shows.
-        const squeezed = r => new Rect(r.x * sx, (r.y - geometry.top) * sy, Math.max(1, r.w * sx), Math.max(1, r.h * sy));
-        const pixelRatio = window.devicePixelRatio || 1;
-        const view = RenderSurface.forCanvas(canvas).resize(w * pixelRatio, h * pixelRatio)
-            .beginFrame(undefined, pixelRatio);
-        rectangle(view, new Rect(0, 0, w, h), {fill: CanvasTheme.surface.gate});
-
-        // Wires.
-        const circuitDefinition = geometry.circuitDefinition;
-        const wireCount = geometry.importantWireCount();
-        const wireEndX = geometry.outputWireEndX();
-
-        for (let row = 0; row < wireCount; row++) {
-            const y = (geometry.wireRect(row).center().y - geometry.top) * sy;
-            strokePath(view, [new Point(0, y), new Point(wireEndX * sx, y)], CanvasTheme.stroke.faint, 1);
-        }
-
-        // Gates as blocks.
-        for (let col = 0; col < circuitDefinition.columns.length; col++) {
-            const gates = circuitDefinition.columns[col].gates;
-            for (let row = 0; row < gates.length; row++) {
-                const gate = gates[row];
-                if (gate === undefined || gate === null) {
-                    continue;
-                }
-                const r = geometry.gateRect(row, col, gate.width, gate.height);
-                rectangle(view, squeezed(r), {fill: CanvasTheme.stroke.guide});
-            }
-        }
-
-        // The output display block.
-        const grid = geometry.rectForSuperpositionDisplay();
-        rectangle(view, squeezed(grid), {stroke: {color: CanvasTheme.stroke.guide, width: 1}});
-
-        // The visible part.
-        const viewX = canvasDiv.scrollLeft / circuitZoom();
-        rectangle(view, new Rect(viewX * sx, 0, visibleWidth * sx, h), {stroke: {color: CanvasTheme.interaction.outline, width: 2}});
-    };
-
-    const scrollTo = ev => {
-        const b = canvas.getBoundingClientRect();
-        const contentWidth = displayed.getState().value.desiredWidth();
-        const scale = canvas.clientWidth / contentWidth;
-        const visibleWidth = canvasDiv.clientWidth / circuitZoom();
-        const centerX = (ev.clientX - b.left - canvas.clientLeft) / scale;
-        canvasDiv.scrollLeft = (centerX - visibleWidth / 2) * circuitZoom();
-    };
-    // Pointer events rather than mouse events, so dragging the viewport box also works by touch.
-    canvas.addEventListener('pointerdown', ev => {
-        if (!ev.isPrimary || (ev.pointerType === 'mouse' && ev.button !== 0)) {
-            return;
-        }
-        scrollTo(ev);
-        canvas.setPointerCapture(ev.pointerId);
-        ev.preventDefault();
-    });
-    canvas.addEventListener('pointermove', ev => {
-        if (canvas.hasPointerCapture(ev.pointerId)) {
-            scrollTo(ev);
-        }
+    // The output display block.
+    const grid = geometry.rectForSuperpositionDisplay();
+    rectangle(view, squeezed(grid), {
+      stroke: { color: CanvasTheme.stroke.guide, width: 1 },
     });
 
-    canvasDiv.addEventListener('scroll', repaint, {passive: true});
-    // Sizes, including the jump from the pre-boot display:none to the real layout, arrive here.
-    new ResizeObserver(repaint).observe(canvasDiv);
-    displayed.subscribe(repaint);
-    onCircuitZoomChanged(repaint);
+    // The visible part.
+    const viewX = canvasDiv.scrollLeft / circuitZoom();
+    rectangle(view, new Rect(viewX * sx, 0, visibleWidth * sx, h), {
+      stroke: { color: CanvasTheme.interaction.outline, width: 2 },
+    });
+  };
+
+  const scrollTo = (ev) => {
+    const b = canvas.getBoundingClientRect();
+    const contentWidth = displayed.getState().value.desiredWidth();
+    const scale = canvas.clientWidth / contentWidth;
+    const visibleWidth = canvasDiv.clientWidth / circuitZoom();
+    const centerX = (ev.clientX - b.left - canvas.clientLeft) / scale;
+    canvasDiv.scrollLeft = (centerX - visibleWidth / 2) * circuitZoom();
+  };
+  // Pointer events rather than mouse events, so dragging the viewport box also works by touch.
+  canvas.addEventListener("pointerdown", (ev) => {
+    if (!ev.isPrimary || (ev.pointerType === "mouse" && ev.button !== 0)) {
+      return;
+    }
+    scrollTo(ev);
+    canvas.setPointerCapture(ev.pointerId);
+    ev.preventDefault();
+  });
+  canvas.addEventListener("pointermove", (ev) => {
+    if (canvas.hasPointerCapture(ev.pointerId)) {
+      scrollTo(ev);
+    }
+  });
+
+  canvasDiv.addEventListener("scroll", repaint, { passive: true });
+  // Sizes, including the jump from the pre-boot display:none to the real layout, arrive here.
+  new ResizeObserver(repaint).observe(canvasDiv);
+  displayed.subscribe(repaint);
+  onCircuitZoomChanged(repaint);
+  onColourSchemeChange(repaint);
 }
 
-export {initMinimap}
+export { initMinimap };

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import {CircuitShaders} from "./gpu/CircuitShaders.js"
-import {DetailedError} from "../../base/DetailedError.js"
-import {GateShaders} from "./gpu/GateShaders.js"
-import {INITIAL_STATES_TO_GATES} from "../../gates/AllGates.js"
+import { CircuitShaders } from "./gpu/CircuitShaders.js";
+import { DetailedError } from "../../base/DetailedError.js";
+import { GateShaders } from "./gpu/GateShaders.js";
+import { INITIAL_STATES_TO_GATES } from "../../gates/AllGates.js";
 
 /**
  * @param {!CircuitDefinition} circuit
@@ -25,15 +25,18 @@ import {INITIAL_STATES_TO_GATES} from "../../gates/AllGates.js"
  * @return {void}
  */
 function applyInitialStateOperations(circuit, ctx) {
-    for (let wire = 0; wire < circuit.numWires; wire++) {
-        const state = circuit.customInitialValues.get(wire);
-        if (!INITIAL_STATES_TO_GATES.has(state)) {
-            throw new DetailedError('Unrecognized initial state.', {state});
-        }
-        for (const gate of INITIAL_STATES_TO_GATES.get(state)) {
-            GateShaders.applyMatrixOperation(ctx.withRow(ctx.row + wire), gate.knownMatrixAt(ctx.time))
-        }
+  for (let wire = 0; wire < circuit.numWires; wire++) {
+    const state = circuit.customInitialValues.get(wire);
+    if (!INITIAL_STATES_TO_GATES.has(state)) {
+      throw new DetailedError("Unrecognized initial state.", { state });
     }
+    for (const gate of INITIAL_STATES_TO_GATES.get(state)) {
+      GateShaders.applyMatrixOperation(
+        ctx.withRow(ctx.row + wire),
+        gate.knownMatrixAt(ctx.time),
+      );
+    }
+  }
 }
 
 /**
@@ -43,27 +46,30 @@ function applyInitialStateOperations(circuit, ctx) {
  * @return {void}
  */
 function applyMainOperationsInCol(circuit, colIndex, ctx) {
-    if (colIndex < 0 || colIndex >= circuit.columns.length) {
-        return;
+  if (colIndex < 0 || colIndex >= circuit.columns.length) {
+    return;
+  }
+
+  applyOpsInCol(circuit, colIndex, ctx, (gate) => {
+    if (gate.definitelyHasNoEffect() || gate.isSwapHalf) {
+      return undefined;
     }
 
-    applyOpsInCol(circuit, colIndex, ctx, gate => {
-        if (gate.definitelyHasNoEffect() || gate.isSwapHalf) {
-            return undefined;
-        }
-
-        if (gate.customOperation !== undefined) {
-            return gate.customOperation;
-        }
-
-        return ctx => GateShaders.applyMatrixOperation(ctx, gate.knownMatrixAt(ctx.time));
-    });
-
-    const swapRows = circuit.colGetEnabledSwapGate(colIndex);
-    if (swapRows !== undefined) {
-        const [i, j] = swapRows;
-        ctx.applyOperation(CircuitShaders.swap(ctx.withRow(i + ctx.row), j + ctx.row));
+    if (gate.customOperation !== undefined) {
+      return gate.customOperation;
     }
+
+    return (ctx) =>
+      GateShaders.applyMatrixOperation(ctx, gate.knownMatrixAt(ctx.time));
+  });
+
+  const swapRows = circuit.colGetEnabledSwapGate(colIndex);
+  if (swapRows !== undefined) {
+    const [i, j] = swapRows;
+    ctx.applyOperation(
+      CircuitShaders.swap(ctx.withRow(i + ctx.row), j + ctx.row),
+    );
+  }
 }
 
 /**
@@ -73,7 +79,7 @@ function applyMainOperationsInCol(circuit, colIndex, ctx) {
  * @return {void}
  */
 function applyBeforeOperationsInCol(circuit, colIndex, ctx) {
-    applyOpsInCol(circuit, colIndex, ctx, g => g.customBeforeOperation);
+  applyOpsInCol(circuit, colIndex, ctx, (g) => g.customBeforeOperation);
 }
 
 /**
@@ -83,7 +89,7 @@ function applyBeforeOperationsInCol(circuit, colIndex, ctx) {
  * @return {void}
  */
 function applyAfterOperationsInCol(circuit, colIndex, ctx) {
-    applyOpsInCol(circuit, colIndex, ctx, g => g.customAfterOperation);
+  applyOpsInCol(circuit, colIndex, ctx, (g) => g.customAfterOperation);
 }
 
 /**
@@ -93,27 +99,30 @@ function applyAfterOperationsInCol(circuit, colIndex, ctx) {
  * @param {!function(!Gate) : !function(!CircuitEvalContext)} opGetter
  */
 function applyOpsInCol(circuit, colIndex, ctx, opGetter) {
-    if (colIndex < 0 || colIndex >= circuit.columns.length) {
-        return;
-    }
-    const col = circuit.columns[colIndex];
+  if (colIndex < 0 || colIndex >= circuit.columns.length) {
+    return;
+  }
+  const col = circuit.columns[colIndex];
 
-    for (let row = 0; row < circuit.numWires; row++) {
-        const gate = col.gates[row];
-        if (gate === undefined || circuit.gateAtLocIsDisabledReason(colIndex, row) !== undefined) {
-            continue;
-        }
-
-        const op = opGetter(gate);
-        if (op !== undefined) {
-            op(ctx.withRow(ctx.row + row));
-        }
+  for (let row = 0; row < circuit.numWires; row++) {
+    const gate = col.gates[row];
+    if (
+      gate === undefined ||
+      circuit.gateAtLocIsDisabledReason(colIndex, row) !== undefined
+    ) {
+      continue;
     }
+
+    const op = opGetter(gate);
+    if (op !== undefined) {
+      op(ctx.withRow(ctx.row + row));
+    }
+  }
 }
 
 export {
-    applyInitialStateOperations,
-    applyMainOperationsInCol,
-    applyBeforeOperationsInCol,
-    applyAfterOperationsInCol,
-}
+  applyInitialStateOperations,
+  applyMainOperationsInCol,
+  applyBeforeOperationsInCol,
+  applyAfterOperationsInCol,
+};

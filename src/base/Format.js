@@ -220,5 +220,15 @@ export function bin(number, fixedLen) {
  */
 export function digits_to_superscript_digits(text) {
   const superscript_digits = "⁰¹²³⁴⁵⁶⁷⁸⁹";
-  return text.replace(/[0-9]/g, digit => superscript_digits[Number(digit)]);
+  return text.replace(/[0-9]/g, (digit) => superscript_digits[Number(digit)]);
+}
+
+/**
+ * Fixed decimal places with an explicit sign for nonnegative values.
+ * @param {!number} value
+ * @param {!int} digits
+ * @returns {!string}
+ */
+export function signedFixed(value, digits) {
+  return (value >= 0 ? "+" : "") + value.toFixed(digits);
 }

@@ -17,7 +17,9 @@ function useDockVisibility(api) {
       return undefined;
     }
     setVisible(api.isVisible);
-    const subscription = api.onDidVisibilityChange((event) => setVisible(event.isVisible));
+    const subscription = api.onDidVisibilityChange((event) =>
+      setVisible(event.isVisible),
+    );
     return () => subscription.dispose();
   }, [api]);
   return visible;

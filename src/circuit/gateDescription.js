@@ -79,9 +79,7 @@ function describeGateTransformations(matrix, format) {
       }
     } else if (col.every((e, r) => r === c || e.isEqualTo(0))) {
       const degs = (col[c].ln().imag * 180) / Math.PI;
-      return (
-        `phases ${inputDescription} by ${format.formatFloat(degs)}°`
-      );
+      return `phases ${inputDescription} by ${format.formatFloat(degs)}°`;
     }
     const outputDescription = col
       .map((e, c) => describeKet(b, c, e, format))

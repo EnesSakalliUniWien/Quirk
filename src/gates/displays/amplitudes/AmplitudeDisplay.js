@@ -31,17 +31,18 @@ const AmplitudeDisplayFamily = Gate.buildFamily(1, 16, (span, builder) =>
     .setWidth(span === 1 ? 2 : span % 2 === 0 ? span : Math.ceil(span / 2))
     .promiseHasNoNetEffectOnStateVector()
     .setExtraDisableReasonFinder((args) =>
-      args.isNested ? "can't\nnest\ndisplays\n(sorry)" : undefined,
+      args.isNested ? "No nested\ndisplay" : undefined,
     )
     .setStatTexturesMaker((ctx) =>
       amplitudeDisplayStatTextures(
         ctx.stateTrader.currentTexture,
         ctx.controls,
+        ctx.controlsTexture,
         ctx.row,
         span,
       ),
     )
-    .setStatPixelDataPostProcessor((val, def) => processOutputs(span, val, def))
+    .setStatPixelDataPostProcessor((val) => processOutputs(span, val))
     .setProcessedStatsToJsonFunc(customStatsToJsonData)
     .setRenderer(AMPLITUDE_RENDERER_FROM_CUSTOM_STATS),
 );

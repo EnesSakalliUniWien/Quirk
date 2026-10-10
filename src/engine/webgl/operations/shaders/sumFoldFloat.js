@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-import { Inputs, Outputs, makePseudoShaderWithInputsAndOutputAndCode } from "../../coder/ShaderCoders.js";
+import {
+  Inputs,
+  Outputs,
+  makePseudoShaderWithInputsAndOutputAndCode,
+} from "../../coder/ShaderCoders.js";
 
 const sumFoldFloat = makePseudoShaderWithInputsAndOutputAndCode(
   [Inputs.float("input")],

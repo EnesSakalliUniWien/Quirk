@@ -1,0 +1,366 @@
+{
+  "browser": "Chrome/154.0.8037.57",
+  "checks": [
+    {
+      "name": "Rotation dial accessibility range",
+      "result": [
+        {
+          "arg": "pi",
+          "dom": {
+            "role": "slider",
+            "min": null,
+            "max": null,
+            "value": "180",
+            "text": "180°"
+          },
+          "accessibility": [
+            {
+              "role": {
+                "type": "role",
+                "value": "slider"
+              },
+              "name": {
+                "type": "computedString",
+                "value": "Rx Gate angle, wire 1, column 1",
+                "sources": [
+                  {
+                    "type": "relatedElement",
+                    "attribute": "aria-labelledby"
+                  },
+                  {
+                    "type": "attribute",
+                    "value": {
+                      "type": "computedString",
+                      "value": "Rx Gate angle, wire 1, column 1"
+                    },
+                    "attribute": "aria-label",
+                    "attributeValue": {
+                      "type": "string",
+                      "value": "Rx Gate angle, wire 1, column 1"
+                    }
+                  },
+                  {
+                    "type": "attribute",
+                    "attribute": "title",
+                    "superseded": true
+                  }
+                ]
+              },
+              "value": {
+                "type": "number",
+                "value": 100
+              },
+              "properties": [
+                {
+                  "name": "focusable",
+                  "value": {
+                    "type": "booleanOrUndefined",
+                    "value": true
+                  }
+                },
+                {
+                  "name": "settable",
+                  "value": {
+                    "type": "booleanOrUndefined",
+                    "value": true
+                  }
+                },
+                {
+                  "name": "orientation",
+                  "value": {
+                    "type": "token",
+                    "value": "horizontal"
+                  }
+                },
+                {
+                  "name": "valuemin",
+                  "value": {
+                    "type": "number",
+                    "value": 0
+                  }
+                },
+                {
+                  "name": "valuemax",
+                  "value": {
+                    "type": "number",
+                    "value": 100
+                  }
+                },
+                {
+                  "name": "valuetext",
+                  "value": {
+                    "type": "string",
+                    "value": ""
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "arg": "4pi",
+          "dom": {
+            "role": "slider",
+            "min": null,
+            "max": null,
+            "value": "720",
+            "text": "720°"
+          },
+          "accessibility": [
+            {
+              "role": {
+                "type": "role",
+                "value": "slider"
+              },
+              "name": {
+                "type": "computedString",
+                "value": "Rx Gate angle, wire 1, column 1",
+                "sources": [
+                  {
+                    "type": "relatedElement",
+                    "attribute": "aria-labelledby"
+                  },
+                  {
+                    "type": "attribute",
+                    "value": {
+                      "type": "computedString",
+                      "value": "Rx Gate angle, wire 1, column 1"
+                    },
+                    "attribute": "aria-label",
+                    "attributeValue": {
+                      "type": "string",
+                      "value": "Rx Gate angle, wire 1, column 1"
+                    }
+                  },
+                  {
+                    "type": "attribute",
+                    "attribute": "title",
+                    "superseded": true
+                  }
+                ]
+              },
+              "value": {
+                "type": "number",
+                "value": 100
+              },
+              "properties": [
+                {
+                  "name": "focusable",
+                  "value": {
+                    "type": "booleanOrUndefined",
+                    "value": true
+                  }
+                },
+                {
+                  "name": "settable",
+                  "value": {
+                    "type": "booleanOrUndefined",
+                    "value": true
+                  }
+                },
+                {
+                  "name": "orientation",
+                  "value": {
+                    "type": "token",
+                    "value": "horizontal"
+                  }
+                },
+                {
+                  "name": "valuemin",
+                  "value": {
+                    "type": "number",
+                    "value": 0
+                  }
+                },
+                {
+                  "name": "valuemax",
+                  "value": {
+                    "type": "number",
+                    "value": 100
+                  }
+                },
+                {
+                  "name": "valuetext",
+                  "value": {
+                    "type": "string",
+                    "value": ""
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "arg": "-pi/2",
+          "dom": {
+            "role": "slider",
+            "min": null,
+            "max": null,
+            "value": "-90",
+            "text": "-90°"
+          },
+          "accessibility": [
+            {
+              "role": {
+                "type": "role",
+                "value": "slider"
+              },
+              "name": {
+                "type": "computedString",
+                "value": "Rx Gate angle, wire 1, column 1",
+                "sources": [
+                  {
+                    "type": "relatedElement",
+                    "attribute": "aria-labelledby"
+                  },
+                  {
+                    "type": "attribute",
+                    "value": {
+                      "type": "computedString",
+                      "value": "Rx Gate angle, wire 1, column 1"
+                    },
+                    "attribute": "aria-label",
+                    "attributeValue": {
+                      "type": "string",
+                      "value": "Rx Gate angle, wire 1, column 1"
+                    }
+                  },
+                  {
+                    "type": "attribute",
+                    "attribute": "title",
+                    "superseded": true
+                  }
+                ]
+              },
+              "value": {
+                "type": "number",
+                "value": 0
+              },
+              "properties": [
+                {
+                  "name": "focusable",
+                  "value": {
+                    "type": "booleanOrUndefined",
+                    "value": true
+                  }
+                },
+                {
+                  "name": "settable",
+                  "value": {
+                    "type": "booleanOrUndefined",
+                    "value": true
+                  }
+                },
+                {
+                  "name": "orientation",
+                  "value": {
+                    "type": "token",
+                    "value": "horizontal"
+                  }
+                },
+                {
+                  "name": "valuemin",
+                  "value": {
+                    "type": "number",
+                    "value": 0
+                  }
+                },
+                {
+                  "name": "valuemax",
+                  "value": {
+                    "type": "number",
+                    "value": 100
+                  }
+                },
+                {
+                  "name": "valuetext",
+                  "value": {
+                    "type": "string",
+                    "value": ""
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Rename composition Enter",
+      "result": {
+        "before": "a",
+        "event": {
+          "isComposing": true,
+          "defaultPrevented": true
+        },
+        "editorStillOpen": false,
+        "qualification": "Synthetic browser composition event; physical CJK IME not tested"
+      }
+    },
+    {
+      "name": "Control click vs right click",
+      "result": [
+        {
+          "kind": "control",
+          "menu": false,
+          "hash": "#circuit=%7B%22cols%22%3A%5B%5B%22X%22%5D%5D%7D",
+          "events": [
+            {
+              "type": "pointerdown",
+              "button": 0,
+              "ctrl": true
+            },
+            {
+              "type": "contextmenu",
+              "button": 0,
+              "ctrl": true
+            },
+            {
+              "type": "pointerup",
+              "button": 0,
+              "ctrl": true
+            }
+          ]
+        },
+        {
+          "kind": "right",
+          "menu": true,
+          "hash": "#circuit=%7B%22cols%22%3A%5B%5B%22X%22%5D%5D%7D",
+          "events": [
+            {
+              "type": "pointerdown",
+              "button": 2,
+              "ctrl": false
+            },
+            {
+              "type": "contextmenu",
+              "button": 2,
+              "ctrl": false
+            },
+            {
+              "type": "pointerup",
+              "button": 2,
+              "ctrl": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Browser preferred font size",
+      "result": {
+        "before": {
+          "root": "16px",
+          "body": "16px",
+          "forgeDescription": "12px"
+        },
+        "after": {
+          "root": "16px",
+          "body": "16px",
+          "forgeDescription": "12px"
+        },
+        "preference": "CDP standard32/fixed26"
+      }
+    }
+  ]
+}

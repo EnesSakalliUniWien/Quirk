@@ -14,8 +14,8 @@ import {
   WandSparklesIcon,
 } from "lucide-react";
 
-import {ComplexDisplayPanel} from "./complex-display/complex-display-panel.jsx";
-import {TapePanel} from "./tape/tape-panel.jsx";
+import { ComplexDisplayPanel } from "./complex-display/complex-display-panel.jsx";
+import { TapePanel } from "./tape/tape-panel.jsx";
 import { AlgebraPanel } from "./algebra/algebra-panel.jsx";
 import { BlochPanel } from "./bloch/bloch-panel.jsx";
 import { CircuitPanel } from "./circuit/circuit-panel.jsx";
@@ -65,12 +65,12 @@ import { createPanelComponent } from "./shared/panel-wrapper.jsx";
  * `title` names the panel on its tab and on the toolbar button, in sentence case like every other
  * button and heading; only menu items take title-style capitalization.
  *
- * @type {!Object.<!string, !{title: !string, icon: !function, component: !function,
+ * @type {!Object.<!string, !{title: !string, icon: import('lucide-react').LucideIcon, component: !function,
  *     permanent: (undefined|!boolean), side: (undefined|!{direction: !string, width: !int}),
  *     floating: (undefined|!{width: !int, height: !int})}>}
  */
 const PANELS = {
-  tape: {title: "Tape", icon: CassetteTapeIcon, component: TapePanel},
+  tape: { title: "Recordings", icon: CassetteTapeIcon, component: TapePanel },
   circuit: {
     title: "Circuit",
     icon: GitCommitHorizontalIcon,
@@ -86,23 +86,40 @@ const PANELS = {
     side: { direction: "left", width: 240 },
   },
   state: { title: "State", icon: SigmaIcon, component: StatePanel },
-  algebra: { title: "Algebra", icon: SquareFunctionIcon, component: AlgebraPanel },
+  algebra: {
+    title: "Algebra",
+    icon: SquareFunctionIcon,
+    component: AlgebraPanel,
+  },
   probabilities: {
     title: "Probabilities",
     icon: ChartColumnIcon,
     component: ProbabilitiesPanel,
   },
   qubits: { title: "Qubits", icon: OrbitIcon, component: QubitsPanel },
-  registers: { title: "Registers", icon: BracketsIcon, component: RegistersPanel },
+  registers: {
+    title: "Registers",
+    icon: BracketsIcon,
+    component: RegistersPanel,
+  },
   export: { title: "Export", icon: DownloadIcon, component: ExportPanel },
-  forge: { title: "Make gate", icon: WandSparklesIcon, component: ForgePanel },
+  forge: {
+    title: "Create gate",
+    icon: WandSparklesIcon,
+    component: ForgePanel,
+  },
   "gate-param": {
     title: "Gate parameter",
     icon: SlidersHorizontalIcon,
     component: GateParamPanel,
     floating: { width: 420, height: 320 },
   },
-  "complex-display": {title: "Complex values", icon: Grid3x3Icon, component: ComplexDisplayPanel, floating: {width: 440, height: 820}},
+  "complex-display": {
+    title: "Complex values",
+    icon: Grid3x3Icon,
+    component: ComplexDisplayPanel,
+    floating: { width: 440, height: 820 },
+  },
   bloch: {
     title: "Bloch sphere",
     icon: GlobeIcon,
@@ -119,7 +136,10 @@ const PANELS = {
  * cannot drift from the name the dock opens the panel by, and no panel needs an id of its own.
  */
 const PANEL_COMPONENTS = Object.fromEntries(
-  Object.entries(PANELS).map(([name, panel]) => [name, createPanelComponent(name, panel.component)]),
+  Object.entries(PANELS).map(([name, panel]) => [
+    name,
+    createPanelComponent(name, panel.component),
+  ]),
 );
 
 export { PANELS, PANEL_COMPONENTS };

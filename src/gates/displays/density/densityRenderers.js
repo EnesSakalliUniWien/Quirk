@@ -18,19 +18,30 @@ import { Matrix } from "../../../engine/math/matrix/Matrix.js";
 import { makeDisplayRenderer } from "../../../draw/gate/GateRenderers.js";
 import { DATA_RENDERERS } from "../../../draw/renderers/dataRenderers.js";
 
-const SINGLE_DENSITY_MATRIX_RENDERER = makeDisplayRenderer(args => {
-    const {col, row} = args.positionInCircuit;
-    const ρ = args.stats.qubitDensityMatrix(col, row).transpose();
-    DATA_RENDERERS.matrix(args.painter, ρ, args.rect, {style: "density", focusPoints: args.focusPoints});
+const SINGLE_DENSITY_MATRIX_RENDERER = makeDisplayRenderer((args) => {
+  const { col, row } = args.positionInCircuit;
+  const ρ = args.stats.qubitDensityMatrix(col, row).transpose();
+  DATA_RENDERERS.matrix(args.painter, ρ, args.rect, {
+    style: "density",
+    focusPoints: args.focusPoints,
+  });
 });
 
 /**
  * @param {!GateRenderParams} args
  */
-const DENSITY_MATRIX_RENDERER_FROM_CUSTOM_STATS = makeDisplayRenderer(args => {
+const DENSITY_MATRIX_RENDERER_FROM_CUSTOM_STATS = makeDisplayRenderer(
+  (args) => {
     const n = args.gate.height;
-    const ρ = args.customStats || Matrix.zero(1<<n, 1<<n).times(NaN);
-    DATA_RENDERERS.matrix(args.painter, ρ, args.rect, {style: "density", focusPoints: args.focusPoints});
-});
+    const ρ = args.customStats || Matrix.zero(1 << n, 1 << n).times(NaN);
+    DATA_RENDERERS.matrix(args.painter, ρ, args.rect, {
+      style: "density",
+      focusPoints: args.focusPoints,
+    });
+  },
+);
 
-export { SINGLE_DENSITY_MATRIX_RENDERER, DENSITY_MATRIX_RENDERER_FROM_CUSTOM_STATS };
+export {
+  SINGLE_DENSITY_MATRIX_RENDERER,
+  DENSITY_MATRIX_RENDERER_FROM_CUSTOM_STATS,
+};

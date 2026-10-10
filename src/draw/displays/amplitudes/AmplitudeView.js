@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {isAmplitudeCoherent} from "../../../engine/math/amplitudeCoherence.js";
+import { isAmplitudeCoherent } from "../../../engine/math/amplitudeCoherence.js";
 import { fitParagraph } from "../../text/TextLayout.js";
 
 import { CanvasTheme } from "../../../config/CanvasTheme.js";
@@ -24,14 +24,13 @@ import { Point } from "../../../geometry/Point.js";
 import { Rect } from "../../../geometry/Rect.js";
 import { ketLabel } from "../../../circuit/registerLabels.js";
 import { DATA_RENDERERS } from "../../renderers/dataRenderers.js";
-import { drawsAsPixels, paintPhaseKey } from "../complex/MatrixView.js";
+import { drawsAsPixels, paintPhaseWheel } from "../complex/MatrixView.js";
 
 /** Room under the gate for the caption: two lines at the default size. */
 const CAPTION_HEIGHT = 30;
 const CAPTION_GAP = 2;
 /** Room above the caption for the phase colours, when the cells are pixels. */
 const PHASE_KEY_HEIGHT = 12;
-const PHASE_KEY_MAX_WIDTH = 200;
 
 /**
  * @type {!function(!GateRenderParams)}
@@ -60,16 +59,23 @@ const AMPLITUDE_RENDERER_FROM_CUSTOM_STATS = makeDisplayRenderer((args) => {
   // The drawing is the shared state renderer's (src/draw/renderers/dataRenderers.js); this gate
   // only decides which amplitudes, where, and how sure it is of their phases. The renderer fits
   // the cells inside the gate, and the gate's frame follows what it drew.
-  const { grid, block } = DATA_RENDERERS.state(args.painter, matrix, args.rect, {
-    wireCount: n,
-    focusPoints: args.focusPoints,
-    coherent: !isIncoherent,
-    indicatorAlpha,
-    phaseLockIndex,
-    registers,
-  });
+  const { grid, block } = DATA_RENDERERS.state(
+    args.painter,
+    matrix,
+    args.rect,
+    {
+      wireCount: n,
+      focusPoints: args.focusPoints,
+      coherent: !isIncoherent,
+      indicatorAlpha,
+      phaseLockIndex,
+      registers,
+    },
+  );
 
-  const phaseKey = !isIncoherent && !matrix.hasNaN() &&
+  const phaseKey =
+    !isIncoherent &&
+    !matrix.hasNaN() &&
     drawsAsPixels(matrix.width(), matrix.height(), grid, n);
   paintCaption(args, indicatorAlpha, phaseLockIndex, registers, phaseKey);
   return block;
@@ -87,24 +93,32 @@ const AMPLITUDE_RENDERER_FROM_CUSTOM_STATS = makeDisplayRenderer((args) => {
  * @param {!Registers} registers
  * @param {!boolean} phaseKey
  */
-function paintCaption(args, indicatorAlpha, phaseLockIndex, registers, phaseKey) {
+function paintCaption(
+  args,
+  indicatorAlpha,
+  phaseLockIndex,
+  registers,
+  phaseKey,
+) {
   if (phaseKey) {
-    const width = Math.min(args.rect.w, PHASE_KEY_MAX_WIDTH);
-    paintPhaseKey(
+    // The wheel of hues the pixels wear, small, over the caption that names it.
+    const radius = PHASE_KEY_HEIGHT / 2;
+    paintPhaseWheel(
       args.painter,
-      new Rect(args.rect.center().x - width / 2, args.rect.bottom() + CAPTION_GAP, width, PHASE_KEY_HEIGHT),
+      args.rect.center().x - radius,
+      args.rect.bottom() + CAPTION_GAP,
+      radius,
+      { labels: false },
     );
   }
-  const parts = [];
+  const parts = phaseKey ? ["colour = phase"] : [];
   const { col, row } = args.positionInCircuit;
   const measured =
     ((args.stats.circuitDefinition.colIsMeasuredMask(col) >> row) &
       ((1 << args.gate.height) - 1)) !==
     0;
   if (measured) {
-    parts.push(
-      "Measurement deferred",
-    );
+    parts.push("Measurement deferred");
   }
   if (indicatorAlpha < 0.999) {
     parts.push("Entangled: phase undefined");

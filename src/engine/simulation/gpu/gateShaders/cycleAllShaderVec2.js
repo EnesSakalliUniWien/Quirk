@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-import { Inputs, Outputs, makePseudoShaderWithInputsAndOutputAndCode } from "../../../webgl/coder/ShaderCoders.js";
+import {
+  Inputs,
+  Outputs,
+  makePseudoShaderWithInputsAndOutputAndCode,
+} from "../../../webgl/coder/ShaderCoders.js";
 
 const CYCLE_ALL_SHADER_VEC2 = makePseudoShaderWithInputsAndOutputAndCode(
-    [Inputs.vec2('input')],
-    Outputs.vec2(),
-    `
+  [Inputs.vec2("input")],
+  Outputs.vec2(),
+  `
     uniform float shiftAmount;
 
     vec2 outputFor(float k) {
@@ -27,6 +31,7 @@ const CYCLE_ALL_SHADER_VEC2 = makePseudoShaderWithInputsAndOutputAndCode(
         float shiftedState = k * shiftAmount;
         float cycledState = mod(shiftedState, span) + floor(shiftedState / span);
         return read_input(cycledState);
-    }`);
+    }`,
+);
 
 export { CYCLE_ALL_SHADER_VEC2 };

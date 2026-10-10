@@ -17,16 +17,25 @@
 import { makeDisplayRenderer } from "../../../draw/gate/GateRenderers.js";
 import { paintBlochSphereDisplay } from "../../../draw/displays/bloch/BlochView.js";
 
-import {fitText} from "../../../draw/text/TextLayout.js";
-import {CanvasTheme} from "../../../config/CanvasTheme.js";
+import { fitText } from "../../../draw/text/TextLayout.js";
+import { CanvasTheme } from "../../../config/CanvasTheme.js";
 
-const BLOCH_SPHERE_RENDERER = makeDisplayRenderer(args => {
-        const {row, col} = args.positionInCircuit;
-        const ρ = args.stats.qubitDensityMatrix(col, row);
-        paintBlochSphereDisplay(args.painter, ρ, args.rect, args.focusPoints);
-        fitText(args.painter, '↗', {x: args.rect.right()-2, y: args.rect.y+2,
-            align: 'right', baseline: 'top', width: 10, height: 10,
-            fill: CanvasTheme.text.muted});
-    }, {framed: false});
+const BLOCH_SPHERE_RENDERER = makeDisplayRenderer(
+  (args) => {
+    const { row, col } = args.positionInCircuit;
+    const ρ = args.stats.qubitDensityMatrix(col, row);
+    paintBlochSphereDisplay(args.painter, ρ, args.rect, args.focusPoints);
+    fitText(args.painter, "↗", {
+      x: args.rect.right() - 2,
+      y: args.rect.y + 2,
+      align: "right",
+      baseline: "top",
+      width: 10,
+      height: 10,
+      fill: CanvasTheme.text.muted,
+    });
+  },
+  { framed: false },
+);
 
 export { BLOCH_SPHERE_RENDERER };

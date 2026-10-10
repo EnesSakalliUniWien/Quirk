@@ -25,14 +25,14 @@ import { amplitudesToProbabilities } from "./shaders/amplitudesToProbabilities.j
  * Derives conditional computational basis measurement probabilities from the state vector.
  *
  * @param {!WglTexture} ketTexture The texture storing the wavefunction.
- * @param {!Controls} controls The controls a state must meet to count.
+ * @param {!WglTexture} controlTexture A precomputed texture storing a control mask set to 1 for satisfying states.
  * @param {!int} rangeOffset Which wire the probability display starts on.
  * @param {!int} rangeLength How many wires the probability display covers.
  * @returns {!WglTexture} Texture storing the probabilities. Not normalized.
  */
 function probabilityStatTexture(
   ketTexture,
-  controls,
+  controlTexture,
   rangeOffset,
   rangeLength,
 ) {
@@ -41,7 +41,7 @@ function probabilityStatTexture(
   let n = currentShaderCoder().vec2.arrayPowerSizeOfTexture(ketTexture);
 
   trader.shadeAndTrade(
-    (tex) => amplitudesToProbabilities(tex, controls),
+    (tex) => amplitudesToProbabilities(tex, controlTexture),
     WglTexturePool.takeVecFloatTex(n),
   );
   trader.shadeAndTrade((tex) =>

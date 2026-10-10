@@ -52,8 +52,8 @@ loading. The app never imports the dock or the panel registry. `Recorder` receiv
 callback at construction for repainting the restored result; it has no panel-opening property.
 The result format and storage belong to `src/results`, not to the recording workflow.
 
-Nothing records by itself. Ghosts - a take of the circuit before each edit - are off until the user
-turns them on in Tape, and loading an example makes none. The paces - the cycle, Play's time per
-operation, the debug step's increment - and the recorder's sampling rate and shots are the user's,
-from `src/state/motionSettings.js`; `startQuirk` hands them to the models as functions, so a change
-applies at once.
+Nothing records by itself. Ghosts - a snapshot of the circuit before each edit - are off until the
+user turns them on in Tape, and loading an example makes none. The Steps and Time lanes set the
+paces of Play and of t's cycle; the Bloch glide, how often the panels sample, and the recorder's
+sampling rate and shots are the user's, from `src/state/motionSettings.js`, and a change applies at
+once.

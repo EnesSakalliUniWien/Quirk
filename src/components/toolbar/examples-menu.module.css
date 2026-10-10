@@ -1,0 +1,20 @@
+.examples {
+  width: 340px;
+  max-width: calc(100vw - 16px);
+  max-height: min(640px, var(--available-height, calc(100dvh - 80px)));
+  overflow-y: auto;
+}
+
+.examples .example {
+  display: grid;
+  justify-content: stretch;
+  gap: 2px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.goal {
+  color: var(--muted-foreground);
+  font-size: var(--text-caption);
+  line-height: 1.4;
+}

@@ -14,229 +14,87 @@
  * limitations under the License.
  */
 
-import {Rendering} from "../../../config/Rendering.js";
-import { extend } from "@pixi/react";
-import { Color, Graphics, GraphicsPath } from "pixi.js";
+import { Rendering } from "../../../config/Rendering.js";
 import { CanvasTheme, phaseColor } from "../../../config/CanvasTheme.js";
 import { Typography } from "../../../config/Typography.js";
-import { Rect } from "../../../geometry/Rect.js";
 import { drawGraphics } from "../../scene/DisplayView.js";
-import { PathGeometry } from "../../shapes/PathGeometry.js";
 import { drawText, fitText, measureText } from "../../text/TextLayout.js";
-import {rasterMatrix} from '../../renderers/rasters.js';
-import {
-  traceAmplitudeProbabilitySquare,
-  traceProbabilitySquare,
-  traceAmplitudeProbabilityCircle,
-  traceAmplitudeLogarithmCircle,
-  traceAmplitudePhaseDirection,
-  PHASE_HAND_WIDTH,
-  LOG_RING_WIDTH,
-} from "./ComplexCellGeometry.js";
+import "./MatrixCells.js";
 
 /** Below this many units a side, discs, rings and hands stop reading, so larger registers draw pixels. */
 const PIXEL_CELL_SIZE = 16;
 /** Below this many units a side, a logarithmic ring has no room to differ from its disc. */
 const MIN_LOG_RING_CELL_SIZE = 12;
-const PHASE_KEY_FONT = { fontSize: Typography.LABEL_FONT_SIZE, fontFamily: Typography.MONO_FONT_FAMILY };
-const PHASE_KEY_STEPS = 36;
+/** Cells at least this many units a side print their chance in a corner. */
+const CHANCE_LABEL_CELL_SIZE = 44;
 
-/** React owns this Graphics and its context. Compare values because Matrix buffers are mutable. */
-class MatrixGraphics extends Graphics {
-  constructor() {
-    super();
-  }
-  set picture(picture) {
-    const { values, buf, colors } = picture;
-    const same = (a, b) =>
-      a && a.length === b.length && b.every((v, i) => Object.is(v, a[i]));
-    if (
-      same(this.previous?.values, values) &&
-      same(this.previous?.buf, buf) &&
-      same(this.previous?.colors, colors)
-    )
-      return;
-    this.previous = { values, buf: buf.slice(), colors };
-    this.clear();
-    const [
-      x,
-      y,
-      diam,
-      numCols,
-      numRows,
-      hasNaN,
-      amplitudeCircleFillColor,
-      amplitudeCircleStrokeColor,
-      amplitudeProbabilityFillColor,
-      backColor,
-      logCircleStrokeColor,
-      showLogCircles,
-      density,
-      asPixels,
-    ] = values;
-    this.rect(x, y, diam * numCols, diam * numRows).fill(backColor);
-    if (asPixels) {
-      const width = Math.max(1, Math.min(numCols, Math.ceil(diam * numCols)));
-      const height = Math.max(1, Math.min(numRows, Math.ceil(diam * numRows)));
-      const pixels = rasterMatrix({width: () => numCols, height: () => numRows, rawBuffer: () => buf}, width, height);
-      const phaseVisible = colors.some(color => color !== undefined);
-      const neutral = new Color(amplitudeCircleFillColor ?? CanvasTheme.text.primary).toNumber();
-      const w = diam * numCols / width, h = diam * numRows / height;
-      for (let row = 0; row < height; row++) {
-        for (let col = 0; col < width; col++) {
-          const k = (row * width + col) * 4;
-          if (pixels[k + 3]) this.rect(x + col*w, y + row*h, w, h).fill({
-            color: phaseVisible ? (pixels[k] << 16) | (pixels[k+1] << 8) | pixels[k+2] : neutral, alpha: pixels[k+3]/255});
-        }
-      }
-      return;
-    }
-    const path = (trace, styles) => {
-      const geometry = new GraphicsPath();
-      trace(geometry);
-      for (const { fill, stroke } of styles) {
-        if (fill !== undefined) this.path(geometry).fill(fill);
-        if (stroke !== undefined) this.path(geometry).stroke(stroke);
-      }
-    };
-    const cells = (trace) => (geometry) => {
-      for (let row = 0; row < numRows; row++) {
-        for (let col = 0; col < numCols; col++) {
-          const k = (row * numCols + col) * 2;
-          trace(
-            geometry,
-            buf[k],
-            buf[k + 1],
-            x + diam * col,
-            y + diam * row,
-            diam,
-          );
-        }
-      }
-    };
-    if (!hasNaN) {
-      if (amplitudeProbabilityFillColor !== undefined) {
-        path(cells((geometry, real, imag, cx, cy, d) => {
-          if (!density) traceAmplitudeProbabilitySquare(geometry, real, imag, cx, cy, d);
-          else if (Math.abs((cx-x)-(cy-y)) < d/2) traceProbabilitySquare(geometry, real, imag, cx, cy, d);
-        }), [
-          { fill: amplitudeProbabilityFillColor },
-          { stroke: { color: CanvasTheme.stroke.grid, width: 0.5 } },
-        ]);
-      }
-      if (amplitudeCircleFillColor !== undefined) {
-        path(cells(traceAmplitudeProbabilityCircle), [
-          { fill: amplitudeCircleFillColor },
-          { stroke: { color: amplitudeCircleStrokeColor, width: 0.5 } },
-        ]);
-        if (showLogCircles && diam >= MIN_LOG_RING_CELL_SIZE) {
-          path(cells(traceAmplitudeLogarithmCircle), [
-            { stroke: { color: logCircleStrokeColor, width: LOG_RING_WIDTH } },
-          ]);
-        }
-      }
-    }
-    path(
-      (trace) =>
-        PathGeometry.grid(
-          trace,
-          x,
-          y,
-          diam * numCols,
-          diam * numRows,
-          numCols,
-          numRows,
-        ),
-      [
-        { stroke: { color: CanvasTheme.amplitude.phaseHalo, width: 3 } },
-        { stroke: { color: CanvasTheme.stroke.grid, width: 1 } },
-      ],
-    );
-    const cellsByColor = new Map();
-    colors.forEach((color, index) => {
-      if (color === undefined) return;
-      if (!cellsByColor.has(color)) cellsByColor.set(color, []);
-      cellsByColor.get(color).push(index);
-    });
-    for (const [color, indices] of cellsByColor) {
-      path(
-        (trace) => {
-          for (const index of indices) {
-            traceAmplitudePhaseDirection(
-              trace,
-              buf[2 * index],
-              buf[2 * index + 1],
-              x + diam * (index % numCols),
-              y + diam * Math.floor(index / numCols),
-              diam,
-            );
-          }
-        },
-        [
-          { stroke: { color: CanvasTheme.amplitude.phaseHalo, width: 3 } },
-          { stroke: { color, width: PHASE_HAND_WIDTH } },
-        ],
-      );
-    }
-  }
-}
-extend({ MatrixGraphics });
-
-/** Complex magnitudes, logarithmic rings and phase hands have independent display options. */
+/**
+ * Draws a grid of complex numbers - a state's amplitudes, a density matrix, an operator - one cell
+ * per entry: a disc as wide as the entry is large, in its phase's hue; a hand along the exact phase,
+ * as long as the amplitude; a logarithmic ring; and, for amplitudes, the chance as a gauge beside
+ * the disc. Colour means phase and nothing else. The marks are particles of one Pixi container
+ * (MatrixCells.js), which moves them as the numbers change rather than redrawing them.
+ *
+ * @param {!DisplayView} painter
+ * @param {!Matrix} matrix
+ * @param {!Rect} drawArea
+ * @param {!{backColor: (undefined|!string), showLogCircles: (undefined|!boolean),
+ *     showChance: (undefined|!boolean), density: (undefined|!boolean), chanceLabels: (undefined|!boolean),
+ *     phaseAlpha: (undefined|!number), showPhase: (undefined|!boolean), wireCount: (undefined|!int)}=} options
+ *     showChance draws an amplitude's chance gauge; density draws a density matrix's diagonal
+ *     chances instead; chanceLabels prints each big cell's chance; phaseAlpha says how sure the
+ *     phases are, fading the hands and, at 0, leaving the discs without a hue.
+ */
 export function paintMatrix(
   painter,
   matrix,
   drawArea,
   {
-    amplitudeCircleFillColor,
-    amplitudeCircleStrokeColor,
-    amplitudeProbabilityFillColor,
-    backColor = CanvasTheme.probability.background,
-    phaseColorForDegrees = () => amplitudeCircleStrokeColor,
-    logCircleStrokeColor = CanvasTheme.stroke.logRing,
-    showPhase = true,
+    backColor = CanvasTheme.amplitude.background,
     showLogCircles = true,
+    showChance = false,
     density = false,
+    chanceLabels = false,
+    phaseAlpha = 1,
+    showPhase = true,
     wireCount,
   } = {},
 ) {
   const numCols = matrix.width(),
     numRows = matrix.height();
-  const buf = matrix.rawBuffer();
   const hasNaN = matrix.hasNaN();
   const diam = Math.min(drawArea.w / numCols, drawArea.h / numRows);
-  const colors = [];
-  if (!hasNaN && showPhase) {
-    for (let k = 0; k < buf.length; k += 2) {
-      colors.push(
-        buf[k] === 0 && buf[k + 1] === 0
-          ? undefined
-          : phaseColorForDegrees(
-              (Math.atan2(buf[k + 1], buf[k]) * 180) / Math.PI,
-            ),
-      );
-    }
-  }
-  painter.add("pixiMatrixGraphics", {
+  const asPixels =
+    !hasNaN && drawsAsPixels(numCols, numRows, drawArea, wireCount);
+  painter.add("pixiMatrixCells", {
     picture: {
-      values: [
-        drawArea.x,
-        drawArea.y,
-        diam,
-        numCols,
-        numRows,
-        hasNaN,
-        amplitudeCircleFillColor,
-        amplitudeCircleStrokeColor,
-        amplitudeProbabilityFillColor,
-        backColor,
-        logCircleStrokeColor,
-        showLogCircles,
-        density,
-        !hasNaN && drawsAsPixels(numCols, numRows, drawArea, wireCount),
-      ],
-      buf,
-      colors,
+      x: drawArea.x,
+      y: drawArea.y,
+      diam,
+      cols: numCols,
+      rows: numRows,
+      buf: matrix.rawBuffer(),
+      hasNaN,
+      asPixels,
+      density,
+      logRings: showLogCircles && diam >= MIN_LOG_RING_CELL_SIZE,
+      gauges: showChance,
+      ticks: diam >= MIN_LOG_RING_CELL_SIZE,
+      chanceLabels: chanceLabels && !asPixels && diam >= CHANCE_LABEL_CELL_SIZE,
+      phaseAlpha: showPhase ? phaseAlpha : 0,
+      colours: {
+        back: backColor,
+        grid: CanvasTheme.stroke.grid,
+        ring: CanvasTheme.stroke.logRing,
+        tick: CanvasTheme.stroke.guide,
+        hand: CanvasTheme.amplitude.hand,
+        handOff: CanvasTheme.text.primary,
+        chance: CanvasTheme.amplitude.chance,
+        track: CanvasTheme.probability.track,
+        unknown: CanvasTheme.amplitude.unknown,
+        plate: CanvasTheme.surface.readout,
+        label: CanvasTheme.text.primary,
+      },
     },
   });
   if (hasNaN) {
@@ -258,27 +116,91 @@ export function paintMatrix(
  * magnitude - rather than discs, rings and hands. A matrix over at most MATRIX_DETAIL_MAX_QUBITS
  * qubits always keeps its marks.
  */
-export function drawsAsPixels(numCols, numRows, drawArea, wireCount = undefined) {
+export function drawsAsPixels(
+  numCols,
+  numRows,
+  drawArea,
+  wireCount = undefined,
+) {
   const diam = Math.min(drawArea.w / numCols, drawArea.h / numRows);
-  const detailed = (wireCount ?? Math.log2(Math.max(numRows, numCols))) <= Rendering.MATRIX_DETAIL_MAX_QUBITS;
+  const detailed =
+    (wireCount ?? Math.log2(Math.max(numRows, numCols))) <=
+    Rendering.MATRIX_DETAIL_MAX_QUBITS;
   return !detailed && diam < PIXEL_CELL_SIZE;
 }
 
-/** The phase wheel that pixel views colour by, from −180° to 180°, for the captions beside them. */
-export function paintPhaseKey(painter, rect) {
-  const ends = ["−180°", "180°"];
-  const [left, right] = ends.map((text) => measureText(text, PHASE_KEY_FONT).width + 3);
-  const strip = new Rect(rect.x + left, rect.center().y - 3, Math.max(0, rect.w - left - right), 6);
+/** How finely the phase wheel is cut. */
+const PHASE_WHEEL_STEPS = 48;
+/** How far the wheel's labels stand off its rim. */
+const PHASE_WHEEL_LABEL_GAP = 4;
+const PHASE_WHEEL_FONT = {
+  fontSize: 10,
+  fontFamily: Typography.MONO_FONT_FAMILY,
+};
+
+/**
+ * The size of the phase wheel's box, labels and all, for a wheel of `radius`.
+ * @param {!number} radius
+ * @param {!{labels: (undefined|!boolean)}=} options
+ * @returns {!{width: !number, height: !number}}
+ */
+function phaseWheelSize(radius, { labels = true } = {}) {
+  if (!labels) return { width: 2 * radius, height: 2 * radius };
+  const side =
+    measureText("180°", PHASE_WHEEL_FONT).width + PHASE_WHEEL_LABEL_GAP;
+  const line =
+    measureText("0", PHASE_WHEEL_FONT).fontProperties.fontSize +
+    PHASE_WHEEL_LABEL_GAP;
+  return { width: 2 * (radius + side), height: 2 * (radius + line) };
+}
+
+/**
+ * The key to the hue every phase wears: a ring of the wheel, turning counter-clockwise from 0° at
+ * the right, as a hand does, so a hand's colour and its angle are read off the same picture. Labels
+ * name the four quarter turns.
+ *
+ * @param {!DisplayView} painter
+ * @param {!number} x The left of the wheel's box (see phaseWheelSize).
+ * @param {!number} y The top of the wheel's box.
+ * @param {!number} radius
+ * @param {!{labels: (undefined|!boolean)}=} options
+ * @returns {!{width: !number, height: !number}} The box it took.
+ */
+export function paintPhaseWheel(painter, x, y, radius, { labels = true } = {}) {
+  const size = phaseWheelSize(radius, { labels });
+  const cx = x + size.width / 2,
+    cy = y + size.height / 2;
+  const inner = radius * 0.55;
+  const step = (2 * Math.PI) / PHASE_WHEEL_STEPS;
   drawGraphics(painter, (graphics) => {
-    for (let i = 0; i < PHASE_KEY_STEPS; i++) {
-      // Each step overlaps the next by half a unit, so no seam shows between them.
+    for (let i = 0; i < PHASE_WHEEL_STEPS; i++) {
+      // A phase φ turns counter-clockwise on screen, where y runs down: its canvas angle is −φ.
+      const from = (i - 0.5) * step,
+        to = (i + 0.5) * step;
       graphics
-        .rect(strip.x + (strip.w * i) / PHASE_KEY_STEPS, strip.y, strip.w / PHASE_KEY_STEPS + 0.5, strip.h)
-        .fill(phaseColor(-180 + ((i + 0.5) * 360) / PHASE_KEY_STEPS));
+        .moveTo(cx + Math.cos(from) * inner, cy - Math.sin(from) * inner)
+        .arc(cx, cy, radius, -from, -to, true)
+        .lineTo(cx + Math.cos(to) * inner, cy - Math.sin(to) * inner)
+        .arc(cx, cy, inner, -to, -from, false)
+        .closePath()
+        .fill(phaseColor((i * 360) / PHASE_WHEEL_STEPS));
     }
   });
-  const y = rect.center().y;
-  drawText(painter, ends[0], { x: rect.x, y, baseline: "middle", font: PHASE_KEY_FONT, fill: CanvasTheme.text.muted });
-  drawText(painter, ends[1], { x: rect.right(), y, align: "right", baseline: "middle", font: PHASE_KEY_FONT,
-    fill: CanvasTheme.text.muted });
+  if (labels) {
+    const at = (text, dx, dy, align, baseline) =>
+      drawText(painter, text, {
+        x: cx + dx,
+        y: cy + dy,
+        align,
+        baseline,
+        font: PHASE_WHEEL_FONT,
+        fill: CanvasTheme.text.muted,
+      });
+    const gap = radius + PHASE_WHEEL_LABEL_GAP;
+    at("0°", gap, 0, "left", "middle");
+    at("90°", 0, -gap, "center", "bottom");
+    at("180°", -gap, 0, "right", "middle");
+    at("−90°", 0, gap, "center", "top");
+  }
+  return size;
 }

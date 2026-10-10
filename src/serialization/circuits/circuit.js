@@ -19,7 +19,12 @@ import { CustomGateSet } from "../../circuit/model/CustomGateSet.js";
 import { GateColumn } from "../../circuit/model/GateColumn.js";
 import { Simulation } from "../../config/Simulation.js";
 import { describe } from "../../base/Describe.js";
-import { toJson_GateColumn, fromJson_GateColumn, toJson_CustomGateSet, fromJson_CustomGateSet } from "../gates/collections.js";
+import {
+  toJson_GateColumn,
+  fromJson_GateColumn,
+  toJson_CustomGateSet,
+  fromJson_CustomGateSet,
+} from "../gates/collections.js";
 import { toJson_Register, _fromJson_Registers } from "./registers.js";
 import { toJson_InitialState, _fromJson_InitialState } from "./initialState.js";
 
@@ -90,20 +95,30 @@ function fromJson_CircuitDefinition(json, context = undefined) {
   );
 
   // Pad or truncate each column to the displayed wire count in one allocation.
-  gateCols = gateCols.map(col =>
-    new GateColumn(Array.from({ length: numWires }, (_, row) => col.gates[row])),
+  gateCols = gateCols.map(
+    (col) =>
+      new GateColumn(
+        Array.from({ length: numWires }, (_, row) => col.gates[row]),
+      ),
   );
 
-  return new CircuitDefinition(
-    numWires,
-    gateCols,
-    undefined,
-    undefined,
-    customGateSet,
-    false,
-    initialValues,
-    registers,
-  ).withTrailingSpacersIncluded();
+  return (
+    new CircuitDefinition(
+      numWires,
+      gateCols,
+      undefined,
+      undefined,
+      customGateSet,
+      false,
+      initialValues,
+      registers,
+    )
+      // A circuit written by hand, or saved before a gate grew wider (a rotation gained its dial),
+      // can put a gate where a wider neighbour still reaches. It is spaced out on load, the way an
+      // edit spaces it, so no gate or display is drawn over another; empty columns change nothing.
+      .withWidthOverlapsFixed()
+      .withTrailingSpacersIncluded()
+  );
 }
 
 export { toJson_CircuitDefinition, fromJson_CircuitDefinition };

@@ -43,9 +43,6 @@ class WglContext {
      */
     this.gl = context;
 
-    // Float render targets and float readPixels. Checked above; calling getExtension enables it.
-    this.gl.getExtension("EXT_color_buffer_float");
-
     /** @type {undefined|!function():void} */
     this.onContextRestored = undefined;
 
@@ -54,6 +51,13 @@ class WglContext {
      * @type {!int}
      */
     this.lifetimeCounter = 0;
+
+    /**
+     * The lifetime counter's value when the context was last lost. Values made at or before it died
+     * with that context: the restored one did not create them, and deleting them would be an error.
+     * @type {!int}
+     */
+    this.lostAtLifetime = -1;
 
     // Wire lifetime updates.
     this.canvas.addEventListener(
@@ -71,6 +75,7 @@ class WglContext {
       "webglcontextlost",
       (event) => {
         event.preventDefault();
+        this.lostAtLifetime = this.lifetimeCounter;
         this.lifetimeCounter++;
       },
       false,
@@ -91,6 +96,10 @@ class WglContext {
    */
   _recomputeProperties() {
     this.lifetimeCounter++;
+    // Float render targets and float readPixels. Checked in the constructor; calling getExtension
+    // enables it. A restored context comes back with no extensions enabled, so this runs on every
+    // restore too: without it every float texture's framebuffer would be incomplete from then on.
+    this.gl.getExtension("EXT_color_buffer_float");
     const GL = WebGL2RenderingContext;
     /** @type {!int} */
     this.maxTextureUnits = this.gl.getParameter(GL.MAX_TEXTURE_IMAGE_UNITS);

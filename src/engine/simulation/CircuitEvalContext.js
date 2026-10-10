@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {WglConfiguredShader} from "../webgl/shader/WglConfiguredShader.js"
+import { WglConfiguredShader } from "../webgl/shader/WglConfiguredShader.js";
 
 /**
  * Values used by the various gate effects.
@@ -22,111 +22,122 @@ import {WglConfiguredShader} from "../webgl/shader/WglConfiguredShader.js"
  * The current state is stored *and updated* via the stateTrader field.
  */
 class CircuitEvalContext {
+  /**
+   * @param {!number} time
+   * @param {undefined|!int} qubitRow
+   * @param {!int} wireCount
+   * @param {!Controls} controls
+   * @param {!WglTexture} controlsTexture
+   * @param {!Controls} rawControls The controls of the gate column, made available so that before/after operations
+   *     can use this information (even though they are not themselves controlled).
+   * @param {!WglTextureTrader} stateTrader
+   * @param {!Map.<!string, *>} customContextFromGates
+   */
+  constructor(
+    time,
+    qubitRow,
+    wireCount,
+    controls,
+    controlsTexture,
+    rawControls,
+    stateTrader,
+    customContextFromGates,
+    random = Math.random,
+  ) {
+    /** @type {!number} */
+    this.time = time;
+    this.random = random;
     /**
-     * @param {!number} time
-     * @param {undefined|!int} qubitRow
-     * @param {!int} wireCount
-     * @param {!Controls} controls
-     * @param {!Controls} rawControls The controls of the gate column, made available so that before/after operations
-     *     can use this information (even though they are not themselves controlled).
-     * @param {!WglTextureTrader} stateTrader
-     * @param {!Map.<!string, *>} customContextFromGates
+     * The top-level row that we're working relative to.
+     * @type {undefined|!int}
      */
-    constructor(time,
-                qubitRow,
-                wireCount,
-                controls,
-                rawControls,
-                stateTrader,
-                customContextFromGates, random = Math.random) {
-        /** @type {!number} */
-        this.time = time;
-        this.random = random;
-        /**
-         * The top-level row that we're working relative to.
-         * @type {undefined|!int}
-         */
-        this.row = qubitRow;
-        /** @type {!int} */
-        this.wireCount = wireCount;
-        /** @type {!Controls} */
-        this.controls = controls;
-        /** @type {!Controls} */
-        this.rawControls = rawControls;
-        /** @type {!WglTextureTrader} */
-        this.stateTrader = stateTrader;
-        /** @type {!Map.<!string, *>} */
-        this.customContextFromGates = customContextFromGates;
+    this.row = qubitRow;
+    /** @type {!int} */
+    this.wireCount = wireCount;
+    /** @type {!Controls} */
+    this.controls = controls;
+    /** @type {!Controls} */
+    this.rawControls = rawControls;
+    /** @type {!WglTexture} */
+    this.controlsTexture = controlsTexture;
+    /** @type {!WglTextureTrader} */
+    this.stateTrader = stateTrader;
+    /** @type {!Map.<!string, *>} */
+    this.customContextFromGates = customContextFromGates;
+  }
+
+  /**
+   * @param {!WglConfiguredShader|!function(!CircuitEvalContext) : !WglConfiguredShader} operation
+   * @return {void}
+   */
+  applyOperation(operation) {
+    const configuredShader =
+      operation instanceof WglConfiguredShader ? operation : operation(this);
+    this.stateTrader.shadeAndTrade(configuredShader);
+  }
+
+  /**
+   * @returns {!CircuitEvalContext}
+   * @private
+   */
+  _clone() {
+    return new CircuitEvalContext(
+      this.time,
+      this.row,
+      this.wireCount,
+      this.controls,
+      this.controlsTexture,
+      this.rawControls,
+      this.stateTrader,
+      this.customContextFromGates,
+      this.random,
+    );
+  }
+
+  /**
+   * @param {!int} row
+   * @returns {!CircuitEvalContext}
+   */
+  withRow(row) {
+    const r = this._clone();
+    r.row = row;
+    return r;
+  }
+
+  /**
+   * @param {!string} letter
+   * @param {!int} offset
+   * @param {!int} length
+   * @returns {!CircuitEvalContext}
+   */
+  withInputSetToRange(letter, offset, length) {
+    const r = this._clone();
+    r.customContextFromGates = new Map(r.customContextFromGates);
+    r.customContextFromGates.set(`Input Range ${letter}`, { offset, length });
+    return r;
+  }
+
+  /**
+   * @param {!string} letter
+   * @param {!string} other
+   * @returns {!CircuitEvalContext}
+   */
+  withInputSetToOtherInput(letter, other) {
+    const r = this._clone();
+
+    r.customContextFromGates = new Map(r.customContextFromGates);
+
+    for (const key of ["Range", "Default"]) {
+      const otherVal = r.customContextFromGates.get(`Input ${key} ${other}`);
+      if (otherVal !== undefined) {
+        r.customContextFromGates.set(`Input ${key} ${letter}`, otherVal);
+      } else {
+        r.customContextFromGates.delete(`Input ${key} ${letter}`);
+      }
     }
 
-    /**
-     * @param {!WglConfiguredShader|!function(!CircuitEvalContext) : !WglConfiguredShader} operation
-     * @return {void}
-     */
-    applyOperation(operation) {
-        const configuredShader = operation instanceof WglConfiguredShader ? operation : operation(this);
-        this.stateTrader.shadeAndTrade(configuredShader);
-    }
-
-    /**
-     * @returns {!CircuitEvalContext}
-     * @private
-     */
-    _clone() {
-        return new CircuitEvalContext(
-            this.time,
-            this.row,
-            this.wireCount,
-            this.controls,
-            this.rawControls,
-            this.stateTrader,
-            this.customContextFromGates, this.random);
-    }
-
-    /**
-     * @param {!int} row
-     * @returns {!CircuitEvalContext}
-     */
-    withRow(row) {
-        const r = this._clone();
-        r.row = row;
-        return r;
-    }
-
-    /**
-     * @param {!string} letter
-     * @param {!int} offset
-     * @param {!int} length
-     * @returns {!CircuitEvalContext}
-     */
-    withInputSetToRange(letter, offset, length) {
-        const r = this._clone();
-        r.customContextFromGates = new Map(r.customContextFromGates);
-        r.customContextFromGates.set(`Input Range ${letter}`, {offset, length});
-        return r;
-    }
-
-    /**
-     * @param {!string} letter
-     * @param {!string} other
-     * @returns {!CircuitEvalContext}
-     */
-    withInputSetToOtherInput(letter, other) {
-        const r = this._clone();
-
-        r.customContextFromGates = new Map(r.customContextFromGates);
-
-        for (const key of ['Range', 'Default']) {
-            const otherVal = r.customContextFromGates.get(`Input ${key} ${other}`);
-            if (otherVal !== undefined) {
-                r.customContextFromGates.set(`Input ${key} ${letter}`, otherVal);
-            } else {
-                r.customContextFromGates.delete(`Input ${key} ${letter}`);
-            }
-        }
-
-        return r;
-    }
+    return r;
+  }
 }
 
-export {CircuitEvalContext}
+export { CircuitEvalContext };

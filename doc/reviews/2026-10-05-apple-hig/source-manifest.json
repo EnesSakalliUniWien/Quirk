@@ -1,0 +1,3776 @@
+{
+  "retrieved_at": "2026-10-05T05:31:07.704874+00:00",
+  "pages": [
+    {
+      "slug": "accessibility",
+      "title": "Accessibility",
+      "categories": [
+        "foundations"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/accessibility",
+      "sha256": "be49ec0b34397f356a1e3fd8c7ad323713198515523947097913cb9c57da699b",
+      "headings": [
+        "# Accessibility",
+        "## Vision",
+        "## Hearing",
+        "## Mobility",
+        "## Speech",
+        "## Cognitive",
+        "## Platform considerations",
+        "### visionOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "action-button",
+      "title": "Action button",
+      "categories": [
+        "inputs"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/action-button",
+      "sha256": "0b5b8f0e68140d183a8dd670fd13e9ad97c89894b4525015445173ec76288299",
+      "headings": [
+        "# Action button",
+        "## Best practices",
+        "## Platform considerations",
+        "### iOS",
+        "### watchOS",
+        "## Resources",
+        "#### Related",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "action-sheets",
+      "title": "Action sheets",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/action-sheets",
+      "sha256": "d6dd08cc6fcd7b4a285f8c43b4bb47ecdac5274debce3b9abc54ea386c498494",
+      "headings": [
+        "# Action sheets",
+        "## Best practices",
+        "## Platform considerations",
+        "### iOS, iPadOS",
+        "### watchOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation"
+      ]
+    },
+    {
+      "slug": "activity-rings",
+      "title": "Activity rings",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/activity-rings",
+      "sha256": "9a9f1c2141665892a1d57121c4e339c423f09a10382fb6f4579655c8517e7c62",
+      "headings": [
+        "# Activity rings",
+        "## Best practices",
+        "## Platform considerations",
+        "### iOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "activity-views",
+      "title": "Activity views",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/activity-views",
+      "sha256": "ce1b7686d53deb6a1f3cf31eca2993053075503e6d10a6e0ae5e3f42cb6692a6",
+      "headings": [
+        "# Activity views",
+        "## Best practices",
+        "## Share and action extensions",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos"
+      ]
+    },
+    {
+      "slug": "airplay",
+      "title": "AirPlay",
+      "categories": [
+        "technologies"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/airplay",
+      "sha256": "0db9976126d54787adcb48c35195122daff641bf9e63efc2a426352d05f28a7a",
+      "headings": [
+        "# AirPlay",
+        "## Best practices",
+        "## Using AirPlay icons",
+        "### Black AirPlay icon",
+        "### White AirPlay icon",
+        "### Custom color AirPlay icon",
+        "## Referring to AirPlay",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "alerts",
+      "title": "Alerts",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/alerts",
+      "sha256": "ca60f14c249290f1dcebe8bbaedde16183e3759f5a53238085915795e2e4dbdc",
+      "headings": [
+        "# Alerts",
+        "## Best practices",
+        "## Anatomy",
+        "## Content",
+        "## Buttons",
+        "## Platform considerations",
+        "### iOS, iPadOS",
+        "### macOS",
+        "### visionOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "always-on",
+      "title": "Always On",
+      "categories": [
+        "technologies"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/always-on",
+      "sha256": "c2dc9fe1fbfd54a7a1eca1b763adb053e7895d3a486166c48c6d97b017b8fe9e",
+      "headings": [
+        "# Always On",
+        "## Best practices",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "app-clips",
+      "title": "App Clips",
+      "categories": [
+        "technologies"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/app-clips",
+      "sha256": "a8db2130bcb9e3ad5f8d25e59ae02ff4d5ebc0c1e50613470a01011f2f877613",
+      "headings": [
+        "# App Clips",
+        "## Designing your App Clip",
+        "### Preserving privacy",
+        "### Showcasing your app",
+        "### Limiting notifications",
+        "### Creating App Clips for businesses",
+        "## Creating content for an App Clip card",
+        "## App Clip Codes",
+        "### Interacting with App Clip Codes",
+        "### Displaying App Clip Codes",
+        "### Using clear messaging",
+        "### Customizing your App Clip Code",
+        "## Printing guidelines",
+        "### Verifying your printer\u2019s calibration",
+        "## Legal requirements",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "app-icons",
+      "title": "App icons",
+      "categories": [
+        "foundations"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/app-icons",
+      "sha256": "5f67bb7b1e2405ee03526ab83c3f75b63b28473ce39ebf10848655908e2712f7",
+      "headings": [
+        "# App icons",
+        "## Layer design",
+        "## Icon shape",
+        "## Design",
+        "## Visual effects",
+        "## Appearances",
+        "## Platform considerations",
+        "### tvOS",
+        "### visionOS",
+        "### watchOS",
+        "## Specifications",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "app-shortcuts",
+      "title": "App Shortcuts",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/app-shortcuts",
+      "sha256": "26ffd9677b5c4e62efcb480d40e5748180ebf18755fdf9ee26295b7981ecf3df",
+      "headings": [
+        "# App Shortcuts",
+        "## Best practices",
+        "### Responding to App Shortcuts",
+        "## Editorial guidelines",
+        "## Platform considerations",
+        "### iOS, iPadOS",
+        "### macOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "apple-in-app-purchase",
+      "title": "Apple In-App Purchase",
+      "categories": [
+        "technologies"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/apple-in-app-purchase",
+      "sha256": "cd8111e2096e2fd911c6d168b16a1142fd647a8a815e74ab749f5c5c3d8370c5",
+      "headings": [
+        "# Apple In-App Purchase",
+        "## Best practices",
+        "### Supporting Family Sharing",
+        "### Providing help",
+        "## Auto-renewable subscriptions",
+        "### Making signup effortless",
+        "### Supporting offer codes",
+        "### Helping people manage their subscriptions",
+        "## Platform considerations",
+        "### watchOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "apple-pay",
+      "title": "Apple Pay",
+      "categories": [
+        "technologies"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/apple-pay",
+      "sha256": "6bf7e2366dbae5f954ca5fd70dda5d1ec6cbb43caf0d32f025726edcab49e494",
+      "headings": [
+        "# Apple Pay",
+        "## Offering Apple Pay",
+        "## Streamlining checkout",
+        "### Customizing the payment sheet",
+        "## Displaying a website icon",
+        "## Handling problems",
+        "### Data validation errors",
+        "### Payment processing problems",
+        "## Supporting subscriptions",
+        "## Supporting donations",
+        "## Using Apple Pay buttons",
+        "### Button types",
+        "#### Apple Pay button",
+        "#### Set Up Apple Pay button",
+        "### Button styles",
+        "#### Black",
+        "#### White with outline",
+        "#### White",
+        "### Button size and position",
+        "### Apple Pay mark",
+        "## Referring to Apple Pay",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "apple-pencil-and-scribble",
+      "title": "Apple Pencil and Scribble",
+      "categories": [
+        "inputs"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/apple-pencil-and-scribble",
+      "sha256": "3839a275eb10efc4545a306d3b4fb180cb4265abf4f1fb847a79e5ea37da407d",
+      "headings": [
+        "# Apple Pencil and Scribble",
+        "## Best practices",
+        "## Hover",
+        "## Double tap",
+        "## Squeeze",
+        "## Barrel roll",
+        "## Scribble",
+        "## Custom drawing",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "augmented-reality",
+      "title": "Augmented reality",
+      "categories": [
+        "technologies"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/augmented-reality",
+      "sha256": "173c1b6d97063d29ff5eae0bfa58e76678f2972415ac70e7558a3b7885b2a12f",
+      "headings": [
+        "# Augmented reality",
+        "## Best practices",
+        "## Providing coaching",
+        "## Helping people place objects",
+        "## Designing object interactions",
+        "## Offering a multiuser experience",
+        "## Reacting to real-world objects",
+        "## Communicating with people",
+        "## Handling interruptions",
+        "## Suggesting problem resolutions",
+        "## Icons and badges",
+        "## Platform considerations",
+        "### visionOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos"
+      ]
+    },
+    {
+      "slug": "boxes",
+      "title": "Boxes",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/boxes",
+      "sha256": "4fec245e6b9169673e1fef706d4261fb6cd3cf24a56de26718c88f141e514e1b",
+      "headings": [
+        "# Boxes",
+        "## Best practices",
+        "## Content",
+        "## Platform considerations",
+        "### iOS, iPadOS",
+        "### macOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation"
+      ]
+    },
+    {
+      "slug": "branding",
+      "title": "Branding",
+      "categories": [
+        "foundations"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/branding",
+      "sha256": "2251b5c75eeaae25282ba10257cf26a3f5c92b01fb253f39010e610bcc8fce60",
+      "headings": [
+        "# Branding",
+        "## Best practices",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "buttons",
+      "title": "Buttons",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/buttons",
+      "sha256": "fb450f96dd7a201a0203852782252942ee6d72978e0baaec1cb4c400568fed91",
+      "headings": [
+        "# Buttons",
+        "## Best practices",
+        "## Style",
+        "## Content",
+        "## Role",
+        "## Platform considerations",
+        "### iOS, iPadOS",
+        "### macOS",
+        "#### Push buttons",
+        "#### Square buttons",
+        "#### Help buttons",
+        "#### Image buttons",
+        "### visionOS",
+        "### watchOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "camera-control",
+      "title": "Camera Control",
+      "categories": [
+        "inputs"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/camera-control",
+      "sha256": "7d0d4c3e1eebfb0304f46cc8c1e2ea7299eba168cd8fbe2b0d705d9118cd4f3b",
+      "headings": [
+        "# Camera Control",
+        "## Anatomy",
+        "## Best practices",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "carekit",
+      "title": "CareKit",
+      "categories": [
+        "technologies"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/carekit",
+      "sha256": "6d696909b32eb2260572081c496d751fa2157e19c65fe2b25094583ed4ccf2ed",
+      "headings": [
+        "# CareKit",
+        "## Data and privacy",
+        "### HealthKit integration",
+        "### Motion data",
+        "### Photos",
+        "### ResearchKit integration",
+        "## CareKit views",
+        "### Tasks",
+        "### Charts",
+        "### Contact views",
+        "## Notifications",
+        "## Symbols and branding",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "carplay",
+      "title": "CarPlay",
+      "categories": [
+        "technologies"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/carplay",
+      "sha256": "ad82dc60d7179fdb902569e4b703482985f7f9f41299dbd62fc3ab18401ffb10",
+      "headings": [
+        "# CarPlay",
+        "## iPhone interactions",
+        "### Audio",
+        "## Layout",
+        "## Color",
+        "## Icons and images",
+        "## Error handling",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "charting-data",
+      "title": "Charting data",
+      "categories": [
+        "patterns"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/charting-data",
+      "sha256": "0b4a17ab5624a01728de636fb84da734c0f058a5db43e53e6a67f550c1bc305d",
+      "headings": [
+        "# Charting data",
+        "## Best practices",
+        "## Designing effective charts",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "charts",
+      "title": "Charts",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/charts",
+      "sha256": "206a83349e8a0bfcdd9ba647b995988ca7d464f8554c7fe93b7044dd8ced2ec5",
+      "headings": [
+        "# Charts",
+        "## Anatomy",
+        "## Marks",
+        "## Axes",
+        "## Descriptive content",
+        "## Best practices",
+        "## Color",
+        "## Enhancing the accessibility of a chart",
+        "## Platform considerations",
+        "### watchOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "collaboration-and-sharing",
+      "title": "Collaboration and sharing",
+      "categories": [
+        "patterns"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/collaboration-and-sharing",
+      "sha256": "f306a01b01ea6692383c2bc9a8f800a7ea7b28820c72b088a048e3ebe9f65a29",
+      "headings": [
+        "# Collaboration and sharing",
+        "## Best practices",
+        "## Platform considerations",
+        "### visionOS",
+        "### watchOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "collections",
+      "title": "Collections",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/collections",
+      "sha256": "71304b9a6dfdf936b89fe4f5870ede9efe23b5ccb458871641e19b0651346830",
+      "headings": [
+        "# Collections",
+        "## Best practices",
+        "## Platform considerations",
+        "### iOS, iPadOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation"
+      ]
+    },
+    {
+      "slug": "color",
+      "title": "Color",
+      "categories": [
+        "foundations"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/color",
+      "sha256": "262ce33cb88d41ac0238bf1e3f59b7957e8ddb030379c41b35a6cbdb9ab11a39",
+      "headings": [
+        "# Color",
+        "## Best practices",
+        "## Inclusive color",
+        "## System colors",
+        "## Liquid Glass color",
+        "## Color management",
+        "## Platform considerations",
+        "### iOS, iPadOS",
+        "### macOS",
+        "#### App accent colors",
+        "### tvOS",
+        "### visionOS",
+        "### watchOS",
+        "## Specifications",
+        "### System colors",
+        "### iOS, iPadOS system gray colors",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "color-wells",
+      "title": "Color wells",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/color-wells",
+      "sha256": "5aadd45a4e38e27cf09ada9d6420969e9cc403920fb6b209f29873c1e4f6de3b",
+      "headings": [
+        "# Color wells",
+        "## Best practices",
+        "## Platform considerations",
+        "### macOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation"
+      ]
+    },
+    {
+      "slug": "column-views",
+      "title": "Column views",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/column-views",
+      "sha256": "8da488e1652ea4b1c37dd6aebc11f1698407666f7ab8fa4f7310e037a3c78506",
+      "headings": [
+        "# Column views",
+        "## Best practices",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation"
+      ]
+    },
+    {
+      "slug": "combo-boxes",
+      "title": "Combo boxes",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/combo-boxes",
+      "sha256": "b869cd6b69cc6bcc602267f9d2f3a3bdc93572697539604d4f71d1f684d6e4a1",
+      "headings": [
+        "# Combo boxes",
+        "## Best practices",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation"
+      ]
+    },
+    {
+      "slug": "complications",
+      "title": "Complications",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/complications",
+      "sha256": "2d95765f9ffc5e568559ae20cc5a043facba35cef12c964f4fb5fa99456d528e",
+      "headings": [
+        "# Complications",
+        "## Best practices",
+        "## Visual design",
+        "## Circular",
+        "## Corner",
+        "## Inline",
+        "## Rectangular",
+        "## Legacy templates",
+        "### Circular small",
+        "### Modular small",
+        "### Modular large",
+        "### Extra large",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "components",
+      "title": "Components",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/components",
+      "sha256": "bcf5f34f0b3b59363fcfa0174623fc8c0f74c94edf65dcfa71b37b4145fcf42c",
+      "headings": [
+        "# Components"
+      ]
+    },
+    {
+      "slug": "content",
+      "title": "Content",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/content",
+      "sha256": "6c6a46c4345dc8cc12b55be1e11cdb8355cc94d631bcd2678678407b43221416",
+      "headings": [
+        "# Content"
+      ]
+    },
+    {
+      "slug": "context-menus",
+      "title": "Context menus",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/context-menus",
+      "sha256": "5f69e8ed0837ea976f5bd1e6b30f96b6b77587229c5fbee50d3967aa80c9c1a3",
+      "headings": [
+        "# Context menus",
+        "## Best practices",
+        "## Content",
+        "## Platform considerations",
+        "### iOS, iPadOS",
+        "### macOS",
+        "### visionOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "controls",
+      "title": "Controls",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/controls",
+      "sha256": "9a73e3f7abd7da7a8e6965933a3c32e009aa2c134d4376abd9fc2831bf5f80b7",
+      "headings": [
+        "# Controls",
+        "## Anatomy",
+        "## Best practices",
+        "## Camera experiences on a locked device",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "dark-mode",
+      "title": "Dark Mode",
+      "categories": [
+        "foundations"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/dark-mode",
+      "sha256": "cf352a73655e616568441efefb295802ade3e7f34980f33c35f0ee778cf4f3e7",
+      "headings": [
+        "# Dark Mode",
+        "## Best practices",
+        "## Dark Mode colors",
+        "### Icons and images",
+        "### Text",
+        "## Platform considerations",
+        "### iOS, iPadOS",
+        "### macOS",
+        "## Resources",
+        "#### Related",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "design-principles",
+      "title": "Design principles",
+      "categories": [
+        "getting-started"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/design-principles",
+      "sha256": "69ea6425412bcb6410f8b6355e4d113c773731056e31b9ef730f07515045fa36",
+      "headings": [
+        "# Design principles",
+        "### Purpose",
+        "### Agency",
+        "### Responsibility",
+        "### Familiarity",
+        "### Flexibility",
+        "### Simplicity",
+        "### Craft",
+        "### Delight",
+        "## Purpose",
+        "## Agency",
+        "## Responsibility",
+        "## Familiarity",
+        "## Flexibility",
+        "## Simplicity",
+        "## Craft",
+        "## Delight",
+        "## Resources",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "designing-for-games",
+      "title": "Designing for games",
+      "categories": [
+        "getting-started"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/designing-for-games",
+      "sha256": "b4855daad08afd0951aad045ee24c6d4e65fb06158692a9e41513e5a74d2fa15",
+      "headings": [
+        "# Designing for games",
+        "## Jump into gameplay",
+        "## Look stunning on every display",
+        "## Enable intuitive interactions",
+        "## Welcome everyone",
+        "## Adopt Apple technologies",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "designing-for-ios",
+      "title": "Designing for iOS",
+      "categories": [
+        "getting-started"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/designing-for-ios",
+      "sha256": "e347649ffc2cdcdb755c0222454046d389eb539ee8c8c6e395b6c79ccf327d4f",
+      "headings": [
+        "# Designing for iOS",
+        "## Best practices",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos"
+      ]
+    },
+    {
+      "slug": "designing-for-ipados",
+      "title": "Designing for iPadOS",
+      "categories": [
+        "getting-started"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/designing-for-ipados",
+      "sha256": "da31fa0184109666e95208f23519452d3c7a6c8b3ddca8e444e1b2427e6151b1",
+      "headings": [
+        "# Designing for iPadOS",
+        "## Best practices",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos"
+      ]
+    },
+    {
+      "slug": "designing-for-iphone-duo",
+      "title": "Designing for iPhone Duo",
+      "categories": [
+        "getting-started"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/designing-for-iphone-duo",
+      "sha256": "9057aea6713e2609f9420a5a62a0619583ec7c36eb4d54a75a1bcad1e97e2823",
+      "headings": [
+        "# Designing for iPhone Duo",
+        "## Anatomy",
+        "### Device poses",
+        "## Best practices",
+        "## Dynamic layouts",
+        "### Reserved regions",
+        "### Split views",
+        "### Arrangement views",
+        "## Vertical controls",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "designing-for-macos",
+      "title": "Designing for macOS",
+      "categories": [
+        "getting-started"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/designing-for-macos",
+      "sha256": "0df69cf12d79dd46a6ecb28c01207dbd9137958decec405870cf0008730bb88e",
+      "headings": [
+        "# Designing for macOS",
+        "## Best practices",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos"
+      ]
+    },
+    {
+      "slug": "designing-for-tvos",
+      "title": "Designing for tvOS",
+      "categories": [
+        "getting-started"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/designing-for-tvos",
+      "sha256": "a5748cab2fbcd05e708c6958a7b18b8c5412c53a543ba165ae49ff374a18ba19",
+      "headings": [
+        "# Designing for tvOS",
+        "## Best practices",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "designing-for-visionos",
+      "title": "Designing for visionOS",
+      "categories": [
+        "getting-started"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/designing-for-visionos",
+      "sha256": "1ac10b83d440922aa4033610dba9a9a0f18f14b80e49251ca1e8174491cde8cb",
+      "headings": [
+        "# Designing for visionOS",
+        "## Best practices",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "designing-for-watchos",
+      "title": "Designing for watchOS",
+      "categories": [
+        "getting-started"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/designing-for-watchos",
+      "sha256": "7f7a256f1c9fe359b43191fbaacf3418acf0473e7dcc64d6e6fff619a97d0212",
+      "headings": [
+        "# Designing for watchOS",
+        "## Best practices",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "digit-entry-views",
+      "title": "Digit entry views",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/digit-entry-views",
+      "sha256": "a1bb6229cc9858b765d0607768e03dee10b48fdb3de8a7e102c09c80433e8b84",
+      "headings": [
+        "# Digit entry views",
+        "## Best practices",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation"
+      ]
+    },
+    {
+      "slug": "digital-crown",
+      "title": "Digital Crown",
+      "categories": [
+        "inputs"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/digital-crown",
+      "sha256": "5b3ff81825ad3719bab9ab734285d5c7e2dedb7ed22fca9e7b73584ff960c905",
+      "headings": [
+        "# Digital Crown",
+        "## Apple\u00a0Vision\u00a0Pro",
+        "## Apple Watch",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "disclosure-controls",
+      "title": "Disclosure controls",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/disclosure-controls",
+      "sha256": "824dbbf3779123a083d884dde1969853af381fa2b22f0d8bd9cbe626229a8bc3",
+      "headings": [
+        "# Disclosure controls",
+        "## Best practices",
+        "## Disclosure triangles",
+        "## Disclosure buttons",
+        "## Platform considerations",
+        "### iOS, iPadOS, visionOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos"
+      ]
+    },
+    {
+      "slug": "dock-menus",
+      "title": "Dock menus",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/dock-menus",
+      "sha256": "8c4951c93c797782c2bbbfa2ded3501ff188fcc70b046967ed29cde9ec264cec",
+      "headings": [
+        "# Dock menus",
+        "## Best practices",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation"
+      ]
+    },
+    {
+      "slug": "drag-and-drop",
+      "title": "Drag and drop",
+      "categories": [
+        "patterns"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/drag-and-drop",
+      "sha256": "58e6bc8e7043ec76fa0264046712c5bb385cd1ff6b67222a7c3ad68b2671cf6c",
+      "headings": [
+        "# Drag and drop",
+        "## Best practices",
+        "## Providing feedback",
+        "## Accepting drops",
+        "## Platform considerations",
+        "### iOS, iPadOS",
+        "### macOS",
+        "### visionOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "edit-menus",
+      "title": "Edit menus",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/edit-menus",
+      "sha256": "c90a3365aa4a2c6f955b414c2d81745db925d90a477e34a7323f264cc6d0d634",
+      "headings": [
+        "# Edit menus",
+        "## Best practices",
+        "## Content",
+        "## Platform considerations",
+        "### iOS, iPadOS",
+        "### macOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "entering-data",
+      "title": "Entering data",
+      "categories": [
+        "patterns"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/entering-data",
+      "sha256": "0c430bb7e33382add2b6c602261f719b7b39b1406dfcedb653755ebcb1116a09",
+      "headings": [
+        "# Entering data",
+        "## Best practices",
+        "## Platform considerations",
+        "### macOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "eyes",
+      "title": "Eyes",
+      "categories": [
+        "inputs"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/eyes",
+      "sha256": "a964261953d92b187671f0b56f990e82c589e701ba83dddd90055253428803a6",
+      "headings": [
+        "# Eyes",
+        "## Best practices",
+        "## Making items easy to see",
+        "## Encouraging interaction",
+        "## Custom hover effects",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "feedback",
+      "title": "Feedback",
+      "categories": [
+        "patterns"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/feedback",
+      "sha256": "242973c86c0d632467b46aeee1ad59825b70e3e8893d190f16351d14097c872a",
+      "headings": [
+        "# Feedback",
+        "## Best practices",
+        "## Platform considerations",
+        "### watchOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos"
+      ]
+    },
+    {
+      "slug": "file-management",
+      "title": "File management",
+      "categories": [
+        "patterns"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/file-management",
+      "sha256": "de6f7fed0392cbddba5161d1c062252be577bf228a72565ba2e8e9e2b1aae8fb",
+      "headings": [
+        "# File management",
+        "## Creating and opening files",
+        "## Saving work",
+        "## Quick Look previews",
+        "## Platform considerations",
+        "### iOS, iPadOS",
+        "#### Document launcher",
+        "#### File provider app extension",
+        "### macOS",
+        "#### Custom file management",
+        "#### Finder Sync extensions",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "focus-and-selection",
+      "title": "Focus and selection",
+      "categories": [
+        "inputs"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/focus-and-selection",
+      "sha256": "376c122b5361748c0e51899ef0f75e46d143ebfd3a84308decd6bc09bb3b8872",
+      "headings": [
+        "# Focus and selection",
+        "## Best practices",
+        "## Platform considerations",
+        "### iPadOS",
+        "### tvOS",
+        "### visionOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "foundations",
+      "title": "Foundations",
+      "categories": [
+        "foundations"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/foundations",
+      "sha256": "00cd76bc0e0516f67663ad7fe0f708899c6eda0a7cd6f488cb89a9426eb7b68c",
+      "headings": [
+        "# Foundations"
+      ]
+    },
+    {
+      "slug": "game-center",
+      "title": "Game Center",
+      "categories": [
+        "technologies"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/game-center",
+      "sha256": "f7e838952dd8621384d94cbe25c5d421a19cea0de73da183edb0858f41d9fb84",
+      "headings": [
+        "# Game Center",
+        "## Accessing Game Center",
+        "### Integrating the access point",
+        "### Using custom UI",
+        "## Achievements",
+        "### Integrating achievements into your game",
+        "### Creating achievement images",
+        "## Leaderboards",
+        "## Challenges",
+        "## Multiplayer activities",
+        "## Platform considerations",
+        "### tvOS",
+        "### watchOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "game-controls",
+      "title": "Game controls",
+      "categories": [
+        "inputs"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/game-controls",
+      "sha256": "6af93d91a10ff5c521aab4cfde1f0da7aa6b3944d27b6d14d081bd652a17e19f",
+      "headings": [
+        "# Game controls",
+        "## Touch controls",
+        "## Physical controllers",
+        "## Keyboards",
+        "## Platform considerations",
+        "### visionOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "gauges",
+      "title": "Gauges",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/gauges",
+      "sha256": "b65e750890487f7e7ba727dd7cd9bdbfd3a4f9794f8fc8709d71d1fc47316766",
+      "headings": [
+        "# Gauges",
+        "## Anatomy",
+        "## Best practices",
+        "## Platform considerations",
+        "### macOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "generative-ai",
+      "title": "Generative AI",
+      "categories": [
+        "technologies"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/generative-ai",
+      "sha256": "f003d1fa454cc20a848315cb9155fccc6b234bd32467f2bb3ed0a5a5911159a9",
+      "headings": [
+        "# Generative AI",
+        "## Best practices",
+        "## Transparency",
+        "## Privacy",
+        "## Models and datasets",
+        "## Inputs",
+        "## Outputs",
+        "## Continuous improvement",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "gestures",
+      "title": "Gestures",
+      "categories": [
+        "inputs"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/gestures",
+      "sha256": "b00a8249b271de1259554903322347ffbb10c75402c5a47c7b1ab1bf8598b8dc",
+      "headings": [
+        "# Gestures",
+        "## Best practices",
+        "## Custom gestures",
+        "## Platform considerations",
+        "### iOS, iPadOS",
+        "### macOS",
+        "### tvOS",
+        "### visionOS",
+        "#### Designing custom gestures in visionOS",
+        "#### Working with system overlays in visionOS",
+        "### watchOS",
+        "#### Double tap",
+        "## Specifications",
+        "### Standard gestures",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "getting-started",
+      "title": "Getting started",
+      "categories": [
+        "getting-started"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/getting-started",
+      "sha256": "28211fc72247232d5825d2f5239b9b7b9a3019dfb930b91e98176033940d6822",
+      "headings": [
+        "# Getting started"
+      ]
+    },
+    {
+      "slug": "going-full-screen",
+      "title": "Going full screen",
+      "categories": [
+        "patterns"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/going-full-screen",
+      "sha256": "776354918036d18e3c407f83971fe27a7c99e4558754a72b1bfeb14249fe615c",
+      "headings": [
+        "# Going full screen",
+        "## Best practices",
+        "## Platform considerations",
+        "### iOS, iPadOS",
+        "### macOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "gyro-and-accelerometer",
+      "title": "Gyroscope and accelerometer",
+      "categories": [
+        "inputs"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/gyro-and-accelerometer",
+      "sha256": "b634a43cde1a4e7ba93f76f549a1e8bf29008a5ebcc8b4509bd2ef844035ee94",
+      "headings": [
+        "# Gyroscope and accelerometer",
+        "## Best practices",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos"
+      ]
+    },
+    {
+      "slug": "healthkit",
+      "title": "HealthKit",
+      "categories": [
+        "technologies"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/healthkit",
+      "sha256": "72032c015fb0f48a0462c3805407305d49c5d53d055d17630018aa7e0c8f305f",
+      "headings": [
+        "# HealthKit",
+        "## Privacy protection",
+        "## Activity rings",
+        "## Apple Health icon",
+        "## Editorial guidelines",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos"
+      ]
+    },
+    {
+      "slug": "home-screen-quick-actions",
+      "title": "Home Screen quick actions",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/home-screen-quick-actions",
+      "sha256": "d423ac97ceebe7661853c69fa1fd20da9a84a53838f47bb1bddd8cdb6b7b0864",
+      "headings": [
+        "# Home Screen quick actions",
+        "## Best practices",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation"
+      ]
+    },
+    {
+      "slug": "homekit",
+      "title": "HomeKit",
+      "categories": [
+        "technologies"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/homekit",
+      "sha256": "1195c8a155c236e36072fb4daafde1d1c815f482ad434fa89eebd60665a9f05c",
+      "headings": [
+        "# HomeKit",
+        "## Terminology and layout",
+        "### Homes",
+        "### Rooms",
+        "### Accessories, services, and characteristics",
+        "### Actions and scenes",
+        "### Automations",
+        "### Zones",
+        "## Setup",
+        "### Help people choose useful names",
+        "#2 garage door",
+        "## Siri interactions",
+        "## Custom functionality",
+        "### Cameras",
+        "## Using HomeKit icons",
+        "### Styles",
+        "#### Black HomeKit icon",
+        "#### White HomeKit icon",
+        "#### Custom color HomeKit icon",
+        "## Referring to HomeKit",
+        "### Referencing HomeKit and the Home app",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "icloud",
+      "title": "iCloud",
+      "categories": [
+        "technologies"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/icloud",
+      "sha256": "83608ee962bafe40a9fa6a92e2feffc2a9a11fae3bc4691c3e6de49778cfb94d",
+      "headings": [
+        "# iCloud",
+        "## Best practices",
+        "## Platform considerations",
+        "## Resources",
+        "#### Developer documentation",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "icons",
+      "title": "Icons",
+      "categories": [
+        "foundations"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/icons",
+      "sha256": "680a5a407b3fb5f3595368cb6c328e2e8ff0f767a25381da6ad1f42a9a3d99a6",
+      "headings": [
+        "# Icons",
+        "## Best practices",
+        "## Standard icons",
+        "### Editing",
+        "### Selection",
+        "### Text formatting",
+        "### Search",
+        "### Sharing and exporting",
+        "### Users and accounts",
+        "### Ratings",
+        "### Layer ordering",
+        "### Other",
+        "## Platform considerations",
+        "### macOS",
+        "#### Document icons",
+        "## Resources",
+        "#### Related",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "id-verifier",
+      "title": "ID Verifier",
+      "categories": [
+        "technologies"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/id-verifier",
+      "sha256": "414e1dc5fd1275dd28b8be88c8da0aaa014f4eaae6729b709faa119d4c87890c",
+      "headings": [
+        "# ID Verifier",
+        "## Best practices",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "image-views",
+      "title": "Image views",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/image-views",
+      "sha256": "aeb9a17799e50b8ed0781daba4c042e398e8766e26c6e51c8c52e3a96b949b49",
+      "headings": [
+        "# Image views",
+        "## Best practices",
+        "## Content",
+        "## Platform considerations",
+        "### macOS",
+        "### tvOS",
+        "### visionOS",
+        "### watchOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "image-wells",
+      "title": "Image wells",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/image-wells",
+      "sha256": "a3122d0dc9224c0893a638ec1c6d16e0dcc7e024808d737cbafe4efa5a662c71",
+      "headings": [
+        "# Image wells",
+        "## Best practices",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation"
+      ]
+    },
+    {
+      "slug": "images",
+      "title": "Images",
+      "categories": [
+        "foundations"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/images",
+      "sha256": "5c53562f2d8dec11133ae7a3fbe9aa78dc2899fc0069c3059d0c94bb3dcc45f6",
+      "headings": [
+        "# Images",
+        "## Resolution",
+        "## Formats",
+        "## Best practices",
+        "## Platform considerations",
+        "### tvOS",
+        "#### Parallax effect",
+        "#### Layered images",
+        "### visionOS",
+        "#### Spatial photos and spatial scenes",
+        "### watchOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "imessage-apps-and-stickers",
+      "title": "iMessage apps and stickers",
+      "categories": [
+        "technologies"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/imessage-apps-and-stickers",
+      "sha256": "b5d06fc9f1a597556afc08a876b007030edcb162b7ee338fcb6d66a466700b1f",
+      "headings": [
+        "# iMessage apps and stickers",
+        "## Best practices",
+        "## Specifications",
+        "### Icon sizes",
+        "### Sticker sizes",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "immersive-experiences",
+      "title": "Immersive experiences",
+      "categories": [
+        "foundations"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/immersive-experiences",
+      "sha256": "7d1f2b7baf9ebb65e82121c0e7d41160a3445d33cbcd7540ba1332e86531d2cb",
+      "headings": [
+        "# Immersive experiences",
+        "## Immersion and passthrough",
+        "### Immersion styles",
+        "## Best practices",
+        "## Promoting comfort",
+        "## Transitioning between immersive styles",
+        "## Displaying virtual hands",
+        "## Creating an environment",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "inclusion",
+      "title": "Inclusion",
+      "categories": [
+        "foundations"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/inclusion",
+      "sha256": "ab94a3172d397f21973a34ef3bd80319dcf408e4aef13e509b2a99ad733aceb7",
+      "headings": [
+        "# Inclusion",
+        "## Inclusive by design",
+        "## Welcoming language",
+        "## Being approachable",
+        "## Gender identity",
+        "## People and settings",
+        "## Avoiding stereotypes",
+        "## Accessibility",
+        "## Languages",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos"
+      ]
+    },
+    {
+      "slug": "inputs",
+      "title": "Inputs",
+      "categories": [
+        "inputs"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/inputs",
+      "sha256": "ce4837d579ee27b3bbcef8964e4f53429ad22409864f50518c3f746a6d43de5b",
+      "headings": [
+        "# Inputs"
+      ]
+    },
+    {
+      "slug": "keyboards",
+      "title": "Keyboards",
+      "categories": [
+        "inputs"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/keyboards",
+      "sha256": "ef81add8bc05d6f5d641814e936076fd44400b45334160841e83c16e12eb8dee",
+      "headings": [
+        "# Keyboards",
+        "## Best practices",
+        "## Standard keyboard shortcuts",
+        "## Custom keyboard shortcuts",
+        "## Platform considerations",
+        "### visionOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "labels",
+      "title": "Labels",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/labels",
+      "sha256": "808feaa4c07688eba4f91f8711695ef5869694ffc8b15e9dc2167a76be041738",
+      "headings": [
+        "# Labels",
+        "## Best practices",
+        "## Platform considerations",
+        "### macOS",
+        "### watchOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "launching",
+      "title": "Launching",
+      "categories": [
+        "patterns"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/launching",
+      "sha256": "38291e5bc0ab9b623cdc831f1b495abdc8e39b4c3501a97a499099738901e2cf",
+      "headings": [
+        "# Launching",
+        "## Best practices",
+        "## Launch screens",
+        "## Platform considerations",
+        "### iOS, iPadOS",
+        "### tvOS",
+        "### visionOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "layout",
+      "title": "Layout",
+      "categories": [
+        "foundations"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/layout",
+      "sha256": "d41f32ddf76c597f0edd54eac361fa294a8736cfc4ccc627d1709fe092ed7267",
+      "headings": [
+        "# Layout",
+        "## Visual hierarchy",
+        "## Adaptability",
+        "### Size classes",
+        "## Guides and safe areas",
+        "## Platform considerations",
+        "### macOS",
+        "### tvOS",
+        "#### Grids",
+        "### visionOS",
+        "### watchOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "layout-and-organization",
+      "title": "Layout and organization",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/layout-and-organization",
+      "sha256": "ffc45638bba4c929e490c81942a218b86e14fb824a55ca88eb28d5c5f5164a5b",
+      "headings": [
+        "# Layout and organization"
+      ]
+    },
+    {
+      "slug": "lists-and-tables",
+      "title": "Lists and tables",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/lists-and-tables",
+      "sha256": "7abfc703aad0db86267b53942594c48f9ffde84a8d76646220524193a47e19db",
+      "headings": [
+        "# Lists and tables",
+        "## Best practices",
+        "## Content",
+        "## Style",
+        "## Platform considerations",
+        "### iOS, iPadOS, visionOS",
+        "### macOS",
+        "### tvOS",
+        "### watchOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "live-activities",
+      "title": "Live Activities",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/live-activities",
+      "sha256": "f9b894e9a5044d01fe2ffd100700eae14d4b6b672927e3af3b58ea47ca69a279",
+      "headings": [
+        "# Live Activities",
+        "## Anatomy",
+        "### Compact",
+        "### Minimal",
+        "### Expanded",
+        "### Lock Screen",
+        "### StandBy",
+        "## Best practices",
+        "### Creating Live Activity layouts",
+        "### Choosing colors",
+        "### Adding transitions and animating content updates",
+        "### Offering interactivity",
+        "### Starting, updating, and ending a Live Activity",
+        "## Presentation",
+        "### Compact presentation",
+        "### Minimal presentation",
+        "### Expanded presentation",
+        "### Lock Screen presentation",
+        "### StandBy presentation",
+        "## CarPlay",
+        "## Platform considerations",
+        "### macOS",
+        "### watchOS",
+        "## Specifications",
+        "### CarPlay dimensions",
+        "### iOS dimensions",
+        "### iPadOS dimensions",
+        "### macOS dimensions",
+        "### watchOS dimensions",
+        "## Resources",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "live-photos",
+      "title": "Live Photos",
+      "categories": [
+        "technologies"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/live-photos",
+      "sha256": "03e25b2971e1a6fbedd5e00841d087af0fc6da164b8b03a24090415f4e6f5a5d",
+      "headings": [
+        "# Live Photos",
+        "## Best practices",
+        "## Platform considerations",
+        "### visionOS",
+        "## Resources",
+        "#### Developer documentation",
+        "#### Videos"
+      ]
+    },
+    {
+      "slug": "live-viewing-apps",
+      "title": "Live-viewing apps",
+      "categories": [
+        "patterns"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/live-viewing-apps",
+      "sha256": "5b68d9d2f35dce32c497a59653b380fdd55b3213bae00017824aeaecd1c93fa6",
+      "headings": [
+        "# Live-viewing apps",
+        "## Best practices",
+        "## EPG experience",
+        "## Cloud DVR",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related"
+      ]
+    },
+    {
+      "slug": "loading",
+      "title": "Loading",
+      "categories": [
+        "patterns"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/loading",
+      "sha256": "83c69df80cfafd72b1a317d82521f14dfdb415530cdf37c290462eb28673b901",
+      "headings": [
+        "# Loading",
+        "## Best practices",
+        "## Showing progress",
+        "## Platform considerations",
+        "### watchOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "lockups",
+      "title": "Lockups",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/lockups",
+      "sha256": "b92d764c15ae6d7449bc18039f8411e2eb99a8955c1bdfe19418ded071b9d35c",
+      "headings": [
+        "# Lockups",
+        "## Best practices",
+        "## Cards",
+        "## Caption buttons",
+        "## Monograms",
+        "## Posters",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation"
+      ]
+    },
+    {
+      "slug": "mac-catalyst",
+      "title": "Mac Catalyst",
+      "categories": [
+        "technologies"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/mac-catalyst",
+      "sha256": "f047d3ba169717d807ea53f458e74d0e1ba878589eaa08f38cbe5a120dab753b",
+      "headings": [
+        "# Mac Catalyst",
+        "## Before you start",
+        "## Choose an idiom",
+        "## Integrate the Mac experience",
+        "### Navigation",
+        "### Inputs",
+        "### App icons",
+        "### Layout",
+        "### Menus",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "machine-learning",
+      "title": "Machine learning",
+      "categories": [
+        "technologies"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/machine-learning",
+      "sha256": "a179227bcd89dda454c5d932b7e40c55b1c4a488595a1cacc883d1732a0ac1d7",
+      "headings": [
+        "# Machine learning",
+        "## Planning your design",
+        "## The role of machine learning in your app",
+        "### Critical or complementary",
+        "### Private or public",
+        "### Proactive or reactive",
+        "### Visible or invisible",
+        "### Dynamic or static",
+        "## Explicit feedback",
+        "## Implicit feedback",
+        "## Calibration",
+        "## Mistakes",
+        "## Corrections",
+        "## Multiple options",
+        "## Confidence",
+        "## Attribution",
+        "## Limitations",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "managing-accounts",
+      "title": "Managing accounts",
+      "categories": [
+        "patterns"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/managing-accounts",
+      "sha256": "f7bdc4b8223dae5c4bfe34c89c78836d9d1effb4ddcd0bfdf87ccf44e716f597",
+      "headings": [
+        "# Managing accounts",
+        "## Best practices",
+        "## Deleting accounts",
+        "## TV provider accounts",
+        "## Platform considerations",
+        "### tvOS",
+        "### watchOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos"
+      ]
+    },
+    {
+      "slug": "managing-notifications",
+      "title": "Managing notifications",
+      "categories": [
+        "patterns"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/managing-notifications",
+      "sha256": "fa6df9790a888d432270ad26524507ed9336035b30187c3449298ade05fed9dd",
+      "headings": [
+        "# Managing notifications",
+        "## Integrating with Focus",
+        "## Best practices",
+        "## Sending marketing notifications",
+        "## Platform considerations",
+        "### watchOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos"
+      ]
+    },
+    {
+      "slug": "maps",
+      "title": "Maps",
+      "categories": [
+        "technologies"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/maps",
+      "sha256": "6dfe6a420882e08ca3e4ceba718fce1f2f7ef77c3c90c5cc81930e2fde7fa153",
+      "headings": [
+        "# Maps",
+        "## Best practices",
+        "## Custom information",
+        "## Place cards",
+        "### Displaying place cards in a map",
+        "### Adding place cards outside of a map",
+        "## Indoor maps",
+        "## Platform considerations",
+        "### watchOS",
+        "## Resources",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "materials",
+      "title": "Materials",
+      "categories": [
+        "foundations"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/materials",
+      "sha256": "597da170985715de4bd8446df12e3604595e634a790b5da0ce6673d2b2327ed5",
+      "headings": [
+        "# Materials",
+        "## Liquid Glass",
+        "## Standard materials",
+        "## Platform considerations",
+        "### iOS, iPadOS",
+        "### macOS",
+        "### tvOS",
+        "### visionOS",
+        "### watchOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "menus",
+      "title": "Menus",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/menus",
+      "sha256": "dff423968b85e717c175a1999897224e6157cd7ce2f5907d64bf93088532dcf1",
+      "headings": [
+        "# Menus",
+        "## Labels",
+        "## Icons",
+        "## Organization",
+        "## Submenus",
+        "## Toggled items",
+        "## In-game menus",
+        "## Platform considerations",
+        "### iOS, iPadOS",
+        "### visionOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "menus-and-actions",
+      "title": "Menus and actions",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/menus-and-actions",
+      "sha256": "b7134e861402d04357275a8f33160040d177ea90540d62522d38a3034c2ca2e2",
+      "headings": [
+        "# Menus and actions"
+      ]
+    },
+    {
+      "slug": "modality",
+      "title": "Modality",
+      "categories": [
+        "patterns"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/modality",
+      "sha256": "79f76255705524952443c7ef0aaffaf6285142d0fdcd0a0ad9be4b1c3181e5be",
+      "headings": [
+        "# Modality",
+        "## Best practices",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "motion",
+      "title": "Motion",
+      "categories": [
+        "foundations"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/motion",
+      "sha256": "957268c323af4617dabb6c0449d0920248c995159d54f76c691aa180ceb72a61",
+      "headings": [
+        "# Motion",
+        "## Best practices",
+        "## Providing feedback",
+        "## Leveraging platform capabilities",
+        "## Platform considerations",
+        "### visionOS",
+        "### watchOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "multitasking",
+      "title": "Multitasking",
+      "categories": [
+        "patterns"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/multitasking",
+      "sha256": "915a42ff8b68aa48f7a489a6abd16b160408672c628ec731cbd14932405de7bc",
+      "headings": [
+        "# Multitasking",
+        "## Best practices",
+        "## Platform considerations",
+        "### iOS",
+        "### iPadOS",
+        "### macOS",
+        "### tvOS",
+        "### visionOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "navigation-and-search",
+      "title": "Navigation and search",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/navigation-and-search",
+      "sha256": "21bcaf85d9490a383fb97d02fb2f42b1665382c1f0b7de2e489ef753a184a6ed",
+      "headings": [
+        "# Navigation and search"
+      ]
+    },
+    {
+      "slug": "nearby-interactions",
+      "title": "Nearby interactions",
+      "categories": [
+        "inputs"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/nearby-interactions",
+      "sha256": "fde16c0fea2cecff22eb1d04be9b8deef2a9568f9164f91783ffd1b549e1ef88",
+      "headings": [
+        "# Nearby interactions",
+        "## Best practices",
+        "## Device usage",
+        "## Platform considerations",
+        "### iOS",
+        "### watchOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "nfc",
+      "title": "NFC",
+      "categories": [
+        "technologies"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/nfc",
+      "sha256": "6d7528d790b0b66e8eaf568e53f6a1eba3786eab8a091566b47f7294f700ab4e",
+      "headings": [
+        "# NFC",
+        "## In-app tag reading",
+        "## Background tag reading",
+        "## Platform considerations",
+        "## Resources",
+        "#### Developer documentation"
+      ]
+    },
+    {
+      "slug": "notifications",
+      "title": "Notifications",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/notifications",
+      "sha256": "f08e0b107376688cec5d150cf66890bc519bf5b312facbbf4ff40fd450e389d1",
+      "headings": [
+        "# Notifications",
+        "## Anatomy",
+        "## Best practices",
+        "## Content",
+        "## Notification actions",
+        "## Badging",
+        "## Platform considerations",
+        "### watchOS",
+        "#### Short looks",
+        "#### Long looks",
+        "#### Double tap",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "offering-help",
+      "title": "Offering help",
+      "categories": [
+        "patterns"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/offering-help",
+      "sha256": "b919e851612580cb77c29e8e43214d28b7d3bd3bf3f643115e2ce200a3032b38",
+      "headings": [
+        "# Offering help",
+        "## Best practices",
+        "## Creating tips",
+        "## Platform considerations",
+        "### macOS, visionOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "onboarding",
+      "title": "Onboarding",
+      "categories": [
+        "patterns"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/onboarding",
+      "sha256": "9a85ebb1e3dd275d5f5dbfa1729a2e18429960fc26f5273921a68dc5b323dcda",
+      "headings": [
+        "# Onboarding",
+        "## Best practices",
+        "## Additional content",
+        "## Additional requests",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "ornaments",
+      "title": "Ornaments",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/ornaments",
+      "sha256": "572dba66383e71140c2a99cc5c2e3404c0e2e2baf21f3e298e97edb4bcceb871",
+      "headings": [
+        "# Ornaments",
+        "## Best practices",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "outline-views",
+      "title": "Outline views",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/outline-views",
+      "sha256": "bc250fe2b268d1e4835539e19b484f39c4643ccb1646c847fc367032da1abce0",
+      "headings": [
+        "# Outline views",
+        "## Best practices",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos"
+      ]
+    },
+    {
+      "slug": "page-controls",
+      "title": "Page controls",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/page-controls",
+      "sha256": "55f462ba56c3684c03d3a50cbeb97c97455ab77c27080c15f3aa89905933478f",
+      "headings": [
+        "# Page controls",
+        "## Best practices",
+        "## Customizing indicators",
+        "## Platform considerations",
+        "### iOS, iPadOS",
+        "### tvOS",
+        "### visionOS",
+        "### watchOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "panels",
+      "title": "Panels",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/panels",
+      "sha256": "550616a3035d4072d138434de7b44e5cbff04d11ff3de82fad51fe37b1edc072",
+      "headings": [
+        "# Panels",
+        "## Best practices",
+        "## HUD-style panels",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation"
+      ]
+    },
+    {
+      "slug": "path-controls",
+      "title": "Path controls",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/path-controls",
+      "sha256": "2048f8d82d124f2c78d4d8442fc82574a1410e39a585d60e5af663ead74aeb23",
+      "headings": [
+        "# Path controls",
+        "## Best practices",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation"
+      ]
+    },
+    {
+      "slug": "patterns",
+      "title": "Patterns",
+      "categories": [
+        "patterns"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/patterns",
+      "sha256": "c196038a69254ec9d039e20e6ff42d0fc47de7a173001308fe9d5d3d39eb8f68",
+      "headings": [
+        "# Patterns"
+      ]
+    },
+    {
+      "slug": "photo-editing",
+      "title": "Photo editing",
+      "categories": [
+        "technologies"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/photo-editing",
+      "sha256": "182e352ce445d1e0ada02d3f00449fc73155d290893b0347c8c6dbdc6cc3d149",
+      "headings": [
+        "# Photo editing",
+        "## Best practices",
+        "## Platform considerations",
+        "## Resources",
+        "#### Developer documentation",
+        "#### Videos"
+      ]
+    },
+    {
+      "slug": "pickers",
+      "title": "Pickers",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/pickers",
+      "sha256": "73d7d22d7a21124a52832ff09c887f54d191e3bf2152e20f314ca3558288c5f2",
+      "headings": [
+        "# Pickers",
+        "## Best practices",
+        "## Platform considerations",
+        "### iOS, iPadOS",
+        "### macOS",
+        "### tvOS",
+        "### watchOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "playing-audio",
+      "title": "Playing audio",
+      "categories": [
+        "patterns"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/playing-audio",
+      "sha256": "9c63454e50a9ddc656891e9dccef1e889bfa8b8124dd3f27d00f4b2e6610dd76",
+      "headings": [
+        "# Playing audio",
+        "## Best practices",
+        "## Handling interruptions",
+        "## Platform considerations",
+        "### iOS, iPadOS",
+        "### macOS",
+        "### tvOS",
+        "### visionOS",
+        "### watchOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "playing-haptics",
+      "title": "Playing haptics",
+      "categories": [
+        "patterns"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/playing-haptics",
+      "sha256": "68bab380a07eff7aa471d589565891bd904d4615bea3629766d4b7a11ab5c5ba",
+      "headings": [
+        "# Playing haptics",
+        "## Best practices",
+        "## Custom haptics",
+        "## Platform considerations",
+        "### iOS",
+        "#### Notification",
+        "#### Impact",
+        "#### Selection",
+        "### macOS",
+        "### watchOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "playing-video",
+      "title": "Playing video",
+      "categories": [
+        "patterns"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/playing-video",
+      "sha256": "8a9dbaefd3094451dc390d12b71edf7183a196ea96085360aeb0bf1190cd97a2",
+      "headings": [
+        "# Playing video",
+        "## Best practices",
+        "## Integrating with the TV app",
+        "### Loading content",
+        "### Exiting playback",
+        "## Platform considerations",
+        "### tvOS",
+        "### visionOS",
+        "### watchOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "pointing-devices",
+      "title": "Pointing devices",
+      "categories": [
+        "inputs"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/pointing-devices",
+      "sha256": "06001b6feb8b9ab4544eca1cd4e98adaf125ba9d79475b6039887efa7e934f40",
+      "headings": [
+        "# Pointing devices",
+        "## Best practices",
+        "## Platform considerations",
+        "### iPadOS",
+        "#### Pointer shape and content effects",
+        "#### Pointer accessories",
+        "#### Pointer magnetism",
+        "#### Standard pointers and effects",
+        "#### Customizing pointers",
+        "### macOS",
+        "#### Pointers",
+        "### visionOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "pop-up-buttons",
+      "title": "Pop-up buttons",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/pop-up-buttons",
+      "sha256": "64ef3e8079e3a1dd2742d377fbf98f7d141cca8798d2dd1985f71b5c24043a4d",
+      "headings": [
+        "# Pop-up buttons",
+        "## Best practices",
+        "## Platform considerations",
+        "### iPadOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "popovers",
+      "title": "Popovers",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/popovers",
+      "sha256": "83999a347d3632cdb33ce4414ab97357ae2ad83af041e0f42fa2a7d861482eaa",
+      "headings": [
+        "# Popovers",
+        "## Best practices",
+        "## Platform considerations",
+        "### iOS, iPadOS",
+        "### macOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation"
+      ]
+    },
+    {
+      "slug": "presentation",
+      "title": "Presentation",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/presentation",
+      "sha256": "b0766887b028fec9e8776628e2c33dc45e71763814da4c9ac29c3c871cfd174b",
+      "headings": [
+        "# Presentation"
+      ]
+    },
+    {
+      "slug": "printing",
+      "title": "Printing",
+      "categories": [
+        "patterns"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/printing",
+      "sha256": "8cb877a88d268a02b93117e9fdcf19d4f36f2cab00dbf35b3945ff2760184b1f",
+      "headings": [
+        "# Printing",
+        "## Best practices",
+        "## Platform considerations",
+        "### macOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation"
+      ]
+    },
+    {
+      "slug": "privacy",
+      "title": "Privacy",
+      "categories": [
+        "foundations"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/privacy",
+      "sha256": "9c637c45ac3a1c5414a4b7b6f606dbcd69a642fc01bf252bbdee0644fc299dd3",
+      "headings": [
+        "# Privacy",
+        "## Best practices",
+        "## Requesting permission",
+        "### Pre-alert screens, windows, or views",
+        "### Tracking requests",
+        "## Location button",
+        "## Protecting data",
+        "## Platform considerations",
+        "### macOS",
+        "### visionOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "progress-indicators",
+      "title": "Progress indicators",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/progress-indicators",
+      "sha256": "76a299d47f154a13b38568a52054f96d5f784739a6aecfe1a82d6ff3a042aa7c",
+      "headings": [
+        "# Progress indicators",
+        "## Best practices",
+        "## Platform considerations",
+        "### iOS, iPadOS",
+        "#### Refresh content controls",
+        "### macOS",
+        "### watchOS",
+        "## Resources",
+        "#### Developer documentation",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "pull-down-buttons",
+      "title": "Pull-down buttons",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/pull-down-buttons",
+      "sha256": "9fc61775c9f36daaff05f16caa8a6063237d0379ca079a2d0a45a7a4534a37e1",
+      "headings": [
+        "# Pull-down buttons",
+        "## Best practices",
+        "## Platform considerations",
+        "### iOS, iPadOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "rating-indicators",
+      "title": "Rating indicators",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/rating-indicators",
+      "sha256": "57b373bd44c03e1e294c4c5d0d701a32a9a6c22eca2022baf65ac7f33d789bae",
+      "headings": [
+        "# Rating indicators",
+        "## Best practices",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "ratings-and-reviews",
+      "title": "Ratings and reviews",
+      "categories": [
+        "patterns"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/ratings-and-reviews",
+      "sha256": "4a8893daf794573380288976e6f6349228d571cce7b1b197be179dade1c527b8",
+      "headings": [
+        "# Ratings and reviews",
+        "## Best practices",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "remotes",
+      "title": "Remotes",
+      "categories": [
+        "inputs"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/remotes",
+      "sha256": "1e906ba4702ca94af3a6a08dcbf453dbdcbc93059b72a0aabd16ff3f725c84bc",
+      "headings": [
+        "# Remotes",
+        "## Best practices",
+        "## Gestures",
+        "## Buttons",
+        "## Compatible remotes",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related"
+      ]
+    },
+    {
+      "slug": "researchkit",
+      "title": "ResearchKit",
+      "categories": [
+        "technologies"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/researchkit",
+      "sha256": "2a71e66fc5c79e62fdf55141eecc855de44f2408c363fe9f2f5c97060c3508bd",
+      "headings": [
+        "# ResearchKit",
+        "## Creating the onboarding experience",
+        "### 1. Introduction",
+        "### 2. Determine eligibility",
+        "### 3. Get informed consent",
+        "### 4. Request permission to access data",
+        "## Conducting research",
+        "## Managing personal information and providing encouragement",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "right-to-left",
+      "title": "Right to left",
+      "categories": [
+        "foundations"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/right-to-left",
+      "sha256": "0c47d2b7b7c45cf65e4de155e84433f19980ab1ae8d12f09d7df213483e0f539",
+      "headings": [
+        "# Right to left",
+        "## Text alignment",
+        "## Numbers and characters",
+        "## Controls",
+        "## Images",
+        "## Interface icons",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos"
+      ]
+    },
+    {
+      "slug": "scroll-views",
+      "title": "Scroll views",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/scroll-views",
+      "sha256": "fa99110bf671741536de552c96154c6b6fb447bdce754b9b55c3536b4deae8e8",
+      "headings": [
+        "# Scroll views",
+        "## Best practices",
+        "## Scroll edge effects",
+        "## Platform considerations",
+        "### iOS, iPadOS",
+        "### macOS",
+        "### tvOS",
+        "### visionOS",
+        "#### Look to Scroll",
+        "### watchOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "search-fields",
+      "title": "Search fields",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/search-fields",
+      "sha256": "57ad53c788667b8676c585a5c6ef7f6bdaa297dd0a206f9e6606351265045bbb",
+      "headings": [
+        "# Search fields",
+        "## Best practices",
+        "## Scope bars and tokens",
+        "## Platform considerations",
+        "### iOS",
+        "#### Search as a tab",
+        "#### Search in a toolbar",
+        "#### Search as an inline field",
+        "### iPadOS, macOS",
+        "### tvOS",
+        "### watchOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "searching",
+      "title": "Searching",
+      "categories": [
+        "patterns"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/searching",
+      "sha256": "e88879b435c2746f33924395f9992adc052177adac4bf037dd923034b1b996bd",
+      "headings": [
+        "# Searching",
+        "## Best practices",
+        "## Systemwide search",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "segmented-controls",
+      "title": "Segmented controls",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/segmented-controls",
+      "sha256": "58316edb97f3e1b141e4c86d4671ebc994f5feb68576379f94f5f4be29537d88",
+      "headings": [
+        "# Segmented controls",
+        "## Best practices",
+        "## Content",
+        "## Platform considerations",
+        "### iOS, iPadOS",
+        "### macOS",
+        "### tvOS",
+        "### visionOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "selection-and-input",
+      "title": "Selection and input",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/selection-and-input",
+      "sha256": "1efb49280cd8cf4a8f784c6bc7e12ff241343b3125a7bd7831d842a0a64e01c4",
+      "headings": [
+        "# Selection and input"
+      ]
+    },
+    {
+      "slug": "settings",
+      "title": "Settings",
+      "categories": [
+        "patterns"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/settings",
+      "sha256": "c17e9a542a806d828ef5bef1df044cee2c2c135f96e8d0c591d873c2507449cc",
+      "headings": [
+        "# Settings",
+        "## Best practices",
+        "## General settings",
+        "## Task-specific options",
+        "## System settings",
+        "## Platform considerations",
+        "### macOS",
+        "### watchOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "sf-symbols",
+      "title": "SF Symbols",
+      "categories": [
+        "foundations"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/sf-symbols",
+      "sha256": "4e0f2499094519ee2a165d6a3a9882cc5a2cd4da1882e712e493a792488954b7",
+      "headings": [
+        "# SF Symbols",
+        "## Rendering modes",
+        "## Gradients",
+        "## Variable color",
+        "## Weights and scales",
+        "## Design variants",
+        "## Animations",
+        "## Custom symbols",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "shareplay",
+      "title": "SharePlay",
+      "categories": [
+        "technologies"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/shareplay",
+      "sha256": "b8801258811a282267cc8b8a68bc683fc6b3ed62e5b44da037afda29eda073c0",
+      "headings": [
+        "# SharePlay",
+        "## Best practices",
+        "## Platform considerations",
+        "### iOS, iPadOS, macOS",
+        "### visionOS",
+        "#### Designing shared activities",
+        "#### Personas",
+        "#### Spatial templates",
+        "#### Custom templates",
+        "## Resources",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "shazamkit",
+      "title": "ShazamKit",
+      "categories": [
+        "technologies"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/shazamkit",
+      "sha256": "5338d913a6adc4faf1be9f023ee3941b1d6c8faba2b900f78e280ec4b56f2b78",
+      "headings": [
+        "# ShazamKit",
+        "## Best practices",
+        "## Platform considerations",
+        "## Resources",
+        "#### Developer documentation",
+        "#### Videos"
+      ]
+    },
+    {
+      "slug": "sheets",
+      "title": "Sheets",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/sheets",
+      "sha256": "3e1a1accb148d23db5a74907b56438de35cdafdb1aafcc12722c7097d7829459",
+      "headings": [
+        "# Sheets",
+        "## Anatomy",
+        "## Best practices",
+        "## Platform considerations",
+        "### iOS, iPadOS",
+        "### macOS",
+        "### visionOS",
+        "### watchOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "sidebars",
+      "title": "Sidebars",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/sidebars",
+      "sha256": "5aff188db0d343d4286e15a8ed6a7baadef4cfa60565ce374be0c51aae64859d",
+      "headings": [
+        "# Sidebars",
+        "## Best practices",
+        "## Platform considerations",
+        "### iOS, iPadOS",
+        "### macOS",
+        "### visionOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "sign-in-with-apple",
+      "title": "Sign in with Apple",
+      "categories": [
+        "technologies"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/sign-in-with-apple",
+      "sha256": "c07d0c3f32211522d3e084567c086fe29e65f8fd964dd2440bdcbcb0d2d5bbe7",
+      "headings": [
+        "# Sign in with Apple",
+        "## Offering Sign in with Apple",
+        "## Collecting data",
+        "## Displaying buttons",
+        "### Using the system-provided buttons",
+        "#### White",
+        "#### White with outline",
+        "#### Black",
+        "#### Button size and corner radius",
+        "### Creating a custom Sign in with Apple button",
+        "#### Custom buttons with a logo and text",
+        "#### Custom logo-only buttons",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "siri",
+      "title": "Siri",
+      "categories": [
+        "technologies"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/siri",
+      "sha256": "fe14c4b871727adb2d3014ddf9222b88057db7eb9bb8b688c23de3dee634f3b2",
+      "headings": [
+        "# Siri",
+        "## Getting your app to work with Siri",
+        "### Sharing contextual information",
+        "## Best practices",
+        "## Customizing your app\u2019s experience with Siri",
+        "## Editorial guidelines",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "sliders",
+      "title": "Sliders",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/sliders",
+      "sha256": "d557c0acf0362a586460bed995d1fdc6a605117d5051d6d4dcbe42eeb27e273f",
+      "headings": [
+        "# Sliders",
+        "## Best practices",
+        "## Platform considerations",
+        "### iOS, iPadOS",
+        "### macOS",
+        "### visionOS",
+        "### watchOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "snippets",
+      "title": "Snippets",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/snippets",
+      "sha256": "32af5833181b26681cfa8c4edd5559f94e995c1e6e870b264c97bbfe7a3eae5d",
+      "headings": [
+        "# Snippets",
+        "## Anatomy",
+        "## Best practices",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "spatial-layout",
+      "title": "Spatial layout",
+      "categories": [
+        "foundations"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/spatial-layout",
+      "sha256": "146f0f556fbba1218a77339dd28894af38639d384503c42720e800d90846ec30",
+      "headings": [
+        "# Spatial layout",
+        "## Field of view",
+        "## Depth",
+        "## Scale",
+        "## Best practices",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "split-views",
+      "title": "Split views",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/split-views",
+      "sha256": "2be47ad6548b556f28d735dda7b38afa34efec57ea2037b32ce80523ffa7eea7",
+      "headings": [
+        "# Split views",
+        "## Best practices",
+        "## Platform considerations",
+        "### iOS",
+        "### iPadOS",
+        "### macOS",
+        "### tvOS",
+        "### visionOS",
+        "### watchOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "status",
+      "title": "Status",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/status",
+      "sha256": "b75881bf9f8a39bc42aa93d21be213a1c058c693ca0363ad7e7cf77e53135ad2",
+      "headings": [
+        "# Status"
+      ]
+    },
+    {
+      "slug": "status-bars",
+      "title": "Status bars",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/status-bars",
+      "sha256": "bd387b95bf3ebe254e9f113ed5f75ddad579b180b3b40e5f1767782f50d48792",
+      "headings": [
+        "# Status bars",
+        "## Best practices",
+        "## Platform considerations",
+        "## Resources",
+        "#### Developer documentation"
+      ]
+    },
+    {
+      "slug": "steppers",
+      "title": "Steppers",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/steppers",
+      "sha256": "4eb9f69ba9f3b269a0024f4037f2835c50eac59d34acd3ba6e9a41921fe69d68",
+      "headings": [
+        "# Steppers",
+        "## Best practices",
+        "## Platform considerations",
+        "### macOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation"
+      ]
+    },
+    {
+      "slug": "system-experiences",
+      "title": "System experiences",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/system-experiences",
+      "sha256": "73559c32f2baf8a758e37b14699692dad3277a75435687215b6926da2dad4f8b",
+      "headings": [
+        "# System experiences"
+      ]
+    },
+    {
+      "slug": "tab-bars",
+      "title": "Tab bars",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/tab-bars",
+      "sha256": "b2f48f79d3f8a5bd00f2e3b462a19debd0a557ea0113ed8e573907bb06513f07",
+      "headings": [
+        "# Tab bars",
+        "## Best practices",
+        "## Platform considerations",
+        "### iOS",
+        "### iPadOS",
+        "### tvOS",
+        "### visionOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "tab-views",
+      "title": "Tab views",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/tab-views",
+      "sha256": "9f63190111716fc0b57437c11d820921551cd6843d982d6c2fb8b485879b26ee",
+      "headings": [
+        "# Tab views",
+        "## Best practices",
+        "## Anatomy",
+        "## Platform considerations",
+        "### iOS, iPadOS",
+        "### watchOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "tap-to-pay-on-iphone",
+      "title": "Tap to Pay on iPhone",
+      "categories": [
+        "technologies"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/tap-to-pay-on-iphone",
+      "sha256": "1e5ab813ebedbe97fd909f3e468eaac469f6a0d3a1543b840d279aca9b2b7877",
+      "headings": [
+        "# Tap to Pay on iPhone",
+        "## Enabling Tap to Pay on iPhone",
+        "## Educating merchants",
+        "## Checking out",
+        "## Displaying results",
+        "## Additional interactions",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "technologies",
+      "title": "Technologies",
+      "categories": [
+        "technologies"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/technologies",
+      "sha256": "c779a6461dcf306525da2007ac26d1e6588c18c3d7908eb0320d13452fae7a95",
+      "headings": [
+        "# Technologies"
+      ]
+    },
+    {
+      "slug": "text-fields",
+      "title": "Text fields",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/text-fields",
+      "sha256": "18324cc7181a498b9324a1980231260785ee427eb9ae48f775bfa06a96153d40",
+      "headings": [
+        "# Text fields",
+        "## Best practices",
+        "## Platform considerations",
+        "### iOS, iPadOS",
+        "### macOS",
+        "### watchOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "text-views",
+      "title": "Text views",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/text-views",
+      "sha256": "a0e011df816d22db83719825572cf324b4ea9c737862e804c62484330dcc701f",
+      "headings": [
+        "# Text views",
+        "## Best practices",
+        "## Platform considerations",
+        "### iOS, iPadOS",
+        "### tvOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "the-menu-bar",
+      "title": "The menu bar",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/the-menu-bar",
+      "sha256": "49021cdabc50e3cd7a0d0daedfc7fe3175a1b3331ce5b836cdf759183d5c7f46",
+      "headings": [
+        "# The menu bar",
+        "## Anatomy",
+        "## Best practices",
+        "## App menu",
+        "## File menu",
+        "## Edit menu",
+        "## Format menu",
+        "## View menu",
+        "## App-specific menus",
+        "## Window menu",
+        "## Help menu",
+        "## Dynamic menu items",
+        "## Platform considerations",
+        "### iPadOS",
+        "### macOS",
+        "#### Menu bar extras",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "toggles",
+      "title": "Toggles",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/toggles",
+      "sha256": "bed6ecd8ea69e785eed940803ae0cfe12f6b2120ee1072f5b6b34d1b618df753",
+      "headings": [
+        "# Toggles",
+        "## Best practices",
+        "## Platform considerations",
+        "### iOS, iPadOS",
+        "### macOS",
+        "#### Switches",
+        "#### Checkboxes",
+        "#### Radio buttons",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "token-fields",
+      "title": "Token fields",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/token-fields",
+      "sha256": "afe7eae105dbab556f8fa136c1988720a702134b47c16469a2186f3742d34dc2",
+      "headings": [
+        "# Token fields",
+        "## Best practices",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation"
+      ]
+    },
+    {
+      "slug": "toolbars",
+      "title": "Toolbars",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/toolbars",
+      "sha256": "4f1147642ab0561dcb2d4b074be970a537e2072be41e061314d1e234b4cdc6f7",
+      "headings": [
+        "# Toolbars",
+        "## Best practices",
+        "## Titles",
+        "## Navigation",
+        "## Actions",
+        "## Item groupings",
+        "## Platform considerations",
+        "### iOS",
+        "### iPadOS",
+        "### macOS",
+        "### visionOS",
+        "### watchOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "top-shelf",
+      "title": "Top Shelf",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/top-shelf",
+      "sha256": "6fed7d0b7496558c128180753234d214026c0faa5d8d1994d6ef16d397474bea",
+      "headings": [
+        "# Top Shelf",
+        "## Best practices",
+        "## Dynamic layouts",
+        "### Carousel actions",
+        "### Carousel details",
+        "### Sectioned content row",
+        "#### Poster (2:3)",
+        "#### Square (1:1)",
+        "#### 16:9",
+        "#### Scrolling inset banner",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Videos"
+      ]
+    },
+    {
+      "slug": "typography",
+      "title": "Typography",
+      "categories": [
+        "foundations"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/typography",
+      "sha256": "85bf7dc78d41a6e5e16d4055f3bdadf7bac4f7d5cb2206514c8b82d5d24631ed",
+      "headings": [
+        "# Typography",
+        "## Ensuring legibility",
+        "## Conveying hierarchy",
+        "## Using system fonts",
+        "## Using custom fonts",
+        "## Supporting Dynamic Type",
+        "## Platform considerations",
+        "### iOS, iPadOS",
+        "### macOS",
+        "### tvOS",
+        "### visionOS",
+        "### watchOS",
+        "## Specifications",
+        "### iOS, iPadOS Dynamic Type sizes",
+        "### iOS, iPadOS larger accessibility type sizes",
+        "### macOS built-in text styles",
+        "### tvOS built-in text styles",
+        "### watchOS Dynamic Type sizes",
+        "### watchOS larger accessibility type sizes",
+        "### Tracking values",
+        "#### iOS, iPadOS, visionOS tracking values",
+        "#### macOS tracking values",
+        "#### tvOS tracking values",
+        "#### watchOS tracking values",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "undo-and-redo",
+      "title": "Undo and redo",
+      "categories": [
+        "patterns"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/undo-and-redo",
+      "sha256": "f876432967988ac2cf71bd79af61d1240c7b9ea6fe856747382954921f70b4d2",
+      "headings": [
+        "# Undo and redo",
+        "## Best practices",
+        "## Platform considerations",
+        "### iOS, iPadOS",
+        "### macOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos"
+      ]
+    },
+    {
+      "slug": "virtual-keyboards",
+      "title": "Virtual keyboards",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/virtual-keyboards",
+      "sha256": "6f5e2d364bdd50f7ee473b0c6b23402e8ba6ba6bda6666b32f8f9d8018cb6c34",
+      "headings": [
+        "# Virtual keyboards",
+        "## Best practices",
+        "## Custom input views",
+        "## Custom keyboards",
+        "## Platform considerations",
+        "### iOS, iPadOS",
+        "### tvOS",
+        "### visionOS",
+        "### watchOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "voiceover",
+      "title": "VoiceOver",
+      "categories": [
+        "technologies"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/voiceover",
+      "sha256": "859dc02ab9ba87dc545952d8f8077cf94936cd9f49f491d2e765c2425a6c76e5",
+      "headings": [
+        "# VoiceOver",
+        "## Descriptions",
+        "## Navigation",
+        "## Platform considerations",
+        "### visionOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "wallet",
+      "title": "Wallet",
+      "categories": [
+        "technologies"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/wallet",
+      "sha256": "087d3b2cf5f8dd1e79b73634a2aa1c42de54243f54d878a594c972fd438f1312",
+      "headings": [
+        "# Wallet",
+        "## Passes",
+        "## Pass anatomy",
+        "### Pass field types",
+        "## Designing passes",
+        "## Pass styles",
+        "### Boarding passes",
+        "### Coupons",
+        "### Event tickets",
+        "### Store cards",
+        "### Poster generic passes",
+        "### Generic passes",
+        "## Pass images",
+        "### Logo",
+        "### Primary logo",
+        "### Secondary logo",
+        "### Icon",
+        "### Strip image",
+        "### Thumbnail",
+        "### Background",
+        "### Footer",
+        "## Order tracking",
+        "### Displaying order and fulfillment details",
+        "## Identity verification",
+        "## Platform considerations",
+        "### watchOS",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "watch-faces",
+      "title": "Watch faces",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/watch-faces",
+      "sha256": "f52fe24a93bf7943b190a1a7fe75f9479c081242b3b75848989da6b6690314a6",
+      "headings": [
+        "# Watch faces",
+        "## Best practices",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation"
+      ]
+    },
+    {
+      "slug": "web-views",
+      "title": "Web views",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/web-views",
+      "sha256": "7219049db6cc53cafe303ae5dc430b0717cb79660b2e9d3763a649f55de82148",
+      "headings": [
+        "# Web views",
+        "## Best practices",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos"
+      ]
+    },
+    {
+      "slug": "widgets",
+      "title": "Widgets",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/widgets",
+      "sha256": "31bd8239f7bbd95985d426342b0329ff78b781e152e4200a3e1d9c7c4bd42613",
+      "headings": [
+        "# Widgets",
+        "## Anatomy",
+        "### System family widgets",
+        "### Accessory widgets",
+        "### Appearances",
+        "## Best practices",
+        "### Updating widget content",
+        "### Adding interactivity",
+        "### Choosing margins and padding",
+        "### Displaying text in widgets",
+        "### Using color",
+        "## Rendering modes",
+        "### Full-color",
+        "### Accented",
+        "### Vibrant",
+        "## Previews and placeholders",
+        "## Platform considerations",
+        "### iOS, iPadOS",
+        "#### StandBy and CarPlay",
+        "### visionOS",
+        "#### Thresholds and sizes",
+        "#### Mounting styles",
+        "#### Treatment styles",
+        "### watchOS",
+        "## Specifications",
+        "### iOS dimensions",
+        "### iPadOS dimensions",
+        "### visionOS dimensions",
+        "### watchOS dimensions",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "windows",
+      "title": "Windows",
+      "categories": [
+        "components"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/windows",
+      "sha256": "1da7914a4b33b20b55cc7558d004f5017300f4121c2d7fdf05ba79517073a220",
+      "headings": [
+        "# Windows",
+        "## Best practices",
+        "## Platform considerations",
+        "### iPadOS",
+        "### macOS",
+        "#### macOS window anatomy",
+        "#### macOS window states",
+        "### visionOS",
+        "#### visionOS windows",
+        "#### visionOS volumes",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos",
+        "## Change log"
+      ]
+    },
+    {
+      "slug": "workouts",
+      "title": "Workouts",
+      "categories": [
+        "patterns"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/workouts",
+      "sha256": "a44637de85333370e6f43da835ee69a7163fde8695c9287b0f7ca14696ff5af6",
+      "headings": [
+        "# Workouts",
+        "## Best practices",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Developer documentation",
+        "#### Videos"
+      ]
+    },
+    {
+      "slug": "writing",
+      "title": "Writing",
+      "categories": [
+        "foundations"
+      ],
+      "url": "https://developer.apple.com/design/human-interface-guidelines/writing",
+      "sha256": "3c32e5d0b6dac0a2ccef96d96ea8a3eb62e425ef319fd065aa6e3010f93ea149",
+      "headings": [
+        "# Writing",
+        "## Getting started",
+        "## Best practices",
+        "## Platform considerations",
+        "## Resources",
+        "#### Related",
+        "#### Videos",
+        "## Change log"
+      ]
+    }
+  ],
+  "errors": {}
+}

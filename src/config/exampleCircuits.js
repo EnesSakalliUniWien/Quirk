@@ -55,9 +55,30 @@ import { distillLink } from "./examples/distill.js";
 //  - reversible arithmetic, from the half and full adders and a controlled-NOT increment to
 //    multi-bit reversible addition, then magic state distillation: circuit-engineering and
 //    fault-tolerance topics that build on the Toffoli gate and everything above.
-/** @type {!Array.<!{name: !string, circuit: !object}>} */
+/** @type {!Array.<!{name: !string, circuit: !object, category?: !string, goal?: !string}>} */
 const EXAMPLE_CIRCUITS = [
-  { name: "Two State Model Unitary from Eigenvalues", circuit: twoStateUnitaryLink },
+  {
+    name: "Superposition",
+    category: "starter",
+    goal: "One H gate makes 0 and 1 equally likely.",
+    circuit: { cols: [["H"], ["Chance"]] },
+  },
+  {
+    name: "Interference",
+    category: "starter",
+    goal: "A second H gate returns the qubit to 0.",
+    circuit: { cols: [["H"], ["Chance"], ["H"], ["Chance"]] },
+  },
+  {
+    name: "Bell Pair",
+    category: "starter",
+    goal: "Two entangled qubits give 00 or 11 with equal probability.",
+    circuit: { cols: [["H"], ["•", "X"], ["Chance2"]] },
+  },
+  {
+    name: "Two State Model Unitary from Eigenvalues",
+    circuit: twoStateUnitaryLink,
+  },
   { name: "Bell State", circuit: bellStateLink },
   { name: "GHZ State", circuit: ghzStateLink },
   { name: "Amplitudes Copied into DAG Children", circuit: dagCopyLink },

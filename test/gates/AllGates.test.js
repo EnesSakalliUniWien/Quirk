@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-import {Suite, assertThat} from "../TestUtil.js"
-import {Gates} from "../../src/gates/AllGates.js"
+import { Suite, assertThat } from "../TestUtil.js";
+import { Gates } from "../../src/gates/AllGates.js";
 
-import {CircuitEvalContext} from "../../src/engine/simulation/CircuitEvalContext.js"
-import {CircuitShaders} from "../../src/engine/simulation/gpu/CircuitShaders.js"
-import {Controls} from "../../src/circuit/model/Controls.js"
-import {Matrix} from "../../src/engine/math/matrix/Matrix.js"
-import {Gate} from "../../src/circuit/model/Gate.js"
-import {WglTextureTrader} from "../../src/engine/webgl/texture/WglTextureTrader.js"
-import {currentShaderCoder} from "../../src/engine/webgl/coder/ShaderCoders.js"
+import { CircuitEvalContext } from "../../src/engine/simulation/CircuitEvalContext.js";
+import { CircuitShaders } from "../../src/engine/simulation/gpu/CircuitShaders.js";
+import { Controls } from "../../src/circuit/model/Controls.js";
+import { Matrix } from "../../src/engine/math/matrix/Matrix.js";
+import { Gate } from "../../src/circuit/model/Gate.js";
+import { WglTextureTrader } from "../../src/engine/webgl/texture/WglTextureTrader.js";
+import { currentShaderCoder } from "../../src/engine/webgl/coder/ShaderCoders.js";
 import {
-    assertThatGateActsLikePermutation,
-    assertThatGateActsLikePhaser
-} from "../CircuitOperationTestUtil.js"
+  assertThatGateActsLikePermutation,
+  assertThatGateActsLikePhaser,
+} from "../CircuitOperationTestUtil.js";
 
 const suite = new Suite("AllGates");
 
@@ -37,207 +37,249 @@ const suite = new Suite("AllGates");
  * @returns {undefined|!Matrix}
  */
 const reconstructMatrixFromGateCustomOperation = (gate, time) => {
-    if (gate.customOperation === undefined) {
-        return undefined;
-    }
+  if (gate.customOperation === undefined) {
+    return undefined;
+  }
 
-    const bit = 0;
-    const numQubits = gate.height;
-    const n = 1 << numQubits;
-    const cols = [];
-    for (let i = 0; i < n; i++) {
-        const trader = new WglTextureTrader(CircuitShaders.classicalState(i).toVec2Texture(numQubits));
-        const ctx = new CircuitEvalContext(
-            time,
-            bit,
-            numQubits,
-            Controls.NONE,
-            Controls.NONE,
-            trader,
-            new Map());
-        gate.customOperation(ctx);
-        const buf = currentShaderCoder().vec2.pixelsToData(trader.currentTexture.readPixels());
-        const col = new Matrix(1, 1 << numQubits, buf);
-        trader.currentTexture.deallocByDepositingInPool();
-        cols.push(col);
-    }
+  const bit = 0;
+  const numQubits = gate.height;
+  const n = 1 << numQubits;
+  const control = CircuitShaders.controlMask(Controls.NONE).toBoolTexture(
+    numQubits,
+  );
+  const cols = [];
+  for (let i = 0; i < n; i++) {
+    const trader = new WglTextureTrader(
+      CircuitShaders.classicalState(i).toVec2Texture(numQubits),
+    );
+    const ctx = new CircuitEvalContext(
+      time,
+      bit,
+      numQubits,
+      Controls.NONE,
+      control,
+      Controls.NONE,
+      trader,
+      new Map(),
+    );
+    gate.customOperation(ctx);
+    const buf = currentShaderCoder().vec2.pixelsToData(
+      trader.currentTexture.readPixels(),
+    );
+    const col = new Matrix(1, 1 << numQubits, buf);
+    trader.currentTexture.deallocByDepositingInPool();
+    cols.push(col);
+  }
+  control.deallocByDepositingInPool();
 
-    const raw = new Float32Array(cols.flatMap(e => [...e.rawBuffer()]));
-    const flipped = new Matrix(n, n, raw);
-    return flipped.transpose();
+  const raw = new Float32Array(cols.flatMap((e) => [...e.rawBuffer()]));
+  const flipped = new Matrix(n, n, raw);
+  return flipped.transpose();
 };
 
 /**
  * @param {!Gate} gate
  * @returns {!Matrix}
  */
-const reconstructMatrixFromKnownBitPermutation = gate => {
-    return Matrix.generateTransition(1<<gate.height, input => {
-        let out = 0;
-        for (let i = 0; i < gate.height; i++) {
-            if ((input & (1<<i)) !== 0) {
-                out |= 1<<gate.knownBitPermutationFunc(i);
-            }
-        }
-        return out;
-    });
+const reconstructMatrixFromKnownBitPermutation = (gate) => {
+  return Matrix.generateTransition(1 << gate.height, (input) => {
+    let out = 0;
+    for (let i = 0; i < gate.height; i++) {
+      if ((input & (1 << i)) !== 0) {
+        out |= 1 << gate.knownBitPermutationFunc(i);
+      }
+    }
+    return out;
+  });
 };
 
 suite.test("allGatesAreGates", () => {
-    for (const gate of Gates.KnownToSerializer) {
-        assertThat(gate instanceof Gate).withInfo({gate, type: typeof gate}).isEqualTo(true);
-    }
+  for (const gate of Gates.KnownToSerializer) {
+    assertThat(gate instanceof Gate)
+      .withInfo({ gate, type: typeof gate })
+      .isEqualTo(true);
+  }
 });
 
 suite.testUsingWebGL("customShaderMatchesKnownMatrix", () => {
-    const time = 6/7;
-    for (const gate of Gates.KnownToSerializer) {
-        if (gate.height > 4) {
-            continue;
-        }
-
-        const matrix = gate.knownMatrixAt(time);
-        if (matrix === undefined) {
-            continue;
-        }
-
-        const reconstructed = reconstructMatrixFromGateCustomOperation(gate, time);
-        if (reconstructed === undefined) {
-            continue;
-        }
-
-        assertThat(reconstructed).withInfo({gate, time}).isApproximatelyEqualTo(matrix, 0.0005);
+  const time = 6 / 7;
+  for (const gate of Gates.KnownToSerializer) {
+    if (gate.height > 4) {
+      continue;
     }
+
+    const matrix = gate.knownMatrixAt(time);
+    if (matrix === undefined) {
+      continue;
+    }
+
+    const reconstructed = reconstructMatrixFromGateCustomOperation(gate, time);
+    if (reconstructed === undefined) {
+      continue;
+    }
+
+    assertThat(reconstructed)
+      .withInfo({ gate, time })
+      .isApproximatelyEqualTo(matrix, 0.0005);
+  }
 });
 
-suite.testUsingWebGL("knownBitPermutationMatchesKnowMatrixAndCustomShader", () => {
-    const time = 6/7;
+suite.testUsingWebGL(
+  "knownBitPermutationMatchesKnowMatrixAndCustomShader",
+  () => {
+    const time = 6 / 7;
     for (const gate of Gates.KnownToSerializer) {
-        if (gate.height > 6 || gate.knownBitPermutationFunc === undefined) {
-            continue;
-        }
+      if (gate.height > 6 || gate.knownBitPermutationFunc === undefined) {
+        continue;
+      }
 
-        const permuteBitsMatrix = reconstructMatrixFromKnownBitPermutation(gate);
+      const permuteBitsMatrix = reconstructMatrixFromKnownBitPermutation(gate);
 
-        const knownMatrix = gate.knownMatrixAt(time);
-        if (knownMatrix !== undefined) {
-            assertThat(knownMatrix).withInfo(gate).isEqualTo(permuteBitsMatrix);
-        }
+      const knownMatrix = gate.knownMatrixAt(time);
+      if (knownMatrix !== undefined) {
+        assertThat(knownMatrix).withInfo(gate).isEqualTo(permuteBitsMatrix);
+      }
 
-        const shaderMatrix = reconstructMatrixFromGateCustomOperation(gate, time);
-        if (shaderMatrix !== undefined) {
-            assertThat(shaderMatrix).withInfo(gate).isEqualTo(permuteBitsMatrix);
-        }
+      const shaderMatrix = reconstructMatrixFromGateCustomOperation(gate, time);
+      if (shaderMatrix !== undefined) {
+        assertThat(shaderMatrix).withInfo(gate).isEqualTo(permuteBitsMatrix);
+      }
     }
-});
+  },
+);
 
 suite.testUsingWebGL("gatesActLikeTheirKnownPermutation", () => {
-    for (const gate of Gates.KnownToSerializer) {
-        if (gate.knownPermutationFuncTakingInputs !== undefined && gate.height <= 3) {
-            assertThatGateActsLikePermutation(gate, gate.knownPermutationFuncTakingInputs, [2, 2, 2], true);
-        }
+  for (const gate of Gates.KnownToSerializer) {
+    if (
+      gate.knownPermutationFuncTakingInputs !== undefined &&
+      gate.height <= 3
+    ) {
+      assertThatGateActsLikePermutation(
+        gate,
+        gate.knownPermutationFuncTakingInputs,
+        [2, 2, 2],
+        true,
+      );
     }
+  }
 });
 
 suite.testUsingWebGL("gatesActLikeTheirKnownPhasingFunction", () => {
-    for (const gate of Gates.KnownToSerializer) {
-        if (gate.knownPhaseTurnsFunc !== undefined && gate.height <= 3) {
-            assertThatGateActsLikePhaser(gate, gate.knownPhaseTurnsFunc);
-        }
+  for (const gate of Gates.KnownToSerializer) {
+    if (gate.knownPhaseTurnsFunc !== undefined && gate.height <= 3) {
+      assertThatGateActsLikePhaser(gate, gate.knownPhaseTurnsFunc);
     }
+  }
 });
 
 suite.test("knownNonUnitaryGates", () => {
-    const nonUnitaryGates = new Set(Gates.KnownToSerializer.
-        filter(g => !g.isDefinitelyUnitary()).
-        map(g => g.serializedId));
-    assertThat(nonUnitaryGates).isEqualTo(new Set([
-        '__error__',
-        '__unstable__UniversalNot',
-        // Post-selection isn't unitary.
-        '0',
-        '|0⟩⟨0|',
-        '|1⟩⟨1|',
-        '|+⟩⟨+|',
-        '|-⟩⟨-|',
-        '|X⟩⟨X|',
-        '|/⟩⟨/|',
-        // Collapsing measurement isn't unitary.
-        'XDetector',
-        'YDetector',
-        'ZDetector',
-        // Especially if you reset the qubit afterwards.
-        'XDetectControlReset',
-        'YDetectControlReset',
-        'ZDetectControlReset',
-        // A prepare box discards every basis state but |0…0⟩, which is why it must come first.
-        ...Gates.PrepareGates.all.map(g => g.serializedId),
-    ]));
+  const nonUnitaryGates = new Set(
+    Gates.KnownToSerializer.filter((g) => !g.isDefinitelyUnitary()).map(
+      (g) => g.serializedId,
+    ),
+  );
+  assertThat(nonUnitaryGates).isEqualTo(
+    new Set([
+      "__error__",
+      "__unstable__UniversalNot",
+      // Post-selection isn't unitary.
+      "0",
+      "|0⟩⟨0|",
+      "|1⟩⟨1|",
+      "|+⟩⟨+|",
+      "|-⟩⟨-|",
+      "|X⟩⟨X|",
+      "|/⟩⟨/|",
+      // Collapsing measurement isn't unitary.
+      "XDetector",
+      "YDetector",
+      "ZDetector",
+      // Especially if you reset the qubit afterwards.
+      "XDetectControlReset",
+      "YDetectControlReset",
+      "ZDetectControlReset",
+      // A prepare box discards every basis state but |0…0⟩, which is why it must come first.
+      ...Gates.PrepareGates.all.map((g) => g.serializedId),
+    ]),
+  );
 });
 
 suite.test("knownDoNothingGateFamilies", () => {
-    const doNothingFamilies = new Set(Gates.KnownToSerializer.
-        filter(g => g.definitelyHasNoEffect()).
-        map(g => g.gateFamily[0].serializedId));
-    assertThat(doNothingFamilies).isEqualTo(new Set([
-        // Measurement technically does something, but internally it's deferred and handled special almost everywhere.
-        'Measure',
-        // Z basis operation modifiers technically do things, but we assign the effects to the operation itself.
-        '•',
-        '◦',
-        'zpar',
-        'inputA1',
-        'inputB1',
-        'inputR1',
-        'revinputA1',
-        'revinputB1',
-        'setA',
-        'setB',
-        'setR',
-        // Displays don't have effects.
-        'Amps1',
-        'Chance',
-        'Sample1',
-        'Density',
-        'Bloch',
-        // Assertions judge the state and leave it alone.
-        'assert-sup1',
-        'assert-ent2',
-        'assert-eq1',
-        // Spacer gate.
-        '…'
-    ]));
+  const doNothingFamilies = new Set(
+    Gates.KnownToSerializer.filter((g) => g.definitelyHasNoEffect()).map(
+      (g) => g.gateFamily[0].serializedId,
+    ),
+  );
+  assertThat(doNothingFamilies).isEqualTo(
+    new Set([
+      // Measurement technically does something, but internally it's deferred and handled special almost everywhere.
+      "Measure",
+      // Z basis operation modifiers technically do things, but we assign the effects to the operation itself.
+      "•",
+      "◦",
+      "zpar",
+      "inputA1",
+      "inputB1",
+      "inputR1",
+      "revinputA1",
+      "revinputB1",
+      "setA",
+      "setB",
+      "setR",
+      // Displays don't have effects.
+      "Amps1",
+      "Chance",
+      "Sample1",
+      "Density",
+      "Bloch",
+      // Assertions judge the state and leave it alone.
+      "assert-sup1",
+      "assert-ent2",
+      "assert-eq1",
+      // Spacer gate.
+      "…",
+    ]),
+  );
 });
 
 suite.test("knownDynamicGateFamilies", () => {
-    const dynamicFamilies = new Set(Gates.KnownToSerializer.
-        filter(g => g.stableDuration() !== Infinity).
-        map(g => g.gateFamily[0].serializedId));
-    assertThat(dynamicFamilies).isEqualTo(new Set([
-        // Dynamic displays.
-        'Sample1',
-        // Qubit rotating gates.
-        'X^t', 'Y^t', 'Z^t',
-        'X^-t', 'Y^-t', 'Z^-t',
-        'X^ft', 'Y^ft', 'Z^ft',
-        'Rxft', 'Ryft', 'Rzft',
-        'e^iXt', 'e^iYt', 'e^iZt',
-        'e^-iXt', 'e^-iYt', 'e^-iZt',
-        // Discrete cycles.
-        'Counting1',
-        'Uncounting1',
-        '>>t2',
-        '<<t2',
-        'X^⌈t⌉',
-        'X^⌈t-¼⌉',
-        // Other.
-        'grad^t1',
-        'grad^-t1',
-        'XDetector',
-        'YDetector',
-        'ZDetector',
-        'XDetectControlReset',
-        'YDetectControlReset',
-        'ZDetectControlReset',
-    ]));
+  const dynamicFamilies = new Set(
+    Gates.KnownToSerializer.filter((g) => g.stableDuration() !== Infinity).map(
+      (g) => g.gateFamily[0].serializedId,
+    ),
+  );
+  // Samples, detectors among them, are drawn from the run's seed, so they hold still with it.
+  assertThat(dynamicFamilies).isEqualTo(
+    new Set([
+      // Qubit rotating gates.
+      "X^t",
+      "Y^t",
+      "Z^t",
+      "X^-t",
+      "Y^-t",
+      "Z^-t",
+      "X^ft",
+      "Y^ft",
+      "Z^ft",
+      "Rxft",
+      "Ryft",
+      "Rzft",
+      "e^iXt",
+      "e^iYt",
+      "e^iZt",
+      "e^-iXt",
+      "e^-iYt",
+      "e^-iZt",
+      // Discrete cycles.
+      "Counting1",
+      "Uncounting1",
+      ">>t2",
+      "<<t2",
+      "X^⌈t⌉",
+      "X^⌈t-¼⌉",
+      // Other.
+      "grad^t1",
+      "grad^-t1",
+    ]),
+  );
 });

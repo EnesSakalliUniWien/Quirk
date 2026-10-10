@@ -1,0 +1,312 @@
+[
+  {
+    "path": "PRODUCT.md",
+    "before_sha256": "252d5761b027b02596b92347e4c91d4dae248ad91cf32aa183097ee54a0db978",
+    "after_sha256": "e0e5fefe145b85960b0582e62b98eb07b2b8533b140b8389df707b44d23e637c"
+  },
+  {
+    "path": "README.md",
+    "before_sha256": "ad69161dff3a40519aa3bc4396fafbe9bc5d7d60ac0566492fe73cca0c72cad9",
+    "after_sha256": "95d1b165eb88457c364e2e2d8a8f2b5c59ff26838787400f72bf27a32f2cd3f0"
+  },
+  {
+    "path": "doc/README.md",
+    "before_sha256": "91c28ddd0a826ddfa0a69b09b87a944a664fc149f64ebdbe51c02f5ee6fbf52d",
+    "after_sha256": "829754d4753d4784e05390c1bf68b166383d96046b01cd7582acba14a7e678c7"
+  },
+  {
+    "path": "index.html",
+    "before_sha256": "1ab62e92a70893b9f526ed0c1c0397bb9f51831bbc4164a5cd5d62f3bcebd66f",
+    "after_sha256": "df185d7bf1b9324db3a1e47ddb16867626e32d4b857c3720f50e6f7e44b727a4"
+  },
+  {
+    "path": "package.json",
+    "before_sha256": "189216e90f45b676fb96aad0c0a8a886f1e2234af85e9c807a2f4e8de3c10688",
+    "after_sha256": "37ef0b5ff73b9e8ad9beb9121b5f8941a668afcecf8eb2928805edfad24f849c"
+  },
+  {
+    "path": "src/app/session/url.js",
+    "before_sha256": "7ceb5d851238f81c4fd2a6188fe41fd60799a87056c38896f7bb10c63044f614",
+    "after_sha256": "3962182afaae49552685b28fe38f82ab5dc91a9f720c1a4583f4b20d74b39ee8"
+  },
+  {
+    "path": "src/app/state/Recorder.js",
+    "before_sha256": "294e11752bb988f0ee0751b2d26667ea954d9c2ad7eb18bf003f182f5b00b7b0",
+    "after_sha256": "b93c5b0d05faeba845f6b4e10df59089f112793dbaead98ce28a62585e70ba02"
+  },
+  {
+    "path": "src/circuit/model/GateColumn.js",
+    "before_sha256": "63f4b5fb95b9b085d300f4b65dfa033434093c0afb5e4c6dd7d4b7e2967cb2a9",
+    "after_sha256": "d3e1cbad60b78e4c3afb75f55deae53fcd598dafe7ca8a6274efbbd53c6dee95"
+  },
+  {
+    "path": "src/components/panels/circuit/selection-bar.jsx",
+    "before_sha256": "5745aca5aa21b2484701c43f57b929999b62d1422b1ff73f465d2a21d856272d",
+    "after_sha256": "9334b2e13825d23b6195a000a4040218873d7238c645b0433255f96acc9f0813"
+  },
+  {
+    "path": "src/components/panels/circuit/selection-menu.jsx",
+    "before_sha256": "93d0437680ffdf9a2bdfe7d65b2914b13bd4127f970d0913a2cf66e224d6a3ee",
+    "after_sha256": "1ee599f9ed69835856458267999e68f982b242fb20fae12300a2a1b887a433fc"
+  },
+  {
+    "path": "src/components/panels/circuit/selectionCommands.js",
+    "before_sha256": "92f467fa3ed2e87b7f0809e24a0ab03278ed1b57a5ba52f7ec53ffcd1435b29c",
+    "after_sha256": "305c48b3cb66a3ace463554a85b55d79da2ab9a109bd5b85ee8ffc6c120140de"
+  },
+  {
+    "path": "src/components/panels/export/export-panel-body.jsx",
+    "before_sha256": "a3d4210090b111bf6252b598851a99d451ab33687e46815e01cdee54609cc9c6",
+    "after_sha256": "28370035cf69fb8931890ff7792db05e9d9072834625886dbbaa71e018514a72"
+  },
+  {
+    "path": "src/components/panels/forge/forge-panel-body.jsx",
+    "before_sha256": "90a45aa54558fc305131247519a6e11813d9f1fbaec565cd53c80a12518bb73f",
+    "after_sha256": "2b64376d1aa3e7c09468653b1469f1ad65d9588ae4b84d2a9ea5d740c4cb7775"
+  },
+  {
+    "path": "src/components/panels/panels.jsx",
+    "before_sha256": "66f63c46e6a87c6bf89adb5fe8335a3b0b42f4862766aadb9a1591e17d8fb751",
+    "after_sha256": "044435e048629c802b25338aa8eb0decc3839831e922545a421f030099f6b51b"
+  },
+  {
+    "path": "src/components/panels/probabilities/probabilities-panel.jsx",
+    "before_sha256": "13a3a2c338c42d6a1fc6df4c46e8c6cba776692630c15b499ec2550976953080",
+    "after_sha256": "0439177a5b0e8dc3388da3423bf1cca4fd4794bd5a8179c3665e1c50237f6f4e"
+  },
+  {
+    "path": "src/components/panels/tape/compare.jsx",
+    "before_sha256": "c9ee594ae791ab24179c81f08f429155141c2c6f0436ef9e2464884add69a43b",
+    "after_sha256": "a0563cc21f0a27d69e6f6aba9e6c293541cb3a86bee19936deb0e402e60ae9f9"
+  },
+  {
+    "path": "src/components/panels/tape/ready-controls.jsx",
+    "before_sha256": "b1b3dac3de0f27202335c7a2d30cd89b0a8ddb87f6573a1c41f2687a93e2246a",
+    "after_sha256": "b3645aab5cf19b5470cd918465188771c75a82254d05e6a1d4e768b1ab6808bc"
+  },
+  {
+    "path": "src/components/panels/tape/take-card.jsx",
+    "before_sha256": "3ed992e62e63a4be643df86d6b224ce5d6e9e96a296019b83cde47d41e920246",
+    "after_sha256": "7b75d6385743d37dd0b558f97f6254733a01c768e98dfe6e26f621c8b4ba16d3"
+  },
+  {
+    "path": "src/components/panels/tape/tape-body.jsx",
+    "before_sha256": "fd4b25180f54778d5a75ffc2e2030bda318d90027f879bbc584a0a72f848c8df",
+    "after_sha256": "0b6f7b8edb8b2acd5c7da354bdaca719f9da21288d67747d188336da7f3dee6f"
+  },
+  {
+    "path": "src/components/panels/tape/tape-panel.jsx",
+    "before_sha256": "e0de6837c7b052a4fbc0f7a4f3ed3e54a9e82cb0ed989416b79daae5e74c2c08",
+    "after_sha256": "e5d2094404555475b49864aed89ad43a13dc2959bc9b63fdf1901ab0932b9112"
+  },
+  {
+    "path": "src/components/toolbar/time-lane.jsx",
+    "before_sha256": "37026f1a7e1e1264980a5eedd2f49289aeb62c7bc5da912adb82f2401059e7f2",
+    "after_sha256": "e0fd6088f8dac2771286cc3de5caf9aa8b2a6296876c6a68b5a6db45aa3278a7"
+  },
+  {
+    "path": "src/components/toolbox/gate-toolbox.jsx",
+    "before_sha256": "d9dcfb3e73d0f571802262c44d9ec93a0bf639d2287f658041651ab80c43aa76",
+    "after_sha256": "81a75f278c2dc3e86133dbf5709b1c14fab6c4b57507c5c3f5df0052f4838aa0"
+  },
+  {
+    "path": "src/draw/displays/density/DensityMatrixView.js",
+    "before_sha256": "2fae5270a94580b4a7a719971db6b3ad40f3bf4ae7d705cdb35b376abd8a2b85",
+    "after_sha256": "e157d08658f4c258396fb19e46874e1f805eb5280b3501437b51281599c45094"
+  },
+  {
+    "path": "src/draw/displays/probability/ProbabilityView.js",
+    "before_sha256": "55e7f6cefbe03d6a281037ea75cbbf28b1f9587aff4a0b8b1ea5517ce2c12ae6",
+    "after_sha256": "97b83a37d234000acda8c692a46eec887048064220d3d25f94284e7053218833"
+  },
+  {
+    "path": "src/draw/displays/probability/SampleView.js",
+    "before_sha256": "05386a81a082b38b8586f38f35bdb711e3290f52bcc36f0882f84e535c80f34a",
+    "after_sha256": "72450f50b187d4dc3bcd5eaebf6dd70973fe3a97ce78993962ecf1ece93ccccb"
+  },
+  {
+    "path": "src/draw/renderers/dataRenderers.js",
+    "before_sha256": "6acb86f5732c3305a82045021d481decbb1fafe7fc4efcfbdfe062c662aaa702",
+    "after_sha256": "2f64001a169ee7c907d6da18b80390c28c849504906f704ff2225d603bee6982"
+  },
+  {
+    "path": "src/editor/rendering/outputs/CircuitAmplitudes.js",
+    "before_sha256": "1069119a87f5b2201bc0737eaaace130a0f03fac1dbf8543dbe17feb188bf046",
+    "after_sha256": "76735fb5f6e60436e1cb2c01043e9575e546d8acdcb8f039714864be29b0b335"
+  },
+  {
+    "path": "src/editor/rendering/outputs/CircuitCaptions.js",
+    "before_sha256": "d37232708f7857a220eb707a356edb69be9de4391cb74595bad517259ceb1e63",
+    "after_sha256": "9125a1030f7a0bdb35e859c88c62cb5b505378a94ab8cc8b2205a39ca1ef580e"
+  },
+  {
+    "path": "src/engine/simulation/CircuitComputeUtil.js",
+    "before_sha256": "692df2726bce7d1660f98b2c7a66518b8d2fc030c5ac2431f69e5c18a57bf0fd",
+    "after_sha256": "08b779c7d46302e641027d611b490ac4ba72d37c9465c2284efbcff145954ddc"
+  },
+  {
+    "path": "src/gates/AllGates.js",
+    "before_sha256": "a4ce64733a3a168508797829881c7df23f3befd0391c268265f41ac94244c3a2",
+    "after_sha256": "13ebe80a6262e977d47eba2149485e6e802edd79e28f860a5bdde8f0aad6522b"
+  },
+  {
+    "path": "src/gates/assertions/AssertionGates.js",
+    "before_sha256": "a15421bd8cfa0e739e4f58077aaa600857d4ed83583d0f7e73c9ccaa8394ff9f",
+    "after_sha256": "303a58a46581a9e87fa0386688e3b0ea5b4dfeef04893ff7105e8c49978444d4"
+  },
+  {
+    "path": "src/gates/displays/amplitudes/AmplitudeDisplay.js",
+    "before_sha256": "2066149278730c2d50a02157ef0d69308cd3467703317cba3333392778e3aa69",
+    "after_sha256": "af5601d78feaf898d56770bef92a0873018c4a0ba5e27181dc3ddccce0df3ae2"
+  },
+  {
+    "path": "src/gates/displays/bloch/BlochSphereDisplay.js",
+    "before_sha256": "47902c5d90b861edcbaa8e7a98b17135b5646420800354e30b42b870b45c0030",
+    "after_sha256": "24518f2214ee6b0633fd4a38683d399d88c951031449bd1fad73c003ef5d5056"
+  },
+  {
+    "path": "src/gates/displays/density/DensityMatrixDisplay.js",
+    "before_sha256": "12c047b65ca061fbce4ad42974dc6af94966d86947efe3191706838e82f07d17",
+    "after_sha256": "3ba7fa6f71822ff713fab03a5aee8aaf37499f152c6c09b0750b3b08e115b862"
+  },
+  {
+    "path": "src/gates/displays/probability/ProbabilityDisplay.js",
+    "before_sha256": "ddee8cd32571b7b8e3bd5fcb1b292650f2f48b81f990e215d2426cbeb50ca65c",
+    "after_sha256": "b2665d8a78f2e21472e0b5e793998bc7eaa744dd66d2b0a338ce1e39d6a1f32f"
+  },
+  {
+    "path": "src/gates/displays/sample/SampleDisplay.js",
+    "before_sha256": "63808b050ad241d18446d0a9b324ffa95cb00fa920dd3ac5046cc44bd6dc590b",
+    "after_sha256": "1dbbe6283d4e5548d5daf627e3a93f1a4ccdc3118b01fdcbf9f0e0700588fbae"
+  },
+  {
+    "path": "src/gates/misc/AmplitudeNegationGate.js",
+    "before_sha256": null,
+    "after_sha256": "dea53efed292f03637e9e2c3868bd1b531c55a170ab0635f8fd71cd2fc134697"
+  },
+  {
+    "path": "src/gates/misc/Joke_ImaginaryGate.js",
+    "before_sha256": "517912d3e52b05d1c6c47b36f0ee208aaebe86ce5ed4bef202e559ca3852f2b1",
+    "after_sha256": null
+  },
+  {
+    "path": "src/gates/misc/Joke_MysteryGate.js",
+    "before_sha256": "ef2d91c2b4c3bb450a86afd54eb72077c1ae08db911b4cad5611e3d69aa27d76",
+    "after_sha256": null
+  },
+  {
+    "path": "src/gates/misc/Joke_NeGate.js",
+    "before_sha256": "993eb2d55b28bb5084af11a9d9cfc5f3d75f48170011660ba190867cb7ea7161",
+    "after_sha256": null
+  },
+  {
+    "path": "src/gates/misc/Joke_ZeroGate.js",
+    "before_sha256": "95607136e42ab2ad132dfaff77540497abb563210683b37f3a6bd5f1eaaff719",
+    "after_sha256": null
+  },
+  {
+    "path": "src/gates/misc/RandomUnitaryGate.js",
+    "before_sha256": null,
+    "after_sha256": "390e653ddf6e342fb31bb29d7b41e8ebe1d5db3d379d0c36c82e8f8a71fb4034"
+  },
+  {
+    "path": "src/gates/misc/ScalarPhaseGates.js",
+    "before_sha256": null,
+    "after_sha256": "31ab5605a8a7a13ee97385a2e09784c9d53b033c2cb08125cdfbbd788ef66448"
+  },
+  {
+    "path": "src/gates/misc/SwapGateHalf.js",
+    "before_sha256": "c18206266e6f25fa6db68ade85bfe9fd2179d77a2cd285828efb13b1f6e6d695",
+    "after_sha256": "1f12bdb0426d1df9cf972889fbf42ae90e20bd418a15084e9375fd82d77d1eca"
+  },
+  {
+    "path": "src/gates/misc/ZeroGate.js",
+    "before_sha256": null,
+    "after_sha256": "da2b2c7a34a16b4f641c7a9bb27d7bf46e9b160ef7e0c03b964053ae8e2ab08c"
+  },
+  {
+    "path": "src/gates/probes/MeasurementGate.js",
+    "before_sha256": "d8ebd711ee55479b81105b61dbc4b2a7c1e9a57366b7f2c97a01bbc35cc0d2a6",
+    "after_sha256": "63e8bed7a4e36d6f00ec2a04c3deded2a933a4ec9d3c6c2d74c3e45325f0cf14"
+  },
+  {
+    "path": "src/results/README.md",
+    "before_sha256": "ed716e81c8b4a4aeb17fc5850e848d51d8d42807593a2efa9458bb0498755cf7",
+    "after_sha256": "65ee51c40dd526a04be6870496e2a0a2b8e047e0f5f6f75b9701ed3423c39452"
+  },
+  {
+    "path": "src/results/files/json.js",
+    "before_sha256": "638484bc0be7e44565112463dfe1d0345b58ed048d33ef6d6771a68acf076dad",
+    "after_sha256": "b00d2a52f3bac702242c1bbcaae4b28a089a6d39d276e943cd6783f11e6bcf60"
+  },
+  {
+    "path": "src/results/files/link.js",
+    "before_sha256": "67f4551dabe1003b3a499ff303ed1e993722e14877b48953b4016438b0403906",
+    "after_sha256": "aa7e6bf4caf3c58e8d706e13e86633c519b11f991bc3e35cb9b22cf174034163"
+  },
+  {
+    "path": "src/results/take/snapshot.js",
+    "before_sha256": "c5cd90510fb469b4160b4950db2abcdeb9ebcc08eef4862fc9e7cd35d1abb745",
+    "after_sha256": "17d46adba6b8ceb06959ad7fb40c29f2cb6989d7897a84e10221486f85e3e3f5"
+  },
+  {
+    "path": "src/results/take/validation.js",
+    "before_sha256": "edcdcf377399678dbb00d11f7804d38a5424ce180e559639a2e5053da4e52a91",
+    "after_sha256": "2faeca0b06c97f70640a844143c23b469d2b42f0b042c8b766c4c46599b2f258"
+  },
+  {
+    "path": "src/results/take/values.js",
+    "before_sha256": "7473d013467f2614a255c8006c3aa93ad50ddafddedc9f32656118b00adcaf47",
+    "after_sha256": "b6e1b0d7b0872f093550522ee51ceba3abac7ed4a58a6384f18be24af21d95da"
+  },
+  {
+    "path": "src/results/tapeStore.js",
+    "before_sha256": "95ac5067f3535ba891d662a545834eb18fe8bd48e10667fc8bb4450abd12330b",
+    "after_sha256": "0f40c29aed207bae48564aa10700fdc801e7d10df6d494bfc93b0c2aa1c01da4"
+  },
+  {
+    "path": "src/serialization/gates/matrix.js",
+    "before_sha256": "d30bc3efb50568ad5e332c045c7c8bf24dc5c54531bb73002ceece5debad004c",
+    "after_sha256": "ac129c49b08d5712831a9907e206c4434d633b6ea24c5c8f89e6798c044ec97a"
+  },
+  {
+    "path": "src/state/appStore.js",
+    "before_sha256": "7c4a1e68155851e5cb9c8ed690d840e384999924b2cc2e28806c0701d887641a",
+    "after_sha256": "5f280314c7c33f2aecb31fe83c743161ed23d161eead53a79d23b4995ae02ad9"
+  },
+  {
+    "path": "src/styles/panels/tape.css",
+    "before_sha256": "9443a320ed20e1ca42fccfa631d935e9a766d56cb9b6af5016e3e1e5d110d679",
+    "after_sha256": "c60270a07e9ddd92cae2208b8fe55fb30dabae5495abe9081b58e8c23b3275c0"
+  },
+  {
+    "path": "test/results/take-validation.test.js",
+    "before_sha256": "d9bcb6823c7002ee50ea0b16ad172070ce699319efaaf3859840be125b8acde0",
+    "after_sha256": "916fd575b1301a80a2d15256f36bc9e67636d245cb637659dd8ce64ab4f20285"
+  },
+  {
+    "path": "test/serialization/Serializer.test.js",
+    "before_sha256": "70aba43261cbaed93fd87f577723ebca2a30dd8cd981fb04bc46a641908367ef",
+    "after_sha256": "0cc27e77b7db821fced9b60a1bca993204435152f3d38e0d47d01b2a0f5298f2"
+  },
+  {
+    "path": "test_e2e/overlays.test.js",
+    "before_sha256": "02692469992ca1c1fb2d0dcddd679edae2358426e4ea8a1da5a03d7f1ab3cbb3",
+    "after_sha256": "fd5440212999335ddb2541446669b893e3c788cb0811626e00005ee7fbafd6b3"
+  },
+  {
+    "path": "test_e2e/selection.test.js",
+    "before_sha256": "3d31dab6ed8c80d2b8cbf0847a013826ec6cef9e7cd5cf336f0b8aebc0a9caf7",
+    "after_sha256": "3b31d3fc6ad28b35cd0330f1ce8a4157134e3c6c0987cab0d7c40952b0b08f20"
+  },
+  {
+    "path": "test_e2e/tape.test.js",
+    "before_sha256": "f79795da6b99905d55737b63b41484adb2623e4b1597caf49a5179067e5b38ad",
+    "after_sha256": "1abd690a17f5907f12ee78dbdbb148a2d21c7cc87b24f8f52ae4e6b93b719722"
+  },
+  {
+    "path": "test_e2e/toolbar.test.js",
+    "before_sha256": "75fcf7f59f01a64734036df0a428893855503103412b76dede16cdb0630776b0",
+    "after_sha256": "d5b7af496536d44b2cb3dd312a3cbc1f0d193c60561e11f124342adc5766bc44"
+  }
+]

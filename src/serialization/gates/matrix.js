@@ -16,8 +16,15 @@
 
 import { isPowerOf2 } from "../../engine/math/powersOfTwo.js";
 import { GateBuilder } from "../../circuit/model/Gate.js";
-import { MysteryGateSymbol, MysteryGateMakerWithMatrix } from "../../gates/misc/Joke_MysteryGate.js";
-import { MATRIX_RENDERER, LABEL_RENDERER, LOCATION_INDEPENDENT_GATE_RENDERER } from "../../draw/gate/GateRenderers.js";
+import {
+  MysteryGateSymbol,
+  MysteryGateMakerWithMatrix,
+} from "../../gates/misc/RandomUnitaryGate.js";
+import {
+  MATRIX_RENDERER,
+  LABEL_RENDERER,
+  LOCATION_INDEPENDENT_GATE_RENDERER,
+} from "../../draw/gate/GateRenderers.js";
 import { fromJson_Matrix } from "../numeric/values.js";
 
 /**
@@ -51,7 +58,7 @@ function _parseGateMatrix(matrixProp) {
 function fromJson_Gate_Matrix(props) {
   const matrix = _parseGateMatrix(props.matrix);
 
-  // Special case the mystery gate.
+  // Preserve the legacy random unitary gate ID.
   if (props.id === MysteryGateSymbol) {
     return MysteryGateMakerWithMatrix(matrix);
   }

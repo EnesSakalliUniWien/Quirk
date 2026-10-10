@@ -9,11 +9,7 @@ function ExportPanel() {
   const deps = useStore(appStore, (s) => s.panelDeps);
   // The body is split out because it observes the revision, and a hook cannot be skipped while
   // the circuit is still starting up.
-  return deps === undefined ? (
-    null
-  ) : (
-    <ExportPanelBody deps={deps} />
-  );
+  return deps === undefined ? null : <ExportPanelBody deps={deps} />;
 }
 
 export { ExportPanel };

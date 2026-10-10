@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import {describe} from "../base/Describe.js"
-import {iconElement} from "../resources/icons/index.js"
+import { describe } from "../base/Describe.js";
+import { iconElement } from "../resources/icons/index.js";
 
 /**
  * The app's error surface: a dismissible banner over the circuit area, fed by the global error
@@ -24,7 +24,8 @@ import {iconElement} from "../resources/icons/index.js"
  * (nothing to interact with anyway), so nothing here should steal focus or evict an open dialog.
  */
 
-const NEW_ISSUE_URL = 'https://github.com/EnesSakalliUniWien/Quirk/issues/new?title=';
+const NEW_ISSUE_URL =
+  "https://github.com/EnesSakalliUniWien/Quirk/issues/new?title=";
 
 /**
  * How long a fresh banner survives circuit changes. The change that *caused* a recovery (like a
@@ -39,7 +40,7 @@ const EDIT_DISMISS_GRACE_MILLIS = 2000;
  * redraw loop's own observer resizes the canvas it watches beside, so they fire in normal use.
  */
 const IGNORED_ERROR_PATTERNS = [
-    /ResizeObserver loop (limit exceeded|completed with undelivered notifications)/,
+  /ResizeObserver loop (limit exceeded|completed with undelivered notifications)/,
 ];
 
 /**
@@ -60,24 +61,24 @@ let _state = undefined;
  * @returns {!string}
  */
 function formatDetails(subject, context, error) {
-    return [
-        subject,
-        '',
-        'URL',
-        String(document.location),
-        '',
-        'BROWSER',
-        window.navigator.userAgent,
-        '',
-        'CONTEXT',
-        describe(context),
-        '',
-        'ERROR',
-        describe(error),
-        '',
-        'STACK',
-        (error instanceof Object && error.stack) || 'unknown',
-    ].join('\n');
+  return [
+    subject,
+    "",
+    "URL",
+    String(document.location),
+    "",
+    "BROWSER",
+    window.navigator.userAgent,
+    "",
+    "CONTEXT",
+    describe(context),
+    "",
+    "ERROR",
+    describe(error),
+    "",
+    "STACK",
+    (error instanceof Object && error.stack) || "unknown",
+  ].join("\n");
 }
 
 /**
@@ -86,71 +87,81 @@ function formatDetails(subject, context, error) {
  * @returns {undefined|*}
  */
 function bannerElements() {
-    if (_state.elements !== undefined) {
-        return _state.elements;
-    }
-    if (_state.host === undefined) {
-        return undefined;
-    }
-
-    const banner = document.createElement('div');
-    banner.className = 'error-banner';
-    banner.id = 'error-banner';
-    banner.hidden = true;
-
-    const message = document.createElement('span');
-    message.className = 'error-banner-message';
-    message.id = 'error-banner-message';
-    // An alert, so screen readers announce the failure without the banner stealing focus.
-    message.setAttribute('role', 'alert');
-
-    const count = document.createElement('span');
-    count.className = 'error-banner-count';
-    count.hidden = true;
-
-    const copyButton = document.createElement('button');
-    copyButton.type = 'button';
-    copyButton.className = 'error-banner-button';
-    copyButton.textContent = 'Copy details';
-    copyButton.addEventListener('click', () => {
-        navigator.clipboard.writeText(_state.detailsText || '').then(() => {
-            copyButton.textContent = 'Copied';
-            setTimeout(() => copyButton.textContent = 'Copy details', 1500);
-        }, () => {});
-    });
-
-    const reportAnchor = document.createElement('a');
-    reportAnchor.className = 'error-banner-button';
-    reportAnchor.textContent = 'Report an issue';
-    reportAnchor.target = '_blank';
-    reportAnchor.rel = 'noreferrer noopener';
-
-    const dismissButton = document.createElement('button');
-    dismissButton.type = 'button';
-    dismissButton.className = 'error-banner-button error-banner-dismiss';
-    // The x comes from src/resources/icons, the app's one home for the icons it draws itself.
-    dismissButton.appendChild(iconElement('x'));
-    dismissButton.setAttribute('aria-label', 'Dismiss the error message');
-    dismissButton.addEventListener('click', dismissErrorBanner);
-
-    banner.append(message, count, copyButton, reportAnchor, dismissButton);
-    _state.host.appendChild(banner);
-    _state.elements = {banner, message, count, copyButton, reportAnchor, dismissButton};
+  if (_state.elements !== undefined) {
     return _state.elements;
+  }
+  if (_state.host === undefined) {
+    return undefined;
+  }
+
+  const banner = document.createElement("div");
+  banner.className = "error-banner";
+  banner.id = "error-banner";
+  banner.hidden = true;
+
+  const message = document.createElement("span");
+  message.className = "error-banner-message";
+  message.id = "error-banner-message";
+  // An alert, so screen readers announce the failure without the banner stealing focus.
+  message.setAttribute("role", "alert");
+
+  const count = document.createElement("span");
+  count.className = "error-banner-count";
+  count.hidden = true;
+
+  const copyButton = document.createElement("button");
+  copyButton.type = "button";
+  copyButton.className = "error-banner-button";
+  copyButton.textContent = "Copy details";
+  copyButton.addEventListener("click", () => {
+    navigator.clipboard.writeText(_state.detailsText || "").then(
+      () => {
+        copyButton.textContent = "Copied";
+        setTimeout(() => (copyButton.textContent = "Copy details"), 1500);
+      },
+      () => {},
+    );
+  });
+
+  const reportAnchor = document.createElement("a");
+  reportAnchor.className = "error-banner-button";
+  reportAnchor.textContent = "Report an issue";
+  reportAnchor.target = "_blank";
+  reportAnchor.rel = "noreferrer noopener";
+
+  const dismissButton = document.createElement("button");
+  dismissButton.type = "button";
+  dismissButton.className = "error-banner-button error-banner-dismiss";
+  // The x comes from src/resources/icons, the app's one home for the icons it draws itself.
+  dismissButton.appendChild(iconElement("x"));
+  dismissButton.setAttribute("aria-label", "Dismiss the error message");
+  dismissButton.addEventListener("click", dismissErrorBanner);
+
+  banner.append(message, count, copyButton, reportAnchor, dismissButton);
+  _state.host.appendChild(banner);
+  _state.elements = {
+    banner,
+    message,
+    count,
+    copyButton,
+    reportAnchor,
+    dismissButton,
+  };
+  return _state.elements;
 }
 
 /**
  * @param {!{kind: !string, title: !string, detailsText: !string}} report
  */
 function showBanner(report) {
-    if (_state.banner !== undefined && _state.banner.title === report.title) {
-        _state.banner.count += 1;
-    } else {
-        _state.banner = {kind: report.kind, title: report.title, count: 1};
-    }
-    _state.detailsText = report.detailsText;
-    _state.shownAt = Date.now();
-    renderBanner();
+  if (_state.banner !== undefined && _state.banner.title === report.title) {
+    _state.banner.count += 1;
+  } else {
+    _state.banner = { kind: report.kind, title: report.title, count: 1 };
+  }
+  _state.detailsText = report.detailsText;
+  _state.shownAt = Date.now();
+  renderBanner();
 }
 
 /**
@@ -158,19 +169,20 @@ function showBanner(report) {
  * @returns {void}
  */
 function renderBanner() {
-    const els = bannerElements();
-    if (els === undefined) {
-        return;
-    }
-    const {kind, title, count} = _state.banner;
-    els.message.textContent = title;
-    els.reportAnchor.href = NEW_ISSUE_URL + encodeURIComponent(`Encountered error: ${title}`);
-    els.count.textContent = `×${count}`;
-    els.count.hidden = count < 2;
-    // Environment problems aren't reportable bugs; the details buttons only accompany crashes.
-    els.copyButton.hidden = kind === 'blocking';
-    els.reportAnchor.hidden = kind === 'blocking';
-    els.banner.hidden = false;
+  const els = bannerElements();
+  if (els === undefined) {
+    return;
+  }
+  const { kind, title, count } = _state.banner;
+  els.message.textContent = title;
+  els.reportAnchor.href =
+    NEW_ISSUE_URL + encodeURIComponent(`Encountered error: ${title}`);
+  els.count.textContent = `×${count}`;
+  els.count.hidden = count < 2;
+  // Environment problems aren't reportable bugs; the details buttons only accompany crashes.
+  els.copyButton.hidden = kind === "blocking";
+  els.reportAnchor.hidden = kind === "blocking";
+  els.banner.hidden = false;
 }
 
 /**
@@ -181,13 +193,13 @@ function renderBanner() {
  * @returns {void}
  */
 function setErrorBannerHost(host) {
-    if (_state === undefined) {
-        return;
-    }
-    _state.host = host;
-    if (_state.banner !== undefined) {
-        renderBanner();
-    }
+  if (_state === undefined) {
+    return;
+  }
+  _state.host = host;
+  if (_state.banner !== undefined) {
+    renderBanner();
+  }
 }
 
 /**
@@ -200,27 +212,36 @@ function setErrorBannerHost(host) {
  * @returns {!function(): void}
  */
 function installErrorReporter(host = undefined) {
-    const prevOnError = window.onerror;
-    const onUnhandledRejection = ev => {
-        reportUnexpectedError(ev.reason instanceof Object && ev.reason.message || String(ev.reason), ev.reason);
-        ev.preventDefault();
-    };
-    _state = {host, prevOnError, onUnhandledRejection, banner: undefined, elements: undefined};
+  const prevOnError = window.onerror;
+  const onUnhandledRejection = (ev) => {
+    reportUnexpectedError(
+      (ev.reason instanceof Object && ev.reason.message) || String(ev.reason),
+      ev.reason,
+    );
+    ev.preventDefault();
+  };
+  _state = {
+    host,
+    prevOnError,
+    onUnhandledRejection,
+    banner: undefined,
+    elements: undefined,
+  };
 
-    window.onerror = (errorMsg, url, lineNumber, columnNumber, errorObj) => {
-        reportUnexpectedError(String(errorMsg), errorObj);
-        return false;
-    };
-    window.addEventListener('unhandledrejection', onUnhandledRejection);
+  window.onerror = (errorMsg, url, lineNumber, columnNumber, errorObj) => {
+    reportUnexpectedError(String(errorMsg), errorObj);
+    return false;
+  };
+  window.addEventListener("unhandledrejection", onUnhandledRejection);
 
-    return () => {
-        window.onerror = prevOnError;
-        window.removeEventListener('unhandledrejection', onUnhandledRejection);
-        if (_state.elements !== undefined) {
-            _state.elements.banner.remove();
-        }
-        _state = undefined;
-    };
+  return () => {
+    window.onerror = prevOnError;
+    window.removeEventListener("unhandledrejection", onUnhandledRejection);
+    if (_state.elements !== undefined) {
+      _state.elements.banner.remove();
+    }
+    _state = undefined;
+  };
 }
 
 /**
@@ -228,24 +249,27 @@ function installErrorReporter(host = undefined) {
  * @param {*} error
  */
 function reportUnexpectedError(subject, error) {
-    try {
-        if (_state === undefined || IGNORED_ERROR_PATTERNS.some(pattern => pattern.test(subject))) {
-            return;
-        }
-        if (_state.banner !== undefined && _state.banner.kind === 'blocking') {
-            // The environment banner already explains the root cause; crash spam only counts up.
-            _state.banner.count += 1;
-            renderBanner();
-            return;
-        }
-        showBanner({
-            kind: 'recovered',
-            title: `An error happened. ${subject}`,
-            detailsText: formatDetails(subject, {source: 'global handler'}, error),
-        });
-    } catch (ex) {
-        console.error('Caused an exception when handling an unexpected error.', ex);
+  try {
+    if (
+      _state === undefined ||
+      IGNORED_ERROR_PATTERNS.some((pattern) => pattern.test(subject))
+    ) {
+      return;
     }
+    if (_state.banner !== undefined && _state.banner.kind === "blocking") {
+      // The environment banner already explains the root cause; crash spam only counts up.
+      _state.banner.count += 1;
+      renderBanner();
+      return;
+    }
+    showBanner({
+      kind: "recovered",
+      title: `An error happened. ${subject}`,
+      detailsText: formatDetails(subject, { source: "global handler" }, error),
+    });
+  } catch (ex) {
+    console.error("Caused an exception when handling an unexpected error.", ex);
+  }
 }
 
 /**
@@ -258,16 +282,24 @@ function reportUnexpectedError(subject, error) {
  * @param {*} error The exception object.
  */
 function reportRecoveredError(recovery, context, error) {
-    if (_state === undefined) {
-        throw error;
-    }
-    console.error('Recovered from unexpected error', {recovery, context, error});
-    if (_state.banner !== undefined && _state.banner.kind === 'blocking') {
-        _state.banner.count += 1;
-        renderBanner();
-        return;
-    }
-    showBanner({kind: 'recovered', title: recovery, detailsText: formatDetails(recovery, context, error)});
+  if (_state === undefined) {
+    throw error;
+  }
+  console.error("Recovered from unexpected error", {
+    recovery,
+    context,
+    error,
+  });
+  if (_state.banner !== undefined && _state.banner.kind === "blocking") {
+    _state.banner.count += 1;
+    renderBanner();
+    return;
+  }
+  showBanner({
+    kind: "recovered",
+    title: recovery,
+    detailsText: formatDetails(recovery, context, error),
+  });
 }
 
 /**
@@ -276,10 +308,10 @@ function reportRecoveredError(recovery, context, error) {
  * @param {!string} message
  */
 function reportBlockingIssue(message) {
-    if (_state === undefined) {
-        return;
-    }
-    showBanner({kind: 'blocking', title: message, detailsText: ''});
+  if (_state === undefined) {
+    return;
+  }
+  showBanner({ kind: "blocking", title: message, detailsText: "" });
 }
 
 /**
@@ -289,28 +321,32 @@ function reportBlockingIssue(message) {
  * @param {!number=} now Injectable for tests.
  */
 function noteCircuitEdited(now = Date.now()) {
-    if (_state === undefined || _state.banner === undefined || _state.banner.kind === 'blocking') {
-        return;
-    }
-    if (now - _state.shownAt < EDIT_DISMISS_GRACE_MILLIS) {
-        return;
-    }
-    dismissErrorBanner();
+  if (
+    _state === undefined ||
+    _state.banner === undefined ||
+    _state.banner.kind === "blocking"
+  ) {
+    return;
+  }
+  if (now - _state.shownAt < EDIT_DISMISS_GRACE_MILLIS) {
+    return;
+  }
+  dismissErrorBanner();
 }
 
 function dismissErrorBanner() {
-    if (_state === undefined || _state.elements === undefined) {
-        return;
-    }
-    _state.elements.banner.hidden = true;
-    _state.banner = undefined;
+  if (_state === undefined || _state.elements === undefined) {
+    return;
+  }
+  _state.elements.banner.hidden = true;
+  _state.banner = undefined;
 }
 
 export {
-    installErrorReporter,
-    setErrorBannerHost,
-    reportRecoveredError,
-    reportBlockingIssue,
-    noteCircuitEdited,
-    dismissErrorBanner
-}
+  installErrorReporter,
+  setErrorBannerHost,
+  reportRecoveredError,
+  reportBlockingIssue,
+  noteCircuitEdited,
+  dismissErrorBanner,
+};

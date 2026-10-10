@@ -1,4 +1,4 @@
-import {Rendering} from "../../config/Rendering.js";
+import { Rendering } from "../../config/Rendering.js";
 import { bin } from "../../base/Format.js";
 
 /** Written entries stay readable through five qubits; larger operators use the zoomable view. */
@@ -35,9 +35,11 @@ function operatorModel(matrix, formatKet, layout = {}) {
   const cols = matrix.width();
   const bits = Math.round(Math.log2(Math.max(rows, cols)));
   const columns = Array.from({ length: cols }, (_, c) => matrix.getColumn(c));
-  const ket = (i) => `|${formatKet === undefined ? bin(i, bits) : formatKet(i)}⟩`;
+  const ket = (i) =>
+    `|${formatKet === undefined ? bin(i, bits) : formatKet(i)}⟩`;
   return {
-    kind: "operator", layout,
+    kind: "operator",
+    layout,
     rows,
     cols,
     at: (row, col) => columns[col][row],
@@ -57,11 +59,13 @@ function stateModel(vector, formatKet, layout = {}) {
   const bits = Math.round(Math.log2(Math.max(rows, 1)));
   const entries = vector.getColumn(0);
   return {
-    kind: "state", layout,
+    kind: "state",
+    layout,
     rows,
     cols: 1,
     at: (row) => entries[row],
-    rowLabel: (i) => `|${formatKet === undefined ? bin(i, bits) : formatKet(i)}⟩`,
+    rowLabel: (i) =>
+      `|${formatKet === undefined ? bin(i, bits) : formatKet(i)}⟩`,
     colLabel: () => "",
   };
 }

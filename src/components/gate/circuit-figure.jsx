@@ -1,3 +1,4 @@
+import { useColourScheme } from "../useColourScheme.js";
 import { useEffect, useRef, useState } from "react";
 import { clock } from "../../base/Clock.js";
 import { RenderCanvas } from "../../draw/surface/RenderCanvas.jsx";
@@ -22,6 +23,7 @@ export function CircuitFigure({
   cycleTime,
   followsText = false,
 }) {
+  const scheme = useColourScheme();
   const canvasRef = useRef(null);
   const host = useRef(null);
   const [ready, setReady] = useState(false);
@@ -40,13 +42,13 @@ export function CircuitFigure({
   }, [responsive]);
   useEffect(() => {
     if (!ready || !canvasRef.current) return;
-    const ratio = window.devicePixelRatio || 1;
     const draw = () => {
-      // The scale rides on the pixel ratio, as the circuit's zoom does, and lines keep at least
-      // their CSS width when it shrinks the drawing.
-      const painter = RenderSurface.forCanvas(canvasRef.current)
-        .resize(width * ratio, shownHeight * ratio)
-        .beginFrame(undefined, ratio * scale, 1 / Math.min(scale, 1));
+      // The scale rides on the pixel ratio, as the circuit's zoom does.
+      const painter = RenderSurface.forCanvas(canvasRef.current).beginCssFrame(
+        width,
+        shownHeight,
+        scale,
+      );
       rectangle(painter, drawingArea(painter), {
         fill: CanvasTheme.surface.gate,
       });
@@ -61,7 +63,18 @@ export function CircuitFigure({
     };
     draw();
     return animate ? clock.onFrame(draw) : undefined;
-  }, [ready, width, height, shownHeight, scale, circuit, time, animate, cycleTime]);
+  }, [
+    ready,
+    width,
+    height,
+    shownHeight,
+    scale,
+    circuit,
+    time,
+    animate,
+    cycleTime,
+    scheme,
+  ]);
   return (
     <div
       ref={host}

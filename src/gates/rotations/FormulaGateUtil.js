@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {ComplexFormula} from "../../engine/math/formula/ComplexFormula.js"
+import { ComplexFormula } from "../../engine/math/formula/ComplexFormula.js";
 
 /**
  * @param {!string} formula
@@ -23,19 +23,22 @@ import {ComplexFormula} from "../../engine/math/formula/ComplexFormula.js"
  * @returns {undefined|!number}
  */
 function parseTimeFormula(formula, time, warn) {
-    const variables = time === undefined ? {} : {t: time};
-    try {
-        const angle = ComplexFormula.parse(formula, {angleUnit: ComplexFormula.RADIANS, variables});
-        if (Math.abs(angle.imag) > 0.0001) {
-            throw new Error(`Non-real angle: ${formula} = ${angle}`);
-        }
-        return angle.real;
-    } catch (ex) {
-        if (warn) {
-            console.warn(ex);
-        }
-        return undefined;
+  const variables = time === undefined ? {} : { t: time };
+  try {
+    const angle = ComplexFormula.parse(formula, {
+      angleUnit: ComplexFormula.RADIANS,
+      variables,
+    });
+    if (Math.abs(angle.imag) > 0.0001) {
+      throw new Error(`Non-real angle: ${formula} = ${angle}`);
     }
+    return angle.real;
+  } catch (ex) {
+    if (warn) {
+      console.warn(ex);
+    }
+    return undefined;
+  }
 }
 
 /** Sample values spanning the time variable's range, for probing whether a formula uses t. */
@@ -49,33 +52,43 @@ const TIME_PROBE_VALUES = [0.02, 1.26, 1.96];
  *     Gates whose parameter must be constant stay stable so an invalid t never forces repaints.
  * @returns {!function(gate: !Gate)}
  */
-function makeUpdateFormulaFunc(symbolOverheadChars=1, allowTimeDependence=true) {
-    return gate => {
-        // A formula is only time-dependent when it fails to parse on its own but succeeds once a
-        // value is substituted for t. A formula that never parses is broken, not time-dependent;
-        // treating it as stable avoids endlessly recomputing a gate that is disabled anyway.
-        const constant = parseTimeFormula(gate.param, undefined, false) !== undefined;
-        const dynamic = allowTimeDependence && !constant &&
-            TIME_PROBE_VALUES.some(t => parseTimeFormula(gate.param, t, false) !== undefined);
-        gate._stableDuration = dynamic ? 0 : Infinity;
+function makeUpdateFormulaFunc(
+  symbolOverheadChars = 1,
+  allowTimeDependence = true,
+) {
+  return (gate) => {
+    // A formula is only time-dependent when it fails to parse on its own but succeeds once a
+    // value is substituted for t. A formula that never parses is broken, not time-dependent;
+    // treating it as stable avoids endlessly recomputing a gate that is disabled anyway.
+    const constant =
+      parseTimeFormula(gate.param, undefined, false) !== undefined;
+    const dynamic =
+      allowTimeDependence &&
+      !constant &&
+      TIME_PROBE_VALUES.some(
+        (t) => parseTimeFormula(gate.param, t, false) !== undefined,
+      );
+    gate._stableDuration = dynamic ? 0 : Infinity;
 
-        // A dialled angle keeps its box two columns wide, so the dial in the column beside it stays
-        // put as the angle's text grows and shrinks; other formulas widen with their text.
-        const dial = gate.hasAngleDial() ? 1 : 0;
-        if (typeof gate.param === 'string') {
-            gate.width = (dial ? 2 : Math.ceil((gate.param.length + symbolOverheadChars) / 5)) + dial;
-            gate.alternate = gate._copy();
-            gate.alternate.alternate = gate;
-            if (gate.param.startsWith('-(') && gate.param.endsWith(')')) {
-                gate.alternate.param = gate.param.slice(2, gate.param.length - 1);
-            } else {
-                gate.alternate.param = `-(${gate.param})`;
-            }
-        } else {
-            gate.width = 1 + dial;
-            gate.alternate = gate;
-        }
-    };
+    // A dialled angle keeps its box two columns wide, so the dial in the column beside it stays
+    // put as the angle's text grows and shrinks; other formulas widen with their text.
+    const dial = gate.hasAngleDial() ? 1 : 0;
+    if (typeof gate.param === "string") {
+      gate.width =
+        (dial ? 2 : Math.ceil((gate.param.length + symbolOverheadChars) / 5)) +
+        dial;
+      gate.alternate = gate._copy();
+      gate.alternate.alternate = gate;
+      if (gate.param.startsWith("-(") && gate.param.endsWith(")")) {
+        gate.alternate.param = gate.param.slice(2, gate.param.length - 1);
+      } else {
+        gate.alternate.param = `-(${gate.param})`;
+      }
+    } else {
+      gate.width = 1 + dial;
+      gate.alternate = gate;
+    }
+  };
 }
 
-export {parseTimeFormula, makeUpdateFormulaFunc, TIME_PROBE_VALUES}
+export { parseTimeFormula, makeUpdateFormulaFunc, TIME_PROBE_VALUES };

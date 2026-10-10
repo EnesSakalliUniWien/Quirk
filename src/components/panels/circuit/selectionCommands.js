@@ -23,9 +23,12 @@ function describeRange({ colStart, colEnd, wireStart, wireEnd }) {
  */
 function describeDependency(dependency) {
   switch (dependency.kind) {
-    case "control": return `the control on q${dependency.row}`;
-    case "swap": return `the swap half on q${dependency.row}`;
-    default: return `${dependency.key} from outside`;
+    case "control":
+      return `the control on q${dependency.row}`;
+    case "swap":
+      return `the swap half on q${dependency.row}`;
+    default:
+      return `${dependency.key} from outside`;
   }
 }
 
@@ -38,7 +41,8 @@ function leftBehind(dependencies) {
     return undefined;
   }
   const named = dependencies.slice(0, 2).map(describeDependency);
-  const more = dependencies.length > 2 ? ` and ${dependencies.length - 2} more` : "";
+  const more =
+    dependencies.length > 2 ? ` and ${dependencies.length - 2} more` : "";
   return `Not copied: ${named.join(", ")}${more}.`;
 }
 
@@ -57,10 +61,16 @@ async function copySelection(actions, write) {
     await write(text);
   } catch (ex) {
     console.warn("Clipboard copy failed.", ex);
-    notify("Nothing copied", "The browser did not allow access to the clipboard.");
+    notify(
+      "Nothing copied",
+      "The browser did not allow access to the clipboard.",
+    );
     return false;
   }
-  notify(`Copied ${describeRange(range)}`, leftBehind(actions.outsideDependencies()));
+  notify(
+    `Copied ${describeRange(range)}`,
+    leftBehind(actions.outsideDependencies()),
+  );
   return true;
 }
 
@@ -115,7 +125,10 @@ function toggleSelectionActive(actions) {
   if (range === undefined || !actions.setDeactivated(off)) {
     return false;
   }
-  notify(`${off ? "Deactivated" : "Activated"} ${describeRange(range)}`, `${shortcut("Z")} undoes it.`);
+  notify(
+    `${off ? "Deactivated" : "Activated"} ${describeRange(range)}`,
+    `${shortcut("Z")} undoes it.`,
+  );
   return true;
 }
 
@@ -140,7 +153,7 @@ function pasteCircuit(actions, text, at) {
 }
 
 /**
- * Opens Make Gate on its Circuit tab, with the selection's columns and wires filled in.
+ * Opens Create gate on its Circuit tab, with the selection's columns and wires filled in.
  *
  * @param {!SelectionActions} actions
  */
@@ -150,12 +163,22 @@ function makeGateFromSelection(actions) {
     return;
   }
   appStore.setState({
-    forgeCircuitDraft: { cols: `${range.colStart + 1}:${range.colEnd}`, rows: `${range.wireStart + 1}:${range.wireEnd}` },
+    forgeCircuitDraft: {
+      cols: `${range.colStart + 1}:${range.colEnd}`,
+      rows: `${range.wireStart + 1}:${range.wireEnd}`,
+    },
   });
   openPanel("forge");
 }
 
 export {
-  copySelection, cutSelection, deleteSelection, toggleSelectionActive, pasteCircuit, makeGateFromSelection,
-  describeRange, describeDependency, shortcut,
+  copySelection,
+  cutSelection,
+  deleteSelection,
+  toggleSelectionActive,
+  pasteCircuit,
+  makeGateFromSelection,
+  describeRange,
+  describeDependency,
+  shortcut,
 };

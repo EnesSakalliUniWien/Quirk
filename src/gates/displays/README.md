@@ -4,13 +4,13 @@ Each display has its own directory. The `*Display.js` entry defines its gate or
 resizable family and connects statistics, result conversion, serialization, and
 rendering through `GateBuilder`.
 
-| Directory | Responsibilities |
-| --- | --- |
-| `amplitudes/` | Conditional amplitude textures, coherence and phase processing, JSON output, and the amplitude gate family. Each GPU shader lives in `shaders/`. |
-| `density/` | Density textures, normalization, measured-bit decoherence, renderers, and the density gate family. The coupling shader lives in `shaders/`. |
-| `probability/` | Probability textures, normalization, JSON output, renderers, and the probability gate family. The probability shader lives in `shaders/`. |
-| `bloch/` | Bloch gate definition and renderer using existing single-qubit density statistics. |
-| `sample/` | Sample gate family and renderer; statistics and JSON conversion reuse `probability/`. |
+| Directory      | Responsibilities                                                                                                                                                                       |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `amplitudes/`  | Conditional amplitude textures, coherence and phase processing, JSON output, and the amplitude gate family. Each GPU shader lives in `shaders/`.                                       |
+| `density/`     | Density textures, normalization, renderers, and the density gate family. Measured-bit decoherence uses `engine/math/matrix/densityMatrix.js`; the coupling shader lives in `shaders/`. |
+| `probability/` | Probability textures, normalization, JSON output, renderers, and the probability gate family. The probability shader lives in `shaders/`.                                              |
+| `bloch/`       | Bloch gate definition and renderer using existing single-qubit density statistics.                                                                                                     |
+| `sample/`      | Sample gate family and renderer; statistics and JSON conversion reuse `probability/`.                                                                                                  |
 
 Dependencies run from gate definitions to their helpers. Amplitude statistics
 import `probabilityStatTexture` directly; Detector imports the probability shader

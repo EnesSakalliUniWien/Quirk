@@ -63,7 +63,10 @@ class WglCompiledShader {
     }
 
     if (gl.getProgramParameter(program, GL.LINK_STATUS) === false) {
-      const validateStatus = gl.getProgramParameter(program, GL.VALIDATE_STATUS);
+      const validateStatus = gl.getProgramParameter(
+        program,
+        GL.VALIDATE_STATUS,
+      );
       const error = gl.getError();
       gl.deleteProgram(program);
       throw new Error(

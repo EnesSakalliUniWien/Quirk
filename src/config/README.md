@@ -7,11 +7,12 @@ change their definitions and reload the app instead of mutating them at runtime.
 - `Layout.js`: circuit dimensions and minimum displayed column count. Derived dimensions are
   calculated before freezing the object so they stay consistent with `UNIT`.
 - `Simulation.js`: wire limits and simulation time constants.
-- `Animation.js`: how everything that moves on screen moves - the gates' cycle and its increment
-  per debug step, the playhead's time per operation, the Bloch glide and its easing, and how
-  often the panels sample the simulation. These are the defaults; the user sets each one in
-  Tape, and `src/state/motionSettings.js` keeps and remembers what they set.
-- `Recording.js`: the default sampling rate of a started recording and the shots each take
+- `Animation.js`: how everything that moves on screen moves - the gates' cycle and the Time lane's
+  nudge, the playhead's time per operation, the Bloch glide and its easing, and how often the
+  panels sample the simulation. The Steps and Time lanes scale the paces by the speeds the viewer
+  picks; the glide and the panels' sampling are defaults the user sets in Tape, which
+  `src/state/motionSettings.js` keeps and remembers.
+- `Recording.js`: the default sampling rate of a started recording and the shots each snapshot
   measures, which the user also sets through `src/state/motionSettings.js`.
 - `Rendering.js`: redraw cooldown and the amplitude drawing detail threshold.
 - `Diagnostics.js`: intentionally mutable WebGL debugging switch. `test/TestUtil.js` enables
@@ -37,9 +38,9 @@ browser colour scheme and theme-colour metadata. Stylesheets consume the assigne
 for layout and interaction states; they do not define theme values or override a stock theme.
 
 The palette is the one the system's appearance asks for: the app has no appearance setting of its
-own. `browser/selectColourScheme.js` reads it before any theme module evaluates, and
-`browser/systemColourScheme.js` reloads the app when the system's appearance changes while it runs,
-once nothing is held or being typed.
+own. `browser/selectColourScheme.js` selects it before the first render.
+`browser/systemColourScheme.js` applies changes in place: immutable palette snapshots update,
+CSS properties are reassigned, and palette-dependent views repaint without resetting session state.
 
 `CanvasTheme.js` and `Typography.js` keep the existing drawing import paths without loading browser mappings.
 The canvas, toolbox chips and drag previews use the same `gateStyle()` function. Tape keeps its

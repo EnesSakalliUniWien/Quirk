@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-import {circuitInArea, inspectorDesiredHeight} from "../geometry/InspectorLayout.js";
+import {
+  circuitInArea,
+  inspectorDesiredHeight,
+} from "../geometry/InspectorLayout.js";
 
 import { Layout } from "../../config/Layout.js";
 import { CircuitViewState } from "./CircuitViewState.js";
@@ -36,7 +39,9 @@ class EditorState {
     /** @type {!PointerInteractionState} */
     this.hand = hand;
     /** @type {!Rect} */
-    this.drawArea = Object.freeze(new Rect(drawArea.x, drawArea.y, drawArea.w, drawArea.h));
+    this.drawArea = Object.freeze(
+      new Rect(drawArea.x, drawArea.y, drawArea.w, drawArea.h),
+    );
     Object.freeze(this);
   }
 
@@ -49,8 +54,9 @@ class EditorState {
    * @returns {!EditorState}
    */
   withArea(drawArea) {
-    return this.drawArea.isEqualTo(drawArea) ? this :
-      new EditorState(drawArea, this.displayedCircuit, this.hand);
+    return this.drawArea.isEqualTo(drawArea)
+      ? this
+      : new EditorState(drawArea, this.displayedCircuit, this.hand);
   }
 
   /**
@@ -82,10 +88,20 @@ class EditorState {
    * @param {!boolean=false} alt
    * @returns {!EditorState}
    */
-  afterGrabbing(duplicate = false, wholeCol = false, ignoreResizeTabs = false, alt = false) {
-    const {newCircuit, newHand} = this.displayedCircuit.tryGrab(
-      this.hand, duplicate, wholeCol, ignoreResizeTabs, alt);
-    return this.withChanges({circuit: newCircuit, hand: newHand});
+  afterGrabbing(
+    duplicate = false,
+    wholeCol = false,
+    ignoreResizeTabs = false,
+    alt = false,
+  ) {
+    const { newCircuit, newHand } = this.displayedCircuit.tryGrab(
+      this.hand,
+      duplicate,
+      wholeCol,
+      ignoreResizeTabs,
+      alt,
+    );
+    return this.withChanges({ circuit: newCircuit, hand: newHand });
   }
 
   /**
@@ -108,11 +124,14 @@ class EditorState {
    * @param {!CircuitViewState} displayedCircuit
    * @returns {!EditorState}
    */
-  withDisplayedCircuit(circuit) { return this.withChanges({circuit}); }
+  withDisplayedCircuit(circuit) {
+    return this.withChanges({ circuit });
+  }
 
-  withChanges({circuit = this.displayedCircuit, hand = this.hand}) {
-    return circuit === this.displayedCircuit && hand === this.hand ? this :
-      new EditorState(this.drawArea, circuit, hand);
+  withChanges({ circuit = this.displayedCircuit, hand = this.hand }) {
+    return circuit === this.displayedCircuit && hand === this.hand
+      ? this
+      : new EditorState(this.drawArea, circuit, hand);
   }
 
   /**
@@ -138,8 +157,9 @@ class EditorState {
   previewDrop() {
     if (!this.hand.isBusy()) return this;
     const circuit = this.displayedCircuit.previewDrop(this.hand);
-    const hand = circuit === this.displayedCircuit ? this.hand : this.hand.withDrop();
-    return this.withChanges({circuit, hand});
+    const hand =
+      circuit === this.displayedCircuit ? this.hand : this.hand.withDrop();
+    return this.withChanges({ circuit, hand });
   }
 
   /**
@@ -147,7 +167,8 @@ class EditorState {
    */
   afterDropping() {
     return this.withChanges({
-      circuit: this.displayedCircuit.afterDropping(this.hand), hand: this.hand.withDrop()
+      circuit: this.displayedCircuit.afterDropping(this.hand),
+      hand: this.hand.withDrop(),
     });
   }
 
@@ -165,7 +186,9 @@ class EditorState {
    * @param {!PointerInteractionState} hand
    * @returns {!EditorState}
    */
-  withHand(hand) { return this.withChanges({hand}); }
+  withHand(hand) {
+    return this.withChanges({ hand });
+  }
 
   /**
    * @param {!CircuitDefinition} newCircuitDefinition
@@ -191,15 +214,22 @@ class EditorState {
   }
 
   /**
-   * @returns {!string}
+   * @returns {!string} The shown circuit as JSON. A circuit definition never changes once made, so
+   *     its JSON is worked out once: the canvas stamps every frame with it, and a selection is
+   *     checked against it on every hover.
    */
   snapshot() {
-    return JSON.stringify(
-      Serializer.toJson(this.displayedCircuit.circuitDefinition),
-      null,
-      0,
-    );
+    const definition = this.displayedCircuit.circuitDefinition;
+    let json = snapshots.get(definition);
+    if (json === undefined) {
+      json = JSON.stringify(Serializer.toJson(definition), null, 0);
+      snapshots.set(definition, json);
+    }
+    return json;
   }
 }
+
+/** Each circuit definition's JSON, kept while the definition is. @type {!WeakMap<!CircuitDefinition, !string>} */
+const snapshots = new WeakMap();
 
 export { EditorState };

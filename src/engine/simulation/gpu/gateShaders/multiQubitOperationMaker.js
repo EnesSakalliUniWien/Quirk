@@ -16,16 +16,17 @@
 
 import { ketShader } from "../KetShaderUtil.js";
 
-const multiQubitOperationMaker = qubitCount => ketShader(
-    `uniform vec4 coefs[${1<<(2*qubitCount-1)}];`,
+const multiQubitOperationMaker = (qubitCount) =>
+  ketShader(
+    `uniform vec4 coefs[${1 << (2 * qubitCount - 1)}];`,
     `
         int row = int(out_id);
         vec2 t = vec2(0.0, 0.0);
-        for (int d = 0; d < ${1<<qubitCount}; d++) {
+        for (int d = 0; d < ${1 << qubitCount}; d++) {
             // Can't index by row, since it's not a constant, so we do a const brute force loop searching for it.
             if (d == row) {
-                for (int k = 0; k < ${1<<(qubitCount-1)}; k++) {
-                    vec4 u = coefs[d*${1<<(qubitCount-1)} + k];
+                for (int k = 0; k < ${1 << (qubitCount - 1)}; k++) {
+                    vec4 u = coefs[d*${1 << (qubitCount - 1)} + k];
                     t += cmul(inp(float(k*2)), u.xy);
                     t += cmul(inp(float(k*2+1)), u.zw);
                 }
@@ -33,6 +34,7 @@ const multiQubitOperationMaker = qubitCount => ketShader(
         }
         return t;
     `,
-    qubitCount);
+    qubitCount,
+  );
 
 export { multiQubitOperationMaker };

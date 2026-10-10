@@ -14,15 +14,23 @@
  * limitations under the License.
  */
 
-import {Suite, assertThat} from "../../TestUtil.js"
-import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js"
-import {GateColumn} from "../../../src/circuit/model/GateColumn.js"
-import {CircuitStats} from "../../../src/engine/simulation/CircuitStats.js"
-import {Complex} from "../../../src/engine/math/complex/Complex.js"
-import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
-import {Gates} from "../../../src/gates/AllGates.js"
-import {ArithmeticGates} from "../../../src/gates/arithmetic/ArithmeticGates.js"
-import {circuitAlgebra, describeColumn, paddedState} from "../../../src/engine/simulation/stepAlgebra.js"
+import { Suite, assertThat } from "../../TestUtil.js";
+import { CircuitDefinition } from "../../../src/circuit/model/CircuitDefinition.js";
+import { GateColumn } from "../../../src/circuit/model/GateColumn.js";
+import { CircuitStats } from "../../../src/engine/simulation/CircuitStats.js";
+import { Complex } from "../../../src/engine/math/complex/Complex.js";
+import { Matrix } from "../../../src/engine/math/matrix/Matrix.js";
+import { Gates } from "../../../src/gates/AllGates.js";
+import { ArithmeticGates } from "../../../src/gates/arithmetic/ArithmeticGates.js";
+import { Shaders } from "../../../src/engine/webgl/operations/Shaders.js";
+import { StablePrefix } from "../../../src/engine/simulation/StablePrefix.js";
+import {
+  circuitAlgebra,
+  describeColumn,
+  paddedState,
+  releaseStepStates,
+  stepStates,
+} from "../../../src/engine/simulation/stepAlgebra.js";
 
 const suite = new Suite("stepAlgebra");
 
@@ -37,7 +45,10 @@ const s = Math.SQRT1_2;
  * @returns {!CircuitDefinition}
  */
 const circuitOf = (wires, ...columns) =>
-    new CircuitDefinition(wires, columns.map(gates => new GateColumn(gates)));
+  new CircuitDefinition(
+    wires,
+    columns.map((gates) => new GateColumn(gates)),
+  );
 
 /**
  * @param {!CircuitDefinition} circuit
@@ -45,7 +56,11 @@ const circuitOf = (wires, ...columns) =>
  * @returns {!CircuitAlgebra}
  */
 const algebraOf = (circuit, previous = undefined) =>
-    circuitAlgebra(CircuitStats.fromCircuitAtTime(circuit, 0), circuit.numWires, previous);
+  circuitAlgebra(
+    CircuitStats.fromCircuitAtTime(circuit, 0),
+    circuit.numWires,
+    previous,
+  );
 
 /**
  * @param {!Matrix} matrix
@@ -54,124 +69,388 @@ const algebraOf = (circuit, previous = undefined) =>
  * @returns {!Array.<!number>} The entry's real and imaginary parts.
  */
 const entry = (matrix, row, col) => {
-    const k = (row * matrix.width() + col) * 2;
-    return [matrix.rawBuffer()[k], matrix.rawBuffer()[k + 1]];
+  const k = (row * matrix.width() + col) * 2;
+  return [matrix.rawBuffer()[k], matrix.rawBuffer()[k + 1]];
 };
 
 suite.test("a step's matrix is its column's operator", () => {
-    assertThat(algebraOf(circuitOf(1, [H])).steps[0].matrix).
-        isApproximatelyEqualTo(Matrix.square(s, s, s, -s), 1e-6);
+  assertThat(
+    algebraOf(circuitOf(1, [H])).steps[0].matrix,
+  ).isApproximatelyEqualTo(Matrix.square(s, s, s, -s), 1e-6);
 
-    // Control on q0 and X on q1 is CNOT with q0 the low bit: it swaps |01> and |11>.
-    assertThat(algebraOf(circuitOf(2, [C, X])).steps[0].matrix).
-        isApproximatelyEqualTo(Matrix.fromRows([
-            [1, 0, 0, 0],
-            [0, 0, 0, 1],
-            [0, 0, 1, 0],
-            [0, 1, 0, 0],
-        ]), 1e-6);
+  // Control on q0 and X on q1 is CNOT with q0 the low bit: it swaps |01> and |11>.
+  assertThat(
+    algebraOf(circuitOf(2, [C, X])).steps[0].matrix,
+  ).isApproximatelyEqualTo(
+    Matrix.fromRows([
+      [1, 0, 0, 0],
+      [0, 0, 0, 1],
+      [0, 0, 1, 0],
+      [0, 1, 0, 0],
+    ]),
+    1e-6,
+  );
 
-    // An empty column changes nothing.
-    assertThat(algebraOf(circuitOf(2, [undefined, undefined])).steps[0].matrix).
-        isApproximatelyEqualTo(Matrix.identity(4), 1e-6);
+  // An empty column changes nothing.
+  assertThat(
+    algebraOf(circuitOf(2, [undefined, undefined])).steps[0].matrix,
+  ).isApproximatelyEqualTo(Matrix.identity(4), 1e-6);
 });
 
-suite.test("the list has every state and every step, and each matrix checks out", () => {
+suite.test(
+  "the list has every state and every step, and each matrix checks out",
+  () => {
     // H, then CNOT, then a Z on the target: a Bell pair with a phase.
-    const circuit = circuitOf(2, [H, undefined], [C, X], [undefined, Gates.HalfTurns.Z]);
-    const {states, steps} = circuitAlgebra(CircuitStats.fromCircuitAtTime(circuit, 0), 2);
+    const circuit = circuitOf(
+      2,
+      [H, undefined],
+      [C, X],
+      [undefined, Gates.HalfTurns.Z],
+    );
+    const { states, steps } = circuitAlgebra(
+      CircuitStats.fromCircuitAtTime(circuit, 0),
+      2,
+    );
     assertThat(states.length).isEqualTo(4);
     assertThat(steps.length).isEqualTo(3);
     assertThat(states[0]).isApproximatelyEqualTo(Matrix.col(1, 0, 0, 0), 1e-6);
     assertThat(states[3]).isApproximatelyEqualTo(Matrix.col(s, 0, 0, -s), 1e-6);
     for (const step of steps) {
-        assertThat(step.reason).isEqualTo(undefined);
-        // This is the check the panel shows the user; it has to hold for real circuits.
-        assertThat(step.residual < 1e-5).isEqualTo(true);
-        // And each matrix really is the step: it takes the state before to the state after.
-        assertThat(step.matrix.times(states[steps.indexOf(step)])).
-            isApproximatelyEqualTo(states[steps.indexOf(step) + 1], 1e-5);
+      assertThat(step.reason).isEqualTo(undefined);
+      // This is the check the panel shows the user; it has to hold for real circuits.
+      assertThat(step.residual < 1e-5).isEqualTo(true);
+      // And each matrix really is the step: it takes the state before to the state after.
+      assertThat(
+        step.matrix.times(states[steps.indexOf(step)]),
+      ).isApproximatelyEqualTo(states[steps.indexOf(step) + 1], 1e-5);
     }
-});
+  },
+);
 
 suite.test("an unchanged time-independent column keeps its matrix", () => {
-    const circuit = circuitOf(2, [H, undefined], [C, X]);
-    const first = circuitAlgebra(CircuitStats.fromCircuitAtTime(circuit, 0), 2);
-    const edited = circuit.withColumns([...circuit.columns, new GateColumn([undefined, H])]);
-    const second = circuitAlgebra(CircuitStats.fromCircuitAtTime(edited, 0), 2, first);
-    // Reused, not recomputed: the same object, not merely an equal one.
-    assertThat(second.steps[0].matrix === first.steps[0].matrix).isEqualTo(true);
-    assertThat(second.steps[1].matrix === first.steps[1].matrix).isEqualTo(true);
-    assertThat(second.steps.length).isEqualTo(3);
+  const circuit = circuitOf(2, [H, undefined], [C, X]);
+  const first = circuitAlgebra(CircuitStats.fromCircuitAtTime(circuit, 0), 2);
+  const edited = circuit.withColumns([
+    ...circuit.columns,
+    new GateColumn([undefined, H]),
+  ]);
+  const second = circuitAlgebra(
+    CircuitStats.fromCircuitAtTime(edited, 0),
+    2,
+    first,
+  );
+  // Reused, not recomputed: the same object, not merely an equal one.
+  assertThat(second.steps[0].matrix === first.steps[0].matrix).isEqualTo(true);
+  assertThat(second.steps[1].matrix === first.steps[1].matrix).isEqualTo(true);
+  assertThat(second.steps.length).isEqualTo(3);
 });
 
-suite.test("the states before the first time-dependent column are kept while time moves", () => {
+suite.test(
+  "the states before the first time-dependent column are kept while time moves",
+  () => {
     const spin = Gates.Powering.XForward;
-    const circuit = circuitOf(2, [H, undefined], [C, X], [spin, undefined], [undefined, H]);
-    const first = circuitAlgebra(CircuitStats.fromCircuitAtTime(circuit, 0.125), 2);
-    const second = circuitAlgebra(CircuitStats.fromCircuitAtTime(circuit, 0.25), 2, first);
+    const circuit = circuitOf(
+      2,
+      [H, undefined],
+      [C, X],
+      [spin, undefined],
+      [undefined, H],
+    );
+    const first = circuitAlgebra(
+      CircuitStats.fromCircuitAtTime(circuit, 0.125),
+      2,
+    );
+    const second = circuitAlgebra(
+      CircuitStats.fromCircuitAtTime(circuit, 0.25),
+      2,
+      first,
+    );
     // Reused, not recomputed: the same objects, up to the state the spinning column starts from.
     for (const k of [0, 1, 2]) {
-        assertThat(second.states[k] === first.states[k]).withInfo({k}).isEqualTo(true);
+      assertThat(second.states[k] === first.states[k])
+        .withInfo({ k })
+        .isEqualTo(true);
     }
     // From the spinning column on, every state is the simulator's at the new time.
-    const fresh = circuitAlgebra(CircuitStats.fromCircuitAtTime(circuit, 0.25), 2);
+    const fresh = circuitAlgebra(
+      CircuitStats.fromCircuitAtTime(circuit, 0.25),
+      2,
+    );
     for (const k of [3, 4]) {
-        assertThat(second.states[k] === first.states[k]).withInfo({k}).isEqualTo(false);
-        assertThat(second.states[k]).withInfo({k}).isApproximatelyEqualTo(fresh.states[k], 0.0001);
+      assertThat(second.states[k] === first.states[k])
+        .withInfo({ k })
+        .isEqualTo(false);
+      assertThat(second.states[k])
+        .withInfo({ k })
+        .isApproximatelyEqualTo(fresh.states[k], 0.0001);
     }
-    assertThat(second.states[3]).isNotApproximatelyEqualTo(first.states[3], 0.0001);
-});
+    assertThat(second.states[3]).isNotApproximatelyEqualTo(
+      first.states[3],
+      0.0001,
+    );
+  },
+);
 
-suite.test("an edited column, another seed or other wires drop the states that depended on them", () => {
+suite.testUsingWebGL(
+  "the states after the first time-dependent column start from the kept prefix, and are the same",
+  () => {
+    const spin = Gates.Powering.XForward;
+    const circuit = circuitOf(
+      2,
+      [H, undefined],
+      [C, X],
+      [spin, undefined],
+      [undefined, H],
+      [X, undefined],
+    );
+    const prefix = new StablePrefix();
+    const at = (time) =>
+      CircuitStats.fromCircuitAtTime(circuit, time, "seed", prefix);
+    const first = circuitAlgebra(at(0.125), 2, undefined, prefix);
+    for (const time of [0.25, 0.5]) {
+      const stats = at(time);
+      const second = circuitAlgebra(stats, 2, first, prefix);
+      const fresh = circuitAlgebra(
+        CircuitStats.fromCircuitAtTime(circuit, time, "seed"),
+        2,
+      );
+      assertThat(second.states.length).isEqualTo(6);
+      for (const k of second.states.keys()) {
+        // Exactly the states of a run from the start, whether kept from before or read from the prefix.
+        assertThat(second.states[k])
+          .withInfo({ k, time })
+          .isEqualTo(fresh.states[k]);
+      }
+      for (const k of [0, 1, 2]) {
+        assertThat(second.states[k] === first.states[k])
+          .withInfo({ k })
+          .isEqualTo(true);
+      }
+    }
+
+    // Spoil the state that is kept: the states after the spinning column are then read from it.
+    const stats = at(0.75);
+    const honest = circuitAlgebra(stats, 2, first);
+    Shaders.color(0, 0, 0, 0).renderTo(
+      prefix.heldFor(stats.circuitDefinition, "seed").state,
+    );
+    // Other stats of the same circuit, since the answer for these is shared.
+    const spoilt = circuitAlgebra(stats.withTime(0.75), 2, first, prefix);
+    assertThat(spoilt.states[2] === honest.states[2]).isEqualTo(true);
+    for (const k of [3, 4]) {
+      assertThat(spoilt.states[k])
+        .withInfo({ k })
+        .isNotApproximatelyEqualTo(honest.states[k], 1e-3);
+    }
+    // The state after the last column is the stats', not read from the run.
+    assertThat(spoilt.states[5]).isEqualTo(honest.states[5]);
+    prefix.release();
+  },
+);
+
+suite.testUsingWebGL(
+  "a state is padded as it is read, and one that already has the wires is not copied",
+  () => {
+    const circuit = circuitOf(2, [H, undefined], [C, X], [undefined, H]);
+    const stats = CircuitStats.fromCircuitAtTime(circuit, 0, "padding");
+    const own = stepStates(stats, 2);
+    // The final state is the stats' own, not a copy of it.
+    assertThat(own[3] === stats.finalState).isEqualTo(true);
+    assertThat(own.map((state) => state.height())).isEqualTo([4, 4, 4, 4]);
+
+    // On more wires the states have zeros after the circuit's amplitudes, as paddedState makes them.
+    const wide = stepStates(stats, 4);
+    assertThat(wide.length).isEqualTo(4);
+    for (const k of wide.keys()) {
+      assertThat(wide[k].height()).withInfo({ k }).isEqualTo(16);
+      assertThat(wide[k]).withInfo({ k }).isEqualTo(paddedState(own[k], 4));
+    }
+    releaseStepStates();
+  },
+);
+
+suite.testUsingWebGL(
+  "the step states kept for the panels to share are let go of on request",
+  () => {
+    const circuit = circuitOf(2, [H, undefined], [C, X], [undefined, H]);
+    const stats = CircuitStats.fromCircuitAtTime(circuit, 0, "release");
+    const read = WebGL2RenderingContext.prototype.readPixels;
+    let reads = 0;
+    WebGL2RenderingContext.prototype.readPixels = function (...args) {
+      reads++;
+      return read.apply(this, args);
+    };
+    try {
+      const states = stepStates(stats, 2);
+      assertThat(stepStates(stats, 2) === states).isEqualTo(true);
+      assertThat(reads).isEqualTo(1);
+      // Once released, nothing is shared: the next asker has them worked out again.
+      releaseStepStates();
+      const again = stepStates(stats, 2);
+      assertThat(again === states).isEqualTo(false);
+      assertThat(again).isEqualTo(states);
+      assertThat(reads).isEqualTo(2);
+    } finally {
+      WebGL2RenderingContext.prototype.readPixels = read;
+    }
+
+    // The states before the first time-dependent column are kept from one time to the next, until then.
+    const spinning = circuitOf(
+      2,
+      [H, undefined],
+      [Gates.Powering.XForward, undefined],
+    );
+    const at = (time) =>
+      stepStates(CircuitStats.fromCircuitAtTime(spinning, time, "release"), 2);
+    const [early, later] = [at(0.1), at(0.2)];
+    assertThat(later[0] === early[0]).isEqualTo(true);
+    releaseStepStates();
+    assertThat(at(0.3)[0] === later[0]).isEqualTo(false);
+    releaseStepStates();
+  },
+);
+
+suite.test(
+  "an edited column, another seed or other wires drop the states that depended on them",
+  () => {
     const circuit = circuitOf(2, [H, undefined], [C, X]);
-    const first = circuitAlgebra(CircuitStats.fromCircuitAtTime(circuit, 0, "a"), 2);
-    const edited = circuit.withColumns([circuit.columns[0], new GateColumn([undefined, X])]);
-    const second = circuitAlgebra(CircuitStats.fromCircuitAtTime(edited, 0, "a"), 2, first);
+    const first = circuitAlgebra(
+      CircuitStats.fromCircuitAtTime(circuit, 0, "a"),
+      2,
+    );
+    const edited = circuit.withColumns([
+      circuit.columns[0],
+      new GateColumn([undefined, X]),
+    ]);
+    const second = circuitAlgebra(
+      CircuitStats.fromCircuitAtTime(edited, 0, "a"),
+      2,
+      first,
+    );
     assertThat(second.states[1] === first.states[1]).isEqualTo(true);
     assertThat(second.states[2] === first.states[2]).isEqualTo(false);
-    const reseeded = circuitAlgebra(CircuitStats.fromCircuitAtTime(circuit, 0, "b"), 2, first);
+    const reseeded = circuitAlgebra(
+      CircuitStats.fromCircuitAtTime(circuit, 0, "b"),
+      2,
+      first,
+    );
     assertThat(reseeded.states[0] === first.states[0]).isEqualTo(false);
-    const widened = circuitAlgebra(CircuitStats.fromCircuitAtTime(circuit, 0, "a"), 3, first);
+    const widened = circuitAlgebra(
+      CircuitStats.fromCircuitAtTime(circuit, 0, "a"),
+      3,
+      first,
+    );
     assertThat(widened.states[0] === first.states[0]).isEqualTo(false);
-});
+  },
+);
 
-suite.test("a column is described by what acts where, and on what condition", () => {
+suite.test(
+  "every step's state comes from one run and one readback, and is shared with the next asker",
+  () => {
+    const circuit = circuitOf(
+      2,
+      [H, undefined],
+      [C, X],
+      [undefined, H],
+      [X, undefined],
+      [undefined, X],
+    );
+    const stats = CircuitStats.fromCircuitAtTime(circuit, 0, "one run");
+    const read = WebGL2RenderingContext.prototype.readPixels;
+    let reads = 0;
+    WebGL2RenderingContext.prototype.readPixels = function (...args) {
+      reads++;
+      return read.apply(this, args);
+    };
+    try {
+      const states = stepStates(stats, 2);
+      assertThat(reads).isEqualTo(1);
+      assertThat(states.length).isEqualTo(6);
+      // A second panel asking about the same stats gets the same answer, without a run.
+      assertThat(stepStates(stats, 2) === states).isEqualTo(true);
+      assertThat(reads).isEqualTo(1);
+    } finally {
+      WebGL2RenderingContext.prototype.readPixels = read;
+    }
+  },
+);
+
+suite.test(
+  "a column is described by what acts where, and on what condition",
+  () => {
     const text = describeColumn(new GateColumn([C, X]));
     assertThat(text.includes(`${X.name} on q1`)).isEqualTo(true);
     assertThat(text.includes("if q0 is")).isEqualTo(true);
-    assertThat(describeColumn(new GateColumn([undefined, undefined]))).isEqualTo("Nothing - the identity");
-});
+    assertThat(
+      describeColumn(new GateColumn([undefined, undefined])),
+    ).isEqualTo("Nothing - the identity");
+  },
+);
 
-suite.test("a column reads the inputs an earlier column set, and follows them when they change", () => {
+suite.test(
+  "a column reads the inputs an earlier column set, and follows them when they change",
+  () => {
     // Set A in the first column; the second adds A into q2..q3.
     const plusA = ArithmeticGates.PlusAFamily.ofSize(2);
-    const circuitWith = a => circuitOf(4,
+    const circuitWith = (a) =>
+      circuitOf(
+        4,
         [Gates.InputGates.SetA.withParam(a), undefined, undefined, undefined],
-        [undefined, undefined, plusA, undefined]);
+        [undefined, undefined, plusA, undefined],
+      );
     const first = algebraOf(circuitWith(1));
     // A = 1 lands in q2: |0000> goes to |0100>.
-    assertThat(entry(first.steps[1].matrix, 4, 0)).isApproximatelyEqualTo([1, 0], 1e-9);
+    assertThat(entry(first.steps[1].matrix, 4, 0)).isApproximatelyEqualTo(
+      [1, 0],
+      1e-9,
+    );
     assertThat(first.steps[1].residual < 1e-5).isEqualTo(true);
 
     // The column is unchanged, but what it reads is not: its operator must not be reused.
     const second = algebraOf(circuitWith(2), first);
-    assertThat(second.steps[1].matrix === first.steps[1].matrix).isEqualTo(false);
-    assertThat(entry(second.steps[1].matrix, 8, 0)).isApproximatelyEqualTo([1, 0], 1e-9);
-});
+    assertThat(second.steps[1].matrix === first.steps[1].matrix).isEqualTo(
+      false,
+    );
+    assertThat(entry(second.steps[1].matrix, 8, 0)).isApproximatelyEqualTo(
+      [1, 0],
+      1e-9,
+    );
+  },
+);
 
-suite.test("past a dense matrix's size every step still has its operator, checked against the simulation", () => {
-    const wide = (...gates) => [...gates, ...Array(10 - gates.length).fill(undefined)];
-    const circuit = circuitOf(10, wide(H), [C, ...Array(8).fill(undefined), X], wide(Gates.IncrementGates.IncrementFamily.ofSize(3)));
-    const {steps} = algebraOf(circuit);
+suite.test(
+  "past a dense matrix's size every step still has its operator, checked against the simulation",
+  () => {
+    const wide = (...gates) => [
+      ...gates,
+      ...Array(10 - gates.length).fill(undefined),
+    ];
+    const circuit = circuitOf(
+      10,
+      wide(H),
+      [C, ...Array(8).fill(undefined), X],
+      wide(Gates.IncrementGates.IncrementFamily.ofSize(3)),
+    );
+    const { steps } = algebraOf(circuit);
     for (const step of steps) {
-        assertThat(step.structure === undefined).withInfo({reason: step.reason}).isEqualTo(false);
-        assertThat(step.matrix).isEqualTo(undefined);
-        assertThat(step.residual < 1e-5).withInfo({residual: step.residual}).isEqualTo(true);
+      assertThat(step.structure === undefined)
+        .withInfo({ reason: step.reason })
+        .isEqualTo(false);
+      assertThat(step.matrix).isEqualTo(undefined);
+      assertThat(step.residual < 1e-5)
+        .withInfo({ residual: step.residual })
+        .isEqualTo(true);
     }
-});
+  },
+);
 
-suite.test("a short simulated state is padded with the untouched wires' zeros", () => {
+suite.test(
+  "a short simulated state is padded with the untouched wires' zeros",
+  () => {
     const padded = paddedState(Matrix.col(s, new Complex(0, s)), 2);
-    assertThat(padded).isApproximatelyEqualTo(Matrix.col(s, new Complex(0, s), 0, 0), 1e-12);
-});
+    assertThat(padded).isApproximatelyEqualTo(
+      Matrix.col(s, new Complex(0, s), 0, 0),
+      1e-12,
+    );
+  },
+);

@@ -16,7 +16,7 @@
 
 import { measureText } from "../text/TextLayout.js";
 import { gateStyle } from "../../config/CanvasTheme.js";
-import {paintGateLabel} from "./GateLabel.js";
+import { paintGateLabel } from "./GateLabel.js";
 import { Typography } from "../../config/Typography.js";
 
 /** @typedef {import('../scene/DisplayView.js').DisplayView} DisplayView */
@@ -37,8 +37,8 @@ function gateSymbolFont(size) {
 const GATE_SYMBOL_FONT = gateSymbolFont(Typography.GATE_SYMBOL_FONT_SIZE);
 
 /**
- * Preferred gate symbol sizes. Try wrapping at the smallest size before Pixi Layout
- * scales an overlong unbreakable label to keep it inside the gate.
+ * Preferred gate symbol sizes. Try wrapping at the smallest size before the gate label
+ * (GateLabel.js) scales an overlong unbreakable label to keep it inside the gate.
  * @type {!Array.<!number>}
  */
 const GATE_SYMBOL_FONT_SIZES = [
@@ -94,7 +94,11 @@ function fitGateSymbol(text, maxWidth) {
 }
 
 /** Draw a symbol without changing the stored gate notation or its circuit footprint. */
-function paintGateSymbol(args, symbolOverride = args.gate.symbol, allowExponent = true) {
+function paintGateSymbol(
+  args,
+  symbolOverride = args.gate.symbol,
+  allowExponent = true,
+) {
   const rect = args.rect.paddedBy(-2);
   const rows = symbolOverride.split("\n").flatMap((line, index) => {
     // Only the first explicit line uses exponent notation, matching existing gate symbols.
@@ -102,13 +106,18 @@ function paintGateSymbol(args, symbolOverride = args.gate.symbol, allowExponent 
     if (splitIndex > 0 && splitIndex < line.length - 1) {
       const base = line.slice(0, splitIndex);
       const exponent = line.slice(splitIndex + 1);
-      const {font} = fitGateSymbol(base + exponent, rect.w);
-      return [[{text: base, font}, {text: exponent, font, exponent: true}]];
+      const { font } = fitGateSymbol(base + exponent, rect.w);
+      return [
+        [
+          { text: base, font },
+          { text: exponent, font, exponent: true },
+        ],
+      ];
     }
-    const {font, lines} = fitGateSymbol(line, rect.w);
-    return lines.map(text => [{text, font}]);
+    const { font, lines } = fitGateSymbol(line, rect.w);
+    return lines.map((text) => [{ text, font }]);
   });
   paintGateLabel(args.painter, rect, rows, gateStyle(args.gate).text);
 }
 
-export {GATE_SYMBOL_FONT, splitGateSymbol, fitGateSymbol, paintGateSymbol};
+export { GATE_SYMBOL_FONT, splitGateSymbol, fitGateSymbol, paintGateSymbol };

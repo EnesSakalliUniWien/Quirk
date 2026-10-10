@@ -1,10 +1,12 @@
 import { useLayoutEffect, useState } from "react";
 
+import { Typography } from "../appearance/typography.js";
+
 /**
- * How an element's text size compares with the document's, which a canvas's own units are made
- * for: 1 unless the element sits in chrome that follows the browser's text size, as the gate
- * details popup does. Read before the first paint, and again whenever the element resizes, which
- * chrome sized in em does when its text size changes.
+ * How an element's text size compares with the size the app is designed at, which a canvas's own
+ * units are made for. The document root follows the browser's text size, and so does chrome sized
+ * from it, as the gate details popup is. Read before the first paint, and again whenever the
+ * element resizes, which chrome sized in rem does when the text size changes.
  *
  * @param {!{current: (null|!Element)}} ref
  * @param {!boolean} enabled False keeps the scale at 1 without watching the element.
@@ -15,8 +17,11 @@ function useTextScale(ref, enabled) {
   useLayoutEffect(() => {
     if (!enabled) return;
     const element = ref.current;
-    const size = (e) => Number.parseFloat(getComputedStyle(e).fontSize);
-    const update = () => setScale(size(element) / size(element.ownerDocument.documentElement));
+    const update = () =>
+      setScale(
+        Number.parseFloat(getComputedStyle(element).fontSize) /
+          Typography.size.root,
+      );
     update();
     const observer = new ResizeObserver(update);
     observer.observe(element);

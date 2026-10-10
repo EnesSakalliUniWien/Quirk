@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import {createValueStore, observeStore} from '../base/valueStore.js';
+import { createValueStore, observeStore } from "../base/valueStore.js";
 import { describe } from "./Describe.js";
 import { equate } from "./Equate.js";
 import { DetailedError } from "./DetailedError.js";
-import {ObservableSource} from "./Obs.js";
+import { ObservableSource } from "./Obs.js";
 
 /**
  * A simple linear revision history tracker, for supporting undo and redo functionality.
@@ -68,7 +68,9 @@ class Revision {
   /**
    * @returns {!Observable.<*>}
    */
-  beforeCommit() {return this._beforeCommit.observable();}
+  beforeCommit() {
+    return this._beforeCommit.observable();
+  }
 
   latestActiveCommit() {
     return observeStore(this._latestActiveCommit);
@@ -114,7 +116,7 @@ class Revision {
     this.index = 0;
     this.isWorkingOnCommit = false;
     this._changes.send(state);
-    this._latestActiveCommit.setState({value: state});
+    this._latestActiveCommit.setState({ value: state });
   }
 
   /**
@@ -136,7 +138,7 @@ class Revision {
     this.isWorkingOnCommit = false;
     const result = this.history[this.index];
     this._changes.send(result);
-    this._latestActiveCommit.setState({value: result});
+    this._latestActiveCommit.setState({ value: result });
     return result;
   }
 
@@ -150,13 +152,16 @@ class Revision {
       this.cancelCommitBeingWorkedOn();
       return;
     }
-    this._beforeCommit.send({before: this.peekActiveCommit(), after: newCheckpoint});
+    this._beforeCommit.send({
+      before: this.peekActiveCommit(),
+      after: newCheckpoint,
+    });
     this.isWorkingOnCommit = false;
     this.index += 1;
     this.history.splice(this.index, this.history.length - this.index);
     this.history.push(newCheckpoint);
     this._changes.send(newCheckpoint);
-    this._latestActiveCommit.setState({value: newCheckpoint});
+    this._latestActiveCommit.setState({ value: newCheckpoint });
   }
 
   /**
@@ -174,7 +179,7 @@ class Revision {
     this.isWorkingOnCommit = false;
     const result = this.history[this.index];
     this._changes.send(result);
-    this._latestActiveCommit.setState({value: result});
+    this._latestActiveCommit.setState({ value: result });
     return result;
   }
 
@@ -190,7 +195,7 @@ class Revision {
     this.isWorkingOnCommit = false;
     const result = this.history[this.index];
     this._changes.send(result);
-    this._latestActiveCommit.setState({value: result});
+    this._latestActiveCommit.setState({ value: result });
     return result;
   }
 
@@ -199,11 +204,11 @@ class Revision {
    */
   toString() {
     return `Revision(${describe({
-        index: this.index,
-        count: this.history.length,
-        workingOnCommit: this.isWorkingOnCommit,
-        head: this.history[this.index],
-      })})`;
+      index: this.index,
+      count: this.history.length,
+      workingOnCommit: this.isWorkingOnCommit,
+      head: this.history[this.index],
+    })})`;
   }
 
   /**

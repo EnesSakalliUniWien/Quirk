@@ -1,12 +1,12 @@
 # Editor responsibilities
 
-| Directory | Responsibility |
-| --- | --- |
-| `state/` | Immutable `CircuitViewState` and `EditorState` snapshots; Zustand editor actions and subscriptions |
-| `editing/` | Gate placement, resizing, column and row edits, register selection and temporary wires |
-| `geometry/` | Circuit rectangles, layout constants, centering and geometry derivation |
+| Directory      | Responsibility                                                                                                 |
+| -------------- | -------------------------------------------------------------------------------------------------------------- |
+| `state/`       | Immutable `CircuitViewState` and `EditorState` snapshots; Zustand editor actions and subscriptions             |
+| `editing/`     | Gate placement, resizing, column and row edits, register selection and temporary wires                         |
+| `geometry/`    | Circuit rectangles, layout constants, centering and geometry derivation                                        |
 | `interaction/` | Zod-validated pointer operations, Pixi targets and gestures, geometry queries for previews and selection boxes |
-| `rendering/` | Circuit and inspector scene descriptions, outputs, warnings and previews |
+| `rendering/`   | Circuit and inspector scene descriptions, outputs, warnings and previews                                       |
 
 `CircuitViewState` contains circuit display state and immutable update methods. Editing methods
 retain convenient entry points into `CircuitEditing`; the state does not import rendering.

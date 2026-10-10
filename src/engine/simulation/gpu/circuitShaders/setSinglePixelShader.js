@@ -14,12 +14,19 @@
  * limitations under the License.
  */
 
-import { Outputs, makePseudoShaderWithInputsAndOutputAndCode } from "../../../webgl/coder/ShaderCoders.js";
+import {
+  Outputs,
+  makePseudoShaderWithInputsAndOutputAndCode,
+} from "../../../webgl/coder/ShaderCoders.js";
 
-const SET_SINGLE_PIXEL_SHADER = makePseudoShaderWithInputsAndOutputAndCode([], Outputs.vec2(), `
+const SET_SINGLE_PIXEL_SHADER = makePseudoShaderWithInputsAndOutputAndCode(
+  [],
+  Outputs.vec2(),
+  `
     uniform float state;
     vec2 outputFor(float k) {
         return vec2(float(k == state), 0.0);
-    }`);
+    }`,
+);
 
 export { SET_SINGLE_PIXEL_SHADER };

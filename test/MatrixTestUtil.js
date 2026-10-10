@@ -19,9 +19,9 @@
 
 import { need } from "../src/base/preconditions.js";
 import { snappedCosSin } from "../src/engine/math/trigonometry.js";
-import {Complex} from "../src/engine/math/complex/Complex.js"
-import {Matrix} from "../src/engine/math/matrix/Matrix.js"
-import {QubitMatrix} from "../src/engine/math/matrix/QubitMatrix.js"
+import { Complex } from "../src/engine/math/complex/Complex.js";
+import { Matrix } from "../src/engine/math/matrix/Matrix.js";
+import { QubitMatrix } from "../src/engine/math/matrix/QubitMatrix.js";
 
 /**
  * Returns the square roots of a complex number.
@@ -29,18 +29,18 @@ import {QubitMatrix} from "../src/engine/math/matrix/QubitMatrix.js"
  * @returns {!Array.<!Complex>}
  */
 function sqrts(z) {
-    const [r, i] = [z.real, z.imag];
-    const m = Math.sqrt(Math.sqrt(r * r + i * i));
-    if (m === 0) {
-        return [Complex.ZERO];
-    }
-    if (i === 0 && r < 0) {
-        return [new Complex(0, m), new Complex(0, -m)];
-    }
+  const [r, i] = [z.real, z.imag];
+  const m = Math.sqrt(Math.sqrt(r * r + i * i));
+  if (m === 0) {
+    return [Complex.ZERO];
+  }
+  if (i === 0 && r < 0) {
+    return [new Complex(0, m), new Complex(0, -m)];
+  }
 
-    const a = z.phase() / 2;
-    const c = Complex.polar(m, a);
-    return [c, c.times(-1)];
+  const a = z.phase() / 2;
+  const c = Complex.polar(m, a);
+  return [c, c.times(-1)];
 }
 
 /**
@@ -51,24 +51,24 @@ function sqrts(z) {
  * @returns {!Array.<!Complex>}
  */
 function rootsOfQuadratic(a, b, c) {
-    a = Complex.from(a);
-    b = Complex.from(b);
-    c = Complex.from(c);
+  a = Complex.from(a);
+  b = Complex.from(b);
+  c = Complex.from(c);
 
-    if (a.isEqualTo(0)) {
-        if (!b.isEqualTo(0)) {
-            return [c.times(-1).dividedBy(b)];
-        }
-        if (!c.isEqualTo(0)) {
-            return [];
-        }
-        throw Error("Degenerate");
+  if (a.isEqualTo(0)) {
+    if (!b.isEqualTo(0)) {
+      return [c.times(-1).dividedBy(b)];
     }
+    if (!c.isEqualTo(0)) {
+      return [];
+    }
+    throw Error("Degenerate");
+  }
 
-    const difs = sqrts(b.times(b).minus(a.times(c).times(4)));
-    const mid = b.times(-1);
-    const denom = a.times(2);
-    return difs.map(d => mid.minus(d).dividedBy(denom));
+  const difs = sqrts(b.times(b).minus(a.times(c).times(4)));
+  const mid = b.times(-1);
+  const denom = a.times(2);
+  return difs.map((d) => mid.minus(d).dividedBy(denom));
 }
 
 /**
@@ -76,7 +76,7 @@ function rootsOfQuadratic(a, b, c) {
  * @returns {!Array.<!Complex>} The cells [a, b, c, d] of {{a, b}, {c, d}}.
  */
 function cells2x2(m) {
-    return [m.cell(0, 0), m.cell(1, 0), m.cell(0, 1), m.cell(1, 1)];
+  return [m.cell(0, 0), m.cell(1, 0), m.cell(0, 1), m.cell(1, 1)];
 }
 
 /**
@@ -85,36 +85,40 @@ function cells2x2(m) {
  * @returns {!Array.<!{val: !Complex, vec: !Matrix}>}
  */
 function eigenDecomposition(m) {
-    if (m.width() !== 2 || m.height() !== 2) {
-        throw new Error("Not implemented: non-2x2 eigen decomposition");
+  if (m.width() !== 2 || m.height() !== 2) {
+    throw new Error("Not implemented: non-2x2 eigen decomposition");
+  }
+  const [a, b, c, d] = cells2x2(m);
+  const vals = rootsOfQuadratic(
+    Complex.ONE,
+    a.plus(d).times(-1),
+    a.times(d).minus(b.times(c)),
+  );
+  if (vals.length === 0) {
+    throw new Error("Degenerate");
+  }
+  if (vals.length === 1) {
+    return [
+      { val: vals[0], vec: Matrix.col(1, 0) },
+      { val: vals[0], vec: Matrix.col(0, 1) },
+    ];
+  }
+  return vals.map((v) => {
+    // x*(a-L) + y*b = 0
+    let [x, y] = [b.times(-1), a.minus(v)];
+    if (x.isEqualTo(0) && y.isEqualTo(0)) {
+      [x, y] = [v.minus(d), c];
     }
-    const [a, b, c, d] = cells2x2(m);
-    const vals = rootsOfQuadratic(Complex.ONE, a.plus(d).times(-1), a.times(d).minus(b.times(c)));
-    if (vals.length === 0) {
-        throw new Error("Degenerate");
+    if (!x.isEqualTo(0)) {
+      y = y.dividedBy(x);
+      x = Complex.ONE;
     }
-    if (vals.length === 1) {
-        return [
-            {val: vals[0], vec: Matrix.col(1, 0)},
-            {val: vals[0], vec: Matrix.col(0, 1)}
-        ];
+    const n = Math.sqrt(x.norm2() + y.norm2());
+    if (n === 0) {
+      throw new Error("Unexpected degenerate");
     }
-    return vals.map(v => {
-        // x*(a-L) + y*b = 0
-        let [x, y] = [b.times(-1), a.minus(v)];
-        if (x.isEqualTo(0) && y.isEqualTo(0)) {
-            [x, y] = [v.minus(d), c];
-        }
-        if (!x.isEqualTo(0)) {
-            y = y.dividedBy(x);
-            x = Complex.ONE;
-        }
-        const n = Math.sqrt(x.norm2() + y.norm2());
-        if (n === 0) {
-            throw new Error("Unexpected degenerate");
-        }
-        return {val: v, vec: Matrix.col(x, y).times(1 / n)};
-    });
+    return { val: v, vec: Matrix.col(x, y).times(1 / n) };
+  });
 }
 
 /**
@@ -125,13 +129,13 @@ function eigenDecomposition(m) {
  * @returns {!Matrix}
  */
 function liftApply(m, complexFunction) {
-    let t = m.times(0);
-    for (const {val, vec} of eigenDecomposition(m)) {
-        const fVal = complexFunction(val);
-        const part = vec.times(vec.adjoint());
-        t = t.plus(part.times(fVal));
-    }
-    return t;
+  let t = m.times(0);
+  for (const { val, vec } of eigenDecomposition(m)) {
+    const fVal = complexFunction(val);
+    const part = vec.times(vec.adjoint());
+    t = t.plus(part.times(fVal));
+  }
+  return t;
 }
 
 /**
@@ -140,16 +144,17 @@ function liftApply(m, complexFunction) {
  * @returns {!Complex}
  */
 function determinant(m) {
-    need(m.width() === m.height(), "Must be square");
-    const n = m.width();
-    if (n === 1) {
-        return m.cell(0, 0);
-    }
-    return Array.from({length: n}, (_, k) => {
-            const cutColMatrix = Matrix.generate(n - 1, n - 1, (r, c) => m.cell(c + (c < k ? 0 : 1), r + 1));
-            return determinant(cutColMatrix).times(m.cell(k, 0)).times(Math.pow(-1, k));
-        }).
-        reduce((a, e) => a.plus(e), Complex.ZERO);
+  need(m.width() === m.height(), "Must be square");
+  const n = m.width();
+  if (n === 1) {
+    return m.cell(0, 0);
+  }
+  return Array.from({ length: n }, (_, k) => {
+    const cutColMatrix = Matrix.generate(n - 1, n - 1, (r, c) =>
+      m.cell(c + (c < k ? 0 : 1), r + 1),
+    );
+    return determinant(cutColMatrix).times(m.cell(k, 0)).times(Math.pow(-1, k));
+  }).reduce((a, e) => a.plus(e), Complex.ZERO);
 }
 
 /**
@@ -159,33 +164,33 @@ function determinant(m) {
  * @returns {!Matrix}
  */
 function tensorProduct(m1, m2) {
-    const w1 = m1.width();
-    const h1 = m1.height();
-    const w2 = m2.width();
-    const h2 = m2.height();
-    const w = w1 * w2;
-    const h = h1 * h2;
-    const buf1 = m1.rawBuffer();
-    const buf2 = m2.rawBuffer();
-    const newBuffer = new Float64Array(w * h * 2);
-    for (let r1 = 0; r1 < h1; r1++) {
-        for (let r2 = 0; r2 < h2; r2++) {
-            for (let c1 = 0; c1 < w1; c1++) {
-                for (let c2 = 0; c2 < w2; c2++) {
-                    const k1 = (r1 * w1 + c1) * 2;
-                    const k2 = (r2 * w2 + c2) * 2;
-                    const k3 = ((r1 * h2 + r2) * w + (c1 * w2 + c2)) * 2;
-                    const cr1 = buf1[k1];
-                    const ci1 = buf1[k1 + 1];
-                    const cr2 = buf2[k2];
-                    const ci2 = buf2[k2 + 1];
-                    newBuffer[k3] = cr1 * cr2 - ci1 * ci2;
-                    newBuffer[k3 + 1] = cr1 * ci2 + ci1 * cr2;
-                }
-            }
+  const w1 = m1.width();
+  const h1 = m1.height();
+  const w2 = m2.width();
+  const h2 = m2.height();
+  const w = w1 * w2;
+  const h = h1 * h2;
+  const buf1 = m1.rawBuffer();
+  const buf2 = m2.rawBuffer();
+  const newBuffer = new Float64Array(w * h * 2);
+  for (let r1 = 0; r1 < h1; r1++) {
+    for (let r2 = 0; r2 < h2; r2++) {
+      for (let c1 = 0; c1 < w1; c1++) {
+        for (let c2 = 0; c2 < w2; c2++) {
+          const k1 = (r1 * w1 + c1) * 2;
+          const k2 = (r2 * w2 + c2) * 2;
+          const k3 = ((r1 * h2 + r2) * w + (c1 * w2 + c2)) * 2;
+          const cr1 = buf1[k1];
+          const ci1 = buf1[k1 + 1];
+          const cr2 = buf2[k2];
+          const ci2 = buf2[k2 + 1];
+          newBuffer[k3] = cr1 * cr2 - ci1 * ci2;
+          newBuffer[k3 + 1] = cr1 * ci2 + ci1 * cr2;
         }
+      }
     }
-    return new Matrix(w, h, newBuffer);
+  }
+  return new Matrix(w, h, newBuffer);
 }
 
 /**
@@ -196,26 +201,35 @@ function tensorProduct(m1, m2) {
  * @param {!Controls} controls
  * @returns {!Matrix}
  */
-function expandedForQubitInRegister(operation, targetQubitOffset, registerSize, controls) {
-    const used = Math.round(Math.log2(operation.width()));
-    const expanded = tensorProduct(
-        tensorProduct(Matrix.identity(1 << (registerSize - targetQubitOffset - used)), operation),
-        Matrix.identity(1 << targetQubitOffset));
-    const w = expanded.width();
-    const h = expanded.height();
-    const buf = expanded.rawBuffer().slice();
+function expandedForQubitInRegister(
+  operation,
+  targetQubitOffset,
+  registerSize,
+  controls,
+) {
+  const used = Math.round(Math.log2(operation.width()));
+  const expanded = tensorProduct(
+    tensorProduct(
+      Matrix.identity(1 << (registerSize - targetQubitOffset - used)),
+      operation,
+    ),
+    Matrix.identity(1 << targetQubitOffset),
+  );
+  const w = expanded.width();
+  const h = expanded.height();
+  const buf = expanded.rawBuffer().slice();
 
-    for (let c = 0; c < w; c++) {
-        for (let r = 0; r < h; r++) {
-            if (!controls.allowsState(c) || !controls.allowsState(r)) {
-                const k = 2 * (c + r * w);
-                buf[k] = c === r ? 1 : 0;
-                buf[k + 1] = 0;
-            }
-        }
+  for (let c = 0; c < w; c++) {
+    for (let r = 0; r < h; r++) {
+      if (!controls.allowsState(c) || !controls.allowsState(r)) {
+        const k = 2 * (c + r * w);
+        buf[k] = c === r ? 1 : 0;
+        buf[k + 1] = 0;
+      }
     }
+  }
 
-    return new Matrix(w, h, buf);
+  return new Matrix(w, h, buf);
 }
 
 /**
@@ -225,39 +239,50 @@ function expandedForQubitInRegister(operation, targetQubitOffset, registerSize, 
  * @param {!Controls} controls
  * @returns {!Matrix}
  */
-function applyToStateVectorAtQubitWithControls(operation, stateVector, qubitIndex, controls) {
-    const stateBuf = stateVector.rawBuffer();
-    const chunkSize = operation.width() * 2;
-    const chunkBuf = stateBuf.slice(0, chunkSize);
-    const strideLength = 2 << qubitIndex;
-    const strideChunkSize = (strideLength * chunkSize) >> 1;
-    const resultBuf = stateBuf.slice();
-    for (let strideChunkStart = 0; strideChunkStart < resultBuf.length; strideChunkStart += strideChunkSize) {
-        for (let strideOffset = 0; strideOffset < strideLength; strideOffset += 2) {
-            if (!controls.allowsState((strideChunkStart | strideOffset) >> 1)) {
-                continue;
-            }
+function applyToStateVectorAtQubitWithControls(
+  operation,
+  stateVector,
+  qubitIndex,
+  controls,
+) {
+  const stateBuf = stateVector.rawBuffer();
+  const chunkSize = operation.width() * 2;
+  const chunkBuf = stateBuf.slice(0, chunkSize);
+  const strideLength = 2 << qubitIndex;
+  const strideChunkSize = (strideLength * chunkSize) >> 1;
+  const resultBuf = stateBuf.slice();
+  for (
+    let strideChunkStart = 0;
+    strideChunkStart < resultBuf.length;
+    strideChunkStart += strideChunkSize
+  ) {
+    for (let strideOffset = 0; strideOffset < strideLength; strideOffset += 2) {
+      if (!controls.allowsState((strideChunkStart | strideOffset) >> 1)) {
+        continue;
+      }
 
-            // Collect inputs into a small contiguous vector.
-            let k = strideChunkStart + strideOffset;
-            for (let i = 0; i < chunkBuf.length; i += 2) {
-                chunkBuf[i] = stateBuf[k];
-                chunkBuf[i + 1] = stateBuf[k + 1];
-                k += strideLength;
-            }
+      // Collect inputs into a small contiguous vector.
+      let k = strideChunkStart + strideOffset;
+      for (let i = 0; i < chunkBuf.length; i += 2) {
+        chunkBuf[i] = stateBuf[k];
+        chunkBuf[i + 1] = stateBuf[k + 1];
+        k += strideLength;
+      }
 
-            const transformedChunk = operation.times(new Matrix(1, chunkBuf.length >> 1, chunkBuf)).rawBuffer();
+      const transformedChunk = operation
+        .times(new Matrix(1, chunkBuf.length >> 1, chunkBuf))
+        .rawBuffer();
 
-            // Scatter outputs.
-            k = strideChunkStart + strideOffset;
-            for (let i = 0; i < chunkBuf.length; i += 2) {
-                resultBuf[k] = transformedChunk[i];
-                resultBuf[k + 1] = transformedChunk[i + 1];
-                k += strideLength;
-            }
-        }
+      // Scatter outputs.
+      k = strideChunkStart + strideOffset;
+      for (let i = 0; i < chunkBuf.length; i += 2) {
+        resultBuf[k] = transformedChunk[i];
+        resultBuf[k + 1] = transformedChunk[i + 1];
+        k += strideLength;
+      }
     }
-    return new Matrix(1, stateVector.height(), resultBuf);
+  }
+  return new Matrix(1, stateVector.height(), resultBuf);
 }
 
 /**
@@ -268,16 +293,17 @@ function applyToStateVectorAtQubitWithControls(operation, stateVector, qubitInde
  * @returns {!Matrix}
  */
 function fromAngleAxisPhaseRotation(angle, axis, phase) {
-    const [x, y, z] = axis;
-    need(Math.abs(x * x + y * y + z * z - 1) < 0.000001, "Not a unit axis.");
+  const [x, y, z] = axis;
+  need(Math.abs(x * x + y * y + z * z - 1) < 0.000001, "Not a unit axis.");
 
-    const vσ = QubitMatrix.PAULI_X.times(x).
-        plus(QubitMatrix.PAULI_Y.times(y)).
-        plus(QubitMatrix.PAULI_Z.times(z));
-    const [cos, sin] = snappedCosSin(-angle / 2);
-    return Matrix.identity(2).times(cos).
-        plus(vσ.times(new Complex(0, sin))).
-        times(Complex.polar(1, phase));
+  const vσ = QubitMatrix.PAULI_X.times(x)
+    .plus(QubitMatrix.PAULI_Y.times(y))
+    .plus(QubitMatrix.PAULI_Z.times(z));
+  const [cos, sin] = snappedCosSin(-angle / 2);
+  return Matrix.identity(2)
+    .times(cos)
+    .plus(vσ.times(new Complex(0, sin)))
+    .times(Complex.polar(1, phase));
 }
 
 /**
@@ -286,19 +312,23 @@ function fromAngleAxisPhaseRotation(angle, axis, phase) {
  * @returns {!boolean}
  */
 function isUpperTriangular(m, epsilon = 0) {
-    const w = m.width();
-    const buf = m.rawBuffer();
-    for (let r = 0; r < m.height(); r++) {
-        for (let c = 0; c < r && c < w; c++) {
-            const k = (r * w + c) * 2;
-            const v1 = buf[k];
-            const v2 = buf[k + 1];
-            if (Number.isNaN(v1) || Number.isNaN(v2) || v1 * v1 + v2 * v2 > epsilon * epsilon) {
-                return false;
-            }
-        }
+  const w = m.width();
+  const buf = m.rawBuffer();
+  for (let r = 0; r < m.height(); r++) {
+    for (let c = 0; c < r && c < w; c++) {
+      const k = (r * w + c) * 2;
+      const v1 = buf[k];
+      const v2 = buf[k + 1];
+      if (
+        Number.isNaN(v1) ||
+        Number.isNaN(v2) ||
+        v1 * v1 + v2 * v2 > epsilon * epsilon
+      ) {
+        return false;
+      }
     }
-    return true;
+  }
+  return true;
 }
 
 /**
@@ -307,28 +337,32 @@ function isUpperTriangular(m, epsilon = 0) {
  * @returns {!boolean}
  */
 function isLowerTriangular(m, epsilon = 0) {
-    const w = m.width();
-    const buf = m.rawBuffer();
-    for (let r = 0; r < m.height(); r++) {
-        for (let c = r + 1; c < w; c++) {
-            const k = (r * w + c) * 2;
-            const v1 = buf[k];
-            const v2 = buf[k + 1];
-            if (Number.isNaN(v1) || Number.isNaN(v2) || v1 * v1 + v2 * v2 > epsilon * epsilon) {
-                return false;
-            }
-        }
+  const w = m.width();
+  const buf = m.rawBuffer();
+  for (let r = 0; r < m.height(); r++) {
+    for (let c = r + 1; c < w; c++) {
+      const k = (r * w + c) * 2;
+      const v1 = buf[k];
+      const v2 = buf[k + 1];
+      if (
+        Number.isNaN(v1) ||
+        Number.isNaN(v2) ||
+        v1 * v1 + v2 * v2 > epsilon * epsilon
+      ) {
+        return false;
+      }
     }
-    return true;
+  }
+  return true;
 }
 
 export {
-    liftApply,
-    determinant,
-    tensorProduct,
-    expandedForQubitInRegister,
-    applyToStateVectorAtQubitWithControls,
-    fromAngleAxisPhaseRotation,
-    isUpperTriangular,
-    isLowerTriangular,
+  liftApply,
+  determinant,
+  tensorProduct,
+  expandedForQubitInRegister,
+  applyToStateVectorAtQubitWithControls,
+  fromAngleAxisPhaseRotation,
+  isUpperTriangular,
+  isLowerTriangular,
 };

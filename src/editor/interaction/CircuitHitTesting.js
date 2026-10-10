@@ -43,7 +43,10 @@ function wireIndexAt(geometry, y) {
  */
 function toColumnSpaceCoordinate(geometry, x) {
   const spacing = CIRCUIT_OP_HORIZONTAL_SPACING + Layout.GATE_RADIUS * 2;
-  const left = geometry.gutterLeft() + CIRCUIT_OP_LEFT_SPACING - CIRCUIT_OP_HORIZONTAL_SPACING / 2;
+  const left =
+    geometry.gutterLeft() +
+    CIRCUIT_OP_LEFT_SPACING -
+    CIRCUIT_OP_HORIZONTAL_SPACING / 2;
   return (x - left) / spacing - 0.5;
 }
 
@@ -142,7 +145,7 @@ function findGateOverlappingPos(geometry, pos) {
     col: target.col,
     row: target.row,
     offset: pos.minus(gateRect.topLeft()),
-};
+  };
 }
 
 /**
@@ -183,4 +186,4 @@ export {
   findOpHalfColumnAt,
   findGateOverlappingPos,
   findWireWithInitialStateAreaContaining,
-  };
+};

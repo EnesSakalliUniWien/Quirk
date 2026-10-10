@@ -1,11 +1,11 @@
-import './BrowserTestHarness.js';
+import "./BrowserTestHarness.js";
 
-import {setCustomGateCircuitRenderer} from '../src/draw/gate/CustomGateCircuitRenderer.js';
-import {GATE_CIRCUIT_RENDERER} from '../src/editor/rendering/previews/CircuitPreview.js';
+import { setCustomGateCircuitRenderer } from "../src/draw/gate/CustomGateCircuitRenderer.js";
+import { GATE_CIRCUIT_RENDERER } from "../src/editor/rendering/previews/CircuitPreview.js";
 
 import "./TestRunner.js";
 
-import.meta.glob("./**/*.test.js", {eager: true});
+import.meta.glob("./**/*.test.js", { eager: true });
 
 setCustomGateCircuitRenderer(GATE_CIRCUIT_RENDERER);
 

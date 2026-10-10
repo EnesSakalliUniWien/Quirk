@@ -14,21 +14,19 @@
  * limitations under the License.
  */
 
-import {Suite, assertThat} from "../../../TestUtil.js"
+import { Suite, assertThat } from "../../../TestUtil.js";
 
-import {CircuitDefinition} from "../../../../src/circuit/model/CircuitDefinition.js"
-import {CircuitStats} from "../../../../src/engine/simulation/CircuitStats.js"
-import {Serializer} from "../../../../src/serialization/Serializer.js"
+import { CircuitDefinition } from "../../../../src/circuit/model/CircuitDefinition.js";
+import { CircuitStats } from "../../../../src/engine/simulation/CircuitStats.js";
+import { Serializer } from "../../../../src/serialization/Serializer.js";
 
 const suite = new Suite("SampleDisplay");
 
 suite.testUsingWebGL("SampleDisplay_SingleZero", () => {
-    const stats = CircuitStats.fromCircuitAtTime(
-        Serializer.fromJson(CircuitDefinition, {"cols":[["Sample1"]]}),
-        0);
-    const out = stats.toReadableJson();
-    assertThat(out.displays[0].data.probabilities).isApproximatelyEqualTo([
-        1,
-        0,
-    ]);
+  const stats = CircuitStats.fromCircuitAtTime(
+    Serializer.fromJson(CircuitDefinition, { cols: [["Sample1"]] }),
+    0,
+  );
+  const out = stats.toReadableJson();
+  assertThat(out.displays[0].data.probabilities).isApproximatelyEqualTo([1, 0]);
 });

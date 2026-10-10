@@ -77,11 +77,7 @@ class FormulaParser {
     };
 
     const burnOps = (w) => {
-      while (
-        ops.length > 0 &&
-        vals.length >= 2 &&
-        vals.at(-1) !== undefined
-      ) {
+      while (ops.length > 0 && vals.length >= 2 && vals.at(-1) !== undefined) {
         const top = ops.at(-1);
         if (top.w === undefined || top.w < w) {
           break;
@@ -184,11 +180,11 @@ class FormulaParser {
       if (!tokens[s].match(/[0-9]/)) {
         continue;
       }
-      if ((`${tokens[e]}`).match(/[+-]/)) {
+      if (`${tokens[e]}`.match(/[+-]/)) {
         e += 1;
       }
 
-      if ((`${tokens[e]}`).match(/[0-9]/)) {
+      if (`${tokens[e]}`.match(/[0-9]/)) {
         e += 1;
         tokens.splice(s, e - s, tokens.slice(s, e).join(""));
         i -= 1;

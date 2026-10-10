@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import {GateColumn} from '../../../circuit/model/GateColumn.js';
-import {Simulation} from '../../../config/Simulation.js';
-import {Point} from '../../../geometry/Point.js';
+import { GateColumn } from "../../../circuit/model/GateColumn.js";
+import { Simulation } from "../../../config/Simulation.js";
+import { Point } from "../../../geometry/Point.js";
 
 /**
  * @param {!Object} context Definition, geometry and editing queries supplied by CircuitEditing.
@@ -24,37 +24,62 @@ import {Point} from '../../../geometry/Point.js';
  * @returns {undefined|!Object} Proposed definition and drag-state changes; undefined means no edit.
  */
 function previewResizedGate(context, hand) {
-    if (hand.resizingGateSlot === undefined || hand.pos === undefined) {
-        return undefined;
-    }
-    const gate = context.definition.gateInSlot(hand.resizingGateSlot.x, hand.resizingGateSlot.y);
-    if (gate === undefined) {
-        return undefined;
-    }
-    const row = Math.min(
-        context.wireIndexAt(hand.pos.y - hand.holdOffset.y),
-        Simulation.MAX_WIRE_COUNT - 1);
-    const desiredHeight = row - hand.resizingGateSlot.y + 1;
-    // Strict comparison keeps the first family member when heights are equally close.
-    const newGate = gate.gateFamily.reduce((best, candidate) =>
-        Math.abs(candidate.height - desiredHeight) < Math.abs(best.height - desiredHeight) ? candidate : best);
-    const newWireCount = Math.min(Simulation.MAX_WIRE_COUNT,
-        Math.max(context.definition.numWires, newGate.height + hand.resizingGateSlot.y));
-    const resizedColumn = new GateColumn(
-        context.definition.columns[hand.resizingGateSlot.x].gates.
-            with(hand.resizingGateSlot.y, newGate));
-    const newCols = context.definition.columns.
-        with(hand.resizingGateSlot.x, resizedColumn);
+  if (hand.resizingGateSlot === undefined || hand.pos === undefined) {
+    return undefined;
+  }
+  const gate = context.definition.gateInSlot(
+    hand.resizingGateSlot.x,
+    hand.resizingGateSlot.y,
+  );
+  if (gate === undefined) {
+    return undefined;
+  }
+  const row = Math.min(
+    context.wireIndexAt(hand.pos.y - hand.holdOffset.y),
+    Simulation.MAX_WIRE_COUNT - 1,
+  );
+  const desiredHeight = row - hand.resizingGateSlot.y + 1;
+  // Strict comparison keeps the first family member when heights are equally close.
+  const newGate = gate.gateFamily.reduce((best, candidate) =>
+    Math.abs(candidate.height - desiredHeight) <
+    Math.abs(best.height - desiredHeight)
+      ? candidate
+      : best,
+  );
+  const newWireCount = Math.min(
+    Simulation.MAX_WIRE_COUNT,
+    Math.max(
+      context.definition.numWires,
+      newGate.height + hand.resizingGateSlot.y,
+    ),
+  );
+  const resizedColumn = new GateColumn(
+    context.definition.columns[hand.resizingGateSlot.x].gates.with(
+      hand.resizingGateSlot.y,
+      newGate,
+    ),
+  );
+  const newCols = context.definition.columns.with(
+    hand.resizingGateSlot.x,
+    resizedColumn,
+  );
 
-    const newCircuitWithoutOverlapFix = context.definition.withColumns(newCols).withWireCount(newWireCount);
-    const newCircuitWithOverlapFix = newCircuitWithoutOverlapFix.withHeightOverlapsFixed();
-    const newCircuit = newCircuitWithOverlapFix.withTrailingSpacersIncluded();
-    return {
-        definition: newCircuit,
-        compressedColumnIndex: newCircuitWithoutOverlapFix.isEqualTo(newCircuitWithOverlapFix) ?
-            undefined : hand.resizingGateSlot.x + 1,
-        extraWireStartIndex: context.geometry.extraWireStartIndex || context.definition.numWires
-    };
+  const newCircuitWithoutOverlapFix = context.definition
+    .withColumns(newCols)
+    .withWireCount(newWireCount);
+  const newCircuitWithOverlapFix =
+    newCircuitWithoutOverlapFix.withHeightOverlapsFixed();
+  const newCircuit = newCircuitWithOverlapFix.withTrailingSpacersIncluded();
+  return {
+    definition: newCircuit,
+    compressedColumnIndex: newCircuitWithoutOverlapFix.isEqualTo(
+      newCircuitWithOverlapFix,
+    )
+      ? undefined
+      : hand.resizingGateSlot.x + 1,
+    extraWireStartIndex:
+      context.geometry.extraWireStartIndex || context.definition.numWires,
+  };
 }
 
 /**
@@ -63,28 +88,33 @@ function previewResizedGate(context, hand) {
  * @returns {undefined|!Object} Proposed definition, drag-state and hand changes.
  */
 function tryGrabResizeTab(context, hand) {
-    if (hand.isBusy() || hand.pos === undefined) {
-        return undefined;
-    }
-
-    for (let col = 0; col < context.definition.columns.length; col++) {
-        for (let row = 0; row < context.definition.numWires; row++) {
-            const gate = context.definition.columns[col].gates[row];
-            if (gate === undefined) {
-                continue;
-            }
-            const {isResizeHighlighted} =
-                context.highlightStatusAt(col, row, hand.hoverPoints());
-            if (isResizeHighlighted) {
-                const offset = hand.pos.minus(context.geometry.gateRect(row + gate.height - 1, col, 1, 1).center());
-                return {
-                    highlightedSlot: {col, row, resizeStyle: true},
-                    hand: hand.withResizeSlot(new Point(col, row), offset)
-                };
-            }
-        }
-    }
+  if (hand.isBusy() || hand.pos === undefined) {
     return undefined;
+  }
+
+  for (let col = 0; col < context.definition.columns.length; col++) {
+    for (let row = 0; row < context.definition.numWires; row++) {
+      const gate = context.definition.columns[col].gates[row];
+      if (gate === undefined) {
+        continue;
+      }
+      const { isResizeHighlighted } = context.highlightStatusAt(
+        col,
+        row,
+        hand.hoverPoints(),
+      );
+      if (isResizeHighlighted) {
+        const offset = hand.pos.minus(
+          context.geometry.gateRect(row + gate.height - 1, col, 1, 1).center(),
+        );
+        return {
+          highlightedSlot: { col, row, resizeStyle: true },
+          hand: hand.withResizeSlot(new Point(col, row), offset),
+        };
+      }
+    }
+  }
+  return undefined;
 }
 
-export {previewResizedGate, tryGrabResizeTab};
+export { previewResizedGate, tryGrabResizeTab };

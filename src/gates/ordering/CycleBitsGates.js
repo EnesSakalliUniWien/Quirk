@@ -14,18 +14,25 @@
  * limitations under the License.
  */
 
-import {CanvasTheme} from '../../config/CanvasTheme.js';
-import {strokePath} from '../../draw/shapes/ShapeView.js';
+import { CanvasTheme } from "../../config/CanvasTheme.js";
+import { strokePath } from "../../draw/shapes/ShapeView.js";
 
-import {Layout} from '../../config/Layout.js';
-import {Gate} from '../../circuit/model/Gate.js';
-import {paintBackground, paintOutline, paintResizeTab} from '../../draw/gate/GateFrame.js';
-import {PERMUTATION_RENDERER} from './PermutationRenderer.js';
-import {ketArgs, ketShaderPermute} from '../../engine/simulation/gpu/KetShaderUtil.js';
-import {Matrix} from '../../engine/math/matrix/Matrix.js';
-import {Point} from '../../geometry/Point.js';
+import { Layout } from "../../config/Layout.js";
+import { Gate } from "../../circuit/model/Gate.js";
+import {
+  paintBackground,
+  paintOutline,
+  paintResizeTab,
+} from "../../draw/gate/GateFrame.js";
+import { PERMUTATION_RENDERER } from "./PermutationRenderer.js";
+import {
+  ketArgs,
+  ketShaderPermute,
+} from "../../engine/simulation/gpu/KetShaderUtil.js";
+import { Matrix } from "../../engine/math/matrix/Matrix.js";
+import { Point } from "../../geometry/Point.js";
 import { properMod } from "../../engine/math/modularArithmetic.js";
-import {WglArg} from '../../engine/webgl/shader/WglArg.js';
+import { WglArg } from "../../engine/webgl/shader/WglArg.js";
 
 const CycleBitsGates = {};
 
@@ -36,71 +43,86 @@ const CycleBitsGates = {};
  * @returns {!WglConfiguredShader}
  */
 const cycleBitsShader = (ctx, qubitSpan, shiftAmount) =>
-    CYCLE_SHADER.withArgs(
-        ...ketArgs(ctx, qubitSpan),
-        WglArg.float("amount", 1 << properMod(-shiftAmount, qubitSpan)));
+  CYCLE_SHADER.withArgs(
+    ...ketArgs(ctx, qubitSpan),
+    WglArg.float("amount", 1 << properMod(-shiftAmount, qubitSpan)),
+  );
 const CYCLE_SHADER = ketShaderPermute(
-    'uniform float amount;',
-    'out_id *= amount; return mod(out_id, span) + floor(out_id / span);');
+  "uniform float amount;",
+  "out_id *= amount; return mod(out_id, span) + floor(out_id / span);",
+);
 
-const makeCycleBitsPermutation = (shift, span) => e => {
-    shift = properMod(shift, span);
-    return ((e << shift) & ((1 << span) - 1)) | (e >> (span - shift));
+const makeCycleBitsPermutation = (shift, span) => (e) => {
+  shift = properMod(shift, span);
+  return ((e << shift) & ((1 << span) - 1)) | (e >> (span - shift));
 };
-const makeCycleBitsMatrix = (shift, span) => Matrix.generateTransition(1<<span, makeCycleBitsPermutation(shift, span));
+const makeCycleBitsMatrix = (shift, span) =>
+  Matrix.generateTransition(1 << span, makeCycleBitsPermutation(shift, span));
 
-const cyclePainter = reverse => args => {
-    if (args.positionInCircuit !== undefined) {
-        PERMUTATION_RENDERER(args);
-        return;
-    }
+const cyclePainter = (reverse) => (args) => {
+  if (args.positionInCircuit !== undefined) {
+    PERMUTATION_RENDERER(args);
+    return;
+  }
 
-    paintBackground(args);
-    paintOutline(args);
-    paintResizeTab(args);
+  paintBackground(args);
+  paintOutline(args);
+  paintResizeTab(args);
 
-    const x1 = args.rect.x + 6;
-    const x2 = args.rect.right() - 6;
-    const y = args.rect.center().y - Layout.GATE_RADIUS + 6;
-    const dh = (Layout.GATE_RADIUS - 6)*2 / 2;
+  const x1 = args.rect.x + 6;
+  const x2 = args.rect.right() - 6;
+  const y = args.rect.center().y - Layout.GATE_RADIUS + 6;
+  const dh = ((Layout.GATE_RADIUS - 6) * 2) / 2;
 
-    for (let i = 0; i < 3; i++) {
-        const j = (i + (reverse ? 2 : 1)) % 3;
-        const y1 = y + i*dh;
-        const y2 = y + j*dh;
-        strokePath(args.painter, [
-            new Point(x1, y1),
-            new Point(x1 + 8, y1),
-            new Point(x2 - 8, y2),
-            new Point(x2, y2)
-        ], CanvasTheme.text.primary, 1);
-    }
+  for (let i = 0; i < 3; i++) {
+    const j = (i + (reverse ? 2 : 1)) % 3;
+    const y1 = y + i * dh;
+    const y2 = y + j * dh;
+    strokePath(
+      args.painter,
+      [
+        new Point(x1, y1),
+        new Point(x1 + 8, y1),
+        new Point(x2 - 8, y2),
+        new Point(x2, y2),
+      ],
+      CanvasTheme.text.primary,
+      1,
+    );
+  }
 };
 
-CycleBitsGates.CycleBitsFamily = Gate.buildFamily(2, 16, (span, builder) => builder.
-    setSerializedId(`<<${span}`).
-    setSymbol("<<<").
-    setTitle("Left Rotate").
-    setBlurb("Rotates bits downward.").
-    setRenderer(cyclePainter(false)).
-    setTooltipMatrixFunc(() => makeCycleBitsMatrix(1, span)).
-    setActualEffectToShaderProvider(ctx => cycleBitsShader(ctx, span, +1)).
-    setKnownEffectToBitPermutation(i => (i + 1) % span));
+CycleBitsGates.CycleBitsFamily = Gate.buildFamily(2, 16, (span, builder) =>
+  builder
+    .setSerializedId(`<<${span}`)
+    .setSymbol("<<<")
+    .setTitle("Left Rotate")
+    .setBlurb("Rotates bits downward.")
+    .setRenderer(cyclePainter(false))
+    .setTooltipMatrixFunc(() => makeCycleBitsMatrix(1, span))
+    .setActualEffectToShaderProvider((ctx) => cycleBitsShader(ctx, span, +1))
+    .setKnownEffectToBitPermutation((i) => (i + 1) % span),
+);
 
-CycleBitsGates.ReverseCycleBitsFamily = Gate.buildFamily(2, 16, (span, builder) => builder.
-    setAlternateFromFamily(CycleBitsGates.CycleBitsFamily).
-    setSerializedId(`>>${span}`).
-    setSymbol(">>>").
-    setTitle("Right Rotate").
-    setBlurb("Rotates bits upward.").
-    setRenderer(cyclePainter(true)).
-    setTooltipMatrixFunc(() => makeCycleBitsMatrix(-1, span)).
-    setActualEffectToShaderProvider(ctx => cycleBitsShader(ctx, span, -1)).
-    setKnownEffectToBitPermutation(i => (i + span - 1) % span));
+CycleBitsGates.ReverseCycleBitsFamily = Gate.buildFamily(
+  2,
+  16,
+  (span, builder) =>
+    builder
+      .setAlternateFromFamily(CycleBitsGates.CycleBitsFamily)
+      .setSerializedId(`>>${span}`)
+      .setSymbol(">>>")
+      .setTitle("Right Rotate")
+      .setBlurb("Rotates bits upward.")
+      .setRenderer(cyclePainter(true))
+      .setTooltipMatrixFunc(() => makeCycleBitsMatrix(-1, span))
+      .setActualEffectToShaderProvider((ctx) => cycleBitsShader(ctx, span, -1))
+      .setKnownEffectToBitPermutation((i) => (i + span - 1) % span),
+);
 
 CycleBitsGates.all = [
-    ...CycleBitsGates.CycleBitsFamily.all,
-    ...CycleBitsGates.ReverseCycleBitsFamily.all
+  ...CycleBitsGates.CycleBitsFamily.all,
+  ...CycleBitsGates.ReverseCycleBitsFamily.all,
 ];
 
-export {CycleBitsGates, cycleBitsShader, makeCycleBitsPermutation};
+export { CycleBitsGates, cycleBitsShader, makeCycleBitsPermutation };

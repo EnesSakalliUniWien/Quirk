@@ -14,55 +14,53 @@
  * limitations under the License.
  */
 
-import {Suite, assertThat, assertThrows} from "../../../TestUtil.js"
-import {SHADER_CODER_FLOATS} from "../../../../src/engine/webgl/coder/FloatsShaderCoder.js"
-import {Shaders} from "../../../../src/engine/webgl/operations/Shaders.js"
+import { Suite, assertThat, assertThrows } from "../../../TestUtil.js";
+import { SHADER_CODER_FLOATS } from "../../../../src/engine/webgl/coder/FloatsShaderCoder.js";
+import { Shaders } from "../../../../src/engine/webgl/operations/Shaders.js";
 
 const suite = new Suite("FloatsShaderCoder");
 
 suite.testUsingWebGLFloatTextures("packed", () => {
-    assertThat(SHADER_CODER_FLOATS.float.dataToPixels(new Float32Array([1, 2, 3, 4]))).isEqualTo(new Float32Array([
-        1, 0, 0, 0,
-        2, 0, 0, 0,
-        3, 0, 0, 0,
-        4, 0, 0, 0
-    ]));
+  assertThat(
+    SHADER_CODER_FLOATS.float.dataToPixels(new Float32Array([1, 2, 3, 4])),
+  ).isEqualTo(
+    new Float32Array([1, 0, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0, 4, 0, 0, 0]),
+  );
 
-    assertThat(SHADER_CODER_FLOATS.vec2.dataToPixels(new Float32Array([1, 2, 3, 4]))).isEqualTo(new Float32Array([
-        1, 2, 0, 0,
-        3, 4, 0, 0
-    ]));
+  assertThat(
+    SHADER_CODER_FLOATS.vec2.dataToPixels(new Float32Array([1, 2, 3, 4])),
+  ).isEqualTo(new Float32Array([1, 2, 0, 0, 3, 4, 0, 0]));
 
-    assertThat(SHADER_CODER_FLOATS.vec4.dataToPixels(new Float32Array([1, 2, 3, 4]))).isEqualTo(new Float32Array([
-        1, 2, 3, 4
-    ]));
+  assertThat(
+    SHADER_CODER_FLOATS.vec4.dataToPixels(new Float32Array([1, 2, 3, 4])),
+  ).isEqualTo(new Float32Array([1, 2, 3, 4]));
 });
 
 suite.testUsingWebGLFloatTextures("input_wrongType", () => {
-    assertThrows(() => {
-        const tex = Shaders.data(new Uint8Array([0, 0, 0, 0])).toRawByteTexture(0);
-        try {
-            SHADER_CODER_FLOATS.float.inputPartGetter('a').argsFor(tex);
-        } finally {
-            tex.deallocByDepositingInPool();
-        }
-    });
+  assertThrows(() => {
+    const tex = Shaders.data(new Uint8Array([0, 0, 0, 0])).toRawByteTexture(0);
+    try {
+      SHADER_CODER_FLOATS.float.inputPartGetter("a").argsFor(tex);
+    } finally {
+      tex.deallocByDepositingInPool();
+    }
+  });
 
-    assertThrows(() => {
-        const tex = Shaders.data(new Uint8Array([0, 0, 0, 0])).toRawByteTexture(0);
-        try {
-            SHADER_CODER_FLOATS.vec2.inputPartGetter('a').argsFor(tex);
-        } finally {
-            tex.deallocByDepositingInPool();
-        }
-    });
+  assertThrows(() => {
+    const tex = Shaders.data(new Uint8Array([0, 0, 0, 0])).toRawByteTexture(0);
+    try {
+      SHADER_CODER_FLOATS.vec2.inputPartGetter("a").argsFor(tex);
+    } finally {
+      tex.deallocByDepositingInPool();
+    }
+  });
 
-    assertThrows(() => {
-        const tex = Shaders.data(new Uint8Array([0, 0, 0, 0])).toRawByteTexture(0);
-        try {
-            SHADER_CODER_FLOATS.vec4.inputPartGetter('a').argsFor(tex);
-        } finally {
-            tex.deallocByDepositingInPool();
-        }
-    });
+  assertThrows(() => {
+    const tex = Shaders.data(new Uint8Array([0, 0, 0, 0])).toRawByteTexture(0);
+    try {
+      SHADER_CODER_FLOATS.vec4.inputPartGetter("a").argsFor(tex);
+    } finally {
+      tex.deallocByDepositingInPool();
+    }
+  });
 });

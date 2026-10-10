@@ -2,6 +2,7 @@ import { Menu } from "@base-ui/react/menu";
 import { INPUT_LETTERS } from "../../../circuit/model/InputLetters.js";
 import { appStore } from "../../../state/appStore.js";
 import { openPanel } from "../../dock.jsx";
+import { menuAnchorStyle } from "./menuAnchorStyle.js";
 
 /**
  * The wire label's menu, opened by a right click or a touch and hold on the label. On a wire outside
@@ -10,21 +11,41 @@ import { openPanel } from "../../dock.jsx";
  */
 function GutterMenu({ menu, host, actions }) {
   const close = () => appStore.setState({ gutterMenu: undefined });
-  const element = host.current;
-  const box = element === null ? { left: 0, top: 0 } : element.getBoundingClientRect();
-  const anchor = {
-    left: `${menu.x - box.left + (element?.scrollLeft ?? 0)}px`,
-    top: `${menu.y - box.top + (element?.scrollTop ?? 0)}px`,
-  };
-  const register = menu.register === undefined ? undefined : actions.current().named(menu.register);
-  const renameHere = (name, rect) => appStore.setState({ registerRename: { name, rect } });
+  const anchor = menuAnchorStyle(host.current, menu);
+  const register =
+    menu.register === undefined
+      ? undefined
+      : actions.current().named(menu.register);
+  const renameHere = (name, rect) =>
+    appStore.setState({ registerRename: { name, rect } });
 
   return (
     <Menu.Root open onOpenChange={(open) => !open && close()}>
-      <Menu.Trigger nativeButton={false} render={<span className="gutter-menu-anchor" style={anchor} aria-hidden="true" />} />
+      <Menu.Trigger
+        nativeButton={false}
+        render={
+          <span
+            className="gutter-menu-anchor"
+            style={anchor}
+            aria-hidden="true"
+          />
+        }
+      />
       <Menu.Portal>
-        <Menu.Positioner className="app-menu-positioner" side="bottom" align="start" sideOffset={4}>
-          <Menu.Popup className="app-menu" aria-label={register === undefined ? `Wire q${menu.wire}` : `Register ${register.name}`}>
+        <Menu.Positioner
+          className="app-menu-positioner"
+          side="bottom"
+          align="start"
+          sideOffset={4}
+        >
+          <Menu.Popup
+            className="app-menu"
+            aria-label={
+              register === undefined
+                ? `Wire q${menu.wire}`
+                : `Register ${register.name}`
+            }
+          >
             {register === undefined ? (
               <Menu.Item
                 className="app-menu-item"
@@ -46,28 +67,46 @@ function GutterMenu({ menu, host, actions }) {
               <>
                 <Menu.Item
                   className="app-menu-item"
-                  onClick={() => (menu.rect === undefined ? undefined : renameHere(register.name, menu.rect))}
+                  onClick={() =>
+                    menu.rect === undefined
+                      ? undefined
+                      : renameHere(register.name, menu.rect)
+                  }
                 >
                   {`Rename ${register.name}…`}
                 </Menu.Item>
                 <Menu.Group>
-                  <Menu.GroupLabel className="app-menu-label">Feeds Input</Menu.GroupLabel>
+                  <Menu.GroupLabel className="app-menu-label">
+                    Feeds Input
+                  </Menu.GroupLabel>
                   <Menu.RadioGroup
                     value={register.input ?? ""}
-                    onValueChange={(value) => actions.feed(register.name, value === "" ? undefined : value)}
+                    onValueChange={(value) =>
+                      actions.feed(
+                        register.name,
+                        value === "" ? undefined : value,
+                      )
+                    }
                   >
                     <Menu.RadioItem className="app-menu-item" value="">
                       None
                     </Menu.RadioItem>
                     {INPUT_LETTERS.map((letter) => (
-                      <Menu.RadioItem key={letter} className="app-menu-item" value={letter}>
+                      <Menu.RadioItem
+                        key={letter}
+                        className="app-menu-item"
+                        value={letter}
+                      >
                         {`Input ${letter}`}
                       </Menu.RadioItem>
                     ))}
                   </Menu.RadioGroup>
                 </Menu.Group>
                 <Menu.Separator className="app-menu-separator" />
-                <Menu.Item className="app-menu-item" onClick={() => actions.remove(register.name)}>
+                <Menu.Item
+                  className="app-menu-item"
+                  onClick={() => actions.remove(register.name)}
+                >
                   {`Ungroup ${register.name}`}
                 </Menu.Item>
               </>

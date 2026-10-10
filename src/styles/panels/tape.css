@@ -1,59 +1,160 @@
 @layer components {
-    .tape-panel { padding: 16px; }
+  .tape-panel {
+    padding: 16px;
+  }
 
-    .tape-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; align-items: center; }
+  .tape-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 10px 0;
+    align-items: center;
+  }
 
-    .tape-strip { display: flex; gap: 12px; overflow-x: auto; padding: 12px 0; }
+  .tape-actions > label {
+    min-width: 0;
+    max-width: 100%;
+  }
 
-    .take-card { flex: 0 0 290px; border: var(--border-width-strong) solid var(--take-colour); border-radius: var(--radius-medium); padding: 12px; }
+  .tape-actions input[type="file"] {
+    max-width: 100%;
+  }
 
-    .take-card > label { display: block; color: var(--take-colour); margin-bottom: 8px; }
+  .tape-strip {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding: 12px 0;
+  }
 
-    .take-card > input, .take-card textarea { width: 100%; }
+  .take-card {
+    flex: 0 0 290px;
+    border: var(--border-width-strong) solid var(--take-colour);
+    border-radius: var(--radius-medium);
+    padding: 12px;
+  }
 
-    .take-ghost { border-style: dashed; opacity: .7; }
+  .take-card > label {
+    display: block;
+    color: var(--take-colour);
+    margin-bottom: 8px;
+  }
 
-    .take-linked { border-style: dotted; }
+  .take-card > input,
+  .take-card textarea {
+    width: 100%;
+  }
 
-    .take-measurement { overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+  .take-ghost {
+    border-style: dashed;
+    opacity: 0.7;
+  }
 
-    /* A recording under way is marked in the recording colour, on REC and beside it, and says so in
+  .take-linked {
+    border-style: dotted;
+  }
+
+  .take-measurement {
+    overflow-wrap: anywhere;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* A recording under way is marked in the recording colour, on REC and beside it, and says so in
        words, so it is never told by colour alone. */
-    .record-controls { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .record-controls {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
 
-    .record-toggle[data-recording="true"] { color: var(--destructive); border-color: var(--destructive); }
+  .recording-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--destructive);
+    white-space: nowrap;
+  }
 
-    .recording-indicator { display: inline-flex; align-items: center; gap: 6px; color: var(--destructive); white-space: nowrap; }
+  .recording-indicator[hidden] {
+    display: none;
+  }
 
-    .recording-indicator[hidden], .record-controls > button[hidden] { display: none; }
+  .recording-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--destructive);
+    animation: recording-pulse 1.2s ease-in-out infinite;
+  }
 
-    .recording-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--destructive); animation: recording-pulse 1.2s ease-in-out infinite; }
-
-    @keyframes recording-pulse { 50% { opacity: .35; } }
-
-    @media (prefers-reduced-motion: reduce) {
-        .recording-dot { animation: none; }
+  @keyframes recording-pulse {
+    50% {
+      opacity: 0.35;
     }
+  }
 
-    .motion-settings { margin: 10px 0; }
+  @media (prefers-reduced-motion: reduce) {
+    .recording-dot {
+      animation: none;
+    }
+  }
 
-    /* Label, control and value on one line while they fit, and wrapping onto the next in a narrow
+  .motion-settings {
+    margin: 10px 0;
+  }
+
+  /* Label, control and value on one line while they fit, and wrapping onto the next in a narrow
        panel, so nothing ever scrolls sideways. */
-    .motion-setting { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; margin: 6px 0; }
+  .motion-setting {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    align-items: center;
+    margin: 6px 0;
+  }
 
-    .motion-setting > label { flex: 0 0 11em; max-width: 100%; }
+  .motion-setting > label {
+    flex: 0 0 11em;
+    max-width: 100%;
+  }
 
-    .motion-setting > input, .motion-setting > select { flex: 1 1 120px; min-width: 0; max-width: 100%; }
+  .motion-setting > input,
+  .motion-setting > select {
+    flex: 1 1 120px;
+    min-width: 0;
+    max-width: 100%;
+  }
 
-    .motion-setting output { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .motion-setting output {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
 
-    .take-readings { max-height: 140px; overflow: auto; }
+  .take-readings {
+    max-height: 140px;
+    overflow: auto;
+  }
 
-    .tape-overlay { display: grid; width: 268px; }
+  .tape-overlay {
+    display: grid;
+    width: 268px;
+  }
 
-    .tape-overlay > div { grid-area: 1 / 1; border-left: 4px solid; }
+  .tape-overlay > div {
+    grid-area: 1 / 1;
+    border-left: 4px solid;
+  }
 
-    .tape-overlay > div + div { opacity: .5; border-left: 0; border-right: 4px solid; }
+  .tape-overlay > div + div {
+    opacity: 0.5;
+    border-left: 0;
+    border-right: 4px solid;
+  }
 
-    .tape-differences { max-height: 160px; overflow: auto; overflow-wrap: anywhere; }
+  .tape-differences {
+    max-height: 160px;
+    overflow: auto;
+    overflow-wrap: anywhere;
+  }
 }

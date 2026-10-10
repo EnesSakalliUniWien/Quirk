@@ -183,9 +183,7 @@ class Complex {
       this.real < 0
         ? ""
         : "+";
-    return (
-      `${prefix + format.formatFloat(this.real) + separator + imagFactor}i`
-    );
+    return `${prefix + format.formatFloat(this.real) + separator + imagFactor}i`;
   }
 
   /**

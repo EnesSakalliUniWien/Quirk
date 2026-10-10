@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import {paintProbabilityBox} from '../../../draw/displays/probability/ProbabilityView.js';
-import {CircuitGeometry} from '../../geometry/CircuitGeometry.js';
+import { paintProbabilityBox } from "../../../draw/displays/probability/ProbabilityView.js";
+import { CircuitGeometry } from "../../geometry/CircuitGeometry.js";
 import { paintBlochSphereDisplay } from "../../../draw/displays/bloch/BlochView.js";
-import {drawOutputSuperpositionDisplay} from './CircuitAmplitudes.js';
-import {drawLocalStateCaption} from './CircuitCaptions.js';
+import { drawOutputSuperpositionDisplay } from "./CircuitAmplitudes.js";
+import { drawLocalStateCaption } from "./CircuitCaptions.js";
 
 /**
  * Draws a peek gate on each wire at the right-hand side of the circuit.
@@ -29,24 +29,37 @@ import {drawLocalStateCaption} from './CircuitCaptions.js';
  * @param {!PointerInteractionState} hand
  */
 function drawOutputDisplays(context, painter, stats, hand) {
-    const chanceCol = context.geometry.clampedCircuitColCount() + 1;
-    const blochCol = chanceCol + 1;
-    const numWire = context.geometry.importantWireCount();
+  const chanceCol = context.geometry.clampedCircuitColCount() + 1;
+  const blochCol = chanceCol + 1;
+  const numWire = context.geometry.importantWireCount();
 
-    for (let i = 0; i < numWire; i++) {
-        const p = stats.controlledWireProbabilityJustAfter(i, Infinity);
-        painter.group(`probability-${i}`, view => paintProbabilityBox(view, p, context.geometry.gateRect(i, chanceCol), hand.hoverPoints()));
-        const m = stats.qubitDensityMatrix(Infinity, i);
-        if (m !== undefined) {
-            const blochRect = CircuitGeometry.blochDisplayRect(context.geometry.gateRect(i, blochCol));
-            // The sphere is its own shape, so it wears no box.
-            painter.group(`bloch-${i}`, view => paintBlochSphereDisplay(view, m, blochRect, hand.hoverPoints()));
-        }
+  for (let i = 0; i < numWire; i++) {
+    const p = stats.controlledWireProbabilityJustAfter(i, Infinity);
+    painter.group(`probability-${i}`, (view) =>
+      paintProbabilityBox(
+        view,
+        p,
+        context.geometry.gateRect(i, chanceCol),
+        hand.hoverPoints(),
+      ),
+    );
+    const m = stats.qubitDensityMatrix(Infinity, i);
+    if (m !== undefined) {
+      const blochRect = CircuitGeometry.blochDisplayRect(
+        context.geometry.gateRect(i, blochCol),
+      );
+      // The sphere is its own shape, so it wears no box.
+      painter.group(`bloch-${i}`, (view) =>
+        paintBlochSphereDisplay(view, m, blochRect, hand.hoverPoints()),
+      );
     }
+  }
 
-    drawLocalStateCaption(context, painter, numWire, chanceCol);
+  drawLocalStateCaption(context, painter, numWire, chanceCol);
 
-    painter.group('amplitudes', view => drawOutputSuperpositionDisplay(context, view, hand));
+  painter.group("amplitudes", (view) =>
+    drawOutputSuperpositionDisplay(context, view, hand),
+  );
 }
 
-export {drawOutputDisplays};
+export { drawOutputDisplays };

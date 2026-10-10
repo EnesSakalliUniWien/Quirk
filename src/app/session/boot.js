@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {initializedWglContext} from "../../engine/webgl/context/WglContext.js"
+import { initializedWglContext } from "../../engine/webgl/context/WglContext.js";
 
 /**
  * Schedules the app's reveal: unhide the shell and paint the first frame. Deferred a tick so that
@@ -27,18 +27,18 @@ import {initializedWglContext} from "../../engine/webgl/context/WglContext.js"
  * @returns {void}
  */
 function scheduleBoot(redrawLoop, onReady) {
-    setTimeout(() => {
-        onReady();
-        redrawLoop.start();
+  setTimeout(() => {
+    onReady();
+    redrawLoop.start();
 
-        try {
-            initializedWglContext().onContextRestored = () => redrawLoop.trigger();
-        } catch (ex) {
-            // If that failed, the user is already getting warnings about WebGL not being supported.
-            // Just silently log it.
-            console.error(ex);
-        }
-    }, 0);
+    try {
+      initializedWglContext().onContextRestored = () => redrawLoop.trigger();
+    } catch (ex) {
+      // If that failed, the user is already getting warnings about WebGL not being supported.
+      // Just silently log it.
+      console.error(ex);
+    }
+  }, 0);
 }
 
-export {scheduleBoot}
+export { scheduleBoot };

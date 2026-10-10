@@ -6,11 +6,11 @@ const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
  *     still, and moves between states should land at once.
  */
 export function prefersReducedMotion() {
-    try {
-        return window.matchMedia(REDUCED_MOTION_QUERY).matches;
-    } catch {
-        return false;
-    }
+  try {
+    return window.matchMedia(REDUCED_MOTION_QUERY).matches;
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -18,8 +18,8 @@ export function prefersReducedMotion() {
  * @returns {!function(): void} Stops listening.
  */
 export function onReducedMotionChange(listener) {
-    const query = window.matchMedia(REDUCED_MOTION_QUERY);
-    const changed = event => listener(event.matches);
-    query.addEventListener("change", changed);
-    return () => query.removeEventListener("change", changed);
+  const query = window.matchMedia(REDUCED_MOTION_QUERY);
+  const changed = (event) => listener(event.matches);
+  query.addEventListener("change", changed);
+  return () => query.removeEventListener("change", changed);
 }

@@ -8,18 +8,33 @@ const MOTION_SETTINGS_STORAGE_KEY = "shadow-quant.motion-settings";
 
 /**
  * What the user may set about how things move and how a recording samples and measures: each
- * setting's default, from Animation.js and Recording.js, and the range it is held to.
+ * setting's default, from Animation.js and Recording.js, and the range it is held to. The paces of
+ * Play and of t's cycle are the Steps and Time lanes' own speeds.
  */
 const MOTION_SETTINGS = Object.freeze({
-  cycleDurationMs: Object.freeze({ initial: Animation.CYCLE_DURATION_MS, min: 1000, max: 60000 }),
-  playheadStepMs: Object.freeze({ initial: Animation.PLAYHEAD_STEP_DURATION_MS, min: 100, max: 5000 }),
-  debugStepIncrement: Object.freeze({ initial: Animation.DEBUG_STEP_CYCLE_INCREMENT, min: 1 / 256, max: 1 / 2 }),
-  glideMs: Object.freeze({ initial: Animation.GLIDE_DURATION_MS, min: 0, max: 2000 }),
-  panelSampleMs: Object.freeze({ initial: Animation.PANEL_SAMPLE_COOLDOWN_MS, min: 16, max: 2000 }),
-  sampleRateHz: Object.freeze({ initial: Recording.SAMPLE_RATE_HZ, min: 0.1, max: 20 }),
+  glideMs: Object.freeze({
+    initial: Animation.GLIDE_DURATION_MS,
+    min: 0,
+    max: 2000,
+  }),
+  panelSampleMs: Object.freeze({
+    initial: Animation.PANEL_SAMPLE_COOLDOWN_MS,
+    min: 16,
+    max: 2000,
+  }),
+  sampleRateHz: Object.freeze({
+    initial: Recording.SAMPLE_RATE_HZ,
+    min: 0.1,
+    max: 20,
+  }),
   // Held low enough that a take measures in a few milliseconds and stays a few hundred KiB at most,
   // since a ghost measures on every edit.
-  shots: Object.freeze({ initial: Recording.MEASUREMENT_SHOTS, min: 1, max: 10000, integer: true }),
+  shots: Object.freeze({
+    initial: Recording.MEASUREMENT_SHOTS,
+    min: 1,
+    max: 10000,
+    integer: true,
+  }),
 });
 
 /**
@@ -35,7 +50,10 @@ function clampMotionSetting(key, value) {
   return integer ? Math.round(clamped) : clamped;
 }
 
-const defaults = () => Object.fromEntries(Object.entries(MOTION_SETTINGS).map(([key, { initial }]) => [key, initial]));
+const defaults = () =>
+  Object.fromEntries(
+    Object.entries(MOTION_SETTINGS).map(([key, { initial }]) => [key, initial]),
+  );
 
 /**
  * @param {undefined|!{getItem: !function(!string): (null|!string), setItem: !function(!string, !string): void}} storage
@@ -44,9 +62,15 @@ const defaults = () => Object.fromEntries(Object.entries(MOTION_SETTINGS).map(([
 function readStored(storage) {
   const values = defaults();
   try {
-    const stored = JSON.parse(storage?.getItem(MOTION_SETTINGS_STORAGE_KEY) ?? "{}");
+    const stored = JSON.parse(
+      storage?.getItem(MOTION_SETTINGS_STORAGE_KEY) ?? "{}",
+    );
     for (const key of Object.keys(MOTION_SETTINGS)) {
-      if (stored !== null && typeof stored === "object" && Object.hasOwn(stored, key)) {
+      if (
+        stored !== null &&
+        typeof stored === "object" &&
+        Object.hasOwn(stored, key)
+      ) {
         values[key] = clampMotionSetting(key, stored[key]);
       }
     }
@@ -65,8 +89,14 @@ function readStored(storage) {
 function createMotionSettings(storage) {
   const remember = (state) => {
     try {
-      storage?.setItem(MOTION_SETTINGS_STORAGE_KEY,
-        JSON.stringify(Object.fromEntries(Object.keys(MOTION_SETTINGS).map(key => [key, state[key]]))));
+      storage?.setItem(
+        MOTION_SETTINGS_STORAGE_KEY,
+        JSON.stringify(
+          Object.fromEntries(
+            Object.keys(MOTION_SETTINGS).map((key) => [key, state[key]]),
+          ),
+        ),
+      );
     } catch {
       // Not remembered; the choice still holds for this visit.
     }
@@ -102,7 +132,10 @@ const browserStorage = () => {
  */
 function followOtherTabs(store, storage, target) {
   target.addEventListener("storage", (event) => {
-    if (event.key === MOTION_SETTINGS_STORAGE_KEY && event.storageArea === storage) {
+    if (
+      event.key === MOTION_SETTINGS_STORAGE_KEY &&
+      event.storageArea === storage
+    ) {
       store.setState(readStored(storage));
     }
   });
@@ -110,6 +143,12 @@ function followOtherTabs(store, storage, target) {
 
 /** The app's settings, shared by everything that moves and by the recorder. */
 const motionSettings = createMotionSettings(browserStorage());
-if (typeof window !== "undefined") followOtherTabs(motionSettings, browserStorage(), window);
+if (typeof window !== "undefined")
+  followOtherTabs(motionSettings, browserStorage(), window);
 
-export { MOTION_SETTINGS, createMotionSettings, followOtherTabs, motionSettings };
+export {
+  MOTION_SETTINGS,
+  createMotionSettings,
+  followOtherTabs,
+  motionSettings,
+};

@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import { initializedWglContext } from "./WglContext.js";
+
 /**
  * A place for a value associated with a webgl context, that needs to be re-initialized when the context is lost.
  * @template T
@@ -72,14 +74,19 @@ class WglMortalValueSlot {
   }
 
   /**
-   * Cleans up the stored mortal value, if necessary.
+   * Cleans up the stored mortal value, if necessary. A value made before the context was last lost
+   * died with it, and is only dropped: the restored context did not create it, so deleting it there
+   * would record an error that the next checked call then throws.
    */
   ensureDeinitialized() {
     if (this.lifetimeId !== undefined) {
       const val = this.mortalValue;
+      const born = this.lifetimeId;
       this.lifetimeId = undefined;
       this.mortalValue = undefined;
-      this.deinitializer(val);
+      if (born > initializedWglContext().lostAtLifetime) {
+        this.deinitializer(val);
+      }
     }
   }
 }

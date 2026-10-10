@@ -17,17 +17,19 @@
 import { Inputs } from "../../../webgl/coder/ShaderCoders.js";
 import { ketShader } from "../KetShaderUtil.js";
 
-const hugeQubitOperationMaker = qubitCount => ketShader(
-    '',
+const hugeQubitOperationMaker = (qubitCount) =>
+  ketShader(
+    "",
     `
         vec2 t = vec2(0.0, 0.0);
-        for (int k = 0; k < ${1<<qubitCount}; k++) {
+        for (int k = 0; k < ${1 << qubitCount}; k++) {
             t += cmul(inp(float(k)),
-                      read_coefs(out_id * ${1<<qubitCount}.0 + float(k)));
+                      read_coefs(out_id * ${1 << qubitCount}.0 + float(k)));
         }
         return t;
     `,
     qubitCount,
-    [Inputs.vec2('coefs')]);
+    [Inputs.vec2("coefs")],
+  );
 
 export { hugeQubitOperationMaker };

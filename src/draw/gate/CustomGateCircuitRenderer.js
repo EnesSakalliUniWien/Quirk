@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {DEFAULT_RENDERER} from './GateRenderers.js';
+import { DEFAULT_RENDERER } from "./GateRenderers.js";
 
 /**
  * The one renderer the serializer cannot import: a circuit-defined custom gate is drawn as its

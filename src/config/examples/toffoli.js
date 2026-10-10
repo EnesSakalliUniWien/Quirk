@@ -18,12 +18,7 @@
 // B through 00, 01, 10 and 11 over time, and the Toffoli flips AND from 0 to A·B. A and B pass
 // through unchanged, so the gate can be undone, unlike an ordinary AND.
 const toffoliLink = {
-  cols: [
-    ["Counting2"],
-    ["Chance2"],
-    ["•", "•", "X"],
-    [1, 1, "Chance"],
-  ],
+  cols: [["Counting2"], ["Chance2"], ["•", "•", "X"], [1, 1, "Chance"]],
   registers: [
     { name: "A", wires: [0, 1] },
     { name: "B", wires: [1, 1] },

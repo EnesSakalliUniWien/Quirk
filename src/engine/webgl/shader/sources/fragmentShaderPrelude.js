@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 /**
  * Everything a fragment shader body gets for free: GLSL ES 3.00, high precision, and the output
  * variable `fragColor` to write into.

@@ -16,6 +16,23 @@ import { ControlRow } from "./control-row.jsx";
  * @property {(thetaDegrees: number, phiDegrees: number) => void} onAngles
  */
 
+const ANGLE_REASON_ID = "bloch-angle-reason";
+
+/**
+ * Why an angle control is switched off, said plainly, or undefined while both angles exist.
+ * @param {import("./analyzerModel.js").Angles} angles
+ * @returns {string | undefined}
+ */
+function angleReason(angles) {
+  if (!angles.thetaDefined) {
+    return "With no length the arrow has no direction, so neither angle exists. Pick a preset to start from.";
+  }
+  if (!angles.phiDefined) {
+    return "On the z axis the arrow has no azimuth, so ϕ does not exist. Move θ off 0° or 180° first.";
+  }
+  return undefined;
+}
+
 /** @param {string} name @returns {string} The preset button's id: |−i⟩ becomes bloch-preset-−i. */
 const presetId = (name) =>
   `bloch-preset-${name === "Mixed" ? "mixed" : name.replace(/[|⟩]/g, "")}`;
@@ -59,20 +76,29 @@ function ExploreControls({
         <AngleControl
           id="bloch-theta-input"
           symbol="θ"
+          name="Polar angle θ"
           max={180}
           value={angles.theta}
           defined={angles.thetaDefined}
+          describedBy={ANGLE_REASON_ID}
           onChange={(theta) => onAngles(theta, angles.phi)}
         />
         <AngleControl
           id="bloch-phi-input"
           symbol="ϕ"
+          name="Azimuth ϕ"
           max={360}
           value={angles.phi}
           defined={angles.phiDefined}
+          describedBy={ANGLE_REASON_ID}
           onChange={(phi) => onAngles(angles.theta, phi)}
         />
       </ControlRow>
+      {angleReason(angles) !== undefined && (
+        <p id={ANGLE_REASON_ID} className="bloch-note">
+          {angleReason(angles)}
+        </p>
+      )}
     </>
   );
 }

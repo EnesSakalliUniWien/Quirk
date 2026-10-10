@@ -1,24 +1,29 @@
 {
-  "name": "shadow-quant",
+  "name": "quirk-bench",
   "type": "module",
-  "description": "A drag-and-drop toy for exploring and understanding small quantum circuits.",
+  "description": "An interactive workbench for constructing, simulating, and inspecting quantum circuits.",
   "license": "Apache-2.0",
   "version": "2.3.2",
   "engines": {
-    "node": ">=22.12.0"
+    "node": ">=24.21.0"
   },
   "homepage": "https://github.com/EnesSakalliUniWien/Quirk",
   "bugs": {
     "url": "https://github.com/EnesSakalliUniWien/Quirk/issues"
   },
   "devDependencies": {
+    "@axe-core/puppeteer": "^4.13.0",
     "@eslint/js": "^10.0.1",
+    "@types/seedrandom": "^3.0.8",
     "@vitejs/plugin-react": "^6.1.0",
-    "eslint": "^10.10.0",
-    "eslint-plugin-unicorn": "^74.0.0",
+    "eslint": "^10.12.0",
+    "eslint-plugin-jsx-a11y-x": "^0.2.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-unicorn": "^77.0.0",
     "globals": "^17.12.0",
     "knip": "^6.34.0",
     "patch-package": "8.0.1",
+    "prettier": "^3.9.9",
     "puppeteer": "25.8.0",
     "typescript": "^7.0.2",
     "vite": "8.2.2"
@@ -27,9 +32,9 @@
     "dev": "vite --open /",
     "build": "vite build",
     "preview": "vite preview --open /",
-    "check": "npm run lint && npm run knip && npm run test && npm run test:e2e && npm run test:perf",
-    "lint": "eslint .",
-    "typecheck": "tsc -p jsconfig.json",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run knip && npm test && npm run test:e2e && npm run test:a11y && npm run test:perf",
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "tsc -p jsconfig.types.json",
     "knip": "knip",
     "test:build": "vite build --mode test",
     "test": "npm run test:build && node scripts/run-browser-tests.js test/test.html",
@@ -37,7 +42,12 @@
     "test:perf:build": "vite build --mode perf",
     "test:perf": "npm run test:perf:build && node scripts/run-browser-tests.js test_perf/test_perf.html",
     "screenshot": "npm run build && node scripts/screenshot-circuit.js",
-    "postinstall": "patch-package --error-on-fail"
+    "postinstall": "patch-package --error-on-fail",
+    "lint:ui": "eslint src --max-warnings 0",
+    "format": "prettier --write",
+    "format:check": "prettier --check .",
+    "test:a11y": "npm run build && node scripts/run-accessibility-tests.js",
+    "typecheck:legacy": "tsc -p jsconfig.json"
   },
   "repository": {
     "type": "git",
@@ -46,7 +56,6 @@
   "dependencies": {
     "@base-ui/react": "^1.7.0",
     "@fontsource-variable/geist": "^5.3.0",
-    "@pixi/layout": "3.2.1",
     "@pixi/react": "8.0.5",
     "@use-gesture/react": "^10.3.1",
     "dockview-react": "^8.2.0",

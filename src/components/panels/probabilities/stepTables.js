@@ -43,7 +43,11 @@ const CHANGE_TOLERANCE = 1e-6;
 function stepStops(circuit) {
   const operations = operationColumns(circuit);
   return [
-    { column: 0, label: "Start", description: "The input state, before any column" },
+    {
+      column: 0,
+      label: "Start",
+      description: "The input state, before any column",
+    },
     ...operations.map((col, i) => ({
       column: i === operations.length - 1 ? circuit.columns.length : col + 1,
       label:
@@ -80,14 +84,20 @@ function probabilitiesOf(state) {
  */
 function sharedGroups(steps, wireCount) {
   const parent = Array.from({ length: wireCount }, (_, wire) => wire);
-  const root = (wire) => (parent[wire] === wire ? wire : (parent[wire] = root(parent[wire])));
+  const root = (wire) =>
+    parent[wire] === wire ? wire : (parent[wire] = root(parent[wire]));
   for (const probabilities of steps) {
     const total = probabilities.reduce((sum, p) => sum + p, 0);
     // A step that cannot happen, after an impossible postselection, has no correlations to read.
     if (!(total > ZERO_PROBABILITY)) continue;
     const column = new Float64Array(probabilities.length * 2);
-    probabilities.forEach((p, i) => { column[i * 2] = p; });
-    for (const { wires } of independentGroups(new Matrix(1, probabilities.length, column), wireCount)) {
+    probabilities.forEach((p, i) => {
+      column[i * 2] = p;
+    });
+    for (const { wires } of independentGroups(
+      new Matrix(1, probabilities.length, column),
+      wireCount,
+    )) {
       for (const wire of wires.slice(1)) parent[root(wire)] = root(wires[0]);
     }
   }
@@ -109,7 +119,9 @@ function table(key, title, steps, ketOf) {
   const size = steps[0].length;
   const peak = new Float64Array(size);
   for (const probabilities of steps) {
-    probabilities.forEach((p, i) => { if (p > peak[i]) peak[i] = p; });
+    probabilities.forEach((p, i) => {
+      if (p > peak[i]) peak[i] = p;
+    });
   }
   let indices = Array.from({ length: size }, (_, i) => i);
   if (size > MAX_ROWS) {
@@ -150,10 +162,17 @@ function table(key, title, steps, ketOf) {
  */
 function stepTables(steps, layout, wireCount, registers) {
   if (layout === "index") {
-    return [table("all", undefined, steps, (index) => ketLabel(registers, wireCount, index))];
+    return [
+      table("all", undefined, steps, (index) =>
+        ketLabel(registers, wireCount, index),
+      ),
+    ];
   }
   return sharedGroups(steps, wireCount).map((wires) => {
-    const names = [...wires].reverse().map((wire) => wireLabel(registers, wire)).join(" ");
+    const names = [...wires]
+      .reverse()
+      .map((wire) => wireLabel(registers, wire))
+      .join(" ");
     return table(
       wires.join(","),
       `${names} · ${wires.length === 1 ? "independent" : "correlated"}`,

@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-import { polygon, strokePath, rectangle } from "../../draw/shapes/ShapeView.js";
+import { polygon, rectangle, strokePath } from "../../draw/shapes/ShapeView.js";
+import { paintGateSymbol } from "../../draw/gate/GateSymbol.js";
+import { Rect } from "../../geometry/Rect.js";
 
 import { CanvasTheme } from "../../config/CanvasTheme.js";
 import { Gate, GateBuilder } from "../../circuit/model/Gate.js";
@@ -61,13 +63,20 @@ class CountingGates {
    */
   static #STAIRCASE_RENDERER(steps, flip = false) {
     return (args) => {
-      MAKE_HIGHLIGHTED_RENDERER(CanvasTheme.gate.time)(args);
-
       const { gate, stats, rect } = args;
       const t = gate.turnsAt(stats.time) % 1;
-      const yOn = flip ? rect.y + 3 : rect.bottom() - 3;
-      const yNeutral = flip ? rect.bottom() : rect.y;
-      const yOff = flip ? rect.bottom() - 3 : rect.y + 3;
+      // A clock pulse does nothing for the first half of its cycle: its tile drops the time colour
+      // then, and keeps its label, so the pulse reads as on and off rather than as an empty box.
+      const resting = steps === 2 && t < 0.5;
+      MAKE_HIGHLIGHTED_RENDERER(resting ? undefined : CanvasTheme.gate.time)(
+        args,
+      );
+
+      // Counting up climbs and counting down falls, and a pulse is on when it is high: the value is
+      // the height. The left edge is now; the steps scroll in from the right as t runs on.
+      const yOn = flip ? rect.bottom() - 3 : rect.y + 3;
+      const yNeutral = flip ? rect.y : rect.bottom();
+      const yOff = flip ? rect.y + 3 : rect.bottom() - 3;
       const xi = rect.x;
       const xf = rect.right();
 
@@ -86,6 +95,9 @@ class CountingGates {
         polygon(painter, curve, {
           fill: CanvasTheme.operation.fill,
         });
+      });
+      args.painter.group(`counting-steps-${args.painter.order}`, (painter) => {
+        painter.alpha *= 0.65;
         for (let i = 1; i < curve.length - 2; i++) {
           strokePath(
             painter,
@@ -94,18 +106,30 @@ class CountingGates {
             1,
           );
         }
-        if (steps === 2 && t < 0.5) {
-          rectangle(painter, rect, {
-            fill: CanvasTheme.surface.gate,
-          });
-          rectangle(painter, rect, {
-            fill: CanvasTheme.surface.gate,
-          });
-          rectangle(painter, rect, {
-            fill: CanvasTheme.surface.gate,
-          });
-        }
       });
+      // The value now, as a solid level at the left edge, so a step taken is seen being taken.
+      const stepCount = Math.min(128, steps);
+      const now = yt(Math.floor(t * stepCount) / (stepCount - 1));
+      polygon(
+        args.painter,
+        [
+          new Point(xi, yNeutral),
+          new Point(xi, now),
+          new Point(xi + 3, now),
+          new Point(xi + 3, yNeutral),
+        ],
+        { fill: CanvasTheme.operation.fill },
+      );
+      // The name again over the steps, on a plate of the tile's own fill, so no step line runs
+      // through it.
+      const plate = new Rect(rect.x + 4, rect.center().y - 11, rect.w - 8, 22);
+      args.painter.group(`counting-name-${args.painter.order}`, (painter) => {
+        painter.alpha *= 0.88;
+        rectangle(painter, plate, {
+          fill: resting ? CanvasTheme.surface.gate : CanvasTheme.gate.time,
+        });
+      });
+      paintGateSymbol(args);
     };
   }
 

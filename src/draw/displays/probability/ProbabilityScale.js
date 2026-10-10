@@ -24,24 +24,24 @@ const CERTAIN_GAP = 1e-6;
  *     one to 100%: those read "<0.1%" and ">99.9%" instead.
  */
 export function formatProbability(p, digits = 1) {
-    if (Number.isNaN(p)) {
-        return "NaN";
-    }
-    if (p <= ZERO_PROBABILITY) {
-        return "0%";
-    }
-    if (p >= 1 - CERTAIN_GAP) {
-        return "100%";
-    }
-    const step = 10 ** -digits;
-    const percent = p * 100;
-    if (percent < step / 2) {
-        return `<${step.toFixed(digits)}%`;
-    }
-    if (percent > 100 - step / 2) {
-        return `>${(100 - step).toFixed(digits)}%`;
-    }
-    return `${percent.toFixed(digits)}%`;
+  if (Number.isNaN(p)) {
+    return "NaN";
+  }
+  if (p <= ZERO_PROBABILITY) {
+    return "0%";
+  }
+  if (p >= 1 - CERTAIN_GAP) {
+    return "100%";
+  }
+  const step = 10 ** -digits;
+  const percent = p * 100;
+  if (percent < step / 2) {
+    return `<${step.toFixed(digits)}%`;
+  }
+  if (percent > 100 - step / 2) {
+    return `>${(100 - step).toFixed(digits)}%`;
+  }
+  return `${percent.toFixed(digits)}%`;
 }
 
 /**
@@ -54,10 +54,10 @@ export function formatProbability(p, digits = 1) {
  * @returns {!number}
  */
 export function probabilityBarFraction(p, largest) {
-    if (!(p > ZERO_PROBABILITY) || !(largest > 0)) {
-        return 0;
-    }
-    return Math.min(1, Math.sqrt(p / largest));
+  if (!(p > ZERO_PROBABILITY) || !(largest > 0)) {
+    return 0;
+  }
+  return Math.min(1, Math.sqrt(p / largest));
 }
 
 /**
@@ -65,12 +65,12 @@ export function probabilityBarFraction(p, largest) {
  * @returns {!number} The largest of them, or 0 when there are none.
  */
 export function largestProbability(probabilities) {
-    const buffer = probabilities.rawBuffer();
-    let largest = 0;
-    for (let i = 0; i < buffer.length; i += 2) {
-        if (buffer[i] > largest) {
-            largest = buffer[i];
-        }
+  const buffer = probabilities.rawBuffer();
+  let largest = 0;
+  for (let i = 0; i < buffer.length; i += 2) {
+    if (buffer[i] > largest) {
+      largest = buffer[i];
     }
-    return largest;
+  }
+  return largest;
 }

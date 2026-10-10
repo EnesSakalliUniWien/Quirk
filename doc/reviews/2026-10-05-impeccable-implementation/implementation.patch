@@ -1,0 +1,1377 @@
+diff --git a/src/app/canvas/canvasPointer.js b/src/app/canvas/canvasPointer.js
+--- a/src/app/canvas/canvasPointer.js
++++ b/src/app/canvas/canvasPointer.js
+@@ -17,6 +17,7 @@
+ import {watchPixiPointerDrags} from '../../editor/interaction/PixiPointerGestures.js';
+ import {rangeBetween, selectionRect} from '../../editor/interaction/RangeSelection.js';
+ import {RenderSurface} from '../../draw/surface/RenderSurface.js';
++import {isApplePlatform} from '../../browser/platform.js';
+ import {Point} from '../../geometry/Point.js';
+ 
+ 
+@@ -95,6 +96,8 @@
+      * @type {undefined|!{moved: !CircuitViewState, copied: !CircuitViewState}}
+      */
+     let grabbed = undefined;
++    let menuPressPointer;
++    let rightPressOpensMenu = false;
+     const withDropChoice = (state, variants, ev) => variants === undefined ? state :
+         state.withDisplayedCircuit(ev.altKey ? variants.copied : variants.moved);
+ 
+@@ -178,6 +181,10 @@
+ 
+     stage.on('pointertap', ev => {
+         if (ev.button !== 0) return;
++        if (ev.pointerId === menuPressPointer) {
++            menuPressPointer = undefined;
++            return;
++        }
+ 
+         // Relative to the canvas, not canvasDiv: the canvas is pinned to the scroll container's
+         // visible corner, and the conversion adds the scroll back.
+@@ -231,6 +238,17 @@
+          * @param {!PointerEvent} ev
+          */
+         onGrab: (pt, ev) => {
++            menuPressPointer = undefined;
++            rightPressOpensMenu = false;
++            if (isApplePlatform && ev.ctrlKey && ev.pointerType !== 'touch') {
++                stopTouchHold();
++                gestureDownPos = undefined;
++                clickDownGateButtonKey = undefined;
++                menuPressPointer = ev.pointerId;
++                rightPressOpensMenu = openMenuAt(/** @type {*} */ (ev.target).circuitTarget, pt, ev.clientX, ev.clientY);
++                if (rightPressOpensMenu) ev.preventDefault();
++                return false;
++            }
+             touchPanPosition = ev.pointerType === 'touch' ? {x: ev.clientX, y: ev.clientY} : undefined;
+             const oldInspector = displayed.getState().value;
+             const newHand = oldInspector.hand.withPos(intoCircuit(pt));
+@@ -373,9 +391,24 @@
+         },
+     }, circuitPosOf);
+     // Pixi forwards pointer releases but does not forward native pointercancel.
+-    canvas.addEventListener('pointercancel', gestures.cancel);
+-
+-    let rightPressOpensMenu = false;
++    const cancelPointer = ev => {
++        if (ev.pointerId === menuPressPointer) {
++            menuPressPointer = undefined;
++            rightPressOpensMenu = false;
++        }
++        gestures.cancel(ev);
++    };
++    canvas.addEventListener('pointercancel', cancelPointer);
++    const clearMenuPress = () => {
++        menuPressPointer = undefined;
++        rightPressOpensMenu = false;
++    };
++    const releaseMenuOutside = ev => {
++        if (ev.pointerId === menuPressPointer) clearMenuPress();
++    };
++    stage.on('pointerupoutside', releaseMenuOutside);
++    window.addEventListener('blur', clearMenuPress);
++
+     stage.on('pointerdown', ev => {
+         if (ev.button === 2) {
+             rightPressOpensMenu = isMenuTarget(ev.target.circuitTarget) || isInsideSelection(circuitPosOf(ev));
+@@ -390,7 +423,9 @@
+     canvas.addEventListener('contextmenu', suppressNativeMenu);
+ 
+     stage.once('destroyed', () => {
+-        canvas.removeEventListener('pointercancel', gestures.cancel);
++        canvas.removeEventListener('pointercancel', cancelPointer);
++        stage.off('pointerupoutside', releaseMenuOutside);
++        window.removeEventListener('blur', clearMenuPress);
+         canvas.removeEventListener('contextmenu', suppressNativeMenu);
+         gestures.dispose();
+     });
+diff --git a/src/browser/theme/dom.js b/src/browser/theme/dom.js
+--- a/src/browser/theme/dom.js
++++ b/src/browser/theme/dom.js
+@@ -30,7 +30,6 @@
+         "--border-width-focus": `${appearance.borders.width.focus}px`,
+         "--radius-small": `${appearance.borders.radius.small}px`,
+         "--radius-medium": `${appearance.borders.radius.medium}px`,
+-        "--font-size-root": `${appearance.typography.size.root}px`,
+         "--space-small": `${appearance.spacing.small}px`,
+         "--space-medium": `${appearance.spacing.medium}px`,
+         "--spacing": `${appearance.spacing.unit / appearance.typography.size.root}rem`,
+diff --git a/src/components/math/data-view.jsx b/src/components/math/data-view.jsx
+--- a/src/components/math/data-view.jsx
++++ b/src/components/math/data-view.jsx
+@@ -26,10 +26,10 @@
+  * the data it holds once it is on screen.
+  *
+  * @param {!{kind: ("matrix"|"state"|"probabilities"), data: (undefined|!Matrix), width: !number,
+- *     height: !number, options: (undefined|!Object), label: !string, className: (undefined|!string)}} props
++ *     height: !number, options: (undefined|!Object), label: !string, describedBy?: !string, className?: !string}} props
+  *     options must hold plain values: it is compared by content, so a caller need not memoise it.
+  */
+-function DataView({ kind, data, width, height, options, label, className }) {
++function DataView({ kind, data, width, height, options, label, describedBy, className }) {
+   const scheme = useColourScheme();
+   const ref = useRef(null);
+   const optionsKey = JSON.stringify(options ?? {});
+@@ -80,6 +80,7 @@
+       className={className ?? "data-view"}
+       role="img"
+       aria-label={label}
++      aria-describedby={describedBy}
+       style={{ width: `${width}px`, height: `${height}px` }}
+     />
+   );
+diff --git a/src/components/panels/algebra/evolution-chart.jsx b/src/components/panels/algebra/evolution-chart.jsx
+--- a/src/components/panels/algebra/evolution-chart.jsx
++++ b/src/components/panels/algebra/evolution-chart.jsx
+@@ -1,4 +1,4 @@
+-import { useEffect, useMemo, useRef } from "react";
++import { useEffect, useId, useMemo, useRef } from "react";
+ import { bin } from "../../../base/Format.js";
+ import { prefersReducedMotion } from "../../../browser/reducedMotion.js";
+ import { Matrix } from "../../../engine/math/matrix/Matrix.js";
+@@ -41,6 +41,7 @@
+  *     formatKet: (undefined|!function(!int): !string)}} props
+  */
+ function EvolutionChart({ states, wireCount, current, formatKet }) {
++  const descriptionId = useId();
+   const scrollerRef = useRef(null);
+   useWheelScrollsSideways(scrollerRef);
+   const size = 1 << wireCount;
+@@ -73,6 +74,13 @@
+ 
+   return (
+     <div className="algebra-evolution" ref={scrollerRef}>
++      <p id={descriptionId} className="visually-hidden">
++        Columns represent successive circuit steps, starting with the initial state; rows represent basis states.
++        Disc radius shows amplitude magnitude; hand direction and hue show phase.
++        In dense pixel mode, opacity shows magnitude relative to the largest amplitude, with a visibility floor
++        for nonzero values, and hue shows phase. Where basis states share a pixel, it shows the largest amplitude
++        in that group. Choose a step below, then open State for individual amplitude, probability, and phase values.
++      </p>
+       <div
+         className={labelled ? "evolution-grid evolution-labelled" : "evolution-grid"}
+         style={{ "--evolution-cell": `${column}px`, "--evolution-row": `${cell}px` }}
+@@ -96,7 +104,8 @@
+             width={states.length * column}
+             height={height}
+             options={{ wireCount }}
+-            label={`How each of the ${size} amplitudes changes over ${states.length - 1} steps`}
++            label={`Evolution of ${size} amplitudes over ${states.length - 1} circuit steps`}
++            describedBy={descriptionId}
+           />
+           <span
+             className="evolution-current"
+diff --git a/src/components/panels/bloch/angle-control.jsx b/src/components/panels/bloch/angle-control.jsx
+--- a/src/components/panels/bloch/angle-control.jsx
++++ b/src/components/panels/bloch/angle-control.jsx
+@@ -65,8 +65,13 @@
+             aria-label={`${name} in degrees`}
+             aria-describedby={defined ? undefined : describedBy}
+             onKeyDown={(event) => {
++              if (event.nativeEvent.isComposing) {
++                event.stopPropagation();
++                return;
++              }
+               // Leaving the field is what commits and clamps it; Enter does the same and stays.
+               if (event.key !== "Enter") return;
++              event.stopPropagation();
+               const input = event.currentTarget;
+               input.blur();
+               input.focus();
+diff --git a/src/components/panels/bloch/bloch-panel.jsx b/src/components/panels/bloch/bloch-panel.jsx
+--- a/src/components/panels/bloch/bloch-panel.jsx
++++ b/src/components/panels/bloch/bloch-panel.jsx
+@@ -133,6 +133,10 @@
+       role="region"
+       aria-labelledby="bloch-title"
+       onKeyDown={(event) => {
++        if (event.nativeEvent.isComposing) {
++          event.stopPropagation();
++          return;
++        }
+         if (event.key === "Escape" && !event.defaultPrevented) {
+           event.preventDefault();
+           close();
+diff --git a/src/components/panels/circuit/rename-box.jsx b/src/components/panels/circuit/rename-box.jsx
+--- a/src/components/panels/circuit/rename-box.jsx
++++ b/src/components/panels/circuit/rename-box.jsx
+@@ -53,6 +53,8 @@
+         spellCheck="false"
+         onChange={() => setError(undefined)}
+         onKeyDown={(event) => {
++          event.stopPropagation();
++          if (event.nativeEvent.isComposing) return;
+           if (event.key === "Enter") {
+             apply();
+             event.preventDefault();
+@@ -60,7 +62,6 @@
+             done();
+             event.preventDefault();
+           }
+-          event.stopPropagation();
+         }}
+         onBlur={apply}
+       />
+diff --git a/src/components/panels/circuit/wire-dial.jsx b/src/components/panels/circuit/wire-dial.jsx
+--- a/src/components/panels/circuit/wire-dial.jsx
++++ b/src/components/panels/circuit/wire-dial.jsx
+@@ -1,6 +1,7 @@
+ import {memo, useEffect, useMemo, useReducer, useRef} from 'react';
+ import {useStore} from 'zustand';
+ import {useDrag} from '@use-gesture/react';
++import {openPanel} from '../../dock.jsx';
+ import {appStore} from '../../../state/appStore.js';
+ import {parseAngleExpression} from '../../../engine/math/formula/AngleExpression.js';
+ import {DIAL_DETENT, DIAL_STEP, radiansExpression, readoutDegrees, snapAngle, stepAngle} from './dialAngle.js';
+@@ -78,12 +79,19 @@
+     const resting = useRef(0);
+     if (degrees !== undefined && Number.isFinite(degrees)) resting.current = degrees;
+     const value = resting.current;
+-    const valid = degrees !== undefined;
++    const valid = Number.isFinite(degrees);
++    const numeric = useRef(valid);
++    numeric.current = valid;
++    const editFormula = () => {
++        appStore.setState({gateParamTarget: {col, row, gate}});
++        openPanel('gate-param');
++    };
+ 
+     const face = useRef(null);
+     const settle = useRef({timer: undefined, text: undefined});
+     /** Shows the angle now, and commits it when the turn settles - at once when the turn is over. */
+     const turn = (next, over) => {
++        if (!numeric.current) return;
+         const text = radiansExpression(next);
+         clearTimeout(settle.current.timer);
+         if (over) {
+@@ -100,8 +108,16 @@
+     };
+ 
+     useEffect(() => {
++        if (!valid) {
++            clearTimeout(settle.current.timer);
++            settle.current.text = undefined;
++        }
++    }, [valid]);
++
++    useEffect(() => {
+         const element = face.current;
+         const wheel = event => {
++            if (!numeric.current) return;
+             event.preventDefault();
+             turn(stepAngle(resting.current, event.deltaY < 0 ? +1 : -1, event.shiftKey), false);
+         };
+@@ -111,12 +127,13 @@
+             element.removeEventListener('wheel', wheel);
+             // A turn still settling commits as the dial goes, so nothing shown is lost.
+             clearTimeout(settle.current.timer);
+-            if (settle.current.text !== undefined) actions.setParamText(col, row, settle.current.text);
++            if (numeric.current && settle.current.text !== undefined) actions.setParamText(col, row, settle.current.text);
+         };
+         // The dial is keyed by its slot, so its slot and actions hold for its whole life.
+     }, []);
+ 
+     const bind = useDrag(({xy: [x, y], first, last, memo, shiftKey}) => {
++        if (!valid) return;
+         // The pointer's bearing from the face's centre; the dial turns by its change. The screen's y
+         // runs down, so a bearing that grows is a clockwise drag: the angle grows the other way.
+         const box = face.current.getBoundingClientRect();
+@@ -129,13 +146,20 @@
+     }, {filterTaps: true, pointer: {capture: true}});
+ 
+     const onKeyDown = event => {
++        event.stopPropagation();
++        if (event.nativeEvent.isComposing) return;
++        if (!valid) {
++            if (event.key === 'Enter' || event.key === ' ') {
++                event.preventDefault();
++                editFormula();
++            }
++            return;
++        }
+         const jumps = {ArrowUp: +1, ArrowRight: +1, ArrowDown: -1, ArrowLeft: -1};
+         let next;
+         if (event.key in jumps) next = stepAngle(value, jumps[event.key], event.shiftKey);
+         else if (event.key === 'PageUp') next = value + 45;
+         else if (event.key === 'PageDown') next = value - 45;
+-        else if (event.key === 'Home') next = 0;
+-        else if (event.key === 'End') next = 360;
+         else if (event.key === 'Escape') { event.currentTarget.blur(); return; }
+         else return;
+         event.preventDefault();
+@@ -155,8 +179,10 @@
+         '--knob-index': `var(--dial-${tone})`,
+     };
+     return <div {...bind()} ref={face} id={`wire-dial-${col}-${row}`} className="wire-dial" style={style}
+-        role="slider" tabIndex={0} aria-label={`${gate.name} angle, wire ${row + 1}, column ${col + 1}`}
+-        aria-valuenow={Math.round(value)} aria-valuetext={valid ? readoutDegrees(value) : 'a formula'}
++        role={valid ? 'spinbutton' : 'button'} tabIndex={0} aria-label={`${gate.name} angle, wire ${row + 1}, column ${col + 1}`}
++        aria-valuenow={valid ? degrees : undefined} aria-valuetext={valid ? readoutDegrees(value) : undefined}
++        aria-description={valid ? undefined : `Formula: ${String(gate.param)}. Activate to edit the parameter.`}
++        onClick={valid ? undefined : editFormula}
+         data-valid={valid} data-tone={tone} data-negative={value < 0} onKeyDown={onKeyDown}>
+         <span className="wire-dial-index" aria-hidden="true" />
+         <span className="wire-dial-core" aria-hidden="true" />
+diff --git a/src/components/panels/export/copy-button.jsx b/src/components/panels/export/copy-button.jsx
+--- a/src/components/panels/export/copy-button.jsx
++++ b/src/components/panels/export/copy-button.jsx
+@@ -1,39 +1,43 @@
+-import { useState } from "react";
++import { useEffect, useRef, useState } from "react";
++import { notify } from "../../ui/toasts.jsx";
+ 
+-/** How long a copy button reports what happened before going back to its label. */
+-const COPY_RESULT_MILLIS = 1000;
++/** Generate before awaiting the clipboard, so the click keeps its intended data. */
++async function copyToClipboard(text, title, fallback) {
++  let value;
++  try { value = text(); } catch (error) {
++    notify(`Could not generate ${title}`, `${error instanceof Error ? error.message : String(error)} ${fallback}`);
++    return;
++  }
++  if (!navigator.clipboard?.writeText) {
++    notify(`Could not copy ${title}`, `Clipboard is unavailable in this browser context. ${fallback}`);
++    return;
++  }
++  try {
++    await navigator.clipboard.writeText(value);
++    notify(`${title} copied`);
++  } catch (error) {
++    notify(`Could not copy ${title}`, `${error instanceof Error && error.name === "NotAllowedError" ? "The browser did not allow the clipboard write." : "The clipboard write failed."} ${fallback}`);
++  }
++}
+ 
+-/**
+- * A copy button and the line of text it reports into. The button is disabled while the result is
+- * showing, so a rapid second press cannot overlap the first one's reset.
+- *
+- * @param {!{id: !string, resultId: !string, label: !string, text: !function(): !string}} props
+- */
+-function CopyButton({ id, resultId, label, text }) {
+-  const [result, setResult] = useState("");
+-
++function CopyButton({ id = /** @type {string | undefined} */ (undefined), resultId = /** @type {string | undefined} */ (undefined), label, text, title = label, fallback = "Select and copy the output below, or retry." }) {
++  const [pending, setPending] = useState(false);
++  const busy = useRef(false);
++  const mounted = useRef(true);
++  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
+   const copy = async () => {
+-    setResult("…");
+-    try {
+-      await navigator.clipboard.writeText(text());
+-      setResult("Done!");
+-    } catch (ex) {
+-      setResult("It didn’t work…");
+-      console.warn("Clipboard copy failed.", ex);
++    if (busy.current) return;
++    busy.current = true;
++    setPending(true);
++    try { await copyToClipboard(text, title, fallback); } finally {
++      busy.current = false;
++      if (mounted.current) setPending(false);
+     }
+-    setTimeout(() => setResult(""), COPY_RESULT_MILLIS);
+   };
+-
+-  return (
+-    <div className="panel-action-row">
+-      <button id={id} type="button" disabled={result !== ""} onClick={copy}>
+-        {label}
+-      </button>
+-      <span id={resultId} className="copy-result">
+-        {result}
+-      </span>
+-    </div>
+-  );
++  return <div className="panel-action-row">
++    <button id={id} type="button" disabled={pending} onClick={copy}>{label}</button>
++    <span id={resultId} className="copy-result">{pending ? "Copying…" : ""}</span>
++  </div>;
+ }
+ 
+ export { CopyButton };
+diff --git a/src/components/panels/export/export-panel-body.jsx b/src/components/panels/export/export-panel-body.jsx
+--- a/src/components/panels/export/export-panel-body.jsx
++++ b/src/components/panels/export/export-panel-body.jsx
+@@ -61,13 +61,14 @@
+ 
+         <section className="panel-section">
+           <div className="panel-section-heading">
+-            <strong className="panel-section-title">Escaped link</strong> — Link to the
++            <strong className="panel-section-title">Circuit link</strong> — Link to the
+             current circuit without special characters that confuse forums.
+           </div>
+           <div className="panel-section-body">
+             <CopyButton
+               id="export-link-copy-button"
+               resultId="export-link-copy-result"
++              title="Circuit link"
+               label="Copy to clipboard"
+               text={() => escapedLink}
+             />
+@@ -88,6 +89,7 @@
+             <CopyButton
+               id="export-json-copy-button"
+               resultId="export-json-copy-result"
++              title="Circuit JSON"
+               label="Copy to clipboard"
+               text={() => prettyCircuitJson(jsonText ?? "")}
+             />
+@@ -106,6 +108,7 @@
+             <CopyButton
+               id="export-amplitudes-button"
+               resultId="export-amplitudes-result"
++              title="Simulation data JSON"
+               label="Generate and copy to clipboard"
+               text={simulationJson}
+             />
+@@ -120,7 +123,7 @@
+             </label>
+             <button type="button" id="export-take-download" onClick={() => downloadFile(simulationJson(), "take.json")}>Download take JSON</button>
+             <button type="button" onClick={() => downloadFile(takeCsv([currentTake()]), "take.csv", "text/csv")}>Download probabilities CSV</button>
+-            <CopyButton id="export-take-csv-copy" resultId="export-take-csv-result" label="Copy CSV" text={() => takeCsv([currentTake()])} />
++            <CopyButton id="export-take-csv-copy" resultId="export-take-csv-result" label="Copy CSV" title="Probabilities CSV" fallback="Download probabilities CSV, or retry." text={() => takeCsv([currentTake()])} />
+             <pre id="export-amplitudes-pre" className="output-box">
+               {amplitudes}
+             </pre>
+diff --git a/src/components/panels/registers/register-row.jsx b/src/components/panels/registers/register-row.jsx
+--- a/src/components/panels/registers/register-row.jsx
++++ b/src/components/panels/registers/register-row.jsx
+@@ -47,6 +47,8 @@
+   const numberProps = (field) => ({
+     onBlur: (event) => applyNumber(field, event.target.value),
+     onKeyDown: (event) => {
++      event.stopPropagation();
++      if (event.nativeEvent.isComposing) return;
+       if (event.key === "Enter") {
+         applyNumber(field, event.target.value);
+         event.preventDefault();
+@@ -83,6 +85,8 @@
+           autoComplete="off"
+           spellCheck="false"
+           onKeyDown={(event) => {
++            event.stopPropagation();
++            if (event.nativeEvent.isComposing) return;
+             if (event.key === "Enter") {
+               applyName();
+               event.preventDefault();
+@@ -179,6 +183,10 @@
+         ))}
+         <form
+           className="registers-label-form"
++          onKeyDown={(event) => {
++            event.stopPropagation();
++            if (event.nativeEvent.isComposing && event.key === "Enter") event.preventDefault();
++          }}
+           onSubmit={(event) => {
+             event.preventDefault();
+             addLabel();
+diff --git a/src/components/panels/tape/take-card.jsx b/src/components/panels/tape/take-card.jsx
+--- a/src/components/panels/tape/take-card.jsx
++++ b/src/components/panels/tape/take-card.jsx
+@@ -6,9 +6,10 @@
+ import { takeLink } from "../../../results/files/link.js";
+ import { downloadFile } from "../../../browser/downloadFile.js";
+ import { COLOURS } from "./colours.js";
++import { CopyButton } from "../export/copy-button.jsx";
+ import { Distribution } from "./distribution.jsx";
+ 
+-function TakeCard({record, selected, onSelect, recorder, act}) {
++function TakeCard({record, selected, onSelect, recorder, act, onDelete}) {
+     useColourScheme();
+     const {take, ghost} = record;
+     const values = useMemo(() => distributions(take), [take]);
+@@ -29,10 +30,10 @@
+             <button type="button" onClick={() => act(() => recorder.restore(take))}>Restore</button>
+             <button type="button" onClick={() => act(() => downloadFile(takeJson(take), `${take.id}.json`))}>JSON</button>
+             <button type="button" onClick={() => act(() => downloadFile(takeCsv([take]), `${take.id}.csv`, "text/csv"))}>CSV</button>
+-            <button type="button" onClick={() => act(() => navigator.clipboard.writeText(takeJson(take)))}>Copy JSON</button>
+-            <button type="button" onClick={() => act(() => navigator.clipboard.writeText(takeCsv([take])))}>Copy CSV</button>
+-            <button type="button" onClick={() => act(() => navigator.clipboard.writeText(takeLink(take, location.href)))}>Copy link</button>
+-            <button type="button" onClick={() => act(() => recorder.store.write([], {remove: [take.id]}))}>Delete</button>
++            <CopyButton label="Copy JSON" title="Take JSON" text={() => takeJson(take)} fallback="Download this take using JSON, or retry." />
++            <CopyButton label="Copy CSV" title="Take CSV" text={() => takeCsv([take])} fallback="Download this take using CSV, or retry." />
++            <CopyButton label="Copy link" title="Take link" text={() => takeLink(take, location.href)} fallback="Download this take using JSON to share it, or retry." />
++            <button type="button" onClick={() => onDelete(take.id)}>Delete</button>
+         </div>
+     </article>;
+ }
+diff --git a/src/components/panels/tape/tape-body.jsx b/src/components/panels/tape/tape-body.jsx
+--- a/src/components/panels/tape/tape-body.jsx
++++ b/src/components/panels/tape/tape-body.jsx
+@@ -1,5 +1,5 @@
+ import {useStore} from 'zustand';
+-import { useMemo, useState } from "react";
++import { useEffect, useMemo, useRef, useState } from "react";
+ import { album, takeJson } from "../../../results/files/json.js";
+ import { takeCsv } from "../../../results/files/csv.js";
+ import { MAX_FILE_BYTES } from "../../../results/files/limits.js";
+@@ -12,9 +12,30 @@
+     const storageError = useStore(recorder.store.error, state => state.value);
+     const unsaved = useStore(recorder.unsaved, state => state.value);
+     const ghostsEnabled = useStore(recorder.ghostsEnabled, state => state.value);
++    const recovery = useStore(recorder.store.recovery, state => /** @type {{value: any}} */ (state).value);
++    const recovering = useStore(recorder.store.recovering, state => /** @type {{value: boolean}} */ (state).value);
++    const undoButton = useRef(/** @type {HTMLButtonElement | null} */ (null));
++    const section = useRef(/** @type {HTMLElement | null} */ (null));
++    const mounted = useRef(true);
++    useEffect(() => {mounted.current = true; return () => {mounted.current = false;};}, []);
+     const [selected, setSelected] = useState([]);
+     const [message, setMessage] = useState("");
+-    const act = async f => {try {await f(); setMessage("");} catch(e) {setMessage(e.message);}};
++    const act = async f => {try {await f(); if (mounted.current) setMessage("");} catch(e) {if (mounted.current) setMessage(e.message);}};
++    useEffect(() => {setSelected(s => s.filter(id => records.some(r => r.id === id)));}, [records]);
++    const deleteTake = id => act(async () => {
++        await recorder.store.delete(id);
++        if (mounted.current) requestAnimationFrame(() => undoButton.current?.focus());
++    });
++    const undoDeletion = () => act(async () => {
++        const id = recorder.store.recovery.getState().value?.id;
++        await recorder.store.undoDelete();
++        if (mounted.current && !recorder.store.recovery.getState().value) requestAnimationFrame(() => {
++            const card = [...(section.current?.querySelectorAll("[data-take-id]") ?? [])].find(card => card.getAttribute("data-take-id") === id);
++            /** @type {HTMLInputElement | null | undefined} */
++            const name = card?.querySelector('input[aria-label^="Name"]');
++            name?.focus();
++        });
++    });
+     const selectedTakes = useMemo(() => records.filter(r => selected.includes(r.id)).map(r => r.take), [records, selected]);
+     const importFile = file => act(async () => {
+         if (!file) return;
+@@ -22,7 +43,7 @@
+         await recorder.importText(await file.text());
+     });
+     const saved = records.filter(r => !r.ghost).map(r => r.take);
+-    return <section className="tape-panel" onDragOver={e => e.preventDefault()} onDrop={e => {e.preventDefault(); importFile(e.dataTransfer.files[0]);}}>
++    return <section ref={section} className="tape-panel" onDragOver={e => e.preventDefault()} onDrop={e => {e.preventDefault(); importFile(e.dataTransfer.files[0]);}}>
+         <h2>Tape</h2><p>Keep a result, compare two takes, or export an album.</p>
+         <div className="tape-actions">
+             <label><input type="checkbox" checked={ghostsEnabled} onChange={e => recorder.ghostsEnabled.setState({value: e.target.checked})} />Keep eight ghosts before edits</label>
+@@ -30,9 +51,15 @@
+             <button type="button" onClick={() => downloadFile(takeJson(album(saved)), "tape.json")}>Download album</button>
+             <button type="button" onClick={() => downloadFile(takeCsv(saved), "tape.csv", "text/csv")}>Download CSV</button>
+         </div>
++        {recovery && <div className="tape-actions" role="status">
++            <span>Deleted {recovery.take.name}.</span>
++            <button ref={undoButton} type="button" disabled={recovering} onClick={undoDeletion}>Undo deletion</button>
++            <button type="button" onClick={() => act(() => downloadFile(takeJson(recovery.take), `${recovery.id}.json`))}>Download deleted take</button>
++            <button type="button" disabled={recovering} onClick={() => act(() => recorder.store.dismissRecovery())}>Dismiss recovery</button>
++        </div>}
+         {(message || storageError) && <p role="alert">{message || storageError}</p>}
+         {unsaved.length > 0 && <button type="button" onClick={() => downloadFile(takeJson(album(unsaved)), "unsaved-takes.json")}>Download unsaved takes</button>}
+-        <div className="tape-strip">{records.map(record => <TakeCard key={record.id} record={record} recorder={recorder} act={act} selected={selected.includes(record.id)}
++        <div className="tape-strip">{records.map(record => <TakeCard key={record.id} record={record} recorder={recorder} act={act} onDelete={deleteTake} selected={selected.includes(record.id)}
+             onSelect={() => setSelected(s => s.includes(record.id) ? s.filter(id => id !== record.id) : [...s.slice(-1), record.id])} />)}</div>
+         {!records.length && <p>No takes yet. Press REC or drop a JSON file here.</p>}
+         <Compare takes={selectedTakes} />
+diff --git a/src/components/toolbar/transport-bar.module.css b/src/components/toolbar/transport-bar.module.css
+--- a/src/components/toolbar/transport-bar.module.css
++++ b/src/components/toolbar/transport-bar.module.css
+@@ -193,8 +193,9 @@
+         stroke-width: 1;
+     }
+ 
++    /* Font-relative breakpoints also reflow when browser text preferences enlarge the controls. */
+     /* Narrow windows cannot hold the shared columns: each lane wraps on its own, label first. */
+-    @media (max-width: 1100px) {
++    @media (max-width: 68.75em) {
+         .bar {
+             display: flex;
+             flex-direction: column;
+@@ -216,7 +217,7 @@
+ 
+     /* A phone: each lane's commands on one row, as icons that keep their names for assistive
+        technology, and its scrubber and readout on the next, the Record menu at that row's end. */
+-    @media (max-width: 640px) {
++    @media (max-width: 40em) {
+         .bar {
+             padding: 6px 12px;
+             row-gap: 6px;
+@@ -243,7 +244,7 @@
+         .forward { grid-area: forward; }
+         .more { grid-area: more; }
+         .pace { grid-area: pace; }
+-        .readout { grid-area: readout; justify-self: end; }
++        .readout { grid-area: readout; justify-self: end; min-width: 0; max-width: 100%; flex-wrap: wrap; white-space: normal; }
+         .extra { grid-area: extra; justify-self: end; }
+ 
+         .scrub {
+@@ -267,7 +268,7 @@
+ 
+     /* Keep full touch targets on phones by giving the commands their own row: at 44px, the label
+        and the commands need about 427px in one row, wider than any phone held upright. */
+-    @media (max-width: 430px) and (any-pointer: coarse) {
++    @media (max-width: 26.875em) and (any-pointer: coarse) {
+         .lane {
+             grid-template-columns: auto auto auto 1fr;
+             grid-template-areas:
+@@ -281,4 +282,17 @@
+             grid-area: 2 / 1 / 3 / -1;
+         }
+     }
++
++    /* Enlarged browser text can make even icon commands too wide for one phone row. */
++    @media (max-width: 13em) and (any-pointer: coarse) {
++        .lane {
++            grid-template-areas:
++                "label label pace extra"
++                "back back play play"
++                "forward forward more more"
++                "scrub scrub scrub scrub"
++                "readout readout readout readout";
++        }
++    }
++
+ }
+diff --git a/src/components/toolbox/gate-toolbox.jsx b/src/components/toolbox/gate-toolbox.jsx
+--- a/src/components/toolbox/gate-toolbox.jsx
++++ b/src/components/toolbox/gate-toolbox.jsx
+@@ -295,6 +295,10 @@
+             value={query}
+             onChange={(ev) => setQuery(ev.target.value)}
+             onKeyDown={(ev) => {
++              if (ev.nativeEvent.isComposing) {
++                ev.stopPropagation();
++                return;
++              }
+               if (ev.key === "Escape" && query !== "") {
+                 setQuery("");
+                 ev.stopPropagation();
+diff --git a/src/editor/interaction/PixiPointerGestures.js b/src/editor/interaction/PixiPointerGestures.js
+--- a/src/editor/interaction/PixiPointerGestures.js
++++ b/src/editor/interaction/PixiPointerGestures.js
+@@ -4,7 +4,7 @@
+     const down = event => {
+         if (active !== undefined || !event.isPrimary || event.button !== 0) return;
+         active = event.pointerId;
+-        handlers.onGrab(position(event), event);
++        if (handlers.onGrab(position(event), event) === false) active = undefined;
+     };
+     const move = event => {
+         if (event.pointerId !== active) return;
+diff --git a/src/results/tapeStore.js b/src/results/tapeStore.js
+--- a/src/results/tapeStore.js
++++ b/src/results/tapeStore.js
+@@ -33,6 +33,8 @@
+         this.cap = cap;
+         this.items = createValueStore([]);
+         this.error = createValueStore("");
++        this.recovery = createValueStore(null);
++        this.recovering = createValueStore(false);
+         this._schedule = schedule;
+         /** Ghosts deferred but not yet built, oldest first. */
+         this._pending = [];
+@@ -100,6 +102,37 @@
+         return this._afterGhosts(() => this._commit(records, remove, signal));
+     }
+ 
++    /** Capture the authoritative record only after earlier writes and transaction resync. */
++    delete(id) {
++        return this._afterGhosts(async () => {
++            let deleted;
++            await this._commit([], [id], undefined, () => {
++                deleted = this._index.get(id);
++                if (!deleted) throw new Error("This take is already gone. Refresh Tape to see current takes.");
++                return [];
++            });
++            this.recovery.setState({value: structuredClone(deleted)});
++        });
++    }
++
++    undoDelete() {
++        if (this.recovering.getState().value) return Promise.resolve();
++        this.recovering.setState({value: true});
++        return this._afterGhosts(async () => {
++            const record = this.recovery.getState().value;
++            if (!record) return;
++            await this._commit([], [], undefined, () => {
++                if (this._index.has(record.id)) throw new Error("A take with this ID already exists. Download the deleted take before resolving the conflict.");
++                return record.ghost ? recordsFor([record.take], true, [...this._index.values()].reduce((latest, r) => Math.max(latest, r.order + 1), Date.now())) : [record];
++            }, record.id);
++            this.recovery.setState({value: null});
++        }).finally(() => this.recovering.setState({value: false}));
++    }
++
++    dismissRecovery() {
++        return this._afterGhosts(() => this.recovery.setState({value: null}));
++    }
++
+     /** Runs `job` after the ghosts deferred before this call are written, and after earlier jobs. */
+     _afterGhosts(job) {
+         const earlier = this._pending.splice(0);
+@@ -148,7 +181,8 @@
+         this.error.setState({value: error.name === "QuotaExceededError" ? "Browser storage is full. Download your unsaved takes." : error.message});
+     }
+ 
+-    async _commit(records, remove = [], signal = undefined) {
++    /** @param {(() => any[]) | undefined} prepare */
++    async _commit(records, remove = [], signal = undefined, prepare = undefined, requiredId = undefined) {
+         const db = await this.db;
+         signal?.throwIfAborted();
+         const tx = db.transaction("takes", "readwrite");
+@@ -158,8 +192,9 @@
+         const done = tx.done;
+         done.catch(ignore);
+         try {
+-            // Another tab may have written since this one last looked: trust the store, not the index.
+-            if (this._stale) await this._resync(() => tx.store.getAll());
++            // Recovery always reads the transaction: another tab's broadcast may still be in flight.
++            if (this._stale || prepare) await this._resync(() => tx.store.getAll());
++            if (prepare) records = prepare();
+             const merged = new Map(this._index);
+             remove.forEach(id => merged.delete(id));
+             records.forEach(r => merged.set(r.id, {...r, order: merged.get(r.id)?.order ?? r.order}));
+@@ -170,6 +205,7 @@
+                 merged.delete(r.id);
+                 bytes -= r.bytes;
+             }
++            if (requiredId && !merged.has(requiredId)) throw new Error("The deleted ghost does not fit in Tape storage. Download it or free space, then retry Undo.");
+             if (bytes > this.cap) throw new Error("Tape is full. Download the unsaved take or delete saved takes.");
+             // Requests are not awaited one by one: a failed request aborts the transaction, and `done` rejects.
+             for (const id of this._index.keys()) if (!merged.has(id)) tx.store.delete(id).catch(ignore);
+diff --git a/src/styles/foundation/document.css b/src/styles/foundation/document.css
+--- a/src/styles/foundation/document.css
++++ b/src/styles/foundation/document.css
+@@ -2,7 +2,7 @@
+     html {
+         background: var(--background);
+         font-family: var(--font-sans);
+-        font-size: var(--font-size-root);
++        font-size: 100%;
+         line-height: 1.5;
+     }
+ 
+diff --git a/src/styles/panels/forge/construction.css b/src/styles/panels/forge/construction.css
+--- a/src/styles/panels/forge/construction.css
++++ b/src/styles/panels/forge/construction.css
+@@ -4,7 +4,7 @@
+     .forge-panel { height: 100%; padding: 16px 0 0; display: grid; grid-template-rows: auto minmax(0,1fr); min-width: 0; }
+     .forge-panel > .panel-header { padding: 0 18px 12px; }
+     .forge-panel .panel-title { font-size: 22px; }
+-    .forge-panel .panel-description { font-size: 12px; }
++    .forge-panel .panel-description { font-size: var(--text-small); }
+     .forge-tabs { display: grid; grid-template-rows: auto minmax(0,1fr); min-height: 0; }
+     .construction-tabs { display: flex; gap: 4px; padding: 0 18px 12px; border-bottom: var(--border-width) solid var(--border); }
+     .construction-tabs button { flex: 1; padding: 8px; }
+@@ -23,8 +23,8 @@
+     .forge-field textarea { min-height: 120px; resize: vertical; font-family: monospace; }
+     .field-label-row { display: flex; align-items: center; flex-wrap: wrap; justify-content: space-between; gap: 8px; font-size: 13px; }
+     .field-label-row select { max-width: 100%; }
+-    .field-description { color: var(--muted-foreground); font-size: 12px; line-height: 1.5; margin: 0; overflow-wrap: anywhere; }
+-    .field-error { color: var(--destructive); font-size: 12px; margin: 0; overflow-wrap: anywhere; }
++    .field-description { color: var(--muted-foreground); font-size: var(--text-small); line-height: 1.5; margin: 0; overflow-wrap: anywhere; }
++    .field-error { color: var(--destructive); font-size: var(--text-small); margin: 0; overflow-wrap: anywhere; }
+     .axis-presets { display: flex; flex-wrap: wrap; gap: 6px; padding: 0; border: 0; margin: 0; }
+     .axis-presets legend { font-size: 13px; margin-bottom: 6px; }
+     .axis-presets button { flex: 1; padding: 7px; }
+@@ -48,4 +48,15 @@
+     .gate-construction-preview, .responsive-circuit-figure { min-width: 0; overflow: hidden; }
+     .forge-range-highlight { position: absolute; pointer-events: none; border: var(--border-width-strong) solid var(--foreground); background: var(--forge-range-fill); box-sizing: border-box; z-index: 2; }
+     @container (min-width: 720px) { .construction-layout { grid-template-columns: minmax(0,1fr) minmax(0,1fr); } }
++
++    /* When headers and enlarged text leave little form space, scroll the complete workflow. */
++    @media (max-height: 32em) {
++        .panel-scroll:is([data-panel-id="forge"], [data-panel-id="gate-param"]) { overflow: auto; }
++        .forge-panel, .gate-param-panel, .forge-tabs, .construction-tab-panel:not([data-hidden]), .forge-method {
++            display: block;
++            height: auto;
++        }
++        :is(.forge-panel, .gate-param-panel) .construction-scroll { overflow: visible; }
++    }
++
+ }
+diff --git a/src/styles/shell/layout.css b/src/styles/shell/layout.css
+--- a/src/styles/shell/layout.css
++++ b/src/styles/shell/layout.css
+@@ -17,7 +17,7 @@
+         *::before,
+         *::after {
+             scroll-behavior: auto;
+-            transition-duration: 0.01ms;
++            transition-duration: 0s;
+         }
+     }
+ 
+diff --git a/test/editor/interaction/PixiPointerGestures.test.js b/test/editor/interaction/PixiPointerGestures.test.js
+--- a/test/editor/interaction/PixiPointerGestures.test.js
++++ b/test/editor/interaction/PixiPointerGestures.test.js
+@@ -27,3 +27,25 @@
+     assertThat(log).isEqualTo(['grab', 'move', 'drop', 'grab', 'cancel', 'grab', 'drop']);
+     stage.destroy();
+ });
++
++suite.test('a refused grab leaves no active drag and accepts the next pointer', () => {
++    const stage = new Container();
++    const log = [];
++    const gestures = watchPixiPointerDrags(stage, {
++        onGrab: e => { log.push('grab'); return e.accept; },
++        onDrag: () => log.push('move'), onDrop: () => log.push('drop'),
++        onCancel: () => log.push('cancel'),
++    }, e => e.global);
++    const event = {pointerId: 1, isPrimary: true, button: 0, buttons: 1, pointerType: 'mouse',
++        global: {accept: false}};
++    stage.emit('pointerdown', event);
++    stage.emit('globalpointermove', event);
++    stage.emit('pointerupoutside', event);
++    gestures.cancel(event);
++    stage.emit('pointerdown', {...event, global: {accept: true}});
++    stage.emit('globalpointermove', event);
++    stage.emit('pointerup', event);
++    assertThat(log).isEqualTo(['grab', 'grab', 'move', 'drop']);
++    gestures.dispose();
++    stage.destroy();
++});
+diff --git a/test/results/tapeStore.test.js b/test/results/tapeStore.test.js
+--- a/test/results/tapeStore.test.js
++++ b/test/results/tapeStore.test.js
+@@ -264,3 +264,94 @@
+     assertTrue(calls[2][2] > 0);
+     assertTrue(calls.every(call => call[1] === task));
+ });
++
++suite.test("deletion captures queued metadata and restores exact saved records durably", async () => {
++    const {name, store} = openStore();
++    let reopened;
++    try {
++        await store.ready;
++        await store.write([fakeTake("a"), fakeTake("b")]);
++        const update = store.write([{...fakeTake("a"), notes: "latest", name: "edited"}]);
++        const deletion = store.delete("a");
++        await Promise.all([update, deletion]);
++        const snapshot = store.recovery.getState().value;
++        assertThat(snapshot.take.notes).isEqualTo("latest");
++        assertThat(ids(store)).isEqualTo(["b"]);
++        await store.undoDelete();
++        assertThat(store.items.getState().value[0]).isEqualTo(snapshot);
++        assertThat(store.recovery.getState().value).isEqualTo(null);
++        reopened = openStore({name}).store;
++        await reopened.ready;
++        assertThat(reopened.items.getState().value).isEqualTo(store.items.getState().value);
++        assertThat(reopened.recovery.getState().value).isEqualTo(null);
++    } finally {await discard(...[store, reopened].filter(Boolean));}
++});
++
++suite.test("latest successful delete owns recovery; failed deletion and conflicts retain it", async () => {
++    const {store} = openStore();
++    try {
++        await store.ready;
++        await store.write([fakeTake("a"), fakeTake("b")]);
++        await store.delete("a");
++        const first = store.recovery.getState().value;
++        await store.delete("missing").catch(() => {});
++        assertThat(store.recovery.getState().value).isEqualTo(first);
++        await store.write([fakeTake("c")]);
++        const normalCap = store.cap;
++        store.cap = 1;
++        await store.delete("b").catch(() => {});
++        assertThat(store.recovery.getState().value).isEqualTo(first);
++        assertTrue(ids(store).includes("b"));
++        store.cap = normalCap;
++        await store.delete("b");
++        const last = store.recovery.getState().value;
++        assertThat(last.id).isEqualTo("b");
++        await store.write([{...fakeTake("b"), notes: "newer"}]);
++        await store.undoDelete().catch(() => {});
++        assertThat(store.recovery.getState().value).isEqualTo(last);
++        assertThat(store.items.getState().value.find(r => r.id === "b").take.notes).isEqualTo("newer");
++        await store.write([], {remove: ["b"]});
++        await Promise.all([store.undoDelete(), store.undoDelete()]);
++        assertThat(ids(store)).isEqualTo(["b", "c"]);
++    } finally {await discard(store);}
++});
++
++suite.test("ghost Undo is newest, retains ghost status, and reports rejection without losing recovery", async () => {
++    const {store} = openStore();
++    try {
++        await store.ready;
++        await store.write([fakeTake("deleted")], {ghost: true});
++        await store.delete("deleted");
++        for (let i = 0; i < 8; i++) await store.write([fakeTake(`g${i}`)], {ghost: true});
++        await store.undoDelete();
++        assertThat(ids(store)).isEqualTo([...Array.from({length: 7}, (_, i) => `g${i + 1}`), "deleted"]);
++        assertTrue(store.items.getState().value.at(-1).ghost);
++        await store.delete("deleted");
++        const snapshot = store.recovery.getState().value;
++        store.cap = 1;
++        await store.undoDelete().catch(() => {});
++        assertThat(store.recovery.getState().value).isEqualTo(snapshot);
++        assertTrue(!ids(store).includes("deleted"));
++        assertTrue(store.error.getState().value.includes("does not fit"));
++    } finally {await discard(store);}
++});
++
++suite.test("delete captures a stale index's current authoritative metadata", async () => {
++    const {store} = openStore();
++    try {
++        await store.ready;
++        await store.write([fakeTake("a")]);
++        const current = {...store.items.getState().value[0], take: {...fakeTake("a"), notes: "other tab"}};
++        await (await store.db).put("takes", current);
++        // No broadcast has arrived: recovery operations still read the transaction itself.
++        await store.delete("a");
++        assertThat(store.recovery.getState().value).isEqualTo(current);
++        await (await store.db).put("takes", {...current, take: {...current.take, notes: "newer conflict"}});
++        await store.undoDelete().catch(() => {});
++        assertThat(store.recovery.getState().value).isEqualTo(current);
++        assertThat(store.items.getState().value[0].take.notes).isEqualTo("newer conflict");
++        await (await store.db).delete("takes", current.id);
++        await store.undoDelete();
++        assertThat(store.items.getState().value[0]).isEqualTo(current);
++    } finally {await discard(store);}
++});
+diff --git a/test_e2e/debugPanels.test.js b/test_e2e/debugPanels.test.js
+--- a/test_e2e/debugPanels.test.js
++++ b/test_e2e/debugPanels.test.js
+@@ -19,7 +19,7 @@
+ 
+ import assert from 'node:assert/strict';
+ import {readdirSync, readFileSync} from 'node:fs';
+-import {test, withQuirkPage, waitForPanel, TEST_TIMEOUT_MILLIS} from './harness.js';
++import {test, withQuirkPage, waitForPanel, waitForQuirk, waitForCircuit, TEST_TIMEOUT_MILLIS} from './harness.js';
+ 
+ const BELL = {cols: [['H'], ['•', 'X']]};
+ 
+@@ -49,10 +49,18 @@
+                 changedAfterCnot: steps[2].querySelectorAll('mtd[data-changed]').length,
+                 // Three states, one column each, over four basis states: a square cell apiece.
+                 evolutionShape: chart.width / chart.height,
++                chartDetail: chart.dataset.detail,
++                chartDescription: document.getElementById(chart.getAttribute('aria-describedby'))?.textContent,
+             };
+         }, {timeout: TEST_TIMEOUT_MILLIS}).then(handle => handle.jsonValue());
+         assert.match(panel.summary, /2 steps · 2 qubits · every matrix reproduces the simulated state/);
+         assert.equal(panel.descriptions[0], 'Start');
++        assert.equal(panel.chartDetail, 'marks');
++        assert.match(panel.chartDescription, /Columns represent successive circuit steps/);
++        assert.match(panel.chartDescription, /rows represent basis states/);
++        assert.match(panel.chartDescription, /Disc radius shows amplitude magnitude/);
++        assert.match(panel.chartDescription, /hand direction and hue show phase/);
++        assert.match(panel.chartDescription, /open State for individual amplitude, probability, and phase values/);
+         assert.deepEqual(panel.tablesPerStep, [1, 3, 3]);
+         assert.equal(panel.cnotRows, 4, 'CNOT over two qubits is 4x4.');
+         // CNOT moves the |01> amplitude to |11>: exactly those two entries change.
+@@ -148,12 +156,17 @@
+             return views.length !== 3 || views.some(v => v.dataset.painted !== 'true') || chart?.dataset.painted !== 'true' ? false : {
+                 summary: root.querySelector('.debug-panel-summary').textContent,
+                 chartDetail: chart.dataset.detail,
++                chartDescription: document.getElementById(chart.getAttribute('aria-describedby'))?.textContent,
+                 notes: [...root.querySelectorAll('.debug-panel-note')].map(e => e.textContent),
+             };
+         }, {timeout: TEST_TIMEOUT_MILLIS}).then(handle => handle.jsonValue());
+         assert.match(drawn.summary, /3 steps · 12 qubits · every matrix reproduces the simulated state/);
+         assert.equal(drawn.chartDetail, 'pixels', 'Past a few pixels per entry the chart is drawn as pixels.');
+         assert.deepEqual(drawn.notes, [], 'No step may stop at a size limit.');
++        assert.match(drawn.chartDescription, /opacity shows magnitude relative to the largest amplitude/);
++        assert.match(drawn.chartDescription, /visibility floor/);
++        assert.match(drawn.chartDescription, /Where basis states share a pixel, it shows the largest amplitude/);
++        assert.match(drawn.chartDescription, /hue shows phase/);
+ 
+         // Zooming in twice asks for finer tiles, and draws them.
+         const card = '[data-panel-id="algebra"] [data-step="3"]';
+@@ -366,3 +379,105 @@
+         assert.equal(await page.$$eval(selector+' canvas', nodes=>nodes.length),0);
+     });
+ });
++
++
++test('browser preferred font size scales Forge explanations without changing circuit data', async browser => {
++    await withQuirkPage(browser, BELL, async page => {
++        const session = await page.createCDPSession();
++        try {
++            await session.send('Page.setFontSizes', {fontSizes: {standard: 32}});
++            await page.reload();
++            await waitForQuirk(page);
++            await page.click('#gate-forge-button');
++            await waitForPanel(page, 'forge', true);
++            await page.waitForSelector('.forge-panel .field-description', {visible: true});
++            const sizes = await page.evaluate(() => ({
++                root: getComputedStyle(document.documentElement).fontSize,
++                description: getComputedStyle(document.querySelector('.forge-panel .panel-description')).fontSize,
++                field: getComputedStyle(document.querySelector('.forge-panel .field-description')).fontSize,
++                role: document.documentElement.style.getPropertyValue('--text-small'),
++                spacing: document.documentElement.style.getPropertyValue('--spacing'),
++            }));
++            assert.deepEqual(sizes, {root: '32px', description: '26px', field: '26px', role: '0.8125rem', spacing: '0.25rem'});
++            const reflow = await page.evaluate(() => {
++                const selectors = ['#playhead-reset-button', '#playhead-play-button', '#playhead-scrub', '#playhead-position'];
++                return {
++                    width: document.documentElement.scrollWidth,
++                    viewport: document.documentElement.clientWidth,
++                    controls: selectors.map(selector => {
++                        const element = document.querySelector(selector);
++                        const rect = element?.getBoundingClientRect();
++                        return {selector, visible: !!rect && rect.width > 0 && rect.height > 0 && rect.left >= 0 && rect.right <= innerWidth};
++                    }),
++                };
++            });
++            assert.ok(reflow.width <= reflow.viewport, 'Preferred text sizing must not widen the document.');
++            for (const control of reflow.controls) assert.ok(control.visible, `${control.selector} stays within the viewport.`);
++            await waitForCircuit(page, BELL);
++        } finally {
++            await session.send('Page.setFontSizes', {fontSizes: {standard: 16}});
++            await session.detach();
++        }
++    });
++});
++
++
++test('enlarged browser text keeps narrow touch transport within the layout viewport', async browser => {
++    await withQuirkPage(browser, BELL, async page => {
++        await page.setViewport({width: 390, height: 844, deviceScaleFactor: 1, isMobile: true, hasTouch: true});
++        const session = await page.createCDPSession();
++        try {
++            await session.send('Page.setFontSizes', {fontSizes: {standard: 32}});
++            await page.reload();
++            await waitForQuirk(page);
++            const layout = await page.evaluate(() => ({
++                width: document.documentElement.clientWidth,
++                content: document.documentElement.scrollWidth,
++                controls: ['#playhead-reset-button', '#playhead-prev-button', '#playhead-play-button',
++                    '#playhead-next-button', '#playhead-end-button', '#breakpoint-toggle-button',
++                    '#playhead-scrub', '#playhead-position'].map(selector => {
++                    const r = document.querySelector(selector).getBoundingClientRect();
++                    return {selector, left: r.left, right: r.right, width: r.width, height: r.height};
++                }),
++            }));
++            assert.equal(layout.width, 390);
++            assert.ok(layout.content <= layout.width, 'Enlarged text must not expand the mobile layout viewport.');
++            for (const control of layout.controls) {
++                assert.ok(control.left >= 0 && control.right <= layout.width && control.width > 0 && control.height > 0,
++                    `${control.selector} stays reachable within the layout viewport.`);
++            }
++            await waitForCircuit(page, BELL);
++        } finally {
++            await session.send('Page.setFontSizes', {fontSizes: {standard: 16}});
++            await session.detach();
++        }
++    });
++});
++
++
++test('reduced motion leaves short-landscape Forge fields and actions visible and scrollable', async browser => {
++    await withQuirkPage(browser, BELL, async page => {
++        await page.setViewport({width: 740, height: 360, deviceScaleFactor: 1, isMobile: true, hasTouch: true});
++        await page.emulateMediaFeatures([{name: 'prefers-reduced-motion', value: 'reduce'}]);
++        await page.reload();
++        await waitForQuirk(page);
++        await page.click('#gate-forge-button');
++        await waitForPanel(page, 'forge', true);
++        await page.waitForSelector('#gate-forge-rotation-name', {visible: true});
++        const visibility = await page.$eval('.forge-panel .forge-method', e => getComputedStyle(e).visibility);
++        assert.equal(visibility, 'visible');
++        // Scroll the complete workflow to a field, then to its commit action; neither is clipped
++        // behind a fixed header or footer when the panel has only a few vertical pixels available.
++        for (const selector of ['#gate-forge-rotation-name', '#gate-forge-rotation-button']) {
++            await page.$eval(selector, e => e.scrollIntoView({block: 'center'}));
++            const reachable = await page.$eval(selector, e => {
++                const r = e.getBoundingClientRect();
++                const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
++                return r.width > 0 && r.height > 0 && r.top >= 0 && r.bottom <= innerHeight &&
++                    getComputedStyle(e).visibility === 'visible' && (hit === e || e.contains(hit));
++            });
++            assert.ok(reachable, `${selector} can be reached by scrolling the short panel.`);
++        }
++        await waitForCircuit(page, BELL);
++    });
++});
+diff --git a/test_e2e/gateMenu.test.js b/test_e2e/gateMenu.test.js
+--- a/test_e2e/gateMenu.test.js
++++ b/test_e2e/gateMenu.test.js
+@@ -130,3 +130,81 @@
+         assert.equal((await page.$$('.wire-dial')).length, 1);
+     });
+ });
++
++
++test('dial semantics preserve signed, fractional and multiple-turn expressions', async browser => {
++    for (const [arg, degrees] of [['-pi/2', -90], ['pi', 180], ['4pi', 720], ['pi/360', 0.5]]) {
++        const circuit = {cols: [[{id: 'Rx', arg}]]};
++        await withQuirkPage(browser, circuit, async page => {
++            await page.waitForSelector('#wire-dial-0-0', {timeout: TEST_TIMEOUT_MILLIS});
++            await page.focus('#wire-dial-0-0');
++            const attributes = await page.$eval('#wire-dial-0-0', e => ({
++                role: e.getAttribute('role'), value: Number(e.getAttribute('aria-valuenow')),
++                min: e.getAttribute('aria-valuemin'), max: e.getAttribute('aria-valuemax'),
++            }));
++            assert.equal(attributes.role, 'spinbutton');
++            assert.ok(Math.abs(attributes.value - degrees) < 1e-10);
++            assert.equal(attributes.min, null);
++            assert.equal(attributes.max, null);
++            const cdp = await page.createCDPSession();
++            const tree = await cdp.send('Accessibility.getFullAXTree');
++            const dial = tree.nodes.find(node => node.role?.value === 'spinbutton' && node.name?.value?.includes('angle'));
++            assert.ok(dial, 'The dial must reach the accessibility tree as a spinbutton.');
++            assert.ok(Math.abs(Number(dial.value?.value) - degrees) < 1e-10, 'The accessibility value must not clamp to 0–100.');
++            await cdp.detach();
++            await page.keyboard.press('Home');
++            await page.keyboard.press('End');
++            await waitForCircuit(page, circuit);
++        });
++    }
++});
++
++test('a formula dial opens the parameter editor without numeric conversion', async browser => {
++    const circuit = {cols: [[{id: 'Rx', arg: 't*pi'}]]};
++    await withQuirkPage(browser, {cols: [[{id: 'Rx', arg: 'pi/2'}]]}, async page => {
++        await page.waitForSelector('#wire-dial-0-0', {timeout: TEST_TIMEOUT_MILLIS});
++        // A loaded non-constant parameter can replace a numeric gate in the same slot. The
++        // constant-angle editor deliberately rejects it, but must remain reachable to repair it.
++        await page.evaluate(circuit => {
++            location.hash = 'circuit=' + encodeURIComponent(JSON.stringify(circuit));
++        }, circuit);
++        await waitForCircuit(page, circuit);
++        assert.deepEqual(await page.$eval('#wire-dial-0-0', e => [e.getAttribute('role'),
++            e.getAttribute('aria-valuenow'), e.getAttribute('aria-valuetext')]), ['button', null, null]);
++        await page.focus('#wire-dial-0-0');
++        await page.keyboard.press('ArrowUp');
++        await page.$eval('#wire-dial-0-0', e => e.dispatchEvent(new WheelEvent('wheel',
++            {deltaY: -1, bubbles: true, cancelable: true})));
++        await waitForCircuit(page, circuit);
++        await page.keyboard.press('Enter');
++        await waitForPanel(page, 'gate-param', true);
++        await page.waitForFunction(() => document.activeElement?.id === 'gate-param-input',
++            {timeout: TEST_TIMEOUT_MILLIS});
++        assert.equal(await page.$eval('#gate-param-input', e => e.value), 't*pi');
++        await waitForCircuit(page, circuit);
++    });
++});
++
++test('Apple Control-primary click opens the gate menu without a live drag', async browser => {
++    await withQuirkPage(browser, {cols: [['X']]}, async page => {
++        // This asserts the macOS branch in Chromium, separately from native OS input delivery.
++        const apple = await page.evaluate(() => /Mac|iPhone|iPad/.test(navigator.platform));
++        if (!apple) {
++            await page.evaluateOnNewDocument(() => Object.defineProperty(navigator, 'platform', {value: 'MacIntel'}));
++            await page.reload();
++        }
++        const gate = await firstGateCentre(page, 2);
++        await page.keyboard.down('Control');
++        await page.mouse.click(gate.x, gate.y);
++        await page.keyboard.up('Control');
++        await page.waitForSelector('.gate-menu', {timeout: TEST_TIMEOUT_MILLIS});
++        await waitForCircuit(page, {cols: [['X']]});
++        await page.keyboard.press('Escape');
++        await page.waitForSelector('.gate-menu', {hidden: true});
++        await page.mouse.move(gate.x, gate.y);
++        await page.mouse.down();
++        await page.mouse.move(gate.x, gate.y + circuitMetrics.wireSpacing, {steps: 5});
++        await page.mouse.up();
++        await waitForCircuit(page, {cols: [[1, 'X']]});
++    });
++});
+diff --git a/test_e2e/overlays.test.js b/test_e2e/overlays.test.js
+--- a/test_e2e/overlays.test.js
++++ b/test_e2e/overlays.test.js
+@@ -19,6 +19,58 @@
+ import assert from 'node:assert/strict';
+ import {circuitMetrics, test, withQuirkPage, waitForCircuit, waitForPanel, closePanel, TEST_TIMEOUT_MILLIS, circuitTopForWires, waitForCanvasViewport, currentCircuit, exportedCircuit} from './harness.js';
+ import {Matrix} from '../src/engine/math/matrix/Matrix.js';
++
++test('export copy failures stay announced and the same control can retry', async browser => {
++    await withQuirkPage(browser, {cols: [['H']]}, async page => {
++        await page.click('#export-button');
++        await page.waitForSelector('#export-link-copy-button');
++        await page.evaluate(() => {
++            navigator.clipboard.writeText = async () => { throw new DOMException('Write denied', 'NotAllowedError'); };
++        });
++        await page.click('#export-link-copy-button');
++        await page.waitForSelector('.app-toast-description');
++        const failure = await page.$eval('.app-toast', element => element.textContent);
++        assert.match(failure, /copy|clipboard/i);
++        assert.equal(await page.$eval('.app-toasts', element => element.getAttribute('aria-live')), 'polite');
++        await new Promise(resolve => setTimeout(resolve, 1250));
++        assert.equal(await page.$eval('.app-toast', element => element.textContent), failure);
++        assert.equal(await page.$eval('#export-link-copy-button', element => element.disabled), false);
++
++        await page.evaluate(() => { navigator.clipboard.writeText = async text => { window.copiedExport = text; }; });
++        await page.click('#export-link-copy-button');
++        await page.waitForFunction(() => [...document.querySelectorAll('.app-toast-title')].some(e => /copied/i.test(e.textContent)));
++        assert.match(await page.evaluate(() => window.copiedExport), /#circuit=/);
++        await page.evaluate(() => { Object.defineProperty(navigator, 'clipboard', {value: undefined, configurable: true}); });
++        await page.click('#export-link-copy-button');
++        await page.waitForFunction(() => [...document.querySelectorAll('.app-toast-description')].some(e => /unavailable/i.test(e.textContent)));
++        assert.ok(await page.$('#export-escaped-anchor'), 'The selectable circuit link remains available.');
++        assert.equal(await page.$eval('#export-link-copy-button', element => element.disabled), false);
++        assert.deepEqual(await currentCircuit(page), {cols: [['H']]});
++    });
++});
++
++test('export copy captures one request and announces completion after the panel closes', async browser => {
++    await withQuirkPage(browser, {cols: [['H']]}, async page => {
++        await page.click('#export-button');
++        await page.waitForSelector('#export-json-copy-button');
++        await page.evaluate(() => {
++            window.exportWrites = [];
++            navigator.clipboard.writeText = text => {
++                window.exportWrites.push(text);
++                return new Promise(resolve => { window.finishExportCopy = resolve; });
++            };
++            const button = document.getElementById('export-json-copy-button');
++            button.click();
++            button.click();
++        });
++        await page.waitForFunction(() => document.getElementById('export-json-copy-button').disabled);
++        assert.equal(await page.evaluate(() => window.exportWrites.length), 1);
++        await closePanel(page, 'export');
++        await page.evaluate(() => window.finishExportCopy());
++        await page.waitForFunction(() => [...document.querySelectorAll('.app-toast-title')].some(e => /copied/i.test(e.textContent)));
++        assert.deepEqual(JSON.parse(await page.evaluate(() => window.exportWrites[0])), {cols: [['H']]});
++    });
++});
+ 
+ test('parameter chooser owns focus and Escape returns to its opener', async browser => {
+     const circuit = {cols: [[{id: 'Rx', arg: 'pi/2'}]]};
+@@ -280,6 +332,33 @@
+     }
+ });
+ 
++test('composing Enter and Escape leave Bloch entry and gate search intact', async browser => {
++    await withQuirkPage(browser, {cols: [['H'], ['Bloch']]}, async page => {
++        await page.focus('#gate-search');
++        await page.keyboard.type('Had');
++        await page.$eval('#gate-search', input => input.dispatchEvent(new KeyboardEvent('keydown',
++            {key: 'Escape', isComposing: true, bubbles: true, cancelable: true})));
++        assert.equal(await page.$eval('#gate-search', input => input.value), 'Had');
++        await page.keyboard.press('Escape');
++        assert.equal(await page.$eval('#gate-search', input => input.value), '');
++        await openBlochAt(page, 1);
++        await page.focus('#bloch-theta-input');
++        const composing = await page.$eval('#bloch-theta-input', input => {
++            let blurs = 0;
++            input.addEventListener('blur', () => blurs++);
++            for (const key of ['Enter', 'Escape']) input.dispatchEvent(new KeyboardEvent('keydown',
++                {key, isComposing: true, bubbles: true, cancelable: true}));
++            return {blurs, focused: document.activeElement === input};
++        });
++        assert.deepEqual(composing, {blurs: 0, focused: true});
++        await waitForPanel(page, 'bloch', true);
++        await page.keyboard.press('Enter');
++        assert.equal(await page.evaluate(() => document.activeElement?.id), 'bloch-theta-input');
++        await page.keyboard.press('Escape');
++        await waitForPanel(page, 'bloch', false);
++    });
++});
++
+ test('Bloch sliders show an unfilled track at zero', async browser => {
+     await withQuirkPage(browser, {cols: [['H'], ['Bloch']]}, async page => {
+         await openBlochAt(page, 1);
+diff --git a/test_e2e/registers.test.js b/test_e2e/registers.test.js
+--- a/test_e2e/registers.test.js
++++ b/test_e2e/registers.test.js
+@@ -136,6 +136,14 @@
+             () => document.activeElement?.classList.contains('gutter-rename') && document.activeElement.value === 'a',
+             {timeout: TEST_TIMEOUT_MILLIS});
+         await page.keyboard.type('acc');
++        const composing = await page.$eval('.gutter-rename', input => {
++            const key = new KeyboardEvent('keydown', {key: 'Enter', isComposing: true, bubbles: true, cancelable: true});
++            input.dispatchEvent(key);
++            input.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape', isComposing: true, bubbles: true}));
++            return {value: input.value, connected: input.isConnected, prevented: key.defaultPrevented};
++        });
++        assert.deepEqual(composing, {value: 'acc', connected: true, prevented: false});
++        await waitForCircuit(page, {cols: [['X']], registers: [{name: 'a', wires: [0, 2]}]});
+         await page.keyboard.press('Enter');
+         await waitForCircuit(page, {cols: [['X']], registers: [{name: 'acc', wires: [0, 2]}]});
+         await page.waitForFunction(() => document.querySelector('.gutter-rename') === null, {timeout: TEST_TIMEOUT_MILLIS});
+@@ -221,3 +229,36 @@
+         assert.equal(summary, '2 of 4 outcomes possible · largest 50.0%');
+     });
+ });
++
++
++test('Registers composing Enter preserves names and labels until ordinary Enter', async browser => {
++    const circuit = {cols: [['H']], registers: [{name: 'a', wires: [0, 1]}]};
++    await withQuirkPage(browser, circuit, async page => {
++        await page.click('#registers-button');
++        await waitForPanel(page, 'registers', true);
++        const name = '[data-register="a"] .registers-name-input';
++        await page.waitForSelector(name, {visible: true, timeout: TEST_TIMEOUT_MILLIS});
++        await page.focus(name);
++        await page.$eval(name, input => input.select());
++        await page.keyboard.type('acc');
++        await page.$eval(name, input => input.dispatchEvent(new KeyboardEvent('keydown',
++            {key: 'Enter', isComposing: true, bubbles: true, cancelable: true})));
++        await waitForCircuit(page, circuit);
++        assert.equal(await page.$eval(name, input => input.value), 'acc');
++        await page.keyboard.press('Enter');
++        await waitForCircuit(page, {cols: circuit.cols, registers: [{name: 'acc', wires: [0, 1]}]});
++        const label = '[data-register="acc"] .registers-label-input';
++        await page.waitForSelector(label, {visible: true, timeout: TEST_TIMEOUT_MILLIS});
++        await page.click(label);
++        await page.keyboard.type('zero');
++        const prevented = await page.$eval(label, input => {
++            const key = new KeyboardEvent('keydown', {key: 'Enter', isComposing: true, bubbles: true, cancelable: true});
++            input.dispatchEvent(key);
++            return key.defaultPrevented;
++        });
++        assert.equal(prevented, true, 'Composing Enter must not submit the label form.');
++        await page.keyboard.press('Enter');
++        await waitForCircuit(page, {cols: circuit.cols,
++            registers: [{name: 'acc', wires: [0, 1], labels: {0: 'zero'}}]});
++    });
++});
+diff --git a/test_e2e/tape.test.js b/test_e2e/tape.test.js
+--- a/test_e2e/tape.test.js
++++ b/test_e2e/tape.test.js
+@@ -2,7 +2,7 @@
+ import {mkdtemp, readFile, writeFile, rm, readdir} from "node:fs/promises";
+ import {tmpdir} from "node:os";
+ import {join} from "node:path";
+-import {test, withQuirkPage, waitForPanel, waitForQuirk, TEST_TIMEOUT_MILLIS} from "./harness.js";
++import {test, withQuirkPage, waitForPanel, waitForQuirk, closePanel, TEST_TIMEOUT_MILLIS} from "./harness.js";
+ 
+ async function records(page) {
+     return page.evaluate(() => new Promise((resolve, reject) => {
+@@ -189,3 +189,34 @@
+         });
+     } finally {await context.close(); await rm(directory, {recursive: true, force: true});}
+ });
++
++test("Tape Undo survives panel closure and restores the last blurred metadata on reload", async browser => {
++    const context = await browser.createBrowserContext();
++    try {
++        await withQuirkPage(context, {cols: [["H"]]}, async page => {
++            await record(page, "record-take");
++            await waitSaved(page, 1);
++            const original = (await records(page))[0];
++            const selector = `[data-take-id="${original.id}"]`;
++            await page.click(`${selector} summary`);
++            await page.focus(`${selector} textarea`);
++            await page.keyboard.type("Saved immediately before deletion");
++            await page.evaluate(selector => {
++                document.querySelector(`${selector} textarea`).blur();
++                [...document.querySelector(selector).querySelectorAll("button")].find(e => e.textContent === "Delete").click();
++            }, selector);
++            await waitSaved(page, 0);
++            await page.waitForFunction(() => document.activeElement?.textContent === "Undo deletion");
++            await closePanel(page, "tape");
++            await page.click("#tape-button");
++            await waitForPanel(page, "tape", true);
++            await page.evaluate(() => [...document.querySelectorAll("button")].find(e => e.textContent === "Undo deletion").click());
++            await waitSaved(page, 1);
++            await page.waitForFunction(() => document.activeElement?.getAttribute("aria-label")?.startsWith("Name "));
++            await page.reload();
++            await waitForQuirk(page);
++            const restored = (await records(page)).find(r => r.id === original.id);
++            assert.deepEqual(restored, {...original, take: {...original.take, notes: "Saved immediately before deletion"}, bytes: restored.bytes});
++        });
++    } finally {await context.close();}
++});
+diff --git a/test_e2e/theme.test.js b/test_e2e/theme.test.js
+--- a/test_e2e/theme.test.js
++++ b/test_e2e/theme.test.js
+@@ -164,6 +164,13 @@
+         await page.click('#playhead-prev-button');
+         await page.click('#time-play-button');
+         await page.waitForFunction(() => document.getElementById('time-hold').textContent === 'paused');
++        // The hold label updates immediately, but time readouts follow sampled simulation frames.
++        // Set a known paused phase and wait for its published readout before comparing themes.
++        await page.$eval('#time-scrub', input => {
++            input.value = '0.5';
++            input.dispatchEvent(new Event('input', {bubbles: true}));
++        });
++        await page.waitForFunction(() => document.getElementById('time-scrub').getAttribute('aria-valuetext') === 't 0.50');
+         const state = () => page.evaluate(() => ({
+             position: document.getElementById('playhead-position').textContent,
+             t: document.getElementById('time-scrub').value,

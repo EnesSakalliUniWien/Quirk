@@ -22,8 +22,22 @@
  * gates' permutations and matrices (see src/draw/renderers/operatorTiles.worker.js). There the
  * context is simply absent, and nothing that would use it runs.
  */
-const sharedCanvas = typeof document === "undefined" ? undefined : document.createElement("canvas");
-const sharedContext = sharedCanvas === undefined ? undefined : sharedCanvas.getContext("webgl2");
+const sharedCanvas =
+  typeof document === "undefined"
+    ? undefined
+    : document.createElement("canvas");
+// The simulation renders only into its own textures; the canvas is never shown. So its default
+// framebuffer needs no antialiasing, depth or stencil buffers, nor alpha to composite with.
+const sharedContext =
+  sharedCanvas === undefined
+    ? undefined
+    : sharedCanvas.getContext("webgl2", {
+        alpha: false,
+        antialias: false,
+        depth: false,
+        stencil: false,
+        preserveDrawingBuffer: false,
+      });
 
 /**
  * Explains why the simulation cannot run on this browser, or returns undefined when it can.
@@ -40,7 +54,10 @@ function webGl2SupportProblem() {
     return "Your GPU can't render to floating point textures (EXT_color_buffer_float is missing).";
   }
   const GL = WebGL2RenderingContext;
-  const format = sharedContext.getShaderPrecisionFormat(GL.FRAGMENT_SHADER, GL.HIGH_FLOAT);
+  const format = sharedContext.getShaderPrecisionFormat(
+    GL.FRAGMENT_SHADER,
+    GL.HIGH_FLOAT,
+  );
   if (format === null || format.precision === 0) {
     return "Your GPU doesn't support high precision floats in fragment shaders.";
   }

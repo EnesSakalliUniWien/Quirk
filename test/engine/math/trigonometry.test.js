@@ -20,27 +20,30 @@ import { snappedCosSin } from "../../../src/engine/math/trigonometry.js";
 const suite = new Suite("trigonometry");
 
 suite.test("snappedCosSin", () => {
-    const r = Math.PI/4;
-    const s = Math.sqrt(0.5);
+  const r = Math.PI / 4;
+  const s = Math.sqrt(0.5);
 
-    assertThat(snappedCosSin(0.123)).isEqualTo([Math.cos(0.123), Math.sin(0.123)]);
+  assertThat(snappedCosSin(0.123)).isEqualTo([
+    Math.cos(0.123),
+    Math.sin(0.123),
+  ]);
 
-    assertThat(snappedCosSin(0)).isEqualTo([1, 0]);
-    assertThat(snappedCosSin(r)).isEqualTo([s, s]);
-    assertThat(snappedCosSin(2*r)).isEqualTo([0, 1]);
-    assertThat(snappedCosSin(3*r)).isEqualTo([-s, s]);
-    assertThat(snappedCosSin(4*r)).isEqualTo([-1, 0]);
-    assertThat(snappedCosSin(5*r)).isEqualTo([-s, -s]);
-    assertThat(snappedCosSin(6*r)).isEqualTo([0, -1]);
-    assertThat(snappedCosSin(7*r)).isEqualTo([s, -s]);
-    assertThat(snappedCosSin(8*r)).isEqualTo([1, 0]);
+  assertThat(snappedCosSin(0)).isEqualTo([1, 0]);
+  assertThat(snappedCosSin(r)).isEqualTo([s, s]);
+  assertThat(snappedCosSin(2 * r)).isEqualTo([0, 1]);
+  assertThat(snappedCosSin(3 * r)).isEqualTo([-s, s]);
+  assertThat(snappedCosSin(4 * r)).isEqualTo([-1, 0]);
+  assertThat(snappedCosSin(5 * r)).isEqualTo([-s, -s]);
+  assertThat(snappedCosSin(6 * r)).isEqualTo([0, -1]);
+  assertThat(snappedCosSin(7 * r)).isEqualTo([s, -s]);
+  assertThat(snappedCosSin(8 * r)).isEqualTo([1, 0]);
 
-    assertThat(snappedCosSin(-8*r)).isEqualTo([1, 0]);
-    assertThat(snappedCosSin(-7*r)).isEqualTo([s, s]);
-    assertThat(snappedCosSin(-6*r)).isEqualTo([0, 1]);
-    assertThat(snappedCosSin(-5*r)).isEqualTo([-s, s]);
-    assertThat(snappedCosSin(-4*r)).isEqualTo([-1, 0]);
-    assertThat(snappedCosSin(-3*r)).isEqualTo([-s, -s]);
-    assertThat(snappedCosSin(-2*r)).isEqualTo([0, -1]);
-    assertThat(snappedCosSin(-1*r)).isEqualTo([s, -s]);
+  assertThat(snappedCosSin(-8 * r)).isEqualTo([1, 0]);
+  assertThat(snappedCosSin(-7 * r)).isEqualTo([s, s]);
+  assertThat(snappedCosSin(-6 * r)).isEqualTo([0, 1]);
+  assertThat(snappedCosSin(-5 * r)).isEqualTo([-s, s]);
+  assertThat(snappedCosSin(-4 * r)).isEqualTo([-1, 0]);
+  assertThat(snappedCosSin(-3 * r)).isEqualTo([-s, -s]);
+  assertThat(snappedCosSin(-2 * r)).isEqualTo([0, -1]);
+  assertThat(snappedCosSin(-1 * r)).isEqualTo([s, -s]);
 });

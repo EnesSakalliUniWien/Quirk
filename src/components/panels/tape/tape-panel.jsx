@@ -3,8 +3,12 @@ import { appStore } from "../../../state/appStore.js";
 import { TapeBody } from "./tape-body.jsx";
 
 function TapePanel() {
-    const recorder = useStore(appStore, s => s.recorder);
-    return recorder ? <TapeBody recorder={recorder} /> : <p>Opening Tape…</p>;
+  const recorder = useStore(appStore, (s) => s.recorder);
+  return recorder ? (
+    <TapeBody recorder={recorder} />
+  ) : (
+    <p>Opening Recordings…</p>
+  );
 }
 
 export { TapePanel };

@@ -20,60 +20,62 @@ const EMPTY_STATE = '{"cols":[]}';
  * Undo, redo, and circuit-clearing behavior independent of DOM elements.
  */
 class CircuitActions {
-    /**
-     * @param {!Revision} revision
-     */
-    constructor(revision) {
-        this._revision = revision;
-        this._availability = revision.latestActiveCommit().map(state => ({
-            canUndo: !revision.isAtBeginningOfHistory(),
-            canRedo: !revision.isAtEndOfHistory(),
-            canClearCircuit: state !== _emptyCircuitState(state),
-            canClearAll: state !== EMPTY_STATE
-        }));
-    }
+  /**
+   * @param {!Revision} revision
+   */
+  constructor(revision) {
+    this._revision = revision;
+    this._availability = revision.latestActiveCommit().map((state) => ({
+      canUndo: !revision.isAtBeginningOfHistory(),
+      canRedo: !revision.isAtEndOfHistory(),
+      canClearCircuit: state !== _emptyCircuitState(state),
+      canClearAll: state !== EMPTY_STATE,
+    }));
+  }
 
-    /**
-     * @returns {!Observable.<{
-     *     canUndo: boolean,
-     *     canRedo: boolean,
-     *     canClearCircuit: boolean,
-     *     canClearAll: boolean
-     * }>}
-     */
-    availability() {
-        return this._availability;
-    }
+  /**
+   * @returns {!Observable.<{
+   *     canUndo: boolean,
+   *     canRedo: boolean,
+   *     canClearCircuit: boolean,
+   *     canClearAll: boolean
+   * }>}
+   */
+  availability() {
+    return this._availability;
+  }
 
-    /**
-     * @returns {undefined|*}
-     */
-    undo() {
-        return this._revision.undo();
-    }
+  /**
+   * @returns {undefined|*}
+   */
+  undo() {
+    return this._revision.undo();
+  }
 
-    /**
-     * @returns {undefined|*}
-     */
-    redo() {
-        return this._revision.redo();
-    }
+  /**
+   * @returns {undefined|*}
+   */
+  redo() {
+    return this._revision.redo();
+  }
 
-    /**
-     * Clears the circuit while preserving custom gates.
-     * @returns {void}
-     */
-    clearCircuit() {
-        this._revision.commit(_emptyCircuitState(this._revision.peekActiveCommit()));
-    }
+  /**
+   * Clears the circuit while preserving custom gates.
+   * @returns {void}
+   */
+  clearCircuit() {
+    this._revision.commit(
+      _emptyCircuitState(this._revision.peekActiveCommit()),
+    );
+  }
 
-    /**
-     * Clears the circuit and custom gates.
-     * @returns {void}
-     */
-    clearAll() {
-        this._revision.commit(EMPTY_STATE);
-    }
+  /**
+   * Clears the circuit and custom gates.
+   * @returns {void}
+   */
+  clearAll() {
+    this._revision.commit(EMPTY_STATE);
+  }
 }
 
 /**
@@ -82,9 +84,9 @@ class CircuitActions {
  * @returns {!string}
  */
 function _emptyCircuitState(state) {
-    const value = JSON.parse(state);
-    value.cols = [];
-    return JSON.stringify(value);
+  const value = JSON.parse(state);
+  value.cols = [];
+  return JSON.stringify(value);
 }
 
-export {CircuitActions}
+export { CircuitActions };

@@ -24,6 +24,7 @@ math/
     ├── Matrix.js                storage, construction, equality, arithmetic, predicates, text I/O
     ├── MatrixDecomposition.js   QR, LQ and singular value decompositions, and closestUnitary
     ├── QubitMatrix.js           Pauli and Hadamard matrices, rotation and Bloch vector conversions
+    ├── densityMatrix.js         measured-bit dephasing shared by simulation stats and density displays
     └── ReadableJson.js          static vector encodings for the JSON export
 ```
 

@@ -1,34 +1,48 @@
 @layer components {
-    /* The keyboard's cell on the circuit (src/components/panels/circuit/circuit-cursor.jsx), in the
+  /* The keyboard's cell on the circuit (src/components/panels/circuit/circuit-cursor.jsx), in the
        focus ring's colour: solid while the circuit has the focus, dashed while the keyboard is in
        the gate palette, marking where a gate chosen there lands. */
-    .circuit-cursor {
-        position: absolute;
-        box-sizing: border-box;
-        border: var(--border-width-focus) solid var(--focus-outline);
-        border-radius: var(--radius-small);
-        pointer-events: none;
-    }
+  .circuit-cursor {
+    position: absolute;
+    box-sizing: border-box;
+    border: var(--border-width-focus) solid var(--focus-outline);
+    border-radius: var(--radius-small);
+    pointer-events: none;
+  }
 
-    #canvasDiv:not(:focus) .circuit-cursor {
-        border-style: dashed;
-    }
+  #canvasDiv:not(:focus) .circuit-cursor {
+    border-style: dashed;
+  }
 
-    /* An empty circuit's first step, over the top of the drawing, where no wire runs. Presses and
+  /* An empty circuit's first step, over the top of the drawing, where no wire runs. Presses and
        drops pass through it to the canvas. */
-    .circuit-empty-hint {
-        position: absolute;
-        top: calc(var(--spacing) * 3);
-        left: 50%;
-        box-sizing: border-box;
-        width: max-content;
-        max-width: calc(100% - 32px);
-        margin: 0;
-        padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 3);
-        color: var(--muted-foreground);
-        font-size: var(--text-small);
-        text-align: center;
-        transform: translateX(-50%);
-        pointer-events: none;
-    }
+  .circuit-empty-hint {
+    position: absolute;
+    top: calc(var(--spacing) * 3);
+    left: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: calc(var(--spacing) * 2);
+    box-sizing: border-box;
+    width: max-content;
+    max-width: min(56ch, calc(100% - 32px));
+    margin: 0;
+    padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 3);
+    color: var(--foreground);
+    font-size: var(--text-body);
+    text-align: center;
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+
+  .circuit-empty-hint p {
+    margin: 0;
+  }
+
+  /* The hint lets presses and drops through, all but its one button. */
+  .circuit-empty-hint .ui-button {
+    pointer-events: auto;
+    border-color: var(--control-border);
+  }
 }

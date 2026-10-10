@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import {INPUT_LETTERS} from "../../../circuit/model/InputLetters.js";
-import {Controls} from "../../../gates/probes/Controls.js";
-import {Detectors} from "../../../gates/probes/Detector.js";
-import {HalfTurnGates} from "../../../gates/rotations/HalfTurnGates.js";
-import {ParametrizedRotationGates} from "../../../gates/rotations/ParametrizedRotationGates.js";
-import {QuarterTurnGates} from "../../../gates/rotations/QuarterTurnGates.js";
+import { INPUT_LETTERS } from "../../../circuit/model/InputLetters.js";
+import { Controls } from "../../../gates/probes/Controls.js";
+import { Detectors } from "../../../gates/probes/Detector.js";
+import { HalfTurnGates } from "../../../gates/rotations/HalfTurnGates.js";
+import { ParametrizedRotationGates } from "../../../gates/rotations/ParametrizedRotationGates.js";
+import { QuarterTurnGates } from "../../../gates/rotations/QuarterTurnGates.js";
 
 /** @typedef {import("../../../circuit/model/Gate.js").Gate} Gate */
 
@@ -32,35 +32,35 @@ let knownGates = undefined;
  * @returns {!{basisChanges: !Map, inputRotations: !Map, detectors: !Set}}
  */
 function gateTables() {
-    if (knownGates === undefined) {
-        // The basis a control on another axis moves its wire into, and back (src/gates/probes/Controls.js).
-        const h = HalfTurnGates.H._knownMatrix.rawBuffer();
-        const toY = QuarterTurnGates.SqrtXForward._knownMatrix.rawBuffer();
-        const fromY = QuarterTurnGates.SqrtXBackward._knownMatrix.rawBuffer();
-        const R = ParametrizedRotationGates;
-        knownGates = {
-            basisChanges: new Map([
-                [Controls.XAntiControl, {setup: h, cleanup: h}],
-                [Controls.XControl, {setup: h, cleanup: h}],
-                [Controls.YAntiControl, {setup: toY, cleanup: fromY}],
-                [Controls.YControl, {setup: toY, cleanup: fromY}],
-                [Controls.XParityControl, {setup: h, cleanup: h}],
-                [Controls.YParityControl, {setup: toY, cleanup: fromY}],
-                [Controls.ZParityControl, {setup: undefined, cleanup: undefined}],
-            ]),
-            // Rotations by input A / 2^n of a half turn (src/gates/rotations/ParametrizedRotationGates.js).
-            inputRotations: new Map([
-                [R.XToA, {axis: 'X', factor: Math.PI}],
-                [R.XToMinusA, {axis: 'X', factor: -Math.PI}],
-                [R.YToA, {axis: 'Y', factor: Math.PI}],
-                [R.YToMinusA, {axis: 'Y', factor: -Math.PI}],
-                [R.ZToA, {axis: 'Z', factor: Math.PI}],
-                [R.ZToMinusA, {axis: 'Z', factor: -Math.PI}],
-            ]),
-            detectors: new Set(Detectors.all),
-        };
-    }
-    return knownGates;
+  if (knownGates === undefined) {
+    // The basis a control on another axis moves its wire into, and back (src/gates/probes/Controls.js).
+    const h = HalfTurnGates.H._knownMatrix.rawBuffer();
+    const toY = QuarterTurnGates.SqrtXForward._knownMatrix.rawBuffer();
+    const fromY = QuarterTurnGates.SqrtXBackward._knownMatrix.rawBuffer();
+    const R = ParametrizedRotationGates;
+    knownGates = {
+      basisChanges: new Map([
+        [Controls.XAntiControl, { setup: h, cleanup: h }],
+        [Controls.XControl, { setup: h, cleanup: h }],
+        [Controls.YAntiControl, { setup: toY, cleanup: fromY }],
+        [Controls.YControl, { setup: toY, cleanup: fromY }],
+        [Controls.XParityControl, { setup: h, cleanup: h }],
+        [Controls.YParityControl, { setup: toY, cleanup: fromY }],
+        [Controls.ZParityControl, { setup: undefined, cleanup: undefined }],
+      ]),
+      // Rotations by input A / 2^n of a half turn (src/gates/rotations/ParametrizedRotationGates.js).
+      inputRotations: new Map([
+        [R.XToA, { axis: "X", factor: Math.PI }],
+        [R.XToMinusA, { axis: "X", factor: -Math.PI }],
+        [R.YToA, { axis: "Y", factor: Math.PI }],
+        [R.YToMinusA, { axis: "Y", factor: -Math.PI }],
+        [R.ZToA, { axis: "Z", factor: Math.PI }],
+        [R.ZToMinusA, { axis: "Z", factor: -Math.PI }],
+      ]),
+      detectors: new Set(Detectors.all),
+    };
+  }
+  return knownGates;
 }
 
 /**
@@ -72,15 +72,19 @@ function gateTables() {
  *     permutation takes them: A, B, then R.
  */
 function inputsFor(gate, context) {
-    const keys = gate.getUnmetContextKeys();
-    return INPUT_LETTERS.
-        filter(letter => keys.has(`Input Range ${letter}`)).
-        map(letter => {
-            const range = context.get(`Input Range ${letter}`);
-            return range === undefined
-                ? {offset: 0, length: 0, fallback: context.get(`Input Default ${letter}`) || 0}
-                : {offset: range.offset, length: range.length, fallback: 0};
-        });
+  const keys = gate.getUnmetContextKeys();
+  return INPUT_LETTERS.filter((letter) =>
+    keys.has(`Input Range ${letter}`),
+  ).map((letter) => {
+    const range = context.get(`Input Range ${letter}`);
+    return range === undefined
+      ? {
+          offset: 0,
+          length: 0,
+          fallback: context.get(`Input Default ${letter}`) || 0,
+        }
+      : { offset: range.offset, length: range.length, fallback: 0 };
+  });
 }
 
-export {gateTables, inputsFor};
+export { gateTables, inputsFor };

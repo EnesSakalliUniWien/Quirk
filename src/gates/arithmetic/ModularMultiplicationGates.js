@@ -23,7 +23,11 @@ import {
 } from "../../engine/simulation/gpu/KetShaderUtil.js";
 import { modulusTooBigChecker } from "./ModularIncrementGates.js";
 import { BIG_MUL_MOD_SHADER_CODE } from "./MultiplyAccumulateGates.js";
-import { properMod, extended_gcd, modular_multiplicative_inverse } from "../../engine/math/modularArithmetic.js";
+import {
+  properMod,
+  extended_gcd,
+  modular_multiplicative_inverse,
+} from "../../engine/math/modularArithmetic.js";
 import { WglArg } from "../../engine/webgl/shader/WglArg.js";
 
 const ModularMultiplicationGates = {};

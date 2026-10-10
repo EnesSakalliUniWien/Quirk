@@ -12,8 +12,8 @@ import { decompositionOf } from "../../circuit/gateDecomposition.js";
 import { Matrix } from "../../engine/math/matrix/Matrix.js";
 import { QubitMatrix } from "../../engine/math/matrix/QubitMatrix.js";
 import { preparedStateVector } from "../../engine/math/preparedStates.js";
-import {columnStructure} from "../../engine/simulation/columnStructure/columnStructure.js";
-import {structureMatrix} from "../../engine/simulation/columnStructure/evaluation.js";
+import { columnStructure } from "../../engine/simulation/columnStructure/columnStructure.js";
+import { structureMatrix } from "../../engine/simulation/columnStructure/evaluation.js";
 import { Serializer } from "../../serialization/Serializer.js";
 import { MatrixMath } from "../math/mathml.jsx";
 import { DataView } from "../math/data-view.jsx";
@@ -131,7 +131,11 @@ function turnsText(angle) {
  *
  * @param {!{gate: undefined|!Gate, time: !number}} props
  */
-function GateDetails({ gate, time, title = <h2 className="gate-details-title">{gate?.name}</h2> }) {
+function GateDetails({
+  gate,
+  time,
+  title = <h2 className="gate-details-title">{gate?.name}</h2>,
+}) {
   // Once per gate and moment: a tall gate's structure can hold a dense block of up to 10 qubits.
   const { matrix, alone } = useMemo(() => {
     if (gate === undefined || gate.definitelyHasNoEffect()) {
@@ -267,7 +271,12 @@ function GateDetails({ gate, time, title = <h2 className="gate-details-title">{g
       {decomposition !== undefined && (
         <section className="gate-details-section">
           <h3>Stands for</h3>
-          <CircuitFigure circuit={decomposition} time={time} responsive followsText />
+          <CircuitFigure
+            circuit={decomposition}
+            time={time}
+            responsive
+            followsText
+          />
           <p className="gate-details-legend">
             gate weight {decomposition.gateWeight()}
           </p>

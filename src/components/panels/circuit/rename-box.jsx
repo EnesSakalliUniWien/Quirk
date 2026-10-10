@@ -53,6 +53,8 @@ function RenameBox({ rename, zoom, actions }) {
         spellCheck="false"
         onChange={() => setError(undefined)}
         onKeyDown={(event) => {
+          event.stopPropagation();
+          if (event.nativeEvent.isComposing) return;
           if (event.key === "Enter") {
             apply();
             event.preventDefault();
@@ -60,12 +62,18 @@ function RenameBox({ rename, zoom, actions }) {
             done();
             event.preventDefault();
           }
-          event.stopPropagation();
         }}
         onBlur={apply}
       />
       {error !== undefined && (
-        <p className="gutter-rename-error" role="alert" style={{ left: style.left, top: `${(rect.y + Layout.REGISTER_HEIGHT) * zoom}px` }}>
+        <p
+          className="gutter-rename-error"
+          role="alert"
+          style={{
+            left: style.left,
+            top: `${(rect.y + Layout.REGISTER_HEIGHT) * zoom}px`,
+          }}
+        >
           {error}
         </p>
       )}

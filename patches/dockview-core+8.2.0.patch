@@ -1,0 +1,62 @@
+diff --git a/node_modules/dockview-core/dist/package/main.cjs.js b/node_modules/dockview-core/dist/package/main.cjs.js
+index 3d3f2c8..7912b14 100644
+--- a/node_modules/dockview-core/dist/package/main.cjs.js
++++ b/node_modules/dockview-core/dist/package/main.cjs.js
+@@ -11944,7 +11944,7 @@ var AriaLevelTracker = class {
+ 	}
+ 	update() {
+ 		for (let i = 0; i < this._orderedList.length; i++) {
+-			this._orderedList[i].setAttribute("aria-level", `${i}`);
++			this._orderedList[i].setAttribute("data-dockview-level", `${i}`);
+ 			this._orderedList[i].style.zIndex = `calc(var(--dv-overlay-z-index, 999) + ${i * 2})`;
+ 		}
+ 	}
+@@ -13854,7 +13854,7 @@ var OverlayRenderContainer = class extends CompositeDisposable {
+ 				if (!floatingGroup) return;
+ 				const element = floatingGroup.overlay.element;
+ 				const update = () => {
+-					const level = Number(element.getAttribute("aria-level"));
++					const level = Number(element.getAttribute("data-dockview-level"));
+ 					focusContainer.style.zIndex = `calc(var(--dv-overlay-z-index, 999) + ${level * 2 + 1})`;
+ 				};
+ 				const observer = new MutationObserver(() => {
+@@ -13862,7 +13862,7 @@ var OverlayRenderContainer = class extends CompositeDisposable {
+ 				});
+ 				observerDisposable.value = Disposable.from(() => observer.disconnect());
+ 				observer.observe(element, {
+-					attributeFilter: ["aria-level"],
++					attributeFilter: ["data-dockview-level"],
+ 					attributes: true
+ 				});
+ 				update();
+diff --git a/node_modules/dockview-core/dist/package/main.esm.mjs b/node_modules/dockview-core/dist/package/main.esm.mjs
+index 6e8fd8c..f3865f9 100644
+--- a/node_modules/dockview-core/dist/package/main.esm.mjs
++++ b/node_modules/dockview-core/dist/package/main.esm.mjs
+@@ -11942,7 +11942,7 @@ var AriaLevelTracker = class {
+ 	}
+ 	update() {
+ 		for (let i = 0; i < this._orderedList.length; i++) {
+-			this._orderedList[i].setAttribute("aria-level", `${i}`);
++			this._orderedList[i].setAttribute("data-dockview-level", `${i}`);
+ 			this._orderedList[i].style.zIndex = `calc(var(--dv-overlay-z-index, 999) + ${i * 2})`;
+ 		}
+ 	}
+@@ -13852,7 +13852,7 @@ var OverlayRenderContainer = class extends CompositeDisposable {
+ 				if (!floatingGroup) return;
+ 				const element = floatingGroup.overlay.element;
+ 				const update = () => {
+-					const level = Number(element.getAttribute("aria-level"));
++					const level = Number(element.getAttribute("data-dockview-level"));
+ 					focusContainer.style.zIndex = `calc(var(--dv-overlay-z-index, 999) + ${level * 2 + 1})`;
+ 				};
+ 				const observer = new MutationObserver(() => {
+@@ -13860,7 +13860,7 @@ var OverlayRenderContainer = class extends CompositeDisposable {
+ 				});
+ 				observerDisposable.value = Disposable.from(() => observer.disconnect());
+ 				observer.observe(element, {
+-					attributeFilter: ["aria-level"],
++					attributeFilter: ["data-dockview-level"],
+ 					attributes: true
+ 				});
+ 				update();

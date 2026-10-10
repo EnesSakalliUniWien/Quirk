@@ -31,6 +31,7 @@ import { POINTWISE_CMUL_CONJ_SHADER } from "./shaders/pointwiseCmulConjShader.js
 /**
  * @param {!WglTexture} stateKet
  * @param {!Controls} controls
+ * @param {!WglTexture} controlsTexture
  * @param {!int} rangeOffset
  * @param {!int} rangeLength
  * @returns {!Array.<!WglTexture>}
@@ -38,12 +39,13 @@ import { POINTWISE_CMUL_CONJ_SHADER } from "./shaders/pointwiseCmulConjShader.js
 function amplitudeDisplayStatTextures(
   stateKet,
   controls,
+  controlsTexture,
   rangeOffset,
   rangeLength,
 ) {
   const incoherentKet = probabilityStatTexture(
     stateKet,
-    controls,
+    controlsTexture,
     rangeOffset,
     rangeLength,
   );

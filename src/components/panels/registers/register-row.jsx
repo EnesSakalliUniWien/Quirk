@@ -11,7 +11,14 @@ const SHOWN_VALUES = 4;
  * One register's row: its name, wires and input, each edited in place and applied as one undoable
  * change; the values it holds at the playhead; and its qubits under it.
  */
-function RegisterRow({ reading, registers, actions, focused, onDone, onRefused }) {
+function RegisterRow({
+  reading,
+  registers,
+  actions,
+  focused,
+  onDone,
+  onRefused,
+}) {
   const { register, values, qubits } = reading;
   const nameRef = useRef(null);
   useEffect(() => {
@@ -47,6 +54,8 @@ function RegisterRow({ reading, registers, actions, focused, onDone, onRefused }
   const numberProps = (field) => ({
     onBlur: (event) => applyNumber(field, event.target.value),
     onKeyDown: (event) => {
+      event.stopPropagation();
+      if (event.nativeEvent.isComposing) return;
       if (event.key === "Enter") {
         applyNumber(field, event.target.value);
         event.preventDefault();
@@ -54,8 +63,13 @@ function RegisterRow({ reading, registers, actions, focused, onDone, onRefused }
     },
   });
   const shown = values.slice(0, SHOWN_VALUES);
-  const wires = register.length === 1 ? `q${register.start}` : `q${register.start}–q${register.start + register.length - 1}`;
-  const labels = Object.entries(register.labels ?? {}).map(([value, label]) => ({ value: Number(value), label }));
+  const wires =
+    register.length === 1
+      ? `q${register.start}`
+      : `q${register.start}–q${register.start + register.length - 1}`;
+  const labels = Object.entries(register.labels ?? {}).map(
+    ([value, label]) => ({ value: Number(value), label }),
+  );
   const [labelValue, setLabelValue] = useState("0");
   const labelRef = useRef(null);
   const addLabel = () => {
@@ -83,6 +97,8 @@ function RegisterRow({ reading, registers, actions, focused, onDone, onRefused }
           autoComplete="off"
           spellCheck="false"
           onKeyDown={(event) => {
+            event.stopPropagation();
+            if (event.nativeEvent.isComposing) return;
             if (event.key === "Enter") {
               applyName();
               event.preventDefault();
@@ -136,7 +152,12 @@ function RegisterRow({ reading, registers, actions, focused, onDone, onRefused }
             className="registers-input"
             value={register.input ?? ""}
             aria-label={`The input ${register.name} feeds`}
-            onChange={(event) => apply({ input: event.target.value === "" ? undefined : event.target.value })}
+            onChange={(event) =>
+              apply({
+                input:
+                  event.target.value === "" ? undefined : event.target.value,
+              })
+            }
           >
             <option value="">none</option>
             {INPUT_LETTERS.map((letter) => (
@@ -145,24 +166,32 @@ function RegisterRow({ reading, registers, actions, focused, onDone, onRefused }
           </select>
         </label>
       </div>
-      <div className="registers-values" role="group" aria-label={`Values ${register.name} can hold at the playhead`}>
-          {shown.map(({ value, p }) => (
-            // A value reads by its label; choosing one puts it in the label form below.
-            <button
-              key={value}
-              type="button"
-              className="registers-value"
-              title={`Value ${value}: label it`}
-              onClick={() => setLabelValue(String(value))}
-            >
-              {`${Registers.valueLabel(register, value)} · ${Math.round(p * 1000) / 10}%`}
-            </button>
-          ))}
-          {values.length > SHOWN_VALUES && (
-            <span className="registers-value">{`+${values.length - SHOWN_VALUES}`}</span>
-          )}
+      <div
+        className="registers-values"
+        role="group"
+        aria-label={`Values ${register.name} can hold at the playhead`}
+      >
+        {shown.map(({ value, p }) => (
+          // A value reads by its label; choosing one puts it in the label form below.
+          <button
+            key={value}
+            type="button"
+            className="registers-value"
+            title={`Value ${value}: label it`}
+            onClick={() => setLabelValue(String(value))}
+          >
+            {`${Registers.valueLabel(register, value)} · ${Math.round(p * 1000) / 10}%`}
+          </button>
+        ))}
+        {values.length > SHOWN_VALUES && (
+          <span className="registers-value">{`+${values.length - SHOWN_VALUES}`}</span>
+        )}
       </div>
-      <div className="registers-labels" role="group" aria-label={`Value labels of ${register.name}`}>
+      <div
+        className="registers-labels"
+        role="group"
+        aria-label={`Value labels of ${register.name}`}
+      >
         {labels.map(({ value, label }) => (
           <span key={value} className="registers-label">
             <b>{label}</b>
@@ -171,14 +200,22 @@ function RegisterRow({ reading, registers, actions, focused, onDone, onRefused }
               type="button"
               className="registers-label-remove"
               aria-label={`Remove the label ${label} from value ${value} of ${register.name}`}
-              onClick={() => onRefused(actions.label(register.name, value, undefined))}
+              onClick={() =>
+                onRefused(actions.label(register.name, value, undefined))
+              }
             >
               ×
             </button>
           </span>
         ))}
+        {/* eslint-disable-next-line jsx-a11y-x/no-noninteractive-element-interactions -- Keep native input keystrokes inside the form and prevent IME Enter from submitting before composition ends. */}
         <form
           className="registers-label-form"
+          onKeyDown={(event) => {
+            event.stopPropagation();
+            if (event.nativeEvent.isComposing && event.key === "Enter")
+              event.preventDefault();
+          }}
           onSubmit={(event) => {
             event.preventDefault();
             addLabel();
@@ -209,7 +246,9 @@ function RegisterRow({ reading, registers, actions, focused, onDone, onRefused }
               spellCheck="false"
             />
           </label>
-          <button type="submit" className="registers-remove">Label</button>
+          <button type="submit" className="registers-remove">
+            Label
+          </button>
         </form>
       </div>
       <ul className="registers-qubits">

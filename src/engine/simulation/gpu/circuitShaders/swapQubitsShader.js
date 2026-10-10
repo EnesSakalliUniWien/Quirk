@@ -16,10 +16,13 @@
 
 import { ketShaderPermute } from "../KetShaderUtil.js";
 
-const SWAP_QUBITS_SHADER = ketShaderPermute('', `
+const SWAP_QUBITS_SHADER = ketShaderPermute(
+  "",
+  `
     float low_bit = mod(out_id, 2.0);
     float mid_bits = floor(mod(out_id, span*0.5)*0.5);
     float high_bit = floor(out_id*2.0/span);
-    return high_bit + mid_bits*2.0 + low_bit*span*0.5;`);
+    return high_bit + mid_bits*2.0 + low_bit*span*0.5;`,
+);
 
 export { SWAP_QUBITS_SHADER };

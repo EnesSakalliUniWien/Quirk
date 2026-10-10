@@ -14,51 +14,72 @@
  * limitations under the License.
  */
 
-import {Suite, assertThat} from "../../TestUtil.js"
-import {Gate, GateBuilder} from "../../../src/circuit/model/Gate.js"
+import { Suite, assertThat } from "../../TestUtil.js";
+import { Gate, GateBuilder } from "../../../src/circuit/model/Gate.js";
 
-import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
-import {QubitMatrix} from "../../../src/engine/math/matrix/QubitMatrix.js"
+import { Matrix } from "../../../src/engine/math/matrix/Matrix.js";
+import { QubitMatrix } from "../../../src/engine/math/matrix/QubitMatrix.js";
 
 const suite = new Suite("Gate");
 
 suite.test("toString_runsWithoutFailing", () => {
-    const g = new GateBuilder().setEffectToTimeVaryingMatrix(_ => QubitMatrix.HADAMARD).gate;
-    assertThat(g.toString()).isNotEqualTo(null);
+  const g = new GateBuilder().setEffectToTimeVaryingMatrix(
+    (_) => QubitMatrix.HADAMARD,
+  ).gate;
+  assertThat(g.toString()).isNotEqualTo(null);
 });
 
 suite.test("withDeactivated", () => {
-    const g = Gate.fromKnownMatrix("symbol", QubitMatrix.HADAMARD, "name", "blurb");
-    assertThat(g.deactivated).isEqualTo(false);
-    assertThat(g.withDeactivated(false)).is(g);
+  const g = Gate.fromKnownMatrix(
+    "symbol",
+    QubitMatrix.HADAMARD,
+    "name",
+    "blurb",
+  );
+  assertThat(g.deactivated).isEqualTo(false);
+  assertThat(g.withDeactivated(false)).is(g);
 
-    const off = g.withDeactivated(true);
-    assertThat(off.deactivated).isEqualTo(true);
-    assertThat(off).isNotEqualTo(g);
-    // Everything else rides along, so switching back on gives the same gate as before.
-    assertThat(off.symbol).isEqualTo(g.symbol);
-    assertThat(off.knownMatrixAt(0)).isEqualTo(g.knownMatrixAt(0));
-    assertThat(off.withDeactivated(true)).is(off);
-    assertThat(off.withDeactivated(false).deactivated).isEqualTo(false);
-    // A parameter change keeps the flag.
-    assertThat(off.withParam(3).deactivated).isEqualTo(true);
+  const off = g.withDeactivated(true);
+  assertThat(off.deactivated).isEqualTo(true);
+  assertThat(off).isNotEqualTo(g);
+  // Everything else rides along, so switching back on gives the same gate as before.
+  assertThat(off.symbol).isEqualTo(g.symbol);
+  assertThat(off.knownMatrixAt(0)).isEqualTo(g.knownMatrixAt(0));
+  assertThat(off.withDeactivated(true)).is(off);
+  assertThat(off.withDeactivated(false).deactivated).isEqualTo(false);
+  // A parameter change keeps the flag.
+  assertThat(off.withParam(3).deactivated).isEqualTo(true);
 });
 
 suite.test("stableDuration", () => {
-    const m0 = Gate.fromKnownMatrix("symbol", QubitMatrix.HADAMARD, "name", "blurb");
-    const mt = new GateBuilder().setEffectToTimeVaryingMatrix(t => Matrix.square(t, 0, 0, 0)).gate;
+  const m0 = Gate.fromKnownMatrix(
+    "symbol",
+    QubitMatrix.HADAMARD,
+    "name",
+    "blurb",
+  );
+  const mt = new GateBuilder().setEffectToTimeVaryingMatrix((t) =>
+    Matrix.square(t, 0, 0, 0),
+  ).gate;
 
-    assertThat(m0.stableDuration()).isEqualTo(Infinity);
-    assertThat(mt.stableDuration()).isEqualTo(0);
+  assertThat(m0.stableDuration()).isEqualTo(Infinity);
+  assertThat(mt.stableDuration()).isEqualTo(0);
 });
 
 suite.test("knownMatrixAt", () => {
-    const m0 = Gate.fromKnownMatrix("symbol", QubitMatrix.HADAMARD, "name", "blurb");
-    const mt = new GateBuilder().setEffectToTimeVaryingMatrix(t => Matrix.square(t, 0, 0, 0)).gate;
+  const m0 = Gate.fromKnownMatrix(
+    "symbol",
+    QubitMatrix.HADAMARD,
+    "name",
+    "blurb",
+  );
+  const mt = new GateBuilder().setEffectToTimeVaryingMatrix((t) =>
+    Matrix.square(t, 0, 0, 0),
+  ).gate;
 
-    assertThat(m0.knownMatrixAt(0)).isEqualTo(QubitMatrix.HADAMARD);
-    assertThat(m0.knownMatrixAt(0.5)).isEqualTo(QubitMatrix.HADAMARD);
+  assertThat(m0.knownMatrixAt(0)).isEqualTo(QubitMatrix.HADAMARD);
+  assertThat(m0.knownMatrixAt(0.5)).isEqualTo(QubitMatrix.HADAMARD);
 
-    assertThat(mt.knownMatrixAt(0)).isEqualTo(Matrix.square(0, 0, 0, 0));
-    assertThat(mt.knownMatrixAt(0.5)).isEqualTo(Matrix.square(0.5, 0, 0, 0));
+  assertThat(mt.knownMatrixAt(0)).isEqualTo(Matrix.square(0, 0, 0, 0));
+  assertThat(mt.knownMatrixAt(0.5)).isEqualTo(Matrix.square(0.5, 0, 0, 0));
 });

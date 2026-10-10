@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useStore } from "zustand";
 
+import { PURE_STATE_THRESHOLD } from "../../../engine/math/bloch.js";
 import { appStore } from "../../../state/appStore.js";
 import { closePanel } from "../../dock.jsx";
 import { useCompletedResult } from "../shared/usePlayheadStats.js";
@@ -19,8 +20,9 @@ import { useCircuitSteps } from "./useCircuitSteps.js";
 import { useExploreTransition } from "./useExploreTransition.js";
 
 /**
- * The Bloch sphere analyzer: one qubit read three ways - the sphere in perspective, the meridian
- * that holds θ and the equator that holds ϕ, all face on - with every number beside them.
+ * The Bloch sphere analyzer: one qubit read three ways - the rotatable sphere,
+ * the meridian that holds θ and the equator that holds ϕ, both face on - with every number beside
+ * the controls that change them. Escape closes it, and focus goes back to the circuit.
  *
  * Usage: open it by clicking any Bloch sphere in the circuit; appStore.blochTarget says which
  * ({row, col} for a Bloch gate, {row} for a wire's output). It takes no props.
@@ -85,33 +87,119 @@ function BlochPanel() {
   /** @param {number} index */
   const selectStep = (index) => {
     cancel();
-    setMode(index === currentStep ? { kind: "circuit" } : { kind: "step", index });
+    setMode(
+      index === currentStep ? { kind: "circuit" } : { kind: "step", index },
+    );
   };
   const close = () => {
     appStore.setState({ blochTarget: undefined });
     closePanel("bloch");
+    // Back to the circuit the sphere was clicked in, rather than nowhere.
+    document.getElementById("canvasDiv")?.focus({ preventScroll: true });
   };
 
-  return (
-    <div className="panel-body bloch-panel" aria-labelledby="bloch-title">
-      <AnalyzerHeader subtitle={subtitleFor(mode, target)} />
+  const circuit = completed?.fullStats.circuitDefinition;
+  const subtitle = subtitleFor(mode, target, {
+    registers: circuit?.registers,
+    playheadStep: completed?.step,
+    columnCount: circuit?.columns.length,
+  });
 
+  // Opening the analyzer for a sphere brings the keyboard to it, where the eyes already are. The
+  // dock may still be placing the panel, so focus is tried again for a few frames until it holds.
+  const titleRef = useRef(/** @type {HTMLHeadingElement | null} */ (null));
+  useEffect(() => {
+    if (target === undefined) return undefined;
+    let frame;
+    let tries = 0;
+    const focusTitle = () => {
+      const title = titleRef.current;
+      title?.focus({ preventScroll: true });
+      if (document.activeElement !== title && tries++ < 20)
+        frame = requestAnimationFrame(focusTitle);
+    };
+    focusTitle();
+    return () => cancelAnimationFrame(frame);
+  }, [target]);
+
+  // Said once the state has settled: a dragged slider or a running circuit is not read out
+  // value by value.
+  const summary = stateSummary(subtitle, figures.readout);
+  const [announced, setAnnounced] = useState("");
+  useEffect(() => {
+    const settle = setTimeout(() => setAnnounced(summary), SUMMARY_SETTLE_MS);
+    return () => clearTimeout(settle);
+  }, [summary]);
+
+  return (
+    // eslint-disable-next-line jsx-a11y-x/no-noninteractive-element-interactions -- Escape bubbles from the focused panel controls; this named region is not an extra control.
+    <div
+      className="panel-body bloch-panel"
+      role="region"
+      aria-labelledby="bloch-title"
+      onKeyDown={(event) => {
+        if (event.nativeEvent.isComposing) {
+          event.stopPropagation();
+          return;
+        }
+        if (event.key === "Escape" && !event.defaultPrevented) {
+          event.preventDefault();
+          close();
+        }
+      }}
+    >
+      <AnalyzerHeader subtitle={subtitle} titleRef={titleRef} />
+      <p className="visually-hidden" aria-live="polite">
+        {announced}
+      </p>
+
+      {/* The sphere leads, then its state controls, then supporting projections and layers. */}
       <div className="bloch-analyzer">
-        <div className="bloch-main">
+        <BlochFigures
+          sphereRef={figures.sphereRef}
+          meridianRef={figures.meridianRef}
+          equatorRef={figures.equatorRef}
+          readout={figures.readout}
+          rotated={figures.rotated}
+          onResetView={figures.resetView}
+          onPointerDown={figures.onPointerDown}
+          onPointerMove={figures.onPointerMove}
+          onKeyDown={figures.onKeyDown}
+          displayControls={
+            <div
+              className="bloch-display"
+              role="group"
+              aria-label="What the figures draw"
+            >
+              <AxisKey
+                pinnedAxis={pinnedAxis}
+                onTogglePin={(axis) =>
+                  setPinnedAxis((pinned) =>
+                    pinned === axis ? undefined : axis,
+                  )
+                }
+                onPreview={setHoverAxis}
+              />
+              <LayerSwitches
+                layers={layers}
+                onChange={(key, checked) =>
+                  setLayers((current) => ({ ...current, [key]: checked }))
+                }
+              />
+            </div>
+          }
+        >
           <AnalyzerGroup
+            className="bloch-area-source"
             title="State source"
             purpose="a step of the circuit, or a free state"
           >
             <div className="bloch-source-controls">
-              <StepStrip
-                steps={steps}
-                selected={selectedStep}
-                canvasRef={figures.stripRef}
-                onSelect={selectStep}
-              />
               <div className="bloch-explore-controls">
                 <ExploreControls
-                  activePreset={mode.kind === "explore" ? mode.preset : undefined}
+                  activePreset={
+                    mode.kind === "explore" ? mode.preset : undefined
+                  }
                   canReturn={mode.kind !== "circuit" && target !== undefined}
                   onPreset={(preset) =>
                     explore(preset.vec, { preset: preset.name, glide: true })
@@ -124,42 +212,41 @@ function BlochPanel() {
                   onAngles={exploreAngles}
                 />
               </div>
+              <StepStrip
+                steps={steps}
+                selected={selectedStep}
+                canvasRef={figures.stripRef}
+                onSelect={selectStep}
+              />
             </div>
           </AnalyzerGroup>
+        </BlochFigures>
 
-          <AnalyzerGroup title="Figures" purpose="the qubit drawn three ways">
-            <BlochFigures
-              sphereRef={figures.sphereRef}
-              meridianRef={figures.meridianRef}
-              equatorRef={figures.equatorRef}
-              onPointerDown={figures.onPointerDown}
-              onPointerMove={figures.onPointerMove}
-            />
-          </AnalyzerGroup>
-
-          <AnalyzerGroup title="Display" purpose="what the figures draw">
-            <AxisKey
-              pinnedAxis={pinnedAxis}
-              onTogglePin={(axis) =>
-                setPinnedAxis((pinned) => (pinned === axis ? undefined : axis))
-              }
-              onPreview={setHoverAxis}
-            />
-            <LayerSwitches
-              layers={layers}
-              onChange={(key, checked) =>
-                setLayers((current) => ({ ...current, [key]: checked }))
-              }
-            />
-          </AnalyzerGroup>
-        </div>
-
-        <ReadoutSidebar readout={figures.readout} />
+        <ReadoutSidebar
+          className="bloch-area-readout"
+          readout={figures.readout}
+        />
       </div>
 
       <AnalyzerFooter onClose={close} />
     </div>
   );
+}
+
+/** How long the state must hold still before the summary is read out. */
+const SUMMARY_SETTLE_MS = 700;
+
+/**
+ * One sentence for assistive technology: whose state, and where its arrow points.
+ * @param {string} subtitle
+ * @param {import("./analyzerModel.js").PanelReadout | null | undefined} readout
+ * @returns {string}
+ */
+function stateSummary(subtitle, readout) {
+  if (readout === null || readout === undefined)
+    return `${subtitle}: no state to show.`;
+  const mixed = Number(readout.length) < PURE_STATE_THRESHOLD;
+  return `${subtitle}: θ ${readout.theta}, ϕ ${readout.phi}, |r| ${readout.length}${mixed ? ", mixed" : ""}.`;
 }
 
 export { BlochPanel };

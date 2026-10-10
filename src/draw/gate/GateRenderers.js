@@ -1,4 +1,4 @@
-import {Appearance} from '../../appearance/Appearance.js';
+import { Appearance } from "../../appearance/Appearance.js";
 /**
  * Copyright 2017 Google Inc.
  *
@@ -15,18 +15,30 @@ import {Appearance} from '../../appearance/Appearance.js';
  * limitations under the License.
  */
 
-import {frame, highlightRing, lineWidth, rectangle, strokePath} from '../shapes/ShapeView.js';
-import {fitText} from '../text/TextLayout.js';
+import {
+  frame,
+  highlightRing,
+  lineWidth,
+  rectangle,
+  strokePath,
+} from "../shapes/ShapeView.js";
+import { fitText } from "../text/TextLayout.js";
 
-import {Layout} from '../../config/Layout.js';
-import {CanvasTheme} from '../../config/CanvasTheme.js';
-import {DATA_RENDERERS} from '../renderers/dataRenderers.js';
-import {Point} from '../../geometry/Point.js';
-import {Rect} from '../../geometry/Rect.js';
+import { Layout } from "../../config/Layout.js";
+import { CanvasTheme } from "../../config/CanvasTheme.js";
+import { DATA_RENDERERS } from "../renderers/dataRenderers.js";
+import { Point } from "../../geometry/Point.js";
+import { Rect } from "../../geometry/Rect.js";
 
-import {paintBackground, paintOutline, paintResizeTab, paintLocationIndependentFrame} from './GateFrame.js';
-import {GATE_SYMBOL_FONT, paintGateSymbol} from './GateSymbol.js';
-import {paintTimeDial} from './TimeDial.js';
+import {
+  paintBackground,
+  paintOutline,
+  paintHoverOverlay,
+  paintResizeTab,
+  paintLocationIndependentFrame,
+} from "./GateFrame.js";
+import { GATE_SYMBOL_FONT, paintGateSymbol } from "./GateSymbol.js";
+import { paintTimeDial } from "./TimeDial.js";
 
 /** @typedef {import('./GateRenderParams.js').GateRenderParams} GateRenderParams */
 
@@ -34,12 +46,14 @@ import {paintTimeDial} from './TimeDial.js';
  * @param {!string=} fillColor
  * @returns {!function(!GateRenderParams)}
  */
-const MAKE_HIGHLIGHTED_RENDERER = (fillColor = undefined) => args => {
+const MAKE_HIGHLIGHTED_RENDERER =
+  (fillColor = undefined) =>
+  (args) => {
     paintBackground(args, fillColor);
     paintOutline(args);
     paintResizeTab(args);
     paintGateSymbol(args);
-};
+  };
 
 /**
  * @param {!GateRenderParams} args
@@ -49,68 +63,75 @@ const DEFAULT_RENDERER = MAKE_HIGHLIGHTED_RENDERER();
 /**
  * @param {!GateRenderParams} args
  */
-const LABEL_RENDERER = args => {
-    if (args.positionInCircuit === undefined || args.isHighlighted) {
-        DEFAULT_RENDERER(args);
-        return;
-    }
+const LABEL_RENDERER = (args) => {
+  if (args.positionInCircuit === undefined || args.isHighlighted) {
+    DEFAULT_RENDERER(args);
+    return;
+  }
 
-    const cut = Math.max(0, args.rect.h - Layout.GATE_RADIUS*2)/2;
-    rectangle(args.painter, args.rect.skipTop(cut).skipBottom(cut), {fill: CanvasTheme.surface.gate});
+  const cut = Math.max(0, args.rect.h - Layout.GATE_RADIUS * 2) / 2;
+  rectangle(args.painter, args.rect.skipTop(cut).skipBottom(cut), {
+    fill: CanvasTheme.surface.gate,
+  });
 
-    paintGateSymbol(args);
-};
-
-/**
- * @param {!string} normalFillColor
- * @returns {!function(!GateRenderParams)}
- */
-const makeLocationIndependentGateRenderer = normalFillColor => args => {
-    paintLocationIndependentFrame(args, normalFillColor);
-    paintGateSymbol(args);
+  paintGateSymbol(args);
 };
 
 /**
  * @param {!GateRenderParams} args
  */
-const LOCATION_INDEPENDENT_GATE_RENDERER = makeLocationIndependentGateRenderer(CanvasTheme.surface.gate);
+const LOCATION_INDEPENDENT_GATE_RENDERER = (args) => {
+  paintLocationIndependentFrame(args, CanvasTheme.surface.gate);
+  paintGateSymbol(args);
+};
 
 /**
  * @param {!Array.<!string>} labels
  * @param {!Array.<!number>} dividers
  * @returns {!function(!GateRenderParams)}
  */
-const SECTIONED_RENDERER_MAKER = (labels, dividers) => args => {
-    const backColor = args.isHighlighted ? CanvasTheme.gate.hover : CanvasTheme.surface.gate;
-    rectangle(args.painter, args.rect, {fill: backColor});
-    let p = 0;
-    for (let i = 0; i < labels.length; i++) {
-        let p2;
-        if (i < labels.length - 1) {
-            p2 = p + dividers[i];
-            const cy = args.rect.y + args.rect.h*p2;
-            strokePath(args.painter, [new Point(args.rect.x, cy), new Point(args.rect.right(), cy)],
-                CanvasTheme.stroke.faint, 1);
-        } else {
-            p2 = 1;
-        }
-        fitText(args.painter, labels[i], {
-            x: args.rect.x + args.rect.w/2,
-            y: args.rect.y + args.rect.h*(p + p2)/2,
-            align: 'center',
-            baseline: 'middle',
-            fill: CanvasTheme.text.primary,
-            font: GATE_SYMBOL_FONT,
-            width: args.rect.w - 2,
-            height: args.rect.h*(p2 - p)
-        });
-        p = p2;
+const SECTIONED_RENDERER_MAKER = (labels, dividers) => (args) => {
+  const backColor = args.isHighlighted
+    ? CanvasTheme.gate.hover
+    : CanvasTheme.surface.gate;
+  rectangle(args.painter, args.rect, { fill: backColor });
+  let p = 0;
+  for (let i = 0; i < labels.length; i++) {
+    let p2;
+    if (i < labels.length - 1) {
+      p2 = p + dividers[i];
+      const cy = args.rect.y + args.rect.h * p2;
+      strokePath(
+        args.painter,
+        [new Point(args.rect.x, cy), new Point(args.rect.right(), cy)],
+        CanvasTheme.stroke.faint,
+        1,
+      );
+    } else {
+      p2 = 1;
     }
-    rectangle(args.painter, args.rect, {stroke: {color: CanvasTheme.text.primary, width: lineWidth(args.painter, Appearance.borders.width.regular)}});
-    if (args.isHighlighted) {
-        highlightRing(args.painter, args.rect);
-    }
-    paintResizeTab(args);
+    fitText(args.painter, labels[i], {
+      x: args.rect.x + args.rect.w / 2,
+      y: args.rect.y + (args.rect.h * (p + p2)) / 2,
+      align: "center",
+      baseline: "middle",
+      fill: CanvasTheme.text.primary,
+      font: GATE_SYMBOL_FONT,
+      width: args.rect.w - 2,
+      height: args.rect.h * (p2 - p),
+    });
+    p = p2;
+  }
+  rectangle(args.painter, args.rect, {
+    stroke: {
+      color: CanvasTheme.text.primary,
+      width: lineWidth(args.painter, Appearance.borders.width.regular),
+    },
+  });
+  if (args.isHighlighted) {
+    highlightRing(args.painter, args.rect);
+  }
+  paintResizeTab(args);
 };
 
 const DISPLAY_GATE_DEFAULT_RENDERER = MAKE_HIGHLIGHTED_RENDERER();
@@ -122,10 +143,12 @@ const DISPLAY_GATE_DEFAULT_RENDERER = MAKE_HIGHLIGHTED_RENDERER();
  *     shape, like the Bloch sphere, which wears no box around it.
  * @returns {!function(!GateRenderParams)}
  */
-const makeDisplayRenderer = (statePainter, {framed = true} = {}) => args => {
+const makeDisplayRenderer =
+  (statePainter, { framed = true } = {}) =>
+  (args) => {
     if (args.positionInCircuit === undefined) {
-        DISPLAY_GATE_DEFAULT_RENDERER(args);
-        return;
+      DISPLAY_GATE_DEFAULT_RENDERER(args);
+      return;
     }
 
     const drawn = statePainter(args);
@@ -134,35 +157,34 @@ const makeDisplayRenderer = (statePainter, {framed = true} = {}) => args => {
     // A distinct outer edge separates dark display surfaces from the canvas. It follows what was
     // drawn, so space the display leaves empty inside its gate does not read as part of it.
     if (framed) {
-        frame(args.painter, content, CanvasTheme.stroke.displayFrame);
+      frame(args.painter, content, CanvasTheme.stroke.displayFrame);
     }
     if (args.isHighlighted) {
-        highlightRing(args.painter, content);
+      highlightRing(args.painter, content);
     }
 
     // Draw the tab once, above the display, with its normal/highlight opacity.
     paintResizeTab(args);
-};
+  };
 
 /**
  * @param {!GateRenderParams} args
  */
-const MATRIX_RENDERER = args => {
-    const m = args.gate.knownMatrixAt(args.stats.time);
-    if (m === undefined) {
-        DEFAULT_RENDERER(args);
-        return;
-    }
+const MATRIX_RENDERER = (args) => {
+  const m = args.gate.knownMatrixAt(args.stats.time);
+  if (m === undefined) {
+    DEFAULT_RENDERER(args);
+    return;
+  }
 
-    rectangle(args.painter, args.rect, {fill: args.isHighlighted ? CanvasTheme.gate.hover : CanvasTheme.surface.gate});
-    DATA_RENDERERS.matrix(args.painter, m, args.rect);
-    if (args.isHighlighted) {
-        args.painter.group(`hover-${args.painter.order}`, painter => {
-            painter.alpha *= 0.9;
-            rectangle(painter, args.rect, {fill: CanvasTheme.gate.hover});
-        });
-    }
-    paintOutline(args);
+  rectangle(args.painter, args.rect, {
+    fill: args.isHighlighted
+      ? CanvasTheme.gate.hover
+      : CanvasTheme.surface.gate,
+  });
+  DATA_RENDERERS.matrix(args.painter, m, args.rect);
+  paintHoverOverlay(args);
+  paintOutline(args);
 };
 
 /**
@@ -173,20 +195,27 @@ const MATRIX_RENDERER = args => {
  *     The dial's face; see DIAL_AXIS.
  * @returns {!function(!GateRenderParams)}
  */
-const makeCycleRenderer = axis => args => {
-    // The dial marks time dependence while the fill retains the operation family.
-    DEFAULT_RENDERER(args);
-    paintTimeDial(args, args.gate.turnsAt(args.stats.time, args.gate.param), axis);
+const makeCycleRenderer = (axis) => (args) => {
+  // The dial marks time dependence while the fill retains the operation family. A gate made from a
+  // circuit has no turns of its own, only the cycle its gates share, so its dial shows that.
+  DEFAULT_RENDERER(args);
+  const { turnsAt } = args.gate;
+  paintTimeDial(
+    args,
+    turnsAt === undefined
+      ? args.stats.time
+      : turnsAt(args.stats.time, args.gate.param),
+    axis,
+  );
 };
 
 export {
-    MAKE_HIGHLIGHTED_RENDERER,
-    DEFAULT_RENDERER,
-    LABEL_RENDERER,
-    makeLocationIndependentGateRenderer,
-    LOCATION_INDEPENDENT_GATE_RENDERER,
-    SECTIONED_RENDERER_MAKER,
-    makeDisplayRenderer,
-    MATRIX_RENDERER,
-    makeCycleRenderer
-}
+  MAKE_HIGHLIGHTED_RENDERER,
+  DEFAULT_RENDERER,
+  LABEL_RENDERER,
+  LOCATION_INDEPENDENT_GATE_RENDERER,
+  SECTIONED_RENDERER_MAKER,
+  makeDisplayRenderer,
+  MATRIX_RENDERER,
+  makeCycleRenderer,
+};

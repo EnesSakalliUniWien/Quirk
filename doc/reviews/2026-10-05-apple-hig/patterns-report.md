@@ -1,0 +1,42 @@
+> Integration note: the consolidated README is the final ranking and verification authority. Agent findings retain their original IDs; PAT-02 and CI-01 are one issue, and FND-01 remains a VoiceOver verification concern. Current root measurements are linked in the README.
+
+# Patterns audit
+
+Reviewed the live Apple Patterns category and all 25 child pages, including every substantive subsection and platform section in their current DocC content. The category has no further topic descendants. Related-resource links point to other HIG categories and are covered by those category owners. The review uses current source in the dirty Quirk worktree; no app files changed and no historical tests count as present validation. Native AppKit/UIKit/SwiftUI integration requirements are not browser obligations. Ponytail full: reuse existing controls, status feedback, and store APIs; do not add features merely to satisfy a native guideline.
+
+## Actionable findings
+
+### PAT-01 · P2 · Tape deletion cannot be reversed
+
+Confirmed source behavior: [src/components/panels/tape/take-card.jsx:35](/Users/berksakalli/Projects/GitHub/EnesSakalliUniWien/Quirk/src/components/panels/tape/take-card.jsx:35) calls `recorder.store.write([], {remove: [take.id]})` immediately; [src/results/tapeStore.js:164](/Users/berksakalli/Projects/GitHub/EnesSakalliUniWien/Quirk/src/results/tapeStore.js:164) removes the record from the merged index and `:175` deletes its IndexedDB record. The global Undo shortcut routes exclusively to circuit actions ([src/components/toolbar/app-toolbar.jsx:309](/Users/berksakalli/Projects/GitHub/EnesSakalliUniWien/Quirk/src/components/toolbar/app-toolbar.jsx:309)), so deleting a saved result has no Tape recovery path. A misclick loses a research take and its notes unless it has independently been exported. This is a recoverability gap, not a claim that every expected Delete action requires an alert: HIG Feedback explicitly says routine expected deletion need not warn.
+
+HIG: [Undo and redo](https://developer.apple.com/design/human-interface-guidelines/undo-and-redo) asks for reversal of recent actions; [Feedback](https://developer.apple.com/design/human-interface-guidelines/feedback) distinguishes irreversible unexpected loss from expected deletion.
+
+Smallest fix: retain the last deleted `record` in TapeBody and provide an inline Undo button that calls the existing `store.write([record.take], {ghost: record.ghost})`. Preserve the operation's result until dismissed or replaced. No general undo framework, new dependency, or Trash system is needed. If recovery is intentionally out of scope, at least disclose permanent deletion before committing it; the undo path better matches the existing app promise.
+
+Check requested from root: save a take with notes, delete it, press Command-Z, and check whether the take returns; then reload to verify persistence. Root browser reproduction confirmed 1 saved take → 0 after Delete → 0 after Command-Z → 0 after reload. No confirmation dialog appeared.
+
+### PAT-02 · P2 · Clipboard feedback disappears before accessible consumption
+
+Confirmed source behavior: Export's shared `CopyButton` renders status into a plain span ([src/components/panels/export/copy-button.jsx:32](/Users/berksakalli/Projects/GitHub/EnesSakalliUniWien/Quirk/src/components/panels/export/copy-button.jsx:32)), clears it after one second (`:4,24`), and reports failure only as “It didn’t work…” (`:21`). There is no status/live-region association in this component. A person using a screen reader receives no reliably announced outcome, and a slow reader can lose even the failure message. Tape's three copy actions use `act`, which simply clears its message on success ([src/components/panels/tape/take-card.jsx:32](/Users/berksakalli/Projects/GitHub/EnesSakalliUniWien/Quirk/src/components/panels/tape/take-card.jsx:32); [src/components/panels/tape/tape-body.jsx:17](/Users/berksakalli/Projects/GitHub/EnesSakalliUniWien/Quirk/src/components/panels/tape/tape-body.jsx:17)), creating inconsistent invisible-copy feedback.
+
+HIG: [Feedback](https://developer.apple.com/design/human-interface-guidelines/feedback) calls for accessible feedback and explaining why a command cannot execute.
+
+Smallest fix: reuse the existing persistent accessible `notify` implementation ([src/components/ui/toasts.jsx:20](/Users/berksakalli/Projects/GitHub/EnesSakalliUniWien/Quirk/src/components/ui/toasts.jsx:20)) in shared CopyButton and the Tape copy helper. Say “Copied” on success; explain browser clipboard denial and offer selecting/copying visible text on failure. Keep any disabled state only while the promise is pending. Do not create a second toast system or add clipboard dependencies. A bare `role="status"` fixes announcement alone but does not solve the one-second lifetime or vague failure.
+
+Check requested from root: force clipboard rejection and inspect visible feedback after >1 second; inspect role/live region in the accessibility tree. Root confirmed the failure span had no role/live region and was empty after 1.2 seconds. Actual VoiceOver announcements remain a manual verification gap.
+
+## Existing strengths
+
+The editor offers keyboard placement and selection copy/cut/paste alongside direct manipulation. Circuit edits have toolbar and platform-aware Command-Z / Shift-Command-Z shortcuts; typing targets retain native editing behavior. Tape imports use a native file input plus drag/drop; storage errors use role=alert, unsaved takes have an explicit download path, and queued ghosts flush on visibility/pagehide. Forge uses defaults, preset choices, a preview, and validation before creating an operation. Most inspectors remain nonmodal, reducing interruption. Gate search clearly names its local scope and filters as people type. Help is contextual: formula details, gate information buttons, register labels, and examples. State displays retain numerical phase in degrees beside hue; no change to scientific phase or separate Steps/Time transport is recommended.
+
+## Verification gaps and hypotheses
+
+- Cold launch: App hides the shell until boot ([src/components/app.jsx:30](/Users/berksakalli/Projects/GitHub/EnesSakalliUniWien/Quirk/src/components/app.jsx:30)). HIG Loading prefers early content. Measure slow-network/slow-device startup before calling the absence of a loading surface a user-facing defect; do not add a spinner for a fast startup.
+- Tape permits files up to 200 MB, awaits file.text and import without a pending state ([src/components/panels/tape/tape-body.jsx:19](/Users/berksakalli/Projects/GitHub/EnesSakalliUniWien/Quirk/src/components/panels/tape/tape-body.jsx:19)). Measure a realistic large supported album. If it takes more than a moment, one pending status near Import is sufficient. Timing and input-blocking are unverified.
+- Charting: EvolutionChart has a generic canvas image label; labels/current marker are aria-hidden ([src/components/panels/algebra/evolution-chart.jsx:80](/Users/berksakalli/Projects/GitHub/EnesSakalliUniWien/Quirk/src/components/panels/algebra/evolution-chart.jsx:80)), while StatePanel provides numeric values ([src/components/panels/state/state-panel.jsx:153](/Users/berksakalli/Projects/GitHub/EnesSakalliUniWien/Quirk/src/components/panels/state/state-panel.jsx:153)). Check whether the inspector workflow exposes equivalent per-step comparisons to assistive technology. Source confirms chart labeling limits, not that the whole dataset is inaccessible.
+- Full-screen resizing, iPad split view, hidden-tab transport resumption, and granular panel/scroll restoration need live checks. Native-only volume controls, TV EPG/DVR, workout rings, account deletion, notification urgency, Quick Look extensions, and App Store prompts are not reasons to add features to this circuit app.
+
+## Leaf/subsection applicability
+
+The adjacent patterns-coverage.json contains one row for the category and each leaf, with all current headings included. For browser-relevant pages, general task guidance applies; native API, system menu, platform gesture, and entitlement prescriptions are N/A. Resource/developer-documentation/video/change-log headings are reference material rather than additional product requirements. Platform sections with no additional guidance inherit the general verdict. tvOS/watchOS/visionOS content applies only if a native target is added; macOS/iOS/iPadOS guidance about readable controls, responsive sizing, keyboard alternatives, and data preservation transfers to browser use.

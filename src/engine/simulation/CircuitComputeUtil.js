@@ -15,6 +15,7 @@
  */
 
 import { CircuitEvalContext } from "./CircuitEvalContext.js";
+import { CircuitShaders } from "./gpu/CircuitShaders.js";
 import { KetTextureUtil } from "./gpu/KetTextureUtil.js";
 import { Controls } from "../../circuit/model/Controls.js";
 /** @typedef {import("../../circuit/model/Gate.js").GateBuilder} GateBuilder */
@@ -52,7 +53,7 @@ function setGateBuilderEffectToCircuit(builder, circuitDefinition) {
             return r;
           }
           if (def.gateInSlot(col, row)?.measureEffect === "measure") {
-            return "hidden\nmeasure\nbroken";
+            return "No embedded\nmeasure";
           }
         }
       }
@@ -64,13 +65,19 @@ function setGateBuilderEffectToCircuit(builder, circuitDefinition) {
  * @param {!CircuitEvalContext} ctx
  * @param {!CircuitDefinition} circuitDefinition
  * @param {!boolean} collectStats
- * @param {!{firstCol: undefined|!int, afterColumn: undefined|!function(!int): void,
- *     stopBefore: undefined|!function(!int): !boolean, fuse: undefined|!boolean}=} options Where to start,
- *     when ctx already holds the state from just before that column (the initial state operations are then
- *     skipped, and the returned stats begin at that column); what to call after a column finishes, which
- *     within a fused run is only its last column; before which columns a fused run must stop, because the
- *     state there is wanted; and whether to fuse runs of quiet columns (gateFusion.js), which tests turn
- *     off to compare against.
+ * @param {undefined|!function(!int, !CircuitEvalContext, !Object): void} afterStep Called with how many
+ *     columns have run - `firstColumn` once the run starts, which is 0 after the initial state is
+ *     set, then after each column - while the state trader holds the state at that step. The third
+ *     argument is the stats collected so far, in the shape this function returns them.
+ * @param {!int=} firstColumn Where to start. Past 0 the state trader already holds the state after
+ *     that many columns, so neither the initial state nor those columns are applied, and the stats
+ *     come only from the columns that are.
+ * @param {undefined|!{stopBefore: !function(!int): !boolean}=} fusion Fuses runs of quiet columns
+ *     (gateFusion.js), each ending before any column `stopBefore` names. Within a run `afterStep` is
+ *     only called at its end, so a caller names every step whose state it reads. Without it, every
+ *     column is applied on its own.
+ * @throws If a column fails. The stats collected up to then go back to the pool, and the state trader
+ *     is left holding the state it has, for the caller to give back.
  * @returns {!{
  *     colQubitDensities: !Array.<!WglTexture>,
  *     colNorms: !Array.<!WglTexture>,
@@ -78,8 +85,14 @@ function setGateBuilderEffectToCircuit(builder, circuitDefinition) {
  *     customStatsMap: !Array.<*>
  * }}
  */
-function advanceStateWithCircuit(ctx, circuitDefinition, collectStats,
-    {firstCol = 0, afterColumn, stopBefore = () => false, fuse = true} = {}) {
+function advanceStateWithCircuit(
+  ctx,
+  circuitDefinition,
+  collectStats,
+  afterStep = undefined,
+  firstColumn = 0,
+  fusion = undefined,
+) {
   // Prep stats collection.
   const colQubitDensities = [];
   const customStats = [];
@@ -100,33 +113,91 @@ function advanceStateWithCircuit(ctx, circuitDefinition, collectStats,
     }
   };
 
-  if (firstCol === 0) {
-    circuitDefinition.applyInitialStateOperations(ctx);
-  }
+  const collected = {
+    colQubitDensities,
+    colNorms,
+    customStats,
+    customStatsMap,
+  };
+  try {
+    if (firstColumn === 0) {
+      circuitDefinition.applyInitialStateOperations(ctx);
+    }
+    afterStep?.(firstColumn, ctx, collected);
 
-  // Apply each column in the circuit, or a fused run of quiet columns at a time.
-  for (let col = firstCol; col < circuitDefinition.columns.length; ) {
-    const run = fuse ? fusedRunAt(circuitDefinition, col, ctx.time, stopBefore) : undefined;
-    if (run === undefined) {
-      _advanceStateWithCircuitDefinitionColumn(
-        ctx,
-        circuitDefinition,
-        col,
-        statsCallback(col),
-      );
-      afterColumn?.(col);
-      col++;
-      continue;
+    // Apply each column in the circuit, or a fused run of quiet columns at a time.
+    for (let col = firstColumn; col < circuitDefinition.columns.length;) {
+      const run =
+        fusion === undefined
+          ? undefined
+          : fusedRunAt(circuitDefinition, col, ctx.time, fusion.stopBefore);
+      if (run === undefined) {
+        _advanceStateWithCircuitDefinitionColumn(
+          ctx,
+          circuitDefinition,
+          col,
+          statsCallback(col),
+        );
+        col++;
+      } else {
+        _applyFusedRun(ctx, run);
+        // Its columns have nothing to observe, but each still has its (empty) place in the stats.
+        for (let c = col; c < run.end; c++) {
+          statsCallback(c)(ctx);
+        }
+        col = run.end;
+      }
+      afterStep?.(col, ctx, collected);
     }
 
-    for (const {row, matrix, controls} of run.steps) {
-      const stepControls = ctx.controls.and(controls.shift(ctx.row));
+    if (collectStats) {
+      const allWiresMask = (1 << circuitDefinition.numWires) - 1;
+      colQubitDensities.push(
+        KetTextureUtil.superpositionToQubitDensities(
+          ctx.stateTrader.currentTexture,
+          Controls.NONE,
+          allWiresMask,
+        ),
+      );
+    }
+  } catch (ex) {
+    // The caller only gets the stats of a run that finished, so a failed one is the last to hold them.
+    // The state is the caller's: it is in the trader the caller gave.
+    for (const texture of [
+      ...colQubitDensities,
+      ...colNorms,
+      ...customStats.flat(),
+    ]) {
+      texture.deallocByDepositingInPool("stat collected by a run that failed");
+    }
+    throw ex;
+  }
+
+  return collected;
+}
+
+/**
+ * Applies a fused run's steps, each a matrix over a few wires under its controls.
+ *
+ * @param {!CircuitEvalContext} ctx
+ * @param {!{steps: !Array.<!{row: !int, matrix: !Matrix, controls: !Controls}>}} run
+ */
+function _applyFusedRun(ctx, { steps }) {
+  for (const { row, matrix, controls } of steps) {
+    const stepControls = ctx.controls.and(controls.shift(ctx.row));
+    // Most steps have no controls of their own, and share the column's mask.
+    const ownMask = !stepControls.isEqualTo(ctx.controls);
+    const controlTex = ownMask
+      ? CircuitShaders.controlMask(stepControls).toBoolTexture(ctx.wireCount)
+      : ctx.controlsTexture;
+    try {
       GateShaders.applyMatrixOperation(
         new CircuitEvalContext(
           ctx.time,
           ctx.row + row,
           ctx.wireCount,
           stepControls,
+          controlTex,
           stepControls,
           ctx.stateTrader,
           ctx.customContextFromGates,
@@ -134,32 +205,12 @@ function advanceStateWithCircuit(ctx, circuitDefinition, collectStats,
         ),
         matrix,
       );
+    } finally {
+      if (ownMask) {
+        controlTex.deallocByDepositingInPool("controlTex of a fused step");
+      }
     }
-    // Its columns have nothing to observe, but each still has its (empty) place in the stats.
-    for (let c = col; c < run.end; c++) {
-      statsCallback(c)(ctx);
-    }
-    afterColumn?.(run.end - 1);
-    col = run.end;
   }
-
-  if (collectStats) {
-    const allWiresMask = (1 << circuitDefinition.numWires) - 1;
-    colQubitDensities.push(
-      KetTextureUtil.superpositionToQubitDensities(
-        ctx.stateTrader.currentTexture,
-        Controls.NONE,
-        allWiresMask,
-      ),
-    );
-  }
-
-  return {
-    colQubitDensities,
-    colNorms,
-    customStats,
-    customStatsMap,
-  };
 }
 
 /**
@@ -174,45 +225,57 @@ function advanceStateWithCircuit(ctx, circuitDefinition, collectStats,
  * }}
  */
 function _extractStateStatsNeededByCircuitColumn(ctx, circuitDefinition, col) {
-  // Compute custom stats used by display gates.
-  const customGateStats = [];
-  for (const row of circuitDefinition.customStatRowsInCol(col)) {
-    const statCtx = new CircuitEvalContext(
-      ctx.time,
-      row,
-      circuitDefinition.numWires,
-      ctx.controls,
-      ctx.controls,
-      ctx.stateTrader,
-      mergeMaps(
-        ctx.customContextFromGates,
-        circuitDefinition.colCustomContextFromGates(col, row),
-      ),
-      ctx.random,
-    );
-    const stat =
-      circuitDefinition.columns[col].gates[row].customStatTexturesMaker(
-        statCtx,
+  // What this column's stats have taken so far, to give back if a later one fails.
+  const made = [];
+  try {
+    // Compute custom stats used by display gates.
+    const customGateStats = [];
+    for (const row of circuitDefinition.customStatRowsInCol(col)) {
+      const statCtx = new CircuitEvalContext(
+        ctx.time,
+        row,
+        circuitDefinition.numWires,
+        ctx.controls,
+        ctx.controlsTexture,
+        ctx.controls,
+        ctx.stateTrader,
+        mergeMaps(
+          ctx.customContextFromGates,
+          circuitDefinition.colCustomContextFromGates(col, row),
+        ),
+        ctx.random,
       );
-    customGateStats.push({ row, stat });
+      const stat =
+        circuitDefinition.columns[col].gates[row].customStatTexturesMaker(
+          statCtx,
+        );
+      made.push(stat);
+      customGateStats.push({ row, stat });
+    }
+
+    // Compute individual qubit densities, where needed.
+    const qubitDensities = KetTextureUtil.superpositionToQubitDensities(
+      ctx.stateTrader.currentTexture,
+      ctx.controls,
+      circuitDefinition.colDesiredSingleQubitStatsMask(col),
+    );
+    made.push(qubitDensities);
+
+    // Compute survival rate.
+    const normMayHaveChanged =
+      circuitDefinition.columns[col].indexOfNonUnitaryGate() !== undefined;
+    const norm = KetTextureUtil.superpositionToNorm(
+      ctx.stateTrader.currentTexture,
+      normMayHaveChanged,
+    );
+
+    return { qubitDensities, norm, customGateStats };
+  } catch (ex) {
+    for (const texture of made.flat()) {
+      texture.deallocByDepositingInPool("stat of a column that failed");
+    }
+    throw ex;
   }
-
-  // Compute individual qubit densities, where needed.
-  const qubitDensities = KetTextureUtil.superpositionToQubitDensities(
-    ctx.stateTrader.currentTexture,
-    ctx.controls,
-    circuitDefinition.colDesiredSingleQubitStatsMask(col),
-  );
-
-  // Compute survival rate.
-  const normMayHaveChanged =
-    circuitDefinition.columns[col].indexOfNonUnitaryGate() !== undefined;
-  const norm = KetTextureUtil.superpositionToNorm(
-    ctx.stateTrader.currentTexture,
-    normMayHaveChanged,
-  );
-
-  return { qubitDensities, norm, customGateStats };
 }
 
 /**
@@ -235,6 +298,9 @@ function _advanceStateWithCircuitDefinitionColumn(
   const controls = ctx.controls.and(
     circuitDefinition.colControls(col).shift(ctx.row),
   );
+  const controlTex = CircuitShaders.controlMask(controls).toBoolTexture(
+    ctx.wireCount,
+  );
 
   const colContext = mergeMaps(
     ctx.customContextFromGates,
@@ -247,6 +313,7 @@ function _advanceStateWithCircuitDefinitionColumn(
     ctx.row,
     ctx.wireCount,
     ctx.controls,
+    ctx.controlsTexture,
     controls,
     trader,
     colContext,
@@ -257,16 +324,23 @@ function _advanceStateWithCircuitDefinitionColumn(
     ctx.row,
     ctx.wireCount,
     controls,
+    controlTex,
     controls,
     trader,
     colContext,
     ctx.random,
   );
 
-  circuitDefinition.applyBeforeOperationsInCol(col, aroundCtx);
-  circuitDefinition.applyMainOperationsInCol(col, mainCtx);
-  statsCallback(mainCtx);
-  circuitDefinition.applyAfterOperationsInCol(col, aroundCtx);
+  try {
+    circuitDefinition.applyBeforeOperationsInCol(col, aroundCtx);
+    circuitDefinition.applyMainOperationsInCol(col, mainCtx);
+    statsCallback(mainCtx);
+    circuitDefinition.applyAfterOperationsInCol(col, aroundCtx);
+  } finally {
+    controlTex.deallocByDepositingInPool(
+      "controlTex in _advanceStateWithCircuitDefinitionColumn",
+    );
+  }
 }
 
 export { setGateBuilderEffectToCircuit, advanceStateWithCircuit };

@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-import { Inputs, Outputs, makePseudoShaderWithInputsAndOutputAndCode } from "../../../webgl/coder/ShaderCoders.js";
+import {
+  Inputs,
+  Outputs,
+  makePseudoShaderWithInputsAndOutputAndCode,
+} from "../../../webgl/coder/ShaderCoders.js";
 import { Simulation } from "../../../../config/Simulation.js";
 
 const QUBIT_DENSITIES_SHADER = makePseudoShaderWithInputsAndOutputAndCode(
-    [Inputs.vec2('input')],
-    Outputs.vec4(),
-    `
+  [Inputs.vec2("input")],
+  Outputs.vec4(),
+  `
     uniform float keptCount;
     uniform float keptBitMask;
 
@@ -58,6 +62,7 @@ const QUBIT_DENSITIES_SHADER = makePseudoShaderWithInputsAndOutputAndCode(
         float d = dot(w2, w2);
 
         return vec4(a, br, bi, d);
-    }`);
+    }`,
+);
 
 export { QUBIT_DENSITIES_SHADER };

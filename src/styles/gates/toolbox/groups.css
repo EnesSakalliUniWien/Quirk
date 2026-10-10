@@ -2,32 +2,32 @@
    label, not a control - the groups do not fold, so orientation while scrolling is what the
    heading has to provide. */
 @layer components {
-    /* Sticky inside the scrolling viewport, so the group a tile belongs to stays named while
+  /* Sticky inside the scrolling viewport, so the group a tile belongs to stays named while
        the list scrolls past. The old fold spacing moves into the padding: a margin would leave
        a transparent strip for tiles to scroll through while the heading is stuck. */
-    .gate-group-label {
-        position: sticky;
-        top: 0;
-        z-index: 1;
-        margin: 0;
-        padding: calc(var(--spacing) * 1) 0 calc(var(--spacing) * 2);
-        color: var(--sidebar-muted);
-        background: var(--sidebar);
-        font-size: var(--text-caption-em);
-        font-weight: 650;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-    }
+  .gate-group-label {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    margin: 0;
+    padding: calc(var(--spacing) * 1) 0 calc(var(--spacing) * 2);
+    color: var(--sidebar-muted);
+    background: var(--sidebar);
+    font-size: var(--text-caption);
+    font-weight: 650;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
 
-    /* Named rows, the way a DAW browser lists devices: the name identifies, the glyph shows what
+  /* Named rows, the way a DAW browser lists devices: the name identifies, the glyph shows what
        the gate looks like on the circuit. */
-    /* A hundred-odd tiles are cheap to keep in the DOM - the search filters them by `hidden` and
+  /* A hundred-odd tiles are cheap to keep in the DOM - the search filters them by `hidden` and
        one tab stop walks them - but not to lay out and paint. This lets the browser skip the work
        for groups that are scrolled out of sight, and remember their height so the scrollbar does
        not jump. Browsers without it simply render everything, as before. */
-    .gate-group-tiles {
-        content-visibility: auto;
-        display: grid;
-        gap: 2px;
-    }
+  .gate-group-tiles {
+    content-visibility: auto;
+    display: grid;
+    gap: 2px;
+  }
 }

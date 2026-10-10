@@ -2,7 +2,11 @@ import { dark, light } from "./colours.js";
 import { Typography } from "./typography.js";
 import { Spacing } from "./spacing.js";
 import { Borders } from "./borders.js";
-import { setColourScheme, colourScheme } from "./colourScheme.js";
+import {
+  setColourScheme,
+  colourScheme,
+  onColourSchemeChange,
+} from "./colourScheme.js";
 
 const palettes = { dark, light };
 
@@ -36,7 +40,10 @@ export function appearanceFor(scheme) {
   });
 }
 
-/** The appearance of the scheme chosen at startup: dark unless the browser selected light first. */
-export const Appearance = appearanceFor(colourScheme());
+/** Immutable snapshot of the active scheme, replaced when the system appearance changes. */
+export let Appearance = appearanceFor(colourScheme());
+onColourSchemeChange(() => {
+  Appearance = appearanceFor(colourScheme());
+});
 
 export { setColourScheme, colourScheme };

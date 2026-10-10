@@ -18,7 +18,8 @@
 // Rz(-pi/4), Ry(-pi/3), Rz(pi t), Ry(pi/3), Rz(pi/4). Rz(pi t) holds the eigenvalues
 // e^(∓i pi t/2), and V turns the z axis to the eigenvector axis at polar angle pi/3 and azimuth
 // pi/4. From state 0 or 1, the Bloch vector turns about that axis by pi t, the difference between
-// the eigenvalue phases. Each constant rotation is two columns wide, so an empty column follows it.
+// the eigenvalue phases. Each constant rotation is three columns wide - its box and its dial - so
+// two empty columns follow it.
 const twoStateUnitaryLink = {
   init: [0, 1],
   cols: [
@@ -27,10 +28,12 @@ const twoStateUnitaryLink = {
       { id: "Rz", arg: "-pi/4" },
     ],
     [],
+    [],
     [
       { id: "Ry", arg: "-pi/3" },
       { id: "Ry", arg: "-pi/3" },
     ],
+    [],
     [],
     [
       { id: "Rzft", arg: "pi t" },
@@ -42,10 +45,12 @@ const twoStateUnitaryLink = {
       { id: "Ry", arg: "pi/3" },
     ],
     [],
+    [],
     [
       { id: "Rz", arg: "pi/4" },
       { id: "Rz", arg: "pi/4" },
     ],
+    [],
     [],
     ["Bloch", "Bloch"],
   ],

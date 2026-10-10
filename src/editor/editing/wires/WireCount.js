@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-import {Simulation} from '../../../config/Simulation.js';
+import { Simulation } from "../../../config/Simulation.js";
 
 /** Computes the definition and temporary-wire marker for a nonnegative extra wire count. */
 function withJustEnoughWires(context, extraWireCount) {
-    const desiredWireCount = context.definition.minimumRequiredWireCount();
-    const clampedWireCount = Math.min(Simulation.MAX_WIRE_COUNT,
-        Math.max(Simulation.MIN_WIRE_COUNT, desiredWireCount) + extraWireCount);
-    return {
-        definition: context.definition.withWireCount(clampedWireCount),
-        extraWireStartIndex: extraWireCount === 0 ? undefined : context.definition.numWires
-    };
+  const desiredWireCount = context.definition.minimumRequiredWireCount();
+  const clampedWireCount = Math.min(
+    Simulation.MAX_WIRE_COUNT,
+    Math.max(Simulation.MIN_WIRE_COUNT, desiredWireCount) + extraWireCount,
+  );
+  return {
+    definition: context.definition.withWireCount(clampedWireCount),
+    extraWireStartIndex:
+      extraWireCount === 0 ? undefined : context.definition.numWires,
+  };
 }
 
-export {withJustEnoughWires};
+export { withJustEnoughWires };

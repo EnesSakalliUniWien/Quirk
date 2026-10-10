@@ -14,95 +14,150 @@
  * limitations under the License.
  */
 
-import {Suite, assertThat} from "../../TestUtil.js"
-import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js"
-import {CircuitStats} from "../../../src/engine/simulation/CircuitStats.js"
-import {Gates} from "../../../src/gates/AllGates.js"
-import {stateTableRows} from "../../../src/engine/simulation/stateTableRows.js"
+import { Suite, assertThat } from "../../TestUtil.js";
+import { CircuitDefinition } from "../../../src/circuit/model/CircuitDefinition.js";
+import { CircuitStats } from "../../../src/engine/simulation/CircuitStats.js";
+import { Gates } from "../../../src/gates/AllGates.js";
+import { stateTableRows } from "../../../src/engine/simulation/stateTableRows.js";
 import { fromJsonText_CircuitDefinition } from "../../../src/serialization/circuits/text.js";
 
 const suite = new Suite("stateTable");
 
-const circuit = diagram => CircuitDefinition.fromTextDiagram(new Map([
-    ['H', Gates.HalfTurns.H],
-    ['X', Gates.HalfTurns.X],
-    ['Z', Gates.HalfTurns.Z],
-    ['-', undefined]
-]), diagram);
+const circuit = (diagram) =>
+  CircuitDefinition.fromTextDiagram(
+    new Map([
+      ["H", Gates.HalfTurns.H],
+      ["X", Gates.HalfTurns.X],
+      ["Z", Gates.HalfTurns.Z],
+      ["-", undefined],
+    ]),
+    diagram,
+  );
 
 suite.test("lists the nonzero amplitudes of the output state", () => {
-    const stats = CircuitStats.fromCircuitAtTime(circuit(`H-
-                                                        -X`), 0);
+  const stats = CircuitStats.fromCircuitAtTime(
+    circuit(`H-
+                                                        -X`),
+    0,
+  );
 
-    const {amplitudeCount, nonzeroCount, rows} = stateTableRows(stats, 2);
+  const { amplitudeCount, nonzeroCount, rows } = stateTableRows(stats, 2);
 
-    assertThat(amplitudeCount).isEqualTo(4);
-    assertThat(nonzeroCount).isEqualTo(2);
-    assertThat(rows.map(e => e.ket)).isEqualTo(['10', '11']);
-    assertThat(rows.map(e => e.probability)).isApproximatelyEqualTo([0.5, 0.5], 0.001);
-    assertThat(rows.map(e => e.real)).isApproximatelyEqualTo([Math.sqrt(0.5), Math.sqrt(0.5)], 0.001);
-    assertThat(rows.map(e => e.imag)).isApproximatelyEqualTo([0, 0], 0.001);
+  assertThat(amplitudeCount).isEqualTo(4);
+  assertThat(nonzeroCount).isEqualTo(2);
+  assertThat(rows.map((e) => e.ket)).isEqualTo(["10", "11"]);
+  assertThat(rows.map((e) => e.probability)).isApproximatelyEqualTo(
+    [0.5, 0.5],
+    0.001,
+  );
+  assertThat(rows.map((e) => e.real)).isApproximatelyEqualTo(
+    [Math.sqrt(0.5), Math.sqrt(0.5)],
+    0.001,
+  );
+  assertThat(rows.map((e) => e.imag)).isApproximatelyEqualTo([0, 0], 0.001);
 });
 
 suite.test("reports the phase of each amplitude in degrees", () => {
-    const stats = CircuitStats.fromCircuitAtTime(circuit(`HZ
-                                                        -X`), 0);
+  const stats = CircuitStats.fromCircuitAtTime(
+    circuit(`HZ
+                                                        -X`),
+    0,
+  );
 
-    const rows = stateTableRows(stats, 2).rows;
+  const rows = stateTableRows(stats, 2).rows;
 
-    assertThat(rows.map(e => e.ket)).isEqualTo(['10', '11']);
-    assertThat(rows.map(e => e.real)).isApproximatelyEqualTo([Math.sqrt(0.5), -Math.sqrt(0.5)], 0.001);
-    assertThat(rows.map(e => Math.abs(e.phaseDegrees))).isApproximatelyEqualTo([0, 180], 0.001);
+  assertThat(rows.map((e) => e.ket)).isEqualTo(["10", "11"]);
+  assertThat(rows.map((e) => e.real)).isApproximatelyEqualTo(
+    [Math.sqrt(0.5), -Math.sqrt(0.5)],
+    0.001,
+  );
+  assertThat(rows.map((e) => Math.abs(e.phaseDegrees))).isApproximatelyEqualTo(
+    [0, 180],
+    0.001,
+  );
 });
 
 suite.test("caps the rows without hiding how many there are", () => {
-    const stats = CircuitStats.fromCircuitAtTime(circuit(`H-
-                                                        -H`), 0);
+  const stats = CircuitStats.fromCircuitAtTime(
+    circuit(`H-
+                                                        -H`),
+    0,
+  );
 
-    const {nonzeroCount, rows} = stateTableRows(stats, 2, 3);
+  const { nonzeroCount, rows } = stateTableRows(stats, 2, 3);
 
-    assertThat(nonzeroCount).isEqualTo(4);
-    assertThat(rows.length).isEqualTo(3);
-    assertThat(rows.map(e => e.ket)).isEqualTo(['00', '01', '10']);
+  assertThat(nonzeroCount).isEqualTo(4);
+  assertThat(rows.length).isEqualTo(3);
+  assertThat(rows.map((e) => e.ket)).isEqualTo(["00", "01", "10"]);
 });
 
-suite.test("a circuit that failed to simulate has no nonzero amplitudes", () => {
-    const stats = CircuitStats.withNanDataFromCircuitAtTime(circuit(`H-
-                                                                   -X`), 0);
+suite.test(
+  "a circuit that failed to simulate has no nonzero amplitudes",
+  () => {
+    const stats = CircuitStats.withNanDataFromCircuitAtTime(
+      circuit(`H-
+                                                                   -X`),
+      0,
+    );
 
-    const {amplitudeCount, nonzeroCount, rows} = stateTableRows(stats, 2);
+    const { amplitudeCount, nonzeroCount, rows } = stateTableRows(stats, 2);
 
     assertThat(amplitudeCount).isEqualTo(4);
     assertThat(nonzeroCount).isEqualTo(0);
     assertThat(rows).isEqualTo([]);
-});
+  },
+);
 
-suite.test("pads out wires the simulator dropped because no gate touched them", () => {
+suite.test(
+  "pads out wires the simulator dropped because no gate touched them",
+  () => {
     // Only wire 0 carries a gate, so the simulator returns a one-qubit state for a two-wire circuit.
-    const stats = CircuitStats.fromCircuitAtTime(circuit(`X-
-                                                        --`), 0);
+    const stats = CircuitStats.fromCircuitAtTime(
+      circuit(`X-
+                                                        --`),
+      0,
+    );
 
-    const {amplitudeCount, nonzeroCount, rows} = stateTableRows(stats, 2);
+    const { amplitudeCount, nonzeroCount, rows } = stateTableRows(stats, 2);
 
     assertThat(amplitudeCount).isEqualTo(4);
     assertThat(nonzeroCount).isEqualTo(1);
-    assertThat(rows.map(e => e.ket)).isEqualTo(['01']);
-});
+    assertThat(rows.map((e) => e.ket)).isEqualTo(["01"]);
+  },
+);
 
 suite.test("the registers' values read together as a sequence", () => {
-    const bases = {"0": "A", "1": "C", "2": "G", "3": "T"};
-    const circuit = fromJsonText_CircuitDefinition(JSON.stringify({
-        cols: [["X", 1, 1, "X"]],
-        registers: [{name: "n1", wires: [0, 2], labels: bases}, {name: "n2", wires: [2, 2], labels: bases}],
-    }));
-    const {rows} = stateTableRows(CircuitStats.fromCircuitAtTime(circuit, 0), 4);
-    // n1 = 1 = C, n2 = 2 = G: single letters run together.
-    assertThat(rows.map(r => [r.values, r.sequence])).isEqualTo([[["C", "G"], "CG"]]);
+  const bases = { 0: "A", 1: "C", 2: "G", 3: "T" };
+  const circuit = fromJsonText_CircuitDefinition(
+    JSON.stringify({
+      cols: [["X", 1, 1, "X"]],
+      registers: [
+        { name: "n1", wires: [0, 2], labels: bases },
+        { name: "n2", wires: [2, 2], labels: bases },
+      ],
+    }),
+  );
+  const { rows } = stateTableRows(
+    CircuitStats.fromCircuitAtTime(circuit, 0),
+    4,
+  );
+  // n1 = 1 = C, n2 = 2 = G: single letters run together.
+  assertThat(rows.map((r) => [r.values, r.sequence])).isEqualTo([
+    [["C", "G"], "CG"],
+  ]);
 
-    // A value longer than a letter keeps a dot between the values.
-    const numbered = fromJsonText_CircuitDefinition(JSON.stringify({
-        cols: [["X", 1, 1, "X"]],
-        registers: [{name: "n1", wires: [0, 2]}, {name: "n2", wires: [2, 2], labels: {"2": "G"}}],
-    }));
-    assertThat(stateTableRows(CircuitStats.fromCircuitAtTime(numbered, 0), 4).rows[0].sequence).isEqualTo("1·G");
+  // A value longer than a letter keeps a dot between the values.
+  const numbered = fromJsonText_CircuitDefinition(
+    JSON.stringify({
+      cols: [["X", 1, 1, "X"]],
+      registers: [
+        { name: "n1", wires: [0, 2] },
+        { name: "n2", wires: [2, 2], labels: { 2: "G" } },
+      ],
+    }),
+  );
+  assertThat(
+    stateTableRows(CircuitStats.fromCircuitAtTime(numbered, 0), 4).rows[0]
+      .sequence,
+  ).isEqualTo("1·G");
 });

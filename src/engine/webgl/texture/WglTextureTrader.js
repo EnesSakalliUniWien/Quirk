@@ -62,7 +62,10 @@ class WglTextureTrader {
 
     let configuredShader;
     try {
-      configuredShader = shaderFunc instanceof WglConfiguredShader ? shaderFunc : shaderFunc(src);
+      configuredShader =
+        shaderFunc instanceof WglConfiguredShader
+          ? shaderFunc
+          : shaderFunc(src);
     } catch (error) {
       dst.deallocByDepositingInPool("WglTextureTrader configuration failure");
       throw error;

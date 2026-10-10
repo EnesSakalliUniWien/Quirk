@@ -15,8 +15,8 @@
  */
 
 import { bin } from "../../base/Format.js";
-import {Registers} from "../../circuit/model/Registers.js"
-import {ketBits, registerValue} from "../../circuit/registerLabels.js"
+import { Registers } from "../../circuit/model/Registers.js";
+import { ketBits, registerValue } from "../../circuit/registerLabels.js";
 
 /**
  * The registers' values read as one word, in wire order: AGA when every value is a single letter,
@@ -26,7 +26,9 @@ import {ketBits, registerValue} from "../../circuit/registerLabels.js"
  * @returns {!string}
  */
 function joinedSequence(values) {
-    return values.join(values.every(v => v.length === 1 && !/[0-9]/.test(v)) ? "" : "·");
+  return values.join(
+    values.every((v) => v.length === 1 && !/[0-9]/.test(v)) ? "" : "·",
+  );
 }
 
 /**
@@ -71,40 +73,42 @@ const MAX_ROWS = 4096;
  *     }>
  * }}
  */
-function stateTableRows(stats, wireCount, maxRows=MAX_ROWS) {
-    const buf = stats.finalState.rawBuffer();
-    const amplitudeCount = 1 << wireCount;
+function stateTableRows(stats, wireCount, maxRows = MAX_ROWS) {
+  const buf = stats.finalState.rawBuffer();
+  const amplitudeCount = 1 << wireCount;
 
-    // Registers are named in the table; each row carries their values and its bits grouped by them.
-    const registers = stats.circuitDefinition.registers.fittingIn(wireCount);
-    const rows = [];
-    let nonzeroCount = 0;
-    for (let i = 0; i < amplitudeCount; i++) {
-        const real = i*2 < buf.length ? buf[i*2] : 0;
-        const imag = i*2 + 1 < buf.length ? buf[i*2 + 1] : 0;
-        const probability = real*real + imag*imag;
-        if (!(probability > NEGLIGIBLE_PROBABILITY)) {
-            continue;
-        }
-
-        nonzeroCount++;
-        if (rows.length < maxRows) {
-            const values = registers.list.map(r => Registers.valueLabel(r, registerValue(r, i)));
-            rows.push({
-                ket: bin(i, wireCount),
-                bits: ketBits(registers, wireCount, i),
-                values,
-                // The registers read together: a sequence, when they are the letters of one.
-                sequence: joinedSequence(values),
-                probability,
-                real,
-                imag,
-                phaseDegrees: Math.atan2(imag, real) * 180 / Math.PI
-            });
-        }
+  // Registers are named in the table; each row carries their values and its bits grouped by them.
+  const registers = stats.circuitDefinition.registers.fittingIn(wireCount);
+  const rows = [];
+  let nonzeroCount = 0;
+  for (let i = 0; i < amplitudeCount; i++) {
+    const real = i * 2 < buf.length ? buf[i * 2] : 0;
+    const imag = i * 2 + 1 < buf.length ? buf[i * 2 + 1] : 0;
+    const probability = real * real + imag * imag;
+    if (!(probability > NEGLIGIBLE_PROBABILITY)) {
+      continue;
     }
 
-    return {amplitudeCount, nonzeroCount, rows, registers};
+    nonzeroCount++;
+    if (rows.length < maxRows) {
+      const values = registers.list.map((r) =>
+        Registers.valueLabel(r, registerValue(r, i)),
+      );
+      rows.push({
+        ket: bin(i, wireCount),
+        bits: ketBits(registers, wireCount, i),
+        values,
+        // The registers read together: a sequence, when they are the letters of one.
+        sequence: joinedSequence(values),
+        probability,
+        real,
+        imag,
+        phaseDegrees: (Math.atan2(imag, real) * 180) / Math.PI,
+      });
+    }
+  }
+
+  return { amplitudeCount, nonzeroCount, rows, registers };
 }
 
-export {stateTableRows}
+export { stateTableRows };

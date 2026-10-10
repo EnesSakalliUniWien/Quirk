@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-import { Inputs, Outputs, makePseudoShaderWithInputsAndOutputAndCode } from "../../../webgl/coder/ShaderCoders.js";
+import {
+  Inputs,
+  Outputs,
+  makePseudoShaderWithInputsAndOutputAndCode,
+} from "../../../webgl/coder/ShaderCoders.js";
 import { Simulation } from "../../../../config/Simulation.js";
 
 const CONTROL_SELECT_SHADER = makePseudoShaderWithInputsAndOutputAndCode(
-    [Inputs.vec2('input')],
-    Outputs.vec2(),
-    `
+  [Inputs.vec2("input")],
+  Outputs.vec2(),
+  `
     uniform float used;
     uniform float desired;
 
@@ -44,6 +48,7 @@ const CONTROL_SELECT_SHADER = makePseudoShaderWithInputsAndOutputAndCode(
 
     vec2 outputFor(float k) {
         return read_input(scatter(k));
-    }`);
+    }`,
+);
 
 export { CONTROL_SELECT_SHADER };

@@ -14,157 +14,193 @@
  * limitations under the License.
  */
 
-import {Suite} from "../../TestUtil.js"
-import {Gates} from "../../../src/gates/AllGates.js"
-import {ComparisonGates} from "../../../src/gates/arithmetic/ComparisonGates.js"
-import {assertThatCircuitUpdateActsLikeMatrix} from "../../CircuitOperationTestUtil.js"
-import {advanceStateWithCircuit} from "../../../src/engine/simulation/CircuitComputeUtil.js"
+import { Suite } from "../../TestUtil.js";
+import { Gates } from "../../../src/gates/AllGates.js";
+import { ComparisonGates } from "../../../src/gates/arithmetic/ComparisonGates.js";
+import { assertThatCircuitUpdateActsLikeMatrix } from "../../CircuitOperationTestUtil.js";
+import { advanceStateWithCircuit } from "../../../src/engine/simulation/CircuitComputeUtil.js";
 
-import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js"
-import {Matrix} from "../../../src/engine/math/matrix/Matrix.js"
+import { CircuitDefinition } from "../../../src/circuit/model/CircuitDefinition.js";
+import { Matrix } from "../../../src/engine/math/matrix/Matrix.js";
 
 const suite = new Suite("ComparisonGates");
 
-const circuit = (diagram, ...extras) => CircuitDefinition.fromTextDiagram(new Map([
-    ...extras,
-    ['-', undefined],
-    ['/', null],
-    ['A', Gates.InputGates.InputAFamily],
-    ['B', Gates.InputGates.InputBFamily],
-    ['•', Gates.Controls.Control],
-    ['X', Gates.HalfTurns.X],
-    ['Y', Gates.HalfTurns.Y],
-    ['Z', Gates.HalfTurns.Z],
-    ['H', Gates.HalfTurns.H],
-]), diagram);
+const circuit = (diagram, ...extras) =>
+  CircuitDefinition.fromTextDiagram(
+    new Map([
+      ...extras,
+      ["-", undefined],
+      ["/", null],
+      ["A", Gates.InputGates.InputAFamily],
+      ["B", Gates.InputGates.InputBFamily],
+      ["•", Gates.Controls.Control],
+      ["X", Gates.HalfTurns.X],
+      ["Y", Gates.HalfTurns.Y],
+      ["Z", Gates.HalfTurns.Z],
+      ["H", Gates.HalfTurns.H],
+    ]),
+    diagram,
+  );
 
-suite.testUsingWebGL('A_less_than_B', () => {
-    const circ = circuit(`-<-
+suite.testUsingWebGL("A_less_than_B", () => {
+  const circ = circuit(
+    `-<-
                         ---
                         -A-
                         -/-
                         -B-
-                        -/-`, ['<', ComparisonGates.ALessThanB]);
-    assertThatCircuitUpdateActsLikeMatrix(
-        ctx => advanceStateWithCircuit(ctx, circ, false),
-        Matrix.generateTransition(1<<6, i => {
-            const a = (i >> 2) & 3;
-            const b = (i >> 4) & 3;
-            const t = (i & 1) ^ (a < b ? 1 : 0);
-            return t | (i & ~1)
-        }));
+                        -/-`,
+    ["<", ComparisonGates.ALessThanB],
+  );
+  assertThatCircuitUpdateActsLikeMatrix(
+    (ctx) => advanceStateWithCircuit(ctx, circ, false),
+    Matrix.generateTransition(1 << 6, (i) => {
+      const a = (i >> 2) & 3;
+      const b = (i >> 4) & 3;
+      const t = (i & 1) ^ (a < b ? 1 : 0);
+      return t | (i & ~1);
+    }),
+  );
 });
 
-suite.testUsingWebGL('A_less_than_larger_B', () => {
-    const circ = circuit(`-<-
+suite.testUsingWebGL("A_less_than_larger_B", () => {
+  const circ = circuit(
+    `-<-
                         -A-
                         -/-
                         -B-
                         -/-
-                        -/-`, ['<', ComparisonGates.ALessThanB]);
-    assertThatCircuitUpdateActsLikeMatrix(
-        ctx => advanceStateWithCircuit(ctx, circ, false),
-        Matrix.generateTransition(1<<6, i => {
-            const a = (i >> 1) & 3;
-            const b = (i >> 3) & 7;
-            const t = (i & 1) ^ (a < b ? 1 : 0);
-            return t | (i & ~1)
-        }));
+                        -/-`,
+    ["<", ComparisonGates.ALessThanB],
+  );
+  assertThatCircuitUpdateActsLikeMatrix(
+    (ctx) => advanceStateWithCircuit(ctx, circ, false),
+    Matrix.generateTransition(1 << 6, (i) => {
+      const a = (i >> 1) & 3;
+      const b = (i >> 3) & 7;
+      const t = (i & 1) ^ (a < b ? 1 : 0);
+      return t | (i & ~1);
+    }),
+  );
 });
 
-suite.testUsingWebGL('A_less_than_smaller_B', () => {
-    const circ = circuit(`-<-
+suite.testUsingWebGL("A_less_than_smaller_B", () => {
+  const circ = circuit(
+    `-<-
                         -A-
                         -/-
                         -/-
                         -B-
-                        -/-`, ['<', ComparisonGates.ALessThanB]);
-    assertThatCircuitUpdateActsLikeMatrix(
-        ctx => advanceStateWithCircuit(ctx, circ, false),
-        Matrix.generateTransition(1<<6, i => {
-            const a = (i >> 1) & 7;
-            const b = (i >> 4) & 3;
-            const t = (i & 1) ^ (a < b ? 1 : 0);
-            return t | (i & ~1)
-        }));
+                        -/-`,
+    ["<", ComparisonGates.ALessThanB],
+  );
+  assertThatCircuitUpdateActsLikeMatrix(
+    (ctx) => advanceStateWithCircuit(ctx, circ, false),
+    Matrix.generateTransition(1 << 6, (i) => {
+      const a = (i >> 1) & 7;
+      const b = (i >> 4) & 3;
+      const t = (i & 1) ^ (a < b ? 1 : 0);
+      return t | (i & ~1);
+    }),
+  );
 });
 
-suite.testUsingWebGL('A_less_than_or_equal_to_B', () => {
-    const circ = circuit(`-?-
+suite.testUsingWebGL("A_less_than_or_equal_to_B", () => {
+  const circ = circuit(
+    `-?-
                         -A-
                         -/-
                         -B-
-                        -/-`, ['?', ComparisonGates.ALessThanOrEqualToB]);
-    assertThatCircuitUpdateActsLikeMatrix(
-        ctx => advanceStateWithCircuit(ctx, circ, false),
-        Matrix.generateTransition(1<<5, i => {
-            const a = (i >> 1) & 3;
-            const b = (i >> 3) & 3;
-            const t = (i & 1) ^ (a <= b ? 1 : 0);
-            return t | (i & ~1)
-        }));
+                        -/-`,
+    ["?", ComparisonGates.ALessThanOrEqualToB],
+  );
+  assertThatCircuitUpdateActsLikeMatrix(
+    (ctx) => advanceStateWithCircuit(ctx, circ, false),
+    Matrix.generateTransition(1 << 5, (i) => {
+      const a = (i >> 1) & 3;
+      const b = (i >> 3) & 3;
+      const t = (i & 1) ^ (a <= b ? 1 : 0);
+      return t | (i & ~1);
+    }),
+  );
 });
 
-suite.testUsingWebGL('A_greater_than_B', () => {
-    const circ = circuit(`-?-
+suite.testUsingWebGL("A_greater_than_B", () => {
+  const circ = circuit(
+    `-?-
                         -A-
                         -/-
                         -B-
-                        -/-`, ['?', ComparisonGates.AGreaterThanB]);
-    assertThatCircuitUpdateActsLikeMatrix(
-        ctx => advanceStateWithCircuit(ctx, circ, false),
-        Matrix.generateTransition(1<<5, i => {
-            const a = (i >> 1) & 3;
-            const b = (i >> 3) & 3;
-            const t = (i & 1) ^ (a > b ? 1 : 0);
-            return t | (i & ~1)
-        }));
+                        -/-`,
+    ["?", ComparisonGates.AGreaterThanB],
+  );
+  assertThatCircuitUpdateActsLikeMatrix(
+    (ctx) => advanceStateWithCircuit(ctx, circ, false),
+    Matrix.generateTransition(1 << 5, (i) => {
+      const a = (i >> 1) & 3;
+      const b = (i >> 3) & 3;
+      const t = (i & 1) ^ (a > b ? 1 : 0);
+      return t | (i & ~1);
+    }),
+  );
 });
 
-suite.testUsingWebGL('A_greater_than_or_equal_to_B', () => {
-    const circ = circuit(`-?-
+suite.testUsingWebGL("A_greater_than_or_equal_to_B", () => {
+  const circ = circuit(
+    `-?-
                         -A-
                         -/-
                         -B-
-                        -/-`, ['?', ComparisonGates.AGreaterThanOrEqualToB]);
-    assertThatCircuitUpdateActsLikeMatrix(
-        ctx => advanceStateWithCircuit(ctx, circ, false),
-        Matrix.generateTransition(1<<5, i => {
-            const a = (i >> 1) & 3;
-            const b = (i >> 3) & 3;
-            const t = (i & 1) ^ (a >= b ? 1 : 0);
-            return t | (i & ~1)
-        }));
+                        -/-`,
+    ["?", ComparisonGates.AGreaterThanOrEqualToB],
+  );
+  assertThatCircuitUpdateActsLikeMatrix(
+    (ctx) => advanceStateWithCircuit(ctx, circ, false),
+    Matrix.generateTransition(1 << 5, (i) => {
+      const a = (i >> 1) & 3;
+      const b = (i >> 3) & 3;
+      const t = (i & 1) ^ (a >= b ? 1 : 0);
+      return t | (i & ~1);
+    }),
+  );
 });
 
-suite.testUsingWebGL('A_equal_to_B', () => {
-    const circ = circuit(`-?-
+suite.testUsingWebGL("A_equal_to_B", () => {
+  const circ = circuit(
+    `-?-
                         -A-
                         -/-
                         -B-
-                        -/-`, ['?', ComparisonGates.AEqualToB]);
-    assertThatCircuitUpdateActsLikeMatrix(
-        ctx => advanceStateWithCircuit(ctx, circ, false),
-        Matrix.generateTransition(1<<5, i => {
-            const a = (i >> 1) & 3;
-            const b = (i >> 3) & 3;
-            const t = (i & 1) ^ (a === b ? 1 : 0);
-            return t | (i & ~1)
-        }));
+                        -/-`,
+    ["?", ComparisonGates.AEqualToB],
+  );
+  assertThatCircuitUpdateActsLikeMatrix(
+    (ctx) => advanceStateWithCircuit(ctx, circ, false),
+    Matrix.generateTransition(1 << 5, (i) => {
+      const a = (i >> 1) & 3;
+      const b = (i >> 3) & 3;
+      const t = (i & 1) ^ (a === b ? 1 : 0);
+      return t | (i & ~1);
+    }),
+  );
 });
 
-suite.testUsingWebGL('A_not_equal_to_B', () => {
-    const circ = circuit(`-?-
+suite.testUsingWebGL("A_not_equal_to_B", () => {
+  const circ = circuit(
+    `-?-
                         -A-
                         -/-
                         -B-
-                        -/-`, ['?', ComparisonGates.ANotEqualToB]);
-    assertThatCircuitUpdateActsLikeMatrix(
-        ctx => advanceStateWithCircuit(ctx, circ, false),
-        Matrix.generateTransition(1<<5, i => {
-            const a = (i >> 1) & 3;
-            const b = (i >> 3) & 3;
-            const t = (i & 1) ^ (a !== b ? 1 : 0);
-            return t | (i & ~1)
-        }));
+                        -/-`,
+    ["?", ComparisonGates.ANotEqualToB],
+  );
+  assertThatCircuitUpdateActsLikeMatrix(
+    (ctx) => advanceStateWithCircuit(ctx, circ, false),
+    Matrix.generateTransition(1 << 5, (i) => {
+      const a = (i >> 1) & 3;
+      const b = (i >> 3) & 3;
+      const t = (i & 1) ^ (a !== b ? 1 : 0);
+      return t | (i & ~1);
+    }),
+  );
 });

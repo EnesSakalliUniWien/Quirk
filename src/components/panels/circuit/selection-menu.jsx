@@ -1,8 +1,14 @@
 import { Menu } from "@base-ui/react/menu";
 import { useStore } from "zustand";
 import { appStore } from "../../../state/appStore.js";
+import { menuAnchorStyle } from "./menuAnchorStyle.js";
 import {
-  copySelection, cutSelection, deleteSelection, describeRange, makeGateFromSelection, toggleSelectionActive,
+  copySelection,
+  cutSelection,
+  deleteSelection,
+  describeRange,
+  makeGateFromSelection,
+  toggleSelectionActive,
 } from "./selectionCommands.js";
 
 const writeClipboard = (text) => navigator.clipboard.writeText(text);
@@ -24,46 +30,83 @@ function SelectionMenu({ host }) {
     return null;
   }
   const close = () => appStore.setState({ selectionMenu: undefined });
-  const element = host.current;
-  const box = element === null ? { left: 0, top: 0 } : element.getBoundingClientRect();
-  const anchor = {
-    left: `${menu.x - box.left + (element?.scrollLeft ?? 0)}px`,
-    top: `${menu.y - box.top + (element?.scrollTop ?? 0)}px`,
-  };
+  const anchor = menuAnchorStyle(host.current, menu);
   const range = actions.range();
 
   return (
     <Menu.Root open onOpenChange={(open) => !open && close()}>
-      <Menu.Trigger nativeButton={false} render={<span className="gutter-menu-anchor" style={anchor} aria-hidden="true" />} />
+      <Menu.Trigger
+        nativeButton={false}
+        render={
+          <span
+            className="gutter-menu-anchor"
+            style={anchor}
+            aria-hidden="true"
+          />
+        }
+      />
       <Menu.Portal>
-        <Menu.Positioner className="app-menu-positioner" side="bottom" align="start" sideOffset={4}>
+        <Menu.Positioner
+          className="app-menu-positioner"
+          side="bottom"
+          align="start"
+          sideOffset={4}
+        >
           {/* Opened from the keyboard, closing hands the focus back to the circuit, where the keys
               that opened it were pressed. */}
-          <Menu.Popup className="app-menu selection-menu" finalFocus={menu.viaKeyboard ? host : false}
-            aria-label="Selection">
+          <Menu.Popup
+            className="app-menu selection-menu"
+            finalFocus={menu.viaKeyboard ? host : false}
+            aria-label="Selection"
+          >
             <Menu.Group>
               <Menu.GroupLabel className="app-menu-label">
                 {range === undefined ? "Selection" : describeRange(range)}
               </Menu.GroupLabel>
-              <Menu.Item className="app-menu-item" data-action="copy" onClick={() => copySelection(actions, writeClipboard)}>
+              <Menu.Item
+                className="app-menu-item"
+                data-action="copy"
+                onClick={() => copySelection(actions, writeClipboard)}
+              >
                 Copy
               </Menu.Item>
-              <Menu.Item className="app-menu-item" data-action="cut" onClick={() => cutSelection(actions, writeClipboard)}>
+              <Menu.Item
+                className="app-menu-item"
+                data-action="cut"
+                onClick={() => cutSelection(actions, writeClipboard)}
+              >
                 Cut
               </Menu.Item>
-              <Menu.Item className="app-menu-item" data-action="make-gate" onClick={() => makeGateFromSelection(actions)}>
-                Make Gate…
+              <Menu.Item
+                className="app-menu-item"
+                data-action="make-gate"
+                onClick={() => makeGateFromSelection(actions)}
+              >
+                Create Gate…
               </Menu.Item>
-              <Menu.Item className="app-menu-item" data-action={actions.allDeactivated() ? "activate" : "deactivate"}
-                onClick={() => toggleSelectionActive(actions)}>
+              <Menu.Item
+                className="app-menu-item"
+                data-action={
+                  actions.allDeactivated() ? "activate" : "deactivate"
+                }
+                onClick={() => toggleSelectionActive(actions)}
+              >
                 {actions.allDeactivated() ? "Activate" : "Deactivate"}
               </Menu.Item>
             </Menu.Group>
             <Menu.Separator className="app-menu-separator" />
-            <Menu.Item className="app-menu-item" data-action="delete" onClick={() => deleteSelection(actions)}>
+            <Menu.Item
+              className="app-menu-item"
+              data-action="delete"
+              onClick={() => deleteSelection(actions)}
+            >
               Delete
             </Menu.Item>
-            <Menu.Item className="app-menu-item" data-action="clear" onClick={() => actions.clear()}>
+            <Menu.Item
+              className="app-menu-item"
+              data-action="clear"
+              onClick={() => actions.clear()}
+            >
               Clear Selection
             </Menu.Item>
           </Menu.Popup>

@@ -17,7 +17,7 @@
 /**
  * Sizes and spacings of the drawn circuit and its gate tiles.
  */
-import {Appearance} from '../appearance/Appearance.js';
+import { Appearance } from "../appearance/Appearance.js";
 
 const Layout = {};
 

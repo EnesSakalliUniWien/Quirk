@@ -31,7 +31,7 @@ const SampleDisplayFamily = Gate.buildFamily(1, 16, (span, builder) =>
     .setStatTexturesMaker((ctx) =>
       probabilityStatTexture(
         ctx.stateTrader.currentTexture,
-        ctx.controls,
+        ctx.controlsTexture,
         ctx.row,
         span,
       ),
@@ -39,11 +39,12 @@ const SampleDisplayFamily = Gate.buildFamily(1, 16, (span, builder) =>
     .setStatPixelDataPostProcessor((e) =>
       probabilityPixelsToColumnVector(e, span),
     )
-    .promiseHasNoNetEffectOnStateVectorButStillRequiresDynamicRedraw()
+    // The sample is drawn from the run's seed, so it holds still until a new run draws again.
+    .promiseHasNoNetEffectOnStateVector()
     .setProcessedStatsToJsonFunc(probabilityDataToJson)
     .setRenderer(SAMPLE_RENDERER)
     .setExtraDisableReasonFinder((args) =>
-      args.isNested ? "can't\nnest\ndisplays\n(sorry)" : undefined,
+      args.isNested ? "No nested\ndisplay" : undefined,
     ),
 );
 

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import {Suite, assertThat} from "../TestUtil.js"
-import {decompositionOf} from "../../src/circuit/gateDecomposition.js"
-import {Controls} from "../../src/gates/probes/Controls.js"
-import {Gates} from "../../src/gates/AllGates.js"
-import {HalfTurnGates} from "../../src/gates/rotations/HalfTurnGates.js"
+import { Suite, assertThat } from "../TestUtil.js";
+import { decompositionOf } from "../../src/circuit/gateDecomposition.js";
+import { Controls } from "../../src/gates/probes/Controls.js";
+import { Gates } from "../../src/gates/AllGates.js";
+import { HalfTurnGates } from "../../src/gates/rotations/HalfTurnGates.js";
 
 const suite = new Suite("gateDecomposition");
 
@@ -34,42 +34,49 @@ const suite = new Suite("gateDecomposition");
  * @returns {!int}
  */
 function runDecomposition(circuit, input) {
-    let state = input;
-    for (const column of circuit.columns) {
-        let target = undefined;
-        let controlsMet = true;
-        for (let row = 0; row < column.gates.length; row++) {
-            const gate = column.gates[row];
-            if (gate === HalfTurnGates.X) {
-                target = row;
-            } else if (gate === Controls.Control) {
-                controlsMet = controlsMet && (state & (1 << row)) !== 0;
-            }
-        }
-        if (target !== undefined && controlsMet) {
-            state ^= 1 << target;
-        }
+  let state = input;
+  for (const column of circuit.columns) {
+    let target = undefined;
+    let controlsMet = true;
+    for (let row = 0; row < column.gates.length; row++) {
+      const gate = column.gates[row];
+      if (gate === HalfTurnGates.X) {
+        target = row;
+      } else if (gate === Controls.Control) {
+        controlsMet = controlsMet && (state & (1 << row)) !== 0;
+      }
     }
-    return state;
+    if (target !== undefined && controlsMet) {
+      state ^= 1 << target;
+    }
+  }
+  return state;
 }
 
-suite.test("increment and decrement stand for a ladder of controlled nots", () => {
+suite.test(
+  "increment and decrement stand for a ladder of controlled nots",
+  () => {
     for (const span of [1, 2, 3, 4]) {
-        for (const [family, step] of [[Gates.IncrementGates.IncrementFamily, +1],
-                                      [Gates.IncrementGates.DecrementFamily, -1]]) {
-            const gate = family.ofSize(span);
-            const circuit = decompositionOf(gate);
-            assertThat(circuit === undefined).isEqualTo(false);
-            assertThat(circuit.numWires).isEqualTo(span);
+      for (const [family, step] of [
+        [Gates.IncrementGates.IncrementFamily, +1],
+        [Gates.IncrementGates.DecrementFamily, -1],
+      ]) {
+        const gate = family.ofSize(span);
+        const circuit = decompositionOf(gate);
+        assertThat(circuit === undefined).isEqualTo(false);
+        assertThat(circuit.numWires).isEqualTo(span);
 
-            const mask = (1 << span) - 1;
-            for (let input = 0; input <= mask; input++) {
-                assertThat(runDecomposition(circuit, input)).isEqualTo((input + step) & mask);
-            }
+        const mask = (1 << span) - 1;
+        for (let input = 0; input <= mask; input++) {
+          assertThat(runDecomposition(circuit, input)).isEqualTo(
+            (input + step) & mask,
+          );
         }
+      }
     }
-});
+  },
+);
 
 suite.test("a gate with no known decomposition reports none", () => {
-    assertThat(decompositionOf(Gates.HalfTurns.X)).isEqualTo(undefined);
+  assertThat(decompositionOf(Gates.HalfTurns.X)).isEqualTo(undefined);
 });

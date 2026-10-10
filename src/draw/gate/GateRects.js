@@ -37,12 +37,7 @@ function gateButtonRect(wholeRect) {
  */
 function rectForResizeTab(gateRect) {
   const height = Math.min(Layout.GATE_RADIUS, gateRect.h / 4);
-  return new Rect(
-    gateRect.x,
-    gateRect.bottom() - height,
-    gateRect.w,
-    height,
-  );
+  return new Rect(gateRect.x, gateRect.bottom() - height, gateRect.w, height);
 }
 
 export { gateButtonRect, rectForResizeTab };

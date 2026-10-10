@@ -4,21 +4,21 @@
 registry key and an entry component in `<name>-panel.jsx`. Each supporting React
 component has its own file, using the existing kebab-case naming convention.
 
-| Directory | Responsibility |
-| --- | --- |
-| `algebra/` | Operation equations, step cards, state factors and evolution chart |
-| `bloch/` | Enlarged Bloch sphere and its readings |
-| `circuit/` | Circuit canvas host, gutter rename box, gutter menu, the gate menu, the dial on a rotation gate's wire, the selection's bar, menu, commands and keys, and the keyboard's cell cursor with what the circuit says to a screen reader |
-| `export/` | Circuit and simulation exports, including copy feedback |
-| `forge/` | Custom gate creation from matrices, rotations and circuit ranges |
-| `gate-param/` | Editing a selected gate's parameter |
-| `gates/` | Gate toolbox panel |
-| `probabilities/` | Basis-state probabilities traced step by step up to the playhead, in index order or grouped by correlated qubits |
-| `qubits/` | Per-qubit readings |
-| `registers/` | Register editing, value labels and readings |
-| `state/` | Playhead state table |
-| `tape/` | Recorded takes, comparison, import/export, recording controls and the animation, sampling and measurement settings |
-| `shared/` | Completed-result subscription and dock wrapper used across panels |
+| Directory        | Responsibility                                                                                                                                                                                                                     |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `algebra/`       | Operation equations, step cards, state factors and evolution chart                                                                                                                                                                 |
+| `bloch/`         | Enlarged Bloch sphere and its readings                                                                                                                                                                                             |
+| `circuit/`       | Circuit canvas host, gutter rename box, gutter menu, the gate menu, the dial on a rotation gate's wire, the selection's bar, menu, commands and keys, and the keyboard's cell cursor with what the circuit says to a screen reader |
+| `export/`        | Circuit and simulation exports, including copy feedback                                                                                                                                                                            |
+| `forge/`         | Custom gate creation from matrices, rotations and circuit ranges                                                                                                                                                                   |
+| `gate-param/`    | Editing a selected gate's parameter                                                                                                                                                                                                |
+| `gates/`         | Gate toolbox panel                                                                                                                                                                                                                 |
+| `probabilities/` | Basis-state probabilities traced step by step up to the playhead, in index order or grouped by correlated qubits                                                                                                                   |
+| `qubits/`        | Per-qubit readings                                                                                                                                                                                                                 |
+| `registers/`     | Register editing, value labels and readings                                                                                                                                                                                        |
+| `state/`         | Playhead state table                                                                                                                                                                                                               |
+| `tape/`          | Recorded takes, comparison, import/export, recording controls and the animation, sampling and measurement settings                                                                                                                 |
+| `shared/`        | Completed-result subscription and dock wrapper used across panels                                                                                                                                                                  |
 
 Keep panel-specific hooks and helpers with their panel. The circuit's gutter
 editors live in `circuit/` because they are positioned and mounted by the circuit

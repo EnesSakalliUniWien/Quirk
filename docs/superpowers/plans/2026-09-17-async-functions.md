@@ -29,20 +29,20 @@ An async function still runs on the main thread. Awaiting splits one task into s
 
 Measured on 16 and 17 September 2026 with the teleportation example:
 
-| Setup | Frames per second | Where the main thread went |
-|---|---|---|
-| Production build, Algebra panel open | 7 | 100% busy, 65% of it in `useMatrixLayout` measuring layout |
-| Dev server, Algebra panel open | 2 | `useMatrixLayout` 41%, including `getBoundingClientRect` 31%; MathML matrices 14%; `readPixels` 5%; `circuitAlgebra` 4.5% |
-| Dev server, Algebra panel mounted behind Probabilities | 75 | 50% busy, after the uncommitted change that pauses hidden panels |
+| Setup                                                  | Frames per second | Where the main thread went                                                                                                |
+| ------------------------------------------------------ | ----------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Production build, Algebra panel open                   | 7                 | 100% busy, 65% of it in `useMatrixLayout` measuring layout                                                                |
+| Dev server, Algebra panel open                         | 2                 | `useMatrixLayout` 41%, including `getBoundingClientRect` 31%; MathML matrices 14%; `readPixels` 5%; `circuitAlgebra` 4.5% |
+| Dev server, Algebra panel mounted behind Probabilities | 75                | 50% busy, after the uncommitted change that pauses hidden panels                                                          |
 
 Async functions can remove two of those costs from long tasks. Phase 1 stops `readPixels` from blocking on the GPU, and it splits the Algebra and Probabilities panels' per-step simulations into separate tasks. Async functions cannot change the layout measurement or the MathML rendering, which are most of the Algebra panel's cost. Those need a change to `useMatrixLayout` and the step cards, which is outside this plan.
 
 Awaiting also costs time on every call. Measured with Node 24.10.0 and the repository's own `Complex` and `Matrix`, over two rounds:
 
-| Work | Synchronous | Every call awaited |
-|---|---|---|
-| 1,000,000 calls to `Complex.plus` | 5–8 ms | 41–44 ms |
-| 20 products of 32×32 matrices | 2–3 ms | 99–100 ms |
+| Work                              | Synchronous | Every call awaited |
+| --------------------------------- | ----------- | ------------------ |
+| 1,000,000 calls to `Complex.plus` | 5–8 ms      | 41–44 ms           |
+| 20 products of 32×32 matrices     | 2–3 ms      | 99–100 ms          |
 
 **Recommendation:** Execute Phase 0 and Phase 1, then decide at Gate 1 with the measurements it records. Phases 3 to 5 put awaits on the drawing and math code that runs every frame, where the table above predicts slower frames. Their performance goals in `test_perf/` are the stop signal.
 
@@ -50,33 +50,33 @@ Awaiting also costs time on every call. Measured with Node 24.10.0 and the repos
 
 `scripts/async/inventory.js` from Task 1 counts 3,158 functions in 403 files under `src/`:
 
-| Classification | Functions | What happens to them |
-|---|---|---|
-| Convertible: ordinary function | 1,681 | Become async functions |
-| Convertible: JSX event handler | 137 | Become async functions |
-| Convertible: fire-and-forget callback | 84 | Become async functions with a rejection handler |
-| Restructure: iteration callback | 444 | Stay synchronous unless they need to await; then the loop becomes `for...of`, or `Promise.all` over `map` for independent work |
-| Review: callback to another function | 458 | Follow their receiver, and become async when the receiver awaits them |
-| Review: generator | 4 | Stay generators unless their consumer becomes async |
-| Blocked: React synchronous callback | 122 | Stay synchronous |
-| Blocked: React component | 96 | Stay synchronous |
-| Blocked: constructor | 56 | Stay synchronous |
-| Blocked: protocol method | 30 | Stay synchronous |
-| Blocked: React hook | 19 | Stay synchronous |
-| Blocked: getter or setter | 12 | Stay synchronous |
-| Blocked: Pixi draw callback | 1 | Stays synchronous |
-| Already async | 14 | Unchanged |
+| Classification                        | Functions | What happens to them                                                                                                           |
+| ------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Convertible: ordinary function        | 1,681     | Become async functions                                                                                                         |
+| Convertible: JSX event handler        | 137       | Become async functions                                                                                                         |
+| Convertible: fire-and-forget callback | 84        | Become async functions with a rejection handler                                                                                |
+| Restructure: iteration callback       | 444       | Stay synchronous unless they need to await; then the loop becomes `for...of`, or `Promise.all` over `map` for independent work |
+| Review: callback to another function  | 458       | Follow their receiver, and become async when the receiver awaits them                                                          |
+| Review: generator                     | 4         | Stay generators unless their consumer becomes async                                                                            |
+| Blocked: React synchronous callback   | 122       | Stay synchronous                                                                                                               |
+| Blocked: React component              | 96        | Stay synchronous                                                                                                               |
+| Blocked: constructor                  | 56        | Stay synchronous                                                                                                               |
+| Blocked: protocol method              | 30        | Stay synchronous                                                                                                               |
+| Blocked: React hook                   | 19        | Stay synchronous                                                                                                               |
+| Blocked: getter or setter             | 12        | Stay synchronous                                                                                                               |
+| Blocked: Pixi draw callback           | 1         | Stays synchronous                                                                                                              |
+| Already async                         | 14        | Unchanged                                                                                                                      |
 
 The classifier sees syntax, not callers. A name-based call graph estimates that 280 to 540 of the 1,902 convertible functions run while React renders or while Pixi's reconciler applies props. Each of those gets its result computed ahead of render, or an `async-exempt` comment.
 
 `test/` and `test_perf/` hold another 1,770 functions in 155 files, 99 of them async already.
 
-| Phase | Folders | Files | Functions | Convertible |
-|---|---|---|---|---|
-| 2 | `src/app` except `canvas`; `src/components`; `src/results`; `src/browser`; `src/diagnostics`; `src/state`; `Revision.js`, `Obs.js`, `valueStore.js` and `CooldownThrottle.js` in `src/base` | 125 | 1,064 | 588 |
-| 3 | `src/draw`; `src/editor`; `src/app/canvas`; `src/appearance`; `src/geometry` | 85 | 725 | 487 |
-| 4 | `src/circuit`; `src/gates`; `src/serialization`; `src/config`; `src/resources` | 82 | 785 | 381 |
-| 5 | the rest of `src/engine` and `src/base` | 58 | 584 | 446 |
+| Phase | Folders                                                                                                                                                                                     | Files | Functions | Convertible |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- | --------- | ----------- |
+| 2     | `src/app` except `canvas`; `src/components`; `src/results`; `src/browser`; `src/diagnostics`; `src/state`; `Revision.js`, `Obs.js`, `valueStore.js` and `CooldownThrottle.js` in `src/base` | 125   | 1,064     | 588         |
+| 3     | `src/draw`; `src/editor`; `src/app/canvas`; `src/appearance`; `src/geometry`                                                                                                                | 85    | 725       | 487         |
+| 4     | `src/circuit`; `src/gates`; `src/serialization`; `src/config`; `src/resources`                                                                                                              | 82    | 785       | 381         |
+| 5     | the rest of `src/engine` and `src/base`                                                                                                                                                     | 58    | 584       | 446         |
 
 Phase 1 converts the functions its tasks name, across these folders. Their folders' remaining functions wait for their own phase.
 
@@ -109,64 +109,110 @@ Phase 1 converts the functions its tasks name, across these folders. Their folde
 
 ```js
 // scripts/async/eslint-plugin.test.js
-import {RuleTester} from "eslint";
+import { RuleTester } from "eslint";
 import plugin from "./eslint-plugin.js";
 
 const tester = new RuleTester({
-    languageOptions: {ecmaVersion: "latest", sourceType: "module", parserOptions: {ecmaFeatures: {jsx: true}}},
+  languageOptions: {
+    ecmaVersion: "latest",
+    sourceType: "module",
+    parserOptions: { ecmaFeatures: { jsx: true } },
+  },
 });
 
 tester.run("require-async", plugin.rules["require-async"], {
-    valid: [
-        "async function load() {}",
-        "class Take { constructor() {} get size() { return 1; } set size(v) {} toString() { return ''; } }",
-        "function Panel() { return <div />; }",
-        "function Scene() { return createElement('pixiContainer'); }",
-        "function useSample() { return 1; }",
-        "useEffect(() => {}, []);",
-        "useMemo(() => 1, []);",
-        "[1, 2].map(x => x * 2);",
-        "const shape = {draw: graphics => graphics.clear()};",
-        "items.reduce((sum, x) => sum + x, 0);",
-        "// async-exempt: Pixi's reconciler reads the result synchronously\nfunction paint() {}",
-        "/** Paints. */\n// async-exempt: called while React renders\nexport function label() {}",
-        "class Take {\n    // async-exempt: a zustand selector\n    pick() {}\n}",
-    ],
-    invalid: [
-        {code: "function load() {}", errors: [{messageId: "sync", data: {name: "load"}}]},
-        {code: "const load = () => 1;", errors: [{messageId: "sync", data: {name: "load"}}]},
-        {code: "class Recorder { save() {} }", errors: [{messageId: "sync", data: {name: "save"}}]},
-        {code: "const button = <button onClick={() => save()} />;", errors: [{messageId: "sync", data: {name: "This function"}}]},
-        {code: "setTimeout(() => tick(), 0);", errors: [{messageId: "sync"}]},
-        {code: "// async-exempt:\nfunction load() {}", errors: [{messageId: "sync"}]},
-    ],
+  valid: [
+    "async function load() {}",
+    "class Take { constructor() {} get size() { return 1; } set size(v) {} toString() { return ''; } }",
+    "function Panel() { return <div />; }",
+    "function Scene() { return createElement('pixiContainer'); }",
+    "function useSample() { return 1; }",
+    "useEffect(() => {}, []);",
+    "useMemo(() => 1, []);",
+    "[1, 2].map(x => x * 2);",
+    "const shape = {draw: graphics => graphics.clear()};",
+    "items.reduce((sum, x) => sum + x, 0);",
+    "// async-exempt: Pixi's reconciler reads the result synchronously\nfunction paint() {}",
+    "/** Paints. */\n// async-exempt: called while React renders\nexport function label() {}",
+    "class Take {\n    // async-exempt: a zustand selector\n    pick() {}\n}",
+  ],
+  invalid: [
+    {
+      code: "function load() {}",
+      errors: [{ messageId: "sync", data: { name: "load" } }],
+    },
+    {
+      code: "const load = () => 1;",
+      errors: [{ messageId: "sync", data: { name: "load" } }],
+    },
+    {
+      code: "class Recorder { save() {} }",
+      errors: [{ messageId: "sync", data: { name: "save" } }],
+    },
+    {
+      code: "const button = <button onClick={() => save()} />;",
+      errors: [{ messageId: "sync", data: { name: "This function" } }],
+    },
+    { code: "setTimeout(() => tick(), 0);", errors: [{ messageId: "sync" }] },
+    {
+      code: "// async-exempt:\nfunction load() {}",
+      errors: [{ messageId: "sync" }],
+    },
+  ],
 });
 
-tester.run("no-async-iteration-callback", plugin.rules["no-async-iteration-callback"], {
+tester.run(
+  "no-async-iteration-callback",
+  plugin.rules["no-async-iteration-callback"],
+  {
     valid: [
-        "await Promise.all(items.map(async item => load(item)));",
-        "await Promise.allSettled(Array.from(items, async item => load(item)));",
-        "items.forEach(item => load(item));",
-        "async function all(items) { for (const item of items) await load(item); }",
+      "await Promise.all(items.map(async item => load(item)));",
+      "await Promise.allSettled(Array.from(items, async item => load(item)));",
+      "items.forEach(item => load(item));",
+      "async function all(items) { for (const item of items) await load(item); }",
     ],
     invalid: [
-        {code: "items.filter(async item => isReady(item));", errors: [{messageId: "asyncCallback", data: {method: "filter"}}]},
-        {code: "items.forEach(async item => { await load(item); });", errors: [{messageId: "asyncCallback", data: {method: "forEach"}}]},
-        {code: "const loads = items.map(async item => load(item));", errors: [{messageId: "asyncCallback", data: {method: "map"}}]},
+      {
+        code: "items.filter(async item => isReady(item));",
+        errors: [{ messageId: "asyncCallback", data: { method: "filter" } }],
+      },
+      {
+        code: "items.forEach(async item => { await load(item); });",
+        errors: [{ messageId: "asyncCallback", data: { method: "forEach" } }],
+      },
+      {
+        code: "const loads = items.map(async item => load(item));",
+        errors: [{ messageId: "asyncCallback", data: { method: "map" } }],
+      },
     ],
-});
+  },
+);
 
 tester.run("await-async-calls", plugin.rules["await-async-calls"], {
-    valid: [
-        {code: "async function f() { await save(); }", options: [{asyncOnly: ["save"]}]},
-        {code: "function f() { return save(); }", options: [{asyncOnly: ["save"]}]},
-        {code: "save().catch(report);", options: [{asyncOnly: ["save"]}]},
-        {code: "store.load();", options: [{asyncOnly: ["save"]}]},
-    ],
-    invalid: [
-        {code: "save();", options: [{asyncOnly: ["save"]}], errors: [{messageId: "floating", data: {name: "save"}}]},
-        {code: "recorder.save(takes);", options: [{asyncOnly: ["save"]}], errors: [{messageId: "floating", data: {name: "save"}}]},
-    ],
+  valid: [
+    {
+      code: "async function f() { await save(); }",
+      options: [{ asyncOnly: ["save"] }],
+    },
+    {
+      code: "function f() { return save(); }",
+      options: [{ asyncOnly: ["save"] }],
+    },
+    { code: "save().catch(report);", options: [{ asyncOnly: ["save"] }] },
+    { code: "store.load();", options: [{ asyncOnly: ["save"] }] },
+  ],
+  invalid: [
+    {
+      code: "save();",
+      options: [{ asyncOnly: ["save"] }],
+      errors: [{ messageId: "floating", data: { name: "save" } }],
+    },
+    {
+      code: "recorder.save(takes);",
+      options: [{ asyncOnly: ["save"] }],
+      errors: [{ messageId: "floating", data: { name: "save" } }],
+    },
+  ],
 });
 
 console.log("quirk-async rules: all cases pass.");
@@ -188,69 +234,131 @@ Expected: exits with an error, `ERR_MODULE_NOT_FOUND`, for `scripts/async/eslint
  */
 
 /** Array and iterable methods that use their callback's return value synchronously. */
-export const ITERATION_METHODS = new Set(["map", "filter", "reduce", "reduceRight", "some", "every",
-    "find", "findIndex", "findLast", "findLastIndex", "sort", "toSorted", "flatMap", "forEach", "from"]);
+export const ITERATION_METHODS = new Set([
+  "map",
+  "filter",
+  "reduce",
+  "reduceRight",
+  "some",
+  "every",
+  "find",
+  "findIndex",
+  "findLast",
+  "findLastIndex",
+  "sort",
+  "toSorted",
+  "flatMap",
+  "forEach",
+  "from",
+]);
 
 /** React APIs that call their function argument during render or use its return value directly. */
-const REACT_SYNC_CALLEES = new Set(["useEffect", "useLayoutEffect", "useInsertionEffect", "useMemo",
-    "useState", "useReducer", "useSyncExternalStore", "useImperativeHandle", "useStore", "useShallow",
-    "startTransition", "flushSync", "createContext", "forwardRef", "memo"]);
+const REACT_SYNC_CALLEES = new Set([
+  "useEffect",
+  "useLayoutEffect",
+  "useInsertionEffect",
+  "useMemo",
+  "useState",
+  "useReducer",
+  "useSyncExternalStore",
+  "useImperativeHandle",
+  "useStore",
+  "useShallow",
+  "startTransition",
+  "flushSync",
+  "createContext",
+  "forwardRef",
+  "memo",
+]);
 
 /** Methods that the runtime, or a synchronous equality callback, calls and uses the result of directly. */
-const PROTOCOL_METHODS = new Set(["toString", "valueOf", "toJSON", "isEqualTo", "equals", "hashCode", "describe"]);
+const PROTOCOL_METHODS = new Set([
+  "toString",
+  "valueOf",
+  "toJSON",
+  "isEqualTo",
+  "equals",
+  "hashCode",
+  "describe",
+]);
 
 /** Receivers that ignore a callback's return value, so the callback may return a promise. */
-const FIRE_AND_FORGET_CALLEES = new Set(["requestAnimationFrame", "setTimeout", "setInterval", "queueMicrotask",
-    "addEventListener", "subscribe", "then", "catch", "finally", "observe", "onDidVisibilityChange",
-    "onDidLayoutChange", "useCallback"]);
+const FIRE_AND_FORGET_CALLEES = new Set([
+  "requestAnimationFrame",
+  "setTimeout",
+  "setInterval",
+  "queueMicrotask",
+  "addEventListener",
+  "subscribe",
+  "then",
+  "catch",
+  "finally",
+  "observe",
+  "onDidVisibilityChange",
+  "onDidLayoutChange",
+  "useCallback",
+]);
 
 /** @returns {undefined|string} The name a call's callee is known by: `f` for f() and x.f(). */
 export function calleeName(call) {
-    const callee = call.callee;
-    if (callee.type === "Identifier") return callee.name;
-    if (callee.type === "MemberExpression" && !callee.computed) return callee.property.name;
-    return undefined;
+  const callee = call.callee;
+  if (callee.type === "Identifier") return callee.name;
+  if (callee.type === "MemberExpression" && !callee.computed)
+    return callee.property.name;
+  return undefined;
 }
 
 /** @returns {undefined|string} The name a function is declared, assigned or keyed under. */
 export function functionName(node) {
-    const parent = node.parent;
-    if (node.id) return node.id.name;
-    switch (parent.type) {
-        case "VariableDeclarator":
-            return parent.id.type === "Identifier" ? parent.id.name : undefined;
-        case "MethodDefinition":
-        case "Property":
-        case "PropertyDefinition":
-            return parent.computed ? undefined : parent.key.name ?? String(parent.key.value);
-        case "AssignmentExpression":
-            if (parent.left.type === "Identifier") return parent.left.name;
-            if (parent.left.type === "MemberExpression" && !parent.left.computed) return parent.left.property.name;
-            return undefined;
-        default:
-            return undefined;
-    }
+  const parent = node.parent;
+  if (node.id) return node.id.name;
+  switch (parent.type) {
+    case "VariableDeclarator":
+      return parent.id.type === "Identifier" ? parent.id.name : undefined;
+    case "MethodDefinition":
+    case "Property":
+    case "PropertyDefinition":
+      return parent.computed
+        ? undefined
+        : (parent.key.name ?? String(parent.key.value));
+    case "AssignmentExpression":
+      if (parent.left.type === "Identifier") return parent.left.name;
+      if (parent.left.type === "MemberExpression" && !parent.left.computed)
+        return parent.left.property.name;
+      return undefined;
+    default:
+      return undefined;
+  }
 }
 
 /** Whether a function body makes React elements, with JSX or createElement. */
 function rendersElements(fn) {
-    let found = false;
-    const visit = node => {
-        if (found || node === null || typeof node !== "object" || typeof node.type !== "string") return;
-        if (node.type === "JSXElement" || node.type === "JSXFragment" ||
-                (node.type === "CallExpression" && calleeName(node) === "createElement")) {
-            found = true;
-            return;
-        }
-        for (const key of Object.keys(node)) {
-            if (key === "parent") continue;
-            const child = node[key];
-            if (Array.isArray(child)) child.forEach(visit);
-            else visit(child);
-        }
-    };
-    visit(fn.body);
-    return found;
+  let found = false;
+  const visit = (node) => {
+    if (
+      found ||
+      node === null ||
+      typeof node !== "object" ||
+      typeof node.type !== "string"
+    )
+      return;
+    if (
+      node.type === "JSXElement" ||
+      node.type === "JSXFragment" ||
+      (node.type === "CallExpression" && calleeName(node) === "createElement")
+    ) {
+      found = true;
+      return;
+    }
+    for (const key of Object.keys(node)) {
+      if (key === "parent") continue;
+      const child = node[key];
+      if (Array.isArray(child)) child.forEach(visit);
+      else visit(child);
+    }
+  };
+  visit(fn.body);
+  return found;
 }
 
 /**
@@ -261,32 +369,56 @@ function rendersElements(fn) {
  *     callback whose receiver decides; it follows its receiver.
  */
 export function classifyFunction(node) {
-    const name = functionName(node);
-    const parent = node.parent;
-    const result = (kind, reason) => ({kind, name, reason});
-    if (node.async) return result("async", "async function");
-    if (node.generator) return result("review", "generator");
-    const holder = parent.type === "MethodDefinition" || (parent.type === "Property" && parent.value === node) ?
-        parent : undefined;
-    if (holder?.kind === "constructor") return result("blocked", "constructor");
-    if (holder?.kind === "get" || holder?.kind === "set") return result("blocked", "getter or setter");
-    if (holder?.computed && holder.key.type === "MemberExpression" && holder.key.object.name === "Symbol") {
-        return result("blocked", "protocol method");
-    }
-    if (name !== undefined && /^use[A-Z]/.test(name)) return result("blocked", "React hook");
-    if (name !== undefined && /^[A-Z]/.test(name) && rendersElements(node)) return result("blocked", "React component");
-    if (name !== undefined && PROTOCOL_METHODS.has(name)) return result("blocked", "protocol method");
-    if (parent.type === "Property" && parent.value === node && !parent.computed && parent.key.name === "draw") {
-        return result("blocked", "Pixi draw callback");
-    }
-    const call = parent.type === "CallExpression" && parent.arguments.includes(node) ? parent : undefined;
-    const callee = call === undefined ? undefined : calleeName(call);
-    if (REACT_SYNC_CALLEES.has(callee)) return result("blocked", "React synchronous callback");
-    if (ITERATION_METHODS.has(callee)) return result("restructure", "iteration callback");
-    if (parent.type === "JSXExpressionContainer") return result("convertible", "JSX event handler");
-    if (FIRE_AND_FORGET_CALLEES.has(callee)) return result("convertible", "fire-and-forget callback");
-    if (call !== undefined) return result("review", "callback to another function");
-    return result("convertible", "ordinary function");
+  const name = functionName(node);
+  const parent = node.parent;
+  const result = (kind, reason) => ({ kind, name, reason });
+  if (node.async) return result("async", "async function");
+  if (node.generator) return result("review", "generator");
+  const holder =
+    parent.type === "MethodDefinition" ||
+    (parent.type === "Property" && parent.value === node)
+      ? parent
+      : undefined;
+  if (holder?.kind === "constructor") return result("blocked", "constructor");
+  if (holder?.kind === "get" || holder?.kind === "set")
+    return result("blocked", "getter or setter");
+  if (
+    holder?.computed &&
+    holder.key.type === "MemberExpression" &&
+    holder.key.object.name === "Symbol"
+  ) {
+    return result("blocked", "protocol method");
+  }
+  if (name !== undefined && /^use[A-Z]/.test(name))
+    return result("blocked", "React hook");
+  if (name !== undefined && /^[A-Z]/.test(name) && rendersElements(node))
+    return result("blocked", "React component");
+  if (name !== undefined && PROTOCOL_METHODS.has(name))
+    return result("blocked", "protocol method");
+  if (
+    parent.type === "Property" &&
+    parent.value === node &&
+    !parent.computed &&
+    parent.key.name === "draw"
+  ) {
+    return result("blocked", "Pixi draw callback");
+  }
+  const call =
+    parent.type === "CallExpression" && parent.arguments.includes(node)
+      ? parent
+      : undefined;
+  const callee = call === undefined ? undefined : calleeName(call);
+  if (REACT_SYNC_CALLEES.has(callee))
+    return result("blocked", "React synchronous callback");
+  if (ITERATION_METHODS.has(callee))
+    return result("restructure", "iteration callback");
+  if (parent.type === "JSXExpressionContainer")
+    return result("convertible", "JSX event handler");
+  if (FIRE_AND_FORGET_CALLEES.has(callee))
+    return result("convertible", "fire-and-forget callback");
+  if (call !== undefined)
+    return result("review", "callback to another function");
+  return result("convertible", "ordinary function");
 }
 ```
 
@@ -294,8 +426,8 @@ export function classifyFunction(node) {
 
 ```js
 // scripts/async/eslint-plugin.js
-import {existsSync, readFileSync} from "node:fs";
-import {ITERATION_METHODS, calleeName, classifyFunction} from "./classify.js";
+import { existsSync, readFileSync } from "node:fs";
+import { ITERATION_METHODS, calleeName, classifyFunction } from "./classify.js";
 
 /**
  * Rules for the async functions rewrite (docs/superpowers/plans/2026-09-17-async-functions.md).
@@ -312,95 +444,152 @@ const NAMES_FILE = new URL("./async-names.json", import.meta.url);
 const EXEMPTION = /^\s*async-exempt:\s*\S/;
 
 function loadAsyncOnlyNames() {
-    return existsSync(NAMES_FILE) ? JSON.parse(readFileSync(NAMES_FILE, "utf8")).asyncOnly : [];
+  return existsSync(NAMES_FILE)
+    ? JSON.parse(readFileSync(NAMES_FILE, "utf8")).asyncOnly
+    : [];
 }
 
 /** The node a leading comment for this function sits before. */
 function commentTarget(node) {
-    let target = node;
-    const parent = node.parent;
-    if (["MethodDefinition", "Property", "PropertyDefinition"].includes(parent.type)) target = parent;
-    else if (parent.type === "VariableDeclarator") target = parent.parent;
-    if (target.parent?.type === "ExportNamedDeclaration" || target.parent?.type === "ExportDefaultDeclaration") {
-        target = target.parent;
-    }
-    return target;
+  let target = node;
+  const parent = node.parent;
+  if (
+    ["MethodDefinition", "Property", "PropertyDefinition"].includes(parent.type)
+  )
+    target = parent;
+  else if (parent.type === "VariableDeclarator") target = parent.parent;
+  if (
+    target.parent?.type === "ExportNamedDeclaration" ||
+    target.parent?.type === "ExportDefaultDeclaration"
+  ) {
+    target = target.parent;
+  }
+  return target;
 }
 
-const functionVisitors = check => ({FunctionDeclaration: check, FunctionExpression: check, ArrowFunctionExpression: check});
+const functionVisitors = (check) => ({
+  FunctionDeclaration: check,
+  FunctionExpression: check,
+  ArrowFunctionExpression: check,
+});
 
 const requireAsync = {
-    meta: {
-        type: "suggestion",
-        docs: {description: "Require async functions wherever JavaScript, React and PixiJS allow them"},
-        messages: {sync: "{{name}} can be an async function. Make it async, or explain why not in a comment before it: // async-exempt: <reason>"},
-        schema: [],
+  meta: {
+    type: "suggestion",
+    docs: {
+      description:
+        "Require async functions wherever JavaScript, React and PixiJS allow them",
     },
-    create(context) {
-        const sourceCode = context.sourceCode;
-        return functionVisitors(node => {
-            const verdict = classifyFunction(node);
-            if (verdict.kind !== "convertible") return;
-            if (sourceCode.getCommentsBefore(commentTarget(node)).some(comment => EXEMPTION.test(comment.value))) return;
-            context.report({node, messageId: "sync", data: {name: verdict.name ?? "This function"}});
-        });
+    messages: {
+      sync: "{{name}} can be an async function. Make it async, or explain why not in a comment before it: // async-exempt: <reason>",
     },
+    schema: [],
+  },
+  create(context) {
+    const sourceCode = context.sourceCode;
+    return functionVisitors((node) => {
+      const verdict = classifyFunction(node);
+      if (verdict.kind !== "convertible") return;
+      if (
+        sourceCode
+          .getCommentsBefore(commentTarget(node))
+          .some((comment) => EXEMPTION.test(comment.value))
+      )
+        return;
+      context.report({
+        node,
+        messageId: "sync",
+        data: { name: verdict.name ?? "This function" },
+      });
+    });
+  },
 };
 
-const isPromiseAllArgument = call => {
-    const outer = call.parent;
-    return outer.type === "CallExpression" && outer.arguments[0] === call &&
-        outer.callee.type === "MemberExpression" && outer.callee.object.type === "Identifier" &&
-        outer.callee.object.name === "Promise" && ["all", "allSettled"].includes(outer.callee.property.name);
+const isPromiseAllArgument = (call) => {
+  const outer = call.parent;
+  return (
+    outer.type === "CallExpression" &&
+    outer.arguments[0] === call &&
+    outer.callee.type === "MemberExpression" &&
+    outer.callee.object.type === "Identifier" &&
+    outer.callee.object.name === "Promise" &&
+    ["all", "allSettled"].includes(outer.callee.property.name)
+  );
 };
 
 const noAsyncIterationCallback = {
-    meta: {
-        type: "problem",
-        docs: {description: "Disallow async callbacks whose promise an iteration method uses as a value"},
-        messages: {asyncCallback: "{{method}} uses this callback's return value synchronously, and a promise is always truthy. Use a for...of loop with await, or Promise.all over map."},
-        schema: [],
+  meta: {
+    type: "problem",
+    docs: {
+      description:
+        "Disallow async callbacks whose promise an iteration method uses as a value",
     },
-    create(context) {
-        return functionVisitors(node => {
-            if (!node.async || node.parent.type !== "CallExpression" || !node.parent.arguments.includes(node)) return;
-            const method = calleeName(node.parent);
-            if (!ITERATION_METHODS.has(method)) return;
-            if ((method === "map" || method === "from") && isPromiseAllArgument(node.parent)) return;
-            context.report({node, messageId: "asyncCallback", data: {method}});
-        });
+    messages: {
+      asyncCallback:
+        "{{method}} uses this callback's return value synchronously, and a promise is always truthy. Use a for...of loop with await, or Promise.all over map.",
     },
+    schema: [],
+  },
+  create(context) {
+    return functionVisitors((node) => {
+      if (
+        !node.async ||
+        node.parent.type !== "CallExpression" ||
+        !node.parent.arguments.includes(node)
+      )
+        return;
+      const method = calleeName(node.parent);
+      if (!ITERATION_METHODS.has(method)) return;
+      if (
+        (method === "map" || method === "from") &&
+        isPromiseAllArgument(node.parent)
+      )
+        return;
+      context.report({ node, messageId: "asyncCallback", data: { method } });
+    });
+  },
 };
 
 const awaitAsyncCalls = {
-    meta: {
-        type: "problem",
-        docs: {description: "Disallow statements that call an async function and drop its promise"},
-        messages: {floating: "{{name}}() returns a promise that nothing awaits. Await it, return it, or chain .catch to handle its rejection."},
-        schema: [{
-            type: "object",
-            properties: {asyncOnly: {type: "array", items: {type: "string"}}},
-            additionalProperties: false,
-        }],
+  meta: {
+    type: "problem",
+    docs: {
+      description:
+        "Disallow statements that call an async function and drop its promise",
     },
-    create(context) {
-        const asyncOnly = new Set(context.options[0]?.asyncOnly ?? loadAsyncOnlyNames());
-        return {
-            "ExpressionStatement > CallExpression"(call) {
-                const name = calleeName(call);
-                if (name !== undefined && asyncOnly.has(name)) context.report({node: call, messageId: "floating", data: {name}});
-            },
-        };
+    messages: {
+      floating:
+        "{{name}}() returns a promise that nothing awaits. Await it, return it, or chain .catch to handle its rejection.",
     },
+    schema: [
+      {
+        type: "object",
+        properties: { asyncOnly: { type: "array", items: { type: "string" } } },
+        additionalProperties: false,
+      },
+    ],
+  },
+  create(context) {
+    const asyncOnly = new Set(
+      context.options[0]?.asyncOnly ?? loadAsyncOnlyNames(),
+    );
+    return {
+      "ExpressionStatement > CallExpression"(call) {
+        const name = calleeName(call);
+        if (name !== undefined && asyncOnly.has(name))
+          context.report({ node: call, messageId: "floating", data: { name } });
+      },
+    };
+  },
 };
 
 export default {
-    meta: {name: "quirk-async"},
-    rules: {
-        "require-async": requireAsync,
-        "no-async-iteration-callback": noAsyncIterationCallback,
-        "await-async-calls": awaitAsyncCalls,
-    },
+  meta: { name: "quirk-async" },
+  rules: {
+    "require-async": requireAsync,
+    "no-async-iteration-callback": noAsyncIterationCallback,
+    "await-async-calls": awaitAsyncCalls,
+  },
 };
 ```
 
@@ -413,10 +602,10 @@ Expected: `quirk-async rules: all cases pass.`
 
 ```js
 // scripts/async/inventory.js
-import {readFileSync, readdirSync, statSync, writeFileSync} from "node:fs";
+import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import {Linter} from "eslint";
-import {classifyFunction} from "./classify.js";
+import { Linter } from "eslint";
+import { classifyFunction } from "./classify.js";
 
 /**
  * Reports how far the async functions rewrite has come, per folder, using the same classifier as
@@ -428,63 +617,102 @@ import {classifyFunction} from "./classify.js";
 
 const root = path.resolve(import.meta.dirname, "../..");
 const args = process.argv.slice(2);
-const folders = args.filter(arg => !arg.startsWith("--"));
+const folders = args.filter((arg) => !arg.startsWith("--"));
 
 function* sourceFiles(dir) {
-    for (const entry of readdirSync(dir).sort()) {
-        const full = path.join(dir, entry);
-        if (statSync(full).isDirectory()) yield* sourceFiles(full);
-        else if (/\.jsx?$/.test(entry)) yield full;
-    }
+  for (const entry of readdirSync(dir).sort()) {
+    const full = path.join(dir, entry);
+    if (statSync(full).isDirectory()) yield* sourceFiles(full);
+    else if (/\.jsx?$/.test(entry)) yield full;
+  }
 }
 
 const rows = [];
 let currentFile;
 const collect = {
-    create: () => {
-        const record = node => rows.push({file: currentFile, line: node.loc.start.line, ...classifyFunction(node)});
-        return {FunctionDeclaration: record, FunctionExpression: record, ArrowFunctionExpression: record};
-    },
+  create: () => {
+    const record = (node) =>
+      rows.push({
+        file: currentFile,
+        line: node.loc.start.line,
+        ...classifyFunction(node),
+      });
+    return {
+      FunctionDeclaration: record,
+      FunctionExpression: record,
+      ArrowFunctionExpression: record,
+    };
+  },
 };
-const linter = new Linter({configType: "flat", cwd: root});
-const config = [{
+const linter = new Linter({ configType: "flat", cwd: root });
+const config = [
+  {
     files: ["**/*.js", "**/*.jsx"],
-    languageOptions: {ecmaVersion: "latest", sourceType: "module", parserOptions: {ecmaFeatures: {jsx: true}}},
-    plugins: {inventory: {rules: {collect}}},
-    rules: {"inventory/collect": "error"},
-}];
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "module",
+      parserOptions: { ecmaFeatures: { jsx: true } },
+    },
+    plugins: { inventory: { rules: { collect } } },
+    rules: { "inventory/collect": "error" },
+  },
+];
 let fileCount = 0;
 for (const folder of folders.length === 0 ? ["src"] : folders) {
-    for (const file of sourceFiles(path.join(root, folder))) {
-        currentFile = path.relative(root, file);
-        fileCount++;
-        const fatal = linter.verify(readFileSync(file, "utf8"), config, {filename: file}).find(message => message.fatal);
-        if (fatal) throw new Error(`${currentFile}:${fatal.line}: ${fatal.message}`);
-    }
+  for (const file of sourceFiles(path.join(root, folder))) {
+    currentFile = path.relative(root, file);
+    fileCount++;
+    const fatal = linter
+      .verify(readFileSync(file, "utf8"), config, { filename: file })
+      .find((message) => message.fatal);
+    if (fatal)
+      throw new Error(`${currentFile}:${fatal.line}: ${fatal.message}`);
+  }
 }
 
-const tally = (list, keyOf) => [...list.reduce((map, row) => map.set(keyOf(row), (map.get(keyOf(row)) ?? 0) + 1), new Map())]
-    .sort((a, b) => b[1] - a[1]);
+const tally = (list, keyOf) =>
+  [
+    ...list.reduce(
+      (map, row) => map.set(keyOf(row), (map.get(keyOf(row)) ?? 0) + 1),
+      new Map(),
+    ),
+  ].sort((a, b) => b[1] - a[1]);
 console.log(`${rows.length} functions in ${fileCount} files`);
-for (const [key, count] of tally(rows, row => `${row.kind.padEnd(12)} ${row.reason}`)) {
-    console.log(`${String(count).padStart(6)}  ${key}`);
+for (const [key, count] of tally(
+  rows,
+  (row) => `${row.kind.padEnd(12)} ${row.reason}`,
+)) {
+  console.log(`${String(count).padStart(6)}  ${key}`);
 }
-const remaining = rows.filter(row => row.kind === "convertible");
+const remaining = rows.filter((row) => row.kind === "convertible");
 if (remaining.length > 0) {
-    console.log("\nSynchronous functions that can be async functions, by folder:");
-    for (const [folder, count] of tally(remaining, row => row.file.split("/").slice(0, 3).join("/"))) {
-        console.log(`${String(count).padStart(6)}  ${folder}`);
-    }
+  console.log(
+    "\nSynchronous functions that can be async functions, by folder:",
+  );
+  for (const [folder, count] of tally(remaining, (row) =>
+    row.file.split("/").slice(0, 3).join("/"),
+  )) {
+    console.log(`${String(count).padStart(6)}  ${folder}`);
+  }
 }
 
 if (args.includes("--write-names")) {
-    const kinds = new Map();
-    for (const row of rows) {
-        if (row.name !== undefined) kinds.set(row.name, [...(kinds.get(row.name) ?? []), row.kind]);
-    }
-    const asyncOnly = [...kinds].filter(([, list]) => list.every(kind => kind === "async")).map(([name]) => name).sort();
-    writeFileSync(new URL("./async-names.json", import.meta.url), JSON.stringify({asyncOnly}, null, 2) + "\n");
-    console.log(`\nWrote ${asyncOnly.length} async-only names to scripts/async/async-names.json.`);
+  const kinds = new Map();
+  for (const row of rows) {
+    if (row.name !== undefined)
+      kinds.set(row.name, [...(kinds.get(row.name) ?? []), row.kind]);
+  }
+  const asyncOnly = [...kinds]
+    .filter(([, list]) => list.every((kind) => kind === "async"))
+    .map(([name]) => name)
+    .sort();
+  writeFileSync(
+    new URL("./async-names.json", import.meta.url),
+    JSON.stringify({ asyncOnly }, null, 2) + "\n",
+  );
+  console.log(
+    `\nWrote ${asyncOnly.length} async-only names to scripts/async/async-names.json.`,
+  );
 }
 ```
 
@@ -516,13 +744,13 @@ Expected: `3158 functions in 403 files`, with the counts in this plan's inventor
  import globals from "globals";
  import unicorn from "eslint-plugin-unicorn";
 +import quirkAsync from "./scripts/async/eslint-plugin.js";
- 
+
  // The harness pages define these on window for the browser-run suites and the Puppeteer runners.
  const harnessGlobals = {
 @@ -12,6 +13,10 @@
    __total_tests: "readonly",
  };
- 
+
 +// Folders whose async functions rewrite is complete (docs/superpowers/plans/2026-09-17-async-functions.md).
 +// Each phase adds its folders; require-async then keeps them async.
 +const ASYNC_COMPLETE = [];
@@ -595,17 +823,20 @@ Expected: all three pass.
 
 ```js
 // test/TestUtil.test.js
-import {Suite, assertThat} from "./TestUtil.js";
-import {WglTexturePool} from "../src/engine/webgl/texture/WglTexturePool.js";
+import { Suite, assertThat } from "./TestUtil.js";
+import { WglTexturePool } from "../src/engine/webgl/texture/WglTexturePool.js";
 
 const suite = new Suite("TestUtil");
 
-suite.testUsingWebGL("a WebGL test's textures are counted after its async work finishes", async () => {
+suite.testUsingWebGL(
+  "a WebGL test's textures are counted after its async work finishes",
+  async () => {
     const texture = WglTexturePool.takeRawFloatTex(0);
-    await new Promise(resolve => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 0));
     texture.deallocByDepositingInPool("TestUtil async WebGL test");
     assertThat(texture.width).isEqualTo(1);
-});
+  },
+);
 ```
 
 - [ ] **Step 2: Run it to see it fail**
@@ -629,7 +860,7 @@ Expected: `FAILED: TestUtil a WebGL test's textures are counted after its async 
                  const msg = `Skipping ${this.name}.${caseName} due to lack of WebGL support.`;
 @@ -397,7 +397,7 @@
              }
- 
+
              const preTexCount = WglTexturePool.getUnReturnedTextureCount();
 -            method(status);
 +            await method(status);
@@ -643,7 +874,7 @@ Expected: `FAILED: TestUtil a WebGL test's textures are counted after its async 
 +            if (assertionSubjectIndexForNextTest === 1) {
 +                console.warn(`No assertions in test '${name}' of suite '${this.name}'.`);
 +            }
- 
+
              status.wasWebGLTest = true;
          });
 ```
@@ -667,7 +898,7 @@ Expected: `FAILED: TestUtil a WebGL test's textures are counted after its async 
 @@ -68,17 +68,17 @@
      return '#'.repeat(n) + ' '.repeat(length - n);
  }
- 
+
 -function _measureDuration(method, arg, expected_nanos_hint) {
 +async function _measureDuration(method, arg, expected_nanos_hint) {
      const ms = 1.0e6;
@@ -677,7 +908,7 @@ Expected: `FAILED: TestUtil a WebGL test's textures are counted after its async 
      // Dry run to get any one-time initialization done.
 -    method(arg);
 +    await method(arg);
- 
+
      const t0 = window.performance.now();
      for (let i = 0; i < repeats; i++) {
 -        method(arg);
@@ -726,10 +957,14 @@ import { preview } from "vite";
  */
 
 const args = process.argv.slice(2);
-const option = (name, fallback) => args.find(arg => arg.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
-const [example, ...actions] = args.filter(arg => !arg.startsWith("--"));
+const option = (name, fallback) =>
+  args.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3) ??
+  fallback;
+const [example, ...actions] = args.filter((arg) => !arg.startsWith("--"));
 if (example === undefined) {
-  console.error('Usage: node scripts/profile-example.js "<example name>" [action ...] [--seconds=5] [--url=<origin>]');
+  console.error(
+    'Usage: node scripts/profile-example.js "<example name>" [action ...] [--seconds=5] [--url=<origin>]',
+  );
   process.exit(2);
 }
 const seconds = Number(option("seconds", "5"));
@@ -745,55 +980,74 @@ try {
     });
     url = server.resolvedUrls.local[0];
   }
-  browser = await puppeteer.launch({ headless: false, args: ["--window-size=1600,1000"] });
+  browser = await puppeteer.launch({
+    headless: false,
+    args: ["--window-size=1600,1000"],
+  });
   const page = await browser.newPage();
   await page.setViewport({ width: 1500, height: 880 });
-  page.on("pageerror", (error) => console.error("Page error: " + error.message));
+  page.on("pageerror", (error) =>
+    console.error("Page error: " + error.message),
+  );
   await page.goto(url, { waitUntil: "networkidle0", timeout: 60000 });
   await page.waitForSelector("#examples-button", { timeout: 30000 });
   await page.click("#examples-button");
-  const item = await page.waitForSelector(`::-p-xpath(//*[@role="menuitem"][normalize-space()="${example}"])`);
+  const item = await page.waitForSelector(
+    `::-p-xpath(//*[@role="menuitem"][normalize-space()="${example}"])`,
+  );
   await item.click();
   await new Promise((resolve) => setTimeout(resolve, 1500));
   for (const action of actions) {
-    await (action === "play" ? page.click("#playhead-play-button") : page.click(action));
+    await (action === "play"
+      ? page.click("#playhead-play-button")
+      : page.click(action));
     await new Promise((resolve) => setTimeout(resolve, 1500));
   }
 
   await page.evaluate(() => {
     window.__longTasks = [];
     new PerformanceObserver((list) => {
-      for (const entry of list.getEntries()) window.__longTasks.push(entry.duration);
+      for (const entry of list.getEntries())
+        window.__longTasks.push(entry.duration);
     }).observe({ type: "longtask" });
   });
   const cdp = await page.createCDPSession();
   await cdp.send("Profiler.enable");
   await cdp.send("Profiler.setSamplingInterval", { interval: 250 });
   await cdp.send("Profiler.start");
-  const intervals = await page.evaluate((ms) => new Promise((resolve) => {
-    const gaps = [];
-    const start = performance.now();
-    let last = start;
-    const tick = (now) => {
-      gaps.push(now - last);
-      last = now;
-      if (now - start < ms) requestAnimationFrame(tick);
-      else resolve(gaps.slice(1));
-    };
-    requestAnimationFrame(tick);
-  }), seconds * 1000);
+  const intervals = await page.evaluate(
+    (ms) =>
+      new Promise((resolve) => {
+        const gaps = [];
+        const start = performance.now();
+        let last = start;
+        const tick = (now) => {
+          gaps.push(now - last);
+          last = now;
+          if (now - start < ms) requestAnimationFrame(tick);
+          else resolve(gaps.slice(1));
+        };
+        requestAnimationFrame(tick);
+      }),
+    seconds * 1000,
+  );
   const { profile } = await cdp.send("Profiler.stop");
   const longTasks = await page.evaluate(() => window.__longTasks);
 
   const sorted = [...intervals].sort((a, b) => a - b);
-  const percentile = (p) => sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * p))] ?? NaN;
+  const percentile = (p) =>
+    sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * p))] ?? NaN;
   const nodes = new Map(profile.nodes.map((node) => [node.id, node]));
   const parents = new Map();
-  for (const node of profile.nodes) for (const child of node.children ?? []) parents.set(child, node.id);
+  for (const node of profile.nodes)
+    for (const child of node.children ?? []) parents.set(child, node.id);
   const total = profile.endTime - profile.startTime;
   const selfTime = new Map();
-  profile.samples.forEach((id, i) => selfTime.set(id, (selfTime.get(id) ?? 0) + (profile.timeDeltas[i] ?? 0)));
-  const label = (node) => `${node.callFrame.functionName || "(anonymous)"} ${node.callFrame.url.replace(/^https?:\/\/[^/]+\//, "").replace(/\?.*$/, "")}:${node.callFrame.lineNumber + 1}`;
+  profile.samples.forEach((id, i) =>
+    selfTime.set(id, (selfTime.get(id) ?? 0) + (profile.timeDeltas[i] ?? 0)),
+  );
+  const label = (node) =>
+    `${node.callFrame.functionName || "(anonymous)"} ${node.callFrame.url.replace(/^https?:\/\/[^/]+\//, "").replace(/\?.*$/, "")}:${node.callFrame.lineNumber + 1}`;
   const inclusive = new Map();
   let idle = 0;
   for (const [id, time] of selfTime) {
@@ -808,15 +1062,25 @@ try {
     }
   }
 
-  console.log(`${example}${actions.length === 0 ? "" : ", " + actions.join(", ")}, ${seconds} s`);
-  console.log(`frames per second: ${Math.round((intervals.length + 1) / seconds)}`);
-  console.log(`frame interval: median ${percentile(0.5).toFixed(1)} ms, 90th percentile ${percentile(0.9).toFixed(1)} ms`);
-  console.log(`long tasks: ${longTasks.length}${longTasks.length === 0 ? "" : `, longest ${Math.round(Math.max(...longTasks))} ms`}`);
+  console.log(
+    `${example}${actions.length === 0 ? "" : ", " + actions.join(", ")}, ${seconds} s`,
+  );
+  console.log(
+    `frames per second: ${Math.round((intervals.length + 1) / seconds)}`,
+  );
+  console.log(
+    `frame interval: median ${percentile(0.5).toFixed(1)} ms, 90th percentile ${percentile(0.9).toFixed(1)} ms`,
+  );
+  console.log(
+    `long tasks: ${longTasks.length}${longTasks.length === 0 ? "" : `, longest ${Math.round(Math.max(...longTasks))} ms`}`,
+  );
   console.log(`main thread busy: ${Math.round(100 * (1 - idle / total))}%`);
   console.log("busiest functions, including what they call:");
-  for (const [key, time] of [...inclusive].filter(([key]) => !/^\((root|idle|program|garbage collector)\)/.test(key))
-      .sort((a, b) => b[1] - a[1]).slice(0, 12)) {
-    console.log(`  ${(100 * time / total).toFixed(1).padStart(5)}%  ${key}`);
+  for (const [key, time] of [...inclusive]
+    .filter(([key]) => !/^\((root|idle|program|garbage collector)\)/.test(key))
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 12)) {
+    console.log(`  ${((100 * time) / total).toFixed(1).padStart(5)}%  ${key}`);
   }
 } finally {
   await browser?.close();
@@ -856,12 +1120,12 @@ Expected: four reports. At planning time the second, with `--seconds=4`, read 7 
 
 ### Gate 0: Baseline
 
-| Measurement | Frames per second | Median frame interval | Long tasks | Main thread busy |
-|---|---|---|---|---|
-| Teleportation | | | | |
-| Teleportation, Algebra panel | | | | |
-| Teleportation, Probabilities panel | | | | |
-| Teleportation, playing | | | | |
+| Measurement                        | Frames per second | Median frame interval | Long tasks | Main thread busy |
+| ---------------------------------- | ----------------- | --------------------- | ---------- | ---------------- |
+| Teleportation                      |                   |                       |            |                  |
+| Teleportation, Algebra panel       |                   |                       |            |                  |
+| Teleportation, Probabilities panel |                   |                       |            |                  |
+| Teleportation, playing             |                   |                       |            |                  |
 
 ---
 
@@ -886,9 +1150,9 @@ Reading simulation results back from the GPU is the only step on this path that 
 --- a/test/engine/webgl/texture/WglTexture.test.js
 +++ b/test/engine/webgl/texture/WglTexture.test.js
 @@ -21,6 +21,45 @@
- 
+
  const suite = new Suite("WglTexture");
- 
+
 +suite.testUsingWebGLFloatTextures("readPixelsAsync reads what readPixels reads, even if the texture is reused at once", async () => {
 +    const shader = new WglShader(`
 +        uniform float v;
@@ -946,7 +1210,7 @@ Expected: both new `WglTexture` tests fail with `texture.readPixelsAsync is not 
 @@ -88,4 +88,39 @@
      throw new Error(`gl.checkFramebufferStatus() returned 0x${code.toString(16)} (${d}).`);
  }
- 
+
 -export {checkGetErrorResult, checkFrameBufferStatusResult}
 +/**
 + * Resolves once the GPU has run every command queued so far. It polls between tasks instead of
@@ -1032,7 +1296,7 @@ Expected: both new `WglTexture` tests fail with `texture.readPixelsAsync is not 
 +      default:
 +        throw new Error("Unrecognized pixel type.");
 +    }
- 
+
 +    if (this.width === 0 || this.height === 0) {
 +      return outputBuffer;
 +    }
@@ -1093,7 +1357,7 @@ Expected: all tests pass.
 @@ -92,6 +92,39 @@
      ['/', null]
  ]), diagram);
- 
+
 +suite.testUsingWebGL("fromCircuitAtTimeAsync gives the same stats as fromCircuitAtTime", async () => {
 +    const statGate = (id, makeTextures) => new GateBuilder()
 +        .setSerializedId(id)
@@ -1208,7 +1472,7 @@ Expected: `FAILED: CircuitStats fromCircuitAtTimeAsync gives the same stats as f
 +    }
 +    return splitPixels(await combined, lengths);
  };
- 
+
  /**
 ```
 
@@ -1254,7 +1518,7 @@ Expected: `FAILED: CircuitStats fromCircuitAtTimeAsync gives the same stats as f
 +        return CircuitStats._fromPixelData(circuitDefinition, time, seed, textures.customStatsMap,
 +            await readCircuitStatsPixelsAsync(textures));
 +    }
- 
+
 +    /**
 +     * @private
 +     */
@@ -1264,7 +1528,7 @@ Expected: `FAILED: CircuitStats fromCircuitAtTimeAsync gives the same stats as f
          const survivalRates =
 @@ -371,7 +406,7 @@
              survivalRates.length === 0 ? 1 : survivalRates.at(-1));
- 
+
          const customStatsProcessed = processCustomStats(
 -            circuitDefinition, textures.customStatsMap, pixelData.customStats);
 +            circuitDefinition, customStatsMap, pixelData.customStats);
@@ -1273,7 +1537,7 @@ Expected: `FAILED: CircuitStats fromCircuitAtTimeAsync gives the same stats as f
              circuitDefinition,
 @@ -410,11 +445,22 @@
  }
- 
+
  /** Reads and releases the collected textures; the location map stays on the CPU. */
 -function readCircuitStatsPixels({output, colQubitDensities, colNorms, customStats}) {
 -    // Preserve the original readback order, including each display's texture order.
@@ -1320,38 +1584,46 @@ Expected: all tests pass, and the same performance goals pass as at Gate 0.
 
 ```js
 // test/base/CooldownThrottle.test.js
-import {Suite, assertThat} from "../TestUtil.js";
-import {CooldownThrottle} from "../../src/base/CooldownThrottle.js";
+import { Suite, assertThat } from "../TestUtil.js";
+import { CooldownThrottle } from "../../src/base/CooldownThrottle.js";
 
 const suite = new Suite("CooldownThrottle");
 
 /** Polls on timers: the throttle's cooldown runs there. */
 async function until(condition, timeout = 2000) {
-    const start = performance.now();
-    while (!condition()) {
-        if (performance.now() - start > timeout) throw new Error("The condition never held.");
-        await new Promise(resolve => setTimeout(resolve, 5));
-    }
+  const start = performance.now();
+  while (!condition()) {
+    if (performance.now() - start > timeout)
+      throw new Error("The condition never held.");
+    await new Promise((resolve) => setTimeout(resolve, 5));
+  }
 }
 
 suite.test("a synchronous action runs at once", () => {
-    let runs = 0;
-    const throttle = new CooldownThrottle(() => { runs++; }, 1000);
-    throttle.trigger();
-    assertThat(runs).isEqualTo(1);
+  let runs = 0;
+  const throttle = new CooldownThrottle(() => {
+    runs++;
+  }, 1000);
+  throttle.trigger();
+  assertThat(runs).isEqualTo(1);
 });
 
-suite.test("an async action never overlaps itself, and triggers during it run it once more afterwards", async () => {
+suite.test(
+  "an async action never overlaps itself, and triggers during it run it once more afterwards",
+  async () => {
     let runs = 0;
     let running = 0;
     let mostAtOnce = 0;
     let release;
     const throttle = new CooldownThrottle(async () => {
-        runs++;
-        running++;
-        mostAtOnce = Math.max(mostAtOnce, running);
-        if (runs === 1) await new Promise(resolve => { release = resolve; });
-        running--;
+      runs++;
+      running++;
+      mostAtOnce = Math.max(mostAtOnce, running);
+      if (runs === 1)
+        await new Promise((resolve) => {
+          release = resolve;
+        });
+      running--;
     }, 0);
 
     throttle.trigger();
@@ -1361,10 +1633,11 @@ suite.test("an async action never overlaps itself, and triggers during it run it
 
     release();
     await until(() => runs === 2 && running === 0);
-    await new Promise(resolve => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 50));
     assertThat(runs).isEqualTo(2);
     assertThat(mostAtOnce).isEqualTo(1);
-});
+  },
+);
 ```
 
 - [ ] **Step 2: Run it to see it fail**
@@ -1407,7 +1680,7 @@ Expected: `FAILED: CooldownThrottle an async action never overlaps itself, and t
 +      this._finishRun(t0);
 +    }
    }
- 
+
    /**
 +   * @param {!number} t0 When the run started.
 +   * @private
@@ -1456,18 +1729,18 @@ Expected: all tests pass.
 
 ```js
 // test/base/LatestRun.test.js
-import {Suite, assertThat} from "../TestUtil.js";
-import {LatestRun} from "../../src/base/LatestRun.js";
+import { Suite, assertThat } from "../TestUtil.js";
+import { LatestRun } from "../../src/base/LatestRun.js";
 
 const suite = new Suite("LatestRun");
 
 suite.test("only the run that started last is current", () => {
-    const runs = new LatestRun();
-    const first = runs.start();
-    assertThat(runs.isCurrent(first)).isEqualTo(true);
-    const second = runs.start();
-    assertThat(runs.isCurrent(first)).isEqualTo(false);
-    assertThat(runs.isCurrent(second)).isEqualTo(true);
+  const runs = new LatestRun();
+  const first = runs.start();
+  assertThat(runs.isCurrent(first)).isEqualTo(true);
+  const second = runs.start();
+  assertThat(runs.isCurrent(first)).isEqualTo(false);
+  assertThat(runs.isCurrent(second)).isEqualTo(true);
 });
 ```
 
@@ -1485,26 +1758,26 @@ Expected: the test build fails to resolve `../../src/base/LatestRun.js`.
  * never publishes over a run that started after it.
  */
 class LatestRun {
-    constructor() {
-        /** @private */
-        this._latest = 0;
-    }
+  constructor() {
+    /** @private */
+    this._latest = 0;
+  }
 
-    /** @returns {!int} A token for a run that starts now. */
-    start() {
-        return ++this._latest;
-    }
+  /** @returns {!int} A token for a run that starts now. */
+  start() {
+    return ++this._latest;
+  }
 
-    /**
-     * @param {!int} token
-     * @returns {!boolean} Whether no run has started since the one holding the token.
-     */
-    isCurrent(token) {
-        return token === this._latest;
-    }
+  /**
+   * @param {!int} token
+   * @returns {!boolean} Whether no run has started since the one holding the token.
+   */
+  isCurrent(token) {
+    return token === this._latest;
+  }
 }
 
-export {LatestRun};
+export { LatestRun };
 ```
 
 - [ ] **Step 4: Await the simulator in its tests, and add the restore test**
@@ -1512,7 +1785,9 @@ export {LatestRun};
 In `test/app/state/Simulator.test.js`, replace the five tests that call `simulate` or `simulateAtStep` with these, and add the last two tests:
 
 ```js
-suite.test("simulate reuses the computed stats while the circuit is unchanged", async () => {
+suite.test(
+  "simulate reuses the computed stats while the circuit is unchanged",
+  async () => {
     const clock = manualClock();
     const sim = new Simulator(clock.now);
     // Both wires carry a gate, so withMinimumWireCount is an identity and a repeat is a cache hit.
@@ -1526,9 +1801,12 @@ suite.test("simulate reuses the computed stats while the circuit is unchanged", 
     // A cache hit hands back the same underlying state. A still circuit leaves the cycle where it stands.
     assertTrue(second.finalState === first.finalState);
     assertThat(second.time).isEqualTo(first.time);
-});
+  },
+);
 
-suite.test("simulate recomputes a time-dependent circuit every call, with the transport stopped", async () => {
+suite.test(
+  "simulate recomputes a time-dependent circuit every call, with the transport stopped",
+  async () => {
     const clock = manualClock();
     const sim = new Simulator(clock.now);
     const c = circuit(`t-
@@ -1540,9 +1818,12 @@ suite.test("simulate recomputes a time-dependent circuit every call, with the tr
 
     assertFalse(second.finalState === first.finalState);
     assertThat(second.time).isApproximatelyEqualTo(0.125);
-});
+  },
+);
 
-suite.test("a still circuit keeps the cycle where it stands, and a spinning one resumes from there", async () => {
+suite.test(
+  "a still circuit keeps the cycle where it stands, and a spinning one resumes from there",
+  async () => {
     const clock = manualClock();
     const sim = new Simulator(clock.now);
     const spinning = circuit(`t-
@@ -1551,15 +1832,22 @@ suite.test("a still circuit keeps the cycle where it stands, and a spinning one 
                          -X`);
 
     clock.advance(Simulation.CYCLE_DURATION_MS / 4);
-    assertThat((await sim.simulate(spinning)).time).isApproximatelyEqualTo(0.25);
+    assertThat((await sim.simulate(spinning)).time).isApproximatelyEqualTo(
+      0.25,
+    );
     clock.advance(Simulation.CYCLE_DURATION_MS / 2);
     assertThat((await sim.simulate(still)).time).isApproximatelyEqualTo(0.25);
     // The time spent on the still circuit is skipped, not jumped over.
     clock.advance(Simulation.CYCLE_DURATION_MS / 8);
-    assertThat((await sim.simulate(spinning)).time).isApproximatelyEqualTo(0.375);
-});
+    assertThat((await sim.simulate(spinning)).time).isApproximatelyEqualTo(
+      0.375,
+    );
+  },
+);
 
-suite.test("simulateAtStep runs the truncated circuit without evicting the whole-circuit cache", async () => {
+suite.test(
+  "simulateAtStep runs the truncated circuit without evicting the whole-circuit cache",
+  async () => {
     const clock = manualClock();
     const sim = new Simulator(clock.now);
     const c = circuit(`HX
@@ -1576,37 +1864,61 @@ suite.test("simulateAtStep runs the truncated circuit without evicting the whole
     // And the truncated circuit is a cache hit of its own.
     const atStepAgain = await sim.simulateAtStep(c, 1, 0);
     assertTrue(atStepAgain.finalState === atStep.finalState);
-});
+  },
+);
 
-suite.test("simulateAtStep clamps a negative step to the empty circuit", async () => {
+suite.test(
+  "simulateAtStep clamps a negative step to the empty circuit",
+  async () => {
     const sim = new Simulator(manualClock().now);
     const c = circuit(`HX
                      --`);
 
-    assertThat((await sim.simulateAtStep(c, -1, 0)).circuitDefinition.columns.length).isEqualTo(0);
-});
+    assertThat(
+      (await sim.simulateAtStep(c, -1, 0)).circuitDefinition.columns.length,
+    ).isEqualTo(0);
+  },
+);
 
-suite.test("a repeat request while the first is still running shares its run", async () => {
+suite.test(
+  "a repeat request while the first is still running shares its run",
+  async () => {
     const sim = new Simulator(manualClock().now);
     const c = circuit(`H-
                      -X`).withMinimumWireCount();
 
-    const [first, second] = await Promise.all([sim.simulate(c), sim.simulate(c)]);
+    const [first, second] = await Promise.all([
+      sim.simulate(c),
+      sim.simulate(c),
+    ]);
     assertTrue(second.finalState === first.finalState);
-});
+  },
+);
 
-suite.test("a restore during an evaluation keeps the restored result", async () => {
+suite.test(
+  "a restore during an evaluation keeps the restored result",
+  async () => {
     const sim = new Simulator(manualClock().now);
-    const restored = await sim.evaluate(circuit(`X-
-                                                 --`), 2, 1, false);
+    const restored = await sim.evaluate(
+      circuit(`X-
+                                                 --`),
+      2,
+      1,
+      false,
+    );
 
-    const pending = sim.evaluate(circuit(`H-
-                                          --`), 2, 1);
+    const pending = sim.evaluate(
+      circuit(`H-
+                                          --`),
+      2,
+      1,
+    );
     sim.restore(restored);
     await pending;
 
     assertTrue(sim.completed.getState().value === restored);
-});
+  },
+);
 ```
 
 - [ ] **Step 5: Run the tests**
@@ -1626,30 +1938,34 @@ In `src/app/state/Simulator.js`, replace the `StatsCache` class with:
  * gets its own. The run is kept as its promise, so a request made while it is on the GPU shares it.
  */
 class StatsCache {
-    constructor() {
-        /**
-         * @type {undefined|!{circuit: !CircuitDefinition, time: !number, seed: *, stats: !Promise<!CircuitStats>}}
-         * @private
-         */
-        this._cached = undefined;
-    }
-
+  constructor() {
     /**
-     * @param {!CircuitDefinition} circuit
-     * @param {!number} time
-     * @returns {!Promise<!CircuitStats>}
+     * @type {undefined|!{circuit: !CircuitDefinition, time: !number, seed: *, stats: !Promise<!CircuitStats>}}
+     * @private
      */
-    async statsFor(circuit, time, seed) {
-        circuit = circuit.withMinimumWireCount();
-        const cached = this._cached;
-        if (cached !== undefined && cached.circuit.isEqualTo(circuit) && cached.seed === seed &&
-                (circuit.stableDuration() === Infinity || cached.time === time)) {
-            return (await cached.stats).withTime(time);
-        }
-        const stats = CircuitStats.fromCircuitAtTimeAsync(circuit, time, seed);
-        this._cached = {circuit, time, seed, stats};
-        return stats;
+    this._cached = undefined;
+  }
+
+  /**
+   * @param {!CircuitDefinition} circuit
+   * @param {!number} time
+   * @returns {!Promise<!CircuitStats>}
+   */
+  async statsFor(circuit, time, seed) {
+    circuit = circuit.withMinimumWireCount();
+    const cached = this._cached;
+    if (
+      cached !== undefined &&
+      cached.circuit.isEqualTo(circuit) &&
+      cached.seed === seed &&
+      (circuit.stableDuration() === Infinity || cached.time === time)
+    ) {
+      return (await cached.stats).withTime(time);
     }
+    const stats = CircuitStats.fromCircuitAtTimeAsync(circuit, time, seed);
+    this._cached = { circuit, time, seed, stats };
+    return stats;
+  }
 }
 ```
 
@@ -1696,13 +2012,13 @@ Expected: `FAILED: Simulator a restore during an evaluation keeps the restored r
 In `Simulator.js`, add `import {LatestRun} from "../../base/LatestRun.js";`. In the constructor, after `this._playheadCache = new StatsCache();` and its comment, add:
 
 ```js
-        /**
-         * Starts with every publishing evaluation and every restore, so a late result never
-         * replaces a newer one.
-         * @type {!LatestRun}
-         * @private
-         */
-        this._publishing = new LatestRun();
+/**
+ * Starts with every publishing evaluation and every restore, so a late result never
+ * replaces a newer one.
+ * @type {!LatestRun}
+ * @private
+ */
+this._publishing = new LatestRun();
 ```
 
 In `restore(result)`, add `this._publishing.start();` as its first line. In `evaluate`, add `const run = publish ? this._publishing.start() : undefined;` as its first line, and change `if (publish) {` to `if (publish && this._publishing.isCurrent(run)) {`.
@@ -1717,14 +2033,16 @@ Expected: the simulator tests pass. The recorder tests may fail until Step 12.
 In `src/app/QuirkApp.js`, change the import to `import {noteCircuitEdited, reportRecoveredError} from "../diagnostics/errorReporter.js"`, and replace `captureCommitted` with:
 
 ```js
-    const captureCommitted = async () => {
-        const circuit = fromJsonText_CircuitDefinition(revision.peekActiveCommit());
-        return simulator.evaluate(circuit, circuit.numWires, playhead.step());
-    };
-    /** Publishes the committed circuit's results without holding up the change that asked for them. */
-    const captureInBackground = () => {
-        captureCommitted().catch(error => reportRecoveredError("Simulating the committed circuit failed.", {}, error));
-    };
+const captureCommitted = async () => {
+  const circuit = fromJsonText_CircuitDefinition(revision.peekActiveCommit());
+  return simulator.evaluate(circuit, circuit.numWires, playhead.step());
+};
+/** Publishes the committed circuit's results without holding up the change that asked for them. */
+const captureInBackground = () => {
+  captureCommitted().catch((error) =>
+    reportRecoveredError("Simulating the committed circuit failed.", {}, error),
+  );
+};
 ```
 
 Replace both `if (!recorder.restoring) captureCommitted();` lines with `if (!recorder.restoring) captureInBackground();`.
@@ -1734,12 +2052,15 @@ Replace both `if (!recorder.restoring) captureCommitted();` lines with `if (!rec
 In `src/app/canvas/redrawLoop.js`, change the JSDoc line `@param {!function(): !Object} captureCommitted Captures the committed circuit, separate from a drag preview.` to `@param {!function(): !Promise<!Object>} captureCommitted Captures the committed circuit, separate from a drag preview.` Change `const redrawNow = () => {` to `const redrawNow = async () => {`. Replace the lines from `const committed = captureCommitted();` through `committed.fullStats : simulator.simulate(circuitDefinition);` with:
 
 ```js
-        // The frame paints the editor state it started from, which matches the stats computed for it.
-        // The throttle runs one redraw at a time, and a change during this one triggers the next.
-        const committed = await captureCommitted();
-        // A preview runs at the simulator's own phase, so a spinning gate held over a still circuit spins.
-        const stats = committed.circuit.withMinimumWireCount().isEqualTo(circuitDefinition.withMinimumWireCount()) ?
-            committed.fullStats : await simulator.simulate(circuitDefinition);
+// The frame paints the editor state it started from, which matches the stats computed for it.
+// The throttle runs one redraw at a time, and a change during this one triggers the next.
+const committed = await captureCommitted();
+// A preview runs at the simulator's own phase, so a spinning gate held over a still circuit spins.
+const stats = committed.circuit
+  .withMinimumWireCount()
+  .isEqualTo(circuitDefinition.withMinimumWireCount())
+  ? committed.fullStats
+  : await simulator.simulate(circuitDefinition);
 ```
 
 In the returned object, replace `redrawNow();` in `start` with `redrawThrottle.trigger();`.
@@ -1789,11 +2110,12 @@ In `test/app/state/Recorder.test.js`, add after the `suite` declaration:
 ```js
 /** Polls on timers: ghost takes are written once their capture has been simulated. */
 async function until(condition, timeout = 2000) {
-    const start = performance.now();
-    while (!condition()) {
-        if (performance.now() - start > timeout) throw new Error("The condition never held.");
-        await new Promise(resolve => setTimeout(resolve, 5));
-    }
+  const start = performance.now();
+  while (!condition()) {
+    if (performance.now() - start > timeout)
+      throw new Error("The condition never held.");
+    await new Promise((resolve) => setTimeout(resolve, 5));
+  }
 }
 ```
 
@@ -1825,103 +2147,117 @@ Expected: all pass. `quirk-async/await-async-calls` reports nothing, because eve
 
 ```js
 // test/base/yieldToBrowser.test.js
-import {Suite, assertThat} from "../TestUtil.js";
-import {yieldToBrowser} from "../../src/base/yieldToBrowser.js";
+import { Suite, assertThat } from "../TestUtil.js";
+import { yieldToBrowser } from "../../src/base/yieldToBrowser.js";
 
 const suite = new Suite("yieldToBrowser");
 
 suite.test("the code after it runs later, not during the call", async () => {
-    let afterCall = false;
-    const resumed = yieldToBrowser().then(() => afterCall);
-    afterCall = true;
-    assertThat(await resumed).isEqualTo(true);
+  let afterCall = false;
+  const resumed = yieldToBrowser().then(() => afterCall);
+  afterCall = true;
+  assertThat(await resumed).isEqualTo(true);
 });
 ```
 
 ```js
 // test/components/useAsyncResult.test.js
-import {createElement} from "react";
-import {createRoot} from "react-dom/client";
-import {flushSync} from "react-dom";
-import {Suite, assertThat} from "../TestUtil.js";
-import {useAsyncResult} from "../../src/components/useAsyncResult.js";
+import { createElement } from "react";
+import { createRoot } from "react-dom/client";
+import { flushSync } from "react-dom";
+import { Suite, assertThat } from "../TestUtil.js";
+import { useAsyncResult } from "../../src/components/useAsyncResult.js";
 
 const suite = new Suite("useAsyncResult");
 
 /** Polls on timers: React's own scheduling runs there. */
 async function until(condition, timeout = 2000) {
-    const start = performance.now();
-    while (!condition()) {
-        if (performance.now() - start > timeout) throw new Error("The result never arrived.");
-        await new Promise(resolve => setTimeout(resolve, 5));
-    }
+  const start = performance.now();
+  while (!condition()) {
+    if (performance.now() - start > timeout)
+      throw new Error("The result never arrived.");
+    await new Promise((resolve) => setTimeout(resolve, 5));
+  }
 }
 
 /** A component whose compute calls wait until the test settles them. */
 function mount() {
-    const root = createRoot(document.createElement("div"));
-    const calls = [];
-    const results = [];
-    function Probe({input}) {
-        results.push(useAsyncResult(signal => new Promise(resolve => calls.push({input, signal, resolve})), [input]));
-        return null;
-    }
-    return {
-        show: input => flushSync(() => root.render(createElement(Probe, {input}))),
-        calls,
-        latest: () => results.at(-1),
-        unmount: () => root.unmount(),
-    };
+  const root = createRoot(document.createElement("div"));
+  const calls = [];
+  const results = [];
+  function Probe({ input }) {
+    results.push(
+      useAsyncResult(
+        (signal) =>
+          new Promise((resolve) => calls.push({ input, signal, resolve })),
+        [input],
+      ),
+    );
+    return null;
+  }
+  return {
+    show: (input) =>
+      flushSync(() => root.render(createElement(Probe, { input }))),
+    calls,
+    latest: () => results.at(-1),
+    unmount: () => root.unmount(),
+  };
 }
 
-suite.test("inputs that change during a run wait for it, and only the newest runs next", async () => {
+suite.test(
+  "inputs that change during a run wait for it, and only the newest runs next",
+  async () => {
     const probe = mount();
     try {
-        probe.show(1);
-        probe.show(2);
-        probe.show(3);
-        assertThat(probe.calls.map(call => call.input)).isEqualTo([1]);
+      probe.show(1);
+      probe.show(2);
+      probe.show(3);
+      assertThat(probe.calls.map((call) => call.input)).isEqualTo([1]);
 
-        probe.calls[0].resolve("one");
-        await until(() => probe.calls.length === 2);
-        assertThat(probe.calls[1].input).isEqualTo(3);
-        await until(() => probe.latest().value === "one");
+      probe.calls[0].resolve("one");
+      await until(() => probe.calls.length === 2);
+      assertThat(probe.calls[1].input).isEqualTo(3);
+      await until(() => probe.latest().value === "one");
 
-        probe.calls[1].resolve("three");
-        await until(() => probe.latest().value === "three");
-        await new Promise(resolve => setTimeout(resolve, 20));
-        assertThat(probe.calls.length).isEqualTo(2);
+      probe.calls[1].resolve("three");
+      await until(() => probe.latest().value === "three");
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      assertThat(probe.calls.length).isEqualTo(2);
     } finally {
-        probe.unmount();
+      probe.unmount();
     }
-});
+  },
+);
 
 suite.test("the last result stays until the next one is ready", async () => {
-    const probe = mount();
-    try {
-        probe.show(1);
-        probe.calls[0].resolve("one");
-        await until(() => probe.latest().value === "one");
-        probe.show(2);
-        await until(() => probe.calls.length === 2);
-        assertThat(probe.latest().value).isEqualTo("one");
-        probe.calls[1].resolve("two");
-        await until(() => probe.latest().value === "two");
-    } finally {
-        probe.unmount();
-    }
+  const probe = mount();
+  try {
+    probe.show(1);
+    probe.calls[0].resolve("one");
+    await until(() => probe.latest().value === "one");
+    probe.show(2);
+    await until(() => probe.calls.length === 2);
+    assertThat(probe.latest().value).isEqualTo("one");
+    probe.calls[1].resolve("two");
+    await until(() => probe.latest().value === "two");
+  } finally {
+    probe.unmount();
+  }
 });
 
-suite.test("unmounting aborts the run under way and drops its result", async () => {
+suite.test(
+  "unmounting aborts the run under way and drops its result",
+  async () => {
     const probe = mount();
     probe.show(1);
     const run = probe.calls[0];
     probe.unmount();
     assertThat(run.signal.aborted).isEqualTo(true);
     run.resolve("late");
-    await new Promise(resolve => setTimeout(resolve, 20));
+    await new Promise((resolve) => setTimeout(resolve, 20));
     assertThat(probe.latest().value).isEqualTo(undefined);
-});
+  },
+);
 ```
 
 - [ ] **Step 2: Run them to see them fail**
@@ -1940,25 +2276,25 @@ Expected: the test build fails to resolve `src/base/yieldToBrowser.js` or `src/c
  * @returns {!Promise<void>}
  */
 function yieldToBrowser() {
-    if (globalThis.scheduler?.yield !== undefined) {
-        return globalThis.scheduler.yield();
-    }
-    return new Promise(resolve => {
-        const channel = new MessageChannel();
-        channel.port1.onmessage = () => {
-            channel.port1.close();
-            resolve();
-        };
-        channel.port2.postMessage(undefined);
-    });
+  if (globalThis.scheduler?.yield !== undefined) {
+    return globalThis.scheduler.yield();
+  }
+  return new Promise((resolve) => {
+    const channel = new MessageChannel();
+    channel.port1.onmessage = () => {
+      channel.port1.close();
+      resolve();
+    };
+    channel.port2.postMessage(undefined);
+  });
 }
 
-export {yieldToBrowser};
+export { yieldToBrowser };
 ```
 
 ```js
 // src/components/useAsyncResult.js
-import {useEffect, useRef, useState} from "react";
+import { useEffect, useRef, useState } from "react";
 
 /**
  * The result of async work on the latest render inputs. One run goes at a time: inputs that change
@@ -1972,45 +2308,51 @@ import {useEffect, useRef, useState} from "react";
  * @returns {!{value: (undefined|T), error: *}}
  */
 function useAsyncResult(compute, inputs) {
-    const [result, setResult] = useState({value: undefined, error: undefined});
-    const latestCompute = useRef(compute);
-    latestCompute.current = compute;
-    const runner = useRef({controller: new AbortController(), running: false, stale: false});
+  const [result, setResult] = useState({ value: undefined, error: undefined });
+  const latestCompute = useRef(compute);
+  latestCompute.current = compute;
+  const runner = useRef({
+    controller: new AbortController(),
+    running: false,
+    stale: false,
+  });
 
-    useEffect(() => {
-        const state = runner.current;
-        if (state.controller.signal.aborted) state.controller = new AbortController();
-        return () => state.controller.abort();
-    }, []);
+  useEffect(() => {
+    const state = runner.current;
+    if (state.controller.signal.aborted)
+      state.controller = new AbortController();
+    return () => state.controller.abort();
+  }, []);
 
-    useEffect(() => {
-        const state = runner.current;
-        state.stale = true;
-        if (state.running) return;
-        state.running = true;
-        void (async () => {
-            try {
-                while (state.stale && !state.controller.signal.aborted) {
-                    state.stale = false;
-                    const signal = state.controller.signal;
-                    try {
-                        const value = await latestCompute.current(signal);
-                        if (!signal.aborted) setResult({value, error: undefined});
-                    } catch (error) {
-                        if (!signal.aborted) setResult(previous => ({value: previous.value, error}));
-                    }
-                }
-            } finally {
-                state.running = false;
-            }
-        })();
-        // The caller lists the inputs, as with useEffect.
-    }, inputs);
+  useEffect(() => {
+    const state = runner.current;
+    state.stale = true;
+    if (state.running) return;
+    state.running = true;
+    void (async () => {
+      try {
+        while (state.stale && !state.controller.signal.aborted) {
+          state.stale = false;
+          const signal = state.controller.signal;
+          try {
+            const value = await latestCompute.current(signal);
+            if (!signal.aborted) setResult({ value, error: undefined });
+          } catch (error) {
+            if (!signal.aborted)
+              setResult((previous) => ({ value: previous.value, error }));
+          }
+        }
+      } finally {
+        state.running = false;
+      }
+    })();
+    // The caller lists the inputs, as with useEffect.
+  }, inputs);
 
-    return result;
+  return result;
 }
 
-export {useAsyncResult};
+export { useAsyncResult };
 ```
 
 - [ ] **Step 4: Run the tests**
@@ -2029,7 +2371,11 @@ In `test/engine/simulation/stepAlgebra.test.js`, replace `algebraOf` with:
  * @returns {!Promise<!CircuitAlgebra>}
  */
 const algebraOf = async (circuit, previous = undefined) =>
-    circuitAlgebra(await CircuitStats.fromCircuitAtTimeAsync(circuit, 0), circuit.numWires, previous);
+  circuitAlgebra(
+    await CircuitStats.fromCircuitAtTimeAsync(circuit, 0),
+    circuit.numWires,
+    previous,
+  );
 ```
 
 Make every test that calls `algebraOf` or `circuitAlgebra` an async function, and put `await` before each of those calls. Lines 82, 99 and 101 call `circuitAlgebra(CircuitStats.fromCircuitAtTime(circuit, 0), ...)` directly; write them as `await circuitAlgebra(await CircuitStats.fromCircuitAtTimeAsync(circuit, 0), ...)`. Do the same at `test/gates/prepare/PrepareGates.test.js` line 79.
@@ -2037,9 +2383,14 @@ Make every test that calls `algebraOf` or `circuitAlgebra` an async function, an
 In "the list has every state and every step, and each matrix checks out", replace line 82 with these two lines and add the assertion after them:
 
 ```js
-    const algebra = await circuitAlgebra(await CircuitStats.fromCircuitAtTimeAsync(circuit, 0), 2);
-    const {states, steps} = algebra;
-    assertThat(algebra.stats.circuitDefinition.columns.length).isEqualTo(circuit.columns.length);
+const algebra = await circuitAlgebra(
+  await CircuitStats.fromCircuitAtTimeAsync(circuit, 0),
+  2,
+);
+const { states, steps } = algebra;
+assertThat(algebra.stats.circuitDefinition.columns.length).isEqualTo(
+  circuit.columns.length,
+);
 ```
 
 - [ ] **Step 6: Run the tests to see them fail**
@@ -2062,13 +2413,17 @@ In `src/engine/simulation/stepAlgebra.js`, add `import {yieldToBrowser} from "..
  * @returns {!Promise<!Matrix>}
  */
 async function stateAtStep(stats, wireCount, step) {
-    const circuit = stats.circuitDefinition;
-    if (step >= circuit.columns.length) {
-        return paddedState(stats.finalState, wireCount);
-    }
-    const truncated = circuit.withColumns(circuit.columns.slice(0, step));
-    const truncatedStats = await CircuitStats.fromCircuitAtTimeAsync(truncated, stats.time, stats.seed);
-    return paddedState(truncatedStats.finalState, wireCount);
+  const circuit = stats.circuitDefinition;
+  if (step >= circuit.columns.length) {
+    return paddedState(stats.finalState, wireCount);
+  }
+  const truncated = circuit.withColumns(circuit.columns.slice(0, step));
+  const truncatedStats = await CircuitStats.fromCircuitAtTimeAsync(
+    truncated,
+    stats.time,
+    stats.seed,
+  );
+  return paddedState(truncatedStats.finalState, wireCount);
 }
 ```
 
@@ -2088,7 +2443,7 @@ async function circuitAlgebra(stats, wireCount, previous = undefined, signal = u
 ```
 
 ```js
-    return {stats, wireCount, states, steps};
+return { stats, wireCount, states, steps };
 ```
 
 - [ ] **Step 8: Compute the algebra outside render**
@@ -2114,24 +2469,33 @@ import { useAsyncResult } from "../../useAsyncResult.js";
  */
 function useCircuitAlgebra(stats, wireCount) {
   const cache = useRef(undefined);
-  const { value } = useAsyncResult(async (signal) => {
-    if (stats === undefined || wireCount === undefined) {
-      return undefined;
-    }
-    const last = cache.current;
-    const circuit = stats.circuitDefinition;
-    if (
-      last !== undefined &&
-      last.algebra.wireCount === wireCount && last.seed === stats.seed &&
-      last.circuit.isEqualTo(circuit) &&
-      (circuit.stableDuration() === Infinity || last.time === stats.time)
-    ) {
-      return last.algebra;
-    }
-    const algebra = await circuitAlgebra(stats, wireCount, last?.algebra, signal);
-    cache.current = { circuit, time: stats.time, seed: stats.seed, algebra };
-    return algebra;
-  }, [stats, wireCount]);
+  const { value } = useAsyncResult(
+    async (signal) => {
+      if (stats === undefined || wireCount === undefined) {
+        return undefined;
+      }
+      const last = cache.current;
+      const circuit = stats.circuitDefinition;
+      if (
+        last !== undefined &&
+        last.algebra.wireCount === wireCount &&
+        last.seed === stats.seed &&
+        last.circuit.isEqualTo(circuit) &&
+        (circuit.stableDuration() === Infinity || last.time === stats.time)
+      ) {
+        return last.algebra;
+      }
+      const algebra = await circuitAlgebra(
+        stats,
+        wireCount,
+        last?.algebra,
+        signal,
+      );
+      cache.current = { circuit, time: stats.time, seed: stats.seed, algebra };
+      return algebra;
+    },
+    [stats, wireCount],
+  );
   return value;
 }
 
@@ -2141,12 +2505,12 @@ export { useCircuitAlgebra };
 In `src/components/panels/algebra/algebra-panel.jsx`, replace the six lines from `const result = useCompletedResult();` through `const algebra = useCircuitAlgebra(circuitStats, playheadSample?.wireCount);` with:
 
 ```jsx
-  const result = useCompletedResult();
-  const current = result?.step ?? 0;
-  const playhead = useStore(appStore, (s) => s.playhead);
-  const algebra = useCircuitAlgebra(result?.fullStats, result?.wireCount);
-  // The algebra's own stats, not the newest sample's: its steps were computed from them.
-  const circuitStats = algebra?.stats;
+const result = useCompletedResult();
+const current = result?.step ?? 0;
+const playhead = useStore(appStore, (s) => s.playhead);
+const algebra = useCircuitAlgebra(result?.fullStats, result?.wireCount);
+// The algebra's own stats, not the newest sample's: its steps were computed from them.
+const circuitStats = algebra?.stats;
 ```
 
 and replace `const shownWires = playheadSample?.wireCount;` with `const shownWires = algebra?.wireCount;`.
@@ -2158,21 +2522,23 @@ In `src/components/panels/bloch/useCircuitSteps.js`, replace `const circuit = co
 In `src/components/panels/probabilities/probabilities-panel.jsx`, add `import { yieldToBrowser } from "../../../base/yieldToBrowser.js";` and `import { useAsyncResult } from "../../useAsyncResult.js";`. Replace the `history` memo with:
 
 ```jsx
-  // Each step is a truncated simulation, run in the background one task per step.
-  const { value: history } = useAsyncResult(async () => {
-    if (sample === undefined) {
-      return undefined;
-    }
-    const { fullStats, wireCount, step } = sample;
-    const circuit = fullStats.circuitDefinition;
-    const stops = stepStops(circuit);
-    const steps = [];
-    for (const { column } of stops) {
-      steps.push(probabilitiesOf(await stateAtStep(fullStats, wireCount, column)));
-      await yieldToBrowser();
-    }
-    return { stops, wireCount, step, registers: circuit.registers, steps };
-  }, [sample]);
+// Each step is a truncated simulation, run in the background one task per step.
+const { value: history } = useAsyncResult(async () => {
+  if (sample === undefined) {
+    return undefined;
+  }
+  const { fullStats, wireCount, step } = sample;
+  const circuit = fullStats.circuitDefinition;
+  const stops = stepStops(circuit);
+  const steps = [];
+  for (const { column } of stops) {
+    steps.push(
+      probabilitiesOf(await stateAtStep(fullStats, wireCount, column)),
+    );
+    await yieldToBrowser();
+  }
+  return { stops, wireCount, step, registers: circuit.registers, steps };
+}, [sample]);
 ```
 
 Replace `stops.findLastIndex((stop) => stop.column <= sample.step)` with `stops.findLastIndex((stop) => stop.column <= history.step)`. The `tables` memo stays.
@@ -2257,11 +2623,11 @@ In `KetTextureUtil.js`, replace `tradeTextureForVec2Output` with:
  * @param {!WglTextureTrader} trader
  * @returns {!Promise<!Float32Array>}
  */
-KetTextureUtil.tradeTextureForVec2Output = async trader => {
-    if (currentShaderCoder().vec2.needRearrangingToBeInVec4Format) {
-        trader.shadeHalveAndTrade(Shaders.packVec2IntoVec4);
-    }
-    return KetTextureUtil.tradeTextureForVec4Output(trader);
+KetTextureUtil.tradeTextureForVec2Output = async (trader) => {
+  if (currentShaderCoder().vec2.needRearrangingToBeInVec4Format) {
+    trader.shadeHalveAndTrade(Shaders.packVec2IntoVec4);
+  }
+  return KetTextureUtil.tradeTextureForVec4Output(trader);
 };
 ```
 
@@ -2332,12 +2698,10 @@ Keep each helper's existing JSDoc, changing its `@returns {!T}` to `@returns {!P
 In `test/engine/webgl/texture/WglTexture.test.js`, delete "readPixels reads bytes" (the Task 4 copy of `readPixels_bytes`). In "readPixels reads what readPixels reads, even if the texture is reused at once", rename it to "readPixels reads the pixels as they were when called, even if the texture is reused at once", and replace `const expected = texture.readPixels();` with:
 
 ```js
-    const expected = new Float32Array([
-        0.5, 0.5, 192.25, 254.5,
-        1.5, 0.5, 192.25, 254.5,
-        0.5, 1.5, 192.25, 254.5,
-        1.5, 1.5, 192.25, 254.5
-    ]);
+const expected = new Float32Array([
+  0.5, 0.5, 192.25, 254.5, 1.5, 0.5, 192.25, 254.5, 0.5, 1.5, 192.25, 254.5,
+  1.5, 1.5, 192.25, 254.5,
+]);
 ```
 
 Make `readPixels_bytes` and `readPixels_floats` async, with `await texture.readPixels()`.
@@ -2362,12 +2726,12 @@ Expected: passes.
 - [ ] Run `npm run async:inventory` and record its first line and its convertible counts.
 - [ ] The repository owner decides whether to start Phase 2. The evidence to weigh is the change in frames per second and long tasks from Gate 0, and any performance goal that got slower.
 
-| Measurement | Frames per second | Median frame interval | Long tasks | Main thread busy |
-|---|---|---|---|---|
-| Teleportation | | | | |
-| Teleportation, Algebra panel | | | | |
-| Teleportation, Probabilities panel | | | | |
-| Teleportation, playing | | | | |
+| Measurement                        | Frames per second | Median frame interval | Long tasks | Main thread busy |
+| ---------------------------------- | ----------------- | --------------------- | ---------- | ---------------- |
+| Teleportation                      |                   |                       |            |                  |
+| Teleportation, Algebra panel       |                   |                       |            |                  |
+| Teleportation, Probabilities panel |                   |                       |            |                  |
+| Teleportation, playing             |                   |                       |            |                  |
 
 ---
 
@@ -2391,8 +2755,8 @@ Each of these phases gets its own detailed plan, written after the previous gate
 ```js
 // Before: const steps = stops.map(({column}) => probabilitiesOf(stateAtStep(fullStats, wireCount, column)));
 const steps = [];
-for (const {column} of stops) {
-    steps.push(probabilitiesOf(await stateAtStep(fullStats, wireCount, column)));
+for (const { column } of stops) {
+  steps.push(probabilitiesOf(await stateAtStep(fullStats, wireCount, column)));
 }
 ```
 
@@ -2401,20 +2765,22 @@ Use `await Promise.all(items.map(async item => ...))` only for independent work 
 **The caller is an event handler.** Settle the event before the first `await`. From `src/app/canvas/minimap.js`:
 
 ```js
-canvas.addEventListener('pointerdown', async ev => {
-    if (!ev.isPrimary || (ev.pointerType === 'mouse' && ev.button !== 0)) {
-        return;
-    }
-    ev.preventDefault();
-    canvas.setPointerCapture(ev.pointerId);
-    await scrollTo(ev);
+canvas.addEventListener("pointerdown", async (ev) => {
+  if (!ev.isPrimary || (ev.pointerType === "mouse" && ev.button !== 0)) {
+    return;
+  }
+  ev.preventDefault();
+  canvas.setPointerCapture(ev.pointerId);
+  await scrollTo(ev);
 });
 ```
 
 **The caller ignores the result.** End the chain in a report, as `captureInBackground` does in Task 7:
 
 ```js
-captureCommitted().catch(error => reportRecoveredError("Simulating the committed circuit failed.", {}, error));
+captureCommitted().catch((error) =>
+  reportRecoveredError("Simulating the committed circuit failed.", {}, error),
+);
 ```
 
 **The caller is a constructor.** Keep the constructor synchronous and move the awaited set-up into `static async create(...)`, which constructs, awaits the set-up and returns the instance. Change every `new` of that class outside the class to `await X.create(...)`.
@@ -2484,8 +2850,8 @@ export function formatProbability(p, digits = 1) {
 
 ```js
 // scripts/typecheck-ratchet.js
-import {execFileSync} from "node:child_process";
-import {readFileSync, writeFileSync} from "node:fs";
+import { execFileSync } from "node:child_process";
+import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 /**
@@ -2503,50 +2869,66 @@ const baselineFile = path.join(import.meta.dirname, "typecheck-baseline.json");
 const tsc = path.join(root, "node_modules", "typescript", "bin", "tsc");
 
 function typeErrors() {
-    let output;
-    try {
-        output = execFileSync(process.execPath, [tsc, "-p", "jsconfig.json", "--pretty", "false"],
-            {cwd: root, encoding: "utf8", maxBuffer: 256 * 1024 * 1024});
-    } catch (error) {
-        if (typeof error.stdout !== "string") throw error;
-        output = error.stdout;
+  let output;
+  try {
+    output = execFileSync(
+      process.execPath,
+      [tsc, "-p", "jsconfig.json", "--pretty", "false"],
+      { cwd: root, encoding: "utf8", maxBuffer: 256 * 1024 * 1024 },
+    );
+  } catch (error) {
+    if (typeof error.stdout !== "string") throw error;
+    output = error.stdout;
+  }
+  const errors = [];
+  for (const line of output.split("\n")) {
+    const match = /^(.+?)\(\d+,\d+\): error (TS\d+): (.*)$/.exec(line);
+    if (match) {
+      errors.push({ key: `${match[1]} ${match[2]} ${match[3]}`, text: line });
+    } else if (line.startsWith(" ") && errors.length > 0) {
+      errors.at(-1).key += "\n" + line.trim();
+      errors.at(-1).text += "\n" + line;
     }
-    const errors = [];
-    for (const line of output.split("\n")) {
-        const match = /^(.+?)\(\d+,\d+\): error (TS\d+): (.*)$/.exec(line);
-        if (match) {
-            errors.push({key: `${match[1]} ${match[2]} ${match[3]}`, text: line});
-        } else if (line.startsWith(" ") && errors.length > 0) {
-            errors.at(-1).key += "\n" + line.trim();
-            errors.at(-1).text += "\n" + line;
-        }
-    }
-    return errors;
+  }
+  return errors;
 }
 
-const counts = keys => keys.reduce((map, key) => map.set(key, (map.get(key) ?? 0) + 1), new Map());
+const counts = (keys) =>
+  keys.reduce((map, key) => map.set(key, (map.get(key) ?? 0) + 1), new Map());
 const errors = typeErrors();
-const current = counts(errors.map(error => error.key));
+const current = counts(errors.map((error) => error.key));
 
 if (process.argv.includes("--update")) {
-    const sorted = [...current].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
-    writeFileSync(baselineFile, JSON.stringify(Object.fromEntries(sorted), null, 1) + "\n");
-    console.log(`Recorded ${errors.length} type errors as the baseline.`);
+  const sorted = [...current].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+  writeFileSync(
+    baselineFile,
+    JSON.stringify(Object.fromEntries(sorted), null, 1) + "\n",
+  );
+  console.log(`Recorded ${errors.length} type errors as the baseline.`);
 } else {
-    const baseline = new Map(Object.entries(JSON.parse(readFileSync(baselineFile, "utf8"))));
-    const seen = new Map();
-    const introduced = errors.filter(error => {
-        const n = (seen.get(error.key) ?? 0) + 1;
-        seen.set(error.key, n);
-        return n > (baseline.get(error.key) ?? 0);
-    });
-    const removed = [...baseline].reduce((sum, [key, n]) => sum + Math.max(0, n - (current.get(key) ?? 0)), 0);
-    for (const error of introduced) console.error(error.text);
-    console.log(`${errors.length} type errors: ${introduced.length} new, ${removed} fewer than the baseline.`);
-    if (introduced.length === 0 && removed > 0) {
-        console.log("Record the improvement with: npm run typecheck:ratchet -- --update");
-    }
-    process.exitCode = introduced.length === 0 ? 0 : 1;
+  const baseline = new Map(
+    Object.entries(JSON.parse(readFileSync(baselineFile, "utf8"))),
+  );
+  const seen = new Map();
+  const introduced = errors.filter((error) => {
+    const n = (seen.get(error.key) ?? 0) + 1;
+    seen.set(error.key, n);
+    return n > (baseline.get(error.key) ?? 0);
+  });
+  const removed = [...baseline].reduce(
+    (sum, [key, n]) => sum + Math.max(0, n - (current.get(key) ?? 0)),
+    0,
+  );
+  for (const error of introduced) console.error(error.text);
+  console.log(
+    `${errors.length} type errors: ${introduced.length} new, ${removed} fewer than the baseline.`,
+  );
+  if (introduced.length === 0 && removed > 0) {
+    console.log(
+      "Record the improvement with: npm run typecheck:ratchet -- --update",
+    );
+  }
+  process.exitCode = introduced.length === 0 ? 0 : 1;
 }
 ```
 
@@ -2567,18 +2949,18 @@ Add `"typecheck:ratchet": "node scripts/typecheck-ratchet.js"` to `package.json`
 
 ## Functions that stay synchronous
 
-| Kind | Functions | Why | How they reach async work |
-|---|---|---|---|
-| React components | 96 | React 19 client components cannot be async functions | `useAsyncResult` |
-| React hooks | 19 | Hooks run while React renders | `useAsyncResult` |
-| React synchronous callbacks | 122 | `useMemo`, `useState`, `useSyncExternalStore` and zustand selectors use the return value; effects must return a cleanup or nothing | Start the work inside, handle its result or rejection |
-| Constructors | 56 | JavaScript does not allow async constructors | `static async create()` |
-| Protocol methods | 30 | The runtime calls `toString`, `valueOf` and `toJSON`; caches and equality callbacks call `isEqualTo` and `describe` synchronously | Callers await other work first |
-| Getters and setters | 12 | JavaScript does not allow async accessors, and Pixi's reconciler assigns scene props synchronously | Callers await other work first |
-| Pixi draw callback | 1 | The reconciler calls `draw` synchronously | Precompute what it draws |
-| Iteration callbacks that do not await | up to 444 | Their methods use the return value synchronously | Loops become `for...of` when they need to await |
-| Functions called during render or reconciliation | about 280 to 540, estimated | They run inside the rows above | `async-exempt` comments, or results computed ahead |
-| GPU command sequences | the functions `collectCircuitStatsTextures` calls | Another simulation's commands must not interleave | `async-exempt` comments |
+| Kind                                             | Functions                                         | Why                                                                                                                                | How they reach async work                             |
+| ------------------------------------------------ | ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| React components                                 | 96                                                | React 19 client components cannot be async functions                                                                               | `useAsyncResult`                                      |
+| React hooks                                      | 19                                                | Hooks run while React renders                                                                                                      | `useAsyncResult`                                      |
+| React synchronous callbacks                      | 122                                               | `useMemo`, `useState`, `useSyncExternalStore` and zustand selectors use the return value; effects must return a cleanup or nothing | Start the work inside, handle its result or rejection |
+| Constructors                                     | 56                                                | JavaScript does not allow async constructors                                                                                       | `static async create()`                               |
+| Protocol methods                                 | 30                                                | The runtime calls `toString`, `valueOf` and `toJSON`; caches and equality callbacks call `isEqualTo` and `describe` synchronously  | Callers await other work first                        |
+| Getters and setters                              | 12                                                | JavaScript does not allow async accessors, and Pixi's reconciler assigns scene props synchronously                                 | Callers await other work first                        |
+| Pixi draw callback                               | 1                                                 | The reconciler calls `draw` synchronously                                                                                          | Precompute what it draws                              |
+| Iteration callbacks that do not await            | up to 444                                         | Their methods use the return value synchronously                                                                                   | Loops become `for...of` when they need to await       |
+| Functions called during render or reconciliation | about 280 to 540, estimated                       | They run inside the rows above                                                                                                     | `async-exempt` comments, or results computed ahead    |
+| GPU command sequences                            | the functions `collectCircuitStatsTextures` calls | Another simulation's commands must not interleave                                                                                  | `async-exempt` comments                               |
 
 ## Planning verification
 

@@ -1,0 +1,31 @@
+{
+  "current": 4925,
+  "baseline": 4934,
+  "new": [],
+  "resolved": [
+    [
+      "src/components/gate/gate-details.jsx: error TS2741: Property 'className' is missing in type '{ kind: \"state\"; data: Matrix; width: number; height: number; options: { wireCount: any; }; label: string; }' but required in type '{ kind: \"matrix\" | \"probabilities\" | \"state\"; data: any; width: number; height: number; options: any; label: string; className: string | undefined; }'.",
+      1
+    ],
+    [
+      "src/components/panels/algebra/evolution-chart.jsx: error TS2741: Property 'className' is missing in type '{ kind: \"state\"; data: Matrix; width: number; height: number; options: { wireCount: int; }; label: string; }' but required in type '{ kind: \"matrix\" | \"probabilities\" | \"state\"; data: any; width: number; height: number; options: any; label: string; className: string | undefined; }'.",
+      1
+    ],
+    [
+      "src/components/panels/algebra/state-factor.jsx: error TS2741: Property 'className' is missing in type '{ width: number; height: number; kind: \"state\"; data: Matrix; options: { wireCount: any; }; label: string; }' but required in type '{ kind: \"matrix\" | \"probabilities\" | \"state\"; data: any; width: number; height: number; options: any; label: string; className: string | undefined; }'.",
+      1
+    ],
+    [
+      "src/components/panels/export/copy-button.jsx: error TS1005: ';' expected.",
+      1
+    ],
+    [
+      "src/components/panels/export/export-panel-body.jsx: error TS2322: Type '{ id: string; resultId: string; label: string; text: () => string; }' is not assignable to type '{ (): string; id: string; resultId: string; label: string; text: Function; }'.",
+      4
+    ],
+    [
+      "src/components/panels/tape/distribution.jsx: error TS2741: Property 'className' is missing in type '{ kind: \"probabilities\"; data: Matrix; width: number; height: number; options: { wireCount: number; colour: any; transparent: boolean; largest: any; }; label: any; }' but required in type '{ kind: \"matrix\" | \"probabilities\" | \"state\"; data: any; width: number; height: number; options: any; label: string; className: string | undefined; }'.",
+      1
+    ]
+  ]
+}

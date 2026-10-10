@@ -14,16 +14,29 @@
  * limitations under the License.
  */
 
-import {GateBuilder} from "../../circuit/model/Gate.js"
-import {paintBackground, paintOutline, paintGateButton} from '../../draw/gate/GateFrame.js';
-import {paintGateSymbol} from '../../draw/gate/GateSymbol.js';
-import {DIAL_AXIS, paintTimeDial} from '../../draw/gate/TimeDial.js';
-import {ketArgs, ketShader, ketShaderPhase, ketInputGateShaderCode} from "../../engine/simulation/gpu/KetShaderUtil.js"
-import {WglArg} from "../../engine/webgl/shader/WglArg.js"
+import { GateBuilder } from "../../circuit/model/Gate.js";
+import {
+  paintBackground,
+  paintOutline,
+  paintGateButton,
+} from "../../draw/gate/GateFrame.js";
+import { paintGateSymbol } from "../../draw/gate/GateSymbol.js";
+import { DIAL_AXIS, paintTimeDial } from "../../draw/gate/TimeDial.js";
+import {
+  ketArgs,
+  ketShader,
+  ketShaderPhase,
+  ketInputGateShaderCode,
+} from "../../engine/simulation/gpu/KetShaderUtil.js";
+import { WglArg } from "../../engine/webgl/shader/WglArg.js";
 import { digits_to_superscript_digits } from "../../base/Format.js";
-import {XExp, YExp, ZExp} from "./ExponentiatingGates.js";
-import {parseTimeFormula, makeUpdateFormulaFunc, TIME_PROBE_VALUES} from "./FormulaGateUtil.js";
-import {QubitMatrix} from "../../engine/math/matrix/QubitMatrix.js"
+import { XExp, YExp, ZExp } from "./ExponentiatingGates.js";
+import {
+  parseTimeFormula,
+  makeUpdateFormulaFunc,
+  TIME_PROBE_VALUES,
+} from "./FormulaGateUtil.js";
+import { QubitMatrix } from "../../engine/math/matrix/QubitMatrix.js";
 
 const ParametrizedRotationGates = {};
 
@@ -34,46 +47,55 @@ const ParametrizedRotationGates = {};
  * @returns {!function(args: !GateRenderParams)}
  */
 function configurableRotationRenderer(pattern, axis) {
-    return args => {
-        paintBackground(args);
-        paintOutline(args);
-        const text = pattern.split('f(t)').join(args.gate.param);
-        paintGateSymbol(args, text, pattern.includes('^'));
+  return (args) => {
+    paintBackground(args);
+    paintOutline(args);
+    // Written as the constant rotations write theirs: π, not "pi".
+    const formula = String(args.gate.param).replace(/\bpi\b/g, "π");
+    const text = pattern.split("f(t)").join(formula);
+    paintGateSymbol(args, text, pattern.includes("^"));
 
-        const isStable = args.gate.stableDuration() === Infinity;
-        if (!isStable) {
-            paintTimeDial(args, args.gate.turnsAt(args.stats.time, args.gate.param), axis);
-        }
-        paintGateButton(args);
-    };
+    const isStable = args.gate.stableDuration() === Infinity;
+    if (!isStable) {
+      paintTimeDial(
+        args,
+        args.gate.turnsAt(args.stats.time, args.gate.param),
+        axis,
+      );
+    }
+    paintGateButton(args);
+  };
 }
 
 // One turnsAt per formula gate, set on the gate itself and read by its matrix and its dial alike.
 // The formula's own t runs from 0 to 2 over the cycle, and a formula that goes below zero turns the
 // gate the other way.
 /** @param {!number} time @param {*} formula @returns {!number} */
-const exponentTurns = (time, formula) => (parseTimeFormula(formula, time * 2, false) || 0) / 2;
+const exponentTurns = (time, formula) =>
+  (parseTimeFormula(formula, time * 2, false) || 0) / 2;
 /** @param {!number} time @param {*} formula @returns {!number} */
-const radianTurns = (time, formula) => (parseTimeFormula(formula, time * 2, false) || 0) / (2 * Math.PI);
+const radianTurns = (time, formula) =>
+  (parseTimeFormula(formula, time * 2, false) || 0) / (2 * Math.PI);
 
 /**
  * @param {!GateRenderParams} args
  */
 function exponent_to_A_len_painter(args) {
-    const v = args.getGateContext('Input Range A');
-    const denom_exponent = v === undefined ? 'ⁿ' : digits_to_superscript_digits(`${v.length}`);
-    const symbol = args.gate.symbol.replace('ⁿ', denom_exponent);
-    paintBackground(args);
-    paintOutline(args);
-    paintGateSymbol(args, symbol);
+  const v = args.getGateContext("Input Range A");
+  const denom_exponent =
+    v === undefined ? "ⁿ" : digits_to_superscript_digits(`${v.length}`);
+  const symbol = args.gate.symbol.replace("ⁿ", denom_exponent);
+  paintBackground(args);
+  paintOutline(args);
+  paintGateSymbol(args, symbol);
 }
 
 const X_TO_A_SHADER = ketShader(
-    `
+  `
         uniform float factor;
-        ${ketInputGateShaderCode('A')}
+        ${ketInputGateShaderCode("A")}
     `,
-    `
+  `
         vec2 cs = cos_sin(read_input_A() * factor / _gen_input_span_A) * 0.5;
         float c = cs.x;
         float s = cs.y;
@@ -82,14 +104,15 @@ const X_TO_A_SHADER = ketShader(
         // multiply state by the matrix [[u, v], [v, u]]
         vec2 amp2 = inp(1.0-out_id);
         return cmul(u, amp) + cmul(v, amp2);
-    `);
+    `,
+);
 
 const Y_TO_A_SHADER = ketShader(
-    `
+  `
         uniform float factor;
-        ${ketInputGateShaderCode('A')}
+        ${ketInputGateShaderCode("A")}
     `,
-    `
+  `
         vec2 cs = cos_sin(read_input_A() * factor / _gen_input_span_A) * 0.5;
         float c = cs.x;
         float s = cs.y;
@@ -99,127 +122,153 @@ const Y_TO_A_SHADER = ketShader(
         vec2 amp2 = inp(1.0-out_id);
         vec2 vs = v * (-1.0 + 2.0 * out_id);
         return cmul(u, amp) + cmul(vs, amp2);
-    `);
+    `,
+);
 
 const Z_TO_A_SHADER = ketShaderPhase(
-    `
+  `
         uniform float factor;
-        ${ketInputGateShaderCode('A')}
+        ${ketInputGateShaderCode("A")}
     `,
-    `
+  `
         return read_input_A() * out_id * factor / _gen_input_span_A;
-    `);
+    `,
+);
 
-ParametrizedRotationGates.XToA = new GateBuilder().
-    setSerializedId("X^(A/2^n)").
-    setSymbol("X^A/2ⁿ").
-    setTitle("Parametrized X Gate").
-    setBlurb("Rotates the target by input A / 2ⁿ'th of a half turn around the X axis.\n" +
-        "n is the number of qubits in input A.").
-    setRequiredContextKeys('Input NO_DEFAULT Range A').
-    setRenderer(exponent_to_A_len_painter).
-    setActualEffectToShaderProvider(ctx => X_TO_A_SHADER.withArgs(
-        ...ketArgs(ctx, 1, ['A']),
-        WglArg.float('factor', Math.PI))).
-    promiseEffectIsStable().
-    promiseEffectIsUnitary().
-    gate;
+ParametrizedRotationGates.XToA = new GateBuilder()
+  .setSerializedId("X^(A/2^n)")
+  .setSymbol("X^A/2ⁿ")
+  .setTitle("Parametrized X Gate")
+  .setBlurb(
+    "Rotates the target by input A / 2ⁿ'th of a half turn around the X axis.\n" +
+      "n is the number of qubits in input A.",
+  )
+  .setRequiredContextKeys("Input NO_DEFAULT Range A")
+  .setRenderer(exponent_to_A_len_painter)
+  .setActualEffectToShaderProvider((ctx) =>
+    X_TO_A_SHADER.withArgs(
+      ...ketArgs(ctx, 1, ["A"]),
+      WglArg.float("factor", Math.PI),
+    ),
+  )
+  .promiseEffectIsStable()
+  .promiseEffectIsUnitary().gate;
 
-ParametrizedRotationGates.XToMinusA = new GateBuilder().
-    setAlternate(ParametrizedRotationGates.XToA).
-    setSerializedId("X^(-A/2^n)").
-    setSymbol("X^-A/2ⁿ").
-    setTitle("Parametrized -X Gate").
-    setBlurb("Counter-rotates the target by input A / 2ⁿ'th of a half turn around the X axis.\n" +
-        "n is the number of qubits in input A.").
-    setRequiredContextKeys('Input NO_DEFAULT Range A').
-    setRenderer(exponent_to_A_len_painter).
-    setActualEffectToShaderProvider(ctx => X_TO_A_SHADER.withArgs(
-        ...ketArgs(ctx, 1, ['A']),
-        WglArg.float('factor', -Math.PI))).
-    promiseEffectIsStable().
-    promiseEffectIsUnitary().
-    gate;
+ParametrizedRotationGates.XToMinusA = new GateBuilder()
+  .setAlternate(ParametrizedRotationGates.XToA)
+  .setSerializedId("X^(-A/2^n)")
+  .setSymbol("X^-A/2ⁿ")
+  .setTitle("Parametrized -X Gate")
+  .setBlurb(
+    "Counter-rotates the target by input A / 2ⁿ'th of a half turn around the X axis.\n" +
+      "n is the number of qubits in input A.",
+  )
+  .setRequiredContextKeys("Input NO_DEFAULT Range A")
+  .setRenderer(exponent_to_A_len_painter)
+  .setActualEffectToShaderProvider((ctx) =>
+    X_TO_A_SHADER.withArgs(
+      ...ketArgs(ctx, 1, ["A"]),
+      WglArg.float("factor", -Math.PI),
+    ),
+  )
+  .promiseEffectIsStable()
+  .promiseEffectIsUnitary().gate;
 
-ParametrizedRotationGates.YToA = new GateBuilder().
-    setSerializedId("Y^(A/2^n)").
-    setSymbol("Y^A/2ⁿ").
-    setTitle("Parametrized Y Gate").
-    setBlurb("Rotates the target by input A / 2ⁿ'th of a half turn around the Y axis.\n" +
-        "n is the number of qubits in input A.").
-    setRequiredContextKeys('Input NO_DEFAULT Range A').
-    setRenderer(exponent_to_A_len_painter).
-    setActualEffectToShaderProvider(ctx => Y_TO_A_SHADER.withArgs(
-        ...ketArgs(ctx, 1, ['A']),
-        WglArg.float('factor', Math.PI))).
-    promiseEffectIsStable().
-    promiseEffectIsUnitary().
-    gate;
+ParametrizedRotationGates.YToA = new GateBuilder()
+  .setSerializedId("Y^(A/2^n)")
+  .setSymbol("Y^A/2ⁿ")
+  .setTitle("Parametrized Y Gate")
+  .setBlurb(
+    "Rotates the target by input A / 2ⁿ'th of a half turn around the Y axis.\n" +
+      "n is the number of qubits in input A.",
+  )
+  .setRequiredContextKeys("Input NO_DEFAULT Range A")
+  .setRenderer(exponent_to_A_len_painter)
+  .setActualEffectToShaderProvider((ctx) =>
+    Y_TO_A_SHADER.withArgs(
+      ...ketArgs(ctx, 1, ["A"]),
+      WglArg.float("factor", Math.PI),
+    ),
+  )
+  .promiseEffectIsStable()
+  .promiseEffectIsUnitary().gate;
 
-ParametrizedRotationGates.YToMinusA = new GateBuilder().
-    setAlternate(ParametrizedRotationGates.YToA).
-    setSerializedId("Y^(-A/2^n)").
-    setSymbol("Y^-A/2ⁿ").
-    setTitle("Parametrized -Y Gate").
-    setBlurb("Counter-rotates the target by input A / 2ⁿ'th of a half turn around the Y axis.\n" +
-        "n is the number of qubits in input A.").
-    setRequiredContextKeys('Input NO_DEFAULT Range A').
-    setRenderer(exponent_to_A_len_painter).
-    setActualEffectToShaderProvider(ctx => Y_TO_A_SHADER.withArgs(
-        ...ketArgs(ctx, 1, ['A']),
-        WglArg.float('factor', -Math.PI))).
-    promiseEffectIsStable().
-    promiseEffectIsUnitary().
-    gate;
+ParametrizedRotationGates.YToMinusA = new GateBuilder()
+  .setAlternate(ParametrizedRotationGates.YToA)
+  .setSerializedId("Y^(-A/2^n)")
+  .setSymbol("Y^-A/2ⁿ")
+  .setTitle("Parametrized -Y Gate")
+  .setBlurb(
+    "Counter-rotates the target by input A / 2ⁿ'th of a half turn around the Y axis.\n" +
+      "n is the number of qubits in input A.",
+  )
+  .setRequiredContextKeys("Input NO_DEFAULT Range A")
+  .setRenderer(exponent_to_A_len_painter)
+  .setActualEffectToShaderProvider((ctx) =>
+    Y_TO_A_SHADER.withArgs(
+      ...ketArgs(ctx, 1, ["A"]),
+      WglArg.float("factor", -Math.PI),
+    ),
+  )
+  .promiseEffectIsStable()
+  .promiseEffectIsUnitary().gate;
 
-ParametrizedRotationGates.ZToA = new GateBuilder().
-    setSerializedId("Z^(A/2^n)").
-    setSymbol("Z^A/2ⁿ").
-    setTitle("Parametrized Z Gate").
-    setBlurb("Rotates the target by input A / 2ⁿ'th of a half turn around the Z axis.\n" +
-        "n is the number of qubits in input A.").
-    setRequiredContextKeys('Input NO_DEFAULT Range A').
-    setRenderer(exponent_to_A_len_painter).
-    setActualEffectToShaderProvider(ctx => Z_TO_A_SHADER.withArgs(
-        ...ketArgs(ctx, 1, ['A']),
-        WglArg.float('factor', Math.PI))).
-    promiseEffectIsStable().
-    promiseEffectOnlyPhases().
-    gate;
+ParametrizedRotationGates.ZToA = new GateBuilder()
+  .setSerializedId("Z^(A/2^n)")
+  .setSymbol("Z^A/2ⁿ")
+  .setTitle("Parametrized Z Gate")
+  .setBlurb(
+    "Rotates the target by input A / 2ⁿ'th of a half turn around the Z axis.\n" +
+      "n is the number of qubits in input A.",
+  )
+  .setRequiredContextKeys("Input NO_DEFAULT Range A")
+  .setRenderer(exponent_to_A_len_painter)
+  .setActualEffectToShaderProvider((ctx) =>
+    Z_TO_A_SHADER.withArgs(
+      ...ketArgs(ctx, 1, ["A"]),
+      WglArg.float("factor", Math.PI),
+    ),
+  )
+  .promiseEffectIsStable()
+  .promiseEffectOnlyPhases().gate;
 
-ParametrizedRotationGates.ZToMinusA = new GateBuilder().
-    setAlternate(ParametrizedRotationGates.ZToA).
-    setSerializedId("Z^(-A/2^n)").
-    setSymbol("Z^-A/2ⁿ").
-    setTitle("Parametrized -Z Gate").
-    setBlurb("Counter-rotates the target by input A / 2ⁿ'th of a half turn around the Z axis.\n" +
-        "n is the number of qubits in input A.").
-    setRequiredContextKeys('Input NO_DEFAULT Range A').
-    setRenderer(exponent_to_A_len_painter).
-    setActualEffectToShaderProvider(ctx => Z_TO_A_SHADER.withArgs(
-        ...ketArgs(ctx, 1, ['A']),
-        WglArg.float('factor', -Math.PI))).
-    promiseEffectIsStable().
-    promiseEffectOnlyPhases().
-    gate;
+ParametrizedRotationGates.ZToMinusA = new GateBuilder()
+  .setAlternate(ParametrizedRotationGates.ZToA)
+  .setSerializedId("Z^(-A/2^n)")
+  .setSymbol("Z^-A/2ⁿ")
+  .setTitle("Parametrized -Z Gate")
+  .setBlurb(
+    "Counter-rotates the target by input A / 2ⁿ'th of a half turn around the Z axis.\n" +
+      "n is the number of qubits in input A.",
+  )
+  .setRequiredContextKeys("Input NO_DEFAULT Range A")
+  .setRenderer(exponent_to_A_len_painter)
+  .setActualEffectToShaderProvider((ctx) =>
+    Z_TO_A_SHADER.withArgs(
+      ...ketArgs(ctx, 1, ["A"]),
+      WglArg.float("factor", -Math.PI),
+    ),
+  )
+  .promiseEffectIsStable()
+  .promiseEffectOnlyPhases().gate;
 
 /**
  * @param {!GateCheckArgs} args
  * @returns {undefined|!string}
  */
 function badFormulaDetector(args) {
-    if (typeof args.gate.param === 'number') {
-        return args.gate.param;
-    } else if (typeof args.gate.param === 'string') {
-        for (const t of TIME_PROBE_VALUES) {
-            if (parseTimeFormula(args.gate.param, t, false) === undefined) {
-                return 'bad\nformula';
-            }
-        }
-        return undefined;
-    } else {
-        return 'bad\nvalue';
+  if (typeof args.gate.param === "number") {
+    return args.gate.param;
+  } else if (typeof args.gate.param === "string") {
+    for (const t of TIME_PROBE_VALUES) {
+      if (parseTimeFormula(args.gate.param, t, false) === undefined) {
+        return "bad\nformula";
+      }
     }
+    return undefined;
+  } else {
+    return "bad\nvalue";
+  }
 }
 
 const updateUsingFormula = makeUpdateFormulaFunc(1);
@@ -229,117 +278,117 @@ const updateUsingFormula = makeUpdateFormulaFunc(1);
  * @returns {!{title: !string, message: !string, applyText: !function(!Gate, !string): !{gate: !Gate}}}
  */
 function angleFormulaDialog(quantityName) {
-    return {
-        title: `Enter a formula to use for the ${quantityName}.`,
-        message: "The formula can depend on the time variable t.\n" +
-            "Time t starts at 0, grows to +2 over time, then jumps back to 0.\n" +
-            "Invalid results will default to 0.\n" +
-            "\n" +
-            "Available constants: e, pi\n" +
-            "Available functions: cos, sin, acos, asin, tan, atan, ln, sqrt, exp\n" +
-            "Available operators: + * / - ^",
-        applyText: (oldGate, text) =>
-            ({gate: text.trim() === '' ? oldGate : oldGate.withParam(text)})
-    };
+  return {
+    title: `Enter a formula to use for the ${quantityName}.`,
+    message:
+      "The formula can depend on the time variable t.\n" +
+      "Over one cycle of the Time lane, whose readout runs from 0 to 1, a formula's t runs\n" +
+      "from 0 to 2, then jumps back to 0: a formula sees twice the lane's t.\n" +
+      "Invalid results will default to 0.\n" +
+      "\n" +
+      "Available constants: e, pi\n" +
+      "Available functions: cos, sin, acos, asin, tan, atan, ln, sqrt, exp\n" +
+      "Available operators: + * / - ^",
+    applyText: (oldGate, text) => ({
+      gate: text.trim() === "" ? oldGate : oldGate.withParam(text),
+    }),
+  };
 }
 
-ParametrizedRotationGates.FormulaicRotationX = new GateBuilder().
-    setSerializedIdAndSymbol("X^ft").
-    setTitle("Formula X Rotation").
-    setBlurb("Rotates around X by an amount determined by a formula.").
-    setTurnsAt(exponentTurns).
-    setRenderer(configurableRotationRenderer('X^f(t)', DIAL_AXIS.X)).
-    setWidth(2).
-    setExtraDisableReasonFinder(badFormulaDetector).
-    setParamDialog(angleFormulaDialog("X gate's exponent")).
-    setEffectFromTurns(turns => QubitMatrix.fromPauliRotation(turns, 0, 0)).
-    setWithParamPropertyRecomputeFunc(updateUsingFormula).
-    promiseEffectIsUnitary().
-    gate.withParam('sin(pi t)');
+/** @param {!string} quantityName @returns {!GateBuilder} */
+function formulaGateBuilder(quantityName) {
+  return new GateBuilder()
+    .setWidth(2)
+    .setExtraDisableReasonFinder(badFormulaDetector)
+    .setParamDialog(angleFormulaDialog(quantityName))
+    .setWithParamPropertyRecomputeFunc(updateUsingFormula);
+}
 
-ParametrizedRotationGates.FormulaicRotationY = new GateBuilder().
-    setSerializedIdAndSymbol("Y^ft").
-    setTitle("Formula Y Rotation").
-    setBlurb("Rotates around Y by an amount determined by a formula.").
-    setTurnsAt(exponentTurns).
-    setRenderer(configurableRotationRenderer('Y^f(t)', DIAL_AXIS.Y)).
-    setWidth(2).
-    setExtraDisableReasonFinder(badFormulaDetector).
-    setParamDialog(angleFormulaDialog("Y gate's exponent")).
-    setEffectFromTurns(turns => QubitMatrix.fromPauliRotation(0, turns, 0)).
-    setWithParamPropertyRecomputeFunc(updateUsingFormula).
-    promiseEffectIsUnitary().
-    gate.withParam('sin(pi t)');
+ParametrizedRotationGates.FormulaicRotationX = formulaGateBuilder(
+  "X gate's exponent",
+)
+  .setSerializedIdAndSymbol("X^ft")
+  .setTitle("Formula X Rotation")
+  .setBlurb("Rotates around X by an amount determined by a formula.")
+  .setTurnsAt(exponentTurns)
+  .setRenderer(configurableRotationRenderer("X^f(t)", DIAL_AXIS.X))
+  .setEffectFromTurns((turns) => QubitMatrix.fromPauliRotation(turns, 0, 0))
+  .promiseEffectIsUnitary()
+  .gate.withParam("sin(pi t)");
 
-ParametrizedRotationGates.FormulaicRotationZ = new GateBuilder().
-    setSerializedIdAndSymbol("Z^ft").
-    setTitle("Formula Z Rotation").
-    setBlurb("Rotates around Z by an amount determined by a formula.").
-    setTurnsAt(exponentTurns).
-    setRenderer(configurableRotationRenderer('Z^f(t)', DIAL_AXIS.Z)).
-    setWidth(2).
-    setExtraDisableReasonFinder(badFormulaDetector).
-    setParamDialog(angleFormulaDialog("Z gate's exponent")).
-    setEffectFromTurns(turns => QubitMatrix.fromPauliRotation(0, 0, turns)).
-    setWithParamPropertyRecomputeFunc(updateUsingFormula).
-    promiseEffectOnlyPhases().
-    gate.withParam('sin(pi t)');
+ParametrizedRotationGates.FormulaicRotationY = formulaGateBuilder(
+  "Y gate's exponent",
+)
+  .setSerializedIdAndSymbol("Y^ft")
+  .setTitle("Formula Y Rotation")
+  .setBlurb("Rotates around Y by an amount determined by a formula.")
+  .setTurnsAt(exponentTurns)
+  .setRenderer(configurableRotationRenderer("Y^f(t)", DIAL_AXIS.Y))
+  .setEffectFromTurns((turns) => QubitMatrix.fromPauliRotation(0, turns, 0))
+  .promiseEffectIsUnitary()
+  .gate.withParam("sin(pi t)");
 
-ParametrizedRotationGates.FormulaicRotationRx = new GateBuilder().
-    setSerializedIdAndSymbol("Rxft").
-    setTitle("Formula Rx Gate").
-    setBlurb("Rotates around X by an angle in radians determined by a formula.").
-    setTurnsAt(radianTurns).
-    setRenderer(configurableRotationRenderer('Rx(f(t))', DIAL_AXIS.X)).
-    setWidth(2).
-    setExtraDisableReasonFinder(badFormulaDetector).
-    setParamDialog(angleFormulaDialog("Rx gate's angle in radians")).
-    setEffectFromTurns(turns => XExp(turns / 2)).
-    setWithParamPropertyRecomputeFunc(updateUsingFormula).
-    promiseEffectIsUnitary().
-    gate.withParam('pi t^2');
+ParametrizedRotationGates.FormulaicRotationZ = formulaGateBuilder(
+  "Z gate's exponent",
+)
+  .setSerializedIdAndSymbol("Z^ft")
+  .setTitle("Formula Z Rotation")
+  .setBlurb("Rotates around Z by an amount determined by a formula.")
+  .setTurnsAt(exponentTurns)
+  .setRenderer(configurableRotationRenderer("Z^f(t)", DIAL_AXIS.Z))
+  .setEffectFromTurns((turns) => QubitMatrix.fromPauliRotation(0, 0, turns))
+  .promiseEffectOnlyPhases()
+  .gate.withParam("sin(pi t)");
 
-ParametrizedRotationGates.FormulaicRotationRy = new GateBuilder().
-    setSerializedIdAndSymbol("Ryft").
-    setTitle("Formula Ry Gate").
-    setBlurb("Rotates around Y by an angle in radians determined by a formula.").
-    setTurnsAt(radianTurns).
-    setRenderer(configurableRotationRenderer('Ry(f(t))', DIAL_AXIS.Y)).
-    setWidth(2).
-    setExtraDisableReasonFinder(badFormulaDetector).
-    setParamDialog(angleFormulaDialog("Ry gate's angle in radians")).
-    setEffectFromTurns(turns => YExp(turns / 2)).
-    setWithParamPropertyRecomputeFunc(updateUsingFormula).
-    promiseEffectIsUnitary().
-    gate.withParam('pi t^2');
+ParametrizedRotationGates.FormulaicRotationRx = formulaGateBuilder(
+  "Rx gate's angle in radians",
+)
+  .setSerializedIdAndSymbol("Rxft")
+  .setTitle("Formula Rx Gate")
+  .setBlurb("Rotates around X by an angle in radians determined by a formula.")
+  .setTurnsAt(radianTurns)
+  .setRenderer(configurableRotationRenderer("Rx(f(t))", DIAL_AXIS.X))
+  .setEffectFromTurns((turns) => XExp(turns / 2))
+  .promiseEffectIsUnitary()
+  .gate.withParam("pi t^2");
 
-ParametrizedRotationGates.FormulaicRotationRz = new GateBuilder().
-    setSerializedIdAndSymbol("Rzft").
-    setTitle("Formula Rz Gate").
-    setBlurb("Rotates around Z by an angle in radians determined by a formula.").
-    setTurnsAt(radianTurns).
-    setRenderer(configurableRotationRenderer('Rz(f(t))', DIAL_AXIS.Z)).
-    setWidth(2).
-    setExtraDisableReasonFinder(badFormulaDetector).
-    setParamDialog(angleFormulaDialog("Rz gate's angle in radians")).
-    setEffectFromTurns(turns => ZExp(turns / 2)).
-    setWithParamPropertyRecomputeFunc(updateUsingFormula).
-    promiseEffectOnlyPhases().
-    gate.withParam('pi t^2');
+ParametrizedRotationGates.FormulaicRotationRy = formulaGateBuilder(
+  "Ry gate's angle in radians",
+)
+  .setSerializedIdAndSymbol("Ryft")
+  .setTitle("Formula Ry Gate")
+  .setBlurb("Rotates around Y by an angle in radians determined by a formula.")
+  .setTurnsAt(radianTurns)
+  .setRenderer(configurableRotationRenderer("Ry(f(t))", DIAL_AXIS.Y))
+  .setEffectFromTurns((turns) => YExp(turns / 2))
+  .promiseEffectIsUnitary()
+  .gate.withParam("pi t^2");
 
-ParametrizedRotationGates.all =[
-    ParametrizedRotationGates.XToA,
-    ParametrizedRotationGates.XToMinusA,
-    ParametrizedRotationGates.YToA,
-    ParametrizedRotationGates.YToMinusA,
-    ParametrizedRotationGates.ZToA,
-    ParametrizedRotationGates.ZToMinusA,
-    ParametrizedRotationGates.FormulaicRotationX,
-    ParametrizedRotationGates.FormulaicRotationY,
-    ParametrizedRotationGates.FormulaicRotationZ,
-    ParametrizedRotationGates.FormulaicRotationRx,
-    ParametrizedRotationGates.FormulaicRotationRy,
-    ParametrizedRotationGates.FormulaicRotationRz,
+ParametrizedRotationGates.FormulaicRotationRz = formulaGateBuilder(
+  "Rz gate's angle in radians",
+)
+  .setSerializedIdAndSymbol("Rzft")
+  .setTitle("Formula Rz Gate")
+  .setBlurb("Rotates around Z by an angle in radians determined by a formula.")
+  .setTurnsAt(radianTurns)
+  .setRenderer(configurableRotationRenderer("Rz(f(t))", DIAL_AXIS.Z))
+  .setEffectFromTurns((turns) => ZExp(turns / 2))
+  .promiseEffectOnlyPhases()
+  .gate.withParam("pi t^2");
+
+ParametrizedRotationGates.all = [
+  ParametrizedRotationGates.XToA,
+  ParametrizedRotationGates.XToMinusA,
+  ParametrizedRotationGates.YToA,
+  ParametrizedRotationGates.YToMinusA,
+  ParametrizedRotationGates.ZToA,
+  ParametrizedRotationGates.ZToMinusA,
+  ParametrizedRotationGates.FormulaicRotationX,
+  ParametrizedRotationGates.FormulaicRotationY,
+  ParametrizedRotationGates.FormulaicRotationZ,
+  ParametrizedRotationGates.FormulaicRotationRx,
+  ParametrizedRotationGates.FormulaicRotationRy,
+  ParametrizedRotationGates.FormulaicRotationRz,
 ];
 
-export {ParametrizedRotationGates}
+export { ParametrizedRotationGates };

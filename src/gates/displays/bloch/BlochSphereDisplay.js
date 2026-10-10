@@ -17,14 +17,17 @@
 import { GateBuilder } from "../../../circuit/model/Gate.js";
 import { BLOCH_SPHERE_RENDERER } from "./blochSphereRenderer.js";
 
-const BlochSphereDisplay = new GateBuilder().
-    setSerializedIdAndSymbol("Bloch").
-    setTitle("Bloch Sphere Display").
-    setBlurb("Shows a wire's local state as a point on the Bloch Sphere.\nUse controls to see conditional states.").
-    markAsRendererNeedsSingleQubitDensityStats().
-    setRenderer(BLOCH_SPHERE_RENDERER).
-    promiseHasNoNetEffectOnStateVector().
-    setExtraDisableReasonFinder(args => args.isNested ? "can't\nnest\ndisplays\n(sorry)" : undefined).
-    gate;
+const BlochSphereDisplay = new GateBuilder()
+  .setSerializedIdAndSymbol("Bloch")
+  .setTitle("Bloch Sphere Display")
+  .setBlurb(
+    "Shows a wire's local state as a point on the Bloch Sphere.\nUse controls to see conditional states.",
+  )
+  .markAsRendererNeedsSingleQubitDensityStats()
+  .setRenderer(BLOCH_SPHERE_RENDERER)
+  .promiseHasNoNetEffectOnStateVector()
+  .setExtraDisableReasonFinder((args) =>
+    args.isNested ? "No nested\ndisplay" : undefined,
+  ).gate;
 
 export { BlochSphereDisplay };

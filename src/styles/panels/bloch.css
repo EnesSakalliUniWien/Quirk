@@ -1,525 +1,591 @@
 @layer components {
-    /* The Bloch Sphere Analyzer: its parts grouped by responsibility - the figures, what they draw
-       and which state they show - with the readout's groups in a fixed column beside them. The dock-sized wrapper is the query container, so the
-       arrangement follows the panel's own width, the way the forge panel's does. Every colour here
-       is a theme variable set by src/config/Theme.js; this file defines none. */
+  /* The sphere leads, with state controls beside it on wide panels and readouts below.
+       The dock wrapper is the query container; colours come from the shared theme. */
 
-    .panel-scroll[data-panel-id="bloch"] {
-        container-type: inline-size;
-    }
+  .panel-scroll[data-panel-id="bloch"] {
+    container-type: inline-size;
+  }
 
+  /* The dock lays a panel out once at a sliver's width before it sizes it; nothing is shown
+       squeezed into that sliver, so the panel appears at its own width. Faded rather than hidden,
+       so the title can still take focus as the panel opens. */
+  @container (max-width: 239px) {
     .bloch-panel {
-        display: grid;
-        align-content: start;
-        gap: calc(var(--spacing) * 4);
+      opacity: 0;
     }
+  }
 
-    .bloch-title {
-        margin: 0;
-        font-size: var(--text-heading);
-        font-weight: 650;
+  .bloch-panel {
+    display: grid;
+    align-content: start;
+    gap: calc(var(--spacing) * 4);
+  }
+
+  /* On phone panels, keep the leading sphere visible below the title and touch toolbar. */
+  @container (max-width: 399px) {
+    .bloch-panel {
+      gap: calc(var(--spacing) * 2);
     }
+  }
 
-    .bloch-subtitle {
-        margin: 0;
-        color: var(--muted-foreground);
-        font-size: var(--text-small);
-    }
+  .bloch-title {
+    margin: 0;
+    font-size: var(--text-heading);
+    font-weight: 650;
+  }
 
-    /* One column until the readout fits beside the figures without squeezing them. */
+  /* The title takes focus when the analyzer opens, to start the keyboard there; it is no control. */
+  .bloch-title:focus {
+    outline: none;
+  }
 
-    .bloch-analyzer {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr);
-        gap: calc(var(--spacing) * 5);
-        align-items: start;
-    }
+  .bloch-subtitle {
+    margin: 0;
+    color: var(--muted-foreground);
+    font-size: var(--text-small);
+  }
 
-    /* Keep room for three readable figures before putting the readout beside them. */
+  /* Keep the primary visualization first at every panel width. */
 
-    @container (min-width: 1280px) {
-        .bloch-analyzer {
-            grid-template-columns: minmax(0, 1fr) 326px;
-        }
-    }
+  .bloch-analyzer {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: calc(var(--spacing) * 4) calc(var(--spacing) * 5);
+    align-items: start;
+  }
 
-    .bloch-main {
-        container: bloch-main / inline-size;
-        display: grid;
-        gap: calc(var(--spacing) * 4);
-        min-width: 0;
-    }
+  .bloch-area-source {
+    grid-area: source;
+    container: bloch-source / inline-size;
+  }
 
-    /* A group is the app's panel section, a little tighter, with its name and its purpose on one
+  /* A group is the app's panel section, a little tighter, with its name and its purpose on one
        line above the parts it holds. */
 
-    .bloch-panel .bloch-group {
-        min-width: 0;
-        padding: calc(var(--spacing) * 3);
-    }
+  .bloch-panel .bloch-group {
+    min-width: 0;
+    padding: calc(var(--spacing) * 3);
+  }
 
-    .bloch-group-heading {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: baseline;
-        gap: calc(var(--spacing) * 2);
-        font-size: var(--text-caption);
-    }
+  .bloch-group-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: calc(var(--spacing) * 2);
+    font-size: var(--text-caption);
+  }
 
-    .bloch-group-heading h3 {
-        margin: 0;
-        font-size: var(--text-small);
-    }
+  .bloch-group-heading h3 {
+    margin: 0;
+    font-size: var(--text-small);
+  }
 
-    /* Three equal plots only when the main column can keep each about 280px wide. */
+  /* Give the sphere more room than its supporting projections. Stack them when narrow. */
 
+  .bloch-figures {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "sphere" "source" "projections";
+    gap: calc(var(--spacing) * 4);
+    align-items: start;
+  }
+
+  .bloch-figure {
+    display: grid;
+    gap: calc(var(--spacing) * 1.5);
+    width: 100%;
+    max-width: 340px;
+    min-width: 0;
+    margin: 0;
+    justify-self: center;
+  }
+
+  .bloch-figure-sphere {
+    grid-area: sphere;
+  }
+
+  .bloch-projections {
+    grid-area: projections;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: calc(var(--spacing) * 3);
+    min-width: 0;
+  }
+
+  @container (min-width: 960px) {
     .bloch-figures {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr);
-        gap: calc(var(--spacing) * 3);
-        align-items: start;
+      grid-template-columns: minmax(0, 1.8fr) minmax(0, 2fr) 320px;
+      grid-template-areas: "sphere projections source";
     }
 
-    @container bloch-main (min-width: 900px) {
-        .bloch-figures {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-        }
+    .bloch-projections {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    /* All three figures use the same available width. */
-
-    .bloch-figure {
-        display: grid;
-        gap: calc(var(--spacing) * 1.5);
-        width: 100%;
-        max-width: 460px;
-        min-width: 0;
-        margin: 0;
-        justify-self: center;
+    .bloch-figure-projection {
+      max-width: 220px;
     }
 
-    /* Side by side, each figure takes its whole track; stacked, none grows past a readable size. */
-
-    @container bloch-main (min-width: 900px) {
-        .bloch-figure {
-            max-width: none;
-        }
+    .bloch-display {
+      grid-column: 1 / -1;
     }
+  }
 
-    /* A figure's title bar sits above its canvas, so no axis letter drawn inside can meet it. */
+  /* What the figures draw, under the figures it changes. */
 
-    .bloch-figure-header {
-        display: flex;
-        align-items: baseline;
-        justify-content: space-between;
-        gap: calc(var(--spacing) * 2);
-        min-height: 20px;
-        padding: 0 2px;
+  .bloch-display {
+    display: grid;
+    gap: calc(var(--spacing) * 2);
+    margin-top: calc(var(--spacing) * 3);
+    padding-top: calc(var(--spacing) * 3);
+    border-top: var(--border-width) solid var(--border);
+  }
+
+  .bloch-figure-header .bloch-reset-view {
+    height: 1.5rem;
+    padding: 0 0.5rem;
+    font-size: var(--text-caption);
+  }
+
+  /* A figure's title bar sits above its canvas, so no axis letter drawn inside can meet it. */
+
+  .bloch-figure-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: calc(var(--spacing) * 2);
+    min-height: 20px;
+    padding: 0 2px;
+  }
+
+  .bloch-figure-header h4 {
+    margin: 0;
+    font-size: var(--text-small);
+    font-weight: 650;
+  }
+
+  .bloch-figure-axis {
+    color: var(--muted-foreground);
+    font-family: var(--font-mono);
+    font-size: var(--text-caption);
+  }
+
+  .bloch-canvas,
+  .bloch-projection-canvas,
+  .bloch-strip-canvas {
+    display: block;
+    box-sizing: border-box;
+  }
+
+  /* Every view is square; each painter adapts to its own CSS size. */
+
+  .bloch-canvas,
+  .bloch-projection-canvas {
+    width: 100%;
+    aspect-ratio: 1;
+    border: var(--border-width) solid var(--border);
+    border-radius: 12px;
+  }
+
+  .bloch-hint {
+    margin: 0;
+    color: var(--muted-foreground);
+    font-size: 0.75rem;
+    line-height: 1.55;
+  }
+
+  .bloch-control-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: calc(var(--spacing) * 2) calc(var(--spacing) * 4);
+  }
+
+  .bloch-source-controls,
+  .bloch-explore-controls {
+    display: grid;
+    gap: calc(var(--spacing) * 3);
+    min-width: 0;
+    align-content: start;
+  }
+
+  @container bloch-source (min-width: 640px) {
+    .bloch-source-controls {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: calc(var(--spacing) * 5);
     }
+  }
 
-    .bloch-figure-header h4 {
-        margin: 0;
-        font-size: var(--text-small);
-        font-weight: 650;
-    }
+  .bloch-control-label {
+    min-width: 4.5rem;
+    color: var(--muted-foreground);
+    font-size: var(--text-caption);
+    font-weight: 650;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
 
-    .bloch-figure-axis {
-        color: var(--muted-foreground);
-        font-family: var(--font-mono);
-        font-size: var(--text-caption);
-    }
+  /* The key between the sphere's coloured letters and triangles and the rows of numbers. */
 
-    .bloch-canvas,
-    .bloch-projection-canvas,
-    .bloch-strip-canvas {
-        display: block;
-        box-sizing: border-box;
-    }
+  .bloch-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing) calc(var(--spacing) * 4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-family: var(--font-mono);
+    font-size: var(--text-caption);
+  }
 
-    /* Every view is square; each painter uses the same plot size. */
+  .bloch-legend li {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--spacing) * 1.5);
+  }
 
-    .bloch-canvas,
-    .bloch-projection-canvas {
-        width: 100%;
-        aspect-ratio: 1;
-        border: var(--border-width) solid var(--border);
-        border-radius: 12px;
-    }
+  .bloch-swatch {
+    width: 9px;
+    height: 9px;
+    border-radius: 2px;
+    background: currentColor;
+  }
 
-    .bloch-canvas {
-        cursor: grab;
-        touch-action: none;
-    }
+  /* The key doubles as the control: hovering an axis reads it alone, clicking keeps it. */
 
-    .bloch-canvas:active {
-        cursor: grabbing;
-    }
+  .bloch-legend-axis {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--spacing) * 1.5);
+    padding: 2px 5px;
+    color: inherit;
+    background: none;
+    border: var(--border-width) solid transparent;
+    border-radius: 5px;
+    cursor: pointer;
+    font: inherit;
+  }
 
-    .bloch-hint {
-        margin: 0;
-        color: var(--muted-foreground);
-        font-size: 0.75rem;
-        line-height: 1.55;
-    }
+  .bloch-legend-axis:hover {
+    background: var(--button-ghost-hover);
+  }
 
-    .bloch-control-row {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: calc(var(--spacing) * 2) calc(var(--spacing) * 4);
-    }
+  .bloch-legend-axis[aria-pressed="true"] {
+    border-color: currentColor;
+  }
 
-    .bloch-source-controls,
-    .bloch-explore-controls {
-        display: grid;
-        gap: calc(var(--spacing) * 3);
-        min-width: 0;
-        align-content: start;
-    }
+  .bloch-legend-kets {
+    color: var(--muted-foreground);
+  }
 
-    @container bloch-main (min-width: 900px) {
-        .bloch-source-controls {
-            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-            gap: calc(var(--spacing) * 5);
-        }
-    }
+  /* Which constructions are drawn: a reading turns off whatever it is not asking about. */
 
-    .bloch-control-label {
-        min-width: 4.5rem;
-        color: var(--muted-foreground);
-        font-size: var(--text-caption);
-        font-weight: 650;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-    }
+  .bloch-layer {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--spacing) * 1.5);
+    color: var(--muted-foreground);
+    font-size: var(--text-caption);
+    cursor: pointer;
+  }
 
-    /* The key between the sphere's coloured letters and triangles and the rows of numbers. */
+  .bloch-check {
+    display: inline-grid;
+    place-items: center;
+    width: 14px;
+    height: 14px;
+    padding: 0;
+    background: var(--input-surface);
+    border: var(--border-width) solid var(--control-border);
+    border-radius: 3px;
+    cursor: pointer;
+  }
 
-    .bloch-legend {
-        display: flex;
-        flex-wrap: wrap;
-        gap: var(--spacing) calc(var(--spacing) * 4);
-        margin: 0;
-        padding: 0;
-        list-style: none;
-        font-family: var(--font-mono);
-        font-size: var(--text-caption);
-    }
+  .bloch-check:focus-visible {
+    outline: var(--border-width-strong) solid var(--ring);
+    outline-offset: 1px;
+  }
 
-    .bloch-legend li {
-        display: flex;
-        align-items: center;
-        gap: calc(var(--spacing) * 1.5);
-    }
+  .bloch-check-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 1px;
+    background: var(--foreground);
+  }
 
-    .bloch-swatch {
-        width: 9px;
-        height: 9px;
-        border-radius: 2px;
-        background: currentColor;
-    }
+  .bloch-presets {
+    flex-wrap: wrap;
+    max-width: 100%;
+  }
 
-    /* The key doubles as the control: hovering an axis reads it alone, clicking keeps it. */
+  .bloch-presets .ui-button[aria-pressed="true"] {
+    color: var(--primary-foreground);
+    background: var(--primary);
+  }
 
-    .bloch-legend-axis {
-        display: flex;
-        align-items: center;
-        gap: calc(var(--spacing) * 1.5);
-        padding: 2px 5px;
-        color: inherit;
-        background: none;
-        border: var(--border-width) solid transparent;
-        border-radius: 5px;
-        cursor: pointer;
-        font: inherit;
-    }
+  /* An angle: its symbol, a slider and the same value as a number. */
 
-    .bloch-legend-axis:hover {
-        background: var(--button-ghost-hover);
-    }
+  .bloch-angle {
+    display: grid;
+    grid-template-columns: 1.2rem minmax(0, 1fr) 4.8rem 0.6rem;
+    align-items: center;
+    gap: calc(var(--spacing) * 2);
+    min-width: 0;
+    flex: 1 1 260px;
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+  }
 
-    .bloch-legend-axis[aria-pressed="true"] {
-        border-color: currentColor;
-    }
+  /* The whole 28-point band takes a press, not only the thin track and its thumb. */
+  .bloch-slider-control {
+    display: flex;
+    align-items: center;
+    height: 28px;
+    cursor: pointer;
+    touch-action: none;
+  }
 
-    .bloch-legend-kets {
-        color: var(--muted-foreground);
-    }
+  .bloch-slider-track {
+    position: relative;
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--control-border);
+  }
 
-    /* Which constructions are drawn: a reading turns off whatever it is not asking about. */
+  .bloch-slider-indicator {
+    border-radius: 2px;
+    background: var(--primary);
+  }
 
-    .bloch-layer {
-        display: flex;
-        align-items: center;
-        gap: calc(var(--spacing) * 1.5);
-        color: var(--muted-foreground);
-        font-size: var(--text-caption);
-        cursor: pointer;
-    }
+  .bloch-slider-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--foreground);
+    outline: none;
+  }
 
-    .bloch-check {
-        display: inline-grid;
-        place-items: center;
-        width: 14px;
-        height: 14px;
-        padding: 0;
-        background: var(--input-surface);
-        border: var(--border-width) solid var(--control-border);
-        border-radius: 3px;
-        cursor: pointer;
-    }
+  .bloch-slider-thumb:focus-visible {
+    box-shadow: 0 0 0 3px var(--button-focus-shadow);
+  }
 
-    .bloch-check:focus-visible {
-        outline: var(--border-width-strong) solid var(--ring);
-        outline-offset: 1px;
-    }
+  .bloch-number-input {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 3px 6px;
+    color: var(--foreground);
+    background: var(--input-surface);
+    border: var(--border-width) solid var(--control-border);
+    border-radius: 5px;
+    font: inherit;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
 
-    .bloch-check-indicator {
-        width: 8px;
-        height: 8px;
-        border-radius: 1px;
-        background: var(--foreground);
-    }
+  .bloch-angle-unit {
+    color: var(--muted-foreground);
+  }
 
-    .bloch-presets .ui-button[aria-pressed="true"] {
-        color: var(--primary-foreground);
-        background: var(--primary);
-    }
-
-    /* An angle: its symbol, a slider and the same value as a number. */
-
-    .bloch-angle {
-        display: grid;
-        grid-template-columns: 1.2rem minmax(120px, 1fr) 4.8rem 0.6rem;
-        align-items: center;
-        gap: calc(var(--spacing) * 2);
-        min-width: 260px;
-        flex: 1 1 260px;
-        font-family: var(--font-mono);
-        font-size: var(--text-small);
-    }
-
-    /* The whole 28-point band takes a press, not only the thin track and its thumb. */
-    .bloch-slider-control {
-        display: flex;
-        align-items: center;
-        height: 28px;
-        cursor: pointer;
-        touch-action: none;
-    }
-
-    .bloch-slider-track {
-        position: relative;
-        width: 100%;
-        height: 4px;
-        border-radius: 2px;
-        background: var(--control-border);
-    }
-
-    .bloch-slider-indicator {
-        border-radius: 2px;
-        background: var(--primary);
-    }
-
-    .bloch-slider-thumb {
-        width: 16px;
-        height: 16px;
-        border-radius: 50%;
-        background: var(--foreground);
-        outline: none;
-    }
-
-    .bloch-slider-thumb:focus-visible {
-        box-shadow: 0 0 0 3px var(--button-focus-shadow);
-    }
-
-    .bloch-number-input {
-        box-sizing: border-box;
-        width: 100%;
-        padding: 3px 6px;
-        color: var(--foreground);
-        background: var(--input-surface);
-        border: var(--border-width) solid var(--control-border);
-        border-radius: 5px;
-        font: inherit;
-        text-align: right;
-        font-variant-numeric: tabular-nums;
-    }
-
-    .bloch-angle-unit {
-        color: var(--muted-foreground);
-    }
-
-    /* The qubit after each column: one canvas of spheres, with a button over each for focus, selection
+  /* The qubit after each column: one canvas of spheres, with a button over each for focus, selection
        and the arrow keys. It scrolls sideways when the circuit is longer than the panel is wide. */
 
-    .bloch-strip {
-        display: grid;
-        gap: calc(var(--spacing) * 1.5);
-        min-width: 0;
-    }
+  .bloch-strip {
+    display: grid;
+    gap: calc(var(--spacing) * 1.5);
+    min-width: 0;
+  }
 
-    .bloch-strip-scroll {
-        overflow-x: auto;
-        padding-bottom: 4px;
-    }
+  .bloch-strip-scroll {
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
 
-    .bloch-strip-track {
-        position: relative;
-        height: 100px;
-    }
+  .bloch-strip-track {
+    position: relative;
+    height: 100px;
+  }
 
-    .bloch-strip-canvas {
-        position: absolute;
-        top: 0;
-        left: 0;
-        border: 0;
-        border-radius: var(--radius-medium);
-    }
+  .bloch-strip-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    border: 0;
+    border-radius: var(--radius-medium);
+  }
 
-    .bloch-strip-step {
-        position: absolute;
-        top: 0;
-        display: flex;
-        align-items: flex-end;
-        justify-content: center;
-        height: 100px;
-        padding: 0;
-        color: var(--muted-foreground);
-        background: none;
-        border: 0;
-        border-radius: var(--radius-medium);
-        cursor: pointer;
-        font-family: var(--font-mono);
-        font-size: var(--text-caption);
-    }
+  .bloch-strip-step {
+    position: absolute;
+    top: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    height: 100px;
+    padding: 0;
+    color: var(--muted-foreground);
+    background: none;
+    border: 0;
+    border-radius: var(--radius-medium);
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: var(--text-caption);
+  }
 
-    .bloch-strip-step[aria-pressed="true"] {
-        color: var(--foreground);
-    }
+  .bloch-strip-step[aria-pressed="true"] {
+    color: var(--foreground);
+  }
 
-    .bloch-strip-step:focus-visible {
-        outline: var(--border-width-strong) solid var(--ring);
-        outline-offset: 2px;
-    }
+  /* Inside the step, so the strip's scroll box never clips the ring. */
+  .bloch-strip-step:focus-visible {
+    outline: var(--border-width-strong) solid var(--ring);
+    outline-offset: -2px;
+  }
 
-    .bloch-strip-label {
-        max-width: 100%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+  /* A touch screen has no arrow keys to step with. */
+  @media (pointer: coarse) {
+    .bloch-strip .bloch-figure-axis {
+      display: none;
     }
+  }
 
-    /* The readout: two groups of sections, each row a symbol, the formula it comes from and its
+  .bloch-strip-label {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* The readout: two groups of sections, each row a symbol, the formula it comes from and its
        value, the values right-aligned in one column so they scan down. */
 
-    .bloch-sidebar {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
-        gap: calc(var(--spacing) * 4);
-        align-items: start;
-        align-content: start;
-        min-width: 0;
-    }
+  .bloch-sidebar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+    gap: calc(var(--spacing) * 4);
+    align-items: start;
+    align-content: start;
+    min-width: 0;
+  }
 
-    .bloch-readout-section {
-        display: grid;
-        gap: calc(var(--spacing) * 1.5);
-        padding-bottom: calc(var(--spacing) * 3);
-        border-bottom: var(--border-width) solid var(--border);
-    }
+  .bloch-readout-section {
+    display: grid;
+    gap: calc(var(--spacing) * 1.5);
+    padding-bottom: calc(var(--spacing) * 3);
+    border-bottom: var(--border-width) solid var(--border);
+  }
 
-    .bloch-readout-section:last-child {
-        padding-bottom: 0;
-        border-bottom: 0;
-    }
+  .bloch-readout-section:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
 
-    .bloch-readout-section h4 {
-        margin: 0;
-        color: var(--panel-heading);
-        font-size: var(--text-caption);
-        font-weight: 650;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-    }
+  .bloch-readout-section h4 {
+    margin: 0;
+    color: var(--panel-heading);
+    font-size: var(--text-caption);
+    font-weight: 650;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
 
-    .bloch-readout {
-        display: grid;
-        gap: 2px;
-        margin: 0;
-        font-family: var(--font-mono);
-        font-size: var(--text-small);
-    }
+  .bloch-readout {
+    display: grid;
+    gap: 2px;
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+  }
 
-    .bloch-row {
-        display: grid;
-        grid-template-columns: 3rem minmax(0, 1fr) 7.5rem;
-        align-items: baseline;
-        gap: calc(var(--spacing) * 2);
-    }
+  .bloch-row {
+    display: grid;
+    grid-template-columns: 3rem minmax(0, 1fr) 6rem;
+    align-items: baseline;
+    gap: calc(var(--spacing) * 2);
+  }
 
-    .bloch-readout-wide .bloch-row {
-        grid-template-columns: 3rem minmax(0, 1fr);
-    }
+  .bloch-readout-amplitudes .bloch-row {
+    grid-template-columns: 1.5rem minmax(0, 1fr) max-content;
+  }
 
-    .bloch-readout dt {
-        color: var(--muted-foreground);
-    }
+  .bloch-readout-amplitudes .bloch-value {
+    white-space: nowrap;
+  }
 
-    .bloch-readout dd {
-        margin: 0;
-    }
+  .bloch-readout-wide .bloch-row {
+    grid-template-columns: 3rem minmax(0, 1fr);
+  }
 
-    .bloch-formula code {
-        color: var(--muted-foreground);
-        font-family: var(--font-mono);
-        font-size: var(--text-caption);
-    }
+  .bloch-readout dt {
+    color: var(--muted-foreground);
+  }
 
-    .bloch-value {
-        font-variant-numeric: tabular-nums;
-        text-align: right;
-        overflow-wrap: anywhere;
-    }
+  .bloch-readout dd {
+    margin: 0;
+  }
 
-    .bloch-readout-wide .bloch-value {
-        text-align: left;
-    }
+  .bloch-formula code {
+    color: var(--muted-foreground);
+    font-family: var(--font-mono);
+    font-size: var(--text-caption);
+  }
 
-    /* A missing value is marked, never mistaken for a zero. */
+  .bloch-value {
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
 
-    .bloch-undefined,
-    .bloch-note {
-        color: var(--muted-foreground);
-    }
+  .bloch-readout-wide .bloch-value {
+    text-align: left;
+  }
 
-    .bloch-note,
-    .bloch-state {
-        margin: 0;
-        font-size: var(--text-small);
-    }
+  /* A missing value is marked, never mistaken for a zero. */
 
-    .bloch-state {
-        color: var(--foreground);
-        font-family: var(--font-mono);
-    }
+  .bloch-undefined,
+  .bloch-note {
+    color: var(--muted-foreground);
+  }
 
-    /* Each axis is named in its own colour: the colour of the triangles that measure it and of
+  .bloch-note,
+  .bloch-state {
+    margin: 0;
+    font-size: var(--text-small);
+  }
+
+  .bloch-state {
+    color: var(--foreground);
+    font-family: var(--font-mono);
+  }
+
+  /* Each axis is named in its own colour: the colour of the triangles that measure it and of
        the letter the sphere paints at its poles, in the key and in the rows alike. */
 
-    .bloch-panel .bloch-axis-x {
-        color: var(--bloch-axis-x);
-    }
+  .bloch-panel .bloch-axis-x {
+    color: var(--bloch-axis-x-text);
+  }
 
-    .bloch-panel .bloch-axis-y {
-        color: var(--bloch-axis-y);
-    }
+  .bloch-panel .bloch-axis-y {
+    color: var(--bloch-axis-y-text);
+  }
 
-    .bloch-panel .bloch-axis-z {
-        color: var(--bloch-axis-z);
-    }
+  .bloch-panel .bloch-axis-z {
+    color: var(--bloch-axis-z-text);
+  }
 
-    .bloch-actions {
-        justify-content: flex-end;
-    }
+  /* The swatch is the axis's own hue, the one its triangles and letters wear on the figures. */
+  .bloch-panel .bloch-axis-x .bloch-swatch {
+    background: var(--bloch-axis-x);
+  }
+
+  .bloch-panel .bloch-axis-y .bloch-swatch {
+    background: var(--bloch-axis-y);
+  }
+
+  .bloch-panel .bloch-axis-z .bloch-swatch {
+    background: var(--bloch-axis-z);
+  }
+
+  .bloch-actions {
+    justify-content: flex-end;
+  }
 }

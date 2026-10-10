@@ -15,73 +15,67 @@
  */
 
 /** @typedef {import("../../circuit/model/Gate.js").Gate} Gate */
-import {GateBuilder} from "../../circuit/model/Gate.js"
-import {QubitMatrix} from "../../engine/math/matrix/QubitMatrix.js"
+import { GateBuilder } from "../../circuit/model/Gate.js";
+import { QubitMatrix } from "../../engine/math/matrix/QubitMatrix.js";
 
 const QuarterTurnGates = {};
 
 // Titles lead with the symbol drawn on the circuit, with any other common convention in
 // parentheses, so a toolbox row never shows two different names for one gate.
 /** @type {!Gate} */
-QuarterTurnGates.SqrtXForward = new GateBuilder().
-    setSerializedIdAndSymbol('X^½').
-    setTitle("X^½ Gate (√X)").
-    setBlurb("Principle square root of Not.").
-    setKnownEffectToMatrix(QubitMatrix.fromPauliRotation(0.25, 0, 0)).
-    gate;
+QuarterTurnGates.SqrtXForward = new GateBuilder()
+  .setSerializedIdAndSymbol("X^½")
+  .setTitle("X^½ Gate (√X)")
+  .setBlurb("Principle square root of Not.")
+  .setKnownEffectToMatrix(QubitMatrix.fromPauliRotation(0.25, 0, 0)).gate;
 
 /** @type {!Gate} */
-QuarterTurnGates.SqrtXBackward = new GateBuilder().
-    setAlternate(QuarterTurnGates.SqrtXForward).
-    setSerializedIdAndSymbol('X^-½').
-    setTitle("X^-½ Gate").
-    setBlurb("Adjoint square root of Not.").
-    setKnownEffectToMatrix(QubitMatrix.fromPauliRotation(0.75, 0, 0)).
-    gate;
+QuarterTurnGates.SqrtXBackward = new GateBuilder()
+  .setAlternate(QuarterTurnGates.SqrtXForward)
+  .setSerializedIdAndSymbol("X^-½")
+  .setTitle("X^-½ Gate")
+  .setBlurb("Adjoint square root of Not.")
+  .setKnownEffectToMatrix(QubitMatrix.fromPauliRotation(0.75, 0, 0)).gate;
 
 /** @type {!Gate} */
-QuarterTurnGates.SqrtYForward = new GateBuilder().
-    setSerializedIdAndSymbol('Y^½').
-    setTitle("Y^½ Gate (√Y)").
-    setBlurb("Principle square root of Y.").
-    setKnownEffectToMatrix(QubitMatrix.fromPauliRotation(0, 0.25, 0)).
-    gate;
+QuarterTurnGates.SqrtYForward = new GateBuilder()
+  .setSerializedIdAndSymbol("Y^½")
+  .setTitle("Y^½ Gate (√Y)")
+  .setBlurb("Principle square root of Y.")
+  .setKnownEffectToMatrix(QubitMatrix.fromPauliRotation(0, 0.25, 0)).gate;
 
 /** @type {!Gate} */
-QuarterTurnGates.SqrtYBackward = new GateBuilder().
-    setAlternate(QuarterTurnGates.SqrtYForward).
-    setSerializedIdAndSymbol('Y^-½').
-    setTitle("Y^-½ Gate").
-    setBlurb("Adjoint square root of Y.").
-    setKnownEffectToMatrix(QubitMatrix.fromPauliRotation(0, 0.75, 0)).
-    gate;
+QuarterTurnGates.SqrtYBackward = new GateBuilder()
+  .setAlternate(QuarterTurnGates.SqrtYForward)
+  .setSerializedIdAndSymbol("Y^-½")
+  .setTitle("Y^-½ Gate")
+  .setBlurb("Adjoint square root of Y.")
+  .setKnownEffectToMatrix(QubitMatrix.fromPauliRotation(0, 0.75, 0)).gate;
 
 /** @type {!Gate} */
-QuarterTurnGates.SqrtZForward = new GateBuilder().
-    setSerializedId('Z^½').
-    setSymbol('S').
-    setTitle("S Gate (√Z)").
-    setBlurb("Principle square root of Z.").
-    setKnownEffectToMatrix(QubitMatrix.fromPauliRotation(0, 0, 0.25)).
-    gate;
+QuarterTurnGates.SqrtZForward = new GateBuilder()
+  .setSerializedId("Z^½")
+  .setSymbol("S")
+  .setTitle("S Gate (√Z)")
+  .setBlurb("Principle square root of Z.")
+  .setKnownEffectToMatrix(QubitMatrix.fromPauliRotation(0, 0, 0.25)).gate;
 
 /** @type {!Gate} */
-QuarterTurnGates.SqrtZBackward = new GateBuilder().
-    setAlternate(QuarterTurnGates.SqrtZForward).
-    setSerializedId('Z^-½').
-    setSymbol('S^-1').
-    setTitle("S^-1 Gate (Z^-½)").
-    setBlurb("Adjoint square root of Z.").
-    setKnownEffectToMatrix(QubitMatrix.fromPauliRotation(0, 0, 0.75)).
-    gate;
+QuarterTurnGates.SqrtZBackward = new GateBuilder()
+  .setAlternate(QuarterTurnGates.SqrtZForward)
+  .setSerializedId("Z^-½")
+  .setSymbol("S^-1")
+  .setTitle("S^-1 Gate (Z^-½)")
+  .setBlurb("Adjoint square root of Z.")
+  .setKnownEffectToMatrix(QubitMatrix.fromPauliRotation(0, 0, 0.75)).gate;
 
 QuarterTurnGates.all = [
-    QuarterTurnGates.SqrtXForward,
-    QuarterTurnGates.SqrtYForward,
-    QuarterTurnGates.SqrtZForward,
-    QuarterTurnGates.SqrtXBackward,
-    QuarterTurnGates.SqrtYBackward,
-    QuarterTurnGates.SqrtZBackward
+  QuarterTurnGates.SqrtXForward,
+  QuarterTurnGates.SqrtYForward,
+  QuarterTurnGates.SqrtZForward,
+  QuarterTurnGates.SqrtXBackward,
+  QuarterTurnGates.SqrtYBackward,
+  QuarterTurnGates.SqrtZBackward,
 ];
 
-export {QuarterTurnGates}
+export { QuarterTurnGates };

@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-import { Inputs, Outputs, makePseudoShaderWithInputsAndOutputAndCode } from "../../../../engine/webgl/coder/ShaderCoders.js";
+import {
+  Inputs,
+  Outputs,
+  makePseudoShaderWithInputsAndOutputAndCode,
+} from "../../../../engine/webgl/coder/ShaderCoders.js";
 import { WglArg } from "../../../../engine/webgl/shader/WglArg.js";
 
 /**
@@ -22,12 +26,15 @@ import { WglArg } from "../../../../engine/webgl/shader/WglArg.js";
  * @param {!int} qubitSpan
  * @returns {!WglConfiguredShader}
  */
-const amplitudesToCouplings = (inputTexture, qubitSpan) => AMPLITUDES_TO_DENSITIES_SHADER(
+const amplitudesToCouplings = (inputTexture, qubitSpan) =>
+  AMPLITUDES_TO_DENSITIES_SHADER(
     inputTexture,
-    WglArg.float('qubitSpan', 1 << qubitSpan));
+    WglArg.float("qubitSpan", 1 << qubitSpan),
+  );
 
-const AMPLITUDES_TO_DENSITIES_SHADER = makePseudoShaderWithInputsAndOutputAndCode(
-    [Inputs.vec2('input')],
+const AMPLITUDES_TO_DENSITIES_SHADER =
+  makePseudoShaderWithInputsAndOutputAndCode(
+    [Inputs.vec2("input")],
     Outputs.vec2(),
     `
     uniform float qubitSpan;
@@ -44,6 +51,7 @@ const AMPLITUDES_TO_DENSITIES_SHADER = makePseudoShaderWithInputsAndOutputAndCod
         float i = dot(ampKet, vec2(-ampBra.y, ampBra.x));
 
         return vec2(r, i);
-    }`);
+    }`,
+  );
 
 export { amplitudesToCouplings };

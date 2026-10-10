@@ -14,112 +14,164 @@
  * limitations under the License.
  */
 
-import {assertThat, Suite} from "../../TestUtil.js"
-import {assertThatGateActsLikePermutation} from "../../CircuitOperationTestUtil.js"
+import { assertThat, Suite } from "../../TestUtil.js";
+import { assertThatGateActsLikePermutation } from "../../CircuitOperationTestUtil.js";
 
-import {ModularIncrementGates} from "../../../src/gates/arithmetic/ModularIncrementGates.js"
-import {ModularAdditionGates} from "../../../src/gates/arithmetic/ModularAdditionGates.js"
-import {InputGates} from "../../../src/gates/inputs/InputGates.js"
-import {CircuitDefinition} from "../../../src/circuit/model/CircuitDefinition.js"
+import { ModularIncrementGates } from "../../../src/gates/arithmetic/ModularIncrementGates.js";
+import { ModularAdditionGates } from "../../../src/gates/arithmetic/ModularAdditionGates.js";
+import { InputGates } from "../../../src/gates/inputs/InputGates.js";
+import { CircuitDefinition } from "../../../src/circuit/model/CircuitDefinition.js";
 
 const suite = new Suite("ModularIncrementGates");
 
-suite.testUsingWebGL('mod_too_big_disable', () => {
-    const circuit = diagram => CircuitDefinition.fromTextDiagram(new Map([
-        ['A', InputGates.InputAFamily],
-        ['B', InputGates.InputBFamily],
-        ['R', InputGates.InputRFamily],
-        ['r', InputGates.SetR.withParam(3)],
+suite.testUsingWebGL("mod_too_big_disable", () => {
+  const circuit = (diagram) =>
+    CircuitDefinition.fromTextDiagram(
+      new Map([
+        ["A", InputGates.InputAFamily],
+        ["B", InputGates.InputBFamily],
+        ["R", InputGates.InputRFamily],
+        ["r", InputGates.SetR.withParam(3)],
 
-        ['x', ModularIncrementGates.IncrementModRFamily],
-        ['y', ModularIncrementGates.DecrementModRFamily],
-        ['z', ModularAdditionGates.PlusAModRFamily],
-        ['t', ModularAdditionGates.MinusAModRFamily],
+        ["x", ModularIncrementGates.IncrementModRFamily],
+        ["y", ModularIncrementGates.DecrementModRFamily],
+        ["z", ModularAdditionGates.PlusAModRFamily],
+        ["t", ModularAdditionGates.MinusAModRFamily],
 
-        ['-', undefined],
-        ['/', null],
-    ]), diagram);
-    const bad = (col, row, diagram) =>
-        assertThat(circuit(diagram).gateAtLocIsDisabledReason(col, row)).isNotEqualTo(undefined);
-    const good = (col, row, diagram) =>
-        assertThat(circuit(diagram).gateAtLocIsDisabledReason(col, row)).isEqualTo(undefined);
+        ["-", undefined],
+        ["/", null],
+      ]),
+      diagram,
+    );
+  const bad = (col, row, diagram) =>
+    assertThat(
+      circuit(diagram).gateAtLocIsDisabledReason(col, row),
+    ).isNotEqualTo(undefined);
+  const good = (col, row, diagram) =>
+    assertThat(circuit(diagram).gateAtLocIsDisabledReason(col, row)).isEqualTo(
+      undefined,
+    );
 
-    bad(1, 2, `-R-
+  bad(
+    1,
+    2,
+    `-R-
                -/-
-               -x-`);
+               -x-`,
+  );
 
-    bad(1, 0, `-y-
+  bad(
+    1,
+    0,
+    `-y-
                -R-
-               -/-`);
+               -/-`,
+  );
 
-    good(1, 2, `-R-
+  good(
+    1,
+    2,
+    `-R-
                 -/-
                 -y-
-                -/-`);
+                -/-`,
+  );
 
-    good(1, 2, `-x-
+  good(
+    1,
+    2,
+    `-x-
                 -/-
                 -/-
                 -R-
-                -/-`);
+                -/-`,
+  );
 
-    bad(1, 2, `-A-
+  bad(
+    1,
+    2,
+    `-A-
                -/-
                -z-
                -R-
-               -/-`);
+               -/-`,
+  );
 
-    bad(1, 2, `-R-
+  bad(
+    1,
+    2,
+    `-R-
                -/-
                -t-
                -A-
-               -/-`);
+               -/-`,
+  );
 
-    bad(1, 2, `-A-
+  bad(
+    1,
+    2,
+    `-A-
                ---
                -z-
                -R-
-               -/-`);
+               -/-`,
+  );
 
-    good(1, 2, `-A-
+  good(
+    1,
+    2,
+    `-A-
                 -/-
                 -z-
                 -R-
-                ---`);
+                ---`,
+  );
 
-    good(1, 2, `-A-
+  good(
+    1,
+    2,
+    `-A-
                 -/-
                 -t-
                 -/-
                 -R-
-                -/-`);
+                -/-`,
+  );
 
-    good(1, 2, `-A-
+  good(
+    1,
+    2,
+    `-A-
                 r/-
                 -t-
-                -/-`);
+                -/-`,
+  );
 });
 
-suite.testUsingWebGL('increment_mod_R', () => {
-    assertThatGateActsLikePermutation(
-        ModularIncrementGates.IncrementModRFamily.ofSize(2),
-        (t, a) => t < a ? (t + 1) % a : t,
-        [2]);
+suite.testUsingWebGL("increment_mod_R", () => {
+  assertThatGateActsLikePermutation(
+    ModularIncrementGates.IncrementModRFamily.ofSize(2),
+    (t, a) => (t < a ? (t + 1) % a : t),
+    [2],
+  );
 
-    assertThatGateActsLikePermutation(
-        ModularIncrementGates.IncrementModRFamily.ofSize(3),
-        (t, a) => t < a ? (t + 1) % a : t,
-        [2]);
+  assertThatGateActsLikePermutation(
+    ModularIncrementGates.IncrementModRFamily.ofSize(3),
+    (t, a) => (t < a ? (t + 1) % a : t),
+    [2],
+  );
 });
 
-suite.testUsingWebGL('decrement_mod_R', () => {
-    assertThatGateActsLikePermutation(
-        ModularIncrementGates.DecrementModRFamily.ofSize(3),
-        (t, a) => t < a ? (t - 1 + a) % a : t,
-        [3]);
+suite.testUsingWebGL("decrement_mod_R", () => {
+  assertThatGateActsLikePermutation(
+    ModularIncrementGates.DecrementModRFamily.ofSize(3),
+    (t, a) => (t < a ? (t - 1 + a) % a : t),
+    [3],
+  );
 
-    assertThatGateActsLikePermutation(
-        ModularIncrementGates.DecrementModRFamily.ofSize(3),
-        (t, a) => t < a ? (t - 1 + a) % a : t,
-        [2]);
+  assertThatGateActsLikePermutation(
+    ModularIncrementGates.DecrementModRFamily.ofSize(3),
+    (t, a) => (t < a ? (t - 1 + a) % a : t),
+    [2],
+  );
 });

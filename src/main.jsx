@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import {setCustomGateCircuitRenderer} from './draw/gate/CustomGateCircuitRenderer.js';
-import {GATE_CIRCUIT_RENDERER} from './editor/rendering/previews/CircuitPreview.js';
+import { setCustomGateCircuitRenderer } from "./draw/gate/CustomGateCircuitRenderer.js";
+import { GATE_CIRCUIT_RENDERER } from "./editor/rendering/previews/CircuitPreview.js";
 
 import { createRoot } from "react-dom/client";
 import { colourScheme } from "./appearance/colourScheme.js";

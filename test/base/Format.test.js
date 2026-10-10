@@ -14,85 +14,128 @@
  * limitations under the License.
  */
 
-import {Suite, assertThat, assertThrows} from "../TestUtil.js"
-import {Format, bin, digits_to_superscript_digits} from "../../src/base/Format.js"
+import { Suite, assertThat, assertThrows } from "../TestUtil.js";
+import {
+  Format,
+  signedFixed,
+  bin,
+  digits_to_superscript_digits,
+} from "../../src/base/Format.js";
 
 const suite = new Suite("Format");
 
-suite.test("binary labels preserve padding, truncation and zero-width behavior", () => {
+suite.test("signed fixed decimals preserve precision and zero signs", () => {
+  for (const [value, digits, expected] of [
+    [1.25, 2, "+1.25"],
+    [-1.25, 3, "-1.250"],
+    [0, 4, "+0.0000"],
+    [-0, 2, "+0.00"],
+    [-0.001, 2, "-0.00"],
+    [NaN, 2, "NaN"],
+  ]) {
+    assertThat(signedFixed(value, digits)).isEqualTo(expected);
+  }
+});
+
+suite.test(
+  "binary labels preserve padding, truncation and zero-width behavior",
+  () => {
     assertThat(bin(5, 5)).isEqualTo("00101");
     assertThat(bin(5, 2)).isEqualTo("01");
     assertThat(bin(5, 0)).isEqualTo("101");
     assertThat(bin(0, 3)).isEqualTo("000");
     assertThrows(() => bin(5, -1));
-});
+  },
+);
 
 suite.test("superscript digits preserve surrounding text", () => {
-    assertThat(digits_to_superscript_digits("x^-1023456789 + 22")).isEqualTo("x^-¹⁰²³⁴⁵⁶⁷⁸⁹ + ²²");
-    assertThat(digits_to_superscript_digits("")).isEqualTo("");
+  assertThat(digits_to_superscript_digits("x^-1023456789 + 22")).isEqualTo(
+    "x^-¹⁰²³⁴⁵⁶⁷⁸⁹ + ²²",
+  );
+  assertThat(digits_to_superscript_digits("")).isEqualTo("");
 });
 
 suite.test("formatFloat", () => {
-    assertThat(Format.CONSISTENT.formatFloat(0)).isEqualTo("0.00");
-    assertThat(Format.EXACT.formatFloat(0)).isEqualTo("0");
-    assertThat(Format.MINIFIED.formatFloat(0)).isEqualTo("0");
-    assertThat(Format.SIMPLIFIED.formatFloat(0)).isEqualTo("0");
+  assertThat(Format.CONSISTENT.formatFloat(0)).isEqualTo("0.00");
+  assertThat(Format.EXACT.formatFloat(0)).isEqualTo("0");
+  assertThat(Format.MINIFIED.formatFloat(0)).isEqualTo("0");
+  assertThat(Format.SIMPLIFIED.formatFloat(0)).isEqualTo("0");
 
-    assertThat(Format.CONSISTENT.formatFloat(2)).isEqualTo("2.00");
-    assertThat(Format.EXACT.formatFloat(2)).isEqualTo("2");
-    assertThat(Format.MINIFIED.formatFloat(2)).isEqualTo("2");
-    assertThat(Format.SIMPLIFIED.formatFloat(2)).isEqualTo("2");
+  assertThat(Format.CONSISTENT.formatFloat(2)).isEqualTo("2.00");
+  assertThat(Format.EXACT.formatFloat(2)).isEqualTo("2");
+  assertThat(Format.MINIFIED.formatFloat(2)).isEqualTo("2");
+  assertThat(Format.SIMPLIFIED.formatFloat(2)).isEqualTo("2");
 
-    assertThat(Format.CONSISTENT.formatFloat(-3)).isEqualTo("-3.00");
-    assertThat(Format.EXACT.formatFloat(-3)).isEqualTo("-3");
-    assertThat(Format.MINIFIED.formatFloat(-3)).isEqualTo("-3");
-    assertThat(Format.SIMPLIFIED.formatFloat(-3)).isEqualTo("-3");
+  assertThat(Format.CONSISTENT.formatFloat(-3)).isEqualTo("-3.00");
+  assertThat(Format.EXACT.formatFloat(-3)).isEqualTo("-3");
+  assertThat(Format.MINIFIED.formatFloat(-3)).isEqualTo("-3");
+  assertThat(Format.SIMPLIFIED.formatFloat(-3)).isEqualTo("-3");
 
-    assertThat(Format.CONSISTENT.formatFloat(1/3)).isEqualTo("0.33");
-    assertThat(Format.EXACT.formatFloat(1/3)).isEqualTo("\u2153");
-    assertThat(Format.MINIFIED.formatFloat(1/3)).isEqualTo("\u2153");
-    assertThat(Format.SIMPLIFIED.formatFloat(1/3)).isEqualTo("\u2153");
+  assertThat(Format.CONSISTENT.formatFloat(1 / 3)).isEqualTo("0.33");
+  assertThat(Format.EXACT.formatFloat(1 / 3)).isEqualTo("\u2153");
+  assertThat(Format.MINIFIED.formatFloat(1 / 3)).isEqualTo("\u2153");
+  assertThat(Format.SIMPLIFIED.formatFloat(1 / 3)).isEqualTo("\u2153");
 
-    assertThat(Format.CONSISTENT.formatFloat(1/3 + 0.00001)).isEqualTo("0.33");
-    assertThat(Format.EXACT.formatFloat(1/3 + 0.00001)).isEqualTo("0.3333433333333333");
-    assertThat(Format.MINIFIED.formatFloat(1/3 + 0.00001)).isEqualTo("0.3333433333333333");
-    assertThat(Format.SIMPLIFIED.formatFloat(1/3 + 0.00001)).isEqualTo("\u2153");
+  assertThat(Format.CONSISTENT.formatFloat(1 / 3 + 0.00001)).isEqualTo("0.33");
+  assertThat(Format.EXACT.formatFloat(1 / 3 + 0.00001)).isEqualTo(
+    "0.3333433333333333",
+  );
+  assertThat(Format.MINIFIED.formatFloat(1 / 3 + 0.00001)).isEqualTo(
+    "0.3333433333333333",
+  );
+  assertThat(Format.SIMPLIFIED.formatFloat(1 / 3 + 0.00001)).isEqualTo(
+    "\u2153",
+  );
 });
 
 suite.test("parseFloatFromCompactString", () => {
-    assertThrows(() => Format.parseFloat(""));
-    assertThrows(() => Format.parseFloat("a"));
-    assertThrows(() => Format.parseFloat("one"));
+  assertThrows(() => Format.parseFloat(""));
+  assertThrows(() => Format.parseFloat("a"));
+  assertThrows(() => Format.parseFloat("one"));
 
-    assertThat(Format.parseFloat("0")).isEqualTo(0);
-    assertThat(Format.parseFloat("1")).isEqualTo(1);
-    assertThat(Format.parseFloat("-1")).isEqualTo(-1);
+  assertThat(Format.parseFloat("0")).isEqualTo(0);
+  assertThat(Format.parseFloat("1")).isEqualTo(1);
+  assertThat(Format.parseFloat("-1")).isEqualTo(-1);
 
-    assertThat(Format.parseFloat("\u00BD")).isEqualTo(0.5);
-    assertThat(Format.parseFloat("2")).isEqualTo(2);
-    assertThat(Format.parseFloat("501")).isEqualTo(501);
-    assertThat(Format.parseFloat("\u221A2")).isEqualTo(Math.sqrt(2));
-    assertThat(Format.parseFloat("-\u221A3")).isEqualTo(-Math.sqrt(3));
+  assertThat(Format.parseFloat("\u00BD")).isEqualTo(0.5);
+  assertThat(Format.parseFloat("2")).isEqualTo(2);
+  assertThat(Format.parseFloat("501")).isEqualTo(501);
+  assertThat(Format.parseFloat("\u221A2")).isEqualTo(Math.sqrt(2));
+  assertThat(Format.parseFloat("-\u221A3")).isEqualTo(-Math.sqrt(3));
 
-    assertThat(Format.parseFloat("0.7071067811865475")).isEqualTo(1/Math.sqrt(2));
-    assertThat(Format.parseFloat("0.7071067811865476")).isEqualTo(Math.sqrt(1/2));
-    assertThat(Format.parseFloat("\u221A\u00BD")).isEqualTo(Math.sqrt(1/2));
-    assertThat(Format.parseFloat("-\u2153")).isEqualTo(-1/3);
+  assertThat(Format.parseFloat("0.7071067811865475")).isEqualTo(
+    1 / Math.sqrt(2),
+  );
+  assertThat(Format.parseFloat("0.7071067811865476")).isEqualTo(
+    Math.sqrt(1 / 2),
+  );
+  assertThat(Format.parseFloat("\u221A\u00BD")).isEqualTo(Math.sqrt(1 / 2));
+  assertThat(Format.parseFloat("-\u2153")).isEqualTo(-1 / 3);
 
-    assertThat(Format.parseFloat("0.34")).isEqualTo(0.34);
-    assertThat(Format.parseFloat("0.342123")).isEqualTo(0.342123);
-    assertThat(Format.parseFloat("0.342123000")).isEqualTo(0.342123000);
+  assertThat(Format.parseFloat("0.34")).isEqualTo(0.34);
+  assertThat(Format.parseFloat("0.342123")).isEqualTo(0.342123);
+  assertThat(Format.parseFloat("0.342123000")).isEqualTo(0.342123);
 });
 
 suite.test("simplifyByRounding", () => {
-    assertThat(Format.simplifyByRounding(1, 0.01)).isEqualTo(1);
-    assertThat(Format.simplifyByRounding(1.00001, 0)).isEqualTo(1.00001);
-    assertThat(Format.simplifyByRounding(1.00001, 0.01)).isEqualTo(1);
-    assertThat(Format.simplifyByRounding(Math.sqrt(1/2) + 0.0001, 0.01)).isEqualTo(Math.sqrt(0.5));
-    assertThat(Format.simplifyByRounding(1/Math.sqrt(2), 0.0001)).isEqualTo(Math.sqrt(1/2));
-    assertThat(Format.simplifyByRounding(-1/3+0.0000001, 0.001)).isEqualTo(-1/3);
-    assertThat(Format.simplifyByRounding(1/3+0.0000001, 0.001)).isEqualTo(1/3);
-    assertThat(Format.simplifyByRounding(1/3+0.01, 0.001)).isNotEqualTo(1/3);
-    assertThat(Format.simplifyByRounding(0.1234, 0.0001)).isEqualTo(0.1234);
-    assertThat(Format.simplifyByRounding(0, 0.0001)).isEqualTo(0);
+  assertThat(Format.simplifyByRounding(1, 0.01)).isEqualTo(1);
+  assertThat(Format.simplifyByRounding(1.00001, 0)).isEqualTo(1.00001);
+  assertThat(Format.simplifyByRounding(1.00001, 0.01)).isEqualTo(1);
+  assertThat(
+    Format.simplifyByRounding(Math.sqrt(1 / 2) + 0.0001, 0.01),
+  ).isEqualTo(Math.sqrt(0.5));
+  assertThat(Format.simplifyByRounding(1 / Math.sqrt(2), 0.0001)).isEqualTo(
+    Math.sqrt(1 / 2),
+  );
+  assertThat(Format.simplifyByRounding(-1 / 3 + 0.0000001, 0.001)).isEqualTo(
+    -1 / 3,
+  );
+  assertThat(Format.simplifyByRounding(1 / 3 + 0.0000001, 0.001)).isEqualTo(
+    1 / 3,
+  );
+  assertThat(Format.simplifyByRounding(1 / 3 + 0.01, 0.001)).isNotEqualTo(
+    1 / 3,
+  );
+  assertThat(Format.simplifyByRounding(0.1234, 0.0001)).isEqualTo(0.1234);
+  assertThat(Format.simplifyByRounding(0, 0.0001)).isEqualTo(0);
 });

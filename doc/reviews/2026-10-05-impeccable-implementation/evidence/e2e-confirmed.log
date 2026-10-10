@@ -1,0 +1,129 @@
+Running 127 end-to-end tests...
+PASS paints canvas colours directly while DOM controls use stylesheet colours
+PASS loads a URL circuit and renders its Bloch sphere in the circuit area
+PASS IQP-dark chips share the canvas assignment and Register clicks survive zoom and DPR
+PASS drags a gate onto a wire and supports undo, redo, and clear actions
+PASS undoes and redoes with both the control and command modifiers
+PASS keeps drops accurate while zoomed out and fits the circuit on demand
+PASS minimap keeps gate blocks visible after zooming a vertically centered circuit
+PASS Pixi touch gestures pan the empty canvas without DOM touch overlays
+PASS cancelled touch gate drags preserve the circuit and history and allow the next drag
+PASS renders the circuit controls as a button toolbar
+PASS the examples menu loads a circuit, and undo puts the old one back
+PASS a narrow window moves the panel buttons that do not fit into a More menu
+PASS Inspect offers a stable labeled route to every analysis panel
+PASS export copy failures stay announced and the same control can retry
+PASS export copy captures one request and announces completion after the panel closes
+PASS parameter chooser owns focus and Escape returns to its opener
+PASS empty parameter chooser explains the next step and hands focus to gate search
+PASS starter examples teach small experiments and remain undoable
+PASS density cell inspection supports keyboard selection without editing the circuit
+PASS Bloch Planes draws equatorial triangles independently and explains cos · sin
+PASS Bloch Shadow draws the state's shadow and leaves the sphere as it was when switched off
+PASS Bloch steps keep impossible postselection unavailable without losing earlier states
+PASS Bloch steps preserve deferred measurement across display columns
+PASS Bloch source selection cancels an unfinished preset transition
+PASS Bloch sphere leads the panel with reachable controls and unbroken complex amplitudes
+PASS composing Enter and Escape leave Bloch entry and gate search intact
+PASS Bloch sliders show an unfilled track at zero
+PASS closing the Bloch panel releases its figures' render surfaces
+PASS opens a Bloch sphere from its enlarged edge at different zoom levels
+PASS opens and closes the export and gate forge panels
+PASS edits a rotation gate angle through the parameter dialog
+PASS opens the enlarged Bloch sphere view from a Bloch display gate
+PASS panel controls remain distinct from their surfaces across panels
+PASS custom gate windows preserve drafts and fit docked panel widths
+PASS an equality assertion is edited an amplitude at a time, or taken from the state at the gate
+PASS parameter validation and typing undo preserve circuit history
+PASS matrix creation preserves entered values unless correction is accepted
+PASS matrix grids keep dimension drafts and invalidate accepted corrections on edits
+PASS circuit construction includes wide trailing gates and clears selection on method changes
+PASS mathematical entry preserves raw expressions and validates rich edits
+PASS failed mathematical input loading retains usable raw entry
+PASS rotation construction commits the inspected operation and places the new gate
+PASS parameter units, composition and stale targets preserve the current circuit
+PASS Escape closes the formula help before the parameter window
+PASS creating a gate keeps a toolbox search that shows it and clears one that hides it
+PASS construction tabs move focus with the arrow keys and activate with Enter or Space
+PASS a renamed draft waits for its own preview and a double submit creates one gate
+PASS editing Ry through a keyboard-chosen target moves the Bloch vector to the new angle
+PASS a rotation gate edits from its indicator and not from its body at each zoom step
+PASS a wire's Bloch sphere follows the playhead, and Escape closes the analyzer back to the circuit
+PASS steps the circuit with the transport controls and reports the state at the playhead
+PASS transport skips display columns in both directions and highlights the next operation
+PASS the transport is two lanes on one grid, Play over Play and speed over speed
+PASS stepping never moves t, and the Time lane plays, pauses, scrubs and nudges it
+PASS each lane keeps its own speed, and the browser keeps both
+PASS a run halts before a breakpoint and before an assertion that fails
+PASS breakpoints travel in the link, beside the circuit and outside the history
+PASS toggles playback with the space bar
+PASS space pauses whatever moves, t included, and brings back what it paused
+PASS scrubbing to a gate stops playback
+PASS houses the transport in the shell between the toolbar and the work area
+PASS touch playback controls fit a 320px window with full-sized targets
+PASS time scrubber resumes following t after an interrupted pointer gesture
+PASS searches the toolbox, previews on hover, and opens accessible gate details
+PASS opens interactive details for a gate too tall to write out
+PASS places gates with the keyboard alone
+PASS keeps the gate palette in the dock beside the circuit, where it cannot be closed
+PASS on a narrow screen the gate palette is a tab that gives way to the circuit when a gate is taken
+PASS opens gate details by keyboard and restores focus without placing a gate
+PASS opens and closes details by touch at phone width without horizontal popup overflow
+PASS serves the app at root without the retired entry URL
+PASS recovers from a mangled circuit URL with a dismissible banner
+PASS recovers from an unknown gate id with a parse-error banner
+PASS the algebra panel lists every operation with its matrix and the change it makes
+PASS the algebra steps run left to right, follow the playhead and scroll sideways
+PASS rotation entries are written as cosines and sines of their angle
+PASS every step of a large register is drawn as an operator that zooms to its entries
+PASS the operator tile worker ships without Pixi Layout and its Yoga engine
+PASS the probabilities panel traces every outcome through the steps the playhead has reached
+PASS the probabilities panel groups qubits correlated at any step, and splits off the independent ones
+PASS the probabilities panel keeps a large state to the outcomes some step allows
+PASS spinning gates keep turning while the circuit is stepped, and stand still when t is paused
+PASS the qubits panel shows which qubits the circuit has entangled
+PASS tensor factors are optional and coupled matrices stay whole
+PASS five-qubit algebra retains all written matrix entries
+PASS browser preferred font size scales Forge explanations without changing circuit data
+PASS enlarged browser text keeps narrow touch transport within the layout viewport
+PASS reduced motion leaves short-landscape Forge fields and actions visible and scrollable
+PASS prepare boxes start the registers, and every panel reads by register
+PASS a drag down the wire labels makes a register and offers its name at once
+PASS a right click on a wire label groups, feeds and ungroups through its menu
+PASS the palette offers prepare boxes, and one after a gate on its wires is disabled
+PASS Registers composing Enter preserves names and labels until ordinary Enter
+PASS a right click on a gate switches it off and on, and deletes it, through its menu
+PASS a rotation gate wears a dial on its wire, and each turn of it is one commit
+PASS dial semantics preserve signed, fractional and multiple-turn expressions
+PASS a formula dial opens the parameter editor without numeric conversion
+PASS Apple Control-primary click opens the gate menu without a live drag
+PASS Tape records, compares, reloads, restores and downloads complete takes
+PASS Tape whole run uses one phase and links import in a fresh browser context
+PASS Tape validates a whole import before saving any of it
+PASS Keeping a ghost immediately after editing preserves metadata and results on reload
+PASS Tape rejects an album with missing detector data without partial writes
+PASS Tape Undo survives panel closure and restores the last blurred metadata on reload
+PASS matrix equations align across fractions, complex entries, resizing and zoom
+PASS plain wheels remain vertical and Shift+wheel alone converts to horizontal scrolling
+PASS large operators support keyboard entry selection without scrolling during zoom
+PASS Forge shares written matrices, preserves parsing and previews non-unitary operators
+PASS gate details write out a complete eight-by-eight operator
+PASS measurement steps retain simulated states without claiming a matrix equality
+PASS shared appearance imports no renderer, browser, or CSS implementation
+PASS JavaScript owns theme assignments at startup and across panels and gate chips
+PASS looks the way the system does, and follows it when it changes while the app runs
+PASS a stationary minimap repaints when the system appearance changes
+PASS live palette snapshots and operator tile keys change without mutating prior snapshots
+PASS theme changes preserve undo and paused transport while repainting the existing canvas
+PASS a box dragged from an empty part of the circuit selects whole gates, and edits nothing
+PASS copy, paste, delete and cut act on the selection by key, each edit one commit
+PASS the selection menu and bar copy, delete and make a gate of the selection
+PASS the circuit is named and described for assistive technology, and edited by keyboard alone
+PASS an empty circuit says how to put the first gate on it
+PASS Option held at the drop copies a dragged gate; let go before the drop, it moves
+PASS a touch held still on a gate opens its menu and leaves the gate where it was
+PASS Reduce Motion stands the time-dependent gates still
+PASS opening the bare page continues from the circuit that was left
+PASS dock folds to tabs and restores wide layout without losing a gate draft
+PASS reload at a narrow width retains the saved wide dock and export fits its panel
+Completed 127/127 end-to-end tests.

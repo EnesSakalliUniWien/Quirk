@@ -3,63 +3,69 @@
    just above the selection, or just below it where there is no room above. The selection itself is
    drawn on the canvas (src/editor/rendering/interaction/CircuitHighlights.js). */
 @layer components {
-    .selection-bar {
-        position: absolute;
-        z-index: 5;
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-        max-width: 360px;
-        padding: 2px;
-        color: var(--card-foreground);
-        background: var(--card);
-        border: var(--border-width) solid var(--border);
-        border-radius: 10px;
-        box-shadow: 0 8px 24px var(--shadow-popup);
-        font-size: var(--text-small);
-    }
+  .selection-bar {
+    position: absolute;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-width: 360px;
+    padding: 2px;
+    color: var(--card-foreground);
+    background: var(--card);
+    border: var(--border-width) solid var(--border);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px var(--shadow-popup);
+    font-size: var(--text-small);
+  }
 
-    .selection-bar[data-placement="above"] { transform: translateY(calc(-100% - 6px)); }
-    .selection-bar[data-placement="below"] { transform: translateY(6px); }
+  .selection-bar[data-placement="above"] {
+    transform: translateY(calc(-100% - 6px));
+  }
+  .selection-bar[data-placement="below"] {
+    transform: translateY(6px);
+  }
 
-    .selection-bar-actions {
-        display: flex;
-        align-items: center;
-        gap: 2px;
-    }
+  .selection-bar-actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
 
-    .selection-bar-size {
-        padding: 0 calc(var(--spacing) * 2);
-        color: var(--muted-foreground);
-        font-variant-numeric: tabular-nums;
-        white-space: nowrap;
-    }
+  .selection-bar-size {
+    padding: 0 calc(var(--spacing) * 2);
+    color: var(--muted-foreground);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
 
-    .selection-bar-note {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: baseline;
-        gap: 4px 8px;
-        margin: 0;
-        padding: 2px calc(var(--spacing) * 2) 4px;
-        color: var(--muted-foreground);
-        font-size: 0.75rem;
-    }
+  .selection-bar-note {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 8px;
+    margin: 0;
+    padding: 2px calc(var(--spacing) * 2) 4px;
+    color: var(--muted-foreground);
+    font-size: 0.75rem;
+  }
 
-    .selection-bar-include {
-        padding: 0;
-        border: none;
-        background: none;
-        color: var(--panel-link);
-        font: inherit;
-        text-decoration: underline;
-        cursor: pointer;
-    }
+  .selection-bar-include {
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--panel-link);
+    font: inherit;
+    text-decoration: underline;
+    cursor: pointer;
+  }
 
-    .selection-bar-include:hover { color: var(--panel-link-hover); }
+  .selection-bar-include:hover {
+    color: var(--panel-link-hover);
+  }
 
-    .selection-bar-include:focus-visible {
-        outline: var(--border-width-focus) solid var(--ring);
-        outline-offset: 2px;
-    }
+  .selection-bar-include:focus-visible {
+    outline: var(--border-width-focus) solid var(--ring);
+    outline-offset: 2px;
+  }
 }

@@ -77,4 +77,9 @@ function fromJson_CustomGateSet(json) {
   return gatesSoFar;
 }
 
-export { toJson_GateColumn, fromJson_GateColumn, toJson_CustomGateSet, fromJson_CustomGateSet };
+export {
+  toJson_GateColumn,
+  fromJson_GateColumn,
+  toJson_CustomGateSet,
+  fromJson_CustomGateSet,
+};

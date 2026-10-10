@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-import {Suite, assertThat} from "../TestUtil.js"
-import {DetailedError} from "../../src/base/DetailedError.js"
+import { Suite, assertThat } from "../TestUtil.js";
+import { DetailedError } from "../../src/base/DetailedError.js";
 
 const suite = new Suite("DetailedError");
 
 class ReentrantDescription {
-    toString() {
-        return new DetailedError("re-enter", this).details;
-    }
+  toString() {
+    return new DetailedError("re-enter", this).details;
+  }
 }
 
 suite.test("re-entrant_details", () => {
-    assertThat(new DetailedError("test", new ReentrantDescription()).details).
-        isEqualTo("(failed to describe detailsObj due to possibly re-entrancy)");
+  assertThat(
+    new DetailedError("test", new ReentrantDescription()).details,
+  ).isEqualTo("(failed to describe detailsObj due to possibly re-entrancy)");
 });

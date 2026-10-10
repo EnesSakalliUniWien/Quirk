@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "strict": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "target": "esnext",
+    "skipLibCheck": true,
+    "types": []
+  },
+  "files": [
+    "src/results/take/schema.js",
+    "src/results/take/size.js",
+    "src/results/files/limits.js",
+    "src/results/idle.js",
+    "src/engine/simulation/random.js",
+    "src/base/valueStore.js"
+  ]
+}

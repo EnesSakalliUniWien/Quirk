@@ -1,9 +1,11 @@
+import { useColourScheme } from "../useColourScheme.js";
 import { useEffect, useRef } from "react";
 
 import { paintInto } from "../../draw/surface/SharedPaintSurface.js";
 import { DATA_RENDERERS } from "../../draw/renderers/dataRenderers.js";
 import { rasterMatrix } from "../../draw/renderers/rasters.js";
 import { Rect } from "../../geometry/Rect.js";
+import { useOnScreen } from "../panels/shared/useOnScreen.js";
 
 /** Below this many pixels per entry, discs and hands are too small to read. */
 const MIN_MARK_PIXELS = 4;
@@ -19,18 +21,32 @@ const PIXEL_RENDERERS = { matrix: rasterMatrix, state: rasterMatrix };
  * rasters.js). `data-detail` says which: "marks" or "pixels".
  *
  * `data-painted` is set once the pixels are in, which is also how a test knows the view is drawn.
+ * A view that nobody can see - scrolled out of its panel, or in a panel behind another tab - is not
+ * painted, since every painting costs the GPU a copy; it keeps the pixels it has, and paints
+ * the data it holds once it is on screen.
  *
  * @param {!{kind: ("matrix"|"state"|"probabilities"), data: (undefined|!Matrix), width: !number,
- *     height: !number, options: (undefined|!Object), label: !string, className: (undefined|!string)}} props
+ *     height: !number, options: (undefined|!Object), label: !string, describedBy?: !string, className?: !string}} props
  *     options must hold plain values: it is compared by content, so a caller need not memoise it.
  */
-function DataView({ kind, data, width, height, options, label, className }) {
+function DataView({
+  kind,
+  data,
+  width,
+  height,
+  options,
+  label,
+  describedBy,
+  className,
+}) {
+  const scheme = useColourScheme();
   const ref = useRef(null);
   const optionsKey = JSON.stringify(options ?? {});
+  const onScreen = useOnScreen(ref);
 
   useEffect(() => {
     const canvas = ref.current;
-    if (canvas === null || data === undefined) {
+    if (canvas === null || data === undefined || !onScreen) {
       return undefined;
     }
     const perEntry = Math.min(width / data.width(), height / data.height());
@@ -41,7 +57,9 @@ function DataView({ kind, data, width, height, options, label, className }) {
       canvas.width = pixelWidth;
       canvas.height = pixelHeight;
       const pixels = PIXEL_RENDERERS[kind](data, pixelWidth, pixelHeight);
-      canvas.getContext("2d").putImageData(new ImageData(pixels, pixelWidth, pixelHeight), 0, 0);
+      canvas
+        .getContext("2d")
+        .putImageData(new ImageData(pixels, pixelWidth, pixelHeight), 0, 0);
       canvas.dataset.detail = "pixels";
       canvas.dataset.painted = "true";
       return undefined;
@@ -55,17 +73,20 @@ function DataView({ kind, data, width, height, options, label, className }) {
       height,
       (view) => DATA_RENDERERS[kind](view, data, rect, JSON.parse(optionsKey)),
       () => current,
-    ).then((painted) => {
-      if (painted !== false && current) {
-        canvas.dataset.painted = "true";
-      }
-    }, () => {
-      // The rendering surface reports failures; leave this canvas unpainted for a later update.
-    });
+    ).then(
+      (painted) => {
+        if (painted !== false && current) {
+          canvas.dataset.painted = "true";
+        }
+      },
+      () => {
+        // The rendering surface reports failures; leave this canvas unpainted for a later update.
+      },
+    );
     return () => {
       current = false;
     };
-  }, [kind, data, width, height, optionsKey]);
+  }, [kind, data, width, height, optionsKey, onScreen, scheme]);
 
   return (
     <canvas
@@ -73,6 +94,7 @@ function DataView({ kind, data, width, height, options, label, className }) {
       className={className ?? "data-view"}
       role="img"
       aria-label={label}
+      aria-describedby={describedBy}
       style={{ width: `${width}px`, height: `${height}px` }}
     />
   );

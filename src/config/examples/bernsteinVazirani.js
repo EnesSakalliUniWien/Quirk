@@ -31,7 +31,12 @@ const bernsteinVaziraniLink = {
     {
       id: "~s101",
       name: "Oracle",
-      circuit: { cols: [["•", 1, 1, "X"], [1, 1, "•", "X"]] },
+      circuit: {
+        cols: [
+          ["•", 1, 1, "X"],
+          [1, 1, "•", "X"],
+        ],
+      },
     },
   ],
 };
