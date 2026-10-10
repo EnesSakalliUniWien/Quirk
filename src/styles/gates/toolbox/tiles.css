@@ -7,9 +7,11 @@
     display: none;
   }
 
+  /* The details button's column is as wide as the button, which grows with the browser's text
+       size and to a touch target on a coarse pointer. */
   .gate-tile-row {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 32px;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
   }
 
@@ -18,10 +20,6 @@
   }
 
   @media (any-pointer: coarse) {
-    .gate-tile-row {
-      grid-template-columns: minmax(0, 1fr) 44px;
-    }
-
     .gate-tile {
       min-height: 44px;
     }
