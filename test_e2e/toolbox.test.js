@@ -30,6 +30,47 @@ import {
   circuitTopForWires,
 } from "./harness.js";
 
+/**
+ * How the gate rows sit in the palette's scroll viewport: the widest row against the width the
+ * viewport shows, and whether the Hadamard row's details button lies inside what it shows.
+ */
+const paletteFit = (page) =>
+  page.evaluate(() => {
+    const viewport = document.querySelector(".gate-toolbox-viewport");
+    const bounds = viewport.getBoundingClientRect();
+    const left = bounds.left + viewport.clientLeft;
+    const top = bounds.top + viewport.clientTop;
+    const button = document
+      .querySelector('.gate-tile[data-gate-id="H"]')
+      .closest(".gate-tile-row")
+      .querySelector(".gate-details-trigger")
+      .getBoundingClientRect();
+    return {
+      clientWidth: viewport.clientWidth,
+      widestRow: Math.max(
+        ...[...document.querySelectorAll(".gate-tile-row")].map(
+          (row) => row.getBoundingClientRect().width,
+        ),
+      ),
+      buttonInside:
+        button.left >= left &&
+        button.right <= left + viewport.clientWidth &&
+        button.top >= top &&
+        button.bottom <= top + viewport.clientHeight,
+    };
+  });
+
+function assertPaletteFits(fit) {
+  assert.ok(
+    fit.widestRow <= fit.clientWidth,
+    `Gate rows must fit the palette's ${fit.clientWidth}px, saw ${fit.widestRow}px.`,
+  );
+  assert.ok(
+    fit.buttonInside,
+    "A row's details button must lie inside the palette.",
+  );
+}
+
 test("searches the toolbox, previews on hover, and opens accessible gate details", async (browser) => {
   await withQuirkPage(browser, { cols: [["H"]] }, async (page) => {
     const shown = () =>
@@ -296,14 +337,10 @@ test("the palette, its gate cards and their figures follow the browser text size
     async (page) => {
       // The hover card and the details popup a tile opens, read from the Hadamard gate's.
       const cardSizes = async () => {
-        // Over the chip, which sits at the tile's start: the middle of a tile wider than the
-        // sidebar can fall under the sidebar's scrollbar.
         const tile = await page.evaluate(() => {
           const target = document.querySelector('.gate-tile[data-gate-id="H"]');
           target.scrollIntoView({ block: "center" });
-          const bounds = target
-            .querySelector(".gate-chip")
-            .getBoundingClientRect();
+          const bounds = target.getBoundingClientRect();
           return {
             x: bounds.x + bounds.width / 2,
             y: bounds.y + bounds.height / 2,
@@ -320,8 +357,6 @@ test("the palette, its gate cards and their figures follow the browser text size
           blurb: getComputedStyle(card.querySelector(".gate-details-blurb"))
             .fontSize,
         }));
-        // From the keyboard: a tile row can be wider than the sidebar, and the hover card lies
-        // over the details button.
         await page.focus('[aria-label="Details for Hadamard Gate"]');
         await page.keyboard.press("Enter");
         await page.waitForSelector(".gate-details-popup", {
@@ -493,6 +528,8 @@ test("the palette, its gate cards and their figures follow the browser text size
       await session.send("Page.setFontSizes", { fontSizes: { standard: 32 } });
       await page.reload();
       await waitForQuirk(page);
+      // The rows still fit the palette, a details button grown with the text included.
+      assertPaletteFits(await paletteFit(page));
       assert.deepEqual(await sizes(), {
         search: "26px",
         heading: "22px",
@@ -608,6 +645,15 @@ test("keeps the gate palette in the dock beside the circuit, where it cannot be 
       "Circuit",
       "Gates",
     ]);
+  });
+});
+
+test("fits every gate row and its details button inside the palette", async (browser) => {
+  await withQuirkPage(browser, { cols: [["H"]] }, async (page) => {
+    // Groups scrolled out of sight skip rendering, and the size they reserve once counted as a
+    // width too: every row grew past the viewport, its name clipped rather than ending in an
+    // ellipsis and its details button out of sight.
+    assertPaletteFits(await paletteFit(page));
   });
 });
 
