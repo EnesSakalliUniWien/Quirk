@@ -105,7 +105,8 @@ export function ForgePanelBody({ deps }) {
     <div
       className="panel-body forge-panel"
       ref={root}
-      aria-labelledby="forge-title"
+      // Its title and what it does: the dock names the panel's own region by the title alone.
+      aria-labelledby="forge-title forge-description"
       role="region"
       onKeyDown={(event) => {
         if (event.nativeEvent.isComposing) {
@@ -122,7 +123,7 @@ export function ForgePanelBody({ deps }) {
         <h1 className="panel-title" id="forge-title">
           Create gate
         </h1>
-        <p className="panel-description">
+        <p className="panel-description" id="forge-description">
           Define the operation, inspect it, then add it to Custom Gates.
         </p>
       </header>

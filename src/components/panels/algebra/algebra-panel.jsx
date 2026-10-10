@@ -60,27 +60,43 @@ function AlgebraPanel() {
   // the panel puts the card in view at once - the playhead rests at the end, the last card - and
   // only a step after that glides.
   const placed = useRef(false);
+  // Where the track was last put, while it is still there.
+  const putAt = useRef(undefined);
   useEffect(() => {
     const track = trackRef.current;
-    const card = track?.querySelector(`[data-step="${current}"]`);
-    if (track !== null && card !== null && card !== undefined) {
+    if (track === null) return undefined;
+    const place = (behavior) => {
+      const card = track.querySelector(`[data-step="${current}"]`);
+      if (card === null) return;
       const left = card.offsetLeft;
       const right = left + card.offsetWidth;
       if (
         left < track.scrollLeft ||
         right > track.scrollLeft + track.clientWidth
       ) {
-        track.scrollTo({
-          left:
-            card.offsetWidth > track.clientWidth
-              ? left
-              : Math.max(0, right - track.clientWidth),
-          behavior:
-            !placed.current || prefersReducedMotion() ? "auto" : "smooth",
-        });
+        const target =
+          card.offsetWidth > track.clientWidth
+            ? left
+            : Math.max(0, right - track.clientWidth);
+        putAt.current = Math.min(target, track.scrollWidth - track.clientWidth);
+        track.scrollTo({ left: target, behavior });
       }
-      placed.current = true;
-    }
+    };
+    place(!placed.current || prefersReducedMotion() ? "auto" : "smooth");
+    placed.current = true;
+    // The cards measure their matrices after they render, and widen with them. While the track
+    // stands where it was put, the card stays in view as they do; once the user scrolls, it stays
+    // where they left it.
+    const observer = new ResizeObserver(() => {
+      if (
+        putAt.current !== undefined &&
+        Math.abs(track.scrollLeft - putAt.current) <= 1
+      ) {
+        place("auto");
+      }
+    });
+    for (const child of track.children) observer.observe(child);
+    return () => observer.disconnect();
   }, [current, ready]);
 
   if (!ready) {
