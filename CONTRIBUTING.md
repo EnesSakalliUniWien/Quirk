@@ -30,7 +30,9 @@ Each browser suite builds its own `out/`, so do not run build commands concurren
   discovers the entry from `index.html`. A full `--production` scan also reports exports used
   only by tests, which are not necessarily unused code.
 - `npm test`, `npm run test:e2e` and `npm run test:perf` run the browser unit, end-to-end and
-  performance suites. `npm run build` produces the production bundle alone.
+  performance suites. `npm run build` produces the production bundle alone. The performance goals
+  are set for a GPU; where WebGL draws in software, as on CI's runners, they are measured and
+  reported but not enforced.
 - `npm run test:a11y` runs axe on the desktop workspace and nine panels, the populated parameter editor,
   desktop/mobile Bloch analyzers, and the mobile workspace with its Inspect/More menus, plus
   keyboard circuit-editing and toolbar-navigation checks.
