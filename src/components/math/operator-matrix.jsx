@@ -13,6 +13,7 @@ function OperatorMatrix({
   size = 260,
   label = "Operator",
   showTensorFactors = false,
+  followsText = false,
 }) {
   const symbolic =
     matrix !== undefined &&
@@ -40,6 +41,7 @@ function OperatorMatrix({
           size={size}
           label={label}
           formatKet={formatKet}
+          followsText={followsText}
         />
       )}
     </figure>

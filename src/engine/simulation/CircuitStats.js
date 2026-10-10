@@ -212,7 +212,7 @@ class CircuitStats {
    * @returns {undefined|*}
    */
   customStatsForSlot(col, row) {
-    const key = col + ":" + row;
+    const key = `${col}:${row}`;
     return this._customStatsProcessed.has(key)
       ? this._customStatsProcessed.get(key)
       : undefined;
@@ -805,7 +805,7 @@ function processCustomStats(
       circuitDefinition.gateInSlot(col, row).customStatPostProcesser ||
       ((e) => e);
     customStatsProcessed.set(
-      col + ":" + row,
+      `${col}:${row}`,
       func(customStatsPixelData[out], circuitDefinition, col, row),
     );
   }

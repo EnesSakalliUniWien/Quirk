@@ -45,7 +45,7 @@ function _drawLabelsReasonablyFast(
   boundingWidth,
   alignEnd = false,
 ) {
-  painter.group("basis-text-" + painter.order, (painter) => {
+  painter.group(`basis-text-${painter.order}`, (painter) => {
     const font = {
       fontSize: 12,
       fontFamily: Typography.MONO_FONT_FAMILY,

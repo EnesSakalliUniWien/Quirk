@@ -144,9 +144,6 @@ const ui = Object.freeze({
   controlSurface: colour(65, 73, 91),
   controlHover: colour(80, 91, 112),
   brandInk: colour(233, 235, 242),
-  brandSurface: colour(229, 232, 239, 0.2),
-  brandBorder: colour(229, 232, 239, 0.52),
-  brandGlow: colour(229, 232, 239, 0.24),
   panelGlow: colour(139, 147, 166, 0.6),
   // A filled primary button lifts to white under the pointer, as a light one deepens on light.
   panelPrimaryHover: colour(255, 255, 255),

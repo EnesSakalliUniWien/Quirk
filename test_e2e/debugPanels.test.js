@@ -628,26 +628,26 @@ test("tensor factors are optional and coupled matrices stay whole", async (brows
     await waitForPanel(page, "algebra", true);
     const operator =
       '[data-panel-id="algebra"] [data-step="1"] .operator-matrix';
-    await page.waitForSelector(operator + " summary");
+    await page.waitForSelector(`${operator} summary`);
     assert.equal(
-      await page.$$eval(operator + " mtable", (nodes) => nodes.length),
+      await page.$$eval(`${operator} mtable`, (nodes) => nodes.length),
       1,
     );
-    await page.$eval(operator + " summary", (e) => e.click());
-    await page.waitForSelector(operator + " .tensor-product");
+    await page.$eval(`${operator} summary`, (e) => e.click());
+    await page.waitForSelector(`${operator} .tensor-product`);
     assert.equal(
-      await page.$$eval(operator + " mtable", (nodes) => nodes.length),
+      await page.$$eval(`${operator} mtable`, (nodes) => nodes.length),
       3,
     );
     assert.equal(
       await page.$eval(
-        operator + " mtable",
+        `${operator} mtable`,
         (e) => e.querySelectorAll("mtr").length,
       ),
       4,
     );
     assert.ok(
-      await page.$eval(operator + " .tensor-product", (e) =>
+      await page.$eval(`${operator} .tensor-product`, (e) =>
         e.textContent.includes("⊗"),
       ),
     );
@@ -679,10 +679,10 @@ test("tensor factors are optional and coupled matrices stay whole", async (brows
       ),
       0,
     );
-    await page.$eval(operator + " summary", (e) => e.click());
+    await page.$eval(`${operator} summary`, (e) => e.click());
     await page.waitForFunction(
       (selector) =>
-        document.querySelectorAll(selector + " mtable").length === 1,
+        document.querySelectorAll(`${selector} mtable`).length === 1,
       {},
       operator,
     );
@@ -694,17 +694,17 @@ test("five-qubit algebra retains all written matrix entries", async (browser) =>
     await page.click("#algebra-button");
     await waitForPanel(page, "algebra", true);
     const selector = '[data-step="1"] .operator-matrix';
-    await page.waitForSelector(selector + " mtable");
+    await page.waitForSelector(`${selector} mtable`);
     assert.equal(
-      await page.$$eval(selector + " mtr", (nodes) => nodes.length),
+      await page.$$eval(`${selector} mtr`, (nodes) => nodes.length),
       32,
     );
     assert.equal(
-      await page.$$eval(selector + " mtd", (nodes) => nodes.length),
+      await page.$$eval(`${selector} mtd`, (nodes) => nodes.length),
       1024,
     );
     assert.equal(
-      await page.$$eval(selector + " canvas", (nodes) => nodes.length),
+      await page.$$eval(`${selector} canvas`, (nodes) => nodes.length),
       0,
     );
   });

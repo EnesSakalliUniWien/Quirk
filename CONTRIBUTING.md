@@ -25,8 +25,14 @@ Each browser suite builds its own `out/`, so do not run build commands concurren
   uses `checkJs`, `strict`, and `noEmit`, with typed dependency boundaries. Grow this scope as modules become ready. `npm run typecheck:legacy` keeps the full
   historical advisory check available; its Closure-era JSDoc still produces diagnostics.
 - `npm run knip` checks unused files, exports and dependencies.
+- `npm run knip -- --production --include files,dependencies,unlisted,unresolved` checks the
+  production files and dependencies. The source project pattern has Knip's `!` suffix; Vite
+  discovers the entry from `index.html`. A full `--production` scan also reports exports used
+  only by tests, which are not necessarily unused code.
 - `npm test`, `npm run test:e2e` and `npm run test:perf` run the browser unit, end-to-end and
-  performance suites. `npm run build` produces the production bundle alone.
+  performance suites. `npm run build` produces the production bundle alone. The performance goals
+  are set for a GPU; where WebGL draws in software, as on CI's runners, they are measured and
+  reported but not enforced.
 - `npm run test:a11y` runs axe on the desktop workspace and nine panels, the populated parameter editor,
   desktop/mobile Bloch analyzers, and the mobile workspace with its Inspect/More menus, plus
   keyboard circuit-editing and toolbar-navigation checks.
@@ -121,6 +127,9 @@ engine/simulation` (the serializer rebuilds circuit-backed gates through `Circui
 and `test_e2e/` are flat, feature-named suites; `test_perf/` imports `src/` directly. The unit
 and performance suites each ship their own harness page beside them, `test/test.html` and
 `test_perf/test_perf.html`, which Vite builds as extra entry points.
+Both entry modules first import `test/BrowserTestHarness.js`, which publishes the shared
+progress and result globals before either runner loads. Keep harness logic in this JavaScript
+module so ESLint checks it.
 
 `scripts/` holds the Node tooling the npm scripts call: `run-browser-tests.js` drives either
 harness page under Puppeteer, `run-e2e-tests.js` runs the end-to-end registry, and

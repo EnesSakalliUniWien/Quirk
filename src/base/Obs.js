@@ -16,8 +16,6 @@
 
 import { createStore } from "zustand/vanilla";
 
-import { CooldownThrottle } from "./CooldownThrottle.js";
-
 /**
  * An observable sequence of events.
  *
@@ -187,45 +185,6 @@ class Observable {
           unsub();
         }
       };
-    });
-  }
-
-  /**
-   * Starts a timer after each completed send, delays sending any more values until the timer expires, and skips
-   * intermediate values when a newer value arrives from the source while the timer is still running down.
-   * @param {!number} cooldownMillis
-   * @returns {!Observable.<T>}
-   * @template T
-   */
-  throttleLatest(cooldownMillis) {
-    return new Observable((observer) => {
-      let latest = undefined;
-      let isKilled = false;
-      const throttle = new CooldownThrottle(() => {
-        if (!isKilled) {
-          observer(latest);
-        }
-      }, cooldownMillis);
-      const unsub = this.subscribe((e) => {
-        latest = e;
-        throttle.trigger();
-      });
-      return () => {
-        isKilled = true;
-        unsub();
-      };
-    });
-  }
-
-  /**
-   * @param {!HTMLElement|!HTMLDocument} element
-   * @param {!string} eventKey
-   * @returns {!Observable.<*>} An observable corresponding to an event fired from an element.
-   */
-  static elementEvent(element, eventKey) {
-    return new Observable((observer) => {
-      element.addEventListener(eventKey, observer);
-      return () => element.removeEventListener(eventKey, observer);
     });
   }
 

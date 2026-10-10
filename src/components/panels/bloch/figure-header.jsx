@@ -7,13 +7,14 @@
 
 /**
  * A figure's title bar. It sits outside the canvas, so no axis letter drawn inside can meet it.
+ * A figure is a part of the analyzer of its own, so its title is a level below the analyzer's.
  *
  * @param {FigureHeaderProps} props
  */
 function FigureHeader({ title, caption, action }) {
   return (
     <header className="bloch-figure-header">
-      <h4>{title}</h4>
+      <h3>{title}</h3>
       {action ?? <span className="bloch-figure-axis">{caption}</span>}
     </header>
   );

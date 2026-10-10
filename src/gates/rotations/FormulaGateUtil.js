@@ -82,7 +82,7 @@ function makeUpdateFormulaFunc(
       if (gate.param.startsWith("-(") && gate.param.endsWith(")")) {
         gate.alternate.param = gate.param.slice(2, gate.param.length - 1);
       } else {
-        gate.alternate.param = "-(" + gate.param + ")";
+        gate.alternate.param = `-(${gate.param})`;
       }
     } else {
       gate.width = 1 + dial;

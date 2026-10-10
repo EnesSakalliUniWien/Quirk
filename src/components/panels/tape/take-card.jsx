@@ -9,18 +9,47 @@ import { Theme } from "../../../config/Theme.js";
 import { CopyButton } from "../export/copy-button.jsx";
 import { Distribution } from "./distribution.jsx";
 
+/** The most frequent measured outcomes, as their bits, highest bit first. */
+function measuredSummary(take, jointCounts) {
+  if (jointCounts === undefined) return undefined;
+  const { shots } = take.measurement;
+  const top = jointCounts
+    .flatMap((count, index) => (count > 0 ? [[index, count]] : []))
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8);
+  if (top.length === 0) return `Measured ${shots} shots: unavailable`;
+  return `Measured ${shots} shots: ${top.map(([index, count]) => `${index.toString(2).padStart(take.wires, "0")} ×${count}`).join(", ")}`;
+}
+
 function TakeCard({ record, selected, onSelect, recorder, act, onDelete }) {
   useColourScheme();
-  const { take, ghost } = record;
+  const { take, ghost, linked = false } = record;
   const values = useMemo(() => distributions(take), [take]);
   const [name, setName] = useState(take.name);
   const [notes, setNotes] = useState(take.notes);
   const editedTake = () => ({ ...take, name: name.trim() || take.name, notes });
+  // A linked take lives only on its card until it is kept.
   const saveMetadata = () =>
-    act(() => recorder.store.write([editedTake()], { ghost }));
+    act(async () =>
+      linked
+        ? recorder.linked.setState({ value: editedTake() })
+        : recorder.store.write([editedTake()], { ghost }),
+    );
+  const keep = () =>
+    act(() =>
+      linked
+        ? recorder.keepLinked(editedTake())
+        : recorder.store.write([editedTake()]),
+    );
+  // A linked take is only dismissed: it was never saved.
+  const remove = () =>
+    linked
+      ? act(async () => recorder.linked.setState({ value: undefined }))
+      : onDelete(take.id);
+  const measured = measuredSummary(take, values.jointCounts);
   return (
     <article
-      className={`take-card ${ghost ? "take-ghost" : ""}`}
+      className={`take-card ${ghost ? "take-ghost" : ""} ${linked ? "take-linked" : ""}`}
       style={{ "--take-colour": Theme.tape[take.colour] }}
       data-take-id={take.id}
     >
@@ -36,8 +65,12 @@ function TakeCard({ record, selected, onSelect, recorder, act, onDelete }) {
         onBlur={saveMetadata}
       />
       <p>
-        {ghost ? "Automatic snapshot · " : ""}Step {take.step} · phase{" "}
-        {take.phase.toFixed(4)}
+        {ghost
+          ? "Automatic snapshot · "
+          : linked
+            ? "From a link, not saved · "
+            : ""}
+        Step {take.step} · phase {take.phase.toFixed(4)}
       </p>
       <Distribution
         colour={Theme.tape[take.colour]}
@@ -59,6 +92,7 @@ function TakeCard({ record, selected, onSelect, recorder, act, onDelete }) {
           </p>
         ))}
       </div>
+      {measured !== undefined && <p className="take-measurement">{measured}</p>}
       {Object.entries(take.result.samples).map(([key, v]) => (
         <p key={key}>
           Sample {key}: {v.i}
@@ -75,11 +109,8 @@ function TakeCard({ record, selected, onSelect, recorder, act, onDelete }) {
         />
       </details>
       <div className="tape-actions">
-        {ghost && (
-          <button
-            type="button"
-            onClick={() => act(() => recorder.store.write([editedTake()]))}
-          >
+        {(ghost || linked) && (
+          <button type="button" onClick={keep}>
             Keep
           </button>
         )}
@@ -122,8 +153,8 @@ function TakeCard({ record, selected, onSelect, recorder, act, onDelete }) {
           text={() => takeLink(take, location.href)}
           fallback="Download this snapshot using JSON to share it, or retry."
         />
-        <button type="button" onClick={() => onDelete(take.id)}>
-          Delete
+        <button type="button" onClick={remove}>
+          {linked ? "Dismiss" : "Delete"}
         </button>
       </div>
     </article>

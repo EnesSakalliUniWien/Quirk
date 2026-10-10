@@ -102,9 +102,7 @@ function isApproximatelyEqualToHelper(subject, other, epsilon) {
     return true;
   } else {
     fail(
-      "Expected " +
-        describe(subject) +
-        " to have an isApproximatelyEqualTo method",
+      `Expected ${describe(subject)} to have an isApproximatelyEqualTo method`,
     );
     return false;
   }
@@ -293,7 +291,7 @@ export function assertThat(subject, extraArgCatcher) {
   }
   return new AssertionSubject(
     subject,
-    "assertThat #" + assertionSubjectIndexForNextTest,
+    `assertThat #${assertionSubjectIndexForNextTest}`,
   );
 }
 
@@ -320,7 +318,7 @@ export function assertThrows(func, extraArgCatcher) {
   } catch (ex) {
     return new AssertionSubject(ex, "assertThrows");
   }
-  fail("Expected an exception to be thrown by " + func);
+  fail(`Expected an exception to be thrown by ${func}`);
   return undefined;
 }
 

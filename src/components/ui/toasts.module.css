@@ -1,3 +1,4 @@
+@import "../../styles/layers.css";
 /* The toasts' corner (src/components/ui/toasts.jsx): one short note at a time, bottom centre, over
    the dock. Unlayered, like the popup menu, so the dock's own rules do not outrank it. */
 .app-toasts {

@@ -50,6 +50,87 @@
     opacity: 0.7;
   }
 
+  .take-linked {
+    border-style: dotted;
+  }
+
+  .take-measurement {
+    overflow-wrap: anywhere;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* A recording under way is marked in the recording colour, on REC and beside it, and says so in
+       words, so it is never told by colour alone. */
+  .record-controls {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .recording-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--destructive);
+    white-space: nowrap;
+  }
+
+  .recording-indicator[hidden] {
+    display: none;
+  }
+
+  .recording-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--destructive);
+    animation: recording-pulse 1.2s ease-in-out infinite;
+  }
+
+  @keyframes recording-pulse {
+    50% {
+      opacity: 0.35;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .recording-dot {
+      animation: none;
+    }
+  }
+
+  .motion-settings {
+    margin: 10px 0;
+  }
+
+  /* Label, control and value on one line while they fit, and wrapping onto the next in a narrow
+       panel, so nothing ever scrolls sideways. */
+  .motion-setting {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    align-items: center;
+    margin: 6px 0;
+  }
+
+  .motion-setting > label {
+    flex: 0 0 11em;
+    max-width: 100%;
+  }
+
+  .motion-setting > input,
+  .motion-setting > select {
+    flex: 1 1 120px;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .motion-setting output {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
   .take-readings {
     max-height: 140px;
     overflow: auto;

@@ -533,7 +533,7 @@ function labelSegment(view, from, to, text, color, project, center) {
     },
     // A formula crosses whatever the leg crosses, so it reads off its own plate.
     beforeDraw: (w, h) =>
-      view.group("plate-" + text + x.toFixed(0) + y.toFixed(0), (plate) => {
+      view.group(`plate-${text}${x.toFixed(0)}${y.toFixed(0)}`, (plate) => {
         plate.alpha *= 0.72;
         rectangle(plate, new Rect(x - w / 2 - 2, y - h / 2, w + 4, h), {
           fill: CanvasTheme.bloch.background,
@@ -616,7 +616,7 @@ function paintBlochScene(
   }
   if (layers.circles) {
     for (const { axis, pointAt } of UNIT_CIRCLES) {
-      forAxis("circle-" + axis, axis, (inner) => {
+      forAxis(`circle-${axis}`, axis, (inner) => {
         // The circles are the frame the components are read against, so they sit back.
         inner.alpha *= 0.55;
         strokeGreatCircle(
@@ -662,7 +662,7 @@ function paintBlochScene(
     );
     if (!detailed) continue;
     if (positive)
-      forAxis("head-" + letter, letter, (inner) =>
+      forAxis(`head-${letter}`, letter, (inner) =>
         arrowHead(inner, center, tip, AXIS_COLOR[letter], 6),
       );
 
@@ -675,7 +675,7 @@ function paintBlochScene(
       align: "center",
       baseline: "middle",
     });
-    forAxis("letter-" + ket, letter, (inner) =>
+    forAxis(`letter-${ket}`, letter, (inner) =>
       drawText(inner, letter, {
         x: label.x,
         y: label.y + 14,
@@ -786,7 +786,7 @@ function paintBlochScene(
     : [
         ...(layers.components ? projectionTriangles(vec) : []).map(
           ({ axis, foot }) => ({
-            key: "projection-" + axis,
+            key: `projection-${axis}`,
             foot,
             tip: vector,
             axis,
@@ -798,7 +798,7 @@ function paintBlochScene(
         ),
         ...(layers.planes ? coordinatePlaneTriangles(vec) : []).map(
           ({ axes: [a, b], normal, foot, tip }) => ({
-            key: "plane-" + a + b,
+            key: `plane-${a}${b}`,
             foot,
             tip,
             axis: normal,
@@ -849,12 +849,12 @@ function paintBlochScene(
     corners.set(`${foot} ${base.color}`, { at: foot, ...base });
   }
   for (const [key, { from, to, color, axis, width, dash }] of segments) {
-    forAxis("segment-" + key, axis, (inner) =>
+    forAxis(`segment-${key}`, axis, (inner) =>
       strokePath(inner, [project(...from), project(...to)], color, width, dash),
     );
   }
   for (const triangle of triangles) {
-    forAxis("angle-" + triangle.key, triangle.leg.axis, (inner) =>
+    forAxis(`angle-${triangle.key}`, triangle.leg.axis, (inner) =>
       drawRightAngle(
         inner,
         triangle.foot,
@@ -866,7 +866,7 @@ function paintBlochScene(
     );
   }
   for (const [key, { at, color, axis }] of corners) {
-    forAxis("corner-" + key, axis, (inner) =>
+    forAxis(`corner-${key}`, axis, (inner) =>
       circle(inner, project(...at), 2.5, { fill: color }),
     );
   }
@@ -878,7 +878,7 @@ function paintBlochScene(
     for (const triangle of triangles.filter(
       (t) => t.key.startsWith("projection-") && formulas[t.axis] !== undefined,
     )) {
-      forAxis("trig-" + triangle.key, triangle.axis, (inner) =>
+      forAxis(`trig-${triangle.key}`, triangle.axis, (inner) =>
         labelSegment(
           inner,
           triangle.foot,

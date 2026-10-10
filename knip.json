@@ -9,7 +9,7 @@
     "scripts/*.js"
   ],
   "project": [
-    "src/**/*.{js,jsx}",
+    "src/**/*.{js,jsx}!",
     "test/**/*.js",
     "test_perf/**/*.js",
     "test_e2e/**/*.js",

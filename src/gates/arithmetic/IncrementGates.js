@@ -30,7 +30,7 @@ const offsetShader = ketShaderPermute(
 
 IncrementGates.IncrementFamily = Gate.buildFamily(1, 16, (span, builder) =>
   builder
-    .setSerializedId("inc" + span)
+    .setSerializedId(`inc${span}`)
     .setSymbol("+1")
     .setTitle("Increment Gate")
     .setBlurb(
@@ -45,7 +45,7 @@ IncrementGates.IncrementFamily = Gate.buildFamily(1, 16, (span, builder) =>
 IncrementGates.DecrementFamily = Gate.buildFamily(1, 16, (span, builder) =>
   builder
     .setAlternateFromFamily(IncrementGates.IncrementFamily)
-    .setSerializedId("dec" + span)
+    .setSerializedId(`dec${span}`)
     .setSymbol("−1")
     .setTitle("Decrement Gate")
     .setBlurb(

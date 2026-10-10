@@ -247,8 +247,7 @@ test("a formula dial opens the parameter editor without numeric conversion", asy
       // A loaded non-constant parameter can replace a numeric gate in the same slot. The
       // constant-angle editor deliberately rejects it, but must remain reachable to repair it.
       await page.evaluate((circuit) => {
-        location.hash =
-          "circuit=" + encodeURIComponent(JSON.stringify(circuit));
+        location.hash = `circuit=${encodeURIComponent(JSON.stringify(circuit))}`;
       }, circuit);
       await waitForCircuit(page, circuit);
       assert.deepEqual(

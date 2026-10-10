@@ -365,21 +365,6 @@ class CircuitViewState {
   }
 
   /**
-   * @param {undefined|!int} extraWireStartIndex
-   * @returns {!CircuitViewState}
-   * @private
-   */
-  _withExtraWireStartIndex(extraWireStartIndex) {
-    return new CircuitViewState(
-      this.top,
-      this.circuitDefinition,
-      this._compressedColumnIndex,
-      this._highlightedSlot,
-      extraWireStartIndex,
-    );
-  }
-
-  /**
    * @param {!int} extraWireCount
    * @returns {!CircuitViewState}
    */

@@ -244,6 +244,10 @@ function runCircuit(
         true,
         afterStep,
         known?.length ?? 0,
+        // Fused runs end at the prefix to keep and at the playhead, whose states afterStep copies.
+        {
+          stopBefore: (col) => (toKeep && col === keptLength) || col === step,
+        },
       ),
     );
     if (currentShaderCoder().vec2.needRearrangingToBeInVec4Format) {
@@ -536,6 +540,8 @@ function readStatesAfterSteps(
         }
       },
       known?.length ?? 0,
+      // Fused runs end at every step whose state is read.
+      { stopBefore: (col) => wanted.has(col) },
     );
   } catch (ex) {
     for (const copy of copies)

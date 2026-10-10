@@ -218,7 +218,8 @@ function GateDetails({
             source={alone?.source}
             structure={alone?.structure}
             size={DRAWN_MATRIX_SIZE}
-            label={"The matrix of the " + gate.name}
+            followsText
+            label={`The matrix of the ${gate.name}`}
           />
           <p className="gate-details-legend">
             Rows: output basis states. Columns: input basis states. Basis order
@@ -270,7 +271,12 @@ function GateDetails({
       {decomposition !== undefined && (
         <section className="gate-details-section">
           <h3>Stands for</h3>
-          <CircuitFigure circuit={decomposition} time={time} responsive />
+          <CircuitFigure
+            circuit={decomposition}
+            time={time}
+            responsive
+            followsText
+          />
           <p className="gate-details-legend">
             gate weight {decomposition.gateWeight()}
           </p>

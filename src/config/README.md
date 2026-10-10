@@ -7,14 +7,20 @@ change their definitions and reload the app instead of mutating them at runtime.
 - `Layout.js`: circuit dimensions and minimum displayed column count. Derived dimensions are
   calculated before freezing the object so they stay consistent with `UNIT`.
 - `Simulation.js`: wire limits and simulation time constants.
-- `Animation.js`: how everything that moves on screen moves - the gates' cycle and its increment
-  per debug step, the playhead's time per operation, the Bloch glide and its easing, and how
-  often the panels sample the simulation.
+- `Animation.js`: how everything that moves on screen moves - the gates' cycle and the Time lane's
+  nudge, the playhead's time per operation, the Bloch glide and its easing, and how often the
+  panels sample the simulation. The Steps and Time lanes scale the paces by the speeds the viewer
+  picks; the glide and the panels' sampling are defaults the user sets in Tape, which
+  `src/state/motionSettings.js` keeps and remembers.
+- `Recording.js`: the default sampling rate of a started recording and the shots each snapshot
+  measures, which the user also sets through `src/state/motionSettings.js`.
 - `Rendering.js`: redraw cooldown and the amplitude drawing detail threshold.
 - `Diagnostics.js`: intentionally mutable WebGL debugging switch. `test/TestUtil.js` enables
   hot-path checks for the entire browser test environment; do not freeze this switch.
-- `exampleCircuits.js`: named serialized circuits for the examples menu. The array, entries and
-  nested circuit data are frozen. The menu commits JSON text, so editing uses deserialized data.
+- `exampleCircuits.js`: named serialized circuits for the examples menu, ordered from foundational
+  to advanced. The array, entries and nested circuit data are frozen. The menu commits JSON text,
+  so editing uses deserialized data. Each circuit's data lives in its own module under
+  `examples/`; this file only orders and freezes the combined list.
 - `Theme.js`, `CanvasTheme.js`, `Typography.js`: compatibility import paths for appearance mappings.
 
 `test/config/` covers theme conversion and example deserialization through the gate catalogue.

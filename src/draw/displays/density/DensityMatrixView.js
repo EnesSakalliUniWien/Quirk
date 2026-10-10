@@ -96,7 +96,7 @@ export function paintDensityMatrix(
         : `Coupling of |${bin(r, n)}⟩ to ⟨${bin(c, n)}| (decimal ${r} to ${c})`,
     (c, r, v) =>
       c === r
-        ? (v.real * 100).toFixed(4) + "%"
+        ? `${(v.real * 100).toFixed(4)}%`
         : v.toString(new Format(false, 0, 6, ", ")),
     () =>
       pixels

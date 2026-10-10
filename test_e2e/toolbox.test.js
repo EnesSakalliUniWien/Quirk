@@ -20,6 +20,7 @@ import assert from "node:assert/strict";
 import {
   test,
   withQuirkPage,
+  waitForQuirk,
   waitForCircuit,
   TEST_TIMEOUT_MILLIS,
   canvasLayout,
@@ -279,6 +280,261 @@ test("places gates with the keyboard alone", async (browser) => {
     await page.keyboard.press("Enter");
     await waitForCircuit(page, { cols: [["X"], ["H"], ["X"]] });
   });
+});
+
+test("the palette, its gate cards and their figures follow the browser text size, with the rest of the chrome", async (browser) => {
+  // A custom gate built from a six-qubit circuit, so a details popup draws an operator view.
+  const circuit = {
+    cols: [["H"]],
+    gates: [
+      { id: "~tall", name: "Tall", circuit: { cols: [["inc6"], ["H"]] } },
+    ],
+  };
+  await withQuirkPage(
+    browser,
+    circuit,
+    async (page) => {
+      // The hover card and the details popup a tile opens, read from the Hadamard gate's.
+      const cardSizes = async () => {
+        // Over the chip, which sits at the tile's start: the middle of a tile wider than the
+        // sidebar can fall under the sidebar's scrollbar.
+        const tile = await page.evaluate(() => {
+          const target = document.querySelector('.gate-tile[data-gate-id="H"]');
+          target.scrollIntoView({ block: "center" });
+          const bounds = target
+            .querySelector(".gate-chip")
+            .getBoundingClientRect();
+          return {
+            x: bounds.x + bounds.width / 2,
+            y: bounds.y + bounds.height / 2,
+          };
+        });
+        await page.mouse.move(tile.x, tile.y);
+        await page.waitForSelector(".gate-hover", {
+          visible: true,
+          timeout: TEST_TIMEOUT_MILLIS,
+        });
+        const hover = await page.$eval(".gate-hover", (card) => ({
+          title: getComputedStyle(card.querySelector(".gate-details-title"))
+            .fontSize,
+          blurb: getComputedStyle(card.querySelector(".gate-details-blurb"))
+            .fontSize,
+        }));
+        // From the keyboard: a tile row can be wider than the sidebar, and the hover card lies
+        // over the details button.
+        await page.focus('[aria-label="Details for Hadamard Gate"]');
+        await page.keyboard.press("Enter");
+        await page.waitForSelector(".gate-details-popup", {
+          visible: true,
+          timeout: TEST_TIMEOUT_MILLIS,
+        });
+        const details = await page.$eval(".gate-details-popup", (popup) => {
+          const size = (selector) =>
+            getComputedStyle(popup.querySelector(selector)).fontSize;
+          return {
+            title: size(".gate-details-title"),
+            heading: size(".gate-details-section h3"),
+            caption: size(".matrix-factor > figcaption"),
+            matrix: size(".matrix-math"),
+            action: size(".gate-details-actions li"),
+            facts: size(".gate-details-facts"),
+            width: popup.getBoundingClientRect().width,
+            figure: popup
+              .querySelector(".rotation-figure")
+              .getBoundingClientRect().width,
+          };
+        });
+        return { hover, details };
+      };
+      // Closes the details popup that is open and opens the one for another gate.
+      const openDetails = async (id) => {
+        await page.keyboard.press("Escape");
+        await page.waitForSelector(".gate-details-popup", {
+          hidden: true,
+          timeout: TEST_TIMEOUT_MILLIS,
+        });
+        const trigger = await page.evaluateHandle((id) => {
+          const row = document
+            .querySelector(`.gate-tile[data-gate-id="${id}"]`)
+            .closest(".gate-tile-row");
+          row.scrollIntoView({ block: "center" });
+          return row.querySelector(".gate-details-trigger");
+        }, id);
+        await trigger.focus();
+        await page.keyboard.press("Enter");
+      };
+      // The circuit the two-wire increment gate stands for, drawn in its details popup: the
+      // figure's height, and how tall the drawing painted on it is.
+      const circuitFigure = async () => {
+        await openDetails("inc2");
+        // The figure takes its host's width once the host is laid out, and draws at that width.
+        const figure = await page.waitForFunction(
+          () => {
+            const host = document.querySelector(
+              ".gate-details-popup .responsive-circuit-figure",
+            );
+            const canvas = host?.querySelector("canvas");
+            if (
+              !canvas ||
+              canvas.width !== Math.floor(host.getBoundingClientRect().width)
+            )
+              return false;
+            const copy = document.createElement("canvas");
+            copy.width = canvas.width;
+            copy.height = canvas.height;
+            const context = copy.getContext("2d");
+            context.drawImage(canvas, 0, 0);
+            const data = context.getImageData(
+              0,
+              0,
+              copy.width,
+              copy.height,
+            ).data;
+            const background = data.slice(0, 3);
+            const rows = [];
+            for (let y = 0; y < copy.height; y++) {
+              for (let x = 0; x < copy.width; x++) {
+                const i = (y * copy.width + x) * 4;
+                if (
+                  [0, 1, 2].some(
+                    (c) => Math.abs(data[i + c] - background[c]) > 24,
+                  )
+                ) {
+                  rows.push(y);
+                  break;
+                }
+              }
+            }
+            return rows.length === 0
+              ? false
+              : {
+                  height: canvas.getBoundingClientRect().height,
+                  painted: rows.at(-1) - rows[0],
+                };
+          },
+          { timeout: TEST_TIMEOUT_MILLIS },
+        );
+        return figure.jsonValue();
+      };
+      // The operator view the tall gate's matrix is drawn in: its canvas on screen and in backing
+      // pixels, and the readout under it.
+      const operatorView = async () => {
+        await openDetails("~tall");
+        const view = await page.waitForFunction(
+          () => {
+            const canvas = document.querySelector(
+              ".gate-details-popup .operator-view-canvas",
+            );
+            return canvas?.dataset.painted !== "true"
+              ? false
+              : {
+                  canvas: [canvas.getBoundingClientRect().width, canvas.width],
+                  readout: document
+                    .querySelector(".gate-details-popup .operator-view-readout")
+                    .getBoundingClientRect().width,
+                };
+          },
+          { timeout: TEST_TIMEOUT_MILLIS },
+        );
+        return view.jsonValue();
+      };
+      const sizes = () =>
+        page.evaluate(() => {
+          const size = (selector) =>
+            getComputedStyle(document.querySelector(selector)).fontSize;
+          const chip = document
+            .querySelector('.gate-tile[data-gate-id="X^½"] .gate-chip')
+            .getBoundingClientRect();
+          return {
+            search: size("#gate-search"),
+            heading: size(".gate-group-label"),
+            name: size(".gate-tile-name"),
+            symbol: size('.gate-tile[data-gate-id="X^½"] .gate-chip-symbol'),
+            raised: size('.gate-tile[data-gate-id="X^½"] sup'),
+            chip: [chip.width, chip.height],
+            toolbar: size('.app-toolbar [data-slot="button"]'),
+          };
+        });
+      // At the browser's usual 16px the palette and its cards are sized as they always were.
+      assert.deepEqual(await sizes(), {
+        search: "13px",
+        heading: "11px",
+        name: "13px",
+        symbol: "14px",
+        raised: "11px",
+        chip: [48, 26],
+        toolbar: "14px",
+      });
+      assert.deepEqual(await cardSizes(), {
+        hover: { title: "16px", blurb: "13px" },
+        details: {
+          title: "16px",
+          heading: "11px",
+          caption: "13px",
+          matrix: "16.8px",
+          action: "14px",
+          facts: "13px",
+          width: 440,
+          figure: 148,
+        },
+      });
+      const usualCircuit = await circuitFigure();
+      assert.equal(usualCircuit.height, 130);
+      assert.deepEqual(await operatorView(), {
+        canvas: [260, 260],
+        readout: 260,
+      });
+
+      // Twice the text size in the browser's settings doubles the palette's text, each chip with its
+      // symbol, and the cards' text with the details popup's width and its figures, drawn larger. The
+      // toolbar is sized from the document root, which follows the browser, and doubles too. Chrome
+      // applies the setting from the next page load.
+      const session = await page.createCDPSession();
+      await session.send("Page.setFontSizes", { fontSizes: { standard: 32 } });
+      await page.reload();
+      await waitForQuirk(page);
+      assert.deepEqual(await sizes(), {
+        search: "26px",
+        heading: "22px",
+        name: "26px",
+        symbol: "28px",
+        raised: "22px",
+        chip: [96, 52],
+        toolbar: "28px",
+      });
+      assert.deepEqual(await cardSizes(), {
+        hover: { title: "32px", blurb: "26px" },
+        details: {
+          title: "32px",
+          heading: "22px",
+          caption: "26px",
+          matrix: "33.6px",
+          action: "28px",
+          facts: "26px",
+          width: 880,
+          figure: 296,
+        },
+      });
+      // The circuit figure doubles, and so does the drawing on it. The drawing is shrunk to fit its
+      // box, so a taller box alone would grow it too, but only until it reached its own size: at
+      // this size that would stop it short of double.
+      const largerCircuit = await circuitFigure();
+      assert.equal(largerCircuit.height, 260);
+      assert.ok(
+        Math.abs(largerCircuit.painted / usualCircuit.painted - 2) < 0.05,
+        `The circuit drawing must grow with the figure: ${usualCircuit.painted}px, then ${largerCircuit.painted}px.`,
+      );
+      // The operator view doubles too, drawn at its new size rather than stretched, and its
+      // readout keeps its width.
+      assert.deepEqual(await operatorView(), {
+        canvas: [520, 520],
+        readout: 520,
+      });
+      // A window with room for the chrome at twice its size, so the sidebar can bring a tile clear of
+      // its sticky group heading.
+    },
+    { width: 1600, height: 1200, deviceScaleFactor: 1 },
+  );
 });
 
 test("keeps the gate palette in the dock beside the circuit, where it cannot be closed", async (browser) => {

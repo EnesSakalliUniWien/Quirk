@@ -125,7 +125,7 @@ function initZoomControls(container, fitFactorProvider) {
   );
 
   const showZoom = () => {
-    readout.textContent = Math.round(circuitZoom() * 100) + "%";
+    readout.textContent = `${Math.round(circuitZoom() * 100)}%`;
   };
   onCircuitZoomChanged(showZoom);
   showZoom();

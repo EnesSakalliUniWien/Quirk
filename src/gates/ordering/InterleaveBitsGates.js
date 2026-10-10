@@ -143,7 +143,7 @@ InterleaveBitsGates.InterleaveBitsGateFamily = Gate.buildFamily(
   16,
   (span, builder) =>
     builder
-      .setSerializedId("weave" + span)
+      .setSerializedId(`weave${span}`)
       .setSymbol("Interleave")
       .setTitle("Interleave")
       .setBlurb("Re-orders blocks of bits into stripes of bits.")
@@ -161,7 +161,7 @@ InterleaveBitsGates.DeinterleaveBitsGateFamily = Gate.buildFamily(
   (span, builder) =>
     builder
       .setAlternateFromFamily(InterleaveBitsGates.InterleaveBitsGateFamily)
-      .setSerializedId("split" + span)
+      .setSerializedId(`split${span}`)
       .setSymbol("Deinterleave")
       .setTitle("Deinterleave")
       .setBlurb("Re-orders stripes of bits into blocks of bits.")

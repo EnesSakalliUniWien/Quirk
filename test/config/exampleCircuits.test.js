@@ -117,11 +117,195 @@ suite.testUsingWebGL(
   },
 );
 
+/**
+ * @param {!string} name
+ * @param {!number} time
+ * @returns {!Matrix} The example's output state at the time.
+ */
+function finalStateOf(name, time = 0) {
+  const { circuit } = EXAMPLE_CIRCUITS.find((e) => e.name === name);
+  return CircuitStats.fromCircuitAtTime(
+    Serializer.fromJson(CircuitDefinition, circuit),
+    time,
+  ).finalState;
+}
+
+/**
+ * @param {!int} numWires
+ * @param {!Object.<!int, !number>} amplitudes The nonzero amplitudes, by basis state.
+ * @returns {!Matrix}
+ */
+function stateWith(numWires, amplitudes) {
+  const values = new Array(1 << numWires).fill(0);
+  for (const [index, amplitude] of Object.entries(amplitudes))
+    values[Number(index)] = amplitude;
+  return Matrix.col(...values);
+}
+
+/**
+ * The time at which a Counting gate over `span` wires holds `value`: the middle of its step.
+ * @param {!int} value
+ * @param {!int} span
+ * @returns {!number}
+ */
+function countingTime(value, span) {
+  return (value + 0.5) / (1 << span);
+}
+
+const HALF = Math.SQRT1_2;
+
+suite.testUsingWebGL(
+  "Bell State puts half the amplitude on 00 and half on 11",
+  () => {
+    assertThat(finalStateOf("Bell State")).isApproximatelyEqualTo(
+      stateWith(2, { 0: HALF, 3: HALF }),
+      0.0005,
+    );
+  },
+);
+
+suite.testUsingWebGL(
+  "Bell State leaves each qubit alone at the centre of its Bloch sphere",
+  () => {
+    const { circuit } = EXAMPLE_CIRCUITS.find((e) => e.name === "Bell State");
+    const stats = CircuitStats.fromCircuitAtTime(
+      Serializer.fromJson(CircuitDefinition, circuit),
+      0,
+    );
+    for (const wire of [0, 1]) {
+      const { x, y, z } = blochCoordinates(
+        stats.qubitDensityMatrix(Infinity, wire),
+      );
+      assertThat([x, y, z])
+        .withInfo({ wire })
+        .isApproximatelyEqualTo([0, 0, 0], 0.0005);
+    }
+  },
+);
+
+suite.testUsingWebGL(
+  "GHZ State puts half the amplitude on 000 and half on 111",
+  () => {
+    assertThat(finalStateOf("GHZ State")).isApproximatelyEqualTo(
+      stateWith(3, { 0: HALF, 7: HALF }),
+      0.0005,
+    );
+  },
+);
+
+suite.testUsingWebGL(
+  "SWAP from Three CNOTs acts as a Swap gate, on a product state and on every basis state",
+  () => {
+    const { circuit } = EXAMPLE_CIRCUITS.find(
+      (e) => e.name === "SWAP from Three CNOTs",
+    );
+    const [prepare, ...rest] = circuit.cols;
+    const run = (json) =>
+      CircuitStats.fromCircuitAtTime(
+        Serializer.fromJson(CircuitDefinition, json),
+        0,
+      ).finalState;
+    const swapped = run({ cols: [prepare, ["Swap", "Swap"]] });
+    assertThat(run(circuit)).isApproximatelyEqualTo(swapped, 0.0005);
+    assertThat(run(circuit)).isNotApproximatelyEqualTo(
+      run({ cols: [prepare] }),
+      0.0005,
+    );
+    for (const [a, b] of [
+      [0, 0],
+      [0, 1],
+      [1, 0],
+      [1, 1],
+    ]) {
+      const out = run({ init: [a, b], cols: rest });
+      assertThat(out)
+        .withInfo({ a, b })
+        .isApproximatelyEqualTo(stateWith(2, { [b + 2 * a]: 1 }), 0.0005);
+    }
+  },
+);
+
+suite.testUsingWebGL(
+  "Phase Kickback flips the control and leaves the target in |−⟩",
+  () => {
+    // Wire 0 is the control and the lowest bit. It ends in |1⟩, and the target in (|0⟩ - |1⟩)/√2.
+    assertThat(finalStateOf("Phase Kickback")).isApproximatelyEqualTo(
+      stateWith(2, { 1: HALF, 3: -HALF }),
+      0.0005,
+    );
+  },
+);
+
+suite.testUsingWebGL(
+  "Toffoli as Reversible AND writes A·B and keeps A and B",
+  () => {
+    for (let k = 0; k < 4; k++) {
+      const [a, b] = [k & 1, k >> 1];
+      assertThat(finalStateOf("Toffoli as Reversible AND", countingTime(k, 2)))
+        .withInfo({ a, b })
+        .isApproximatelyEqualTo(stateWith(3, { [k + 4 * (a & b)]: 1 }), 0.0005);
+    }
+  },
+);
+
+suite.testUsingWebGL(
+  "Half Adder writes A + B into Sum and keeps A and B",
+  () => {
+    for (let k = 0; k < 4; k++) {
+      const [a, b] = [k & 1, k >> 1];
+      assertThat(finalStateOf("Half Adder", countingTime(k, 2)))
+        .withInfo({ a, b })
+        .isApproximatelyEqualTo(stateWith(4, { [k + 4 * (a + b)]: 1 }), 0.0005);
+    }
+  },
+);
+
+suite.testUsingWebGL(
+  "Full Adder writes A + B + Cin into Sum and keeps A, B and Cin",
+  () => {
+    for (let k = 0; k < 8; k++) {
+      const [a, b, c] = [k & 1, (k >> 1) & 1, k >> 2];
+      assertThat(finalStateOf("Full Adder", countingTime(k, 3)))
+        .withInfo({ a, b, c })
+        .isApproximatelyEqualTo(
+          stateWith(5, { [k + 8 * (a + b + c)]: 1 }),
+          0.0005,
+        );
+    }
+  },
+);
+
+suite.testUsingWebGL(
+  "Increment from Controlled NOTs adds one to x, modulo 8",
+  () => {
+    for (let x = 0; x < 8; x++) {
+      assertThat(
+        finalStateOf("Increment from Controlled NOTs", countingTime(x, 3)),
+      )
+        .withInfo({ x })
+        .isApproximatelyEqualTo(stateWith(3, { [(x + 1) % 8]: 1 }), 0.0005);
+    }
+  },
+);
+
+suite.testUsingWebGL(
+  "Bernstein-Vazirani reads the hidden string 101 with one oracle call",
+  () => {
+    // The inputs hold s = 101 = 5. The fourth qubit, bit 3, stays in (|0⟩ - |1⟩)/√2.
+    assertThat(finalStateOf("Bernstein-Vazirani")).isApproximatelyEqualTo(
+      stateWith(4, { 5: HALF, 13: -HALF }),
+      0.0005,
+    );
+  },
+);
+
 suite.test(
   "editing a deserialized example leaves the source data unchanged",
   () => {
+    // Picked by name, not position, since it needs a custom gate definition and a plain string
+    // gate id at cols[0][0]; which example is first is an ordering choice, not a guarantee.
     const source = EXAMPLE_CIRCUITS.find(
-      (example) => example.circuit.gates?.length,
+      (e) => e.name === "Grover Search",
     ).circuit;
     const before = JSON.stringify(EXAMPLE_CIRCUITS);
     assertThrows(() =>

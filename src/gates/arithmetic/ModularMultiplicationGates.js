@@ -226,7 +226,7 @@ ModularMultiplicationGates.TimesAModRFamily = Gate.buildFamily(
   16,
   (span, builder) =>
     builder
-      .setSerializedId("*AmodR" + span)
+      .setSerializedId(`*AmodR${span}`)
       .setSymbol("×A\nmod R")
       .setTitle("Modular Multiplication Gate")
       .setBlurb(
@@ -250,7 +250,7 @@ ModularMultiplicationGates.TimesAModRInverseFamily = Gate.buildFamily(
   (span, builder) =>
     builder
       .setAlternateFromFamily(ModularMultiplicationGates.TimesAModRFamily)
-      .setSerializedId("/AmodR" + span)
+      .setSerializedId(`/AmodR${span}`)
       .setSymbol("×A^-1\nmod R")
       .setTitle("Modular Division Gate")
       .setBlurb(
@@ -273,7 +273,7 @@ ModularMultiplicationGates.TimesBToTheAModRFamily = Gate.buildFamily(
   16,
   (span, builder) =>
     builder
-      .setSerializedId("*BToAmodR" + span)
+      .setSerializedId(`*BToAmodR${span}`)
       .setSymbol("×B^A\nmod R")
       .setTitle("Modular Power Multiplication Gate")
       .setListName("Modular Power Multiply")
@@ -301,7 +301,7 @@ ModularMultiplicationGates.TimesInverseBToTheAModRFamily = Gate.buildFamily(
   (span, builder) =>
     builder
       .setAlternateFromFamily(ModularMultiplicationGates.TimesBToTheAModRFamily)
-      .setSerializedId("/BToAmodR" + span)
+      .setSerializedId(`/BToAmodR${span}`)
       .setSymbol("×B^-A\nmod R")
       .setTitle("Modular Power Division Gate")
       .setBlurb(

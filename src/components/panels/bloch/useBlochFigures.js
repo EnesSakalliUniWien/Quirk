@@ -10,6 +10,7 @@ import { drawBlochStrip } from "../../../draw/displays/bloch/BlochStrip.js";
 import { clock } from "../../../base/Clock.js";
 import { prefersReducedMotion } from "../../../browser/reducedMotion.js";
 import { Animation } from "../../../config/Animation.js";
+import { motionSettings } from "../../../state/motionSettings.js";
 import { RenderSurface } from "../../../draw/surface/RenderSurface.js";
 import {
   blochCoordinates,
@@ -56,7 +57,7 @@ import {
  * which can be the circuit's own, so the figures must not hold one each.
  *
  * When the state shown changes at once - another step, back from a free state, an edited circuit -
- * the arrow glides to it along the sphere over Animation.GLIDE_DURATION_MS, landing on the state as it is
+ * the arrow glides to it along the sphere over the user's glide duration, landing on the state as it is
  * then, so a running circuit's arrow is caught up with rather than left behind. With Reduce Motion
  * on it lands there at once.
  *
@@ -94,7 +95,7 @@ function useBlochFigures({
     ),
   );
   const glideRef = useRef(
-    /** @type {{ from: import("./analyzerModel.js").BlochVector, start: number } | undefined} */ (
+    /** @type {{ from: import("./analyzerModel.js").BlochVector, start: number, duration: number } | undefined} */ (
       undefined
     ),
   );
@@ -175,17 +176,19 @@ function useBlochFigures({
         vec !== undefined &&
         !prefersReducedMotion()
       ) {
-        glideRef.current = { from: shownVector.current, start: clock.now() };
+        // The glide keeps the duration it started with, whatever the setting does meanwhile.
+        glideRef.current = {
+          from: shownVector.current,
+          start: clock.now(),
+          duration: (deps.settings ?? motionSettings).getState().glideMs,
+        };
       }
       sourceRef.current = source;
       const glide = glideRef.current;
       const progress =
-        glide === undefined
+        glide === undefined || glide.duration <= 0
           ? 1
-          : Math.min(
-              1,
-              (clock.now() - glide.start) / Animation.GLIDE_DURATION_MS,
-            );
+          : Math.min(1, (clock.now() - glide.start) / glide.duration);
       if (glide !== undefined && vec !== undefined && progress < 1) {
         vec = blochVectorBetween(
           glide.from,

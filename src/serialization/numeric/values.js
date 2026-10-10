@@ -35,7 +35,7 @@ function fromJson_Complex(json) {
   if (typeof json === "string") {
     return ComplexFormula.parse(json);
   }
-  throw new Error("Not a packed complex string: " + json);
+  throw new Error(`Not a packed complex string: ${json}`);
 }
 
 /**
@@ -53,7 +53,7 @@ function toJson_Matrix(v) {
  */
 function fromJson_Matrix(json) {
   if (typeof json !== "string") {
-    throw new Error("Not a packed matrix string: " + json);
+    throw new Error(`Not a packed matrix string: ${json}`);
   }
   return Matrix.parse(/** @type {!string} */ json);
 }

@@ -147,7 +147,8 @@ function ParameterList({ deps, close, findGate }) {
     <div
       ref={bodyRef}
       className="panel-body gate-param-panel"
-      aria-labelledby="gate-param-list-title"
+      // Its title and what it does: the dock names the panel's own region by the title alone.
+      aria-labelledby="gate-param-list-title gate-param-list-description"
       role="region"
       onKeyDown={(e) => {
         if (
@@ -164,7 +165,7 @@ function ParameterList({ deps, close, findGate }) {
         <h2 id="gate-param-list-title" className="gate-param-title">
           {entries.length ? "Gate parameter" : "No editable parameters yet"}
         </h2>
-        <p className="field-description">
+        <p className="field-description" id="gate-param-list-description">
           {entries.length
             ? "Choose a gate to edit."
             : "Add a rotation gate such as Rx, Ry, or Rz, then return here to change its angle."}

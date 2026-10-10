@@ -89,11 +89,16 @@ export class RenderSurface {
     return this;
   }
   /** Begin a frame in CSS pixels, using the current display's pixel ratio. */
-  beginCssFrame(width, height) {
+  /**
+   * A frame `width` by `height` CSS pixels, drawn `scale` times its own units: lines keep at least
+   * their CSS width when the scale shrinks the drawing, as the circuit's zoom does.
+   */
+  beginCssFrame(width, height, scale = 1) {
     const ratio = window.devicePixelRatio || 1;
     return this.resize(width * ratio, height * ratio).beginFrame(
       undefined,
-      ratio,
+      ratio * scale,
+      1 / Math.min(scale, 1),
     );
   }
   beginFrame(rng, pixelRatio = 1, lineScale = 1) {

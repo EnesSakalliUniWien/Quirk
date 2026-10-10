@@ -142,7 +142,9 @@ suite.testUsingWebGL(
               kept,
             );
           const info = { circuit: definition.toString(), step, time, seed };
-          assertThat(statsDifference(fullStats, expectedWhole))
+          // Gate fusion ends its runs where the playhead stands, so a run that also gives the
+          // playhead's stats fuses differently: the whole circuit's stats are the same to a rounding.
+          assertThat(statsDifference(fullStats, expectedWhole, 1e-6))
             .withInfo(info)
             .isEqualTo(undefined);
           const expected = CircuitStats.fromCircuitAtTime(playhead, time, seed);
@@ -229,10 +231,12 @@ suite.test(
       assertThat(pending.poll()).isEqualTo(undefined);
       const { fullStats, stats } = await settled(() => pending.poll());
       const info = { circuit: definition.toString(), step, i };
+      // To a rounding, since gate fusion ends its runs at the playhead (see above).
       assertThat(
         statsDifference(
           fullStats,
           CircuitStats.fromCircuitAtTime(definition, time + 0.05, seed),
+          1e-6,
         ),
       )
         .withInfo(info)

@@ -22,7 +22,7 @@ import { customStatsToJsonData } from "./customStatsToJsonData.js";
 
 const AmplitudeDisplayFamily = Gate.buildFamily(1, 16, (span, builder) =>
   builder
-    .setSerializedId("Amps" + span)
+    .setSerializedId(`Amps${span}`)
     .setSymbol("Amps")
     .setTitle("Amplitude Display")
     .setBlurb(

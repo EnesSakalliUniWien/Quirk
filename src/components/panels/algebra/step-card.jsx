@@ -52,12 +52,8 @@ function StepCard({
         role="group"
         aria-label={
           hasOperator
-            ? "Step " +
-              number +
-              ": operator times input state, compared with simulated output state"
-            : "Step " +
-              number +
-              ": simulated input and output; no matrix representation"
+            ? `Step ${number}: operator times input state, compared with simulated output state`
+            : `Step ${number}: simulated input and output; no matrix representation`
         }
       >
         {hasOperator && (
@@ -69,7 +65,7 @@ function StepCard({
               structure={step.structure}
               formatKet={formatKet}
               size={PLOT_SIZE}
-              label={"Operator " + number}
+              label={`Operator ${number}`}
             />
             <span className="equation-sign" aria-hidden="true">
               ×
@@ -99,14 +95,7 @@ function StepCard({
         />
       </div>
       <p
-        className={
-          "algebra-step-note" +
-          (step.reason !== undefined ||
-          step.residual === undefined ||
-          relation === "≠"
-            ? " debug-panel-note"
-            : "")
-        }
+        className={`algebra-step-note${step.reason !== undefined || step.residual === undefined || relation === "≠" ? " debug-panel-note" : ""}`}
       >
         {step.reason ??
           (step.residual === undefined

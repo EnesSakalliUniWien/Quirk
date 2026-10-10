@@ -91,7 +91,7 @@ const ketShader = (head, body, span = null, inputs = []) => ({
     vec2 outputFor(float k) {
         full_out_id = k;
 
-        float relevant_out_id = mod(floor(full_out_id / _ketgen_step), ${span === null ? "span" : (1 << span) + ".0"});
+        float relevant_out_id = mod(floor(full_out_id / _ketgen_step), ${span === null ? "span" : `${1 << span}.0`});
         _ketgen_off = full_out_id - relevant_out_id*_ketgen_step;
 
         float c = read_ketgen_control(full_out_id);
@@ -110,7 +110,7 @@ const ketShader = (head, body, span = null, inputs = []) => ({
  */
 const ketShaderPermute = (head, body, span = null) =>
   ketShader(
-    head + `float _ketgen_input_for(float out_id) { ${body} }`,
+    `${head}float _ketgen_input_for(float out_id) { ${body} }`,
     "return inp(_ketgen_input_for(out_id));",
     span,
   );

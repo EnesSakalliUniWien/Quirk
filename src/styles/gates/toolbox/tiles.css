@@ -49,12 +49,13 @@
   }
 
   /* The chip: the gate's circuit symbol as designed text, not a shrunken circuit painting.
-       Fill contrast instead of a border keeps 100+ rows from reading as an outlined grid. */
+       Fill contrast instead of a border keeps 100+ rows from reading as an outlined grid. Sized in
+       rem, as its symbol is, so it grows with the symbol when the browser's text size does. */
   .gate-chip {
     position: relative;
     display: inline-flex;
-    width: 48px;
-    height: 26px;
+    width: 3rem;
+    height: 1.625rem;
     flex: 0 0 auto;
     align-items: center;
     justify-content: center;
@@ -80,7 +81,7 @@
   /* Sized by how much symbol has to fit, and never below the smallest size text takes: a symbol
        too long for that ends in an ellipsis, and the name beside the chip always carries the rest. */
   .gate-chip[data-fit="large"] {
-    font-size: 14px;
+    font-size: 0.875rem;
   }
   .gate-chip[data-fit="medium"],
   .gate-chip[data-fit="small"] {

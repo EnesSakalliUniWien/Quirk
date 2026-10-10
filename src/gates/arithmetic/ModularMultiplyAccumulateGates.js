@@ -59,7 +59,7 @@ ModularMultiplyAccumulateGates.PlusABModRFamily = Gate.buildFamily(
   16,
   (span, builder) =>
     builder
-      .setSerializedId("+ABmodR" + span)
+      .setSerializedId(`+ABmodR${span}`)
       .setSymbol("+AB\nmod R")
       .setTitle("Modular Multiply-Add Gate")
       .setBlurb(
@@ -84,7 +84,7 @@ ModularMultiplyAccumulateGates.MinusABModRFamily = Gate.buildFamily(
   (span, builder) =>
     builder
       .setAlternateFromFamily(ModularMultiplyAccumulateGates.PlusABModRFamily)
-      .setSerializedId("-ABmodR" + span)
+      .setSerializedId(`-ABmodR${span}`)
       .setSymbol("−AB\nmod R")
       .setTitle("Modular Multiply-Subtract Gate")
       .setBlurb(

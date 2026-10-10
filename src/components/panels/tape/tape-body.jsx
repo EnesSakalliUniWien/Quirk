@@ -6,6 +6,7 @@ import { MAX_FILE_BYTES } from "../../../results/files/limits.js";
 import { downloadFile } from "../../../browser/downloadFile.js";
 import { TakeCard } from "./take-card.jsx";
 import { Compare } from "./compare.jsx";
+import { MotionSettings } from "./motion-settings.jsx";
 
 function TapeBody({ recorder }) {
   const records = useStore(recorder.store.items, (state) => state.value);
@@ -15,6 +16,7 @@ function TapeBody({ recorder }) {
     recorder.ghostsEnabled,
     (state) => state.value,
   );
+  const linked = useStore(recorder.linked, (state) => state.value);
   const recovery = useStore(
     recorder.store.recovery,
     (state) => /** @type {{value: any}} */ (state).value,
@@ -42,9 +44,20 @@ function TapeBody({ recorder }) {
       if (mounted.current) setMessage(e.message);
     }
   };
+  // A take opened from a link stands first, unsaved, until it is kept or dismissed.
+  const shown = useMemo(
+    () =>
+      linked === undefined
+        ? records
+        : [
+            { id: linked.id, take: linked, ghost: false, linked: true },
+            ...records.filter((r) => r.id !== linked.id),
+          ],
+    [records, linked],
+  );
   useEffect(() => {
-    setSelected((s) => s.filter((id) => records.some((r) => r.id === id)));
-  }, [records]);
+    setSelected((s) => s.filter((id) => shown.some((r) => r.id === id)));
+  }, [shown]);
   const deleteTake = (id) =>
     act(async () => {
       await recorder.store.delete(id);
@@ -66,8 +79,8 @@ function TapeBody({ recorder }) {
         });
     });
   const selectedTakes = useMemo(
-    () => records.filter((r) => selected.includes(r.id)).map((r) => r.take),
-    [records, selected],
+    () => shown.filter((r) => selected.includes(r.id)).map((r) => r.take),
+    [shown, selected],
   );
   const importFile = (file) =>
     act(async () => {
@@ -91,13 +104,14 @@ function TapeBody({ recorder }) {
       <div className="tape-actions">
         <label>
           <input
+            id="record-ghosts"
             type="checkbox"
             checked={ghostsEnabled}
             onChange={(e) =>
               recorder.ghostsEnabled.setState({ value: e.target.checked })
             }
           />
-          Keep the eight most recent pre-edit snapshots
+          Record a snapshot before each edit, keeping the eight most recent
         </label>
         <label>
           Import JSON
@@ -158,6 +172,7 @@ function TapeBody({ recorder }) {
           </button>
         </div>
       )}
+      <MotionSettings settings={recorder.settings} />
       {(message || storageError) && (
         <p role="alert">{message || storageError}</p>
       )}
@@ -172,7 +187,7 @@ function TapeBody({ recorder }) {
         </button>
       )}
       <div className="tape-strip">
-        {records.map((record) => (
+        {shown.map((record) => (
           <TakeCard
             key={record.id}
             record={record}
@@ -190,7 +205,7 @@ function TapeBody({ recorder }) {
           />
         ))}
       </div>
-      {!records.length && (
+      {!shown.length && (
         <p>No snapshots yet. Select Record or drop a JSON file here.</p>
       )}
       <Compare takes={selectedTakes} />

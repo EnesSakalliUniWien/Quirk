@@ -57,10 +57,9 @@ function referencedOutputGrid(context) {
  *
  * @param {!Object} context Rendering inputs supplied by CircuitRendering.
  * @param {!DisplayView} painter
- * @param {!CircuitStats} stats
  * @param {!PointerInteractionState} hand
  */
-function drawOutputSuperpositionDisplay(context, painter, stats, hand) {
+function drawOutputSuperpositionDisplay(context, painter, hand) {
   const { grid: amplitudeGrid, reference } = referencedOutputGrid(context);
   const gridRect = context.geometry.rectForSuperpositionDisplay();
 
@@ -85,8 +84,9 @@ function drawOutputSuperpositionDisplay(context, painter, stats, hand) {
     (c, r, v) =>
       `${formatProbability(v.norm2(), 2)} probability · phase ${signedFixed((v.phase() * 180) / Math.PI, 2)}°`,
     (c, r, v) =>
-      `amplitude ${v.toString(Format.SIMPLIFIED)}` +
-      (reference === undefined ? "" : `, phases from ${ket(reference)}`),
+      `amplitude ${v.toString(Format.SIMPLIFIED)}${
+        reference === undefined ? "" : `, phases from ${ket(reference)}`
+      }`,
   );
 
   drawOutputSuperpositionDisplay_labels(context, painter);

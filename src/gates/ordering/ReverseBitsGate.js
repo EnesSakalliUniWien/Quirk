@@ -53,7 +53,7 @@ const reverseShaderForSize = (span) => (ctx) =>
 
 const ReverseBitsGateFamily = Gate.buildFamily(2, 16, (span, builder) =>
   builder
-    .setSerializedId("rev" + span)
+    .setSerializedId(`rev${span}`)
     .setSymbol("Reverse")
     .setTitle("Reverse Order")
     .setBlurb("Swaps bits into the opposite order.")

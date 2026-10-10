@@ -210,7 +210,7 @@ function stateGridRect(matrix, area) {
   }
   const left =
     Math.ceil(
-      measureText(bin(0, stateAxisBits(matrix).rowBits) + "⋯", EDGE_LABEL_FONT)
+      measureText(`${bin(0, stateAxisBits(matrix).rowBits)}⋯`, EDGE_LABEL_FONT)
         .width,
     ) + 6;
   const top = EDGE_LABEL_FONT.fontSize + 8;
@@ -230,7 +230,7 @@ function stateEdgeLabels(view, matrix, grid) {
   const { rowBits, colBits } = stateAxisBits(matrix);
   const cell = grid.w / matrix.width();
   const font = EDGE_LABEL_FONT;
-  const columnLabel = (c) => "⋯" + bin(c, colBits);
+  const columnLabel = (c) => `⋯${bin(c, colBits)}`;
   const columnStride = Math.max(
     1,
     Math.ceil((measureText(columnLabel(0), font).width + 4) / cell),
@@ -247,7 +247,7 @@ function stateEdgeLabels(view, matrix, grid) {
       });
     }
     for (let r = 0; r < matrix.height(); r += rowStride) {
-      drawText(view, bin(r, rowBits) + "⋯", {
+      drawText(view, `${bin(r, rowBits)}⋯`, {
         x: grid.x - 3,
         y: grid.y + (r + 0.5) * cell,
         align: "right",
@@ -326,7 +326,7 @@ function renderState(
     grid,
     focusPoints,
     (c, r) => `Amplitude of |${basis(index(c, r))}⟩ (decimal ${index(c, r)})`,
-    (c, r, v) => "val:" + v.toString(Format.SIMPLIFIED),
+    (c, r, v) => `val:${v.toString(Format.SIMPLIFIED)}`,
     (c, r, v) =>
       `mag²:${(v.norm2() * 100).toFixed(4)}%, phase:${signedFixed((v.phase() * 180) / Math.PI, 2)}°`,
   );
@@ -567,7 +567,7 @@ function probabilityGroupLabels(view, rect, wireCount, groupRows) {
   const prefixBits = wireCount - Math.log2(groupRows);
   for (let start = 0; start < n; start += groupRows) {
     const cy = rect.y + d * (start + groupRows / 2);
-    fitText(view, bin(start / groupRows, prefixBits) + "⋯", {
+    fitText(view, `${bin(start / groupRows, prefixBits)}⋯`, {
       x: rect.x - 3,
       y: cy,
       align: "right",

@@ -27,7 +27,7 @@ export class BasisLabels {
     view.elements.push(
       createElement(
         "pixiSceneContainer",
-        { key: "basis-" + view.order++, x, y },
+        { key: `basis-${view.order++}`, x, y },
         createElement(LabelContent, {
           labels: this,
           version: [this.version, textLayoutVersion, view.pixelRatio, key].join(

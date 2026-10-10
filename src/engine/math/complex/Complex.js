@@ -159,7 +159,7 @@ class Complex {
       if (Math.abs(this.imag + 1) <= format.maxAbbreviationError) {
         return "-i";
       }
-      return format.formatFloat(this.imag) + "i";
+      return `${format.formatFloat(this.imag)}i`;
     }
 
     return this._toString_bothValues(format);
@@ -183,9 +183,7 @@ class Complex {
       this.real < 0
         ? ""
         : "+";
-    return (
-      prefix + format.formatFloat(this.real) + separator + imagFactor + "i"
-    );
+    return `${prefix + format.formatFloat(this.real) + separator + imagFactor}i`;
   }
 
   /**

@@ -22,7 +22,7 @@ import { SAMPLE_RENDERER } from "./sampleRenderer.js";
 
 const SampleDisplayFamily = Gate.buildFamily(1, 16, (span, builder) =>
   builder
-    .setSerializedId("Sample" + span)
+    .setSerializedId(`Sample${span}`)
     .setSymbol("Sample")
     .setTitle("Sampled Results Display")
     .setBlurb(

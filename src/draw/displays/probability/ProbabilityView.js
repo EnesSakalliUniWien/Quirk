@@ -257,7 +257,7 @@ export function paintProbabilityBox(
       x: drawArea.right(),
       y: drawArea.y,
       labelText: "Probability of being ON if measured",
-      valueText: (100 * probability).toFixed(5) + "%",
+      valueText: `${(100 * probability).toFixed(5)}%`,
     });
   }
 }

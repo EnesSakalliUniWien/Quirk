@@ -100,12 +100,12 @@ function _paintBlochSphereDisplay_purity(painter, drawArea, r) {
       r > PURE_STATE_THRESHOLD
         ? CanvasTheme.text.primary
         : CanvasTheme.bloch.mixed,
-    font: { fontSize: fontSize, fontFamily: Typography.MONO_FONT_FAMILY },
+    font: { fontSize, fontFamily: Typography.MONO_FONT_FAMILY },
     width: drawArea.w,
     height: readoutHeight,
     changing: true,
     beforeDraw: (w, h) => {
-      painter.group("purity-plate-" + painter.order, (painter) => {
+      painter.group(`purity-plate-${painter.order}`, (painter) => {
         painter.alpha *= 0.7;
         rectangle(painter, new Rect(x - w / 2 - 1, y - h, w + 2, h), {
           fill: CanvasTheme.surface.background,

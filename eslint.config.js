@@ -4,7 +4,7 @@ import unicorn from "eslint-plugin-unicorn";
 import reactHooks from "eslint-plugin-react-hooks";
 import jsxA11y from "eslint-plugin-jsx-a11y-x";
 
-// The harness pages define these on window for the browser-run suites and the Puppeteer runners.
+// BrowserTestHarness.js defines these on globalThis for the browser suites and Puppeteer runners.
 const harnessGlobals = {
   __testRunner__: "readonly",
   __error__: "readonly",
@@ -42,6 +42,9 @@ export default [
       "prefer-const": ["error", { destructuring: "all" }],
       "prefer-rest-params": "error",
       "prefer-spread": "error",
+      "prefer-template": "error",
+      "object-shorthand": "error",
+      "prefer-arrow-callback": ["error", { allowNamedFunctions: true }],
       "no-unused-vars": [
         "error",
         { args: "none", caughtErrors: "none", varsIgnorePattern: "^_" },

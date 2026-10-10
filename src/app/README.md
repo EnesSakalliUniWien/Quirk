@@ -16,7 +16,8 @@ app/
 │   ├── SelectionActions.js the selected part of the circuit - select, copy, cut, delete, paste - each edit one commit
 │   ├── Playhead.js         where the transport controls are parked in the circuit
 │   ├── Simulator.js        runs circuits against one clock and publishes completed results
-│   └── Recorder.js         records, imports and restores takes; coordinates whole-run batches
+│   └── Recorder.js         records takes only when the user asks - one take, a whole run, or a started
+│                           recording sampled at the user's rate - measures each, imports and restores them
 ├── canvas/         the circuit canvas
 │   ├── zoom.js             the camera: zoom factor plus scroll offset
 │   ├── canvasPointer.js    click, grab, drag and drop editing on the canvas, selection boxes, and the menus a right click or a held touch opens
@@ -26,7 +27,7 @@ app/
 │   └── redrawLoop.js       the frame pipeline: simulate, publish stats, size, paint
 └── session/        document-level lifecycle
     ├── boot.js             the reveal tick and GL context recovery
-    ├── url.js              circuit and take URL loading, guarded against stale imports
+    ├── url.js              circuit and take URL loading; a take link is shown and restored, saved only when kept
     └── title.js            the window title
 ```
 
@@ -50,3 +51,9 @@ between this directory and `src/components`.
 loading. The app never imports the dock or the panel registry. `Recorder` receives an `onRestore`
 callback at construction for repainting the restored result; it has no panel-opening property.
 The result format and storage belong to `src/results`, not to the recording workflow.
+
+Nothing records by itself. Ghosts - a snapshot of the circuit before each edit - are off until the
+user turns them on in Tape, and loading an example makes none. The Steps and Time lanes set the
+paces of Play and of t's cycle; the Bloch glide, how often the panels sample, and the recorder's
+sampling rate and shots are the user's, from `src/state/motionSettings.js`, and a change applies at
+once.

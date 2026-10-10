@@ -30,8 +30,11 @@
 
   .probabilities-trace th,
   .probabilities-trace td {
-    padding: 0;
     white-space: nowrap;
+  }
+
+  .probabilities-trace th {
+    padding: 0;
   }
 
   .probabilities-trace thead th {

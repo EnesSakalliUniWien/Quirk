@@ -160,7 +160,7 @@ function findModificationIndex(geometry, hand) {
 
   let isInsert = Math.abs(halfColIndex % 1) === 0.5;
   if (col >= geometry.circuitDefinition.columns.length) {
-    return { col: col, row: row, isInsert: isInsert };
+    return { col, row, isInsert };
   }
 
   if (!isInsert) {
@@ -179,5 +179,5 @@ function findModificationIndex(geometry, hand) {
     }
   }
 
-  return { col: col, row: row, isInsert: isInsert };
+  return { col, row, isInsert };
 }

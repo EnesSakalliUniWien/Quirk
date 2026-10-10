@@ -214,8 +214,8 @@ function initRedrawLoop(
     if (presented.width !== cssW || presented.height !== cssH) {
       viewport.surface.presentation.setState({ width: cssW, height: cssH });
     }
-    spacer.style.width = Math.round(size.w * zoom) + "px";
-    spacer.style.height = Math.round(size.h * zoom) + "px";
+    spacer.style.width = `${Math.round(size.w * zoom)}px`;
+    spacer.style.height = `${Math.round(size.h * zoom)}px`;
 
     // The camera: the painter scales into circuit units, then shifts by the scroll so the
     // fixed viewport shows the scrolled-to part of the scene.
@@ -305,10 +305,8 @@ function initRedrawLoop(
     // The spacer is rescaled first so the new scroll position isn't clamped to the old extent.
     const factor = circuitZoom() / lastZoom;
     lastZoom = circuitZoom();
-    spacer.style.width =
-      (Number.parseFloat(spacer.style.width) || 0) * factor + "px";
-    spacer.style.height =
-      (Number.parseFloat(spacer.style.height) || 0) * factor + "px";
+    spacer.style.width = `${(Number.parseFloat(spacer.style.width) || 0) * factor}px`;
+    spacer.style.height = `${(Number.parseFloat(spacer.style.height) || 0) * factor}px`;
     canvasDiv.scrollLeft =
       (canvasDiv.scrollLeft + canvasDiv.clientWidth / 2) * factor -
       canvasDiv.clientWidth / 2;

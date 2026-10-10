@@ -2,7 +2,10 @@ import { CircuitDefinition } from "../../circuit/model/CircuitDefinition.js";
 import { Serializer } from "../../serialization/Serializer.js";
 import { decode } from "./values.js";
 
-/** Computational-basis probabilities from a created or validated take. */
+/**
+ * Computational-basis probabilities from a created or validated take, and, when the take kept a
+ * measurement, how often each value was measured.
+ */
 function distributions(take) {
   const circuit = Serializer.fromJson(CircuitDefinition, take.circuit);
   const amplitudes = take.result.amplitudes;
@@ -12,25 +15,37 @@ function distributions(take) {
     const imaginary = decode(amplitudes[2 * index + 1]);
     return real ** 2 + imaginary ** 2;
   });
+  const measured = take.measurement?.counts;
+  const jointCounts =
+    measured === undefined ? undefined : new Array(joint.length).fill(0);
+  measured?.forEach(([index, count]) => {
+    jointCounts[index] = count;
+  });
   const groups = [];
   for (let start = 0; start < take.wires;) {
     const register = circuit.registers.at(start);
     const length = register?.length ?? 1;
     const probabilities = new Array(2 ** length).fill(0);
+    const counts =
+      jointCounts === undefined ? undefined : new Array(2 ** length).fill(0);
     const mask = 2 ** length - 1;
     for (let index = 0; index < joint.length; index++) {
       probabilities[(index >> start) & mask] += joint[index];
     }
+    measured?.forEach(([index, count]) => {
+      counts[(index >> start) & mask] += count;
+    });
     groups.push({
       name: register?.name ?? `q${start}`,
       start,
       length,
       labels: register?.labels ?? {},
       probabilities,
+      counts,
     });
     start += length;
   }
-  return { joint, groups };
+  return { joint, jointCounts, groups };
 }
 
 export { distributions };

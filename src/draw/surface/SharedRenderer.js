@@ -29,7 +29,7 @@ export function reportRenderingFailure(error) {
     if (reported.has(error)) return;
     reported.add(error);
   }
-  reportBlockingIssue("Rendering failed: " + error.message);
+  reportBlockingIssue(`Rendering failed: ${error.message}`);
 }
 
 /**

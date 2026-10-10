@@ -60,7 +60,7 @@ function drawGate_disabledReason(context, painter, col, row, gateRect) {
     : CanvasTheme.error.background;
   const textArea = gateRect.paddedBy(-2);
   const alignment = new Point(0.5, 0.5);
-  painter.group("disabled-" + painter.order, (veil) => {
+  painter.group(`disabled-${painter.order}`, (veil) => {
     veil.alpha *= 0.9;
     rectangle(veil, gateRect, { fill: veilColor }, radius);
   });
@@ -99,7 +99,7 @@ function drawGate_disabledReason(context, painter, col, row, gateRect) {
  * @param {!Rect} gateRect
  */
 function drawGate_deactivated(painter, gateRect) {
-  painter.group("deactivated-" + painter.order, (veil) => {
+  painter.group(`deactivated-${painter.order}`, (veil) => {
     veil.alpha *= 0.62;
     rectangle(veil, gateRect.paddedBy(1), {
       fill: CanvasTheme.surface.background,

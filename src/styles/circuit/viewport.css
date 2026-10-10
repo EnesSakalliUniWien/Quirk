@@ -114,8 +114,4 @@
   .circuit-minimap[hidden] {
     display: none;
   }
-
-  #drawCanvas {
-    display: block;
-  }
 }

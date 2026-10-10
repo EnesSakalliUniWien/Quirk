@@ -34,8 +34,8 @@ const ModularIncrementGates = {};
 const modulusTooBigChecker =
   (inputKey, span, modName = "mod") =>
   (args) => {
-    const r = args.context.get("Input Range " + inputKey);
-    const d = args.context.get("Input Default " + inputKey);
+    const r = args.context.get(`Input Range ${inputKey}`);
+    const d = args.context.get(`Input Default ${inputKey}`);
     if (r !== undefined && r.length > span) {
       return `${modName}\ntoo\nbig`;
     }
@@ -63,7 +63,7 @@ ModularIncrementGates.IncrementModRFamily = Gate.buildFamily(
   16,
   (span, builder) =>
     builder
-      .setSerializedId("incmodR" + span)
+      .setSerializedId(`incmodR${span}`)
       .setSymbol("+1\nmod R")
       .setTitle("Modular Increment Gate")
       .setBlurb(
@@ -89,7 +89,7 @@ ModularIncrementGates.DecrementModRFamily = Gate.buildFamily(
   (span, builder) =>
     builder
       .setAlternateFromFamily(ModularIncrementGates.IncrementModRFamily)
-      .setSerializedId("decmodR" + span)
+      .setSerializedId(`decmodR${span}`)
       .setSymbol("−1\nmod R")
       .setTitle("Modular Decrement Gate")
       .setBlurb(

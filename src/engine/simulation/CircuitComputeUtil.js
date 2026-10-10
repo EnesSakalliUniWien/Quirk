@@ -20,6 +20,8 @@ import { KetTextureUtil } from "./gpu/KetTextureUtil.js";
 import { Controls } from "../../circuit/model/Controls.js";
 /** @typedef {import("../../circuit/model/Gate.js").GateBuilder} GateBuilder */
 import { mergeMaps } from "../../base/maps.js";
+import { GateShaders } from "./gpu/GateShaders.js";
+import { fusedRunAt } from "./gateFusion.js";
 
 /**
  * @param {!GateBuilder} builder
@@ -70,6 +72,10 @@ function setGateBuilderEffectToCircuit(builder, circuitDefinition) {
  * @param {!int=} firstColumn Where to start. Past 0 the state trader already holds the state after
  *     that many columns, so neither the initial state nor those columns are applied, and the stats
  *     come only from the columns that are.
+ * @param {undefined|!{stopBefore: !function(!int): !boolean}=} fusion Fuses runs of quiet columns
+ *     (gateFusion.js), each ending before any column `stopBefore` names. Within a run `afterStep` is
+ *     only called at its end, so a caller names every step whose state it reads. Without it, every
+ *     column is applied on its own.
  * @throws If a column fails. The stats collected up to then go back to the pool, and the state trader
  *     is left holding the state it has, for the caller to give back.
  * @returns {!{
@@ -85,6 +91,7 @@ function advanceStateWithCircuit(
   collectStats,
   afterStep = undefined,
   firstColumn = 0,
+  fusion = undefined,
 ) {
   // Prep stats collection.
   const colQubitDensities = [];
@@ -118,15 +125,29 @@ function advanceStateWithCircuit(
     }
     afterStep?.(firstColumn, ctx, collected);
 
-    // Apply each column in the circuit.
-    for (let col = firstColumn; col < circuitDefinition.columns.length; col++) {
-      _advanceStateWithCircuitDefinitionColumn(
-        ctx,
-        circuitDefinition,
-        col,
-        statsCallback(col),
-      );
-      afterStep?.(col + 1, ctx, collected);
+    // Apply each column in the circuit, or a fused run of quiet columns at a time.
+    for (let col = firstColumn; col < circuitDefinition.columns.length;) {
+      const run =
+        fusion === undefined
+          ? undefined
+          : fusedRunAt(circuitDefinition, col, ctx.time, fusion.stopBefore);
+      if (run === undefined) {
+        _advanceStateWithCircuitDefinitionColumn(
+          ctx,
+          circuitDefinition,
+          col,
+          statsCallback(col),
+        );
+        col++;
+      } else {
+        _applyFusedRun(ctx, run);
+        // Its columns have nothing to observe, but each still has its (empty) place in the stats.
+        for (let c = col; c < run.end; c++) {
+          statsCallback(c)(ctx);
+        }
+        col = run.end;
+      }
+      afterStep?.(col, ctx, collected);
     }
 
     if (collectStats) {
@@ -153,6 +174,43 @@ function advanceStateWithCircuit(
   }
 
   return collected;
+}
+
+/**
+ * Applies a fused run's steps, each a matrix over a few wires under its controls.
+ *
+ * @param {!CircuitEvalContext} ctx
+ * @param {!{steps: !Array.<!{row: !int, matrix: !Matrix, controls: !Controls}>}} run
+ */
+function _applyFusedRun(ctx, { steps }) {
+  for (const { row, matrix, controls } of steps) {
+    const stepControls = ctx.controls.and(controls.shift(ctx.row));
+    // Most steps have no controls of their own, and share the column's mask.
+    const ownMask = !stepControls.isEqualTo(ctx.controls);
+    const controlTex = ownMask
+      ? CircuitShaders.controlMask(stepControls).toBoolTexture(ctx.wireCount)
+      : ctx.controlsTexture;
+    try {
+      GateShaders.applyMatrixOperation(
+        new CircuitEvalContext(
+          ctx.time,
+          ctx.row + row,
+          ctx.wireCount,
+          stepControls,
+          controlTex,
+          stepControls,
+          ctx.stateTrader,
+          ctx.customContextFromGates,
+          ctx.random,
+        ),
+        matrix,
+      );
+    } finally {
+      if (ownMask) {
+        controlTex.deallocByDepositingInPool("controlTex of a fused step");
+      }
+    }
+  }
 }
 
 /**

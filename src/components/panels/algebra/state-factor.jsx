@@ -31,7 +31,7 @@ function StateFactor({ state, step, wireCount, formatKet, highlight, label }) {
             data={grid}
             {...plotSize(grid)}
             options={{ wireCount }}
-            label={label + ": state-vector amplitudes reshaped as a grid"}
+            label={`${label}: state-vector amplitudes reshaped as a grid`}
           />
           <p className="matrix-grid-label">
             State-vector amplitudes · reshaped grid

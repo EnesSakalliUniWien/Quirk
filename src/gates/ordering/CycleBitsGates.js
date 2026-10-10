@@ -94,7 +94,7 @@ const cyclePainter = (reverse) => (args) => {
 
 CycleBitsGates.CycleBitsFamily = Gate.buildFamily(2, 16, (span, builder) =>
   builder
-    .setSerializedId("<<" + span)
+    .setSerializedId(`<<${span}`)
     .setSymbol("<<<")
     .setTitle("Left Rotate")
     .setBlurb("Rotates bits downward.")
@@ -110,7 +110,7 @@ CycleBitsGates.ReverseCycleBitsFamily = Gate.buildFamily(
   (span, builder) =>
     builder
       .setAlternateFromFamily(CycleBitsGates.CycleBitsFamily)
-      .setSerializedId(">>" + span)
+      .setSerializedId(`>>${span}`)
       .setSymbol(">>>")
       .setTitle("Right Rotate")
       .setBlurb("Rotates bits upward.")

@@ -32,11 +32,7 @@ function ExportPanelBody({ deps }) {
   const [amplitudes, setAmplitudes] = useState("[not generated yet]");
   const [fullCircuit, setFullCircuit] = useState(false);
 
-  const escapedUrlHash =
-    "#" +
-    AppInfo.URL_CIRCUIT_PARAM_KEY +
-    "=" +
-    encodeURIComponent(jsonText ?? "");
+  const escapedUrlHash = `#${AppInfo.URL_CIRCUIT_PARAM_KEY}=${encodeURIComponent(jsonText ?? "")}`;
   const escapedLink = document.location.href.split("#")[0] + escapedUrlHash;
 
   const currentTake = () => {

@@ -102,7 +102,7 @@ function drawUnrunColumns(context, painter, playheadStep) {
   const start = rect.right() + 1;
   const end = context.geometry.opRect(context.definition.columns.length).x;
   if (end <= start) return;
-  painter.group("unrun-veil-" + painter.order, (veil) => {
+  painter.group(`unrun-veil-${painter.order}`, (veil) => {
     veil.alpha *= 0.62;
     rectangle(veil, new Rect(start, rect.y, end - start, rect.h), {
       fill: CanvasTheme.surface.background,

@@ -61,7 +61,7 @@ const INVERSE_MULTIPLICATION_SHADER = ketShaderPermute(
 
 MultiplicationGates.TimesAFamily = Gate.buildFamily(1, 16, (span, builder) =>
   builder
-    .setSerializedId("*A" + span)
+    .setSerializedId(`*A${span}`)
     .setSymbol("×A")
     .setTitle("Multiplication Gate")
     .setBlurb(
@@ -83,7 +83,7 @@ MultiplicationGates.TimesAInverseFamily = Gate.buildFamily(
   (span, builder) =>
     builder
       .setAlternateFromFamily(MultiplicationGates.TimesAFamily)
-      .setSerializedId("/A" + span)
+      .setSerializedId(`/A${span}`)
       .setSymbol("×A^-1")
       .setTitle("Inverse Multiplication Gate")
       .setBlurb(

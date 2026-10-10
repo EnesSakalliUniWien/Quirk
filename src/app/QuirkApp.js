@@ -53,6 +53,7 @@ import {
   prefersReducedMotion,
 } from "../browser/reducedMotion.js";
 import { appStore } from "../state/appStore.js";
+import { motionSettings } from "../state/motionSettings.js";
 import { failingAssertionColumns } from "../gates/assertions/AssertionGates.js";
 import { operationSchedule } from "../circuit/operationColumns.js";
 
@@ -146,7 +147,7 @@ function startQuirk({
     simulator,
     tapeStore,
     captureCommitted,
-    { onRestore: () => redrawLoop.trigger() },
+    { onRestore: () => redrawLoop.trigger(), settings: motionSettings },
   );
   let lastCommit = revision.peekActiveCommit();
   revision.latestActiveCommit().subscribe((jsonText) => {
@@ -376,6 +377,7 @@ function startQuirk({
       recorder,
       syncArea,
       cycleTime: () => simulator.cycleTime(),
+      settings: motionSettings,
       stablePrefix: simulator.wholeCircuitPrefix,
     },
   });

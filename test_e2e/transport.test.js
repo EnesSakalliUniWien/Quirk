@@ -302,7 +302,7 @@ test("the transport is two lanes on one grid, Play over Play and speed over spee
   await withQuirkPage(browser, { cols: [["X^t"], ["X"]] }, async (page) => {
     await page.waitForSelector("#time-play-button");
     const x = (id) =>
-      page.$eval("#" + id, (e) => Math.round(e.getBoundingClientRect().x));
+      page.$eval(`#${id}`, (e) => Math.round(e.getBoundingClientRect().x));
     assert.deepEqual(
       await page.$$eval('.transport-bar [role="group"][aria-label]', (lanes) =>
         lanes
@@ -419,12 +419,11 @@ test("each lane keeps its own speed, and the browser keeps both", async (browser
   try {
     await withQuirkPage(context, { cols: [["X^t"], ["X"]] }, async (page) => {
       const label = (id) =>
-        page.$eval("#" + id, (b) => b.getAttribute("aria-label"));
-      const t = () => page.$eval("#time-scrub", (scrub) => Number(scrub.value));
+        page.$eval(`#${id}`, (b) => b.getAttribute("aria-label"));
       const apart = (a, b) => Math.abs(((((a - b) % 1) + 1.5) % 1) - 0.5);
       // Each lane's menu is named for its speed, so one closing never answers for the other.
       const choose = async (button, menu, multiple) => {
-        await page.click("#" + button);
+        await page.click(`#${button}`);
         const items = `[aria-label="${menu}"] [role="menuitemradio"]`;
         await page.waitForSelector(items);
         return page.evaluate(
@@ -460,13 +459,20 @@ test("each lane keeps its own speed, and the browser keeps both", async (browser
         "Step speed, 1×",
         "The Time lane's speed must not pace the steps.",
       );
-      // At 4× the cycle takes 2 s, so half a second is a quarter turn.
-      const before = await t();
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      const moved = apart(await t(), before);
+      // At 4× the cycle takes 2 s, so t turns half a cycle a second. The page reads its own clock
+      // with t, since a slow machine stretches any wait the test makes.
+      const sample = () =>
+        page.$eval("#time-scrub", (scrub) => ({
+          t: Number(scrub.value),
+          at: performance.now(),
+        }));
+      const before = await sample();
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      const after = await sample();
+      const rate = apart(after.t, before.t) / ((after.at - before.at) / 1000);
       assert.ok(
-        Math.abs(moved - 0.25) < 0.1,
-        `t moved ${moved} in half a second at 4×.`,
+        Math.abs(rate - 0.5) < 0.2,
+        `t turned ${rate} of a cycle a second at 4×.`,
       );
 
       assert.deepEqual(await choose("steps-speed-button", "Step speed", "2×"), [

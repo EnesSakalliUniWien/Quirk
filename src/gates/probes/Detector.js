@@ -391,7 +391,7 @@ function redrawControlWires(args) {
   // Dashed line indicates effects from non-unitary gates may affect, or appear to affect, other wires.
   const circuit = args.stats.circuitDefinition;
   if (circuit.columns[columnIndex].hasGatesWithGlobalEffects()) {
-    painter.group("global-control-" + painter.order, (painter) => {
+    painter.group(`global-control-${painter.order}`, (painter) => {
       strokePath(
         painter,
         [new Point(x, args.rect.y), new Point(x, args.rect.bottom())],

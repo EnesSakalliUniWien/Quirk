@@ -644,8 +644,9 @@ test("Bloch sphere keeps state controls before narrow projections and unbroken c
             layout.sourceTop >= layout.sphereBottom &&
               layout.sourceTop - layout.sphereBottom <= 32 &&
               layout.sourceBottom < layout.meridianTop,
-            "State controls must follow the sphere before either projection: " +
-              JSON.stringify(layout),
+            `State controls must follow the sphere before either projection: ${JSON.stringify(
+              layout,
+            )}`,
           );
         }
         assert.match(layout.views[0].name, /Bloch sphere:/);
@@ -1036,11 +1037,11 @@ test("opens the enlarged Bloch sphere view from a Bloch display gate", async (br
     }
     const samples = await page.evaluate(() => window.stopCanvasSampling());
     for (const [id, counts] of Object.entries(samples)) {
-      assert.ok(counts.frames > 0, id + " must be sampled during interaction");
+      assert.ok(counts.frames > 0, `${id} must be sampled during interaction`);
       assert.equal(
         counts.blank,
         0,
-        id + " must keep its previous frame until the next render",
+        `${id} must keep its previous frame until the next render`,
       );
     }
 

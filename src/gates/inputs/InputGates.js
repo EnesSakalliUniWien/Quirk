@@ -69,9 +69,9 @@ function drawInputGate(args, key, reverse) {
 const makeInputGate = (key, reverse) =>
   Gate.buildFamily(1, 16, (span, builder) =>
     builder
-      .setSerializedId((reverse ? "rev" : "") + `input${key}${span}`)
-      .setSymbol((reverse ? "rev " : "") + `input ${key}`)
-      .setTitle(`Input Gate [${key}]` + (reverse ? " [reversed]" : ""))
+      .setSerializedId(`${reverse ? "rev" : ""}input${key}${span}`)
+      .setSymbol(`${reverse ? "rev " : ""}input ${key}`)
+      .setTitle(`Input Gate [${key}]${reverse ? " [reversed]" : ""}`)
       .setBlurb(
         `Temporarily uses some qubits as input ${key}${reverse ? ", in big-endian order" : ""}.`,
       )

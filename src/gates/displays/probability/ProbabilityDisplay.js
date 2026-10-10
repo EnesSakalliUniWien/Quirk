@@ -48,7 +48,7 @@ function shared_chanceGateMaker(builder) {
  */
 function multiChanceGateMaker(span, builder) {
   return shared_chanceGateMaker(builder)
-    .setSerializedId("Chance" + span)
+    .setSerializedId(`Chance${span}`)
     .setStatTexturesMaker((ctx) =>
       probabilityStatTexture(
         ctx.stateTrader.currentTexture,

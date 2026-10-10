@@ -33,7 +33,7 @@ suite.test(
       assertThat(background[3]).isEqualTo(255);
       for (const size of [120, 160, 100]) {
         const previousWidth = canvas.width;
-        canvas.style.width = size + "px";
+        canvas.style.width = `${size}px`;
         drawBlochScene(canvas, { x: 1, y: 0, z: 0 }, 0.5, 0.2);
         assertThat([...ctx.getImageData(2, 2, 1, 1).data]).isEqualTo(
           background,
@@ -81,7 +81,7 @@ suite.test(
         for (const z of [-0.5, 0.5]) {
           const triangles = coordinatePlaneTriangles({ x, y, z });
           assertThat(
-            triangles.map((t) => t.axes.join("") + "⊥" + t.normal),
+            triangles.map((t) => `${t.axes.join("")}⊥${t.normal}`),
           ).isEqualTo(["xy⊥z", "xz⊥y", "yz⊥x"]);
           for (const { foot, tip } of triangles) {
             const leg = tip.map((v, i) => v - foot[i]);

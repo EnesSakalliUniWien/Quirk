@@ -9,7 +9,7 @@ import { ReactScene } from "../scene/ReactScene.js";
 import { reportBlockingIssue } from "../../diagnostics/errorReporter.js";
 
 const reportInitializationFailure = (error) =>
-  reportBlockingIssue("Rendering failed: " + error.message);
+  reportBlockingIssue(`Rendering failed: ${error.message}`);
 
 /** React owns presentation attributes; Pixi owns canvas sizing, events and scene objects. */
 export function RenderCanvas({

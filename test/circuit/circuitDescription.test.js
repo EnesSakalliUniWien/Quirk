@@ -29,7 +29,7 @@ suite.test("a cell says where it is and what is in it", () => {
     cols: [["H"], [{ id: "X", off: true }, "Swap"], [1, "Swap"]],
   });
   assertThat(describeCell(circuit, { col: 0, row: 0 })).isEqualTo(
-    "Wire 1, column 1: " + gateLabel(circuit.columns[0].gates[0]),
+    `Wire 1, column 1: ${gateLabel(circuit.columns[0].gates[0])}`,
   );
   assertThat(describeCell(circuit, { col: 0, row: 1 })).isEqualTo(
     "Wire 2, column 1: empty",

@@ -52,7 +52,7 @@ ArithmeticGates.Legacy_AdditionFamily = Gate.buildFamily(
   16,
   (span, builder) =>
     builder
-      .setSerializedId("add" + span)
+      .setSerializedId(`add${span}`)
       .setSymbol("b+=a")
       .setTitle("Addition Gate")
       .setBlurb("Adds a little-endian number into another.")
@@ -77,7 +77,7 @@ ArithmeticGates.Legacy_SubtractionFamily = Gate.buildFamily(
   (span, builder) =>
     builder
       .setAlternateFromFamily(ArithmeticGates.Legacy_AdditionFamily)
-      .setSerializedId("sub" + span)
+      .setSerializedId(`sub${span}`)
       .setSymbol("b-=a")
       .setTitle("Subtraction Gate")
       .setBlurb("Subtracts a little-endian number from another.")
@@ -100,7 +100,7 @@ ArithmeticGates.Legacy_SubtractionFamily = Gate.buildFamily(
 
 ArithmeticGates.PlusAFamily = Gate.buildFamily(1, 16, (span, builder) =>
   builder
-    .setSerializedId("+=A" + span)
+    .setSerializedId(`+=A${span}`)
     .setSymbol("+A")
     .setTitle("Addition Gate [input A]")
     .setBlurb("Adds input A into the qubits covered by this gate.")
@@ -119,7 +119,7 @@ ArithmeticGates.PlusAFamily = Gate.buildFamily(1, 16, (span, builder) =>
 ArithmeticGates.MinusAFamily = Gate.buildFamily(1, 16, (span, builder) =>
   builder
     .setAlternateFromFamily(ArithmeticGates.PlusAFamily)
-    .setSerializedId("-=A" + span)
+    .setSerializedId(`-=A${span}`)
     .setSymbol("−A")
     .setTitle("Subtraction Gate [input A]")
     .setBlurb("Subtracts input A out of the qubits covered by this gate.")

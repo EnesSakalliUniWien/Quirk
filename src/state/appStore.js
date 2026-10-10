@@ -110,7 +110,9 @@ const appStore = createStore((set) => ({
   /** What the panels read the circuit through. Published once by startQuirk.
    *  @type {undefined|!{revision: !Revision, displayed: import("zustand/vanilla").StoreApi,
    *      mostRecentStats: import("zustand/vanilla").StoreApi, completed: import("zustand/vanilla").StoreApi, recorder: !Object,
-   *      cycleTime: !function(): !number, stablePrefix: !StablePrefix}} */
+   *      cycleTime: !function(): !number, settings: import("zustand/vanilla").StoreApi,
+   *      stablePrefix: !StablePrefix}}
+   *  settings are the user's motion, sampling and measurement settings (src/state/motionSettings.js). */
   panelDeps: undefined,
 
   /** @type {!string} The state-vector grid in words, for assistive technology; written by the

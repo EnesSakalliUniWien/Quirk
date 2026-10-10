@@ -4,6 +4,7 @@ import { CircuitDefinition } from "../../src/circuit/model/CircuitDefinition.js"
 import { Simulator } from "../../src/app/state/Simulator.js";
 import {
   createTake,
+  measuredCounts,
   planTake,
   restoreTake,
 } from "../../src/results/take/snapshot.js";
@@ -18,6 +19,12 @@ import { TapeStore } from "../../src/results/tapeStore.js";
 import { CircuitStats } from "../../src/engine/simulation/CircuitStats.js";
 
 const suite = new Suite("Tape results");
+
+/** Splits a CSV line into its cells, undoing csv.js's quoting: each cell quoted, quotes doubled. */
+const csvCells = (line) =>
+  [...line.matchAll(/"((?:[^"]|"")*)"(?:,|$)/g)].map((match) =>
+    match[1].replaceAll('""', '"'),
+  );
 const circuit = (cols) => Serializer.fromJson(CircuitDefinition, { cols });
 const takeFor = (cols, step = cols.length) => {
   const c = circuit(cols);
@@ -39,6 +46,101 @@ suite.testUsingWebGL(
   },
 );
 
+suite.testUsingWebGL(
+  "a take's measurement follows from its state and survives import, and a forged one does not",
+  () => {
+    const c = circuit([["H"], ["X", "H"]]);
+    const take = createTake(new Simulator().evaluate(c, 2, 2), "take", 0, {
+      shots: 2000,
+    });
+    const { shots, counts } = take.measurement;
+    assertThat(shots).isEqualTo(2000);
+    assertThat(counts.reduce((sum, [, count]) => sum + count, 0)).isEqualTo(
+      2000,
+    );
+    // Four equally likely outcomes. With a pinned seed the counts are fixed, and each lies well
+    // within five standard deviations of 500.
+    const pinned = measuredCounts(take.result.amplitudes, 2000, "pinned seed");
+    assertThat(pinned.map(([index]) => index)).isEqualTo([0, 1, 2, 3]);
+    assertThat(
+      measuredCounts(take.result.amplitudes, 2000, "pinned seed"),
+    ).isEqualTo(pinned);
+    for (const [, count] of pinned)
+      assertTrue(Math.abs(count - 500) < 5 * Math.sqrt(2000 * 0.25 * 0.75));
+    assertThat(parseTakes(takeJson(take))[0]).isEqualTo(take);
+    for (const forge of [
+      (m) => {
+        m.counts[0][1] += 1;
+      },
+      (m) => {
+        m.counts = m.counts.slice(1);
+      },
+      (m) => {
+        m.shots = 1999;
+      },
+      (m) => {
+        m.seed = "another";
+      },
+      (m) => {
+        m.counts.push([4, 1]);
+      },
+      (m) => {
+        m.counts = [[1, 2000]];
+      },
+    ]) {
+      const bad = structuredClone(take);
+      forge(bad.measurement);
+      let rejected = false;
+      try {
+        parseTakes(takeJson(bad));
+      } catch {
+        rejected = true;
+      }
+      assertTrue(rejected);
+    }
+    // A take recorded before measurements were kept still imports, without counts in its CSV.
+    const older = structuredClone(take);
+    delete older.measurement;
+    assertThat(parseTakes(takeJson(older))[0]).isEqualTo(older);
+    const [header, ...rows] = takeCsv([{ ...take, name: 'a "quoted", name' }])
+      .split("\r\n")
+      .map(csvCells);
+    assertThat(header.slice(-2)).isEqualTo(["probability", "count"]);
+    assertTrue(
+      rows.every(
+        (row) => row.length === header.length && row[1] === 'a "quoted", name',
+      ),
+    );
+    const jointRows = rows.filter((row) => row[2] === "joint");
+    assertThat(
+      jointRows.reduce((sum, row) => sum + Number(row.at(-1)), 0),
+    ).isEqualTo(2000);
+    assertTrue(
+      takeCsv([older])
+        .split("\r\n")
+        .slice(1)
+        .map(csvCells)
+        .every((row) => row.at(-1) === ""),
+    );
+  },
+);
+
+suite.testUsingWebGL(
+  "measuring after a deferred Measure gives the statistics of measuring then",
+  () => {
+    // Measured qubits are never put back into superposition (GateColumn's "no remix"), so measuring
+    // every wire at the end in the computational basis gives the counts measuring at Measure would.
+    const c = circuit([["H"], ["Measure"], ["•", "X"]]);
+    const take = createTake(new Simulator().evaluate(c, 2, 3), "take", 0, {
+      shots: 500,
+    });
+    assertThat(take.measurement.counts.map(([index]) => index)).isEqualTo([
+      0, 3,
+    ]);
+    assertThat(parseTakes(takeJson(take))[0]).isEqualTo(take);
+  },
+);
+
 suite.test(
   "unavailable results round trip with zero padding only beyond simulated wires",
   () => {
@@ -57,6 +159,8 @@ suite.test(
       fullStats: stats,
     });
     assertThat(parseTakes(takeJson(take))[0]).isEqualTo(take);
+    // There is nothing to measure in a result the engine could not produce.
+    assertThat(take.measurement.counts).isEqualTo([]);
     assertTrue(restoreTake(take).stats.finalState.hasNaN());
     assertThat(
       take.result.amplitudes.slice(2 * 2 ** stats.circuitDefinition.numWires),

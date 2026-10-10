@@ -35,7 +35,7 @@ function drawOutputDisplays(context, painter, stats, hand) {
 
   for (let i = 0; i < numWire; i++) {
     const p = stats.controlledWireProbabilityJustAfter(i, Infinity);
-    painter.group("probability-" + i, (view) =>
+    painter.group(`probability-${i}`, (view) =>
       paintProbabilityBox(
         view,
         p,
@@ -49,7 +49,7 @@ function drawOutputDisplays(context, painter, stats, hand) {
         context.geometry.gateRect(i, blochCol),
       );
       // The sphere is its own shape, so it wears no box.
-      painter.group("bloch-" + i, (view) =>
+      painter.group(`bloch-${i}`, (view) =>
         paintBlochSphereDisplay(view, m, blochRect, hand.hoverPoints()),
       );
     }
@@ -58,7 +58,7 @@ function drawOutputDisplays(context, painter, stats, hand) {
   drawLocalStateCaption(context, painter, numWire, chanceCol);
 
   painter.group("amplitudes", (view) =>
-    drawOutputSuperpositionDisplay(context, view, stats, hand),
+    drawOutputSuperpositionDisplay(context, view, hand),
   );
 }
 

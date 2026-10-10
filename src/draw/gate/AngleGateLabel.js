@@ -21,7 +21,7 @@ export function paintAngleGateLabel(args) {
       [
         {
           text:
-            parameter.length > 28 ? parameter.slice(0, 25) + "…" : parameter,
+            parameter.length > 28 ? `${parameter.slice(0, 25)}…` : parameter,
           font: { ...GATE_SYMBOL_FONT, fontSize: 12 },
         },
       ],

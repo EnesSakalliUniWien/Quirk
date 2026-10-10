@@ -18,6 +18,7 @@ import { perfGoal, millis } from "./TestPerfUtil.js";
 import { CircuitDefinition } from "../src/circuit/model/CircuitDefinition.js";
 import { CircuitStats } from "../src/engine/simulation/CircuitStats.js";
 import { Gate } from "../src/circuit/model/Gate.js";
+import { GateColumn } from "../src/circuit/model/GateColumn.js";
 import { Gates } from "../src/gates/AllGates.js";
 import { QubitMatrix } from "../src/engine/math/matrix/QubitMatrix.js";
 
@@ -159,4 +160,40 @@ perfGoal(
              -/---------------------------------------------------•-H-1---2---
              -/-------------------------------------------------------•-H-1---
              -/-----------------------------------------------------------•-H-`),
+);
+
+/**
+ * Layers of single-qubit gates on every wire, each followed by nearest-neighbour CNOTs: the shape
+ * gate fusion is for, since each pair's gates fit in one small matrix.
+ */
+const brickwork = (() => {
+  const singles = [
+    Gates.HalfTurns.H,
+    Gates.OtherZ.Z4,
+    Gates.QuarterTurns.SqrtXForward,
+  ];
+  const columns = [];
+  for (let layer = 0; layer < 10; layer++) {
+    columns.push(
+      new GateColumn(
+        Array.from(
+          { length: 16 },
+          (_, wire) => singles[(wire + layer) % singles.length],
+        ),
+      ),
+    );
+    for (let pair = layer % 2; pair + 1 < 16; pair += 2) {
+      const gates = new Array(16).fill(undefined);
+      gates[pair] = Gates.Controls.Control;
+      gates[pair + 1] = Gates.HalfTurns.X;
+      columns.push(new GateColumn(gates));
+    }
+  }
+  return new CircuitDefinition(16, columns);
+})();
+perfGoal(
+  "16-Qubit brickwork of single-qubit layers and neighbouring CNOTs",
+  millis(30),
+  (circuit) => CircuitStats.fromCircuitAtTime(circuit, 0),
+  brickwork,
 );

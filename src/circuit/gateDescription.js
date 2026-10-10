@@ -51,9 +51,9 @@ function describeKet(bitCount, bitMask, factor, format) {
           : (factor.real === 0 || factor.imag === 0) &&
               format !== Format.CONSISTENT
             ? factor.toString(format)
-            : "(" + factor.toString(format) + ")·";
+            : `(${factor.toString(format)})·`;
 
-  return scaleFactorDesc + "|" + bin(bitMask, bitCount) + "⟩";
+  return `${scaleFactorDesc}|${bin(bitMask, bitCount)}⟩`;
 }
 
 /**
@@ -72,16 +72,14 @@ function describeGateTransformations(matrix, format) {
     const inputDescription = describeKet(b, c, 1, Format.SIMPLIFIED);
     const col = matrix.getColumn(c);
     if (col.every((e) => e.isEqualTo(0))) {
-      return "discards " + inputDescription;
+      return `discards ${inputDescription}`;
     } else if (col.every((e, r) => e.isEqualTo(r === c ? 1 : 0))) {
       if (format !== Format.CONSISTENT) {
-        return "doesn't affect " + inputDescription;
+        return `doesn't affect ${inputDescription}`;
       }
     } else if (col.every((e, r) => r === c || e.isEqualTo(0))) {
       const degs = (col[c].ln().imag * 180) / Math.PI;
-      return (
-        "phases " + inputDescription + " by " + format.formatFloat(degs) + "°"
-      );
+      return `phases ${inputDescription} by ${format.formatFloat(degs)}°`;
     }
     const outputDescription = col
       .map((e, c) => describeKet(b, c, e, format))
@@ -91,7 +89,7 @@ function describeGateTransformations(matrix, format) {
       .join(" - ")
       .split(" + +")
       .join(" + ");
-    return "transforms " + inputDescription + " into " + outputDescription;
+    return `transforms ${inputDescription} into ${outputDescription}`;
   });
 }
 
@@ -117,9 +115,9 @@ function describeAxis(unitAxis, format) {
         return name;
       }
       if (val === -1) {
-        return "-" + name;
+        return `-${name}`;
       }
-      return format.formatFloat(val) + "·" + name;
+      return `${format.formatFloat(val)}·${name}`;
     })
     .filter((e) => e !== "")
     .join(" + ")

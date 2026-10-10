@@ -25,7 +25,8 @@ const exampleGroups = [
 /**
  * The example circuits, as a menu on the toolbar. Choosing one commits it the way any edit is
  * committed, so undo puts the circuit that was there back. An example is a new program, so the
- * playhead starts at its beginning.
+ * playhead starts at its beginning. Loading one is no edit of the user's own, so it records no
+ * ghost.
  */
 function ExamplesMenu({ worded = false }) {
   const deps = useStore(appStore, (s) => s.panelDeps);
@@ -74,7 +75,9 @@ function ExamplesMenu({ worded = false }) {
                     aria-label={name}
                     aria-description={goal}
                     onClick={() => {
-                      deps?.revision.commit(JSON.stringify(circuit));
+                      deps?.recorder.withoutGhosts(() =>
+                        deps.revision.commit(JSON.stringify(circuit)),
+                      );
                       appStore.getState().playhead?.rest();
                       if (category === "starter") {
                         requestAnimationFrame(() => {

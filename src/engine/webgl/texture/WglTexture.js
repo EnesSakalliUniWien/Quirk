@@ -113,19 +113,16 @@ class WglTexture {
    * @returns {!string}
    */
   toString() {
-    return (
-      "Texture(" +
-      [
-        this.width + "x" + this.height,
-        this.pixelType === WebGL2RenderingContext.FLOAT
-          ? "FLOAT"
-          : this.pixelType === WebGL2RenderingContext.UNSIGNED_BYTE
-            ? "UNSIGNED_BYTE"
-            : this.pixelType,
-        this._hasBeenRenderedTo ? "rendered" : "not rendered",
-      ].join(", ") +
-      ")"
-    );
+    const properties = [
+      `${this.width}x${this.height}`,
+      this.pixelType === WebGL2RenderingContext.FLOAT
+        ? "FLOAT"
+        : this.pixelType === WebGL2RenderingContext.UNSIGNED_BYTE
+          ? "UNSIGNED_BYTE"
+          : this.pixelType,
+      this._hasBeenRenderedTo ? "rendered" : "not rendered",
+    ].join(", ");
+    return `Texture(${properties})`;
   }
 
   markRendered() {
@@ -363,6 +360,114 @@ class WglTexture {
     );
 
     return outputBuffer;
+  }
+
+  /**
+   * Starts copying this float texture's pixels into a buffer the CPU can read once the GPU gets to
+   * it, without waiting. Browsers settle the fence between tasks, so the read is ready at the
+   * earliest on a later frame. The texture itself can go back to the pool right away: later writes
+   * to it are ordered after the copy.
+   *
+   * @returns {!PendingPixelRead}
+   */
+  readPixelsAsync() {
+    const GL = WebGL2RenderingContext;
+    if (!this._hasBeenRenderedTo) {
+      throw new Error(
+        "Called readPixelsAsync on a texture that hasn't been rendered to.",
+      );
+    }
+    if (this.pixelType !== GL.FLOAT) {
+      throw new Error("readPixelsAsync reads float textures.");
+    }
+    const length = this.width * this.height * 4;
+    if (length === 0) {
+      return new PendingPixelRead(undefined, undefined, 0);
+    }
+
+    const gl = initializedWglContext().gl;
+    const buffer = gl.createBuffer();
+    gl.bindBuffer(GL.PIXEL_PACK_BUFFER, buffer);
+    gl.bufferData(GL.PIXEL_PACK_BUFFER, length * 4, GL.STREAM_READ);
+    gl.bindFramebuffer(GL.FRAMEBUFFER, this.initializedFramebuffer());
+    gl.readPixels(0, 0, this.width, this.height, GL.RGBA, GL.FLOAT, 0);
+    gl.bindBuffer(GL.PIXEL_PACK_BUFFER, null);
+    const fence = gl.fenceSync(GL.SYNC_GPU_COMMANDS_COMPLETE, 0);
+    gl.flush();
+    return new PendingPixelRead(buffer, fence, length);
+  }
+}
+
+/**
+ * Pixels on their way from the GPU, started by WglTexture.readPixelsAsync.
+ */
+class PendingPixelRead {
+  /**
+   * @param {undefined|!WebGLBuffer} buffer
+   * @param {undefined|!WebGLSync} fence
+   * @param {!int} length The number of floats.
+   */
+  constructor(buffer, fence, length) {
+    this._buffer = buffer;
+    this._fence = fence;
+    this._length = length;
+    this._lifetime = initializedWglContext().lifetimeCounter;
+  }
+
+  /**
+   * @returns {!boolean} Whether the GL context was lost since the read started, which loses it.
+   */
+  isLost() {
+    return this._lifetime !== initializedWglContext().lifetimeCounter;
+  }
+
+  /**
+   * @returns {!boolean} Whether take() can return the pixels without waiting.
+   */
+  isReady() {
+    if (this._fence === undefined) {
+      return true;
+    }
+    if (this.isLost()) {
+      return false;
+    }
+    const GL = WebGL2RenderingContext;
+    const gl = initializedWglContext().gl;
+    return gl.getSyncParameter(this._fence, GL.SYNC_STATUS) === GL.SIGNALED;
+  }
+
+  /**
+   * Copies out the pixels and frees the buffer. Call once, after isReady.
+   * @returns {!Float32Array}
+   */
+  take() {
+    const result = new Float32Array(this._length);
+    if (this._buffer === undefined) {
+      return result;
+    }
+    if (!this.isReady()) {
+      throw new Error("Took pixels that haven't arrived.");
+    }
+    const GL = WebGL2RenderingContext;
+    const gl = initializedWglContext().gl;
+    gl.bindBuffer(GL.PIXEL_PACK_BUFFER, this._buffer);
+    gl.getBufferSubData(GL.PIXEL_PACK_BUFFER, 0, result);
+    gl.bindBuffer(GL.PIXEL_PACK_BUFFER, null);
+    this.cancel();
+    return result;
+  }
+
+  /**
+   * Frees the buffer without reading it.
+   */
+  cancel() {
+    if (this._buffer !== undefined && !this.isLost()) {
+      const gl = initializedWglContext().gl;
+      gl.deleteBuffer(this._buffer);
+      gl.deleteSync(this._fence);
+    }
+    this._buffer = undefined;
+    this._fence = undefined;
   }
 }
 

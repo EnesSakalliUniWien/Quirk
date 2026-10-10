@@ -83,7 +83,7 @@ const radianTurns = (time, formula) =>
 function exponent_to_A_len_painter(args) {
   const v = args.getGateContext("Input Range A");
   const denom_exponent =
-    v === undefined ? "ⁿ" : digits_to_superscript_digits("" + v.length);
+    v === undefined ? "ⁿ" : digits_to_superscript_digits(`${v.length}`);
   const symbol = args.gate.symbol.replace("ⁿ", denom_exponent);
   paintBackground(args);
   paintOutline(args);

@@ -62,9 +62,6 @@ export function domFor(scheme) {
     "--control-hover": colourString(appearance.colours.ui.controlHover),
     "--input-surface": controlSurface,
     "--brand-ink": brandInk,
-    "--brand-surface": colourString(appearance.colours.ui.brandSurface),
-    "--brand-border": colourString(appearance.colours.ui.brandBorder),
-    "--brand-glow": colourString(appearance.colours.ui.brandGlow),
     "--panel-heading": brandInk,
     "--panel-glow": colourString(appearance.colours.ui.panelGlow),
     "--panel-primary-hover": colourString(

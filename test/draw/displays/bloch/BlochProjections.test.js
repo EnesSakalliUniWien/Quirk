@@ -53,7 +53,7 @@ suite.test(
   async () => {
     const canvases = [320, 320, 320, 320].map((size) => {
       const canvas = document.createElement("canvas");
-      canvas.style.width = canvas.style.height = size + "px";
+      canvas.style.width = canvas.style.height = `${size}px`;
       document.body.appendChild(canvas);
       return canvas;
     });

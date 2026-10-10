@@ -10,6 +10,7 @@ const columns = [
   "label",
   "bits",
   "probability",
+  "count",
 ];
 
 function quote(value) {
@@ -24,13 +25,14 @@ function quote(value) {
 function* rows(takes) {
   yield columns;
   for (const take of takes) {
-    const { groups, joint } = distributions(take);
+    const { groups, joint, jointCounts } = distributions(take);
     const jointGroup = {
       name: "joint",
       start: 0,
       length: take.wires,
       labels: {},
       probabilities: joint,
+      counts: jointCounts,
     };
     for (const group of [...groups, jointGroup]) {
       for (const [index, probability] of group.probabilities.entries()) {
@@ -44,6 +46,8 @@ function* rows(takes) {
           group.labels[index] ?? "",
           index.toString(2).padStart(group.length, "0"),
           Number.isFinite(probability) ? probability : "unavailable",
+          // A take recorded before measurements were kept has no counts.
+          group.counts?.[index] ?? "",
         ];
       }
     }

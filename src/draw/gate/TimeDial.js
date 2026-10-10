@@ -201,7 +201,7 @@ function paintTimeDial(args, turns, axis = undefined) {
     return;
   }
   const { center, radius } = dialPlacement(args.rect);
-  args.painter.group("cycle-" + args.painter.order, (painter) => {
+  args.painter.group(`cycle-${args.painter.order}`, (painter) => {
     painter.position.set(center.x, center.y);
     // The ring is drawn inside the face's outer edge, so the badge reaches exactly its radius.
     const ring = lineWidth(painter, 1);

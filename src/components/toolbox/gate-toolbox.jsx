@@ -27,9 +27,10 @@ import {
 } from "../../gates/misc/RandomUnitaryGate.js";
 import { chipPartsOf, listNameOf, searchTextOf } from "./toolbox.js";
 
-/** A tile's height and the gap between them, from src/styles/gates/toolbox/tiles.css and groups.css.
+/** A tile's height and the gap between them, from src/styles/gates/toolbox/tiles.css and groups.css:
+ *  the taller of its details button and its padded chip, which grows with the browser's text size.
  *  Used only to reserve space for a group whose rendering is skipped while it is off screen. */
-const TILE_HEIGHT = 32;
+const TILE_HEIGHT = "max(32px, 1.625rem + 4px)";
 const TILE_GAP = 2;
 
 /**
@@ -388,7 +389,7 @@ function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace }) {
                     /* The height this group would have, so one whose rendering is skipped while
                        off screen still takes its real space and the scrollbar means something. */
                     style={{
-                      containIntrinsicSize: `auto ${groupModels.length * TILE_HEIGHT + (groupModels.length - 1) * TILE_GAP}px`,
+                      containIntrinsicSize: `auto calc(${groupModels.length} * ${TILE_HEIGHT} + ${(groupModels.length - 1) * TILE_GAP}px)`,
                     }}
                   >
                     {groupModels.map((model) => (

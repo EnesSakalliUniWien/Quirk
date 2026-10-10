@@ -114,7 +114,7 @@ const promiseRunTest = (suite, name, method) => {
         if (status.warn_show_error) {
           for (const logMsg of result.log) {
             for (const line of logMsg.split("\n")) {
-              console.warn("(ignored) " + line);
+              console.warn(`(ignored) ${line}`);
             }
           }
         }
@@ -128,8 +128,8 @@ const promiseRunTest = (suite, name, method) => {
 __testRunner__.start = () => {
   if (TEST_SUITE_NAME_FILTER !== undefined || TEST_NAME_FILTER !== undefined) {
     console.warn("TEST FILTERS IN EFFECT:");
-    console.warn("    SUITE=" + TEST_SUITE_NAME_FILTER);
-    console.warn("    TEST=" + TEST_NAME_FILTER);
+    console.warn(`    SUITE=${TEST_SUITE_NAME_FILTER}`);
+    console.warn(`    TEST=${TEST_NAME_FILTER}`);
   }
   const keptSuites = Suite.suites.filter(
     (e) =>
@@ -146,7 +146,7 @@ __testRunner__.start = () => {
       console.warn(`Empty test suite: ${suite.name}`);
     }
   }
-  __testRunner__.info({ total: total });
+  __testRunner__.info({ total });
 
   let chain = Promise.resolve();
 

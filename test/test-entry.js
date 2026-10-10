@@ -1,3 +1,5 @@
+import "./BrowserTestHarness.js";
+
 import { setCustomGateCircuitRenderer } from "../src/draw/gate/CustomGateCircuitRenderer.js";
 import { GATE_CIRCUIT_RENDERER } from "../src/editor/rendering/previews/CircuitPreview.js";
 

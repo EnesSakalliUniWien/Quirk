@@ -232,7 +232,8 @@ suite.testUsingWebGL(
       }
 
       // Started from what a prefix kept, a run applies only the columns after it and gives the same
-      // states, bit for bit. A step before the prefix's end makes the run from the start.
+      // states, to a rounding: the run that kept the prefix fused its columns, and a run that reads
+      // every step fuses none. A step before the prefix's end makes the run from the start.
       const prefix = new StablePrefix();
       CircuitStats.fromCircuitAtTime(definition, time, seed, prefix);
       const kept = StablePrefix.keptLength(shown);
@@ -246,9 +247,9 @@ suite.testUsingWebGL(
         const wanted = steps.filter((k) => k >= first);
         const ran = stats.statesAfterSteps(wanted, prefix);
         for (const [i, k] of wanted.entries()) {
-          assertThat(ran[i])
+          assertThat(sameData(ran[i], states[k], 1e-6))
             .withInfo({ diagram: Serializer.toJson(definition), first, k })
-            .isEqualTo(states[k]);
+            .isEqualTo(true);
         }
       }
       prefix.release();
@@ -347,9 +348,10 @@ suite.testUsingWebGL(
         const full = stats.statesAfterSteps(steps);
         const after = steps.slice(kept);
         const ran = stats.statesAfterSteps(after, prefix);
-        // Bit for bit, though a state is NaN where the circuit cannot survive to it.
+        // To a rounding, since the kept prefix came from a run that fused its columns, though a state
+        // is NaN where the circuit cannot survive to it.
         for (const [j, k] of after.entries()) {
-          assertThat(sameData(ran[j], full[k]))
+          assertThat(sameData(ran[j], full[k], 1e-6))
             .withInfo({ circuit: definition.toString(), seed, time, k })
             .isEqualTo(true);
         }
@@ -369,9 +371,11 @@ suite.testUsingWebGL(
   () => {
     const failure = new Error("this gate fails");
     // Each has a matrix, which is all the recovery from a failure needs to write the circuit out.
+    // Gate fusion applies a quiet unitary gate's matrix itself, so the failing gate's is not unitary:
+    // the run applies the gate's own effect, which fails.
     const failing = new GateBuilder()
       .setSerializedId("fails-part-way")
-      .setKnownEffectToMatrix(Matrix.square(0, 1, 1, 0))
+      .setKnownEffectToMatrix(Matrix.square(0, 1, 0, 0))
       .setActualEffectToUpdateFunc(() => {
         throw failure;
       }).gate;

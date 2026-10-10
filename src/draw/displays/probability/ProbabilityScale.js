@@ -41,7 +41,7 @@ export function formatProbability(p, digits = 1) {
   if (percent > 100 - step / 2) {
     return `>${(100 - step).toFixed(digits)}%`;
   }
-  return percent.toFixed(digits) + "%";
+  return `${percent.toFixed(digits)}%`;
 }
 
 /**

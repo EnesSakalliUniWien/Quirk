@@ -6,6 +6,7 @@ import { createValueStore } from "../../../../src/base/valueStore.js";
 import { appStore } from "../../../../src/state/appStore.js";
 import { useCompletedResult } from "../../../../src/components/panels/shared/usePlayheadStats.js";
 import { PanelVisibility } from "../../../../src/components/panels/shared/usePanelVisibility.js";
+import { createMotionSettings } from "../../../../src/state/motionSettings.js";
 
 const suite = new Suite("usePlayheadStats");
 
@@ -23,10 +24,10 @@ async function until(condition, timeout = 2000) {
 const settle = () => new Promise((resolve) => setTimeout(resolve, 250));
 
 /** A panel reading the completed result, inside a dock that can hide it. */
-function mountPanel() {
+function mountPanel(settings = undefined) {
   const completed = createValueStore(undefined);
   const previousDeps = appStore.getState().panelDeps;
-  appStore.setState({ panelDeps: { completed } });
+  appStore.setState({ panelDeps: { completed, settings } });
   const root = createRoot(document.createElement("div"));
   const samples = [];
   function Probe() {
@@ -90,6 +91,30 @@ suite.test(
       panel.show(true);
       await settle();
       assertThat(delivered()).isEqualTo("a");
+    } finally {
+      panel.unmount();
+    }
+  },
+);
+
+suite.test(
+  "panels refresh no faster than the interval the user sets, and a new interval applies at once",
+  async () => {
+    const settings = createMotionSettings(undefined);
+    const panel = mountPanel(settings);
+    try {
+      panel.show(true);
+      panel.publish("a");
+      await until(() => panel.latest() === "a");
+      // A long interval: the sample it starts with arrives, and the next waits.
+      flushSync(() => settings.getState().set("panelSampleMs", 2000));
+      await settle();
+      panel.publish("b");
+      await settle();
+      assertThat(panel.latest()).isEqualTo("a");
+      // A shorter interval takes up the newest sample at once, long before the old one ends.
+      flushSync(() => settings.getState().set("panelSampleMs", 16));
+      await until(() => panel.latest() === "b", 1000);
     } finally {
       panel.unmount();
     }

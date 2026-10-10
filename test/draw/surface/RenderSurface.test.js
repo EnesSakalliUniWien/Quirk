@@ -58,7 +58,7 @@ suite.test(
         failure,
       ]);
       assertThat(
-        host.textContent.includes("Rendering failed: " + failure.message),
+        host.textContent.includes(`Rendering failed: ${failure.message}`),
       ).isEqualTo(true);
       assertThat(host.textContent.includes("×1")).isEqualTo(true);
       assertThat(host.textContent.includes("×2")).isEqualTo(false);
@@ -522,7 +522,7 @@ suite.test(
         failure,
       ]);
       assertThat(
-        host.textContent.includes("Rendering failed: " + failure.message),
+        host.textContent.includes(`Rendering failed: ${failure.message}`),
       ).isEqualTo(true);
       assertThat(host.textContent.includes("×1")).isEqualTo(true);
       assertThat(host.textContent.includes("×2")).isEqualTo(false);

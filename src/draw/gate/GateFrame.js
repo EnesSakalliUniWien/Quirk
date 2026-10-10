@@ -59,7 +59,7 @@ function paintOutline(args) {
  */
 function paintHoverOverlay(args) {
   if (!args.isHighlighted) return;
-  args.painter.group("hover-" + args.painter.order, (painter) => {
+  args.painter.group(`hover-${args.painter.order}`, (painter) => {
     painter.alpha *= 0.9;
     rectangle(painter, args.rect, { fill: CanvasTheme.gate.hover });
   });
@@ -96,7 +96,7 @@ function paintResizeTab(args) {
   const foreColor = args.isResizeHighlighted
     ? CanvasTheme.text.default
     : CanvasTheme.text.muted;
-  args.painter.group("resize-tab-" + args.painter.order, (painter) => {
+  args.painter.group(`resize-tab-${args.painter.order}`, (painter) => {
     painter.alpha *= args.isResizeHighlighted ? 1 : 0.7;
     rectangle(painter, trimRect, { fill: backColor });
     frame(painter, trimRect);

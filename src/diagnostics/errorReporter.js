@@ -176,8 +176,8 @@ function renderBanner() {
   const { kind, title, count } = _state.banner;
   els.message.textContent = title;
   els.reportAnchor.href =
-    NEW_ISSUE_URL + encodeURIComponent("Encountered error: " + title);
-  els.count.textContent = "×" + count;
+    NEW_ISSUE_URL + encodeURIComponent(`Encountered error: ${title}`);
+  els.count.textContent = `×${count}`;
   els.count.hidden = count < 2;
   // Environment problems aren't reportable bugs; the details buttons only accompany crashes.
   els.copyButton.hidden = kind === "blocking";
@@ -264,7 +264,7 @@ function reportUnexpectedError(subject, error) {
     }
     showBanner({
       kind: "recovered",
-      title: "An error happened. " + subject,
+      title: `An error happened. ${subject}`,
       detailsText: formatDetails(subject, { source: "global handler" }, error),
     });
   } catch (ex) {

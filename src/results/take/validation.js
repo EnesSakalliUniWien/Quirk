@@ -2,6 +2,7 @@ import { CircuitDefinition } from "../../circuit/model/CircuitDefinition.js";
 import { Serializer } from "../../serialization/Serializer.js";
 import { takeSchema } from "./schema.js";
 import { validateDisplays } from "./displays.js";
+import { measuredCounts } from "./snapshot.js";
 
 function stable(value) {
   if (Array.isArray(value)) return value.map(stable);
@@ -117,6 +118,18 @@ function validateTake(value) {
       throw new Error(`Invalid snapshot at ${field}: ${cause.message}`, {
         cause,
       });
+    }
+  }
+  // The counts follow from the stored state, the shots and the seed; anything else was not measured.
+  if (take.measurement !== undefined) {
+    const { shots, seed, counts } = take.measurement;
+    if (
+      canonicalJson(counts) !==
+      canonicalJson(measuredCounts(take.result.amplitudes, shots, seed))
+    ) {
+      throw new Error(
+        "Invalid take at measurement: counts do not follow from the result",
+      );
     }
   }
   return take;

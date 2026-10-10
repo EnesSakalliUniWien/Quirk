@@ -39,13 +39,13 @@ suite.test(
       assertThat(rows.map((label) => label.text)).isEqualTo(
         Array.from(
           { length: 2 ** rowBits },
-          (_, i) => i.toString(2).padStart(rowBits, "0") + "⋯",
+          (_, i) => `${i.toString(2).padStart(rowBits, "0")}⋯`,
         ),
       );
       assertThat(cols.map((label) => label.text)).isEqualTo(
         Array.from(
           { length: 2 ** colBits },
-          (_, i) => "⋯" + i.toString(2).padStart(colBits, "0"),
+          (_, i) => `⋯${i.toString(2).padStart(colBits, "0")}`,
         ),
       );
       for (const label of rows) {

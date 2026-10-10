@@ -15,9 +15,6 @@
   .panel-body {
     box-sizing: border-box;
     color: var(--card-foreground);
-  }
-
-  .panel-body {
     padding: calc(var(--spacing) * 6);
   }
 

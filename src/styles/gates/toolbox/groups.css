@@ -27,9 +27,6 @@
        not jump. Browsers without it simply render everything, as before. */
   .gate-group-tiles {
     content-visibility: auto;
-  }
-
-  .gate-group-tiles {
     display: grid;
     gap: 2px;
   }

@@ -168,7 +168,7 @@ function combinedShaderPartsWithCode(shaderPartsOrDescs, bodyCode) {
       ...libs,
       ...shaderPartDescs.map((e) => e.toConcretePart().code),
     ].join("");
-    const afterLibCode = "\n//////// body ////////\n" + bodyCode + "\n";
+    const afterLibCode = `\n//////// body ////////\n${bodyCode}\n`;
 
     // The body defines outputFor, which the output part's main() calls, so the body has to come
     // before main() to satisfy GLSL's declare-before-use rule.

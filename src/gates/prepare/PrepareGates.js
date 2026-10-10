@@ -200,7 +200,7 @@ PrepareGates.ValueFamily = Gate.buildFamily(1, 16, (span, builder) => {
     g.customOperation = operation;
   };
   builder
-    .setSerializedId("Prep" + span)
+    .setSerializedId(`Prep${span}`)
     .setSymbol("|v⟩")
     .setTitle("Prepare Value")
     .setBlurb(
@@ -232,7 +232,7 @@ PrepareGates.ValueFamily = Gate.buildFamily(1, 16, (span, builder) => {
 PrepareGates.UniformFamily = Gate.buildFamily(1, 16, (span, builder) =>
   declarePreparation(
     builder
-      .setSerializedId("Prep+" + span)
+      .setSerializedId(`Prep+${span}`)
       .setSymbol(span <= 3 ? `|${"+".repeat(span)}⟩` : "|+…+⟩")
       .setTitle("Prepare Uniform")
       .setBlurb(
@@ -282,7 +282,7 @@ PrepareGates.Bell = declarePreparation(
 PrepareGates.GhzFamily = Gate.buildFamily(2, 16, (span, builder) =>
   declarePreparation(
     builder
-      .setSerializedId("PrepGHZ" + span)
+      .setSerializedId(`PrepGHZ${span}`)
       .setSymbol("GHZ")
       .setTitle("Prepare GHZ")
       .setBlurb(
@@ -303,7 +303,7 @@ PrepareGates.GhzFamily = Gate.buildFamily(2, 16, (span, builder) =>
 PrepareGates.WFamily = Gate.buildFamily(2, 16, (span, builder) =>
   declarePreparation(
     builder
-      .setSerializedId("PrepW" + span)
+      .setSerializedId(`PrepW${span}`)
       .setSymbol("W")
       .setTitle("Prepare W")
       .setBlurb(
@@ -414,7 +414,7 @@ PrepareGates.AmplitudesFamily = Gate.buildFamily(
       g.customOperation = operation;
     };
     builder
-      .setSerializedId("PrepPsi" + span)
+      .setSerializedId(`PrepPsi${span}`)
       .setSymbol("|ψ⟩")
       .setTitle("Prepare State")
       .setBlurb(

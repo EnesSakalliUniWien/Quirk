@@ -38,3 +38,9 @@
   container: dock-panel / inline-size;
   min-width: 0;
 }
+
+/* The Bloch analyzer answers to its height as well, to fit its sphere in a short window
+   (src/styles/panels/bloch.css). A panel's height is the dock's, never its content's. */
+.app-dock .panel-scroll[data-panel-id="bloch"] {
+  container-type: size;
+}

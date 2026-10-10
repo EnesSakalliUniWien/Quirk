@@ -48,7 +48,7 @@ class Format {
     if (this.fixedDigits !== undefined) {
       return f.toFixed(this.fixedDigits);
     }
-    return f + "";
+    return `${f}`;
   }
 
   /**
@@ -59,7 +59,7 @@ class Format {
    */
   static parseFloat(text) {
     if (text.length === 0) {
-      throw new Error("Not a number: '" + text + "'");
+      throw new Error(`Not a number: '${text}'`);
     }
     if (text[0] === "-") {
       return -Format.parseFloat(text.slice(1));
@@ -68,14 +68,14 @@ class Format {
       return Math.sqrt(Format.parseFloat(text.slice(1)));
     }
 
-    const fraction = match(UNICODE_FRACTIONS, (e) => e.character === text);
+    const fraction = UNICODE_FRACTIONS.find((e) => e.character === text);
     if (fraction !== undefined) {
       return fraction.value;
     }
 
     const result = Number.parseFloat(text);
     if (Number.isNaN(result)) {
-      throw new Error("Not a number: '" + text + "'");
+      throw new Error(`Not a number: '${text}'`);
     }
     return result;
   }
@@ -95,16 +95,14 @@ class Format {
       return Math.round(value);
     }
 
-    const fraction = match(
-      UNICODE_FRACTIONS,
+    const fraction = UNICODE_FRACTIONS.find(
       (e) => Math.abs(e.value - value) <= epsilon,
     );
     if (fraction !== undefined) {
       return fraction.value;
     }
 
-    const rootFraction = match(
-      UNICODE_FRACTIONS,
+    const rootFraction = UNICODE_FRACTIONS.find(
       (e) => Math.abs(Math.sqrt(e.value) - value) <= epsilon,
     );
     if (rootFraction !== undefined) {
@@ -140,18 +138,6 @@ const UNICODE_FRACTIONS = [
 ];
 
 /**
- * Returns the first element of an array matching the given predicate, or else returns undefined.
- */
-const match = function (array, predicate) {
-  for (const item of array) {
-    if (predicate(item)) {
-      return item;
-    }
-  }
-  return undefined;
-};
-
-/**
  * Returns a string representation of a float, taking advantage of unicode fractions and square roots.
  *
  * @param {!number} value The value to represent as a string.
@@ -164,23 +150,21 @@ function abbreviateFloat(value, epsilon = 0, digits = undefined) {
     return "0";
   }
   if (value < 0) {
-    return "-" + abbreviateFloat(-value, epsilon, digits);
+    return `-${abbreviateFloat(-value, epsilon, digits)}`;
   }
 
-  const fraction = match(
-    UNICODE_FRACTIONS,
+  const fraction = UNICODE_FRACTIONS.find(
     (e) => Math.abs(e.value - value) <= epsilon,
   );
   if (fraction !== undefined) {
     return fraction.character;
   }
 
-  const rootFraction = match(
-    UNICODE_FRACTIONS,
+  const rootFraction = UNICODE_FRACTIONS.find(
     (e) => Math.abs(Math.sqrt(e.value) - value) <= epsilon,
   );
   if (rootFraction !== undefined) {
-    return "\u221A" + rootFraction.character;
+    return `\u221A${rootFraction.character}`;
   }
 
   if (value % 1 !== 0 && digits !== undefined) {

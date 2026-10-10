@@ -36,7 +36,7 @@ const PIVOT_FLIP_SHADER = ketShaderPermute(
 
 PivotFlipGates.FlipUnderA = Gate.buildFamily(1, 16, (span, builder) =>
   builder
-    .setSerializedId("Flip<A" + span)
+    .setSerializedId(`Flip<A${span}`)
     .setSymbol("Flip\n< A")
     .setTitle("Pivot-Flip Gate")
     .setBlurb("Reverses the order of states below the pivot value.")

@@ -45,7 +45,7 @@ function drawBlochStrip(canvas, vecs, { selected, yaw, pitch }) {
     fill: CanvasTheme.surface.background,
   });
   vecs.forEach((vec, index) =>
-    view.group("step-" + index, (cell) => {
+    view.group(`step-${index}`, (cell) => {
       cell.position.set(index * (STRIP_CELL + STRIP_GAP), 0);
       paintBlochScene(cell, STRIP_CELL, vec, yaw, pitch);
       // The step being read wears the app's highlight, as whatever is in focus does elsewhere.
