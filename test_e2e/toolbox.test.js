@@ -32,7 +32,8 @@ import {
 
 /**
  * How the gate rows sit in the palette's scroll viewport: the widest row against the width the
- * viewport shows, and whether the Hadamard row's details button lies inside what it shows.
+ * viewport shows and the column of groups inside it, and whether the Hadamard row's details button
+ * lies inside what the viewport shows.
  */
 const paletteFit = (page) =>
   page.evaluate(() => {
@@ -47,6 +48,9 @@ const paletteFit = (page) =>
       .getBoundingClientRect();
     return {
       clientWidth: viewport.clientWidth,
+      columnWidth: document
+        .querySelector(".gate-toolbox-groups")
+        .getBoundingClientRect().width,
       widestRow: Math.max(
         ...[...document.querySelectorAll(".gate-tile-row")].map(
           (row) => row.getBoundingClientRect().width,
@@ -64,6 +68,11 @@ function assertPaletteFits(fit) {
   assert.ok(
     fit.widestRow <= fit.clientWidth,
     `Gate rows must fit the palette's ${fit.clientWidth}px, saw ${fit.widestRow}px.`,
+  );
+  // Nothing in a group, not even a heading too long for it, widens the column the rows share.
+  assert.ok(
+    fit.widestRow <= fit.columnWidth,
+    `Gate rows must keep to the palette's ${fit.columnWidth}px column, saw ${fit.widestRow}px.`,
   );
   assert.ok(
     fit.buttonInside,
