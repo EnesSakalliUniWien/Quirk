@@ -4,11 +4,14 @@
 @layer components {
   /* Sticky inside the scrolling viewport, so the group a tile belongs to stays named while
        the list scrolls past. The old fold spacing moves into the padding: a margin would leave
-       a transparent strip for tiles to scroll through while the heading is stuck. */
+       a transparent strip for tiles to scroll through while the heading is stuck. A name of
+       several words wraps; a word too long for the palette ends in an ellipsis, as a tile's
+       name does. */
   .gate-group-label {
     position: sticky;
     top: 0;
     z-index: 1;
+    overflow: hidden;
     margin: 0;
     padding: calc(var(--spacing) * 1) 0 calc(var(--spacing) * 2);
     color: var(--sidebar-muted);
@@ -16,6 +19,7 @@
     font-size: var(--text-caption);
     font-weight: 650;
     letter-spacing: 0.08em;
+    text-overflow: ellipsis;
     text-transform: uppercase;
   }
 

@@ -12,6 +12,9 @@ const gateDetailsHandle = Popover.createHandle();
 
 function GateHoverCard({ latestTime }) {
   const [hoverOpen, setHoverOpen] = useState(false);
+  // The card opens beside the tile's whole row rather than the tile, so it leaves uncovered the
+  // details button it points to.
+  const [hoverRow, setHoverRow] = useState(undefined);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [time, setTime] = useState(0);
   return (
@@ -19,12 +22,17 @@ function GateHoverCard({ latestTime }) {
       <PreviewCard.Root
         handle={gateHoverHandle}
         open={hoverOpen && !detailsOpen}
-        onOpenChange={setHoverOpen}
+        onOpenChange={(open, { trigger }) => {
+          setHoverOpen(open);
+          if (open)
+            setHoverRow(trigger?.closest(".gate-tile-row") ?? undefined);
+        }}
       >
         {({ payload }) => (
           <PreviewCard.Portal>
             <PreviewCard.Positioner
               className="gate-hover-positioner"
+              anchor={hoverRow}
               side="right"
               sideOffset={10}
               collisionPadding={12}

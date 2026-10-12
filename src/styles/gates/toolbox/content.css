@@ -38,8 +38,11 @@
     background: var(--sidebar-scrollbar);
   }
 
+  /* One column as wide as the palette: nothing in a group, such as a heading too long for it,
+     widens the column every row shares. */
   .gate-toolbox-groups {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: calc(var(--spacing) * 4);
   }
 

@@ -387,9 +387,11 @@ function GateToolbox({ obsCustomGateSet, mostRecentStats, onGrab, onPlace }) {
                     className="gate-group-tiles"
                     data-slot="sidebar-group-content"
                     /* The height this group would have, so one whose rendering is skipped while
-                       off screen still takes its real space and the scrollbar means something. */
+                       off screen still takes its real space and the scrollbar means something.
+                       Only the height: the width comes from the palette, and a size given for
+                       both axes once widened every row past it. */
                     style={{
-                      containIntrinsicSize: `auto calc(${groupModels.length} * ${TILE_HEIGHT} + ${(groupModels.length - 1) * TILE_GAP}px)`,
+                      containIntrinsicHeight: `auto calc(${groupModels.length} * ${TILE_HEIGHT} + ${(groupModels.length - 1) * TILE_GAP}px)`,
                     }}
                   >
                     {groupModels.map((model) => (
