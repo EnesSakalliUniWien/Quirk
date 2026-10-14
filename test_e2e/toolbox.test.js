@@ -583,6 +583,72 @@ test("the palette, its gate cards and their figures follow the browser text size
   );
 });
 
+test("a gate group reserves, while it is skipped, the height it renders at", async (browser) => {
+  // The usual text size, twice it, and a touch screen, where every row is a 44px target.
+  for (const { standard, viewport } of [
+    { standard: 16, viewport: undefined },
+    {
+      standard: 32,
+      viewport: { width: 1600, height: 1200, deviceScaleFactor: 1 },
+    },
+    {
+      standard: 16,
+      viewport: {
+        width: 1280,
+        height: 720,
+        deviceScaleFactor: 1,
+        hasTouch: true,
+      },
+    },
+  ]) {
+    await withQuirkPage(
+      browser,
+      { cols: [["H"]] },
+      async (page) => {
+        if (standard !== 16) {
+          const session = await page.createCDPSession();
+          await session.send("Page.setFontSizes", {
+            fontSizes: { standard },
+          });
+          await page.reload();
+          await waitForQuirk(page);
+        }
+        // Each group in turn is brought on screen, so it renders, and its height is compared with
+        // the height it reserves while it is not.
+        const mismatches = await page.evaluate(async () => {
+          const differing = [];
+          for (const tiles of document.querySelectorAll(".gate-group-tiles")) {
+            tiles.scrollIntoView({ block: "start" });
+            await new Promise((resolve) =>
+              requestAnimationFrame(() => requestAnimationFrame(resolve)),
+            );
+            const reserved = Number.parseFloat(
+              getComputedStyle(tiles).containIntrinsicHeight.split(" ").at(-1),
+            );
+            const rendered = tiles.getBoundingClientRect().height;
+            if (Math.abs(reserved - rendered) > 0.5) {
+              differing.push({
+                group:
+                  tiles.parentElement.querySelector(".gate-group-label")
+                    .textContent,
+                reserved,
+                rendered,
+              });
+            }
+          }
+          return differing;
+        });
+        assert.deepEqual(
+          mismatches,
+          [],
+          `At ${standard}px text${viewport?.hasTouch ? " on touch" : ""}, groups reserve the wrong height.`,
+        );
+      },
+      viewport,
+    );
+  }
+});
+
 test("keeps the gate palette in the dock beside the circuit, where it cannot be closed", async (browser) => {
   const circuit = { cols: [["H"], ["Bloch"]] };
   await withQuirkPage(browser, circuit, async (page) => {
